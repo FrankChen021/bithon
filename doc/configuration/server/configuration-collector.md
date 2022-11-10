@@ -98,8 +98,19 @@ collector-brpc:
 ```yaml
 collector-kafka:
   enabled: true
-  source:
-    "[bootstrap.servers]": localhost:9092
-    "[fetch.min.bytes]": 1024
-    ...other Kafka Consumer Properties
+  metrics:
+     topic: bithon-metrics
+     "[bootstrap.servers]": localhost:9092
+     "[fetch.min.bytes]": 524288
+     #...other Kafka consumer properties
+  event:
+     topic: bithon-events
+     "[bootstrap.servers]": localhost:9092
+     "[fetch.min.bytes]": 1048576
+     #...other Kafka consumer properties
+  tracing:
+     topic: bithon-spans
+     "[bootstrap.servers]": localhost:9092
+     "[fetch.min.bytes]": 1048576
+    #...other Kafka consumer properties
 ```

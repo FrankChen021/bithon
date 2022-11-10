@@ -22,9 +22,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.bithon.component.commons.collection.CloseableIterator;
+import org.bithon.component.commons.utils.Preconditions;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
@@ -32,6 +35,7 @@ import org.springframework.kafka.listener.MessageListener;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -44,6 +48,7 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
     protected final ObjectMapper objectMapper;
     private final Class<MSG> clazz;
     ConcurrentMessageListenerContainer<String, String> consumerContainer;
+    private String topic;
 
     public AbstractKafkaConsumer(Class<MSG> clazz) {
         this.clazz = clazz;
@@ -51,10 +56,6 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
         objectMapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
-
-    protected abstract String getGroupId();
-
-    protected abstract String getTopic();
 
     protected abstract void onMessage(String s, CloseableIterator<MSG> msg);
 
@@ -91,7 +92,7 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
         if (type != null) {
             onMessage(new String(type.value(), StandardCharsets.UTF_8), iterator);
         } else {
-            log.error("No header in message from topic: {}", this.getTopic());
+            log.error("No header in message from topic: {}", this.topic);
         }
         try {
             iterator.close();
@@ -100,15 +101,22 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
     }
 
     @Override
-    public IKafkaConsumer start(Map<String, Object> consumerProps) {
+    public IKafkaConsumer start(final Map<String, Object> props) {
+        Map<String, Object> consumerProperties = new HashMap<>(props);
 
-        ContainerProperties containerProperties = new ContainerProperties(getTopic());
+        topic = (String) props.remove("topic");
+        Preconditions.checkNotNull(topic, "topic for [%s] is not configured.", this.getClass().getSimpleName());
+
+        consumerProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        consumerProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+
+        ContainerProperties containerProperties = new ContainerProperties(topic);
         containerProperties.setAckMode(ContainerProperties.AckMode.TIME);
         containerProperties.setAckTime(5000);
         containerProperties.setPollTimeout(1000);
-        containerProperties.setGroupId(getGroupId());
-        containerProperties.setClientId(getGroupId());
-        consumerContainer = new ConcurrentMessageListenerContainer<>(new DefaultKafkaConsumerFactory<>(consumerProps),
+        containerProperties.setGroupId((String) props.getOrDefault(ConsumerConfig.GROUP_ID_CONFIG, "bithon"));
+        containerProperties.setClientId((String) props.getOrDefault(ConsumerConfig.CLIENT_ID_CONFIG, "bithon"));
+        consumerContainer = new ConcurrentMessageListenerContainer<>(new DefaultKafkaConsumerFactory<>(consumerProperties),
                                                                      containerProperties);
         consumerContainer.setupMessageListener(this);
         consumerContainer.start();
@@ -118,7 +126,7 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
 
     @Override
     public void stop() {
-        log.info("Stopping Kafka consumer for {}", getTopic());
+        log.info("Stopping Kafka consumer for {}", this.topic);
         if (consumerContainer != null) {
             consumerContainer.stop(true);
         }

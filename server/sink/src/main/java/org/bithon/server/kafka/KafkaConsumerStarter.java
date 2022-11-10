@@ -55,13 +55,10 @@ public class KafkaConsumerStarter implements SmartLifecycle, ApplicationContextA
     @Override
     public void start() {
         KafkaConsumerConfig config = this.context.getBean(KafkaConsumerConfig.class);
-        Map<String, Object> consumerProps = config.getSource();
-        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 
-        collectors.add(new KafkaTraceConsumer(new LocalTraceSink(this.context)).start(consumerProps));
-        collectors.add(new KafkaEventConsumer(new LocalEventSink(this.context.getBean(EventMessageHandlers.class))).start(consumerProps));
-        collectors.add(new KafkaMetricConsumer(new LocalMetricSink(this.context.getBean(MetricMessageHandlers.class))).start(consumerProps));
+        collectors.add(new KafkaTraceConsumer(new LocalTraceSink(this.context)).start(config.getTracing()));
+        collectors.add(new KafkaEventConsumer(new LocalEventSink(this.context.getBean(EventMessageHandlers.class))).start(config.getEvent()));
+        collectors.add(new KafkaMetricConsumer(new LocalMetricSink(this.context.getBean(MetricMessageHandlers.class))).start(config.getMetrics()));
     }
 
     @Override

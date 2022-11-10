@@ -18,9 +18,18 @@ collector-brpc:
 
 collector-kafka:
   enabled: false
-  source:
+  metrics:
+    topic: bithon-metrics
     "[bootstrap.servers]": localhost:9092
-    "[fetch.min.bytes]": 1024
+    "[fetch.min.bytes]": 524288
+  event:
+    topic: bithon-events
+    "[bootstrap.servers]": localhost:9092
+    "[fetch.min.bytes]": 1048576
+  tracing:
+    topic: bithon-spans
+    "[bootstrap.servers]": localhost:9092
+    "[fetch.min.bytes]": 1048576
 
 collector-http:
   enabled: true
