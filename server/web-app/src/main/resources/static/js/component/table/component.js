@@ -11,7 +11,7 @@ class TableComponent {
      * @param option
      *     parent: p,
      *     columns: columns
-     *     pagination: [true/false]
+     *     pagination: either a list or an object. If it's an object, should be { pages: [], side: 'server' | 'client' }
      *     tableId: an unique id for the table component
      */
     constructor(option) {
@@ -22,8 +22,16 @@ class TableComponent {
 
         this.mColumns = option.columns;
         this.mCreated = false;
+
         this.mHasPagination = option.pagination !== undefined;
-        this.mPagination = option.pagination;
+        if(typeof option.pagination === 'object') {
+            this.mPagination = option.pagination.pages;
+            this.mPaginationSide = option.pagination.side;
+        } else {
+            this.mPagination = option.pagination;
+            this.mPaginationSide = 'server';
+        }
+
         this.mDetailViewField = null;
         this.mColumnMap = {};
 
@@ -129,7 +137,7 @@ class TableComponent {
                 showRefresh: false,
                 responseHandler: option.responseHandler,
 
-                sidePagination: "server",
+                sidePagination: this.mPaginationSide,
                 pagination: this.mHasPagination,
 
                 serverSort: this.mHasPagination,
@@ -176,7 +184,7 @@ class TableComponent {
     }
 
     #getQueryParams(params) {
-        if (this.mHasPagination) {
+        if (this.mHasPagination && this.mPaginationSide === 'server') {
             // Compatible with old interface
             this.mQueryParam.pageNumber = params.pageNumber - 1;
             this.mQueryParam.pageSize = params.pageSize;
