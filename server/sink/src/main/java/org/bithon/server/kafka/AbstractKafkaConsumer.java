@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -48,6 +49,8 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
     protected final ObjectMapper objectMapper;
     private final Class<MSG> clazz;
     ConcurrentMessageListenerContainer<String, String> consumerContainer;
+
+    @Getter
     private String topic;
 
     public AbstractKafkaConsumer(Class<MSG> clazz) {

@@ -94,7 +94,7 @@ public class CollectorAutoConfiguration {
     @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
     public IEventMessageSink eventSink(BrpcCollectorConfig config,
                                        ObjectMapper om) throws IOException {
-        return config.getSinks().getEvents().createSink(om, IEventMessageSink.class);
+        return config.getSinks().getEvent().createSink(om, IEventMessageSink.class);
     }
 
     @Bean

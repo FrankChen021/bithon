@@ -34,16 +34,6 @@ public class KafkaEventConsumer extends AbstractKafkaConsumer<EventMessage> {
     }
 
     @Override
-    protected String getGroupId() {
-        return "bithon-event-consumer";
-    }
-
-    @Override
-    protected String getTopic() {
-        return "bithon-event";
-    }
-
-    @Override
     protected void onMessage(String type, CloseableIterator<EventMessage> messages) {
         eventSink.process(getTopic(), IteratorableCollection.of(messages));
     }

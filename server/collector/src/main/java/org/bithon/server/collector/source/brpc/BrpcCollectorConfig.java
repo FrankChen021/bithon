@@ -38,7 +38,7 @@ public class BrpcCollectorConfig {
     @Data
     public static class Sinks {
         private SinkConfig metrics;
-        private SinkConfig events;
+        private SinkConfig event;
         private SinkConfig tracing;
     }
 }

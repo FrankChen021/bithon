@@ -40,16 +40,6 @@ public class KafkaMetricConsumer extends AbstractKafkaConsumer<MetricMessage> {
     }
 
     @Override
-    protected String getGroupId() {
-        return "bithon-metric-consumer";
-    }
-
-    @Override
-    protected String getTopic() {
-        return "bithon-metrics";
-    }
-
-    @Override
     protected void onMessage(String type, CloseableIterator<MetricMessage> msg) {
         List<IInputRow> rows = new ArrayList<>();
         while (msg.hasNext()) {

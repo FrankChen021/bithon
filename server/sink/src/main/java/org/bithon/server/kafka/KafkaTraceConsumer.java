@@ -35,16 +35,6 @@ public class KafkaTraceConsumer extends AbstractKafkaConsumer<TraceSpan> {
     }
 
     @Override
-    protected String getGroupId() {
-        return "bithon-trace-consumer";
-    }
-
-    @Override
-    protected String getTopic() {
-        return "bithon-trace";
-    }
-
-    @Override
     protected void onMessage(String type, CloseableIterator<TraceSpan> iterator) {
         traceSink.process(getTopic(), IteratorableCollection.of(iterator).toCollection());
     }
