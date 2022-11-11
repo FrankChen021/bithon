@@ -37,7 +37,7 @@ import java.util.List;
  * @date 2021/3/18
  */
 @Component
-@ConditionalOnProperty(value = "consumer-kafka.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(value = "collector-kafka.enabled", havingValue = "true", matchIfMissing = false)
 public class KafkaConsumerStarter implements SmartLifecycle, ApplicationContextAware {
     ApplicationContext context;
 

@@ -120,13 +120,14 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
         containerProperties.setAckMode(ContainerProperties.AckMode.TIME);
         containerProperties.setAckTime(5000);
         containerProperties.setPollTimeout(1000);
-        containerProperties.setGroupId((String) props.getOrDefault(ConsumerConfig.GROUP_ID_CONFIG, "bithon"));
-        containerProperties.setClientId((String) props.getOrDefault(ConsumerConfig.CLIENT_ID_CONFIG, "bithon"));
+        containerProperties.setGroupId((String) props.getOrDefault(ConsumerConfig.GROUP_ID_CONFIG, "bithon-" + topic));
+        containerProperties.setClientId((String) props.getOrDefault(ConsumerConfig.CLIENT_ID_CONFIG, "bithon-" + topic));
         consumerContainer = new ConcurrentMessageListenerContainer<>(new DefaultKafkaConsumerFactory<>(consumerProperties),
                                                                      containerProperties);
         consumerContainer.setupMessageListener(this);
         consumerContainer.start();
 
+        log.info("Starting Kafka consumer for topic [{}]", topic);
         return this;
     }
 
