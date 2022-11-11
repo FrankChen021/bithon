@@ -72,6 +72,8 @@ In this case, the Kafka Collector can run with the BRPC collector in one same pr
 
 ### Configuration
 
+Following configurations allows the brpc-collector sink messages to a Kafka cluster.
+
 ```yaml
 collector-brpc:
   enabled: true
@@ -82,7 +84,7 @@ collector-brpc:
     ctrl: 9899
   sinks:
      event:
-        type: local
+        type: kafka
         props:
            topic: bithon-events
            "[bootstrap.servers]": localhost:9092
@@ -93,7 +95,7 @@ collector-brpc:
            "[max.in.flight.requests.per.connection]": 1
            "[retries]": 3
      metrics:
-        type: local
+        type: kafka
         props:
            topic: bithon-metrics
            "[bootstrap.servers]": localhost:9092
@@ -104,7 +106,7 @@ collector-brpc:
            "[max.in.flight.requests.per.connection]": 1
            "[retries]": 3
      tracing:
-        type: local
+        type: kafka
         props:
            topic: bithon-spans
            "[bootstrap.servers]": localhost:9092
@@ -119,21 +121,26 @@ collector-brpc:
 > Note: 
 > Under `collector-brpc.sink.props` configuration path, you can add other Kafka broker properties.
 
+And following configurations configure the application to consume messages from a Kafka cluster.
+
 ```yaml
 collector-kafka:
   enabled: true
   metrics:
      topic: bithon-metrics
+     "[group.id]": bithon-metrics-consumer
      "[bootstrap.servers]": localhost:9092
      "[fetch.min.bytes]": 524288
      #...other Kafka consumer properties
   event:
      topic: bithon-events
+     "[group.id]": bithon-events-consumer
      "[bootstrap.servers]": localhost:9092
      "[fetch.min.bytes]": 1048576
      #...other Kafka consumer properties
   tracing:
      topic: bithon-spans
+     "[group.id]": bithon-spans-consumer
      "[bootstrap.servers]": localhost:9092
      "[fetch.min.bytes]": 1048576
     #...other Kafka consumer properties

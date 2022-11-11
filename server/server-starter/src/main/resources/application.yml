@@ -1,6 +1,3 @@
-server:
-  port: 9897
-
 bithon:
   tracing:
     globalSanitizer:

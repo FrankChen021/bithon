@@ -1,0 +1,22 @@
+collector-kafka:
+  enabled: true
+  metrics:
+    topic: bithon-metrics
+    "[group.id]": bithon-metrics-consumer
+    "[bootstrap.servers]": localhost:9092
+    "[fetch.min.bytes]": 524288
+  event:
+    topic: bithon-events
+    "[group.id]": bithon-events-consumer
+    "[bootstrap.servers]": localhost:9092
+    "[fetch.min.bytes]": 1048576
+  tracing:
+    topic: bithon-spans
+    "[group.id]": bithon-spans-consumer
+    "[bootstrap.servers]": localhost:9092
+    "[fetch.min.bytes]": 1048576
+
+
+logging:
+  level:
+    org.bithon.collector: debug

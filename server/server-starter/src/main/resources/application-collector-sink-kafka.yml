@@ -7,7 +7,7 @@ collector-brpc:
     ctrl: 9899
   sinks:
     event:
-      type: local
+      type: kafka
       props:
         topic: bithon-events
         "[bootstrap.servers]": localhost:9092
@@ -18,7 +18,7 @@ collector-brpc:
         "[max.in.flight.requests.per.connection]": 1
         "[retries]": 3
     metrics:
-      type: local
+      type: kafka
       props:
         topic: bithon-metrics
         "[bootstrap.servers]": localhost:9092
@@ -29,7 +29,7 @@ collector-brpc:
         "[max.in.flight.requests.per.connection]": 1
         "[retries]": 3
     tracing:
-      type: local
+      type: kafka
       props:
         topic: bithon-spans
         "[bootstrap.servers]": localhost:9092
@@ -39,21 +39,6 @@ collector-brpc:
         "[compression.type]": lz4
         "[max.in.flight.requests.per.connection]": 1
         "[retries]": 3
-
-collector-kafka:
-  enabled: false
-  metrics:
-    topic: bithon-metrics
-    "[bootstrap.servers]": localhost:9092
-    "[fetch.min.bytes]": 524288
-  event:
-    topic: bithon-events
-    "[bootstrap.servers]": localhost:9092
-    "[fetch.min.bytes]": 1048576
-  tracing:
-    topic: bithon-spans
-    "[bootstrap.servers]": localhost:9092
-    "[fetch.min.bytes]": 1048576
 
 collector-http:
   enabled: true
