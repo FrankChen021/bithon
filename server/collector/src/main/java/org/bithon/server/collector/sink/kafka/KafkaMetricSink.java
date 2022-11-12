@@ -18,25 +18,15 @@ package org.bithon.server.collector.sink.kafka;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.sink.metrics.IMessageSink;
 import org.bithon.server.sink.metrics.IMetricMessageSink;
+import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -45,22 +35,11 @@ import java.util.Map;
 @JsonTypeName("kafka")
 public class KafkaMetricSink implements IMetricMessageSink {
 
-    private final KafkaTemplate<String, String> producer;
-    private final ObjectMapper objectMapper;
-    private final String topic;
+    private final IMessageSink<SchemaMetricMessage> sink;
 
     @JsonCreator
-    public KafkaMetricSink(@JsonProperty("props") Map<String, Object> props,
-                           @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
-        this.topic = (String) props.remove("topic");
-        Preconditions.checkNotNull(topic, "topic is not configured for metrics sink");
-
-        this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props,
-                                                                              new StringSerializer(),
-                                                                              new StringSerializer()),
-                                            ImmutableMap.of(ProducerConfig.CLIENT_ID_CONFIG, "metrics"));
-
-        this.objectMapper = objectMapper;
+    public KafkaMetricSink(@JacksonInject(useInput = OptBoolean.FALSE) IMessageSink<SchemaMetricMessage> sink) {
+        this.sink = sink;
     }
 
     @Override
@@ -68,38 +47,38 @@ public class KafkaMetricSink implements IMetricMessageSink {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
-
-        String key = null;
-
-        //
-        // a batch message in written into a single kafka message in which each text line is a single metric message
-        //
-        // of course we could also send messages in this batch one by one to Kafka,
-        // but I don't think it has advantages over the way below
-        //
-        StringBuilder messageText = new StringBuilder();
-        for (IInputRow metricMessage : messages) {
-            // Sink receives messages from an agent, it's safe to use instance name of first item
-            key = metricMessage.getColAsString("instanceName");
-
-            // deserialization
-            try {
-                messageText.append(objectMapper.writeValueAsString(metricMessage));
-            } catch (JsonProcessingException ignored) {
-            }
-
-            //it's not necessary, only used to improve readability of text when debugging
-            messageText.append('\n');
-        }
-
-        ProducerRecord<String, String> record = new ProducerRecord<>(this.topic, key, messageText.toString());
-        record.headers().add("type", messageType.getBytes(StandardCharsets.UTF_8));
-
-        this.producer.send(record);
+        this.sink.process(messageType, SchemaMetricMessage.builder().metrics(messages).build());
+//
+//        String key = null;
+//
+//        //
+//        // a batch message in written into a single kafka message in which each text line is a single metric message
+//        //
+//        // of course we could also send messages in this batch one by one to Kafka,
+//        // but I don't think it has advantages over the way below
+//        //
+//        StringBuilder messageText = new StringBuilder();
+//        for (IInputRow metricMessage : messages) {
+//            // Sink receives messages from an agent, it's safe to use instance name of first item
+//            key = metricMessage.getColAsString("instanceName");
+//
+//            // deserialization
+//            try {
+//                messageText.append(objectMapper.writeValueAsString(metricMessage));
+//            } catch (JsonProcessingException ignored) {
+//            }
+//
+//            //it's not necessary, only used to improve readability of text when debugging
+//            messageText.append('\n');
+//        }
+//
+//        ProducerRecord<String, String> record = new ProducerRecord<>(this.topic, key, messageText.toString());
+//        record.headers().add("type", messageType.getBytes(StandardCharsets.UTF_8));
+//
+//        this.producer.send(record);
     }
 
     @Override
     public void close() {
-        this.producer.destroy();
     }
 }

@@ -17,6 +17,7 @@
 package org.bithon.server.sink.metrics.topo;
 
 import org.bithon.server.storage.meta.IMetaStorage;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;

@@ -16,9 +16,16 @@
 
 package org.bithon.server.sink.metrics;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 /**
  * @author frankchen
  */
-public interface IMessageSink<MSG> {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(value = {
+    @JsonSubTypes.Type(name = "local", value = LocalSchemaMetricSink.class),
+})
+public interface IMessageSink<MSG> extends AutoCloseable {
     void process(String messageType, MSG message);
 }

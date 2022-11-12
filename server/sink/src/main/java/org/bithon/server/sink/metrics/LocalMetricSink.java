@@ -16,10 +16,8 @@
 
 package org.bithon.server.sink.metrics;
 
-import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
@@ -36,11 +34,11 @@ import java.util.List;
 @JsonTypeName("local")
 public class LocalMetricSink implements IMetricMessageSink {
 
-    private MetricMessageHandlers handlers;
+    private final MetricMessageHandlers handlers;
 
     @JsonCreator
-    public LocalMetricSink(@JacksonInject(useInput = OptBoolean.FALSE) MetricMessageHandlers handlers) {
-        this.handlers = handlers;
+    public LocalMetricSink() {
+        this.handlers = MetricMessageHandlers.getInstance();
     }
 
     @Override

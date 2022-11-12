@@ -36,7 +36,7 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
 
     public LocalSchemaMetricSink(ApplicationContext applicationContext) {
         this.schemaManager = applicationContext.getBean(DataSourceSchemaManager.class);
-        this.handlers = applicationContext.getBean(MetricMessageHandlers.class);
+        this.handlers = MetricMessageHandlers.getInstance();
         this.applicationContext = applicationContext;
     }
 
@@ -83,5 +83,10 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
                 return null;
             }
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+
     }
 }

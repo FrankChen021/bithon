@@ -42,17 +42,14 @@ import java.io.IOException;
 @JsonTypeName("metric")
 public class MetricInputSource implements IInputSource {
 
-    private final MetricMessageHandlers handlers;
     private final TransformSpec transformSpec;
     private final ApplicationContext applicationContext;
     private String name;
 
     @JsonCreator
     public MetricInputSource(@JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
-                             @JacksonInject(useInput = OptBoolean.FALSE) MetricMessageHandlers handlers,
                              @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.transformSpec = transformSpec;
-        this.handlers = handlers;
         this.applicationContext = applicationContext;
     }
 
@@ -65,12 +62,13 @@ public class MetricInputSource implements IInputSource {
     public void start(DataSourceSchema schema) {
         name = schema.getName();
         try {
-            handlers.add(new MetricMessageHandler(name,
-                                                  applicationContext.getBean(TopoTransformers.class),
-                                                  applicationContext.getBean(IMetaStorage.class),
-                                                  applicationContext.getBean(IMetricStorage.class),
-                                                  applicationContext.getBean(DataSourceSchemaManager.class),
-                                                  this.transformSpec));
+            MetricMessageHandlers.getInstance()
+                                 .add(new MetricMessageHandler(name,
+                                                               applicationContext.getBean(TopoTransformers.class),
+                                                               applicationContext.getBean(IMetaStorage.class),
+                                                               applicationContext.getBean(IMetricStorage.class),
+                                                               applicationContext.getBean(DataSourceSchemaManager.class),
+                                                               this.transformSpec));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -79,7 +77,7 @@ public class MetricInputSource implements IInputSource {
     @Override
     public void stop() {
         if (name != null) {
-            MetricMessageHandler handler = handlers.remove(name);
+            MetricMessageHandler handler = MetricMessageHandlers.getInstance().remove(name);
             if (handler != null) {
                 handler.close();
             }
