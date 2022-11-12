@@ -25,6 +25,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.bithon.component.commons.utils.NumberUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -77,6 +78,15 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
 
     @Override
     public IKafkaConsumer start(final Map<String, Object> props) {
+        int pollTimeout = NumberUtils.getInteger(props.remove("pollTimeout"), 1000);
+        Preconditions.checkIf(pollTimeout >= 100, "'pollTimeout' must be >= 100, given value is %d", pollTimeout);
+
+        int ackTime = NumberUtils.getInteger(props.remove("ackTime"), 5000);
+        Preconditions.checkIf(ackTime >= 100 && ackTime <= 60_000, "'ackTime' must be >= 100 && <= 60_000, given value is %d", ackTime);
+
+        int concurrency = NumberUtils.getInteger(props.remove("concurrency"), 1);
+        Preconditions.checkIf(concurrency > 0 && concurrency <= 64, "'concurrency' must be > 0 and <= 64, given values is: %d", concurrency);
+
         topic = (String) props.remove("topic");
         Preconditions.checkNotNull(topic, "topic for [%s] is not configured.", this.getClass().getSimpleName());
 
@@ -86,12 +96,13 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
 
         ContainerProperties containerProperties = new ContainerProperties(topic);
         containerProperties.setAckMode(ContainerProperties.AckMode.TIME);
-        containerProperties.setAckTime(5000);
-        containerProperties.setPollTimeout(1000);
+        containerProperties.setAckTime(ackTime);
+        containerProperties.setPollTimeout(pollTimeout);
         containerProperties.setGroupId((String) props.getOrDefault(ConsumerConfig.GROUP_ID_CONFIG, "bithon-" + topic));
         containerProperties.setClientId((String) props.getOrDefault(ConsumerConfig.CLIENT_ID_CONFIG, "bithon-" + topic));
         consumerContainer = new ConcurrentMessageListenerContainer<>(new DefaultKafkaConsumerFactory<>(consumerProperties), containerProperties);
         consumerContainer.setupMessageListener(this);
+        consumerContainer.setConcurrency(concurrency);
         consumerContainer.start();
 
         log.info("Starting Kafka consumer for topic [{}]", topic);

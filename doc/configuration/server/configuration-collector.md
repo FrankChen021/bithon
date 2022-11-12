@@ -128,20 +128,31 @@ collector-kafka:
   enabled: true
   metrics:
      topic: bithon-metrics
+     concurrency: 1
+     pollTimeout: 1000
+     ackTime: 5000
      "[group.id]": bithon-metrics-consumer
      "[bootstrap.servers]": localhost:9092
      "[fetch.min.bytes]": 524288
      #...other Kafka consumer properties
   event:
      topic: bithon-events
+     concurrency: 1
+     pollTimeout: 1000
+     ackTime: 5000
      "[group.id]": bithon-events-consumer
      "[bootstrap.servers]": localhost:9092
      "[fetch.min.bytes]": 1048576
      #...other Kafka consumer properties
   tracing:
      topic: bithon-spans
+     concurrency: 1
+     pollTimeout: 1000
+     ackTime: 5000
      "[group.id]": bithon-spans-consumer
      "[bootstrap.servers]": localhost:9092
      "[fetch.min.bytes]": 1048576
     #...other Kafka consumer properties
 ```
+
+Note: Both `pollTimeout` and `ackTime` are in milliseconds.
