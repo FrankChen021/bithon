@@ -52,9 +52,9 @@ public class KafkaConsumerStarter implements SmartLifecycle, ApplicationContextA
     public void start() {
         KafkaConsumerConfig config = this.context.getBean(KafkaConsumerConfig.class);
 
+        collectors.add(new KafkaMetricConsumer(new LocalMetricSink(this.context)).start(config.getMetrics()));
         collectors.add(new KafkaTraceConsumer(new LocalTraceSink(this.context)).start(config.getTracing()));
         collectors.add(new KafkaEventConsumer(new LocalEventSink(this.context.getBean(EventMessageHandlers.class))).start(config.getEvent()));
-        collectors.add(new KafkaMetricConsumer(new LocalMetricSink(this.context)).start(config.getMetrics()));
     }
 
     @Override

@@ -16,6 +16,9 @@
 
 package org.bithon.server.sink.metrics;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
@@ -34,7 +37,8 @@ public class LocalMetricSink implements IMetricMessageSink {
     final DataSourceSchemaManager schemaManager;
     final ApplicationContext applicationContext;
 
-    public LocalMetricSink(ApplicationContext applicationContext) {
+    @JsonCreator
+    public LocalMetricSink(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.schemaManager = applicationContext.getBean(DataSourceSchemaManager.class);
         this.handlers = MetricMessageHandlers.getInstance();
         this.applicationContext = applicationContext;
