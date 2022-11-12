@@ -19,7 +19,7 @@ package org.bithon.server.kafka;
 import lombok.SneakyThrows;
 import org.bithon.server.sink.event.EventMessageHandlers;
 import org.bithon.server.sink.event.LocalEventSink;
-import org.bithon.server.sink.metrics.LocalSchemaMetricSink;
+import org.bithon.server.sink.metrics.LocalMetricSink;
 import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -54,7 +54,7 @@ public class KafkaConsumerStarter implements SmartLifecycle, ApplicationContextA
 
         collectors.add(new KafkaTraceConsumer(new LocalTraceSink(this.context)).start(config.getTracing()));
         collectors.add(new KafkaEventConsumer(new LocalEventSink(this.context.getBean(EventMessageHandlers.class))).start(config.getEvent()));
-        collectors.add(new KafkaMetricConsumer(new LocalSchemaMetricSink(this.context)).start(config.getMetrics()));
+        collectors.add(new KafkaMetricConsumer(new LocalMetricSink(this.context)).start(config.getMetrics()));
     }
 
     @Override

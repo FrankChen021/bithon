@@ -17,7 +17,7 @@
 package org.bithon.server.kafka;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.bithon.server.sink.metrics.LocalSchemaMetricSink;
+import org.bithon.server.sink.metrics.LocalMetricSink;
 import org.bithon.server.sink.metrics.SchemaMetricMessage;
 
 /**
@@ -28,9 +28,9 @@ import org.bithon.server.sink.metrics.SchemaMetricMessage;
  */
 public class KafkaMetricConsumer extends AbstractKafkaConsumer<SchemaMetricMessage> {
 
-    private final LocalSchemaMetricSink metricSink;
+    private final LocalMetricSink metricSink;
 
-    public KafkaMetricConsumer(LocalSchemaMetricSink metricSink) {
+    public KafkaMetricConsumer(LocalMetricSink metricSink) {
         super(new TypeReference<SchemaMetricMessage>() {
         });
         this.metricSink = metricSink;

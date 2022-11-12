@@ -28,13 +28,13 @@ import org.springframework.context.ApplicationContext;
  * @date 3/10/21 14:11
  */
 @Slf4j
-public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> {
+public class LocalMetricSink implements IMetricMessageSink {
 
     final MetricMessageHandlers handlers;
     final DataSourceSchemaManager schemaManager;
     final ApplicationContext applicationContext;
 
-    public LocalSchemaMetricSink(ApplicationContext applicationContext) {
+    public LocalMetricSink(ApplicationContext applicationContext) {
         this.schemaManager = applicationContext.getBean(DataSourceSchemaManager.class);
         this.handlers = MetricMessageHandlers.getInstance();
         this.applicationContext = applicationContext;

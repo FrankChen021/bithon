@@ -20,14 +20,11 @@ import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.collector.sink.kafka.KafkaEventSink;
-import org.bithon.server.collector.sink.kafka.KafkaMetricSchemaSink;
 import org.bithon.server.collector.sink.kafka.KafkaMetricSink;
 import org.bithon.server.collector.sink.kafka.KafkaTraceSink;
 import org.bithon.server.collector.source.brpc.BrpcCollectorConfig;
 import org.bithon.server.sink.event.IEventMessageSink;
-import org.bithon.server.sink.metrics.IMessageSink;
 import org.bithon.server.sink.metrics.IMetricMessageSink;
-import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.sink.tracing.TraceMessageProcessChain;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
@@ -64,30 +61,14 @@ public class CollectorAutoConfiguration {
             public void setupModule(SetupContext context) {
                 context.registerSubtypes(KafkaEventSink.class,
                                          KafkaMetricSink.class,
-                                         KafkaMetricSchemaSink.class,
                                          KafkaTraceSink.class);
             }
         };
     }
 
-    @Bean("schemaMetricSink")
-    @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
-    public IMessageSink<SchemaMetricMessage> schemaMetricSink(BrpcCollectorConfig config,
-                                                              ObjectMapper om) throws IOException {
-//        if ("local".equals(config.getSinks().getMetrics().getType())) {
-//            return new LocalSchemaMetricSink(applicationContext);
-//        } else {
-//            // TODO
-//            // Kafka is not support yet
-//            return null;
-//        }
-        return config.getSinks().getMetrics().createSink(om, IMessageSink.class);
-    }
-
     @Bean
     @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
-    public IMetricMessageSink metricSink(IMessageSink<SchemaMetricMessage> sink,
-                                         BrpcCollectorConfig config,
+    public IMetricMessageSink metricSink(BrpcCollectorConfig config,
                                          ObjectMapper om) throws IOException {
         return config.getSinks().getMetrics().createSink(om, IMetricMessageSink.class);
     }

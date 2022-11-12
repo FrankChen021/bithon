@@ -18,6 +18,7 @@ package org.bithon.server.collector.sink;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
+import org.bithon.server.sink.metrics.IMetricMessageSink;
 
 import java.io.IOException;
 import java.util.Map;
@@ -33,7 +34,7 @@ public class SinkConfig {
 
     /**
      * Create instance of one of following by leveraging jackson JSON deserialization
-     * {@link org.bithon.server.sink.metrics.IMetricMessageSink}
+     * {@link IMetricMessageSink}
      * {@link org.bithon.server.sink.event.IEventMessageSink}
      * {@link org.bithon.server.sink.tracing.ITraceMessageSink}
      */
