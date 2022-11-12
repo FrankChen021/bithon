@@ -77,11 +77,10 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
 
     @Override
     public IKafkaConsumer start(final Map<String, Object> props) {
-        Map<String, Object> consumerProperties = new HashMap<>(props);
-
         topic = (String) props.remove("topic");
         Preconditions.checkNotNull(topic, "topic for [%s] is not configured.", this.getClass().getSimpleName());
 
+        Map<String, Object> consumerProperties = new HashMap<>(props);
         consumerProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 
