@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MetricMessageHandlers {
 
     private static final MetricMessageHandlers INSTANCE = new MetricMessageHandlers();
+
     public static MetricMessageHandlers getInstance() {
         return INSTANCE;
     }

@@ -66,12 +66,16 @@ public class KafkaEventSink implements IEventMessageSink {
     @Override
     public void process(String messageType, IteratorableCollection<EventMessage> messages) {
         String key = null;
-        StringBuilder messageText = new StringBuilder();
+
+        StringBuilder messageText = new StringBuilder(512);
+        messageText.append('[');
         while (messages.hasNext()) {
             EventMessage eventMessage = messages.next();
 
             // Sink receives messages from an agent, it's safe to use instance name of first item
-            key = eventMessage.getInstanceName();
+            if (key == null) {
+                key = eventMessage.getAppName() + "/" + eventMessage.getInstanceName();
+            }
 
             // deserialization
             try {
@@ -79,9 +83,13 @@ public class KafkaEventSink implements IEventMessageSink {
             } catch (JsonProcessingException ignored) {
             }
 
-            //it's not necessary, only used to improve readability of text when debugging
-            messageText.append('\n');
+            messageText.append(",\n");
         }
+        if (messageText.length() > 2) {
+            // Remove last separator
+            messageText.delete(messageText.length() - 2, messageText.length());
+        }
+        messageText.append(']');
         if (key != null) {
             ProducerRecord<String, String> record = new ProducerRecord<>(this.topic, key, messageText.toString());
             record.headers().add("type", messageType.getBytes(StandardCharsets.UTF_8));

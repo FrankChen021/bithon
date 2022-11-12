@@ -7,21 +7,21 @@ bithon:
       type: clickhouse
       enabled: true
       ttl:
-        enabled: true
+        enabled: false
         ttl: P7D
         cleanPeriod: PT30M
     metric:
       type: clickhouse
       enabled: true
       ttl:
-        enabled: true
+        enabled: false
         ttl: P7D
         cleanPeriod: PT30M
     event:
       type: clickhouse
       enabled: true
       ttl:
-        enabled: true
+        enabled: false
         ttl: P7D
         cleanPeriod: PT30M
     meta:

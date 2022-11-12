@@ -26,6 +26,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.component.commons.utils.StringUtils;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
@@ -66,14 +67,11 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
             log.error("No header in message from topic: {}", this.topic);
             return;
         }
-
+        String messageType = new String(type.value(), StandardCharsets.UTF_8);
         try {
-            String messageType = new String(type.value(), StandardCharsets.UTF_8);
-
             onMessage(messageType, objectMapper.readValue(record.value(), typeReference));
-
         } catch (IOException e) {
-            log.error("process message failed", e);
+            log.error(StringUtils.format("Failed to process message [%s] failed", messageType), e);
         }
     }
 

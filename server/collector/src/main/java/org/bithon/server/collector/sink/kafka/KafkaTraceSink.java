@@ -75,18 +75,26 @@ public class KafkaTraceSink implements ITraceMessageSink {
         // of course we could also send messages in this batch one by one to Kafka,
         // but I don't think it has advantages over the way below
         //
-        StringBuilder messageText = new StringBuilder();
+        StringBuilder messageText = new StringBuilder(2048);
+        messageText.append('[');
         for (TraceSpan span : spans) {
-            key = span.getTraceId();
+            if (key == null) {
+                key = span.getTraceId();
+            }
 
             try {
                 messageText.append(objectMapper.writeValueAsString(span));
             } catch (JsonProcessingException ignored) {
             }
 
-            //it's not necessary, only used to improve readability of text when debugging
-            messageText.append('\n');
+            messageText.append(",\n");
         }
+        if (messageText.length() > 2) {
+            // Remove last separator
+            messageText.delete(messageText.length() - 2, messageText.length());
+        }
+
+        messageText.append(']');
 
         ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, messageText.toString());
         record.headers().add("type", messageType.getBytes(StandardCharsets.UTF_8));

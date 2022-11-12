@@ -17,7 +17,6 @@
 package org.bithon.server.kafka;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.bithon.component.commons.collection.CloseableIterator;
 import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.sink.event.LocalEventSink;
 import org.bithon.server.storage.event.EventMessage;

@@ -16,16 +16,24 @@
 
 package org.bithon.server.storage.datasource.input;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/12/2 4:46 下午
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = InputRowImpl.class)
 public interface IInputRow {
 
     Object getCol(String columnName);
 
     default Long getColAsLong(String columnName) {
-        return getColAs(columnName, Long.class);
+        Object val = getCol(columnName);
+        if (val instanceof Number) {
+            return ((Number) val).longValue();
+        } else {
+            return 0L;
+        }
     }
 
     default long getColAsLong(String columnName, long defaultValue) {

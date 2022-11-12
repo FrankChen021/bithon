@@ -10,6 +10,7 @@ collector-kafka:
     "[group.id]": bithon-events-consumer
     "[bootstrap.servers]": localhost:9092
     "[fetch.min.bytes]": 1048576
+
   tracing:
     topic: bithon-spans
     "[group.id]": bithon-spans-consumer
@@ -20,3 +21,7 @@ collector-kafka:
 logging:
   level:
     org.bithon.collector: debug
+
+spring:
+  main:
+    web-application-type: NONE
