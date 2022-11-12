@@ -22,6 +22,8 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.event.IEventReader;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.metrics.DimensionFilter;
+import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -31,6 +33,7 @@ import java.util.ArrayList;
  * @date 22/12/21 11:17 AM
  */
 @RestController
+@Conditional(WebServiceModuleEnabler.class)
 public class EventApi implements IEventApi {
 
     private final IEventReader eventReader;
