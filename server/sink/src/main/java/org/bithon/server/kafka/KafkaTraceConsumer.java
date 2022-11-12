@@ -16,27 +16,29 @@
 
 package org.bithon.server.kafka;
 
-import org.bithon.component.commons.collection.CloseableIterator;
-import org.bithon.component.commons.collection.IteratorableCollection;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.bithon.server.storage.tracing.TraceSpan;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
-public class KafkaTraceConsumer extends AbstractKafkaConsumer<TraceSpan> {
+public class KafkaTraceConsumer extends AbstractKafkaConsumer<List<TraceSpan>> {
     private final LocalTraceSink traceSink;
 
     public KafkaTraceConsumer(LocalTraceSink traceSink) {
-        super(TraceSpan.class);
+        super(new TypeReference<List<TraceSpan>>() {
+        });
 
         this.traceSink = traceSink;
     }
 
     @Override
-    protected void onMessage(String type, CloseableIterator<TraceSpan> iterator) {
-        traceSink.process(getTopic(), IteratorableCollection.of(iterator).toCollection());
+    protected void onMessage(String type, List<TraceSpan> spans) {
+        traceSink.process(getTopic(), spans);
     }
 
     @Override

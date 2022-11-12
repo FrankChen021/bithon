@@ -14,19 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.metrics;
+package org.bithon.server.kafka;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.storage.event.EventMessage;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 9/12/21 2:17 PM
+ * @date 2022/11/12 11:12
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-
-public interface IMetricMessageSink extends AutoCloseable {
-    void process(String messageType, List<IInputRow> message);
+public class EventMessageList extends ArrayList<EventMessage> {
 }

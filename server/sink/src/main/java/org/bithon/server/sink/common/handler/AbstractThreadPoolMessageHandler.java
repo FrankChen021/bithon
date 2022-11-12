@@ -19,7 +19,6 @@ package org.bithon.server.sink.common.handler;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.server.sink.event.LocalEventSink;
-import org.bithon.server.sink.metrics.LocalMetricSink;
 import org.bithon.server.sink.tracing.LocalTraceSink;
 
 import java.time.Duration;

@@ -42,26 +42,31 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
 
     @Override
     public void process(String messageType, SchemaMetricMessage message) {
-        MetricMessageHandler handler = getMessageHandler(message);
+        MetricMessageHandler handler = getMessageHandler(messageType, message);
         if (handler == null) {
-            log.error("Can't find handler for {}", message.getSchema().getName());
+            log.error("Can't find handler for {}", messageType);
             return;
         }
 
         handler.process(message.getMetrics());
     }
 
-    private MetricMessageHandler getMessageHandler(SchemaMetricMessage message) {
-        MetricMessageHandler handler = handlers.getHandler(message.getSchema().getName());
+    private MetricMessageHandler getMessageHandler(String messageType, SchemaMetricMessage message) {
+        MetricMessageHandler handler = handlers.getHandler(messageType);
         if (handler != null) {
             // TODO: check if schema is changed
             return handler;
         }
+
+        if (message.getSchema() == null) {
+            return null;
+        }
+
         //
         // create  a handler
         //
         synchronized (this) {
-            handler = handlers.getHandler(message.getSchema().getName());
+            handler = handlers.getHandler(messageType);
             if (handler != null) {
                 // double check
                 return handler;
@@ -69,7 +74,7 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
 
             schemaManager.addDataSourceSchema(message.getSchema());
             try {
-                handler = new MetricMessageHandler(message.getSchema().getName(),
+                handler = new MetricMessageHandler(messageType,
                                                    applicationContext.getBean(TopoTransformers.class),
                                                    applicationContext.getBean(IMetaStorage.class),
                                                    applicationContext.getBean(IMetricStorage.class),
@@ -87,6 +92,8 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
 
     @Override
     public void close() throws Exception {
-
+        for (MetricMessageHandler handler : handlers.getHandlers()) {
+            handler.close();
+        }
     }
 }
