@@ -1,49 +1,53 @@
 {
-    "title": "Thread Pool",
-    "charts": [
-        {
-            "dataSource": "thread-pool-metrics",
-            "title": "Thread Pool",
-            "width": 4,
-            "metrics": [
-                {
-                    "name": "activeThreads"
-                },
-                {
-                    "name": "currentPoolSize"
-                }
-            ]
-        },
-        {
-            "dataSource": "thread-pool-metrics",
-            "title": "Tasks",
-            "width": 4,
-            "metrics": [
-                {
-                    "name": "totalTaskCount"
-                },
-                {
-                    "name": "successfulTaskCount"
-                },
-                {
-                    "name": "queuedTaskCount"
-                },
-                {
-                    "name": "exceptionTaskCount"
-                },
-                {
-                    "name": "callerRunTaskCount"
-                },
-                {
-                    "name": "abortedTaskCount"
-                },
-                {
-                    "name": "discardedTaskCount"
-                },
-                {
-                    "name": "discardedOldestTaskCount"
-                }
-            ]
-        }
-    ]
+  "title": "Thread Pool",
+  "charts": [
+    {
+      "dataSource": "thread-pool-metrics",
+      "title": "Thread Pool",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        "activeThreads",
+        "currentPoolSize"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "thread-pool-metrics",
+        "fields": [
+          "activeThreads",
+          "currentPoolSize"
+        ]
+      }
+    },
+    {
+      "dataSource": "thread-pool-metrics",
+      "title": "Tasks",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        "totalTaskCount",
+        "successfulTaskCount",
+        "queuedTaskCount",
+        "exceptionTaskCount",
+        "callerRunTaskCount",
+        "abortedTaskCount",
+        "discardedTaskCount",
+        "discardedOldestTaskCount"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "thread-pool-metrics",
+        "fields": [
+          "totalTaskCount",
+          "successfulTaskCount",
+          "queuedTaskCount",
+          "exceptionTaskCount",
+          "callerRunTaskCount",
+          "abortedTaskCount",
+          "discardedTaskCount",
+          "discardedOldestTaskCount"
+        ]
+      }
+    }
+  ]
 }

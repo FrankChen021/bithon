@@ -5,13 +5,11 @@
       "dataSource": "sql-metrics",
       "title": "TPS",
       "width": 4,
-      "yAxis": [
-        {},
-        {}
-      ],
-      "metrics": [
+      "type": "line",
+      "columns": [
         {
-          "name": "tps"
+          "name": "tps",
+          "yAxis": 0
         },
         {
           "name": "callCount",
@@ -25,28 +23,43 @@
           "name": "queryCount",
           "yAxis": 1
         }
-      ]
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "sql-metrics",
+        "fields": [
+          "tps",
+          "callCount",
+          "updateCount",
+          "queryCount"
+        ]
+      }
     },
     {
       "dataSource": "sql-metrics",
       "title": "Response Time",
       "width": 4,
+      "type": "line",
       "yAxis": [
         {
           "format": "millisecond"
         }
       ],
-      "metrics": [
-        {
-          "name": "minResponseTime"
-        },
-        {
-          "name": "avgResponseTime"
-        },
-        {
-          "name": "maxResponseTime"
-        }
-      ]
+      "columns": [
+        "minResponseTime",
+        "avgResponseTime",
+        "maxResponseTime"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "sql-metrics",
+        "fields": [
+          "minResponseTime",
+          "avgResponseTime",
+          "maxResponseTime"
+        ]
+      }
     }
   ]
 }
+
