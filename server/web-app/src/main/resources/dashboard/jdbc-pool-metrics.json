@@ -1,46 +1,51 @@
 {
-    "title": "JDBC Connection Pool",
-    "charts": [
-        {
-            "dataSource": "jdbc-pool-metrics",
-            "title": "JDBC Connection Pool",
-            "width": 4,
-            "metrics": [
-                {
-                    "name": "activeCount"
-                },
-                {
-                    "name": "poolingCount"
-                },
-                {
-                    "name": "createCount"
-                },
-                {
-                    "name": "destroyCount"
-                },
-                {
-                    "name": "waitThreadCount"
-                }
-            ]
-        },
-        {
-            "dataSource": "jdbc-pool-metrics",
-            "title": "Transaction",
-            "width": 4,
-            "metrics": [
-                {
-                    "name": "executeCount"
-                },
-                {
-                    "name": "startTransactionCount"
-                },
-                {
-                    "name": "commitCount"
-                },
-                {
-                    "name": "rollbackCount"
-                }
-            ]
-        }
-    ]
+  "title": "JDBC Connection Pool",
+  "charts": [
+    {
+      "dataSource": "jdbc-pool-metrics",
+      "title": "JDBC Connection Pool",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        "activeCount",
+        "poolingCount",
+        "createCount",
+        "destroyCount",
+        "waitThreadCount"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jdbc-pool-metrics",
+        "fields": [
+          "activeCount",
+          "poolingCount",
+          "createCount",
+          "destroyCount",
+          "waitThreadCount"
+        ]
+      }
+    },
+    {
+      "dataSource": "jdbc-pool-metrics",
+      "title": "Transaction",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        "executeCount",
+        "startTransactionCount",
+        "commitCount",
+        "rollbackCount"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jdbc-pool-metrics",
+        "fields": [
+          "executeCount",
+          "startTransactionCount",
+          "commitCount",
+          "rollbackCount"
+        ]
+      }
+    }
+  ]
 }

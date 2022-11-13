@@ -2,7 +2,7 @@
   "title": "Application Overview",
   "charts": [
     {
-      "title": "Instance",
+      "title": "Instance List",
       "width": 4,
       "type": "table",
       "columns": [
@@ -14,6 +14,10 @@
         {"name": "heapUsed", "title": "heapUsed(%)" },
         {"name": "heapMax", "format": "binary_byte" }
       ],
+      "pagination": {
+        "pages": [15, 30, 50],
+        "side": "client"
+      },
       "query": {
         "dataSource": "jvm-metrics",
         "type": "groupBy",
@@ -28,7 +32,7 @@
         ],
         "orderBy": {
           "name": "instanceUpTime",
-          "order": "desc"
+          "order": "asc"
         }
       }
     },
@@ -102,7 +106,7 @@
       ],
       "query": {
         "dataSource": "exception-metrics",
-        "type": "timeseries",
+        "type": "groupBy",
         "fields": [
           "exceptionClass",
           "eventCount"

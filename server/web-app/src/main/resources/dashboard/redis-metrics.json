@@ -5,58 +5,74 @@
       "dataSource": "redis-metrics",
       "title": "Commands",
       "width": 4,
-      "yAxis": [
-        {
-        },
-        {
-          "format": "compact_number"
-        }
-      ],
-      "metrics": [
-        {
-          "name": "qps"
-        },
+      "type": "line",
+      "columns": [
+        "qps",
         {
           "name": "totalCount",
           "yAxis": 1
         }
       ],
-      "details": {
-        "groupBy": [
-          "uri",
-          "command"
-        ],
-        "metrics": [
+      "query": {
+        "type": "timeseries",
+        "dataSource": "redis-metrics",
+        "fields": [
           "qps",
           "totalCount"
         ]
+      },
+      "details": {
+        "columns": [
+          "uri",
+          "command",
+          "qps",
+          "totalCount"
+        ],
+        "query": {
+          "type": "groupBy",
+          "fields": [
+            "uri",
+            "command",
+            "qps",
+            "totalCount"
+          ],
+          "orderBy": {
+            "name": "totalCount",
+            "order": "desc"
+          }
+        }
       }
     },
     {
       "dataSource": "redis-metrics",
       "title": "Time",
       "width": 4,
+      "type": "line",
       "yAxis": [
         {
           "format": "nanoFormatter"
         }
       ],
-      "metrics": [
-        {
-          "name": "minResponseTime"
-        },
-        {
-          "name": "avgResponseTime"
-        },
-        {
-          "name": "maxResponseTime"
-        }
-      ]
+      "columns": [
+        "minResponseTime",
+        "avgResponseTime",
+        "maxResponseTime"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "redis-metrics",
+        "fields": [
+          "minResponseTime",
+          "avgResponseTime",
+          "maxResponseTime"
+        ]
+      }
     },
     {
       "dataSource": "redis-metrics",
       "title": "IO",
       "width": 4,
+      "type": "line",
       "yAxis": [
         {
           "format": "byte_rate"
@@ -65,22 +81,38 @@
           "format": "binary_byte"
         }
       ],
-      "metrics": [
+      "columns": [
         {
-          "name": "requestByteRate"
+          "name": "requestByteRate",
+          "format": "byte_rate",
+          "yAxis": 0
         },
         {
-          "name": "responseByteRate"
+          "name": "responseByteRate",
+          "format": "byte_rate",
+          "yAxis": 0
         },
         {
           "name": "requestBytes",
+          "format": "binary_byte",
           "yAxis": 1
         },
         {
           "name": "responseBytes",
+          "format": "binary_byte",
           "yAxis": 1
         }
-      ]
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "redis-metrics",
+        "fields": [
+          "requestByteRate",
+          "responseByteRate",
+          "requestBytes",
+          "responseBytes"
+        ]
+      }
     }
   ]
 }
