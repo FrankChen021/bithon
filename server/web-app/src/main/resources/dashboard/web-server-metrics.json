@@ -5,14 +5,19 @@
       "dataSource": "web-server-metrics",
       "title": "Web Server",
       "width": 4,
-      "metrics": [
-        {
-          "name": "connectionCount"
-        },
-        {
-          "name": "activeThreads"
-        }
-      ]
+      "type": "line",
+      "columns": [
+        "connectionCount",
+        "activeThreads"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "web-server-metrics",
+        "fields": [
+          "connectionCount",
+          "activeThreads"
+        ]
+      }
     }
   ]
 }

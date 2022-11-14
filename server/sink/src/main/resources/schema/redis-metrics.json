@@ -69,7 +69,7 @@
     {
       "type": "post",
       "name": "qps",
-      "expression": "totalCount/{interval}",
+      "expression": "round(totalCount * 1.0/{interval}, 2)",
       "displayText": "QPS",
       "unit": "",
       "valueType": "double"

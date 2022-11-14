@@ -5,19 +5,22 @@
       "dataSource": "mongodb-metrics",
       "title": "Commands",
       "width": 4,
-      "yAxis": [
-        {},
-        {}
-      ],
-      "metrics": [
+      "type": "line",
+      "columns": [
+        "tps",
         {
-          "name": "totalCount"
-        },
-        {
-          "name": "tps",
+          "name": "totalCount",
           "yAxis": 1
         }
-      ]
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "mongodb-metrics",
+        "fields": [
+          "tps",
+          "totalCount"
+        ]
+      }
     },
     {
       "dataSource": "mongodb-metrics",
@@ -28,22 +31,26 @@
           "format": "nanoFormatter"
         }
       ],
-      "metrics": [
-        {
-          "name": "avgResponseTime"
-        },
-        {
-          "name": "minResponseTime"
-        },
-        {
-          "name": "maxResponseTime"
-        }
-      ]
+      "columns": [
+        "avgResponseTime",
+        "minResponseTime",
+        "maxResponseTime"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "mongodb-metrics",
+        "fields": [
+          "avgResponseTime",
+          "minResponseTime",
+          "maxResponseTime"
+        ]
+      }
     },
     {
       "dataSource": "mongodb-metrics",
       "title": "IO",
       "width": 4,
+      "type": "line",
       "yAxis": [
         {
           "format": "byte_rate"
@@ -52,12 +59,14 @@
           "format": "binary_byte"
         }
       ],
-      "metrics": [
+      "columns": [
         {
-          "name": "requestByteRate"
+          "name": "requestByteRate",
+          "yAxis": 0
         },
         {
-          "name": "responseByteRate"
+          "name": "responseByteRate",
+          "yAxis": 0
         },
         {
           "name": "requestBytes",
@@ -67,7 +76,17 @@
           "name": "responseBytes",
           "yAxis": 1
         }
-      ]
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "mongodb-metrics",
+        "fields": [
+          "requestByteRate",
+          "responseByteRate",
+          "requestBytes",
+          "responseBytes"
+        ]
+      }
     }
   ]
 }

@@ -71,7 +71,7 @@
     {
       "type": "post",
       "name": "avgResponseTime",
-      "expression": "responseTime/totalCount",
+      "expression": "round(responseTime * 1.0 /totalCount, 2)",
       "displayText": "AVG Response Time",
       "unit": "nanosecond",
       "valueType": "double"
@@ -91,14 +91,14 @@
     {
       "type": "post",
       "name": "tps",
-      "expression": "totalCount/{interval}",
+      "expression": "round(totalCount/{interval}, 2)",
       "displayText": "TPS",
       "unit": "/s"
     },
     {
       "type": "post",
       "name": "requestByteRate",
-      "expression": "requestBytes/{interval}",
+      "expression": "round(requestBytes/{interval}, 2)",
       "displayText": "Avg Request Byte Rate",
       "unit": "Bps",
       "valueType": "double"
@@ -106,7 +106,7 @@
     {
       "type": "post",
       "name": "responseByteRate",
-      "expression": "responseBytes/{interval}",
+      "expression": "round(responseBytes/{interval}, 2)",
       "displayText": "Avg Response Byte Rate",
       "unit": "Bps",
       "valueType": "double"

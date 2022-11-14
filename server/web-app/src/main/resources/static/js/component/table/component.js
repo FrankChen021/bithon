@@ -24,12 +24,16 @@ class TableComponent {
         this.mCreated = false;
 
         this.mHasPagination = option.pagination !== undefined;
-        if(typeof option.pagination === 'object') {
+        if (Array.isArray(option.pagination)) {
+            this.mPagination = option.pagination;
+            this.mPaginationSide = 'server';
+        } else if (option.pagination !== undefined) {
             this.mPagination = option.pagination.pages;
             this.mPaginationSide = option.pagination.side;
         } else {
-            this.mPagination = option.pagination;
+            // Make sure the variable has been defined
             this.mPaginationSide = 'server';
+            this.mPagination = [10];
         }
 
         this.mDetailViewField = null;
