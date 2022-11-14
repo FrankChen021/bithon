@@ -59,7 +59,7 @@ public class TableCreator {
         return this;
     }
 
-    public TableCreator partitionByExpressioin(String partitionByExpression) {
+    public TableCreator partitionByExpression(String partitionByExpression) {
         this.partitionByExpression = partitionByExpression;
         return this;
     }
