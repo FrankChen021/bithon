@@ -14,22 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator;
+package org.bithon.server.kafka;
 
-import org.bithon.component.commons.utils.NumberUtils;
+import org.bithon.server.storage.event.EventMessage;
+
+import java.util.ArrayList;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/4/6 9:26 下午
+ * @date 2022/11/12 11:12
  */
-public class DoubleLastAggregator extends AbstractDoubleAggregator {
-    private long timestamp = Long.MIN_VALUE;
-
-    @Override
-    protected void aggregate(long timestamp, double value) {
-        if (this.timestamp < timestamp) {
-            this.timestamp = timestamp;
-            this.value = NumberUtils.getDouble(value, 0);
-        }
-    }
+public class EventMessageList extends ArrayList<EventMessage> {
 }

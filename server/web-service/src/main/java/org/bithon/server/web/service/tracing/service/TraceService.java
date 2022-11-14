@@ -17,14 +17,14 @@
 package org.bithon.server.web.service.tracing.service;
 
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.metrics.IFilter;
-import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -39,16 +39,13 @@ import java.util.stream.Collectors;
  * @date 24/11/21 7:11 pm
  */
 @Service
+@Conditional(value = WebServiceModuleEnabler.class)
 public class TraceService {
 
     private final ITraceReader traceReader;
-    private final IMetricStorage metricStorage;
-    private final DataSourceSchemaManager schemaManager;
 
-    public TraceService(ITraceStorage traceStorage, IMetricStorage metricStorage, DataSourceSchemaManager schemaManager) {
+    public TraceService(ITraceStorage traceStorage) {
         this.traceReader = traceStorage.createReader();
-        this.metricStorage = metricStorage;
-        this.schemaManager = schemaManager;
     }
 
     /**

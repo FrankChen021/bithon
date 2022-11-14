@@ -17,12 +17,9 @@
 package org.bithon.server.kafka;
 
 import lombok.SneakyThrows;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.bithon.server.sink.event.EventMessageHandlers;
 import org.bithon.server.sink.event.LocalEventSink;
 import org.bithon.server.sink.metrics.LocalMetricSink;
-import org.bithon.server.sink.metrics.MetricMessageHandlers;
 import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -33,14 +30,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
 @Component
-@ConditionalOnProperty(value = "consumer-kafka.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(value = "collector-kafka.enabled", havingValue = "true", matchIfMissing = false)
 public class KafkaConsumerStarter implements SmartLifecycle, ApplicationContextAware {
     ApplicationContext context;
 
@@ -55,13 +51,10 @@ public class KafkaConsumerStarter implements SmartLifecycle, ApplicationContextA
     @Override
     public void start() {
         KafkaConsumerConfig config = this.context.getBean(KafkaConsumerConfig.class);
-        Map<String, Object> consumerProps = config.getSource();
-        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 
-        collectors.add(new KafkaTraceConsumer(new LocalTraceSink(this.context)).start(consumerProps));
-        collectors.add(new KafkaEventConsumer(new LocalEventSink(this.context.getBean(EventMessageHandlers.class))).start(consumerProps));
-        collectors.add(new KafkaMetricConsumer(new LocalMetricSink(this.context.getBean(MetricMessageHandlers.class))).start(consumerProps));
+        collectors.add(new KafkaMetricConsumer(new LocalMetricSink(this.context), this.context).start(config.getMetrics()));
+        collectors.add(new KafkaTraceConsumer(new LocalTraceSink(this.context), this.context).start(config.getTracing()));
+        collectors.add(new KafkaEventConsumer(new LocalEventSink(this.context.getBean(EventMessageHandlers.class)), this.context).start(config.getEvent()));
     }
 
     @Override

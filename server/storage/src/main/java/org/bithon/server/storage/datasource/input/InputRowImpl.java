@@ -14,11 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.metrics;
+package org.bithon.server.storage.datasource.input;
+
+import java.util.HashMap;
 
 /**
- * @author frankchen
+ * An implementation for object deserialized from JSON.
+ * Should not use this class directly.
+ *
+ * @author frank.chen021@outlook.com
+ * @date 2022/11/12 11:51
  */
-public interface IMessageSink<MSG> {
-    void process(String messageType, MSG message);
+public class InputRowImpl extends HashMap<String, Object> implements IInputRow {
+    @Override
+    public Object getCol(String columnName) {
+        return this.get(columnName);
+    }
+
+    @Override
+    public void updateColumn(String name, Object value) {
+        this.put(name, value);
+    }
 }

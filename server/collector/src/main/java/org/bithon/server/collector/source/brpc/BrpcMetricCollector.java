@@ -25,7 +25,6 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessageV2;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import org.bithon.component.commons.utils.ReflectionUtils;
-import org.bithon.server.sink.metrics.IMessageSink;
 import org.bithon.server.sink.metrics.IMetricMessageSink;
 import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.SchemaMetricMessage;
@@ -33,6 +32,7 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.dimension.StringDimensionSpec;
+import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.spec.gauge.LongGaugeMetricSpec;
 import org.bithon.server.storage.datasource.spec.max.LongMaxMetricSpec;
@@ -52,13 +52,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
-    private final IMessageSink<SchemaMetricMessage> schemaMetricSink;
     private final IMetricMessageSink metricSink;
     private final IDimensionSpec appName = new StringDimensionSpec("appName", "appName", "appName", true, true, 128);
     private final IDimensionSpec instanceName = new StringDimensionSpec("instanceName", "instanceName", "instanceName", true, true, 128);
 
-    public BrpcMetricCollector(IMessageSink<SchemaMetricMessage> schemaMetricSink, IMetricMessageSink metricSink) {
-        this.schemaMetricSink = schemaMetricSink;
+    public BrpcMetricCollector(IMetricMessageSink metricSink) {
         this.metricSink = metricSink;
     }
 
@@ -68,7 +66,10 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return;
         }
 
-        metricSink.process("jvm-metrics", messages.stream().map((m) -> toMetricMessage(header, m)).collect(Collectors.toList()));
+        this.metricSink.process("jvm-metrics",
+                                SchemaMetricMessage.builder()
+                                                         .metrics(messages.stream().map((m) -> toMetricMessage(header, m)).collect(Collectors.toList()))
+                                                         .build());
     }
 
     @Override
@@ -130,12 +131,12 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return metricMessage;
         }).collect(Collectors.toList()));
 
-        schemaMetricSink.process(message.getSchema().getName(), schemaMetricMessage);
+        metricSink.process(message.getSchema().getName(), schemaMetricMessage);
     }
 
     @Override
     public void sendGenericMetricsV2(BrpcMessageHeader header, BrpcGenericMetricMessageV2 message) {
-        metricSink.process(message.getSchema().getName(), message.getMeasurementList().stream().map((measurement) -> {
+        List<IInputRow> messaegs = message.getMeasurementList().stream().map((measurement) -> {
             MetricMessage metricMessage = new MetricMessage();
             int i = 0;
             for (String dimension : measurement.getDimensionList()) {
@@ -153,7 +154,12 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             metricMessage.put("timestamp", message.getTimestamp());
             ReflectionUtils.getFields(header, metricMessage);
             return metricMessage;
-        }).collect(Collectors.toList()));
+        }).collect(Collectors.toList());
+
+        this.metricSink.process(message.getSchema().getName(),
+                                SchemaMetricMessage.builder()
+                                                         .metrics(messaegs)
+                                                         .build());
     }
 
     @Override

@@ -17,6 +17,8 @@
 package org.bithon.server.web.service.topo.service;
 
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.Max;
@@ -27,6 +29,7 @@ import javax.validation.constraints.Min;
  * @date 2021/3/20 21:41
  */
 @Service
+@Conditional(WebServiceModuleEnabler.class)
 public class TopoService {
 
     public Topo getCallee(TimeSpan startTime,

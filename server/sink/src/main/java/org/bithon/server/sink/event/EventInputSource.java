@@ -47,7 +47,6 @@ public class EventInputSource implements IInputSource {
     private final ApplicationContext applicationContext;
     private final EventMessageHandlers handlers;
     private final String eventType;
-    private String schemaName;
 
     @JsonCreator
     public EventInputSource(@JsonProperty("eventType") String eventType,
@@ -67,7 +66,7 @@ public class EventInputSource implements IInputSource {
 
     @Override
     public void start(DataSourceSchema schema) {
-        schemaName = schema.getName();
+        final String schemaName = schema.getName();
         try {
             handlers.add(new MetricOverEventHandler(eventType,
                                                     schemaName,

@@ -1,0 +1,51 @@
+collector-brpc:
+  enabled: true
+  port:
+    tracing: 9895
+    event: 9896
+    metric: 9898
+    ctrl: 9899
+  sinks:
+    event:
+      type: kafka
+      props:
+        topic: bithon-events
+        "[bootstrap.servers]": localhost:9092
+        "[batch.size]": 65536
+        "[buffer.memory]": 67108864
+        "[linger.ms]": 50
+        "[compression.type]": lz4
+        "[max.in.flight.requests.per.connection]": 1
+        "[retries]": 3
+    metrics:
+      type: kafka
+      props:
+        topic: bithon-metrics
+        "[bootstrap.servers]": localhost:9092
+        "[batch.size]": 65536
+        "[buffer.memory]": 67108864
+        "[linger.ms]": 50
+        "[compression.type]": lz4
+        "[max.in.flight.requests.per.connection]": 1
+        "[retries]": 3
+    tracing:
+      type: kafka
+      props:
+        topic: bithon-spans
+        "[bootstrap.servers]": localhost:9092
+        "[batch.size]": 65536
+        "[buffer.memory]": 67108864
+        "[linger.ms]": 50
+        "[compression.type]": lz4
+        "[max.in.flight.requests.per.connection]": 1
+        "[retries]": 3
+
+collector-http:
+  enabled: true
+  tracing:
+    clickhouseApplications:
+      - clickhouse
+
+logging:
+  level:
+    org.bithon.collector: debug

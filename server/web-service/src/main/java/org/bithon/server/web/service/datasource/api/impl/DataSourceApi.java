@@ -33,6 +33,7 @@ import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
+import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.DataSourceService;
 import org.bithon.server.web.service.datasource.api.DisplayableText;
 import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
@@ -41,6 +42,7 @@ import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryRequest;
 import org.bithon.server.web.service.datasource.api.UpdateTTLRequest;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -57,6 +59,7 @@ import java.util.stream.Collectors;
  */
 @CrossOrigin
 @RestController
+@Conditional(WebServiceModuleEnabler.class)
 public class DataSourceApi implements IDataSourceApi {
     private final MetricStorageConfig storageConfig;
     private final IMetricStorage metricStorage;

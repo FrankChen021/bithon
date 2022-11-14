@@ -24,8 +24,10 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -44,14 +46,18 @@ public class KafkaTraceSink implements ITraceMessageSink {
 
     private final KafkaTemplate<String, String> producer;
     private final ObjectMapper objectMapper;
+    private final String topic;
 
     @JsonCreator
     public KafkaTraceSink(@JsonProperty("props") Map<String, Object> props,
                           @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+        this.topic = (String) props.remove("topic");
+        Preconditions.checkNotNull(topic, "topic is not configured for tracing sink");
+
         this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props,
                                                                               new StringSerializer(),
                                                                               new StringSerializer()),
-                                            ImmutableMap.of("client.id", "trace"));
+                                            ImmutableMap.of(ProducerConfig.CLIENT_ID_CONFIG, "trace"));
         this.objectMapper = objectMapper;
     }
 
@@ -69,26 +75,34 @@ public class KafkaTraceSink implements ITraceMessageSink {
         // of course we could also send messages in this batch one by one to Kafka,
         // but I don't think it has advantages over the way below
         //
-        StringBuilder messageText = new StringBuilder();
+        StringBuilder messageText = new StringBuilder(2048);
+        messageText.append('[');
         for (TraceSpan span : spans) {
-            key = span.getTraceId();
+            if (key == null) {
+                key = span.getTraceId();
+            }
 
             try {
                 messageText.append(objectMapper.writeValueAsString(span));
             } catch (JsonProcessingException ignored) {
             }
 
-            //it's not necessary, only used to improve readability of text when debugging
-            messageText.append('\n');
+            messageText.append(",\n");
+        }
+        if (messageText.length() > 2) {
+            // Remove last separator
+            messageText.delete(messageText.length() - 2, messageText.length());
         }
 
-        ProducerRecord<String, String> record = new ProducerRecord<>("bithon-trace", key, messageText.toString());
+        messageText.append(']');
+
+        ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, messageText.toString());
         record.headers().add("type", messageType.getBytes(StandardCharsets.UTF_8));
         producer.send(record);
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         producer.destroy();
     }
 }

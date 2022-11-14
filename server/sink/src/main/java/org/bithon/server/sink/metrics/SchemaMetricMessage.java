@@ -23,6 +23,7 @@ import lombok.NoArgsConstructor;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -34,6 +35,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SchemaMetricMessage {
+    @Nullable
     private DataSourceSchema schema;
     private List<IInputRow> metrics;
 }

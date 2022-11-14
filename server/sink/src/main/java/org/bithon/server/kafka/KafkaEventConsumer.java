@@ -16,36 +16,30 @@
 
 package org.bithon.server.kafka;
 
-import org.bithon.component.commons.collection.CloseableIterator;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.sink.event.LocalEventSink;
 import org.bithon.server.storage.event.EventMessage;
+import org.springframework.context.ApplicationContext;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
-public class KafkaEventConsumer extends AbstractKafkaConsumer<EventMessage> {
+public class KafkaEventConsumer extends AbstractKafkaConsumer<List<EventMessage>> {
     private final LocalEventSink eventSink;
 
-    public KafkaEventConsumer(LocalEventSink eventSink) {
-        super(EventMessage.class);
+    public KafkaEventConsumer(LocalEventSink eventSink, ApplicationContext applicationContext) {
+        super(new TypeReference<List<EventMessage>>() {
+        }, applicationContext);
         this.eventSink = eventSink;
     }
 
     @Override
-    protected String getGroupId() {
-        return "bithon-event-consumer";
-    }
-
-    @Override
-    protected String getTopic() {
-        return "bithon-event";
-    }
-
-    @Override
-    protected void onMessage(String type, CloseableIterator<EventMessage> messages) {
-        eventSink.process(getTopic(), IteratorableCollection.of(messages));
+    protected void onMessage(String type, List<EventMessage> messages) {
+        eventSink.process(getTopic(), IteratorableCollection.of(messages.iterator()));
     }
 
     @Override

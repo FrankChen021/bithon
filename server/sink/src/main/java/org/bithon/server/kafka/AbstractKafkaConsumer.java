@@ -16,15 +16,19 @@
 
 package org.bithon.server.kafka;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
-import org.bithon.component.commons.collection.CloseableIterator;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.bithon.component.commons.utils.NumberUtils;
+import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.component.commons.utils.StringUtils;
+import org.springframework.context.ApplicationContext;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
@@ -32,7 +36,7 @@ import org.springframework.kafka.listener.MessageListener;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -42,83 +46,78 @@ import java.util.Map;
 @Slf4j
 public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, MessageListener<String, String> {
     protected final ObjectMapper objectMapper;
-    private final Class<MSG> clazz;
-    ConcurrentMessageListenerContainer<String, String> consumerContainer;
+    private final TypeReference<MSG> typeReference;
+    private final ApplicationContext applicationContext;
 
-    public AbstractKafkaConsumer(Class<MSG> clazz) {
-        this.clazz = clazz;
-        objectMapper = new ObjectMapper();
+    private ConcurrentMessageListenerContainer<String, String> consumerContainer;
+
+    @Getter
+    private String topic;
+
+    public AbstractKafkaConsumer(TypeReference<MSG> typeReference, ApplicationContext applicationContext) {
+        this.typeReference = typeReference;
+        this.applicationContext = applicationContext;
+        this.objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    protected abstract String getGroupId();
-
-    protected abstract String getTopic();
-
-    protected abstract void onMessage(String s, CloseableIterator<MSG> msg);
+    protected abstract void onMessage(String s, MSG msg);
 
     @Override
     public final void onMessage(ConsumerRecord<String, String> record) {
-        CloseableIterator<MSG> iterator;
-        try {
-            final JsonParser parser = new JsonFactory().createParser(record.value());
-            final MappingIterator<MSG> delegate = objectMapper.readValues(parser, clazz);
-            iterator = new CloseableIterator<MSG>() {
-                @Override
-                public boolean hasNext() {
-                    return delegate.hasNext();
-                }
-
-                @Override
-                public MSG next() {
-                    return delegate.next();
-                }
-
-                @Override
-                public void close() throws IOException {
-                    delegate.close();
-                }
-            };
-        } catch (IOException e) {
-            throw new RuntimeException(String.format(Locale.ENGLISH,
-                                                     "Can't parse text into %s.%n%s",
-                                                     clazz.getSimpleName(),
-                                                     record.value()));
-        }
-
         Header type = record.headers().lastHeader("type");
-        if (type != null) {
-            onMessage(new String(type.value(), StandardCharsets.UTF_8), iterator);
-        } else {
-            log.error("No header in message from topic: {}", this.getTopic());
+        if (type == null) {
+            log.error("No header in message from topic: {}", this.topic);
+            return;
         }
+        String messageType = new String(type.value(), StandardCharsets.UTF_8);
         try {
-            iterator.close();
-        } catch (IOException ignored) {
+            onMessage(messageType, objectMapper.readValue(record.value(), typeReference));
+        } catch (IOException e) {
+            log.error(StringUtils.format("Failed to process message [%s] failed", messageType), e);
         }
     }
 
     @Override
-    public IKafkaConsumer start(Map<String, Object> consumerProps) {
+    public IKafkaConsumer start(final Map<String, Object> props) {
+        int pollTimeout = NumberUtils.getInteger(props.remove("pollTimeout"), 1000);
+        Preconditions.checkIf(pollTimeout >= 100, "'pollTimeout' must be >= 100, given value is %d", pollTimeout);
 
-        ContainerProperties containerProperties = new ContainerProperties(getTopic());
+        int ackTime = NumberUtils.getInteger(props.remove("ackTime"), 5000);
+        Preconditions.checkIf(ackTime >= 100 && ackTime <= 60_000, "'ackTime' must be >= 100 && <= 60_000, given value is %d", ackTime);
+
+        int concurrency = NumberUtils.getInteger(props.remove("concurrency"), 1);
+        Preconditions.checkIf(concurrency > 0 && concurrency <= 64, "'concurrency' must be > 0 and <= 64, given values is: %d", concurrency);
+
+        topic = (String) props.remove("topic");
+        Preconditions.checkNotNull(topic, "topic for [%s] is not configured.", this.getClass().getSimpleName());
+
+        Map<String, Object> consumerProperties = new HashMap<>(props);
+        consumerProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        consumerProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        consumerProperties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+
+        ContainerProperties containerProperties = new ContainerProperties(topic);
         containerProperties.setAckMode(ContainerProperties.AckMode.TIME);
-        containerProperties.setAckTime(5000);
-        containerProperties.setPollTimeout(1000);
-        containerProperties.setGroupId(getGroupId());
-        containerProperties.setClientId(getGroupId());
-        consumerContainer = new ConcurrentMessageListenerContainer<>(new DefaultKafkaConsumerFactory<>(consumerProps),
-                                                                     containerProperties);
+        containerProperties.setAckTime(ackTime);
+        containerProperties.setPollTimeout(pollTimeout);
+        containerProperties.setGroupId((String) props.getOrDefault(ConsumerConfig.GROUP_ID_CONFIG, "bithon-" + topic));
+        containerProperties.setClientId((String) props.getOrDefault(ConsumerConfig.CLIENT_ID_CONFIG, "bithon-" + topic));
+        consumerContainer = new ConcurrentMessageListenerContainer<>(new DefaultKafkaConsumerFactory<>(consumerProperties), containerProperties);
         consumerContainer.setupMessageListener(this);
+        consumerContainer.setConcurrency(concurrency);
+        consumerContainer.setApplicationEventPublisher(applicationContext);
+        consumerContainer.setApplicationContext(applicationContext);
         consumerContainer.start();
 
+        log.info("Starting Kafka consumer for topic [{}]", topic);
         return this;
     }
 
     @Override
     public void stop() {
-        log.info("Stopping Kafka consumer for {}", getTopic());
+        log.info("Stopping Kafka consumer for {}", this.topic);
         if (consumerContainer != null) {
             consumerContainer.stop(true);
         }

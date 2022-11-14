@@ -32,6 +32,8 @@ import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
+import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -52,6 +54,7 @@ import java.util.stream.Collectors;
  * @date 8/1/22 9:57 PM
  */
 @Service
+@Conditional(WebServiceModuleEnabler.class)
 public class DataSourceService {
 
     private static final String TIMESTAMP_QUERY_NAME = "_timestamp";

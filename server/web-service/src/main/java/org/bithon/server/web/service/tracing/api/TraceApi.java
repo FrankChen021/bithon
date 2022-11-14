@@ -25,8 +25,10 @@ import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.tracing.service.TraceService;
 import org.bithon.server.web.service.tracing.service.TraceTopoBuilder;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,6 +45,7 @@ import java.util.List;
  */
 @CrossOrigin
 @RestController
+@Conditional(WebServiceModuleEnabler.class)
 public class TraceApi {
 
     private final TraceConfig traceConfig;

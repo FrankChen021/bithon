@@ -72,6 +72,8 @@ In this case, the Kafka Collector can run with the BRPC collector in one same pr
 
 ### Configuration
 
+Following configurations allows the brpc-collector sink messages to a Kafka cluster.
+
 ```yaml
 collector-brpc:
   enabled: true
@@ -80,26 +82,77 @@ collector-brpc:
     event: 9896
     metric: 9898
     ctrl: 9899
-  sink:
-    type: kafka
-    props:
-      "[bootstrap.servers]": localhost:9092
-      "[batch.size]": 65536
-      "[buffer.memory]": 67108864
-      "[linger.ms]": 50
-      "[compression.type]": lz4
-      "[max.in.flight.requests.per.connection]": 1
-      "[retries]": 3
+  sinks:
+     event:
+        type: kafka
+        props:
+           topic: bithon-events
+           "[bootstrap.servers]": localhost:9092
+           "[batch.size]": 65536
+           "[buffer.memory]": 67108864
+           "[linger.ms]": 50
+           "[compression.type]": lz4
+           "[max.in.flight.requests.per.connection]": 1
+           "[retries]": 3
+     metrics:
+        type: kafka
+        props:
+           topic: bithon-metrics
+           "[bootstrap.servers]": localhost:9092
+           "[batch.size]": 65536
+           "[buffer.memory]": 67108864
+           "[linger.ms]": 50
+           "[compression.type]": lz4
+           "[max.in.flight.requests.per.connection]": 1
+           "[retries]": 3
+     tracing:
+        type: kafka
+        props:
+           topic: bithon-spans
+           "[bootstrap.servers]": localhost:9092
+           "[batch.size]": 65536
+           "[buffer.memory]": 67108864
+           "[linger.ms]": 50
+           "[compression.type]": lz4
+           "[max.in.flight.requests.per.connection]": 1
+           "[retries]": 3
 ```
 
 > Note: 
 > Under `collector-brpc.sink.props` configuration path, you can add other Kafka broker properties.
 
+And following configurations configure the application to consume messages from a Kafka cluster.
+
 ```yaml
 collector-kafka:
   enabled: true
-  source:
-    "[bootstrap.servers]": localhost:9092
-    "[fetch.min.bytes]": 1024
-    ...other Kafka Consumer Properties
+  metrics:
+     topic: bithon-metrics
+     concurrency: 1
+     pollTimeout: 1000
+     ackTime: 5000
+     "[group.id]": bithon-metrics-consumer
+     "[bootstrap.servers]": localhost:9092
+     "[fetch.min.bytes]": 524288
+     #...other Kafka consumer properties
+  event:
+     topic: bithon-events
+     concurrency: 1
+     pollTimeout: 1000
+     ackTime: 5000
+     "[group.id]": bithon-events-consumer
+     "[bootstrap.servers]": localhost:9092
+     "[fetch.min.bytes]": 1048576
+     #...other Kafka consumer properties
+  tracing:
+     topic: bithon-spans
+     concurrency: 1
+     pollTimeout: 1000
+     ackTime: 5000
+     "[group.id]": bithon-spans-consumer
+     "[bootstrap.servers]": localhost:9092
+     "[fetch.min.bytes]": 1048576
+    #...other Kafka consumer properties
 ```
+
+Note: Both `pollTimeout` and `ackTime` are in milliseconds.

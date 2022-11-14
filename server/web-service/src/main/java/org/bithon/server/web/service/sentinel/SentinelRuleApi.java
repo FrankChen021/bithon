@@ -21,6 +21,8 @@ import org.bithon.agent.sentinel.degrade.IDegradingRuleManager;
 import org.bithon.agent.sentinel.flow.IFlowRuleManager;
 import org.bithon.component.brpc.IServiceController;
 import org.bithon.server.collector.cmd.service.CommandService;
+import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,6 +37,7 @@ import javax.validation.Valid;
 @Slf4j
 @CrossOrigin
 @RestController
+@Conditional(WebServiceModuleEnabler.class)
 public class SentinelRuleApi {
 
     private final CommandService commandService;

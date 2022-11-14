@@ -16,13 +16,10 @@
 
 package org.bithon.server.kafka;
 
-import org.bithon.component.commons.collection.CloseableIterator;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.bithon.server.sink.metrics.LocalMetricSink;
-import org.bithon.server.sink.metrics.MetricMessage;
-import org.bithon.server.storage.datasource.input.IInputRow;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.bithon.server.sink.metrics.SchemaMetricMessage;
+import org.springframework.context.ApplicationContext;
 
 /**
  * Kafka collector that is connecting to KafkaMetricSink
@@ -30,33 +27,19 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
-public class KafkaMetricConsumer extends AbstractKafkaConsumer<MetricMessage> {
+public class KafkaMetricConsumer extends AbstractKafkaConsumer<SchemaMetricMessage> {
 
     private final LocalMetricSink metricSink;
 
-    public KafkaMetricConsumer(LocalMetricSink metricSink) {
-        super(MetricMessage.class);
+    public KafkaMetricConsumer(LocalMetricSink metricSink, ApplicationContext applicationContext) {
+        super(new TypeReference<SchemaMetricMessage>() {
+        }, applicationContext);
         this.metricSink = metricSink;
     }
 
     @Override
-    protected String getGroupId() {
-        return "bithon-metric-consumer";
-    }
-
-    @Override
-    protected String getTopic() {
-        return "bithon-metrics";
-    }
-
-    @Override
-    protected void onMessage(String type, CloseableIterator<MetricMessage> msg) {
-        List<IInputRow> rows = new ArrayList<>();
-        while (msg.hasNext()) {
-            rows.add(msg.next());
-        }
-
-        metricSink.process(type, rows);
+    protected void onMessage(String type, SchemaMetricMessage msg) {
+        metricSink.process(type, msg);
     }
 
     @Override

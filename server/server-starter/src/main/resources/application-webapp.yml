@@ -1,5 +1,8 @@
 # This property must exist to enable the webapp module
 bithon:
+  web:
+    service:
+      enabled: true
   webapp:
     enabled: true
 
@@ -8,6 +11,7 @@ bithon:
 # Not mandatory
 #
 server:
+  port: 9897
   compression:
     enabled: true
     min-response-size: 4096

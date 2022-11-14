@@ -14,22 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator;
+package org.bithon.server.web.service;
 
-import org.bithon.component.commons.utils.NumberUtils;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/4/6 9:26 下午
+ * @author Frank Chen
+ * @date 30/4/22 3:54 PM
  */
-public class DoubleLastAggregator extends AbstractDoubleAggregator {
-    private long timestamp = Long.MIN_VALUE;
-
+public class WebServiceModuleEnabler implements Condition {
     @Override
-    protected void aggregate(long timestamp, double value) {
-        if (this.timestamp < timestamp) {
-            this.timestamp = timestamp;
-            this.value = NumberUtils.getDouble(value, 0);
-        }
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        return "true".equals(context.getEnvironment().getProperty("bithon.web.service.enabled"));
     }
 }
