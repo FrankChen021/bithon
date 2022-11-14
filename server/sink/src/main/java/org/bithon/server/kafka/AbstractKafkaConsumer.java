@@ -93,6 +93,7 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
         Map<String, Object> consumerProperties = new HashMap<>(props);
         consumerProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        consumerProperties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
 
         ContainerProperties containerProperties = new ContainerProperties(topic);
         containerProperties.setAckMode(ContainerProperties.AckMode.TIME);
