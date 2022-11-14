@@ -28,6 +28,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.bithon.component.commons.utils.NumberUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.springframework.context.ApplicationContext;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
@@ -46,15 +47,17 @@ import java.util.Map;
 public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, MessageListener<String, String> {
     protected final ObjectMapper objectMapper;
     private final TypeReference<MSG> typeReference;
+    private final ApplicationContext applicationContext;
 
-    ConcurrentMessageListenerContainer<String, String> consumerContainer;
+    private ConcurrentMessageListenerContainer<String, String> consumerContainer;
 
     @Getter
     private String topic;
 
-    public AbstractKafkaConsumer(TypeReference<MSG> typeReference) {
+    public AbstractKafkaConsumer(TypeReference<MSG> typeReference, ApplicationContext applicationContext) {
         this.typeReference = typeReference;
-        objectMapper = new ObjectMapper();
+        this.applicationContext = applicationContext;
+        this.objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
@@ -104,6 +107,8 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
         consumerContainer = new ConcurrentMessageListenerContainer<>(new DefaultKafkaConsumerFactory<>(consumerProperties), containerProperties);
         consumerContainer.setupMessageListener(this);
         consumerContainer.setConcurrency(concurrency);
+        consumerContainer.setApplicationEventPublisher(applicationContext);
+        consumerContainer.setApplicationContext(applicationContext);
         consumerContainer.start();
 
         log.info("Starting Kafka consumer for topic [{}]", topic);

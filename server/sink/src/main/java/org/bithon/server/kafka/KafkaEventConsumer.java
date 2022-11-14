@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.sink.event.LocalEventSink;
 import org.bithon.server.storage.event.EventMessage;
+import org.springframework.context.ApplicationContext;
 
 import java.util.List;
 
@@ -30,9 +31,9 @@ import java.util.List;
 public class KafkaEventConsumer extends AbstractKafkaConsumer<List<EventMessage>> {
     private final LocalEventSink eventSink;
 
-    public KafkaEventConsumer(LocalEventSink eventSink) {
+    public KafkaEventConsumer(LocalEventSink eventSink, ApplicationContext applicationContext) {
         super(new TypeReference<List<EventMessage>>() {
-        });
+        }, applicationContext);
         this.eventSink = eventSink;
     }
 

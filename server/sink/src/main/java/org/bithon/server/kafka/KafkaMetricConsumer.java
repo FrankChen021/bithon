@@ -19,6 +19,7 @@ package org.bithon.server.kafka;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.bithon.server.sink.metrics.LocalMetricSink;
 import org.bithon.server.sink.metrics.SchemaMetricMessage;
+import org.springframework.context.ApplicationContext;
 
 /**
  * Kafka collector that is connecting to KafkaMetricSink
@@ -30,9 +31,9 @@ public class KafkaMetricConsumer extends AbstractKafkaConsumer<SchemaMetricMessa
 
     private final LocalMetricSink metricSink;
 
-    public KafkaMetricConsumer(LocalMetricSink metricSink) {
+    public KafkaMetricConsumer(LocalMetricSink metricSink, ApplicationContext applicationContext) {
         super(new TypeReference<SchemaMetricMessage>() {
-        });
+        }, applicationContext);
         this.metricSink = metricSink;
     }
 

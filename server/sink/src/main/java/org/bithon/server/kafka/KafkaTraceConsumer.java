@@ -19,6 +19,7 @@ package org.bithon.server.kafka;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.springframework.context.ApplicationContext;
 
 import java.util.List;
 
@@ -29,9 +30,9 @@ import java.util.List;
 public class KafkaTraceConsumer extends AbstractKafkaConsumer<List<TraceSpan>> {
     private final LocalTraceSink traceSink;
 
-    public KafkaTraceConsumer(LocalTraceSink traceSink) {
+    public KafkaTraceConsumer(LocalTraceSink traceSink, ApplicationContext applicationContext) {
         super(new TypeReference<List<TraceSpan>>() {
-        });
+        }, applicationContext);
 
         this.traceSink = traceSink;
     }
