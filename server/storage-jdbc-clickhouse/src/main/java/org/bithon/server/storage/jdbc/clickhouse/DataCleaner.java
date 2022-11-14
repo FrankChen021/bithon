@@ -59,7 +59,7 @@ public class DataCleaner {
 
         for (String partition : partitions) {
             log.info("\tDrop [{}] on [{}]", table, partition);
-            dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DROP PARTITION %s;", config.getDatabase(), localTable, config.getClusterExpression(), partition));
+            dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DROP PARTITION %s;", config.getDatabase(), localTable, config.getOnClusterExpression(), partition));
         }
     }
 
@@ -71,7 +71,7 @@ public class DataCleaner {
             dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
                                            config.getDatabase(),
                                            config.getLocalTableName(table.getName()),
-                                           config.getClusterExpression(),
+                                           config.getOnClusterExpression(),
                                            timestamp));
         } catch (Throwable e) {
             log.error(StringUtils.format("Exception occurred when clean table[%s]:%s", table.getName(), e.getMessage()), e);

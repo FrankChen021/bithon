@@ -27,6 +27,7 @@ import org.springframework.beans.factory.InitializingBean;
 @Data
 public class ClickHouseConfig implements InitializingBean {
     private String cluster;
+    private boolean onDistributedTable = false;
     private String engine = "MergeTree";
     private String database;
     private int ttlDays = 7;
@@ -42,10 +43,14 @@ public class ClickHouseConfig implements InitializingBean {
             throw new RuntimeException("'engine' should not be null");
         }
 
+        if (this.onDistributedTable && StringUtils.isEmpty(cluster)) {
+            throw new RuntimeException("Config to use distributed table but 'cluster' is not specified.");
+        }
+
         int spaceIndex = engine.indexOf(' ');
         tableEngine = spaceIndex == -1 ? engine : engine.substring(0, spaceIndex);
         if (!tableEngine.endsWith("MergeTree")) {
-            throw new RuntimeException(StringUtils.format("engine[%s] is not a member of MergeTree family", tableEngine));
+            throw new RuntimeException(StringUtils.format("engine [%s] is not a member of MergeTree family", tableEngine));
         }
         if (tableEngine.startsWith("ReplicatedMergeTree") && !StringUtils.hasText(cluster)) {
             throw new RuntimeException("ReplicatedMergeTree requires cluster to be given");
@@ -53,16 +58,16 @@ public class ClickHouseConfig implements InitializingBean {
     }
 
     public String getLocalTableName(String tableName) {
-        if (StringUtils.hasText(this.cluster)) {
+        if (onDistributedTable) {
             return tableName + "_local";
         } else {
             return tableName;
         }
     }
 
-    public String getClusterExpression() {
+    public String getOnClusterExpression() {
         if (StringUtils.hasText(this.cluster)) {
-            return " on cluster " + this.cluster + " ";
+            return " ON CLUSTER " + this.cluster + " ";
         } else {
             return "";
         }

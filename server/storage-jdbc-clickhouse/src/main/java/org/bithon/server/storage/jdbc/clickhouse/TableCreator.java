@@ -89,16 +89,16 @@ public class TableCreator {
 
             StringBuilder sb = new StringBuilder();
 
-            String tableName = StringUtils.hasText(config.getCluster()) ? table.getName() + "_local" : table.getName();
+            String tableName = config.getLocalTableName(table.getName());
             sb.append(StringUtils.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n",
                                          config.getDatabase(),
                                          tableName,
-                                         StringUtils.hasText(config.getCluster()) ? " on cluster " + config.getCluster() : ""));
+                                         config.getOnClusterExpression()));
             sb.append(getFieldText(table));
 
             // replace macro in the template to suit for ReplicatedMergeTree
-            engine = engine.replaceAll("\\{database\\}", config.getDatabase())
-                           .replaceAll("\\{table\\}", tableName);
+            engine = engine.replaceAll("\\{database}", config.getDatabase())
+                           .replaceAll("\\{table}", tableName);
 
             sb.append(StringUtils.format(") ENGINE=%s(%s) ",
                                          engine,
@@ -139,18 +139,16 @@ public class TableCreator {
             dslContext.execute(sb.toString());
         }
 
-        if (!StringUtils.hasText(config.getCluster())) {
-            return;
-        }
-        {
-            //
-            // create distributed table
-            //
-            StringBuilder sb = new StringBuilder();
+        //
+        // Create distributed table if necessary.
+        // In such case, the table.getName() points to the distributed table.
+        //
+        if (config.isOnDistributedTable()) {
+            StringBuilder sb = new StringBuilder(128);
             sb.append(StringUtils.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n",
                                          config.getDatabase(),
                                          table.getName(),
-                                         StringUtils.hasText(config.getCluster()) ? " on cluster " + config.getCluster() : ""));
+                                         config.getOnClusterExpression()));
             sb.append(getFieldText(table));
             sb.append(StringUtils.format(") ENGINE=Distributed('%s', '%s', '%s', murmurHash2_64(%s));",
                                          config.getCluster(),
