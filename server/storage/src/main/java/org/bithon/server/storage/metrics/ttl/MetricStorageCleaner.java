@@ -28,7 +28,7 @@ import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.springframework.beans.BeansException;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service
-@ConditionalOnProperty(value = "bithon.storage.metric.ttl.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnExpression(value = "${bithon.storage.metric.enabled} and ${bithon.storage.metric.ttl.enabled}")
 public class MetricStorageCleaner implements ApplicationContextAware {
 
     private final DataSourceSchemaManager schemaManager;

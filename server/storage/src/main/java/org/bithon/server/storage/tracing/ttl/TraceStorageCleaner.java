@@ -23,7 +23,7 @@ import org.bithon.server.storage.common.TTLConfig;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.springframework.beans.BeansException;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-@ConditionalOnProperty(value = "bithon.storage.tracing.ttl.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnExpression(value = "${bithon.storage.tracing.enabled} and ${bithon.storage.tracing.ttl.enabled}")
 public class TraceStorageCleaner implements ApplicationContextAware {
 
     private final ITraceStorage traceStorage;
