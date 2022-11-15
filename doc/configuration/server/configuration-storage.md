@@ -9,20 +9,25 @@ Currently, two types of storages are supported:
 bithon:
   storage:
     tracing:
-      enabled: true
       type: jdbc
-      ttl: P1D
-      cleanPeriod: PT3M
+      enabled: true
+      ttl:
+        enabled: true
+        ttl: P7D
+        cleanPeriod: PT30M
     metric:
-      enabled: true
       type: jdbc
-      ttl: P1D
-      cleanPeriod: PT3M
+      ttl:
+        enabled: true
+        ttl: P7D
+        cleanPeriod: PT30M
     event:
-      enabled: true
       type: jdbc
-      ttl: P1D
-      cleanPeriod: PT3M
+      enabled: true
+      ttl:
+        enabled: true
+        ttl: P7D
+        cleanPeriod: PT30M
     meta:
       enabled: true
       type: jdbc
@@ -47,20 +52,6 @@ bithon:
 
 The ClickHouse storage has been verified on 21.8.4 branch.
 
-Window functionality must be enabled on your ClickHouse cluster.
-
-```xml
-<!-- server/users.d/allow_experimental_window_functions.xml -->
-<?xml version="1.0"?>
-<yandex>
-   <profiles>
-       <default>
-           <allow_experimental_window_functions>1</allow_experimental_window_functions>
-       </default>
-   </profiles>
-</yandex>
-```
-
 ### Configurations
 
 ```yaml
@@ -68,16 +59,25 @@ bithon:
   storage:
     tracing:
       type: clickhouse
-      ttl: P7D
-      cleanPeriod: PT30M
+      enabled: true
+      ttl: 
+        enabled: true
+        ttl: P7D
+        cleanPeriod: PT30M
     metric:
       type: clickhouse
-      ttl: P7D
-      cleanPeriod: PT30M
+      enabled: true
+      ttl:
+        enabled: true
+        ttl: P7D
+        cleanPeriod: PT30M
     event:
       type: clickhouse
-      ttl: P7D
-      cleanPeriod: PT30M
+      enabled: true
+      ttl:
+        enabled: true
+        ttl: P7D
+        cleanPeriod: PT30M
     meta:
       type: clickhouse
     setting:
@@ -96,7 +96,10 @@ bithon:
 > - the database that you configured to the `url` parameter must be created in advance.
 > - the user must have privilege to create tables under the specified database
 
-#### Configure to use a ClickHouse cluster
+#### Table Configuration
+
+By default, `MergeTree` engine is used. You can configure to use other `MergeTree` family such as `ReplicatedMergeTree`.
+
 
 ```yaml
 bithon:
@@ -104,16 +107,25 @@ bithon:
     providers:
       clickhouse:
         cluster: your_cluster_name
+        engine: your_merge_tree_engine
+        createTableSettings: extra_table_settings
+        onDistributedTable: false
 ```
 
-#### MergeTree engine configuration
+| Path                | Description                                                                                 | Default   | Nullable |
+|---------------------|---------------------------------------------------------------------------------------------|-----------|----------|
+| cluster             | ClickHouse cluster name if you deploy ClickHouse in cluster mode.                           |           | true     |
+| engine              | Table engine of tables that Bithon creates.                                                 | MergeTree | true     |
+| createTableSettings | Extra table settings.                                                                       |           | true     |
+| onDistributedTable  | If tables are distributed-based. If true, there will be a distributed table for each table. | false     | true     |
 
-By default, `MergeTree` engine is used. You can configure to use other `MergeTree` family such as `ReplicatedMergeTree`.
-
+Example:
 ```yaml
 bithon:
   storage:
     providers:
       clickhouse:
-        engine: your_merge_tree_engine
+        engine: ReplicatedMergeTree('/clickhouse/tables/{shard}-{layer}/{database}.{table}', '{replica}')
+        createTableSettings: storage_policy = 's3'
 ```
+
