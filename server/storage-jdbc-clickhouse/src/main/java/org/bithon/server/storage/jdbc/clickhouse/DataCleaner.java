@@ -43,7 +43,7 @@ public class DataCleaner {
         if (StringUtils.isEmpty(config.getCluster())) {
             fromTable = "system.parts";
         } else {
-            fromTable = StringUtils.format("clusterAllReplicas('%s', system, parts)");
+            fromTable = StringUtils.format("clusterAllReplicas('%s', system, parts)", config.getCluster());
         }
 
         String localTable = config.getLocalTableName(table);
