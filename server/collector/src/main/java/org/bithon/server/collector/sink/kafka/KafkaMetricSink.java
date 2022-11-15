@@ -82,7 +82,7 @@ public class KafkaMetricSink implements IMetricMessageSink {
         try {
             String messageText = this.objectMapper.writeValueAsString(message);
 
-            String key = appName + "/" + instanceName;
+            String key = messageType + "/" + appName + "/" + instanceName;
             ProducerRecord<String, String> record = new ProducerRecord<>(this.topic, key, messageText);
             record.headers().add("type", messageType.getBytes(StandardCharsets.UTF_8));
 

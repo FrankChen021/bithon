@@ -74,7 +74,7 @@ public class KafkaEventSink implements IEventMessageSink {
 
             // Sink receives messages from an agent, it's safe to use instance name of first item
             if (key == null) {
-                key = eventMessage.getAppName() + "/" + eventMessage.getInstanceName();
+                key = messageType + "/" + eventMessage.getAppName() + "/" + eventMessage.getInstanceName();
             }
 
             // deserialization
