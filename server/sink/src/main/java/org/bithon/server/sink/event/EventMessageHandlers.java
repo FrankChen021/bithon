@@ -21,7 +21,6 @@ import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.storage.event.EventMessage;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.event.IEventWriter;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,7 +34,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2022/8/2 22:10
  */
 @Slf4j
-@Component
 public class EventMessageHandlers {
 
     private final Map<String, EventMessageHandler<?>> handlers = new ConcurrentHashMap<>(7);
