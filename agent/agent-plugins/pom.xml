@@ -21,6 +21,7 @@
     <module>bithon-sdk</module>
     <module>guice</module>
     <module>jvm</module>
+    <module>kafka</module>
     <module>mysql-5.x-6.x</module>
     <module>mysql-8.x</module>
     <module>quartz2</module>
@@ -208,6 +209,7 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- MongoDb -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-mongodb</artifactId>
@@ -218,6 +220,14 @@
       <artifactId>agent-plugin-mongodb-3.8</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <!-- Kafka -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-kafka</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- end-->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
