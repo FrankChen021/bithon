@@ -16,7 +16,6 @@
 
 package org.bithon.server.storage.datasource;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.time.DateTime;
