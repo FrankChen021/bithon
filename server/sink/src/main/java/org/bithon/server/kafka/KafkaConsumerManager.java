@@ -22,11 +22,9 @@ import org.bithon.server.sink.event.LocalEventSink;
 import org.bithon.server.sink.metrics.LocalMetricSink;
 import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.springframework.beans.BeansException;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,10 +33,8 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
-@Component
-@ConditionalOnProperty(value = "collector-kafka.enabled", havingValue = "true", matchIfMissing = false)
-public class KafkaConsumerStarter implements SmartLifecycle, ApplicationContextAware {
-    ApplicationContext context;
+public class KafkaConsumerManager implements SmartLifecycle, ApplicationContextAware {
+    private ApplicationContext context;
 
     private final List<IKafkaConsumer> collectors = new ArrayList<>();
 

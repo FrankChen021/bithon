@@ -14,10 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.input;
+package org.bithon.server.sink.common.input;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.input.TransformSpec;
 
 /**
  * @author frank.chen021@outlook.com

@@ -18,6 +18,9 @@ package org.bithon.server.sink;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.server.kafka.KafkaConsumerManager;
+import org.bithon.server.sink.common.input.InputSourceManager;
 import org.bithon.server.sink.event.EventInputSource;
 import org.bithon.server.sink.metrics.MetricInputSource;
 import org.bithon.server.sink.metrics.transformer.ConnectionStringTransformer;
@@ -27,6 +30,8 @@ import org.bithon.server.sink.metrics.transformer.UriNormalizationTransformer;
 import org.bithon.server.sink.tracing.TraceConfig;
 import org.bithon.server.sink.tracing.TraceDataSourceSchemaInitializer;
 import org.bithon.server.sink.tracing.metrics.MetricOverSpanInputSource;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -74,5 +79,16 @@ public class SinkAutoConfiguration {
                 );
             }
         };
+    }
+
+    @Bean
+    InputSourceManager inputSourceManager(DataSourceSchemaManager dataSourceSchemaManager, ObjectMapper objectMapper) {
+        return new InputSourceManager(dataSourceSchemaManager, objectMapper);
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "collector-kafka.enabled", havingValue = "true", matchIfMissing = false)
+    KafkaConsumerManager kafkaConsumerManager() {
+        return new KafkaConsumerManager();
     }
 }

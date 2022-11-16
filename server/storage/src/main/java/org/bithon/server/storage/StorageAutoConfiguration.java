@@ -215,11 +215,11 @@ public class StorageAutoConfiguration {
 
     @Bean
     @ConditionalOnBean(ISchemaStorage.class)
-    DataSourceSchemaManager schemaManager(ISchemaStorage schemaStorage, ObjectMapper objectMapper) {
+    DataSourceSchemaManager schemaManager(ISchemaStorage schemaStorage) {
         final DataSourceSchema eventTableSchema = createEventTableSchema();
         final DataSourceSchema traceTableSchema = createTraceSpanSchema();
 
-        DataSourceSchemaManager schemaManager = new DataSourceSchemaManager(schemaStorage, objectMapper);
+        DataSourceSchemaManager schemaManager = new DataSourceSchemaManager(schemaStorage);
 
         schemaManager.addDataSourceSchema(eventTableSchema);
         schemaManager.addDataSourceSchema(traceTableSchema);

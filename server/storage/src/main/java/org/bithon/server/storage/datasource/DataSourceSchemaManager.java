@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -43,14 +42,12 @@ import java.util.concurrent.TimeUnit;
 public class DataSourceSchemaManager implements InitializingBean, DisposableBean {
     private final List<IDataSourceSchemaListener> listeners = new ArrayList<>();
     private final ISchemaStorage schemaStorage;
-    private final ObjectMapper objectMapper;
     private final ScheduledExecutorService loaderScheduler;
     private final Map<String, DataSourceSchema> schemas = new ConcurrentHashMap<>();
     private long lastLoadAt;
 
-    public DataSourceSchemaManager(ISchemaStorage schemaStorage, ObjectMapper objectMapper) {
+    public DataSourceSchemaManager(ISchemaStorage schemaStorage) {
         this.schemaStorage = schemaStorage;
-        this.objectMapper = objectMapper;
         loaderScheduler = Executors.newSingleThreadScheduledExecutor(NamedThreadFactory.of("schema-loader"));
     }
 
@@ -66,13 +63,7 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
                 }
             }
 
-            for (IDataSourceSchemaListener listener : listeners) {
-                try {
-                    listener.onAdd(schema);
-                } catch (Exception e) {
-                    log.error("notify onAdd exception", e);
-                }
-            }
+            this.onChange(null, schema);
             return true;
         }
         return false;
@@ -82,24 +73,14 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
         return schemaStorage.containsSchema(name);
     }
 
-    public void rmvDataSourceSchema(DataSourceSchema schema) {
-        schemas.remove(schema.getName());
-        for (IDataSourceSchemaListener listener : listeners) {
-            try {
-                listener.onRmv(schema);
-            } catch (Exception e) {
-                log.error("notify onRmv exception", e);
-            }
-        }
-    }
-
     public void updateDataSourceSchema(DataSourceSchema schema) {
         try {
             this.schemaStorage.update(schema.getName(), schema);
         } catch (IOException e) {
             return;
         }
-        this.schemas.put(schema.getName(), schema);
+        this.onChange(this.schemas.put(schema.getName(), schema),
+                      schema);
     }
 
     public DataSourceSchema getDataSourceSchema(String name) {
@@ -125,6 +106,8 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
 
     public void addListener(IDataSourceSchemaListener listener) {
         listeners.add(listener);
+
+        this.schemas.forEach((name, schema) -> onChange(null, schema));
     }
 
     private void incrementalLoadSchemas() {
@@ -134,27 +117,7 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
             log.info("{} Schemas has been changed since {}.", changedSchemaList.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
 
             for (DataSourceSchema changedSchema : changedSchemaList) {
-
-                DataSourceSchema schemaBeforeChange = this.schemas.get(changedSchema.getName());
-                if (schemaBeforeChange != null
-                    && Objects.equals(schemaBeforeChange.getSignature(), changedSchema.getSignature())) {
-                    // same signature, do nothing
-                    continue;
-                }
-
-                // stop input
-                if (schemaBeforeChange != null && schemaBeforeChange.getInputSourceSpec() != null) {
-                    log.info("Stop input source for schema [{}]", schemaBeforeChange.getName());
-                    schemaBeforeChange.getInputSourceSpec().stop();
-                }
-
-                // start for the new schema
-                if (changedSchema.getInputSourceSpec() != null) {
-                    log.info("Start input source for schema [{}]", changedSchema.getName());
-                    changedSchema.getInputSourceSpec().start(changedSchema);
-                }
-
-                this.schemas.put(changedSchema.getName(), changedSchema);
+                this.onChange(this.schemas.put(changedSchema.getName(), changedSchema), changedSchema);
             }
 
             this.lastLoadAt = System.currentTimeMillis();
@@ -167,7 +130,8 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
     public void afterPropertiesSet() {
         log.info("Starting schema incremental loader...");
         loaderScheduler.scheduleWithFixedDelay(this::incrementalLoadSchemas,
-                                               0, // no delay to execute the first task
+                                               // no delay to execute the first task
+                                               0,
                                                1,
                                                TimeUnit.MINUTES);
     }
@@ -178,9 +142,17 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
         loaderScheduler.shutdown();
     }
 
-    public interface IDataSourceSchemaListener {
-        void onRmv(DataSourceSchema dataSourceSchema);
+    private void onChange(DataSourceSchema oldSchema, DataSourceSchema dataSourceSchema) {
+        for (IDataSourceSchemaListener listener : listeners) {
+            try {
+                listener.onChange(oldSchema, dataSourceSchema);
+            } catch (Exception e) {
+                log.error("notify onAdd exception", e);
+            }
+        }
+    }
 
-        void onAdd(DataSourceSchema dataSourceSchema);
+    public interface IDataSourceSchemaListener {
+        void onChange(DataSourceSchema oldSchema, DataSourceSchema dataSourceSchema);
     }
 }
