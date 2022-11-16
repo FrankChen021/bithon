@@ -19,9 +19,7 @@ package org.bithon.server.sink;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import org.bithon.server.sink.event.EventInputSource;
-import org.bithon.server.sink.event.EventMessageHandlers;
 import org.bithon.server.sink.metrics.MetricInputSource;
-import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.sink.metrics.transformer.ConnectionStringTransformer;
 import org.bithon.server.sink.metrics.transformer.ExtractHost;
 import org.bithon.server.sink.metrics.transformer.ExtractPath;
@@ -29,9 +27,6 @@ import org.bithon.server.sink.metrics.transformer.UriNormalizationTransformer;
 import org.bithon.server.sink.tracing.TraceConfig;
 import org.bithon.server.sink.tracing.TraceDataSourceSchemaInitializer;
 import org.bithon.server.sink.tracing.metrics.MetricOverSpanInputSource;
-import org.bithon.server.storage.event.IEventStorage;
-import org.bithon.server.storage.meta.IMetaStorage;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -50,18 +45,6 @@ public class SinkAutoConfiguration {
     @Bean
     TraceDataSourceSchemaInitializer traceDataSourceSchemaInitializer(TraceConfig traceConfig) {
         return new TraceDataSourceSchemaInitializer(traceConfig);
-    }
-
-    @Bean
-    @ConditionalOnBean(IMetaStorage.class)
-    TopoTransformers topoTransformers(IMetaStorage metaStorage) {
-        return new TopoTransformers(metaStorage);
-    }
-
-    @Bean
-    @ConditionalOnBean(IEventStorage.class)
-    EventMessageHandlers eventMessageHandlers(IEventStorage handlers) {
-        return new EventMessageHandlers(handlers);
     }
 
     @Bean
