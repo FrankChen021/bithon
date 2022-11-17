@@ -29,23 +29,26 @@ import org.bithon.server.sink.metrics.transformer.ConnectionStringTransformer;
 import org.bithon.server.sink.metrics.transformer.ExtractHost;
 import org.bithon.server.sink.metrics.transformer.ExtractPath;
 import org.bithon.server.sink.metrics.transformer.UriNormalizationTransformer;
+import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.bithon.server.sink.tracing.TraceConfig;
 import org.bithon.server.sink.tracing.TraceDataSourceSchemaInitializer;
+import org.bithon.server.sink.tracing.TraceMessageProcessChain;
 import org.bithon.server.sink.tracing.metrics.MetricOverSpanInputSource;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.meta.IMetaStorage;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 3/4/22 11:37 AM
  */
-
 @Configuration(proxyBeanMethods = false)
+@Conditional(SinkModuleEnabler.class)
 public class SinkAutoConfiguration {
 
     /**
@@ -97,10 +100,26 @@ public class SinkAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnProperty(value = "collector-kafka.enabled", havingValue = "true", matchIfMissing = false)
+    public TraceMessageProcessChain traceSink(ApplicationContext applicationContext) {
+        return new TraceMessageProcessChain(new LocalTraceSink(applicationContext));
+    }
+
+    /**
+     * input source manager is responsible for hooking the processors on metrics and trace handlers.
+     * So all its dependencies like {@link TraceMessageProcessChain} should be prepared.
+     * <p>
+     * If the sink is kafka, {@link TraceMessageProcessChain} is initialized above
+     * If the sink is local, it's initialized in brpc auto configuration.
+     */
+    @Bean
     InputSourceManager inputSourceManager(DataSourceSchemaManager dataSourceSchemaManager, ObjectMapper objectMapper) {
         return new InputSourceManager(dataSourceSchemaManager, objectMapper);
     }
 
+    /**
+     * Initialize the consumers at last
+     */
     @Bean
     @ConditionalOnProperty(value = "collector-kafka.enabled", havingValue = "true", matchIfMissing = false)
     KafkaConsumerManager kafkaConsumerManager() {
