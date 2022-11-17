@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-@ConditionalOnExpression(value = "${bithon.storage.tracing.enabled} and ${bithon.storage.tracing.ttl.enabled}")
+@ConditionalOnExpression(value = "${bithon.storage.tracing.enabled: false} and ${bithon.storage.tracing.ttl.enabled: false}")
 public class TraceStorageCleaner implements ApplicationContextAware {
 
     private final ITraceStorage traceStorage;

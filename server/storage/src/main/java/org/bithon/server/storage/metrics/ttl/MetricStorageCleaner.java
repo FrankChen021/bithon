@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service
-@ConditionalOnExpression(value = "${bithon.storage.metric.enabled} and ${bithon.storage.metric.ttl.enabled}")
+@ConditionalOnExpression(value = "${bithon.storage.metric.enabled: false} and ${bithon.storage.metric.ttl.enabled: false}")
 public class MetricStorageCleaner implements ApplicationContextAware {
 
     private final DataSourceSchemaManager schemaManager;

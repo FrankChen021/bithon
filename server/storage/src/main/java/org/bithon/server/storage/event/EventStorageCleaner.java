@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
  * @date 10/4/22 8:52 PM
  */
 @Service
-@ConditionalOnExpression(value = "${bithon.storage.event.enabled} and ${bithon.storage.event.ttl.enabled}")
+@ConditionalOnExpression(value = "${bithon.storage.event.enabled: false} and ${bithon.storage.event.ttl.enabled: false}")
 public class EventStorageCleaner implements ApplicationContextAware {
 
     private final IEventStorage eventStorage;
