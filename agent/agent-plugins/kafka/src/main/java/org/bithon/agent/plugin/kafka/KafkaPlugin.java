@@ -43,22 +43,22 @@ public class KafkaPlugin implements IPlugin {
                                                        "org.apache.kafka.clients.consumer.ConsumerConfig",
                                                        "org.apache.kafka.common.serialization.Deserializer<K>",
                                                        "org.apache.kafka.common.serialization.Deserializer<V>")
-                                                   .to("org.bithon.agent.plugin.kafka.consumer.interceptors.KafkaConsumer$Ctor"),
+                                                   .to("org.bithon.agent.plugin.kafka.consumer.interceptor.KafkaConsumer$Ctor"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("close")
-                                                   .to("org.bithon.agent.plugin.kafka.consumer.interceptors.KafkaConsumer$Close")
+                                                   .to("org.bithon.agent.plugin.kafka.consumer.interceptor.KafkaConsumer$Close")
                 ),
 
             forClass("org.apache.kafka.clients.producer.KafkaProducer")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor(Matchers.visibility(Visibility.PACKAGE_PRIVATE).or(Matchers.visibility(Visibility.PRIVATE)))
-                                                   .to("org.bithon.agent.plugin.kafka.producer.interceptors.KafkaProducer$Ctor"),
+                                                   .to("org.bithon.agent.plugin.kafka.producer.interceptor.KafkaProducer$Ctor"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("close")
-                                                   .to("org.bithon.agent.plugin.kafka.producer.interceptors.KafkaProducer$Close")
+                                                   .to("org.bithon.agent.plugin.kafka.producer.interceptor.KafkaProducer$Close")
                 )
         );
     }

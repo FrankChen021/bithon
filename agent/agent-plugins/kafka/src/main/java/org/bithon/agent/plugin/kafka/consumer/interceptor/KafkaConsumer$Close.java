@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.kafka.consumer.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.plugin.kafka.consumer.ManagedKafkaConsumers;
+import org.bithon.agent.plugin.kafka.consumer.ConsumersMetricsCollector;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 /**
@@ -31,7 +31,7 @@ public class KafkaConsumer$Close extends AbstractInterceptor {
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
 
         String clientId = (String) ReflectionUtils.getFieldValue(aopContext.getTarget(), "clientId");
-        ManagedKafkaConsumers.getInstance().unregister(clientId);
+        ConsumersMetricsCollector.getInstance().unregister(clientId);
 
         return InterceptionDecision.SKIP_LEAVE;
     }

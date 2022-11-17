@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.kafka.producer.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.plugin.kafka.producer.ManagedKafkaProducers;
+import org.bithon.agent.plugin.kafka.producer.ProducersMetricsCollector;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 /**
@@ -31,7 +31,7 @@ public class KafkaProducer$Close extends AbstractInterceptor {
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
         String clientId = (String) ReflectionUtils.getFieldValue(aopContext.getTarget(), "clientId");
-        ManagedKafkaProducers.getInstance().unregister(clientId);
+        ProducersMetricsCollector.getInstance().unregister(clientId);
 
         return InterceptionDecision.SKIP_LEAVE;
     }

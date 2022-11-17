@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.kafka.consumer.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.plugin.kafka.consumer.ManagedKafkaConsumers;
+import org.bithon.agent.plugin.kafka.consumer.ConsumersMetricsCollector;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 /**
@@ -30,8 +30,8 @@ public class KafkaConsumer$Ctor extends AbstractInterceptor {
     public void onConstruct(AopContext aopContext) {
         String clientId = (String) ReflectionUtils.getFieldValue(aopContext.getTarget(), "clientId");
 
-        ManagedKafkaConsumers.getInstance()
-                             .register(clientId,
+        ConsumersMetricsCollector.getInstance()
+                                 .register(clientId,
                                       aopContext.castTargetAs(),
                                       aopContext.getArgAs(0));
 
