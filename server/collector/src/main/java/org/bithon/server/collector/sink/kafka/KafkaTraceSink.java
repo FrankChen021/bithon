@@ -24,9 +24,11 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.storage.tracing.TraceSpan;
@@ -41,18 +43,22 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
+@Slf4j
 @JsonTypeName("kafka")
 public class KafkaTraceSink implements ITraceMessageSink {
 
     private final KafkaTemplate<String, String> producer;
     private final ObjectMapper objectMapper;
     private final String topic;
+    private final int maxSizePerMessage;
 
     @JsonCreator
     public KafkaTraceSink(@JsonProperty("props") Map<String, Object> props,
                           @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         this.topic = (String) props.remove("topic");
         Preconditions.checkNotNull(topic, "topic is not configured for tracing sink");
+
+        this.maxSizePerMessage = (int) props.getOrDefault(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, 1024 * 1024);
 
         this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props,
                                                                               new StringSerializer(),
@@ -63,42 +69,61 @@ public class KafkaTraceSink implements ITraceMessageSink {
 
     @Override
     public void process(String messageType, List<TraceSpan> spans) {
-        if (spans.isEmpty()) {
+        if (CollectionUtils.isEmpty(spans)) {
             return;
         }
 
         String key = null;
 
         //
-        // a batch message in written into a single kafka message in which each text line is a single metric message
+        // A batch message in written into a single kafka message in which each text line is a single metric message.
         //
-        // of course we could also send messages in this batch one by one to Kafka,
-        // but I don't think it has advantages over the way below
+        // Of course, we could also send messages in this batch one by one to Kafka,
+        // but I don't think it has advantages over the way below.
+        //
+        // But since Producer/Broker has size limitation on each message, we also limit the size in case of failure on send.
         //
         StringBuilder messageText = new StringBuilder(2048);
         messageText.append('[');
         for (TraceSpan span : spans) {
             if (key == null) {
-                key = span.getTraceId();
+                key = span.getAppName() + "/" + span.getInstanceName();
             }
 
+            String serializedText;
             try {
-                messageText.append(objectMapper.writeValueAsString(span));
+                serializedText = objectMapper.writeValueAsString(span);
             } catch (JsonProcessingException ignored) {
+                continue;
             }
 
+            if (messageText.length() + serializedText.length() + 2 > this.maxSizePerMessage) {
+                send(messageType, messageText);
+
+                messageText.delete(0, messageText.length());
+                messageText.append('[');
+            }
+
+            messageText.append(serializedText);
             messageText.append(",\n");
         }
+        send(key, messageText);
+    }
+
+    private void send(String key, StringBuilder messageText) {
         if (messageText.length() > 2) {
             // Remove last separator
             messageText.delete(messageText.length() - 2, messageText.length());
         }
-
         messageText.append(']');
 
         ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, messageText.toString());
-        record.headers().add("type", messageType.getBytes(StandardCharsets.UTF_8));
-        producer.send(record);
+        record.headers().add("type", key.getBytes(StandardCharsets.UTF_8));
+        try {
+            producer.send(record);
+        } catch (Exception e) {
+            log.warn("Error to send trace from {}, message: {}", key, e.getMessage());
+        }
     }
 
     @Override
