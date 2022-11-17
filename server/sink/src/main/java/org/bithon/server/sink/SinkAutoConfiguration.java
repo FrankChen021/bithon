@@ -58,13 +58,11 @@ public class SinkAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnBean(IMetaStorage.class)
     TopoTransformers topoTransformers(IMetaStorage metaStorage) {
         return new TopoTransformers(metaStorage);
     }
 
     @Bean
-    @ConditionalOnBean(IEventStorage.class)
     EventMessageHandlers eventMessageHandlers(IEventStorage handlers) {
         return new EventMessageHandlers(handlers);
     }
