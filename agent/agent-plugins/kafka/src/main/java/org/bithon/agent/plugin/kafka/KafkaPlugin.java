@@ -57,6 +57,10 @@ public class KafkaPlugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.kafka.producer.interceptor.KafkaProducer$Ctor"),
 
                     MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("doSend")
+                                                   .to("org.bithon.agent.plugin.kafka.producer.interceptor.KafkaProducer$doSend"),
+
+                    MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("close")
                                                    .to("org.bithon.agent.plugin.kafka.producer.interceptor.KafkaProducer$Close")
                 )
