@@ -17,19 +17,32 @@
 package org.bithon.agent.plugin.kafka.producer.interceptor;
 
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.Header;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
+import org.bithon.agent.plugin.kafka.producer.KafkaProducerTracingConfig;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.ReflectionUtils;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Frank Chen
  * @date 18/11/22 10:33 am
  */
 public class KafkaProducer$DoSend extends AbstractInterceptor {
+
+    private KafkaProducerTracingConfig tracingConfig;
+
+    @Override
+    public boolean initialize() {
+        tracingConfig = AgentContext.getInstance().getAgentConfiguration().getConfig(KafkaProducerTracingConfig.class);
+        return true;
+    }
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
@@ -39,10 +52,21 @@ public class KafkaProducer$DoSend extends AbstractInterceptor {
         }
 
         ProducerRecord<?, ?> record = aopContext.getArgAs(0);
+
+        // record headers
+        for (String key : tracingConfig.getHeaders()) {
+            Header header = record.headers().lastHeader(key);
+            if (header != null) {
+                span.tag("kafka.header." + key, new String(header.value(), StandardCharsets.UTF_8));
+            }
+        }
+
+        // message size
         Integer size = null;
         if (record.value() instanceof String) {
             size = ((String) record.value()).length();
         }
+
         aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .kind(SpanKind.PRODUCER)
                                       .tag("kafka.topic", record.topic())
