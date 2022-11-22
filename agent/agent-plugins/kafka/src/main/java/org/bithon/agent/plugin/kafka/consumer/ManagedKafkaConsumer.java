@@ -77,6 +77,9 @@ public class ManagedKafkaConsumer extends ManagedKafkaClient {
         KafkaConsumerCoordinatorMetrics metrics = MetricsBuilder.toMetrics(kafkaMetrics,
                                                                            KafkaConsumerCoordinatorMetrics.class);
         if (metrics != null) {
+            /*
+             * metrics.cluster =
+             */
         }
         return metrics;
     }

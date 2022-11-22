@@ -28,7 +28,7 @@ import org.bithon.component.commons.tracing.SpanKind;
  * @author Frank Chen
  * @date 18/11/22 10:33 am
  */
-public class KafkaProducer$doSend extends AbstractInterceptor {
+public class KafkaProducer$DoSend extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
