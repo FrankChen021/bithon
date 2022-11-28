@@ -28,6 +28,7 @@ import org.bithon.agent.plugin.kafka.producer.KafkaProducerTracingConfig;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -65,6 +66,10 @@ public class KafkaProducer$DoSend extends AbstractInterceptor {
         Integer size = null;
         if (record.value() instanceof String) {
             size = ((String) record.value()).length();
+        } else if (record.value() instanceof byte[]) {
+            size = ((byte[]) record.value()).length;
+        } else if (record.value() instanceof ByteBuffer) {
+            size = ((ByteBuffer) record.value()).remaining();
         }
 
         aopContext.setUserContext(span.method(aopContext.getMethod())
