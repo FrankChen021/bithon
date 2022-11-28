@@ -23,6 +23,7 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.utils.ReflectionUtils;
 
 /**
  * @author Frank Chen
@@ -56,6 +57,19 @@ public class KafkaProducer$DoSend extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext aopContext) {
         ITraceSpan span = aopContext.castUserContextAs();
-        span.tag(aopContext.getException()).finish();
+        if (aopContext.hasException()) {
+            span.tag(aopContext.getException());
+        } else {
+            Object returning = aopContext.getReturning();
+            if (returning != null) {
+                if ("org.apache.kafka.clients.producer.KafkaProducer$FutureFailure".equals(returning.getClass().getName())) {
+                    Exception exception = (Exception) ReflectionUtils.getFieldValue(returning, "exception");
+                    if (exception != null) {
+                        span.tag(exception.getCause());
+                    }
+                }
+            }
+        }
+        span.finish();
     }
 }
