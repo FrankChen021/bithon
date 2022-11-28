@@ -46,8 +46,20 @@ public class KafkaPlugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.kafka.consumer.interceptor.KafkaConsumer$Ctor"),
 
                     MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.withName("poll").and(Matchers.visibility(Visibility.PRIVATE)))
+                                                   .to("org.bithon.agent.plugin.kafka.consumer.interceptor.KafkaConsumer$Poll"),
+
+                    MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("close")
                                                    .to("org.bithon.agent.plugin.kafka.consumer.interceptor.KafkaConsumer$Close")
+                ),
+
+            // Spring Kafka, can move to a independent plugin
+            forClass("org.springframework.kafka.listener.KafkaMessageListenerContainer$ListenerConsumer")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndNoArgs("pollAndInvoke")
+                                                   .to("org.bithon.agent.plugin.kafka.consumer.interceptor.ListenerConsumer$PollAndInvoke")
                 ),
 
             forClass("org.apache.kafka.clients.producer.KafkaProducer")
