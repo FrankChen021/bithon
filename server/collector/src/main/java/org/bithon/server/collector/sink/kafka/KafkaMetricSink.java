@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
@@ -49,7 +50,7 @@ import java.util.Map;
 @JsonTypeName("kafka")
 public class KafkaMetricSink implements IMetricMessageSink {
 
-    private final KafkaTemplate<String, String> producer;
+    private final KafkaTemplate<String, byte[]> producer;
     private final ObjectMapper objectMapper;
     private final String topic;
 
@@ -61,7 +62,7 @@ public class KafkaMetricSink implements IMetricMessageSink {
 
         this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props,
                                                                               new StringSerializer(),
-                                                                              new StringSerializer()),
+                                                                              new ByteArraySerializer()),
                                             ImmutableMap.of(ProducerConfig.CLIENT_ID_CONFIG, "metrics"));
 
         this.objectMapper = objectMapper;
@@ -80,10 +81,10 @@ public class KafkaMetricSink implements IMetricMessageSink {
         }
 
         try {
-            String messageText = this.objectMapper.writeValueAsString(message);
+            byte[] messageText = this.objectMapper.writeValueAsBytes(message);
 
             String key = messageType + "/" + appName + "/" + instanceName;
-            ProducerRecord<String, String> record = new ProducerRecord<>(this.topic, key, messageText);
+            ProducerRecord<String, byte[]> record = new ProducerRecord<>(this.topic, key, messageText);
             record.headers().add("type", messageType.getBytes(StandardCharsets.UTF_8));
 
             this.producer.send(record);

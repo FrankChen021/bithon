@@ -61,6 +61,8 @@ public class KafkaTraceSink implements ITraceMessageSink {
     private final int maxSizePerMessage;
     private final Header header;
 
+    private final ThreadLocal<Buffer> bufferThreadLocal;
+
     @JsonCreator
     public KafkaTraceSink(@JsonProperty("props") Map<String, Object> props,
                           @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
@@ -70,6 +72,7 @@ public class KafkaTraceSink implements ITraceMessageSink {
         this.maxSizePerMessage = (int) props.getOrDefault(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, 1024 * 1024);
         this.compressionType = CompressionType.forName((String) props.getOrDefault(ProducerConfig.COMPRESSION_TYPE_CONFIG, "none"));
         this.header = new RecordHeader("type", "tracing".getBytes(StandardCharsets.UTF_8));
+        this.bufferThreadLocal = ThreadLocal.withInitial(() -> new Buffer(this.maxSizePerMessage));
 
         this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props, new ByteArraySerializer(), new ByteArraySerializer()),
                                             ImmutableMap.of(ProducerConfig.CLIENT_ID_CONFIG, "trace"));
@@ -158,7 +161,8 @@ public class KafkaTraceSink implements ITraceMessageSink {
         //
         // But since Producer/Broker has size limitation on each message, we also limit the size in case of failure on send.
         //
-        Buffer messageBuffer = new Buffer(this.maxSizePerMessage);
+        Buffer messageBuffer = this.bufferThreadLocal.get();
+        messageBuffer.reset();
         messageBuffer.write('[');
         for (TraceSpan span : spans) {
             if (key == null) {
@@ -177,7 +181,9 @@ public class KafkaTraceSink implements ITraceMessageSink {
                                                                             ByteBuffer.wrap(key),
                                                                             messageBuffer.toByteBuffer(),
                                                                             new Header[]{header});
-            if (currentSize + serializedSpan.length > messageBuffer.capacity()) {
+
+            // plus 2 to leave 2 bytes as margin
+            if (currentSize + serializedSpan.length + 2 > messageBuffer.capacity()) {
                 send(key, messageBuffer);
 
                 messageBuffer.reset();

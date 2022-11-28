@@ -35,7 +35,6 @@ import org.bithon.server.storage.event.EventMessage;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -92,7 +91,6 @@ public class KafkaEventSink implements IEventMessageSink {
         messageText.append(']');
         if (key != null) {
             ProducerRecord<String, String> record = new ProducerRecord<>(this.topic, key, messageText.toString());
-            record.headers().add("type", messageType.getBytes(StandardCharsets.UTF_8));
             producer.send(record);
         }
     }
