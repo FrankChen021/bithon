@@ -24,15 +24,24 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.internals.RecordHeader;
+import org.apache.kafka.common.record.AbstractRecords;
+import org.apache.kafka.common.record.CompressionType;
+import org.apache.kafka.common.record.RecordBatch;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -41,12 +50,18 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
+@Slf4j
 @JsonTypeName("kafka")
 public class KafkaTraceSink implements ITraceMessageSink {
 
-    private final KafkaTemplate<String, String> producer;
+    private final KafkaTemplate<byte[], byte[]> producer;
     private final ObjectMapper objectMapper;
     private final String topic;
+    private final CompressionType compressionType;
+    private final int maxSizePerMessage;
+    private final Header header;
+
+    private final ThreadLocal<Buffer> bufferThreadLocal;
 
     @JsonCreator
     public KafkaTraceSink(@JsonProperty("props") Map<String, Object> props,
@@ -54,51 +69,149 @@ public class KafkaTraceSink implements ITraceMessageSink {
         this.topic = (String) props.remove("topic");
         Preconditions.checkNotNull(topic, "topic is not configured for tracing sink");
 
-        this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props,
-                                                                              new StringSerializer(),
-                                                                              new StringSerializer()),
+        this.maxSizePerMessage = (int) props.getOrDefault(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, 1024 * 1024);
+        this.compressionType = CompressionType.forName((String) props.getOrDefault(ProducerConfig.COMPRESSION_TYPE_CONFIG, "none"));
+        this.header = new RecordHeader("type", "tracing".getBytes(StandardCharsets.UTF_8));
+        this.bufferThreadLocal = ThreadLocal.withInitial(() -> new Buffer(this.maxSizePerMessage));
+
+        this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props, new ByteArraySerializer(), new ByteArraySerializer()),
                                             ImmutableMap.of(ProducerConfig.CLIENT_ID_CONFIG, "trace"));
         this.objectMapper = objectMapper;
     }
 
+    private static class Buffer {
+        private byte[] buf;
+        private int size;
+
+        Buffer(int initCapacity) {
+            this.buf = new byte[initCapacity];
+            this.size = 0;
+        }
+
+        int capacity() {
+            return buf.length;
+        }
+
+        boolean isEmpty() {
+            return size == 0;
+        }
+
+        void write(byte[] buf) {
+            ensureCapacity(buf.length);
+            System.arraycopy(buf, 0, this.buf, this.size, buf.length);
+            this.size += buf.length;
+        }
+
+        void write(char chr) {
+            ensureCapacity(1);
+            this.buf[this.size++] = (byte) chr;
+        }
+
+        public void deleteFromEnd(int length) {
+            if (size >= length) {
+                size -= length;
+            }
+        }
+
+        byte[] toBytes() {
+            if (size == this.buf.length) {
+                return this.buf;
+            } else {
+                byte[] d = new byte[this.size];
+                System.arraycopy(this.buf, 0, d, 0, this.size);
+                return d;
+            }
+        }
+
+        ByteBuffer toByteBuffer() {
+            return ByteBuffer.wrap(this.buf, 0, this.size);
+        }
+
+        public void reset() {
+            this.size = 0;
+        }
+
+        private void ensureCapacity(int extraSize) {
+            int newSize = buf.length;
+            while (this.size + extraSize > newSize) {
+                newSize *= 2;
+            }
+            if (newSize != buf.length) {
+                byte[] newBuff = new byte[newSize];
+                System.arraycopy(this.buf, 0, newBuff, 0, this.size);
+                this.buf = newBuff;
+            }
+        }
+    }
+
+    @SneakyThrows
     @Override
     public void process(String messageType, List<TraceSpan> spans) {
-        if (spans.isEmpty()) {
+        if (CollectionUtils.isEmpty(spans)) {
             return;
         }
 
-        String key = null;
+        byte[] key = null;
 
         //
-        // a batch message in written into a single kafka message in which each text line is a single metric message
+        // A batch message in written into a single kafka message in which each text line is a single metric message.
         //
-        // of course we could also send messages in this batch one by one to Kafka,
-        // but I don't think it has advantages over the way below
+        // Of course, we could also send messages in this batch one by one to Kafka,
+        // but I don't think it has advantages over the way below.
         //
-        StringBuilder messageText = new StringBuilder(2048);
-        messageText.append('[');
+        // But since Producer/Broker has size limitation on each message, we also limit the size in case of failure on send.
+        //
+        Buffer messageBuffer = this.bufferThreadLocal.get();
+        messageBuffer.reset();
+        messageBuffer.write('[');
         for (TraceSpan span : spans) {
             if (key == null) {
-                key = span.getTraceId();
+                key = (span.getAppName() + "/" + span.getInstanceName()).getBytes(StandardCharsets.UTF_8);
             }
 
+            byte[] serializedSpan;
             try {
-                messageText.append(objectMapper.writeValueAsString(span));
+                serializedSpan = objectMapper.writeValueAsBytes(span);
             } catch (JsonProcessingException ignored) {
+                continue;
             }
 
-            messageText.append(",\n");
+            int currentSize = AbstractRecords.estimateSizeInBytesUpperBound(RecordBatch.CURRENT_MAGIC_VALUE,
+                                                                            this.compressionType,
+                                                                            ByteBuffer.wrap(key),
+                                                                            messageBuffer.toByteBuffer(),
+                                                                            new Header[]{header});
+
+            // plus 2 to leave 2 bytes as margin
+            if (currentSize + serializedSpan.length + 2 > messageBuffer.capacity()) {
+                send(key, messageBuffer);
+
+                messageBuffer.reset();
+                messageBuffer.write('[');
+            }
+
+            messageBuffer.write(serializedSpan);
+            messageBuffer.write(',');
         }
-        if (messageText.length() > 2) {
-            // Remove last separator
-            messageText.delete(messageText.length() - 2, messageText.length());
+        send(key, messageBuffer);
+    }
+
+    private void send(byte[] key, Buffer buffer) {
+        if (buffer.isEmpty()) {
+            return;
         }
 
-        messageText.append(']');
+        // Remove last separator
+        buffer.deleteFromEnd(1);
+        buffer.write(']');
 
-        ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, messageText.toString());
-        record.headers().add("type", messageType.getBytes(StandardCharsets.UTF_8));
-        producer.send(record);
+        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, key, buffer.toBytes());
+        record.headers().add(header);
+        try {
+            producer.send(record);
+        } catch (Exception e) {
+            log.error("Error to send trace from {}, message: {}", key, e.getMessage());
+        }
     }
 
     @Override

@@ -16,9 +16,13 @@
 
 package org.bithon.server.storage.jdbc.clickhouse;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.bithon.component.commons.utils.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * @author frank.chen021@outlook.com
@@ -26,10 +30,19 @@ import org.springframework.beans.factory.InitializingBean;
  */
 @Data
 public class ClickHouseConfig implements InitializingBean {
+    // JDBC url
+    private String url;
     private String cluster;
+    private boolean onDistributedTable = false;
     private String engine = "MergeTree";
+
+    /**
+     * settings for create table
+     */
+    private String createTableSettings;
+
+    @JsonIgnore
     private String database;
-    private int ttlDays = 7;
 
     /**
      * a runtime property
@@ -37,32 +50,42 @@ public class ClickHouseConfig implements InitializingBean {
     private String tableEngine;
 
     @Override
-    public void afterPropertiesSet() {
+    public void afterPropertiesSet() throws URISyntaxException {
         if (!StringUtils.hasText(engine)) {
             throw new RuntimeException("'engine' should not be null");
         }
 
-        int spaceIndex = engine.indexOf(' ');
-        tableEngine = spaceIndex == -1 ? engine : engine.substring(0, spaceIndex);
+        if (this.onDistributedTable && StringUtils.isEmpty(cluster)) {
+            throw new RuntimeException("Config to use distributed table but 'cluster' is not specified.");
+        }
+
+        int parenthesesIndex = engine.indexOf('(');
+        tableEngine = (parenthesesIndex == -1 ? engine : engine.substring(0, parenthesesIndex)).trim();
         if (!tableEngine.endsWith("MergeTree")) {
-            throw new RuntimeException(StringUtils.format("engine[%s] is not a member of MergeTree family", tableEngine));
+            throw new RuntimeException(StringUtils.format("engine [%s] is not a member of MergeTree family", tableEngine));
         }
         if (tableEngine.startsWith("ReplicatedMergeTree") && !StringUtils.hasText(cluster)) {
             throw new RuntimeException("ReplicatedMergeTree requires cluster to be given");
         }
+
+        if (!url.startsWith("jdbc:")) {
+            throw new RuntimeException("jdbc format is wrong.");
+        }
+        URI uri = new URI(url.substring("jdbc:".length()));
+        this.database = uri.getPath().substring(1);
     }
 
     public String getLocalTableName(String tableName) {
-        if (StringUtils.hasText(this.cluster)) {
+        if (onDistributedTable) {
             return tableName + "_local";
         } else {
             return tableName;
         }
     }
 
-    public String getClusterExpression() {
+    public String getOnClusterExpression() {
         if (StringUtils.hasText(this.cluster)) {
-            return " on cluster " + this.cluster + " ";
+            return " ON CLUSTER " + this.cluster + " ";
         } else {
             return "";
         }

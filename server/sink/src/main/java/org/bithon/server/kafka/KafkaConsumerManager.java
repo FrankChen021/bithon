@@ -20,13 +20,12 @@ import lombok.SneakyThrows;
 import org.bithon.server.sink.event.EventMessageHandlers;
 import org.bithon.server.sink.event.LocalEventSink;
 import org.bithon.server.sink.metrics.LocalMetricSink;
-import org.bithon.server.sink.tracing.LocalTraceSink;
+import org.bithon.server.sink.tracing.ITraceMessageSink;
+import org.bithon.server.sink.tracing.TraceMessageProcessChain;
 import org.springframework.beans.BeansException;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,10 +34,8 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
-@Component
-@ConditionalOnProperty(value = "collector-kafka.enabled", havingValue = "true", matchIfMissing = false)
-public class KafkaConsumerStarter implements SmartLifecycle, ApplicationContextAware {
-    ApplicationContext context;
+public class KafkaConsumerManager implements SmartLifecycle, ApplicationContextAware {
+    private ApplicationContext context;
 
     private final List<IKafkaConsumer> collectors = new ArrayList<>();
 
@@ -52,8 +49,10 @@ public class KafkaConsumerStarter implements SmartLifecycle, ApplicationContextA
     public void start() {
         KafkaConsumerConfig config = this.context.getBean(KafkaConsumerConfig.class);
 
+        ITraceMessageSink traceMessageSink = this.context.getBean(TraceMessageProcessChain.class);
+
         collectors.add(new KafkaMetricConsumer(new LocalMetricSink(this.context), this.context).start(config.getMetrics()));
-        collectors.add(new KafkaTraceConsumer(new LocalTraceSink(this.context), this.context).start(config.getTracing()));
+        collectors.add(new KafkaTraceConsumer(traceMessageSink, this.context).start(config.getTracing()));
         collectors.add(new KafkaEventConsumer(new LocalEventSink(this.context.getBean(EventMessageHandlers.class)), this.context).start(config.getEvent()));
     }
 

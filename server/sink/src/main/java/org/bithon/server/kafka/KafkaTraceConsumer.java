@@ -17,29 +17,31 @@
 package org.bithon.server.kafka;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.bithon.server.sink.tracing.LocalTraceSink;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.context.ApplicationContext;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
-public class KafkaTraceConsumer extends AbstractKafkaConsumer<List<TraceSpan>> {
-    private final LocalTraceSink traceSink;
+@Slf4j
+public class KafkaTraceConsumer extends AbstractKafkaConsumer {
+    private final ITraceMessageSink traceSink;
+    private final TypeReference<List<TraceSpan>> typeReference;
 
-    public KafkaTraceConsumer(LocalTraceSink traceSink, ApplicationContext applicationContext) {
-        super(new TypeReference<List<TraceSpan>>() {
-        }, applicationContext);
+    public KafkaTraceConsumer(ITraceMessageSink traceSink, ApplicationContext applicationContext) {
+        super(applicationContext);
 
         this.traceSink = traceSink;
-    }
-
-    @Override
-    protected void onMessage(String type, List<TraceSpan> spans) {
-        traceSink.process(getTopic(), spans);
+        this.typeReference = new TypeReference<List<TraceSpan>>() {
+        };
     }
 
     @Override
@@ -54,5 +56,21 @@ public class KafkaTraceConsumer extends AbstractKafkaConsumer<List<TraceSpan>> {
             traceSink.close();
         } catch (Exception ignored) {
         }
+    }
+
+    @Override
+    public void onMessage(List<ConsumerRecord<String, byte[]>> records) {
+        List<TraceSpan> spans = new ArrayList<>(16);
+
+        for (ConsumerRecord<String, byte[]> record : records) {
+            try {
+                List<TraceSpan> msg = objectMapper.readValue(record.value(), typeReference);
+                spans.addAll(msg);
+            } catch (IOException e) {
+                log.error("Failed to process message [event] failed", e);
+            }
+        }
+
+        traceSink.process(getTopic(), spans);
     }
 }

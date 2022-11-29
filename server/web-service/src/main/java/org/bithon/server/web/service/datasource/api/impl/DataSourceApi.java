@@ -181,28 +181,11 @@ public class DataSourceApi implements IDataSourceApi {
         }
 
         schemaManager.addDataSourceSchema(schema);
-
-        if (schema.getInputSourceSpec() != null) {
-            schema.getInputSourceSpec().start(schema);
-        }
     }
 
     @Override
     public void updateSchema(@RequestBody DataSourceSchema newSchema) {
-        DataSourceSchema oldSchema = schemaManager.getDataSourceSchema(newSchema.getName());
-
         schemaManager.updateDataSourceSchema(newSchema);
-
-        // TODO: if dimensions/metrics change, need to update the underlying storage schema
-
-        //
-        if (oldSchema.getInputSourceSpec() != null) {
-            oldSchema.getInputSourceSpec().stop();
-        }
-
-        if (newSchema.getInputSourceSpec() != null) {
-            newSchema.getInputSourceSpec().start(newSchema);
-        }
     }
 
     @Override

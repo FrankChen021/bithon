@@ -14,25 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.input;
+package org.bithon.server.sink.common.input;
 
-import java.util.HashMap;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.input.TransformSpec;
 
 /**
- * An implementation for object deserialized from JSON.
- * Should not use this class directly.
- *
  * @author frank.chen021@outlook.com
- * @date 2022/11/12 11:51
+ * @date 12/4/22 11:20 AM
  */
-public class InputRowImpl extends HashMap<String, Object> implements IInputRow {
-    @Override
-    public Object getCol(String columnName) {
-        return this.get(columnName);
-    }
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+public interface IInputSource {
 
-    @Override
-    public void updateColumn(String name, Object value) {
-        this.put(name, value);
-    }
+    TransformSpec getTransformSpec();
+
+    void start(DataSourceSchema schema);
+    void stop();
 }

@@ -19,17 +19,17 @@ package org.bithon.server.storage.event;
 import org.bithon.server.storage.common.IStorageCleaner;
 import org.bithon.server.storage.common.StorageCleanScheduler;
 import org.springframework.beans.BeansException;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Frank Chen
  * @date 10/4/22 8:52 PM
  */
-@Component
-@ConditionalOnProperty(value = "bithon.storage.event.ttl.enabled", havingValue = "true", matchIfMissing = false)
+@Service
+@ConditionalOnExpression(value = "${bithon.storage.event.enabled: false} and ${bithon.storage.event.ttl.enabled: false}")
 public class EventStorageCleaner implements ApplicationContextAware {
 
     private final IEventStorage eventStorage;
@@ -43,12 +43,10 @@ public class EventStorageCleaner implements ApplicationContextAware {
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         StorageCleanScheduler scheduler = applicationContext.getBean(StorageCleanScheduler.class);
-        scheduler.addCleaner("events",
-                             storageConfig.getTtl(),
-                             (before) -> {
-                                 try (IStorageCleaner cleaner = eventStorage.createCleaner()) {
-                                     cleaner.clean(before);
-                                 }
-                             });
+        scheduler.addCleaner("events", storageConfig.getTtl(), (before) -> {
+            try (IStorageCleaner cleaner = eventStorage.createCleaner()) {
+                cleaner.clean(before);
+            }
+        });
     }
 }

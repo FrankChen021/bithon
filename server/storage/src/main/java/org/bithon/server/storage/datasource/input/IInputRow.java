@@ -16,13 +16,10 @@
 
 package org.bithon.server.storage.datasource.input;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/12/2 4:46 下午
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = InputRowImpl.class)
 public interface IInputRow {
 
     Object getCol(String columnName);

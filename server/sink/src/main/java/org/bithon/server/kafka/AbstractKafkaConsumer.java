@@ -16,27 +16,24 @@
 
 package org.bithon.server.kafka;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.bithon.component.commons.utils.NumberUtils;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.component.commons.utils.StringUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.BatchMessageListener;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
-import org.springframework.kafka.listener.MessageListener;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,9 +41,8 @@ import java.util.Map;
  * @date 2021/3/18
  */
 @Slf4j
-public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, MessageListener<String, String> {
+public abstract class AbstractKafkaConsumer implements IKafkaConsumer, BatchMessageListener<String, byte[]> {
     protected final ObjectMapper objectMapper;
-    private final TypeReference<MSG> typeReference;
     private final ApplicationContext applicationContext;
 
     private ConcurrentMessageListenerContainer<String, String> consumerContainer;
@@ -54,29 +50,11 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
     @Getter
     private String topic;
 
-    public AbstractKafkaConsumer(TypeReference<MSG> typeReference, ApplicationContext applicationContext) {
-        this.typeReference = typeReference;
+    public AbstractKafkaConsumer(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
         this.objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    }
-
-    protected abstract void onMessage(String s, MSG msg);
-
-    @Override
-    public final void onMessage(ConsumerRecord<String, String> record) {
-        Header type = record.headers().lastHeader("type");
-        if (type == null) {
-            log.error("No header in message from topic: {}", this.topic);
-            return;
-        }
-        String messageType = new String(type.value(), StandardCharsets.UTF_8);
-        try {
-            onMessage(messageType, objectMapper.readValue(record.value(), typeReference));
-        } catch (IOException e) {
-            log.error(StringUtils.format("Failed to process message [%s] failed", messageType), e);
-        }
     }
 
     @Override
@@ -95,7 +73,7 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
 
         Map<String, Object> consumerProperties = new HashMap<>(props);
         consumerProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        consumerProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
         consumerProperties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
 
         ContainerProperties containerProperties = new ContainerProperties(topic);
@@ -127,4 +105,7 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
     public boolean isRunning() {
         return consumerContainer.isRunning();
     }
+
+    @Override
+    public abstract void onMessage(List<ConsumerRecord<String, byte[]>> records);
 }

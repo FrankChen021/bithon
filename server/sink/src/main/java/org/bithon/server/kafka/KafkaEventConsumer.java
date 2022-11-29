@@ -17,29 +17,31 @@
 package org.bithon.server.kafka;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.sink.event.LocalEventSink;
 import org.bithon.server.storage.event.EventMessage;
 import org.springframework.context.ApplicationContext;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
-public class KafkaEventConsumer extends AbstractKafkaConsumer<List<EventMessage>> {
+@Slf4j
+public class KafkaEventConsumer extends AbstractKafkaConsumer {
     private final LocalEventSink eventSink;
+    private final TypeReference<List<EventMessage>> typeReference;
 
     public KafkaEventConsumer(LocalEventSink eventSink, ApplicationContext applicationContext) {
-        super(new TypeReference<List<EventMessage>>() {
-        }, applicationContext);
+        super(applicationContext);
         this.eventSink = eventSink;
-    }
-
-    @Override
-    protected void onMessage(String type, List<EventMessage> messages) {
-        eventSink.process(getTopic(), IteratorableCollection.of(messages.iterator()));
+        this.typeReference = new TypeReference<List<EventMessage>>() {
+        };
     }
 
     @Override
@@ -54,5 +56,21 @@ public class KafkaEventConsumer extends AbstractKafkaConsumer<List<EventMessage>
             eventSink.close();
         } catch (Exception ignored) {
         }
+    }
+
+    @Override
+    public void onMessage(List<ConsumerRecord<String, byte[]>> records) {
+        List<EventMessage> events = new ArrayList<>(16);
+
+        for (ConsumerRecord<String, byte[]> record : records) {
+            try {
+                List<EventMessage> msg = objectMapper.readValue(record.value(), typeReference);
+                events.addAll(msg);
+            } catch (IOException e) {
+                log.error("Failed to process message [event] failed", e);
+            }
+        }
+
+        eventSink.process(getTopic(), IteratorableCollection.of(events.iterator()));
     }
 }

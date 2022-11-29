@@ -99,6 +99,7 @@ public interface IMetricSpec extends IColumnSpec {
 
     SimpleAggregateExpression getAggregateExpression();
 
+    @JsonIgnore
     default ResultColumn getResultColumn() {
         return new ResultColumn(getAggregateExpression(), getName());
     }
