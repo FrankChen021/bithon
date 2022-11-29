@@ -1,5 +1,8 @@
 bithon:
   tracing:
+    filters:
+      - type: expression
+        expression: clazz <> 'org.bithon.server.sink.common.service.UriNormalizer'
     globalSanitizer:
       type: uri
       args:

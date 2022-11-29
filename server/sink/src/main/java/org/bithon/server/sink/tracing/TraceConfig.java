@@ -16,13 +16,17 @@
 
 package org.bithon.server.sink.tracing;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import org.bithon.server.sink.tracing.index.TagIndexConfig;
 import org.bithon.server.sink.tracing.mapping.TraceIdMappingConfig;
 import org.bithon.server.sink.tracing.sanitization.SanitizerConfig;
+import org.bithon.server.storage.datasource.input.filter.IInputRowFilter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -34,10 +38,30 @@ import java.util.Map;
 @Configuration(proxyBeanMethods = false)
 @ConfigurationProperties(prefix = "bithon.tracing")
 public class TraceConfig {
+    /**
+     * Map<String, String>
+     *     key: prop name
+     *     val: prop values
+     * <p>
+     * The props must be comply with {@link IInputRowFilter}
+     */
+    private List<Map<String, String>> filters;
+
     private List<TraceIdMappingConfig> mapping;
 
     private SanitizerConfig globalSanitizer;
     private Map<String, SanitizerConfig> applicationSanitizer;
 
     private TagIndexConfig indexes;
+
+    public List<IInputRowFilter> createFilters(ObjectMapper om) {
+        List<IInputRowFilter> spanFilters = new ArrayList<>(filters.size());
+        for (Map<String, String> filter : filters) {
+            try {
+                spanFilters.add(om.readValue(om.writeValueAsBytes(filter), IInputRowFilter.class));
+            } catch (IOException ignored) {
+            }
+        }
+        return spanFilters;
+    }
 }
