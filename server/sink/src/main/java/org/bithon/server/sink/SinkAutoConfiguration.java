@@ -23,6 +23,7 @@ import org.bithon.server.kafka.KafkaConsumerManager;
 import org.bithon.server.sink.common.input.InputSourceManager;
 import org.bithon.server.sink.event.EventInputSource;
 import org.bithon.server.sink.event.EventMessageHandlers;
+import org.bithon.server.sink.event.EventSinkConfig;
 import org.bithon.server.sink.metrics.MetricInputSource;
 import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.sink.metrics.transformer.ConnectionStringTransformer;
@@ -66,8 +67,8 @@ public class SinkAutoConfiguration {
     }
 
     @Bean
-    EventMessageHandlers eventMessageHandlers(IEventStorage handlers) {
-        return new EventMessageHandlers(handlers);
+    EventMessageHandlers eventMessageHandlers(IEventStorage eventStorage, EventSinkConfig eventSinkConfig) {
+        return new EventMessageHandlers(eventStorage, eventSinkConfig);
     }
 
     @Bean
