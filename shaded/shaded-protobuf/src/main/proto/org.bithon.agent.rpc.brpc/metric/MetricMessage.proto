@@ -10,137 +10,141 @@ option java_multiple_files = true;
 /*************************** JVM Metrics ***********************************/
 /***************************************************************************/
 message BrpcJvmMetricMessage {
-    int64 timestamp = 1;
-    int32 interval  = 2;
+  int64 timestamp = 1;
+  int32 interval = 2;
 
-    // how long the application run in millisecond
-    int64 instanceUpTime = 3; 
-    
-    // start timestamp in milli second     
-    int64 instanceStartTime = 4;
-    int64 processors = 5;
-    
-    // process cpu time in this interval in nano second
-    int64 processCpuTime = 6;     
-    double systemLoadAvg = 7;
-    double processCpuLoad = 8;
+  // how long the application run in millisecond
+  int64 instanceUpTime = 3;
 
-    int64 totalMemBytes = 9;
-    int64 freeMemBytes  = 10;
+  // start timestamp in milli second
+  int64 instanceStartTime = 4;
+  int64 processors = 5;
 
-    // approximately to -Xmx
-    int64 heapMax       = 11;
-    
-    // approximate to -Xms     
-    int64 heapInit      = 12;
-    int64 heapUsed      = 13;
-    int64 heapCommitted = 14;
+  // process cpu time in this interval in nano second
+  int64 processCpuTime = 6;
+  double systemLoadAvg = 7;
+  double processCpuLoad = 8;
 
-    //
-    // heap
-    //
-    // -XX:MaxPermSize
-    int64 nonHeapMax = 15;
-    // -XX:PermSize
-    int64 nonHeapInit = 16; 
-    int64 nonHeapUsed = 17;
-    int64 nonHeapCommitted = 18;
+  int64 totalMemBytes = 9;
+  int64 freeMemBytes = 10;
 
-    //
-    // threads
-    //
-    int64 peakThreads = 19;
-    int64 daemonThreads = 20;
-    int64 totalThreads = 21;
-    int64 activeThreads = 22;
+  // approximately to -Xmx
+  int64 heapMax = 11;
 
-    //
-    // class
-    //
-    int64 classLoaded = 23;
-    int64 classUnloaded =24;
+  // approximate to -Xms
+  int64 heapInit = 12;
+  int64 heapUsed = 13;
+  int64 heapCommitted = 14;
 
-    //
-    // meta
-    //
-    int64 metaspaceCommitted = 25;
-    int64 metaspaceUsed      = 26;
-    int64 metaspaceInit      = 27;
-    int64 metaspaceMax       = 28;
-    int64 directMax          = 29;
-    int64 directUsed         = 30;
+  //
+  // heap
+  //
+  // -XX:MaxPermSize
+  int64 nonHeapMax = 15;
+  // -XX:PermSize
+  int64 nonHeapInit = 16;
+  int64 nonHeapUsed = 17;
+  int64 nonHeapCommitted = 18;
+
+  //
+  // threads
+  //
+  int64 peakThreads = 19;
+  int64 daemonThreads = 20;
+  int64 totalThreads = 21;
+  int64 activeThreads = 22;
+
+  //
+  // class
+  //
+  int64 classLoaded = 23;
+  int64 classUnloaded = 24;
+
+  //
+  // meta
+  //
+  int64 metaspaceCommitted = 25;
+  int64 metaspaceUsed = 26;
+  int64 metaspaceInit = 27;
+  int64 metaspaceMax = 28;
+  int64 directMax = 29;
+  int64 directUsed = 30;
 }
 
 /**************************************************************************/
 /*******************************  Generic Metric Message       ***************************/
 /**************************************************************************/
 message BrpcGenericDimensionSpec {
-    string type = 1;
-    string name = 2;
+  string type = 1;
+  string name = 2;
 }
 
 message BrpcGenericMetricSpec {
-    string type = 1;
-    string name = 2;
+  string type = 1;
+  string name = 2;
 }
 
 message BrpcGenericMetricSchema {
-    string name = 1;
-    repeated BrpcGenericDimensionSpec dimensionsSpec = 2;
-    repeated BrpcGenericMetricSpec metricsSpec = 3;
+  string name = 1;
+  repeated BrpcGenericDimensionSpec dimensionsSpec = 2;
+  repeated BrpcGenericMetricSpec metricsSpec = 3;
 }
 
 message BrpcGenericMeasurement {
-    repeated string dimension = 3;
-    repeated int64  metric = 4;
+  repeated string dimension = 3;
+  repeated int64  metric = 4;
 }
 
 message BrpcGenericMetricMessage {
-    int64 timestamp            =  1;
-    int64 interval             =  2;
-    BrpcGenericMetricSchema schema = 3;
-    repeated BrpcGenericMeasurement measurement = 4;
+  int64 timestamp = 1;
+  int64 interval = 2;
+  BrpcGenericMetricSchema schema = 3;
+  repeated BrpcGenericMeasurement measurement = 4;
 }
 
 /*************************************************************************************/
 /*******************************Generic Metric Message V2*****************************/
 /*************************************************************************************/
 message BrpcGenericMetricSchemaV2 {
-    string name = 1;
-    repeated string dimensionsSpec = 2;
-    repeated string metricsSpec = 3;
+  string name = 1;
+  repeated string dimensionsSpec = 2;
+  repeated string metricsSpec = 3;
 }
 
 message BrpcGenericMetricMessageV2 {
-    int64 timestamp            =  1;
-    int64 interval             =  2;
-    BrpcGenericMetricSchemaV2 schema = 3;
-    repeated BrpcGenericMeasurement measurement = 4;
+  int64 timestamp = 1;
+  int64 interval = 2;
+  BrpcGenericMetricSchemaV2 schema = 3;
+  repeated BrpcGenericMeasurement measurement = 4;
 }
 
 /*************************************************************************************/
 /*******************************Generic Metric Message V3*****************************/
 /*************************************************************************************/
+enum FieldType {
+  STRING = 0;
+  LONG = 1;
+  DOUBLE = 2;
+  HISTOGRAM = 3;
+}
 message BrpcGenericMetricSchemaV3 {
-    message FieldSpec {
-        /**
-         * 0 - string
-         * 1 - int64
-         * 2 - double
-         * 3 - historgram
-         */
-        int32 type  = 1;
-        string name = 2;
-    }
+  message FieldSpec {
+    FieldType type = 1;
+    string name = 2;
+  }
 
-    // schema name
-    string name = 1;
+  // schema name
+  string name = 1;
 
-    // fields
-    repeated FieldSpec fieldSpec = 2;
+  int64 timestamp = 2;
+  int64 interval = 3;
+
+  // fields definition
+  repeated FieldSpec fieldSpec = 4;
+
+  repeated BrpcGenericMeasurementV3 measurement = 5;
 }
 
 message BrpcGenericMeasurementV3 {
-    int64 timestamp           =  1;
-    repeated google.protobuf.Any value = 2;
+  repeated google.protobuf.Any value = 1;
 }
