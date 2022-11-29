@@ -20,7 +20,7 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.sink.tracing.TraceConfig;
+import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.ITraceReader;
@@ -48,10 +48,10 @@ import java.util.List;
 @Conditional(WebServiceModuleEnabler.class)
 public class TraceApi {
 
-    private final TraceConfig traceConfig;
+    private final TraceSinkConfig traceConfig;
     private final TraceService traceService;
 
-    public TraceApi(TraceConfig traceConfig, TraceService traceService) {
+    public TraceApi(TraceSinkConfig traceConfig, TraceService traceService) {
         this.traceConfig = traceConfig;
         this.traceService = traceService;
     }

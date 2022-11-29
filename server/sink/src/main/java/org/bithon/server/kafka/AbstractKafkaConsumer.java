@@ -53,8 +53,8 @@ public abstract class AbstractKafkaConsumer implements IKafkaConsumer, BatchMess
     public AbstractKafkaConsumer(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
         this.objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.objectMapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     @Override
@@ -83,6 +83,11 @@ public abstract class AbstractKafkaConsumer implements IKafkaConsumer, BatchMess
         containerProperties.setGroupId((String) props.getOrDefault(ConsumerConfig.GROUP_ID_CONFIG, "bithon-" + topic));
         containerProperties.setClientId((String) props.getOrDefault(ConsumerConfig.CLIENT_ID_CONFIG, "bithon-" + topic));
         consumerContainer = new ConcurrentMessageListenerContainer<>(new DefaultKafkaConsumerFactory<>(consumerProperties), containerProperties);
+
+        // the Spring Kafka uses the bean name as prefix of thread name
+        // Since tracing records thread name automatically to span logs, we explicitly set the bean name to improve the readability of span logs
+        consumerContainer.setBeanName(this.getClass().getSimpleName());
+
         consumerContainer.setupMessageListener(this);
         consumerContainer.setConcurrency(concurrency);
         consumerContainer.setApplicationEventPublisher(applicationContext);

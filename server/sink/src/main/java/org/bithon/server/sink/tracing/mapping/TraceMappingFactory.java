@@ -19,7 +19,7 @@ package org.bithon.server.sink.tracing.mapping;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.sink.tracing.TraceConfig;
+import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.springframework.context.ApplicationContext;
@@ -56,7 +56,7 @@ public class TraceMappingFactory {
         //
         // create extractors from configuration
         //
-        TraceConfig config = context.getBean(TraceConfig.class);
+        TraceSinkConfig config = context.getBean(TraceSinkConfig.class);
         if (!CollectionUtils.isEmpty(config.getMapping())) {
             ObjectMapper mapper = context.getBean(ObjectMapper.class);
             for (TraceIdMappingConfig mappingConfig : config.getMapping()) {
