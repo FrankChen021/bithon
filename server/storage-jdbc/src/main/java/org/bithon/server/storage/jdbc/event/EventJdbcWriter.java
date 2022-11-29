@@ -25,7 +25,7 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.ThreadLocalTransactionProvider;
 
 import java.sql.Timestamp;
-import java.util.Collection;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -44,7 +44,7 @@ public class EventJdbcWriter implements IEventWriter {
     }
 
     @Override
-    public void write(Collection<EventMessage> eventMessages) {
+    public void write(List<EventMessage> eventMessages) {
         BatchBindStep step = dslContext.batch(dslContext.insertInto(Tables.BITHON_EVENT,
                                                                     Tables.BITHON_EVENT.TIMESTAMP,
                                                                     Tables.BITHON_EVENT.APPNAME,
