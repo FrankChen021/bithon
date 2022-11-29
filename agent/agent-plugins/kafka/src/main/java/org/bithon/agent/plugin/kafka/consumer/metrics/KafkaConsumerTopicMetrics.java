@@ -21,13 +21,18 @@ package org.bithon.agent.plugin.kafka.consumer.metrics;
  * @date 2022/11/16 14:17
  */
 public class KafkaConsumerTopicMetrics {
-    public java.lang.String cluster;
-    public java.lang.String clientId;
-    public java.lang.String groupName;
-    public java.lang.String topic;
-    public double fetchSizeAvg;
-    public double fetchSizeMax;
-    public double bytesConsumedRate;
-    public double recordsPerRequestAvg;
-    public double recordsConsumedRate;
+    public String cluster;
+    public String clientId;
+    public String groupId;
+    public String topic;
+
+    public Measurement measurement;
+
+    public static class Measurement {
+        public double fetchSizeAvg;
+        public double fetchSizeMax;
+        public double bytesConsumedRate;
+        public double recordsPerRequestAvg;
+        public double recordsConsumedRate;
+    }
 }

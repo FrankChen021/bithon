@@ -23,22 +23,15 @@ public class KafkaProducerTopicMetrics {
     public String cluster;
     public String clientId;
     public String topic;
-    public double byteRate;
-    public double compressionRate;
-    public double recordErrorRate;
-    public double recordRetryRate;
-    public double recordSendRate;
 
-    public void setCluster(String cluster) {
-        this.cluster = cluster;
-    }
+    public Measurement measurement;
 
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
-    }
-
-    public void setTopic(String topic) {
-        this.topic = topic;
+    public static class Measurement {
+        public double byteRate;
+        public double compressionRate;
+        public double recordErrorRate;
+        public double recordRetryRate;
+        public double recordSendRate;
     }
 }
 

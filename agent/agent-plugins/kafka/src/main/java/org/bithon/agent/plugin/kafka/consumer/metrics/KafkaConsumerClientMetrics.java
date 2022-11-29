@@ -22,24 +22,28 @@ package org.bithon.agent.plugin.kafka.consumer.metrics;
  */
 public class KafkaConsumerClientMetrics {
 
-    public String cluster; 
-    public String clientId; 
-    public String groupName; 
-    public KafkaConsumerCoordinatorMetrics coordinator;
-    public KafkaConsumerFetcherMetrics fetcher;
-    public double connectionCloseRate; 
-    public double connectionCount; 
-    public double connectionCreateRate; 
-    public double incomingByteRate; 
-    public double ioRatio; 
-    public double ioTimeNsAvg; 
-    public double ioWaitRatio; 
-    public double ioWaitTimeNsAvg; 
-    public double networkIoRate; 
-    public double outgoingByteRate; 
-    public double requestRate; 
-    public double requestSizeMax; 
-    public double requestSizeAvg; 
-    public double responseRate; 
-    public double selectRate; 
+    public String cluster;
+    public String clientId;
+    public String groupName;
+    public KafkaConsumerCoordinatorMeasurement coordinator;
+    public KafkaConsumerFetcherMeasurement fetcher;
+    public Measurement measurement;
+
+    public static class Measurement {
+        public double connectionCloseRate;
+        public double connectionCount;
+        public double connectionCreateRate;
+        public double incomingByteRate;
+        public double ioRatio;
+        public double ioTimeNsAvg;
+        public double ioWaitRatio;
+        public double ioWaitTimeNsAvg;
+        public double networkIoRate;
+        public double outgoingByteRate;
+        public double requestRate;
+        public double requestSizeMax;
+        public double requestSizeAvg;
+        public double responseRate;
+        public double selectRate;
+    }
 }

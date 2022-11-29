@@ -20,7 +20,7 @@ package org.bithon.agent.plugin.kafka.consumer.metrics;
  * @author frank.chen021@outlook.com
  * @date 2022/11/16 14:18
  */
-public class KafkaConsumerFetcherMetrics {
+public class KafkaConsumerFetcherMeasurement {
     public double bytesConsumedRate; 
     public double fetchLatencyAvg; 
     public double fetchLatencyMax; 

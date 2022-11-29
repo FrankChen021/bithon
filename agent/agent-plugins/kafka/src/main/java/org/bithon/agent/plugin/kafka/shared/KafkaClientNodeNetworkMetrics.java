@@ -24,12 +24,16 @@ public class KafkaClientNodeNetworkMetrics {
     public String cluster;
     public String clientId;
     public String connectionId;
-    public double incomingByteRate;
-    public double outgoingByteRate;
-    public double requestLatencyAvg;
-    public double requestLatencyMax;
-    public double requestRate;
-    public double requestSizeAvg;
-    public double requestSizeMax;
-    public double responseRate;
+    public Measurement measurement;
+
+    public static class Measurement {
+        public double incomingByteRate;
+        public double outgoingByteRate;
+        public double requestLatencyAvg;
+        public double requestLatencyMax;
+        public double requestRate;
+        public double requestSizeAvg;
+        public double requestSizeMax;
+        public double responseRate;
+    }
 }

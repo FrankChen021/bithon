@@ -20,7 +20,7 @@ package org.bithon.agent.plugin.kafka.consumer.metrics;
  * @author frank.chen021@outlook.com
  * @date 2022/11/16 14:18
  */
-public class KafkaConsumerCoordinatorMetrics {
+public class KafkaConsumerCoordinatorMeasurement {
     public double assignedPartitions; 
     public double commitLatencyAvg; 
     public double commitLatencyMax; 
