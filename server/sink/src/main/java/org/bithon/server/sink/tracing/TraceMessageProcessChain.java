@@ -18,6 +18,7 @@ package org.bithon.server.sink.tracing;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.server.storage.datasource.input.filter.IInputRowFilter;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -36,8 +38,11 @@ public class TraceMessageProcessChain implements ITraceMessageSink {
     private final List<ITraceMessageSink> sinks = Collections.synchronizedList(new ArrayList<>());
 
     private final ExecutorService executorService;
+    private final IInputRowFilter filter;
 
-    public TraceMessageProcessChain(ITraceMessageSink sink) {
+    public TraceMessageProcessChain(IInputRowFilter filter,
+                                    ITraceMessageSink sink) {
+        this.filter = filter;
         this.executorService = Executors.newCachedThreadPool(NamedThreadFactory.of("trace-processor"));
         link(sink);
     }
@@ -54,14 +59,23 @@ public class TraceMessageProcessChain implements ITraceMessageSink {
 
     @Override
     public void process(String messageType, List<TraceSpan> spans) {
+        if (spans.isEmpty()) {
+            return;
+        }
+        if (this.filter != null) {
+            spans = spans.stream().filter(this.filter::shouldInclude).collect(Collectors.toList());
+        }
+        if (spans.isEmpty()) {
+            return;
+        }
         for (ITraceMessageSink sink : sinks) {
             executorService.execute(new TraceMessageSinkRunnable(sink, messageType, spans));
         }
     }
 
     /**
-     * Use an explicitly defined class instead of lamda
-     * because it helps improve the observability of tracing logs on ExecutorService.execute
+     * Use an explicitly defined class instead of lambda
+     * because it helps improve the observability of tracing logs on {@link ExecutorService#execute}
      */
     static class TraceMessageSinkRunnable implements Runnable {
         private final ITraceMessageSink sink;
@@ -90,6 +104,7 @@ public class TraceMessageProcessChain implements ITraceMessageSink {
             sink.close();
         }
         this.executorService.shutdownNow();
+        //noinspection ResultOfMethodCallIgnored
         this.executorService.awaitTermination(10, TimeUnit.SECONDS);
     }
 }

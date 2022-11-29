@@ -101,8 +101,9 @@ public class SinkAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty(value = "collector-kafka.enabled", havingValue = "true", matchIfMissing = false)
-    public TraceMessageProcessChain traceSink(ApplicationContext applicationContext) {
-        return new TraceMessageProcessChain(new LocalTraceSink(applicationContext));
+    public TraceMessageProcessChain traceSink(TraceConfig traceConfig, ObjectMapper om, ApplicationContext applicationContext) {
+        return new TraceMessageProcessChain(traceConfig.createFilter(om),
+                                            new LocalTraceSink(applicationContext));
     }
 
     /**

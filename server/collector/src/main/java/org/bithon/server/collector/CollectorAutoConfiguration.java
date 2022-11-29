@@ -26,6 +26,7 @@ import org.bithon.server.collector.source.brpc.BrpcCollectorConfig;
 import org.bithon.server.sink.event.IEventMessageSink;
 import org.bithon.server.sink.metrics.IMetricMessageSink;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
+import org.bithon.server.sink.tracing.TraceConfig;
 import org.bithon.server.sink.tracing.TraceMessageProcessChain;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -83,7 +84,9 @@ public class CollectorAutoConfiguration {
     @Bean
     @ConditionalOnExpression(value = "${collector-brpc.enabled: false} or ${collector-http.enabled: false}")
     public TraceMessageProcessChain traceSink(BrpcCollectorConfig config,
+                                              TraceConfig traceConfig,
                                               ObjectMapper om) throws IOException {
-        return new TraceMessageProcessChain(config.getSinks().getTracing().createSink(om, ITraceMessageSink.class));
+        return new TraceMessageProcessChain(traceConfig.createFilter(om),
+                                            config.getSinks().getTracing().createSink(om, ITraceMessageSink.class));
     }
 }
