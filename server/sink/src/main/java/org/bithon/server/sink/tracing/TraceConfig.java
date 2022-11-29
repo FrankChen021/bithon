@@ -18,13 +18,16 @@ package org.bithon.server.sink.tracing;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.sink.tracing.index.TagIndexConfig;
 import org.bithon.server.sink.tracing.mapping.TraceIdMappingConfig;
 import org.bithon.server.sink.tracing.sanitization.SanitizerConfig;
+import org.bithon.server.storage.datasource.input.filter.AndFilter;
 import org.bithon.server.storage.datasource.input.filter.IInputRowFilter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +43,8 @@ import java.util.Map;
 public class TraceConfig {
     /**
      * Map<String, String>
-     *     key: prop name
-     *     val: prop values
+     * key: prop name
+     * val: prop values
      * <p>
      * The props must be comply with {@link IInputRowFilter}
      */
@@ -54,14 +57,19 @@ public class TraceConfig {
 
     private TagIndexConfig indexes;
 
-    public List<IInputRowFilter> createFilters(ObjectMapper om) {
-        List<IInputRowFilter> spanFilters = new ArrayList<>(filters.size());
+    @Nullable
+    public IInputRowFilter createFilter(ObjectMapper om) {
+        if (CollectionUtils.isEmpty(filters)) {
+            return null;
+        }
+
+        List<IInputRowFilter> filterList = new ArrayList<>(filters.size());
         for (Map<String, String> filter : filters) {
             try {
-                spanFilters.add(om.readValue(om.writeValueAsBytes(filter), IInputRowFilter.class));
+                filterList.add(om.readValue(om.writeValueAsBytes(filter), IInputRowFilter.class));
             } catch (IOException ignored) {
             }
         }
-        return spanFilters;
+        return filterList.isEmpty() ? null : new AndFilter(filterList);
     }
 }

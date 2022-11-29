@@ -86,7 +86,7 @@ public class CollectorAutoConfiguration {
     public TraceMessageProcessChain traceSink(BrpcCollectorConfig config,
                                               TraceConfig traceConfig,
                                               ObjectMapper om) throws IOException {
-        return new TraceMessageProcessChain(traceConfig.createFilters(om),
+        return new TraceMessageProcessChain(traceConfig.createFilter(om),
                                             config.getSinks().getTracing().createSink(om, ITraceMessageSink.class));
     }
 }

@@ -18,7 +18,6 @@ package org.bithon.server.sink.tracing;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
-import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.storage.datasource.input.filter.IInputRowFilter;
 import org.bithon.server.storage.tracing.TraceSpan;
 
@@ -39,11 +38,11 @@ public class TraceMessageProcessChain implements ITraceMessageSink {
     private final List<ITraceMessageSink> sinks = Collections.synchronizedList(new ArrayList<>());
 
     private final ExecutorService executorService;
-    private final List<IInputRowFilter> filters;
+    private final IInputRowFilter filter;
 
-    public TraceMessageProcessChain(List<IInputRowFilter> filters,
+    public TraceMessageProcessChain(IInputRowFilter filter,
                                     ITraceMessageSink sink) {
-        this.filters = filters;
+        this.filter = filter;
         this.executorService = Executors.newCachedThreadPool(NamedThreadFactory.of("trace-processor"));
         link(sink);
     }
@@ -60,8 +59,11 @@ public class TraceMessageProcessChain implements ITraceMessageSink {
 
     @Override
     public void process(String messageType, List<TraceSpan> spans) {
-        if (!CollectionUtils.isEmpty(this.filters)) {
-            spans = spans.stream().filter(this::shouldInclude).collect(Collectors.toList());
+        if (spans.isEmpty()) {
+            return;
+        }
+        if (this.filter != null) {
+            spans = spans.stream().filter(this.filter::shouldInclude).collect(Collectors.toList());
         }
         if (spans.isEmpty()) {
             return;
@@ -69,15 +71,6 @@ public class TraceMessageProcessChain implements ITraceMessageSink {
         for (ITraceMessageSink sink : sinks) {
             executorService.execute(new TraceMessageSinkRunnable(sink, messageType, spans));
         }
-    }
-
-    private boolean shouldInclude(TraceSpan span) {
-        for (IInputRowFilter filter : this.filters) {
-            if (filter.shouldInclude(span)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
