@@ -14,16 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.metrics;
+package org.bithon.server.sink.metrics.topo;
 
-import org.bithon.server.storage.datasource.input.Measurement;
+import org.bithon.server.sink.metrics.Measurement;
 import org.bithon.server.storage.meta.EndPointType;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * ¬
  *
  * @author frank.chen021@outlook.com
  * @date 2021/4/9 20:43

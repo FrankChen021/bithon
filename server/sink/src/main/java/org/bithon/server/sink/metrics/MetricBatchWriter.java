@@ -14,13 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.event;
+package org.bithon.server.sink.metrics;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
-import org.bithon.server.storage.event.EventMessage;
-import org.bithon.server.storage.event.IEventWriter;
+import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.storage.metrics.IMetricWriter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
@@ -29,37 +30,39 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/11/29 21:09
+ * @date 2022/11/30 11:43
  */
 @Slf4j
-public class EventBatchWriter implements IEventWriter {
+public class MetricBatchWriter implements IMetricWriter {
 
-    private final IEventWriter delegation;
+    private final IMetricWriter delegation;
     private final ScheduledExecutorService executor;
-    private final EventSinkConfig sinkConfig;
-    private List<EventMessage> events;
+    private final MetricSinkConfig sinkConfig;
+    private final String name;
+    private List<IInputRow> metricList;
 
-    public EventBatchWriter(IEventWriter delegation, EventSinkConfig sinkConfig) {
+    public MetricBatchWriter(String dataSourceName, IMetricWriter delegation, MetricSinkConfig sinkConfig) {
+        this.name = dataSourceName;
         this.delegation = delegation;
         this.sinkConfig = sinkConfig;
-        this.events = new ArrayList<>(getBatchSize());
-        this.executor = new ScheduledThreadPoolExecutor(1, NamedThreadFactory.of("event-batch-writer"));
+        this.metricList = new ArrayList<>(getBatchSize());
+        this.executor = new ScheduledThreadPoolExecutor(1, NamedThreadFactory.of(dataSourceName + "-batch-writer"));
         this.executor.scheduleWithFixedDelay(this::flush, 5, sinkConfig.getBatch() == null ? 1 : sinkConfig.getBatch().getInterval(), TimeUnit.SECONDS);
     }
 
     @Override
-    public void write(List<EventMessage> eventMessage) {
+    public void write(List<IInputRow> inputRowList) throws IOException {
         synchronized (this) {
-            this.events.addAll(eventMessage);
+            this.metricList.addAll(inputRowList);
         }
-        if (this.events.size() > getBatchSize()) {
+        if (this.metricList.size() > getBatchSize()) {
             flush();
         }
     }
 
     @Override
     public void close() throws Exception {
-        log.info("Shutting down event batch writer...");
+        log.info("Shutting down metric batch writer...");
 
         // shutdown and wait for current scheduler to close
         this.executor.shutdown();
@@ -85,27 +88,27 @@ public class EventBatchWriter implements IEventWriter {
     }
 
     private void flush() {
-        if (this.events.isEmpty()) {
+        if (this.metricList.isEmpty()) {
             return;
         }
 
         // Swap the object for flushing
-        List<EventMessage> flushEvents;
+        List<IInputRow> flushMetricList;
         synchronized (this) {
-            flushEvents = this.events;
+            flushMetricList = this.metricList;
 
-            this.events = new ArrayList<>(getBatchSize());
+            this.metricList = new ArrayList<>(getBatchSize());
         }
 
         // Double check
-        if (flushEvents.isEmpty()) {
+        if (flushMetricList.isEmpty()) {
             return;
         }
         try {
-            log.debug("Flushing [{}] events into storage...", flushEvents.size());
-            this.delegation.write(flushEvents);
+            log.debug("Flushing [{}] metrics into storage [{}]...", flushMetricList.size(), this.name);
+            this.delegation.write(flushMetricList);
         } catch (Exception e) {
-            log.error("Exception when flushing events into storage", e);
+            log.error("Exception when flushing metrics into storage", e);
         }
     }
 }

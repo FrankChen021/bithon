@@ -14,18 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.metrics;
+package org.bithon.server.sink.metrics;
 
-import org.bithon.server.storage.datasource.input.IInputRow;
-
-import java.io.IOException;
-import java.util.List;
+import lombok.Data;
+import org.bithon.server.sink.SinkModuleEnabler;
+import org.bithon.server.sink.common.BatchConfig;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/2 6:36 下午
+ * @date 2022/11/29 21:37
  */
-public interface IMetricWriter extends AutoCloseable {
-
-    void write(List<IInputRow> inputRowList) throws IOException;
+@Data
+@Configuration
+@Conditional(SinkModuleEnabler.class)
+@ConfigurationProperties(prefix = "bithon.sinks.metric")
+public class MetricSinkConfig {
+    private BatchConfig batch;
 }

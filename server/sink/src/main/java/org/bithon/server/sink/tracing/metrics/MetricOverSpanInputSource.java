@@ -29,6 +29,7 @@ import org.bithon.server.commons.time.Period;
 import org.bithon.server.sink.common.input.IInputSource;
 import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.MetricMessageHandler;
+import org.bithon.server.sink.metrics.MetricSinkConfig;
 import org.bithon.server.sink.metrics.MetricsAggregator;
 import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
@@ -139,7 +140,8 @@ public class MetricOverSpanInputSource implements IInputSource {
                                                           applicationContext.getBean(IMetaStorage.class),
                                                           metricStorage,
                                                           applicationContext.getBean(DataSourceSchemaManager.class),
-                                                          null);
+                                                          null,
+                                                          applicationContext.getBean(MetricSinkConfig.class));
         }
 
         @Override
