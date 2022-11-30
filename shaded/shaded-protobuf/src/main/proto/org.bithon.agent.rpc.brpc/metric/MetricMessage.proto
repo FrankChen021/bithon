@@ -136,15 +136,17 @@ message BrpcGenericMetricSchemaV3 {
   // schema name
   string name = 1;
 
-  int64 timestamp = 2;
-  int64 interval = 3;
-
   // fields definition
-  repeated FieldSpec fieldSpec = 4;
-
-  repeated BrpcGenericMeasurementV3 measurement = 5;
+  repeated FieldSpec fieldSpec = 2;
 }
 
 message BrpcGenericMeasurementV3 {
   repeated google.protobuf.Any value = 1;
+}
+
+message BrpcGenericMetricMessageV3 {
+  int64 timestamp = 1;
+  int64 interval = 2;
+  BrpcGenericMetricSchemaV3 schema = 3;
+  BrpcGenericMeasurementV3 measurement = 4;
 }

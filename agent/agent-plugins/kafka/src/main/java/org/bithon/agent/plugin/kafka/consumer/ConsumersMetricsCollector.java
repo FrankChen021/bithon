@@ -20,17 +20,15 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.Metric;
 import org.apache.kafka.common.MetricName;
-import org.bithon.agent.core.dispatcher.IMessageConverter;
-import org.bithon.agent.core.metric.collector.IMetricCollector2;
+import org.bithon.agent.core.metric.collector.IMetricCollector3;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.plugin.kafka.consumer.metrics.KafkaConsumerClientMetrics;
 import org.bithon.agent.plugin.kafka.consumer.metrics.KafkaConsumerTopicMetrics;
 import org.bithon.agent.plugin.kafka.shared.MetricsBuilder;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-import shaded.com.fasterxml.jackson.core.JsonProcessingException;
-import shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -51,100 +49,77 @@ public class ConsumersMetricsCollector {
     }
 
     public ConsumersMetricsCollector() {
-        MetricCollectorManager.getInstance().register("kafka-consumer-metrics", /* Add new paramter Schema here */ new IMetricCollector2() {
-            @Override
-            public boolean isEmpty() {
-                return consumers.isEmpty();
-            }
-
-            @Override
-            public Object collect(IMessageConverter messageConverter,
-                                  int interval,
-                                  long timestamp) {
-                consumers.values()
-                         .stream()
-                         .map(this::collect)
-                         .map((metrics) -> {
-                             try {
-                                 return new ObjectMapper().writeValueAsString(metrics);
-                             } catch (JsonProcessingException e) {
-                                 return "";
-                             }
-                         }).forEach(LOG::info);
-                return null;
-            }
-
-            /**
-             * TODO: Modification to returning
-             * @return {@link java.util.List<org.bithon.agent.core.metric.collector.IMeasurement>}
-             */
-            private KafkaConsumerClientMetrics collect(ManagedKafkaConsumer consumer) {
-                List<Map.Entry<MetricName, ? extends Metric>> kafkaMetrics = consumer.getKafkaMetrics().entrySet()
-                                                                                     .stream()
-                                                                                     .filter(e -> "consumer-metrics".equals(e.getKey().group()))
-                                                                                     .collect(Collectors.toList());
-
-                KafkaConsumerClientMetrics.Measurement measurement = MetricsBuilder.toMetrics(kafkaMetrics,
-                                                                                              KafkaConsumerClientMetrics.Measurement.class);
-
-                KafkaConsumerClientMetrics metrics = null;
-                if (measurement != null) {
-                    metrics = new KafkaConsumerClientMetrics();
-                    metrics.cluster = consumer.getClusterId();
-                    metrics.clientId = consumer.getClientId();
-                    metrics.groupName = consumer.getGroupId();
-                    metrics.measurement = measurement;
+        MetricCollectorManager.getInstance().register("kafka-consumer-metrics",
+                                                      KafkaConsumerClientMetrics.class, new IMetricCollector3<KafkaConsumerClientMetrics>() {
+                @Override
+                public boolean isEmpty() {
+                    return consumers.isEmpty();
                 }
-                return metrics;
-            }
-        });
 
-        MetricCollectorManager.getInstance().register("kafka-consumer-topic-metrics", new IMetricCollector2() {
-            @Override
-            public boolean isEmpty() {
-                return consumers.isEmpty();
-            }
+                @Override
+                public List<KafkaConsumerClientMetrics> collect(int interval, long timestamp) {
+                    return consumers.values()
+                                    .stream()
+                                    .map(this::collect)
+                                    .collect(Collectors.toList());
+                }
 
-            @Override
-            public Object collect(IMessageConverter messageConverter,
-                                  int interval,
-                                  long timestamp) {
-                consumers.values()
-                         .stream()
-                         .map(this::collect)
-                         .map((metrics) -> {
-                             try {
-                                 return new ObjectMapper().writeValueAsString(metrics);
-                             } catch (JsonProcessingException e) {
-                                 return "";
-                             }
-                         }).forEach(LOG::info);
-                return null;
-            }
+                private KafkaConsumerClientMetrics collect(ManagedKafkaConsumer consumer) {
+                    List<Map.Entry<MetricName, ? extends Metric>> kafkaMetrics = consumer.getKafkaMetrics().entrySet()
+                                                                                         .stream()
+                                                                                         .filter(e -> "consumer-metrics".equals(e.getKey().group()))
+                                                                                         .collect(Collectors.toList());
 
-            private List<KafkaConsumerTopicMetrics> collect(ManagedKafkaConsumer consumer) {
-                List<Map.Entry<MetricName, ? extends Metric>> kafkaMetrics = consumer.getKafkaMetrics().entrySet()
-                                                                                     .stream()
-                                                                                     .filter(e -> "consumer-fetch-manager-metrics".equals(e.getKey().group())
-                                                                                                  && e.getKey().tags().containsKey("topic"))
-                                                                                     .collect(Collectors.toList());
+                    KafkaConsumerClientMetrics metrics = MetricsBuilder.toMetricSet(kafkaMetrics,
+                                                                                    KafkaConsumerClientMetrics.class);
 
-                Map<String, KafkaConsumerTopicMetrics.Measurement> measurement = MetricsBuilder.toMetricsGroupBy(kafkaMetrics,
-                                                                                                                 "topic",
-                                                                                                                 KafkaConsumerTopicMetrics.Measurement.class);
-                return measurement.entrySet()
-                                  .stream()
-                                  .map(e -> {
-                                      KafkaConsumerTopicMetrics metrics = new KafkaConsumerTopicMetrics();
-                                      metrics.topic = e.getKey();
-                                      metrics.clientId = consumer.getClientId();
-                                      metrics.cluster = consumer.getClusterId();
-                                      metrics.groupId = consumer.getGroupId();
-                                      metrics.measurement = e.getValue();
-                                      return metrics;
-                                  }).collect(Collectors.toList());
-            }
-        });
+                    if (metrics != null) {
+                        metrics.cluster = consumer.getClusterId();
+                        metrics.clientId = consumer.getClientId();
+                        metrics.groupId = consumer.getGroupId();
+                    }
+                    return metrics;
+                }
+            });
+
+        MetricCollectorManager.getInstance().register("kafka-consumer-topic-metrics",
+                                                      KafkaConsumerTopicMetrics.class, new IMetricCollector3<KafkaConsumerTopicMetrics>() {
+                @Override
+                public boolean isEmpty() {
+                    return consumers.isEmpty();
+                }
+
+                @Override
+                public List<KafkaConsumerTopicMetrics> collect(int interval, long timestamp) {
+                    return consumers.values()
+                                    .stream()
+                                    .map(this::collect)
+                                    .flatMap(Collection::stream)
+                                    .collect(Collectors.toList());
+                }
+
+                private List<KafkaConsumerTopicMetrics> collect(ManagedKafkaConsumer consumer) {
+                    List<Map.Entry<MetricName, ? extends Metric>> kafkaMetrics = consumer.getKafkaMetrics().entrySet()
+                                                                                         .stream()
+                                                                                         .filter(e -> "consumer-fetch-manager-metrics".equals(e.getKey()
+                                                                                                                                               .group())
+                                                                                                      && e.getKey().tags().containsKey("topic"))
+                                                                                         .collect(Collectors.toList());
+
+                    Map<String, KafkaConsumerTopicMetrics> measurement = MetricsBuilder.toMetricsGroupBy(kafkaMetrics,
+                                                                                                         "topic",
+                                                                                                         KafkaConsumerTopicMetrics.class);
+                    return measurement.entrySet()
+                                      .stream()
+                                      .map(e -> {
+                                          e.getValue().topic = e.getKey();
+                                          e.getValue().clientId = consumer.getClientId();
+                                          e.getValue().cluster = consumer.getClusterId();
+                                          e.getValue().groupId = consumer.getGroupId();
+                                          return e.getValue();
+                                      }).collect(Collectors.toList());
+                }
+            });
     }
 
     public void register(String clientId, KafkaConsumer<?, ?> client, ConsumerConfig config) {

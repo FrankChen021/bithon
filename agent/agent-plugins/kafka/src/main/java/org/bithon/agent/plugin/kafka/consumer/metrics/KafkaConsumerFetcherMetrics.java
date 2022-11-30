@@ -18,26 +18,22 @@ package org.bithon.agent.plugin.kafka.consumer.metrics;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/11/16 14:10
+ * @date 2022/11/16 14:18
  */
-public class KafkaConsumerClientMetrics {
+public class KafkaConsumerFetcherMetrics {
     public String cluster;
     public String clientId;
     public String groupId;
 
-    public double connectionCloseRate;
-    public double connectionCount;
-    public double connectionCreateRate;
-    public double incomingByteRate;
-    public double ioRatio;
-    public double ioTimeNsAvg;
-    public double ioWaitRatio;
-    public double ioWaitTimeNsAvg;
-    public double networkIoRate;
-    public double outgoingByteRate;
-    public double requestRate;
-    public double requestSizeMax;
-    public double requestSizeAvg;
-    public double responseRate;
-    public double selectRate;
+    public double bytesConsumedRate;
+    public double fetchLatencyAvg;
+    public double fetchLatencyMax;
+    public double fetchRate;
+    public double fetchSizeAvg;
+    public double fetchSizeMax;
+    public double fetchThrottleTimeAvg;
+    public double fetchThrottleTimeMax;
+    public double recordsConsumedRate;
+    public double recordsLagMax;
+    public double recordsPerRequestAvg;
 }

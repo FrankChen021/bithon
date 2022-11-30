@@ -19,11 +19,16 @@ package org.bithon.agent.core.metric.collector;
 import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
+import org.bithon.agent.core.metric.model.IMetricValueProvider;
+import org.bithon.agent.core.metric.model.schema.FieldSpec;
+import org.bithon.agent.core.metric.model.schema.Schema3;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.CollectionUtils;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,6 +38,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Metric Registry and Dispatcher(in some other system, it's called as reporter)
@@ -40,7 +46,7 @@ import java.util.function.Supplier;
  * @author frankchen
  */
 public class MetricCollectorManager {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(MetricCollectorManager.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(MetricCollectorManager.class);
 
     private static final int INTERVAL = 10;
     private static final MetricCollectorManager INSTANCE = new MetricCollectorManager();
@@ -59,21 +65,21 @@ public class MetricCollectorManager {
          */
         int interval;
 
-        IMetricCollectorBase collector;
+        IMetricCollectorBase delegation;
 
-        public ManagedMetricCollector(IMetricCollectorBase collector) {
-            this.collector = collector;
+        public ManagedMetricCollector(IMetricCollectorBase delegation) {
+            this.delegation = delegation;
         }
 
         public Object collect(IMessageConverter messageConverter) {
-            if (collector instanceof IMetricCollector) {
-                List<Object> objects = ((IMetricCollector) this.collector).collect(messageConverter, interval, lastCollectedAt);
+            if (delegation instanceof IMetricCollector) {
+                List<Object> objects = ((IMetricCollector) this.delegation).collect(messageConverter, interval, lastCollectedAt);
                 if (CollectionUtils.isEmpty(objects)) {
                     return null;
                 }
                 return objects;
             }
-            return ((IMetricCollector2) collector).collect(messageConverter, interval, lastCollectedAt);
+            return ((IMetricCollector2) delegation).collect(messageConverter, interval, lastCollectedAt);
         }
 
         public boolean isEmpty() {
@@ -81,7 +87,7 @@ public class MetricCollectorManager {
                 long now = System.currentTimeMillis();
                 interval = (int) ((now - lastCollectedAt) / 1000);
                 this.lastCollectedAt = now;
-                return this.collector.isEmpty();
+                return this.delegation.isEmpty();
             } else {
                 // wait for next round
                 lastCollectedAt = System.currentTimeMillis();
@@ -128,26 +134,72 @@ public class MetricCollectorManager {
         }
 
         //noinspection unchecked
-        return (T) collectors.computeIfAbsent(collectorName, key -> new ManagedMetricCollector(collector)).collector;
+        return (T) collectors.computeIfAbsent(collectorName, key -> new ManagedMetricCollector(collector)).delegation;
+    }
+
+    public synchronized <T> IMetricCollector3<T> register(String collectorName,
+                                                          Class<T> measurementClazz,
+                                                          IMetricCollector3<T> collector) {
+        if (collectors.containsKey(collectorName)) {
+            throw new RuntimeException(String.format(Locale.ENGLISH, "Metrics Local Storage(%s) already registered!", collectorName));
+        }
+
+        List<FieldSpec> fieldSpecs = new ArrayList<>();
+        for (Field field : measurementClazz.getDeclaredFields()) {
+            //noinspection rawtypes
+            Class fieldClass = field.getType();
+            if (IMetricValueProvider.class.isAssignableFrom(fieldClass)) {
+                // TODO: change type to Sum/Max/Min/Last/Gauge/Histogram
+                fieldSpecs.add(FieldSpec.of(fieldClass.getName(), FieldSpec.TYPE_LONG));
+            } else {
+                fieldSpecs.add(FieldSpec.of(fieldClass.getName(), FieldSpec.TYPE_STRING));
+            }
+        }
+        Schema3 schema = new Schema3(collectorName, fieldSpecs);
+
+        //noinspection unchecked
+        return (IMetricCollector3<T>) collectors.computeIfAbsent(collectorName, key -> new ManagedMetricCollector(collector) {
+            @Override
+            public Object collect(IMessageConverter messageConverter) {
+                List<T> measurementList = collector.collect(interval, lastCollectedAt);
+                if (CollectionUtils.isEmpty(measurementList)) {
+                    return null;
+                }
+
+                List<Object[]> values = measurementList.stream().map((measurement) -> {
+                    Field[] fields = measurementClazz.getDeclaredFields();
+                    Object[] arr = new Object[fields.length];
+                    int i = 0;
+                    for (Field field : fields) {
+                        try {
+                            arr[i++] = field.get(measurement);
+                        } catch (IllegalAccessException ignored) {
+                        }
+                    }
+                    return arr;
+                }).collect(Collectors.toList());
+                return messageConverter.from(schema, values, lastCollectedAt, interval);
+            }
+        }).delegation;
     }
 
     @SuppressWarnings("unchecked")
     public <T extends IMetricCollectorBase> T getOrRegister(String collectorName, Supplier<T> collectorSupplier) {
         ManagedMetricCollector managedCollector = collectors.get(collectorName);
         if (managedCollector != null) {
-            return (T) managedCollector.collector;
+            return (T) managedCollector.delegation;
         }
         synchronized (this) {
             try {
                 managedCollector = collectors.get(collectorName);
                 // double check
                 if (managedCollector != null) {
-                    return (T) managedCollector.collector;
+                    return (T) managedCollector.delegation;
                 }
 
                 managedCollector = new ManagedMetricCollector(collectorSupplier.get());
                 collectors.put(collectorName, managedCollector);
-                return (T) managedCollector.collector;
+                return (T) managedCollector.delegation;
             } catch (Exception e) {
                 throw new RuntimeException("Can't create or register metric provider " + collectorName, e);
             }
@@ -158,19 +210,19 @@ public class MetricCollectorManager {
     public <T extends IMetricCollectorBase> T getOrRegister(String collectorName, Class<T> collectorClass) {
         ManagedMetricCollector managedCollector = collectors.get(collectorName);
         if (managedCollector != null) {
-            return (T) managedCollector.collector;
+            return (T) managedCollector.delegation;
         }
         synchronized (this) {
             try {
                 managedCollector = collectors.get(collectorName);
                 // double check
                 if (managedCollector != null) {
-                    return (T) managedCollector.collector;
+                    return (T) managedCollector.delegation;
                 }
 
-                managedCollector = new ManagedMetricCollector(collectorClass.newInstance());
+                managedCollector = new ManagedMetricCollector(collectorClass.getConstructor().newInstance());
                 collectors.put(collectorName, managedCollector);
-                return (T) managedCollector.collector;
+                return (T) managedCollector.delegation;
             } catch (Exception e) {
                 throw new RuntimeException("Can't create or register metric provider " + collectorName, e);
             }
@@ -198,7 +250,7 @@ public class MetricCollectorManager {
                         dispatcher.sendMessage(message);
                     }
                 } catch (Throwable e) {
-                    log.error("Throwable(unrecoverable) exception occurred when dispatching!", e);
+                    LOG.error("Throwable(unrecoverable) exception occurred when dispatching!", e);
                 }
             });
         }

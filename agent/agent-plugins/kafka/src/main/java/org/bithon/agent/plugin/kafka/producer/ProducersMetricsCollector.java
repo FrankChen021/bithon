@@ -19,8 +19,7 @@ package org.bithon.agent.plugin.kafka.producer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.common.Metric;
 import org.apache.kafka.common.MetricName;
-import org.bithon.agent.core.dispatcher.IMessageConverter;
-import org.bithon.agent.core.metric.collector.IMetricCollector2;
+import org.bithon.agent.core.metric.collector.IMetricCollector3;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.plugin.kafka.producer.metrics.KafkaProducerClientMetrics;
 import org.bithon.agent.plugin.kafka.producer.metrics.KafkaProducerTopicMetrics;
@@ -29,6 +28,7 @@ import org.bithon.agent.plugin.kafka.shared.MetricsBuilder;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -51,119 +51,113 @@ public class ProducersMetricsCollector {
     }
 
     public ProducersMetricsCollector() {
-        MetricCollectorManager.getInstance().register("kafka-producer-metrics", new IMetricCollector2() {
-            @Override
-            public boolean isEmpty() {
-                return producers.isEmpty();
-            }
-
-            @Override
-            public Object collect(IMessageConverter messageConverter,
-                                  int interval,
-                                  long timestamp) {
-                producers.values()
-                         .stream()
-                         .map(this::collect);
-                return null;
-            }
-
-            private KafkaProducerClientMetrics collect(ManagedKafkaProducer producer) {
-                List<Map.Entry<MetricName, ? extends Metric>> kafkaMetrics = producer.getKafkaMetrics().entrySet()
-                                                                                     .stream()
-                                                                                     .filter(e -> "producer-metrics".equals(e.getKey().group()))
-                                                                                     .collect(Collectors.toList());
-                KafkaProducerClientMetrics.Measurement measurement = MetricsBuilder.toMetrics(kafkaMetrics,
-                                                                                              KafkaProducerClientMetrics.Measurement.class);
-
-                KafkaProducerClientMetrics metrics = null;
-                if (measurement != null) {
-                    metrics = new KafkaProducerClientMetrics();
-                    metrics.clientId = producer.getClientId();
-                    metrics.cluster = producer.getClusterId();
-                    metrics.measurement = measurement;
+        MetricCollectorManager.getInstance().register("kafka-producer-metrics",
+                                                      KafkaProducerClientMetrics.class, new IMetricCollector3<KafkaProducerClientMetrics>() {
+                @Override
+                public boolean isEmpty() {
+                    return producers.isEmpty();
                 }
-                return metrics;
-            }
-        });
 
-        MetricCollectorManager.getInstance().register("kafka-producer-topic-metrics", new IMetricCollector2() {
-            @Override
-            public boolean isEmpty() {
-                return producers.isEmpty();
-            }
+                @Override
+                public List<KafkaProducerClientMetrics> collect(int interval, long timestamp) {
+                    return producers.values()
+                                    .stream()
+                                    .map(this::collect)
+                                    .collect(Collectors.toList());
+                }
 
-            @Override
-            public Object collect(IMessageConverter messageConverter,
-                                  int interval,
-                                  long timestamp) {
-                producers.values()
-                         .stream()
-                         .map(this::collect);
-                return null;
-            }
+                private KafkaProducerClientMetrics collect(ManagedKafkaProducer producer) {
+                    List<Map.Entry<MetricName, ? extends Metric>> kafkaMetrics = producer.getKafkaMetrics()
+                                                                                         .entrySet()
+                                                                                         .stream()
+                                                                                         .filter(e -> "producer-metrics".equals(e.getKey().group()))
+                                                                                         .collect(Collectors.toList());
+                    KafkaProducerClientMetrics metrics = MetricsBuilder.toMetricSet(kafkaMetrics,
+                                                                                    KafkaProducerClientMetrics.class);
 
-            private List<KafkaProducerTopicMetrics> collect(ManagedKafkaProducer producer) {
-                List<Map.Entry<MetricName, ? extends Metric>> kafkaMetrics = producer.getKafkaMetrics().entrySet()
-                                                                                     .stream()
-                                                                                     .filter(e -> "producer-topic-metrics".equals(e.getKey().group()))
-                                                                                     .collect(Collectors.toList());
-
-                Map<String, KafkaProducerTopicMetrics.Measurement> measurement = MetricsBuilder.toMetricsGroupBy(kafkaMetrics,
-                                                                                                                 "topic",
-                                                                                                                 KafkaProducerTopicMetrics.Measurement.class);
-                return measurement.entrySet().stream().map(e -> {
-                    KafkaProducerTopicMetrics metrics = new KafkaProducerTopicMetrics();
-                    metrics.topic = e.getKey();
-                    metrics.cluster = producer.getClusterId();
-                    metrics.clientId = producer.getClientId();
-                    metrics.measurement = e.getValue();
+                    if (metrics != null) {
+                        metrics.clientId = producer.getClientId();
+                        metrics.cluster = producer.getClusterId();
+                    }
                     return metrics;
-                }).collect(Collectors.toList());
-            }
-        });
+                }
+            });
 
-        MetricCollectorManager.getInstance().register("kafka-producer-network-metrics", new IMetricCollector2() {
-            @Override
-            public boolean isEmpty() {
-                return producers.isEmpty();
-            }
+        MetricCollectorManager.getInstance().register("kafka-producer-topic-metrics",
+                                                      KafkaProducerTopicMetrics.class, new IMetricCollector3<KafkaProducerTopicMetrics>() {
+                @Override
+                public boolean isEmpty() {
+                    return producers.isEmpty();
+                }
 
-            @Override
-            public Object collect(IMessageConverter messageConverter,
-                                  int interval,
-                                  long timestamp) {
-                producers.values()
-                         .stream()
-                         .map(this::collect);
-                return null;
-            }
+                @Override
+                public List<KafkaProducerTopicMetrics> collect(int interval, long timestamp) {
+                    return producers.values()
+                                    .stream()
+                                    .map(this::collect)
+                                    .flatMap(Collection::stream)
+                                    .collect(Collectors.toList());
+                }
 
-            public List<KafkaClientNodeNetworkMetrics> collect(ManagedKafkaProducer producer) {
-                List<Map.Entry<MetricName, ? extends Metric>> kafkaMetrics = producer.getKafkaMetrics().entrySet()
-                                                                                     .stream()
-                                                                                     .filter(e -> "producer-node-metrics".equals(e.getKey().group()))
-                                                                                     .collect(Collectors.toList());
+                private List<KafkaProducerTopicMetrics> collect(ManagedKafkaProducer producer) {
+                    List<Map.Entry<MetricName, ? extends Metric>> kafkaMetrics = producer.getKafkaMetrics().entrySet()
+                                                                                         .stream()
+                                                                                         .filter(e -> "producer-topic-metrics".equals(
+                                                                                             e.getKey().group()))
+                                                                                         .collect(Collectors.toList());
 
-                Map<String, KafkaClientNodeNetworkMetrics.Measurement> measurements = MetricsBuilder.toMetricsGroupBy(kafkaMetrics,
-                                                                                                                      "node-id",
-                                                                                                                      KafkaClientNodeNetworkMetrics.Measurement.class);
+                    Map<String, KafkaProducerTopicMetrics> measurement = MetricsBuilder.toMetricsGroupBy(kafkaMetrics,
+                                                                                                         "topic",
+                                                                                                         KafkaProducerTopicMetrics.class);
+                    return measurement.entrySet().stream().map(e -> {
+                        e.getValue().topic = e.getKey();
+                        e.getValue().cluster = producer.getClusterId();
+                        e.getValue().clientId = producer.getClientId();
+                        return e.getValue();
+                    }).collect(Collectors.toList());
+                }
+            });
 
-                /*
-                 * filter those nodeId=-1
-                 */
-                return measurements.entrySet()
-                                   .stream()
-                                   .filter(e -> e.getKey().startsWith("node--"))
-                                   .map(e -> {
-                                       KafkaClientNodeNetworkMetrics metrics = new KafkaClientNodeNetworkMetrics();
-                                       metrics.cluster = producer.getClusterId();
-                                       metrics.clientId = producer.getClientId();
-                                       metrics.connectionId = e.getKey();
-                                       metrics.measurement = e.getValue();
-                                       return metrics;
-                                   }).collect(Collectors.toList());
-            }
-        });
+        MetricCollectorManager.getInstance().register("kafka-producer-network-metrics",
+                                                      KafkaClientNodeNetworkMetrics.class, new IMetricCollector3<KafkaClientNodeNetworkMetrics>() {
+                @Override
+                public boolean isEmpty() {
+                    return producers.isEmpty();
+                }
+
+                @Override
+                public List<KafkaClientNodeNetworkMetrics> collect(int interval, long timestamp) {
+                    return producers.values()
+                                    .stream()
+                                    .map(this::collect)
+                                    .flatMap(Collection::stream)
+                                    .collect(Collectors.toList());
+                }
+
+                public List<KafkaClientNodeNetworkMetrics> collect(ManagedKafkaProducer producer) {
+                    List<Map.Entry<MetricName, ? extends Metric>> kafkaMetrics = producer.getKafkaMetrics().entrySet()
+                                                                                         .stream()
+                                                                                         .filter(e -> "producer-node-metrics".equals(e.getKey().group()))
+                                                                                         .collect(Collectors.toList());
+
+                    Map<String, KafkaClientNodeNetworkMetrics> measurements = MetricsBuilder.toMetricsGroupBy(kafkaMetrics,
+                                                                                                              "node-id",
+                                                                                                              KafkaClientNodeNetworkMetrics.class);
+
+                    /*
+                     * filter those nodeId=-1
+                     */
+                    return measurements.entrySet()
+                                       .stream()
+                                       .filter(e -> e.getKey().startsWith("node--"))
+                                       .map(e -> {
+                                           e.getValue().cluster = producer.getClusterId();
+                                           e.getValue().clientId = producer.getClientId();
+                                           e.getValue().connectionId = e.getKey();
+                                           return e.getValue();
+                                       }).collect(Collectors.toList());
+                }
+            });
     }
 
     public void register(String clientId, KafkaProducer<?, ?> producer) {

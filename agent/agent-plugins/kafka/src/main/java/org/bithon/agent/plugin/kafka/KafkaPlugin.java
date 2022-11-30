@@ -54,7 +54,7 @@ public class KafkaPlugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.kafka.consumer.interceptor.KafkaConsumer$Close")
                 ),
 
-            // Spring Kafka, can move to a independent plugin
+            // Spring Kafka, can move to an independent plugin
             forClass("org.springframework.kafka.listener.KafkaMessageListenerContainer$ListenerConsumer")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()

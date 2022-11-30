@@ -14,21 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.kafka.consumer.metrics;
+package org.bithon.agent.core.metric.collector;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/11/16 14:17
+ * @date 2022/11/30 22:21
  */
-public class KafkaConsumerTopicMetrics {
-    public String cluster;
-    public String clientId;
-    public String groupId;
-    public String topic;
+public interface IMetricCollector3<T> extends IMetricCollectorBase {
 
-    public double fetchSizeAvg;
-    public double fetchSizeMax;
-    public double bytesConsumedRate;
-    public double recordsPerRequestAvg;
-    public double recordsConsumedRate;
+    List<T> collect(int interval, long timestamp);
 }

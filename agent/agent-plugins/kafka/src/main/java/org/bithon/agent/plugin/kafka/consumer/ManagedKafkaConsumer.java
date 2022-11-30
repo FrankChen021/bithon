@@ -22,8 +22,8 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.Metric;
 import org.apache.kafka.common.MetricName;
 import org.bithon.agent.plugin.kafka.consumer.metrics.KafkaConsumerClientMetrics;
-import org.bithon.agent.plugin.kafka.consumer.metrics.KafkaConsumerCoordinatorMeasurement;
-import org.bithon.agent.plugin.kafka.consumer.metrics.KafkaConsumerFetcherMeasurement;
+import org.bithon.agent.plugin.kafka.consumer.metrics.KafkaConsumerCoordinatorMetrics;
+import org.bithon.agent.plugin.kafka.consumer.metrics.KafkaConsumerFetcherMetrics;
 import org.bithon.agent.plugin.kafka.shared.ManagedKafkaClient;
 import org.bithon.agent.plugin.kafka.shared.MetricsBuilder;
 import org.bithon.component.commons.utils.ReflectionUtils;
@@ -61,24 +61,24 @@ public class ManagedKafkaConsumer extends ManagedKafkaClient {
                                                                                       .filter(e -> "consumer-metrics".equals(e.getKey().group()))
                                                                                       .collect(Collectors.toList());
 
-        KafkaConsumerClientMetrics metrics = MetricsBuilder.toMetrics(kafkaMetrics,
-                                                                      KafkaConsumerClientMetrics.class);
+        KafkaConsumerClientMetrics metrics = MetricsBuilder.toMetricSet(kafkaMetrics,
+                                                                        KafkaConsumerClientMetrics.class);
         if (metrics != null) {
             metrics.cluster = this.getClusterId();
             metrics.clientId = this.getClientId();
-            metrics.groupName = this.groupId;
+            metrics.groupId = this.groupId;
         }
         return metrics;
     }
 
-    public KafkaConsumerCoordinatorMeasurement collectCoordinatorMetrics() {
+    public KafkaConsumerCoordinatorMetrics collectCoordinatorMetrics() {
         List<Map.Entry<MetricName, ? extends Metric>> kafkaMetrics = getKafkaMetrics().entrySet()
                                                                                       .stream()
                                                                                       .filter(e -> "consumer-coordinator-metrics".equals(e.getKey().group()))
                                                                                       .collect(Collectors.toList());
 
-        KafkaConsumerCoordinatorMeasurement metrics = MetricsBuilder.toMetrics(kafkaMetrics,
-                                                                               KafkaConsumerCoordinatorMeasurement.class);
+        KafkaConsumerCoordinatorMetrics metrics = MetricsBuilder.toMetricSet(kafkaMetrics,
+                                                                             KafkaConsumerCoordinatorMetrics.class);
         if (metrics != null) {
             /*
              * metrics.cluster =
@@ -87,15 +87,15 @@ public class ManagedKafkaConsumer extends ManagedKafkaClient {
         return metrics;
     }
 
-    public KafkaConsumerFetcherMeasurement collectFetcherMetrics() {
+    public KafkaConsumerFetcherMetrics collectFetcherMetrics() {
         List<Map.Entry<MetricName, ? extends Metric>> kafkaMetrics = getKafkaMetrics().entrySet()
                                                                                       .stream()
                                                                                       .filter(e -> "consumer-fetch-manager-metrics".equals(e.getKey().group())
                                                                                                    && !e.getKey().tags().containsKey("topic"))
                                                                                       .collect(Collectors.toList());
 
-        KafkaConsumerFetcherMeasurement metrics = MetricsBuilder.toMetrics(kafkaMetrics,
-                                                                           KafkaConsumerFetcherMeasurement.class);
+        KafkaConsumerFetcherMetrics metrics = MetricsBuilder.toMetricSet(kafkaMetrics,
+                                                                         KafkaConsumerFetcherMetrics.class);
         if (metrics != null) {
             /*
             metrics.cluster = this.getCluster();

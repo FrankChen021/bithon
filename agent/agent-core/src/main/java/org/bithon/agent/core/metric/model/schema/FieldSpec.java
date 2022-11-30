@@ -14,22 +14,35 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.kafka.consumer.metrics;
+package org.bithon.agent.core.metric.model.schema;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/11/16 14:18
+ * @date 2022/11/30 22:57
  */
-public class KafkaConsumerFetcherMeasurement {
-    public double bytesConsumedRate; 
-    public double fetchLatencyAvg; 
-    public double fetchLatencyMax; 
-    public double fetchRate; 
-    public double fetchSizeAvg; 
-    public double fetchSizeMax; 
-    public double fetchThrottleTimeAvg; 
-    public double fetchThrottleTimeMax; 
-    public double recordsConsumedRate; 
-    public double recordsLagMax; 
-    public double recordsPerRequestAvg; 
+public class FieldSpec {
+    public static final int TYPE_STRING = 0;
+    public static final int TYPE_LONG = 1;
+    public static final int TYPE_DOUBLE = 2;
+    public static final int TYPE_HISTOGRAM = 3;
+
+    private final String name;
+    private final int type;
+
+    public static FieldSpec of(String name, int type) {
+        return new FieldSpec(name, type);
+    }
+
+    public FieldSpec(String name, int type) {
+        this.name = name;
+        this.type = type;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getType() {
+        return type;
+    }
 }

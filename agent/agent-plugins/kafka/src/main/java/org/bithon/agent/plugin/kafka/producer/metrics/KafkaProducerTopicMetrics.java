@@ -24,14 +24,10 @@ public class KafkaProducerTopicMetrics {
     public String clientId;
     public String topic;
 
-    public Measurement measurement;
-
-    public static class Measurement {
-        public double byteRate;
-        public double compressionRate;
-        public double recordErrorRate;
-        public double recordRetryRate;
-        public double recordSendRate;
-    }
+    public double byteRate;
+    public double compressionRate;
+    public double recordErrorRate;
+    public double recordRetryRate;
+    public double recordSendRate;
 }
 

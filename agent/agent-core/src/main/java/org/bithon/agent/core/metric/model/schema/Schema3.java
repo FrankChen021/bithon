@@ -14,24 +14,29 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.kafka.consumer.metrics;
+package org.bithon.agent.core.metric.model.schema;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/11/16 14:18
+ * @date 2022/11/30 22:23
  */
-public class KafkaConsumerCoordinatorMeasurement {
-    public double assignedPartitions; 
-    public double commitLatencyAvg; 
-    public double commitLatencyMax; 
-    public double commitRate; 
-    public double heartbeatRate; 
-    public double heartbeatResponseTimeMax; 
-    public double joinRate; 
-    public double joinTimeAvg; 
-    public double joinTimeMax; 
-    public double lastHeartbeatSecondsAgo; 
-    public double syncRate; 
-    public double syncTimeAvg; 
-    public double syncTimeMax; 
+public class Schema3 {
+
+    public Schema3(String name, List<FieldSpec> fields) {
+        this.name = name;
+        this.fields = fields;
+    }
+
+    private final String name;
+    private final List<FieldSpec> fields;
+
+    public String getName() {
+        return name;
+    }
+
+    public List<FieldSpec> getFields() {
+        return fields;
+    }
 }

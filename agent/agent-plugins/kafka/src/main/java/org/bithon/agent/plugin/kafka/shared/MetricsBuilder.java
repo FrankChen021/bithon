@@ -46,29 +46,29 @@ public class MetricsBuilder {
     private static final Map<Class<?>, Map<String, Field>> FIELDS_CACHE = new ConcurrentHashMap<>();
 
 
-    public static <T> T toMetrics(List<Map.Entry<MetricName, ? extends Metric>> kafkaMetrics,
-                                  Class<T> targetMetricClass) {
+    public static <T> T toMetricSet(List<Map.Entry<MetricName, ? extends Metric>> kafkaMetrics,
+                                    Class<T> metricSetClass) {
         try {
-            T result = targetMetricClass.getConstructor().newInstance();
+            T result = metricSetClass.getConstructor().newInstance();
 
-            kafkaMetrics.forEach((entry) -> getField(targetMetricClass, entry.getKey()).ifPresent(
+            kafkaMetrics.forEach((metric) -> getField(metricSetClass, metric.getKey()).ifPresent(
                 field -> {
                     try {
-                        double value = (double) entry.getValue().metricValue();
+                        double value = (double) metric.getValue().metricValue();
                         if (Double.isInfinite(value) || Double.isNaN(value)) {
                             value = 0.0;
                         }
                         field.setDouble(result, value);
                     } catch (Exception e) {
                         LOG.error("[kafka metrics] fail to buildEntity field {} {} {}",
-                                  targetMetricClass,
+                                  metricSetClass,
                                   field.getName(),
                                   e.getMessage());
                     }
                 }));
             return result;
         } catch (Exception e) {
-            LOG.error("[kafka metrics] fail to create entity {} {}", targetMetricClass, e.getMessage());
+            LOG.error("[kafka metrics] fail to create entity {} {}", metricSetClass, e.getMessage());
         }
         return null;
     }
@@ -83,7 +83,7 @@ public class MetricsBuilder {
 
         Map<String, T> result = new HashMap<>(groupedMetrics.size());
         groupedMetrics.forEach((tag, oneTagMetrics) -> {
-            T one = toMetrics(oneTagMetrics, targetMetricClass);
+            T one = toMetricSet(oneTagMetrics, targetMetricClass);
             if (one != null) {
                 result.put(tag, one);
             }

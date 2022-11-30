@@ -22,8 +22,13 @@ package org.bithon.agent.plugin.kafka.shared;
  */
 public class Tools {
     /**
-     * Turn a name in camel style into - separated style
-     * Used to match names in metrics
+     *
+     * Turn a name in camel style into - separated style.
+     * Used to match names in metrics.
+     * <p>
+     * For example, messageSizeMin will be turned into message-size-min
+     * <p>
+     * See {@link org.apache.kafka.common.MetricName}
      */
     public static String camelCaseToDash(String name) {
         StringBuilder value = new StringBuilder(name.length());
