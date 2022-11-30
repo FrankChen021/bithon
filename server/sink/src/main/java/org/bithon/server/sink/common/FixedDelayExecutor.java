@@ -46,10 +46,7 @@ public class FixedDelayExecutor {
         this.command = command;
         this.thread = new Thread(new Task());
         this.thread.setName(name);
-    }
-
-    public void start() {
-        thread.start();
+        this.thread.start();
     }
 
     public void shutdown(Duration wait) throws InterruptedException {
