@@ -17,16 +17,14 @@
 package org.bithon.server.sink.metrics;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.server.sink.common.FixedDelayExecutor;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.metrics.IMetricWriter;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
@@ -36,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 public class MetricBatchWriter implements IMetricWriter {
 
     private final IMetricWriter delegation;
-    private final ScheduledExecutorService executor;
+    private final FixedDelayExecutor executor;
     private final MetricSinkConfig sinkConfig;
     private final String name;
     private List<IInputRow> metricList;
@@ -46,8 +44,10 @@ public class MetricBatchWriter implements IMetricWriter {
         this.delegation = delegation;
         this.sinkConfig = sinkConfig;
         this.metricList = new ArrayList<>(getBatchSize());
-        this.executor = new ScheduledThreadPoolExecutor(1, NamedThreadFactory.of(dataSourceName + "-batch-writer"));
-        this.executor.scheduleWithFixedDelay(this::flush, 5, sinkConfig.getBatch() == null ? 1 : sinkConfig.getBatch().getInterval(), TimeUnit.SECONDS);
+        this.executor = new FixedDelayExecutor(dataSourceName + "-batch-writer",
+                                               this::flush,
+                                               5,
+                                               () -> Duration.ofSeconds(sinkConfig.getBatch() == null ? 1 : sinkConfig.getBatch().getInterval()));
     }
 
     @Override
@@ -65,11 +65,8 @@ public class MetricBatchWriter implements IMetricWriter {
         log.info("Shutting down metric batch writer...");
 
         // shutdown and wait for current scheduler to close
-        this.executor.shutdown();
         try {
-            if (!this.executor.awaitTermination(20, TimeUnit.SECONDS)) {
-                log.warn("Timeout when shutdown trace batch writer");
-            }
+            this.executor.shutdown(Duration.ofSeconds(20));
         } catch (InterruptedException ignored) {
         }
 

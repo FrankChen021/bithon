@@ -16,7 +16,6 @@
 
 package org.bithon.server.sink.event;
 
-import org.bithon.server.sink.common.BatchConfig;
 import org.bithon.server.storage.event.EventMessage;
 import org.bithon.server.storage.event.IEventWriter;
 
@@ -31,10 +30,7 @@ class EventSinkHandler implements EventMessageHandler<EventMessage> {
     private final IEventWriter eventWriter;
 
     public EventSinkHandler(IEventWriter eventWriter, EventSinkConfig eventSinkConfig) {
-        BatchConfig batchConfig = eventSinkConfig.getBatch();
-        this.eventWriter = new EventBatchWriter(eventWriter,
-                                                batchConfig == null ? 1000 : batchConfig.getSize(),
-                                                batchConfig == null ? 1 : batchConfig.getInterval());
+        this.eventWriter = new EventBatchWriter(eventWriter, eventSinkConfig);
     }
 
     @Override
