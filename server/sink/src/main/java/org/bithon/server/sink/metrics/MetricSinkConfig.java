@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
 @Data
 @Configuration
 @Conditional(SinkModuleEnabler.class)
-@ConfigurationProperties(prefix = "bithon.sinks.metric")
+@ConfigurationProperties(prefix = "bithon.sinks.metrics")
 public class MetricSinkConfig {
     private BatchConfig batch;
 }
