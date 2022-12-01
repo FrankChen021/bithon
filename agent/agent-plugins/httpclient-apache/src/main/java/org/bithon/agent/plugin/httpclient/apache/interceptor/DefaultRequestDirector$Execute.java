@@ -46,7 +46,7 @@ public class DefaultRequestDirector$Execute extends AbstractInterceptor {
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
         String requestUri = httpRequest.getRequestLine().getUri();
-        if (HttpClientExecuteInterceptor.shouldExclude(requestUri)) {
+        if (HttpClient$Execute.shouldExclude(requestUri)) {
             return InterceptionDecision.SKIP_LEAVE;
         } else {
             InterceptorContext.set("apache-http-client.httpRequest", httpRequest);

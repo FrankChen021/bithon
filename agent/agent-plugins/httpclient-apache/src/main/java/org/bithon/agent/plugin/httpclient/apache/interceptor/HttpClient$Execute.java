@@ -42,8 +42,8 @@ import java.util.Set;
  *
  * @author frankchen
  */
-public class HttpClientExecuteInterceptor extends AbstractInterceptor {
-    private static final ILogAdaptor LOG = LoggerFactory.getLogger(HttpClientExecuteInterceptor.class);
+public class HttpClient$Execute extends AbstractInterceptor {
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(HttpClient$Execute.class);
     private static final Set<String> IGNORED_SUFFIXES = new HashSet<>();
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
     private boolean isNewVersion = true;
