@@ -36,3 +36,7 @@ jobs:
 
       - name: Dependency Check
         run: mvn -T 1C -ntp dependency:analyze-only
+
+      # Execute UT excluding component modules
+      - name: UT
+        run: mvn test -P-component
