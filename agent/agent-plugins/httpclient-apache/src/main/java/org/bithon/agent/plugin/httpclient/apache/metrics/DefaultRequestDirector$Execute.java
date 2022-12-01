@@ -62,32 +62,33 @@ public class DefaultRequestDirector$Execute extends AbstractInterceptor {
         String requestUri = httpRequest.getRequestLine().getUri();
         String requestMethod = httpRequest.getRequestLine().getMethod();
 
+        HttpOutgoingMetrics metrics;
         if (aopContext.hasException()) {
-            metricRegistry.addExceptionRequest(requestUri, requestMethod, aopContext.getCostTime());
-            return;
+            metrics = metricRegistry.addExceptionRequest(requestUri, requestMethod, aopContext.getCostTime());
+        } else {
+            HttpResponse httpResponse = aopContext.castReturningAs();
+            metrics = metricRegistry.addRequest(requestUri,
+                                                requestMethod,
+                                                httpResponse.getStatusLine().getStatusCode(),
+                                                aopContext.getCostTime());
         }
 
-        HttpResponse httpResponse = aopContext.castReturningAs();
-        HttpOutgoingMetrics metrics = metricRegistry.addRequest(requestUri,
-                                                                requestMethod,
-                                                                httpResponse.getStatusLine().getStatusCode(),
-                                                                aopContext.getCostTime());
-
-        HttpContext httpContext = (HttpContext) aopContext.getArgs()[2];
+        HttpContext httpContext = aopContext.getArgAs(2);
         if (httpContext == null) {
             return;
         }
 
         HttpConnection httpConnection = (HttpConnection) httpContext.getAttribute(ExecutionContext.HTTP_CONNECTION);
-        if (httpConnection == null) {
-            return;
-        }
-
-        try {
-            HttpConnectionMetrics connectionMetrics = httpConnection.getMetrics();
-            metrics.addByteSize(connectionMetrics.getSentBytesCount(), connectionMetrics.getReceivedBytesCount());
-        } catch (ConnectionShutdownException e) {
-            // This kind of exception has been processed by DefaultRequestDirectorReleaseConnection interceptor
+        if (httpConnection != null) {
+            try {
+                HttpConnectionMetrics connectionMetrics = httpConnection.getMetrics();
+                metrics.addByteSize(connectionMetrics.getSentBytesCount(), connectionMetrics.getReceivedBytesCount());
+            } catch (ConnectionShutdownException ignored) {
+                /**
+                 * This kind of exception has been processed by DefaultRequestDirectorReleaseConnection interceptor
+                 * See {@link DefaultRequestDirector$ReleaseConnection}
+                 */
+            }
         }
     }
 }
