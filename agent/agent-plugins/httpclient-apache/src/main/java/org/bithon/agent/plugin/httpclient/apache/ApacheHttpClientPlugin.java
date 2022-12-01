@@ -43,7 +43,7 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.HttpHost",
                                                                     "org.apache.http.HttpRequest",
                                                                     "org.apache.http.protocol.HttpContext")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.metrics.HttpClientExecuteInterceptor")
+                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.HttpClientExecuteInterceptor")
                 ),
 
             forClass("org.apache.http.impl.execchain.RedirectExec")
@@ -54,7 +54,7 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.client.methods.HttpRequestWrapper",
                                                                     "org.apache.http.client.protocol.HttpClientContext",
                                                                     "org.apache.http.client.methods.HttpExecutionAware")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.metrics.HttpClientExecuteInterceptor")
+                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.HttpClientExecuteInterceptor")
                 ),
 
             forClass("org.apache.http.impl.execchain.MinimalClientExec")
@@ -65,7 +65,7 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.client.methods.HttpRequestWrapper",
                                                                     "org.apache.http.client.protocol.HttpClientContext",
                                                                     "org.apache.http.client.methods.HttpExecutionAware")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.metrics.HttpClientExecuteInterceptor")
+                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.HttpClientExecuteInterceptor")
                 ),
 
             forClass("org.apache.http.impl.client.DefaultRequestDirector")
@@ -75,11 +75,11 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.HttpHost",
                                                                     "org.apache.http.HttpRequest",
                                                                     "org.apache.http.protocol.HttpContext")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.metrics.DefaultRequestDirector$Execute"),
+                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.DefaultRequestDirector$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("releaseConnection")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.metrics.DefaultRequestDirector$ReleaseConnection")
+                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.DefaultRequestDirector$ReleaseConnection")
                 ),
 
             //

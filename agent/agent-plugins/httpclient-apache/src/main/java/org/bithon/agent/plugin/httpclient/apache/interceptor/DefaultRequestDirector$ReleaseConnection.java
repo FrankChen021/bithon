@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpclient.apache.metrics;
+package org.bithon.agent.plugin.httpclient.apache.interceptor;
 
 import org.apache.http.HttpConnectionMetrics;
 import org.apache.http.HttpRequest;
