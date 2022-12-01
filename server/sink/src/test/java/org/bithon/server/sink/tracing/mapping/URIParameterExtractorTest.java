@@ -44,7 +44,8 @@ public class URIParameterExtractorTest {
                                                         "200")).build();
 
 
-        Function<Collection<TraceSpan>, List<TraceIdMapping>> extractor = TraceMappingFactory.create(new URIParameterExtractor(Collections.singletonList("query_id")));
+        Function<Collection<TraceSpan>, List<TraceIdMapping>> extractor = TraceMappingFactory.create(new URIParameterExtractor(Collections.singletonList(
+            "query_id")));
         List<TraceIdMapping> mappings = extractor.apply(Collections.singletonList(span));
         Assert.assertEquals(1, mappings.size());
         Assert.assertEquals("123456", mappings.get(0).getUserId());
