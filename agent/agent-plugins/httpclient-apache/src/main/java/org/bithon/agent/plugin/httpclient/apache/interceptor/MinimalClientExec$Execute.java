@@ -18,51 +18,39 @@ package org.bithon.agent.plugin.httpclient.apache.interceptor;
 
 import org.apache.http.HttpConnection;
 import org.apache.http.HttpConnectionMetrics;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.impl.conn.ConnectionShutdownException;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetrics;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
 
 /**
- * Old http client 4.0.1~4.2.5
- * See {@link org.apache.http.impl.client.DefaultRequestDirector#execute(HttpHost, HttpRequest, HttpContext)}
+ * Apache http component(client) interceptor
  *
- * @author frank.chen021@outlook.com
- * @date 2021/3/15
+ * @author frankchen
  */
-public class DefaultRequestDirector$Execute extends AbstractInterceptor {
-
+public class MinimalClientExec$Execute extends AbstractInterceptor {
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
+        HttpRequestWrapper httpRequest = aopContext.getArgAs(1);
         String requestUri = httpRequest.getRequestLine().getUri();
-        if (InternalHttpClient$DoExecute.shouldExclude(requestUri)) {
-            return InterceptionDecision.SKIP_LEAVE;
-        } else {
-            InterceptorContext.set("apache-http-client.httpRequest", httpRequest);
-            return InterceptionDecision.CONTINUE;
-        }
+        return InternalHttpClient$DoExecute.shouldExclude(requestUri) ? InterceptionDecision.SKIP_LEAVE : InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        InterceptorContext.remove("apache-http-client.httpRequest");
+        HttpOutgoingMetrics metrics;
 
-        HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
+        HttpRequestWrapper httpRequest = aopContext.getArgAs(1);
         String requestUri = httpRequest.getRequestLine().getUri();
         String requestMethod = httpRequest.getRequestLine().getMethod();
 
-        HttpOutgoingMetrics metrics;
         if (aopContext.hasException()) {
             metrics = metricRegistry.addExceptionRequest(requestUri, requestMethod, aopContext.getCostTime());
         } else {
@@ -74,20 +62,12 @@ public class DefaultRequestDirector$Execute extends AbstractInterceptor {
         }
 
         HttpContext httpContext = aopContext.getArgAs(2);
-        if (httpContext == null) {
-            return;
-        }
-
-        HttpConnection httpConnection = (HttpConnection) httpContext.getAttribute(ExecutionContext.HTTP_CONNECTION);
+        HttpConnection httpConnection = (HttpConnection) (httpContext == null ? null : httpContext.getAttribute("http.connection"));
         if (httpConnection != null) {
             try {
                 HttpConnectionMetrics connectionMetrics = httpConnection.getMetrics();
                 metrics.addByteSize(connectionMetrics.getSentBytesCount(), connectionMetrics.getReceivedBytesCount());
             } catch (ConnectionShutdownException ignored) {
-                /**
-                 * This kind of exception has been processed by DefaultRequestDirectorReleaseConnection interceptor
-                 * See {@link DefaultRequestDirector$ReleaseConnection}
-                 */
             }
         }
     }
