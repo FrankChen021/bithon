@@ -19,7 +19,6 @@ package org.bithon.server.sink.tracing.sanitization;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.sink.common.utils.MiscUtils;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.net.URI;
@@ -52,23 +51,11 @@ public class UrlSanitizer implements ISanitizer {
         this.sensitiveParameters = new ArrayList<>(sensitiveParameters.values());
     }
 
-    public Map<String, String> getURIParameters(TraceSpan span) {
-        if (span.getUriParameters() == null) {
-            String uri = span.getTag("http.uri");
-            if (StringUtils.isBlank(uri)) {
-                // compatibility
-                uri = span.getTag("uri");
-            }
-            span.setUriParameters(MiscUtils.parseURLParameters(uri));
-        }
-        return span.getUriParameters();
-    }
-
     @Override
     public void sanitize(TraceSpan span) {
         boolean sanitized = false;
 
-        Map<String, String> parameters = getURIParameters(span);
+        Map<String, String> parameters = span.getUriParameters();
         for (String sensitiveParameter : sensitiveParameters) {
             if (parameters.containsKey(sensitiveParameter)) {
                 parameters.put(sensitiveParameter, "***MASKED***");

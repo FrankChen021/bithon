@@ -48,8 +48,8 @@ public class BlockingQueueTest {
             elapsed = System.currentTimeMillis() - s;
         }
 
-        List takenObjectAsCollection() {
-            return (List) takenObject;
+        List<?> takenObjectAsCollection() {
+            return (List<?>) takenObject;
         }
     }
 
