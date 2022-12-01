@@ -23,6 +23,7 @@ import org.bithon.server.kafka.KafkaConsumerManager;
 import org.bithon.server.sink.common.input.InputSourceManager;
 import org.bithon.server.sink.event.EventInputSource;
 import org.bithon.server.sink.event.EventMessageHandlers;
+import org.bithon.server.sink.event.EventSinkConfig;
 import org.bithon.server.sink.metrics.MetricInputSource;
 import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.sink.metrics.transformer.ConnectionStringTransformer;
@@ -30,9 +31,9 @@ import org.bithon.server.sink.metrics.transformer.ExtractHost;
 import org.bithon.server.sink.metrics.transformer.ExtractPath;
 import org.bithon.server.sink.metrics.transformer.UriNormalizationTransformer;
 import org.bithon.server.sink.tracing.LocalTraceSink;
-import org.bithon.server.sink.tracing.TraceConfig;
 import org.bithon.server.sink.tracing.TraceDataSourceSchemaInitializer;
 import org.bithon.server.sink.tracing.TraceMessageProcessChain;
+import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.sink.tracing.metrics.MetricOverSpanInputSource;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.event.IEventStorage;
@@ -56,7 +57,7 @@ public class SinkAutoConfiguration {
      * Use bean initialization mechanism to initialize the related data source schema
      */
     @Bean
-    TraceDataSourceSchemaInitializer traceDataSourceSchemaInitializer(TraceConfig traceConfig) {
+    TraceDataSourceSchemaInitializer traceDataSourceSchemaInitializer(TraceSinkConfig traceConfig) {
         return new TraceDataSourceSchemaInitializer(traceConfig);
     }
 
@@ -66,8 +67,8 @@ public class SinkAutoConfiguration {
     }
 
     @Bean
-    EventMessageHandlers eventMessageHandlers(IEventStorage handlers) {
-        return new EventMessageHandlers(handlers);
+    EventMessageHandlers eventMessageHandlers(IEventStorage eventStorage, EventSinkConfig eventSinkConfig) {
+        return new EventMessageHandlers(eventStorage, eventSinkConfig);
     }
 
     @Bean
@@ -101,7 +102,7 @@ public class SinkAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty(value = "collector-kafka.enabled", havingValue = "true", matchIfMissing = false)
-    public TraceMessageProcessChain traceSink(TraceConfig traceConfig, ObjectMapper om, ApplicationContext applicationContext) {
+    public TraceMessageProcessChain traceSink(TraceSinkConfig traceConfig, ObjectMapper om, ApplicationContext applicationContext) {
         return new TraceMessageProcessChain(traceConfig.createFilter(om),
                                             new LocalTraceSink(applicationContext));
     }

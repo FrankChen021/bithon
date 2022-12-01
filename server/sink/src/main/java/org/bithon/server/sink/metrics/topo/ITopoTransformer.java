@@ -16,8 +16,8 @@
 
 package org.bithon.server.sink.metrics.topo;
 
+import org.bithon.server.sink.metrics.Measurement;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.Measurement;
 
 /**
  * A temp interface to generalize metrics processing of previous http-incoming-metrics/http-outcoming-metrics/...

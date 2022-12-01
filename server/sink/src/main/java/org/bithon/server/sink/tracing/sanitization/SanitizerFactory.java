@@ -18,7 +18,7 @@ package org.bithon.server.sink.tracing.sanitization;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.sink.tracing.TraceConfig;
+import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.io.IOException;
@@ -36,7 +36,7 @@ public class SanitizerFactory {
     private final Map<String, ISanitizer> applicationSanitizers;
     private final ISanitizer globalSanitizer;
 
-    public SanitizerFactory(ObjectMapper objectMapper, TraceConfig traceConfig) {
+    public SanitizerFactory(ObjectMapper objectMapper, TraceSinkConfig traceConfig) {
         this.objectMapper = objectMapper;
         this.applicationSanitizers = new HashMap<>();
         if (traceConfig.getApplicationSanitizer() != null) {

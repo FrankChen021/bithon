@@ -17,7 +17,7 @@
 package org.bithon.server.sink.tracing.index;
 
 import com.google.common.collect.ImmutableMap;
-import org.bithon.server.sink.tracing.TraceConfig;
+import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.index.TagIndex;
 import org.junit.Assert;
@@ -36,7 +36,7 @@ public class TagIndexBuilderTest {
 
     @Test
     public void testEmptyConfig() {
-        TraceConfig config = new TraceConfig();
+        TraceSinkConfig config = new TraceSinkConfig();
         TagIndexGenerator builder = new TagIndexGenerator(config);
         Collection<TagIndex> indexes = builder.generate(Collections.singletonList(TraceSpan.builder()
                                                                                            .startTime(1000)
@@ -50,7 +50,7 @@ public class TagIndexBuilderTest {
     public void testTagNotMatched() {
         TagIndexConfig indexConfig = new TagIndexConfig();
         indexConfig.setMap(new LinkedHashMap<>(ImmutableMap.of("status", 1)));
-        TraceConfig config = new TraceConfig();
+        TraceSinkConfig config = new TraceSinkConfig();
         config.setIndexes(indexConfig);
 
         TagIndexGenerator builder = new TagIndexGenerator(config);
@@ -67,7 +67,7 @@ public class TagIndexBuilderTest {
     public void testTagMatched() {
         TagIndexConfig indexConfig = new TagIndexConfig();
         indexConfig.setMap(new LinkedHashMap<>(ImmutableMap.of("status", 1)));
-        TraceConfig config = new TraceConfig();
+        TraceSinkConfig config = new TraceSinkConfig();
         config.setIndexes(indexConfig);
 
         TagIndexGenerator builder = new TagIndexGenerator(config);

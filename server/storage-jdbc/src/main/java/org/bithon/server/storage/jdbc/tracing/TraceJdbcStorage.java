@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.sink.tracing.TraceConfig;
+import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.common.IStorageCleaner;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
@@ -46,14 +46,14 @@ public class TraceJdbcStorage implements ITraceStorage {
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
     protected final TraceStorageConfig config;
-    protected final TraceConfig traceConfig;
+    protected final TraceSinkConfig traceConfig;
     protected final DataSourceSchema traceSpanSchema;
 
     @JsonCreator
     public TraceJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder,
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                             @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
-                            @JacksonInject(useInput = OptBoolean.FALSE) TraceConfig traceConfig,
+                            @JacksonInject(useInput = OptBoolean.FALSE) TraceSinkConfig traceConfig,
                             @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
         this(dslContextHolder.getDslContext(), objectMapper, storageConfig, traceConfig, schemaManager);
     }
@@ -61,7 +61,7 @@ public class TraceJdbcStorage implements ITraceStorage {
     public TraceJdbcStorage(DSLContext dslContext,
                             ObjectMapper objectMapper,
                             TraceStorageConfig storageConfig,
-                            TraceConfig traceConfig,
+                            TraceSinkConfig traceConfig,
                             DataSourceSchemaManager schemaManager) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
@@ -92,7 +92,7 @@ public class TraceJdbcStorage implements ITraceStorage {
 
     @Override
     public ITraceWriter createWriter() {
-        return new TraceJdbcBatchWriter(new TraceJdbcWriter(dslContext, objectMapper, traceConfig), config);
+        return new TraceJdbcWriter(dslContext, objectMapper, traceConfig);
     }
 
     @Override

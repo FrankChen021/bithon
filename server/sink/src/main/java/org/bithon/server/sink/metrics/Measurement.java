@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.input;
+package org.bithon.server.sink.metrics;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

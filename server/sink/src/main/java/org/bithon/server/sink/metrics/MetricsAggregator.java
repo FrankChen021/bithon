@@ -22,7 +22,6 @@ import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
-import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 
 import java.util.ArrayList;

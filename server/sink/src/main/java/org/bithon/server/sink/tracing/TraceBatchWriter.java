@@ -14,49 +14,41 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.tracing;
+package org.bithon.server.sink.tracing;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.server.sink.common.FixedDelayExecutor;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceSpan;
-import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.storage.tracing.index.TagIndex;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
- * The batch writer here may not be a perfect design.
- * It can be put at the message handler layer so that all writers can gain batch capability.
- * For metrics have already been aggregated at agent side it's TPS is not very high, So it's not a pain point.
- * <p>
- * But for trace, there's no such aggregation layer which may result in high QPS of insert.
- * Since I'm not focusing on the implementation detail now, perfect solution is left in the future.
- *
  * @author frank.chen021@outlook.com
  * @date 24/12/21
  */
 @Slf4j
-public class TraceJdbcBatchWriter implements ITraceWriter {
+public class TraceBatchWriter implements ITraceWriter {
     private final List<TraceSpan> traceSpans = new ArrayList<>();
     private final List<TraceIdMapping> traceIdMappings = new ArrayList<>();
     private final List<TagIndex> tagIndexes = new ArrayList<>();
 
     private final ITraceWriter writer;
-    private final TraceStorageConfig config;
-    private final ScheduledExecutorService executor;
+    private final FixedDelayExecutor executor;
+    private final int batchSize;
 
-    public TraceJdbcBatchWriter(ITraceWriter writer, TraceStorageConfig config) {
+    public TraceBatchWriter(ITraceWriter writer, TraceSinkConfig config) {
         this.writer = writer;
-        this.config = config;
-        this.executor = Executors.newSingleThreadScheduledExecutor(NamedThreadFactory.of("trace-batch-writer"));
-        this.executor.scheduleWithFixedDelay(this::flush, 5, 1, TimeUnit.SECONDS);
+        this.batchSize = config.getBatch() == null ? 2000 : config.getBatch().getSize();
+        this.executor = new FixedDelayExecutor("trace-batch-writer",
+                                               this::flush,
+                                               5,
+                                               () -> Duration.ofSeconds(config.getBatch() == null ? 1 : config.getBatch().getInterval()));
     }
 
     @Override
@@ -68,7 +60,7 @@ public class TraceJdbcBatchWriter implements ITraceWriter {
             this.traceIdMappings.addAll(mappings);
             this.tagIndexes.addAll(tagIndices);
         }
-        if (traceSpans.size() > config.getBatchSize()) {
+        if (traceSpans.size() > this.batchSize) {
             flush();
         }
     }
@@ -101,12 +93,10 @@ public class TraceJdbcBatchWriter implements ITraceWriter {
     @Override
     public void close() {
         log.info("Shutting down trace batch writer...");
+
         // shutdown and wait for current scheduler to close
-        this.executor.shutdown();
         try {
-            if (!this.executor.awaitTermination(20, TimeUnit.SECONDS)) {
-                log.warn("Timeout when shutdown trace batch writer");
-            }
+            this.executor.shutdown(Duration.ofSeconds(20));
         } catch (InterruptedException ignored) {
         }
 

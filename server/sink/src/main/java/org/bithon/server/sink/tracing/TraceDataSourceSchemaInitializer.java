@@ -37,9 +37,9 @@ import java.util.Map;
  * @date 30/1/22 9:56 AM
  */
 public class TraceDataSourceSchemaInitializer implements BeanPostProcessor {
-    private final TraceConfig traceConfig;
+    private final TraceSinkConfig traceConfig;
 
-    public TraceDataSourceSchemaInitializer(TraceConfig traceConfig) {
+    public TraceDataSourceSchemaInitializer(TraceSinkConfig traceConfig) {
         this.traceConfig = traceConfig;
     }
 

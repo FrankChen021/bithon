@@ -19,6 +19,7 @@ package org.bithon.server.sink.tracing;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.server.sink.common.BatchConfig;
 import org.bithon.server.sink.tracing.index.TagIndexConfig;
 import org.bithon.server.sink.tracing.mapping.TraceIdMappingConfig;
 import org.bithon.server.sink.tracing.sanitization.SanitizerConfig;
@@ -39,8 +40,8 @@ import java.util.Map;
  */
 @Data
 @Configuration(proxyBeanMethods = false)
-@ConfigurationProperties(prefix = "bithon.tracing")
-public class TraceConfig {
+@ConfigurationProperties(prefix = "bithon.sinks.tracing")
+public class TraceSinkConfig {
     /**
      * Map<String, String>
      * key: prop name
@@ -56,6 +57,7 @@ public class TraceConfig {
     private Map<String, SanitizerConfig> applicationSanitizer;
 
     private TagIndexConfig indexes;
+    private BatchConfig batch;
 
     @Nullable
     public IInputRowFilter createFilter(ObjectMapper om) {

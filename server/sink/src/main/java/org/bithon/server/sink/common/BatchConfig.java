@@ -14,16 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.event;
+package org.bithon.server.sink.common;
 
-import java.io.IOException;
-import java.util.List;
+import lombok.Data;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/14 4:17 下午
+ * @date 2022/11/29 21:29
  */
-public interface IEventWriter extends AutoCloseable {
+@Data
+public class BatchConfig {
+    private int size = 2000;
 
-    void write(List<EventMessage> eventMessage) throws IOException;
+    /**
+     * in seconds
+     */
+    private int interval = 1;
 }

@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.jooq.BatchBindStep;
 import org.jooq.DSLContext;
@@ -28,7 +27,6 @@ import org.jooq.Field;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.Timestamp;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -72,46 +70,6 @@ class MetricJdbcWriter implements IMetricWriter {
             // metrics
             for (Field metric : table.getMetrics()) {
                 values[index++] = inputRow.getCol(metric.getName(), 0);
-            }
-
-            step.bind(values);
-        }
-
-        try {
-            step.execute();
-        } catch (DuplicateKeyException e) {
-            log.error("Duplicate Key", e);
-        } catch (Exception e) {
-            log.error(StringUtils.format("Failed to insert records into [%s].", this.table.getName()),
-                      e);
-        }
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @Override
-    public void write(Collection<Measurement> measurementList) {
-        if (CollectionUtils.isEmpty(measurementList)) {
-            return;
-        }
-
-        int fieldCount = 1 + table.getDimensions().size() + table.getMetrics().size();
-        BatchBindStep step = dsl.batch(dsl.insertInto(table).values(new Object[fieldCount]));
-
-        for (Measurement measurement : measurementList) {
-            Object[] values = new Object[fieldCount];
-
-            int index = 0;
-            values[index++] = new Timestamp(measurement.getTimestamp());
-
-            // dimensions
-            for (Field dimension : table.getDimensions()) {
-                Object value = measurement.getDimension(dimension.getName(), "");
-                values[index++] = getOrTruncateDimension(dimension, value);
-            }
-
-            // metrics
-            for (Field metric : table.getMetrics()) {
-                values[index++] = measurement.getMetric(metric.getName(), 0);
             }
 
             step.bind(values);

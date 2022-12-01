@@ -83,7 +83,8 @@ public class LocalMetricSink implements IMetricMessageSink {
                                                    applicationContext.getBean(IMetaStorage.class),
                                                    applicationContext.getBean(IMetricStorage.class),
                                                    schemaManager,
-                                                   null);
+                                                   null,
+                                                   applicationContext.getBean(MetricSinkConfig.class));
 
                 handlers.add(handler);
                 return handler;

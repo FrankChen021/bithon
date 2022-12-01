@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.sink.tracing.TraceConfig;
+import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
@@ -54,13 +54,13 @@ public class TraceJdbcReader implements ITraceReader {
     public static final String SPAN_TAGS_PREFIX = "tags.";
     private final DSLContext dslContext;
     private final ObjectMapper objectMapper;
-    private final TraceConfig traceConfig;
+    private final TraceSinkConfig traceConfig;
     private final DataSourceSchema traceSpanSchema;
 
     public TraceJdbcReader(DSLContext dslContext,
                            ObjectMapper objectMapper,
                            DataSourceSchema traceSpanSchema,
-                           TraceConfig traceConfig) {
+                           TraceSinkConfig traceConfig) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
         this.traceConfig = traceConfig;

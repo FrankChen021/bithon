@@ -19,6 +19,7 @@ package org.bithon.server.sink.event;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.metrics.MetricMessageHandler;
+import org.bithon.server.sink.metrics.MetricSinkConfig;
 import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.input.IInputRow;
@@ -45,13 +46,15 @@ public class MetricOverEventHandler extends MetricMessageHandler implements Even
                                   ObjectMapper objectMapper,
                                   IMetaStorage metaStorage,
                                   IMetricStorage metricStorage,
-                                  DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+                                  DataSourceSchemaManager dataSourceSchemaManager,
+                                  MetricSinkConfig metricSinkConfig) throws IOException {
         super(dataSourceName,
               topoTransformers,
               metaStorage,
               metricStorage,
               dataSourceSchemaManager,
-              null);
+              null,
+              metricSinkConfig);
         this.eventType = eventType;
         this.objectMapper = objectMapper;
     }

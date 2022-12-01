@@ -34,20 +34,20 @@ import java.util.List;
 public class LocalTraceSink implements ITraceMessageSink {
 
     @Getter
-    private final TraceMessageHandler handler;
+    private final TraceSinkHandler sink;
 
     @JsonCreator
     public LocalTraceSink(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        this.handler = new TraceMessageHandler(applicationContext);
+        this.sink = new TraceSinkHandler(applicationContext);
     }
 
     @Override
     public void process(String messageType, List<TraceSpan> messages) {
-        handler.submit(messages);
+        sink.submit(messages);
     }
 
     @Override
     public void close() throws Exception {
-        handler.close();
+        sink.close();
     }
 }

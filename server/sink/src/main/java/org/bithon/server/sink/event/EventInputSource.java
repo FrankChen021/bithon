@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.common.input.IInputSource;
+import org.bithon.server.sink.metrics.MetricSinkConfig;
 import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
@@ -74,7 +75,8 @@ public class EventInputSource implements IInputSource {
                                                     applicationContext.getBean(ObjectMapper.class),
                                                     applicationContext.getBean(IMetaStorage.class),
                                                     applicationContext.getBean(IMetricStorage.class),
-                                                    applicationContext.getBean(DataSourceSchemaManager.class)));
+                                                    applicationContext.getBean(DataSourceSchemaManager.class),
+                                                    applicationContext.getBean(MetricSinkConfig.class)));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

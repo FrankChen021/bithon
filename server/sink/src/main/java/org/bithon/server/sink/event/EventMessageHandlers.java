@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.storage.event.EventMessage;
 import org.bithon.server.storage.event.IEventStorage;
-import org.bithon.server.storage.event.IEventWriter;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,30 +37,10 @@ public class EventMessageHandlers {
 
     private final Map<String, EventMessageHandler<?>> handlers = new ConcurrentHashMap<>(7);
 
-    private final EventMessageHandler<?> defaultHandler;
+    private final EventMessageHandler<?> eventSinkHandler;
 
-    public EventMessageHandlers(IEventStorage eventStorage) {
-        defaultHandler = new EventMessageHandler<EventMessage>() {
-            final IEventWriter eventWriter = eventStorage.createWriter();
-
-            @Override
-            public String getEventType() {
-                return "all";
-            }
-
-            @Override
-            public EventMessage transform(EventMessage eventMessage) {
-                return eventMessage;
-            }
-
-            @Override
-            public void process(List<EventMessage> messages) throws IOException {
-                if (messages.isEmpty()) {
-                    return;
-                }
-                eventWriter.write(messages);
-            }
-        };
+    public EventMessageHandlers(IEventStorage eventStorage, EventSinkConfig eventSinkConfig) {
+        eventSinkHandler = new EventSinkHandler(eventStorage.createWriter(), eventSinkConfig);
     }
 
     static class PiplelineHandler<T> {
@@ -100,7 +79,7 @@ public class EventMessageHandlers {
             String eventType = message.getType();
             PiplelineHandler<?> handler = pipelineHandlers.computeIfAbsent(eventType,
                                                                            v -> new PiplelineHandler<>(handlers.getOrDefault(eventType,
-                                                                                                                             defaultHandler)));
+                                                                                                                             eventSinkHandler)));
             handler.transform(message);
         }
 
@@ -121,4 +100,5 @@ public class EventMessageHandlers {
     public void remove(String eventType) {
         handlers.remove(eventType);
     }
+
 }

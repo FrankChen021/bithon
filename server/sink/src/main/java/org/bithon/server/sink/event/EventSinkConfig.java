@@ -14,16 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.event;
+package org.bithon.server.sink.event;
 
-import java.io.IOException;
-import java.util.List;
+import lombok.Data;
+import org.bithon.server.sink.SinkModuleEnabler;
+import org.bithon.server.sink.common.BatchConfig;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/14 4:17 下午
+ * @date 2022/11/29 21:37
  */
-public interface IEventWriter extends AutoCloseable {
-
-    void write(List<EventMessage> eventMessage) throws IOException;
+@Data
+@Configuration
+@Conditional(SinkModuleEnabler.class)
+@ConfigurationProperties(prefix = "bithon.sinks.event")
+public class EventSinkConfig {
+    private BatchConfig batch;
 }

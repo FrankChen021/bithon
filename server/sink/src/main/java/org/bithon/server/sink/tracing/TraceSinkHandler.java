@@ -39,31 +39,37 @@ import java.util.function.Function;
  * @date 2021/2/4 8:21 下午
  */
 @Slf4j
-public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<List<TraceSpan>> {
+public class TraceSinkHandler extends AbstractThreadPoolMessageHandler<List<TraceSpan>> {
 
     private final ITraceWriter traceWriter;
     private final Function<Collection<TraceSpan>, List<TraceIdMapping>> mappingExtractor;
     private final SanitizerFactory sanitizerFactory;
     private final TagIndexGenerator tagIndexBuilder;
 
-    public TraceMessageHandler(ApplicationContext applicationContext) {
+    public TraceSinkHandler(ApplicationContext applicationContext) {
         super("trace-message-handler", 2, 10, Duration.ofMinutes(1), 1024);
-        this.traceWriter = applicationContext.getBean(ITraceStorage.class).createWriter();
+
+        TraceSinkConfig sinkConfig = applicationContext.getBean(TraceSinkConfig.class);
+        this.traceWriter = new TraceBatchWriter(applicationContext.getBean(ITraceStorage.class).createWriter(),
+                                                sinkConfig);
 
         this.mappingExtractor = TraceMappingFactory.create(applicationContext);
         this.sanitizerFactory = new SanitizerFactory(applicationContext.getBean(ObjectMapper.class),
-                                                     applicationContext.getBean(TraceConfig.class));
-
-        this.tagIndexBuilder = new TagIndexGenerator(applicationContext.getBean(TraceConfig.class));
+                                                     sinkConfig);
+        this.tagIndexBuilder = new TagIndexGenerator(sinkConfig);
     }
 
     @Override
-    protected void onMessage(List<TraceSpan> traceSpans) throws IOException {
-        sanitizerFactory.sanitize(traceSpans);
+    protected void onMessage(List<TraceSpan> spans) throws IOException {
+        if (spans.isEmpty()) {
+            return;
+        }
 
-        traceWriter.write(traceSpans,
-                          mappingExtractor.apply(traceSpans),
-                          tagIndexBuilder.generate(traceSpans));
+        sanitizerFactory.sanitize(spans);
+
+        traceWriter.write(spans,
+                          mappingExtractor.apply(spans),
+                          tagIndexBuilder.generate(spans));
     }
 
     @Override
