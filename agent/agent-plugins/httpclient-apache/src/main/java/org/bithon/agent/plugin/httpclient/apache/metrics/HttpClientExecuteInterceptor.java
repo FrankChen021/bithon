@@ -21,12 +21,14 @@ import org.apache.http.HttpConnectionMetrics;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestWrapper;
+import org.apache.http.impl.conn.ConnectionShutdownException;
 import org.apache.http.impl.execchain.MinimalClientExec;
 import org.apache.http.impl.execchain.RedirectExec;
 import org.apache.http.protocol.HttpContext;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetrics;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -41,12 +43,15 @@ import java.util.Set;
  * @author frankchen
  */
 public class HttpClientExecuteInterceptor extends AbstractInterceptor {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(HttpClientExecuteInterceptor.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(HttpClientExecuteInterceptor.class);
     private static final Set<String> IGNORED_SUFFIXES = new HashSet<>();
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
     private boolean isNewVersion = true;
 
-    public static boolean filter(String uri) {
+    public static boolean shouldExclude(String uri) {
+        if (IGNORED_SUFFIXES.isEmpty()) {
+            return false;
+        }
         String suffix = uri.substring(uri.lastIndexOf(".") + 1).toLowerCase(Locale.ENGLISH);
         return IGNORED_SUFFIXES.contains(suffix);
     }
@@ -72,7 +77,7 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
             //
             HttpRequestWrapper httpRequest = (HttpRequestWrapper) args[1];
             String requestUri = httpRequest.getRequestLine().getUri();
-            return filter(requestUri) ? InterceptionDecision.SKIP_LEAVE : InterceptionDecision.CONTINUE;
+            return shouldExclude(requestUri) ? InterceptionDecision.SKIP_LEAVE : InterceptionDecision.CONTINUE;
 
         } else if (isNewVersion && targetObject instanceof RedirectExec) {
             //
@@ -80,7 +85,7 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
             //
             HttpRequestWrapper httpRequestWrapper = (HttpRequestWrapper) args[1];
             String requestUri = httpRequestWrapper.getOriginal().getRequestLine().getUri();
-            return filter(requestUri) ? InterceptionDecision.SKIP_LEAVE : InterceptionDecision.CONTINUE;
+            return shouldExclude(requestUri) ? InterceptionDecision.SKIP_LEAVE : InterceptionDecision.CONTINUE;
 
         } else if (isNewVersion) {
             //
@@ -88,7 +93,7 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
             //
             HttpRequest httpRequest = (HttpRequest) args[1];
             String requestUri = httpRequest.getRequestLine().getUri();
-            return filter(requestUri) ? InterceptionDecision.SKIP_LEAVE : InterceptionDecision.CONTINUE;
+            return shouldExclude(requestUri) ? InterceptionDecision.SKIP_LEAVE : InterceptionDecision.CONTINUE;
         } else {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -98,9 +103,9 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         Object targetObject = aopContext.getTarget();
         Object[] args = aopContext.getArgs();
-        boolean hasException = aopContext.getException() != null;
         long costTime = aopContext.getCostTime();
 
+        HttpOutgoingMetrics metrics;
         if (isNewVersion && targetObject instanceof MinimalClientExec) {
             //
             // "http client 4.3.4~4.5.3: MinimalClientExec"
@@ -109,49 +114,32 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
             String requestUri = httpRequest.getRequestLine().getUri();
             String requestMethod = httpRequest.getRequestLine().getMethod();
 
-            if (hasException) {
-                metricRegistry.addExceptionRequest(requestUri, requestMethod, costTime);
+            if (aopContext.hasException()) {
+                metrics = metricRegistry.addExceptionRequest(requestUri, requestMethod, costTime);
             } else {
                 HttpResponse httpResponse = aopContext.castReturningAs();
-                metricRegistry.addRequest(requestUri,
-                                          requestMethod,
-                                          httpResponse.getStatusLine().getStatusCode(),
-                                          costTime);
-
-                HttpContext httpContext = (HttpContext) args[2];
-                if (httpContext != null && httpContext.getAttribute("http.connection") != null) {
-                    HttpConnection httpConnection = (HttpConnection) httpContext.getAttribute("http.connection");
-
-                    HttpConnectionMetrics connectionMetrics = httpConnection.getMetrics();
-                    long requestBytes = connectionMetrics.getSentBytesCount();
-                    long responseBytes = connectionMetrics.getReceivedBytesCount();
-                    metricRegistry.addBytes(requestUri, requestMethod, requestBytes, responseBytes);
-                }
+                metrics = metricRegistry.addRequest(requestUri,
+                                                    requestMethod,
+                                                    httpResponse.getStatusLine().getStatusCode(),
+                                                    costTime);
             }
         } else if (isNewVersion && targetObject instanceof RedirectExec) {
             //
             // http client 4.3.4~4.5.3: RedirectExec"
             //
-
             HttpRequestWrapper httpRequestWrapper = (HttpRequestWrapper) args[1];
-            if (hasException) {
+            if (aopContext.hasException()) {
                 String requestUri = httpRequestWrapper.getRequestLine().getUri();
                 String requestMethod = httpRequestWrapper.getRequestLine().getMethod();
-                metricRegistry.addExceptionRequest(requestUri, requestMethod, costTime);
+                metrics = metricRegistry.addExceptionRequest(requestUri, requestMethod, costTime);
             } else {
-
-                HttpContext httpContext = (HttpContext) args[2];
-
                 String requestUri = httpRequestWrapper.getOriginal().getRequestLine().getUri();
                 String requestMethod = httpRequestWrapper.getOriginal().getRequestLine().getMethod();
-                if (httpContext != null && httpContext.getAttribute("http.connection") != null) {
-                    HttpConnection httpConnection = (HttpConnection) httpContext.getAttribute("http.connection");
 
-                    HttpConnectionMetrics connectionMetrics = httpConnection.getMetrics();
-                    long requestBytes = connectionMetrics.getSentBytesCount();
-                    long responseBytes = connectionMetrics.getReceivedBytesCount();
-                    metricRegistry.addBytes(requestUri, requestMethod, requestBytes, responseBytes);
-                }
+                metrics = metricRegistry.addRequest(requestUri,
+                                                    requestMethod,
+                                                    ((HttpResponse) aopContext.getReturning()).getStatusLine().getStatusCode(),
+                                                    costTime);
             }
         } else if (isNewVersion) {
             //
@@ -161,16 +149,27 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
             String requestUri = httpRequest.getRequestLine().getUri();
             String requestMethod = httpRequest.getRequestLine().getMethod();
 
-            if (hasException) {
-                metricRegistry.addExceptionRequest(requestUri, requestMethod, costTime);
+            if (aopContext.hasException()) {
+                metrics = metricRegistry.addExceptionRequest(requestUri, requestMethod, costTime);
             } else {
-                metricRegistry.addRequest(requestUri,
-                                          requestMethod,
-                                          ((HttpResponse) aopContext.getReturning()).getStatusLine().getStatusCode(),
-                                          costTime);
+                metrics = metricRegistry.addRequest(requestUri,
+                                                    requestMethod,
+                                                    ((HttpResponse) aopContext.getReturning()).getStatusLine().getStatusCode(),
+                                                    costTime);
             }
         } else {
-            log.warn("http client version not supported!");
+            LOG.warn("http client version not supported!");
+            return;
+        }
+
+        HttpContext httpContext = (HttpContext) args[2];
+        HttpConnection httpConnection = (HttpConnection) (httpContext == null ? null : httpContext.getAttribute("http.connection"));
+        if (httpConnection != null) {
+            try {
+                HttpConnectionMetrics connectionMetrics = httpConnection.getMetrics();
+                metrics.addByteSize(connectionMetrics.getSentBytesCount(), connectionMetrics.getReceivedBytesCount());
+            } catch (ConnectionShutdownException ignored) {
+            }
         }
     }
 }

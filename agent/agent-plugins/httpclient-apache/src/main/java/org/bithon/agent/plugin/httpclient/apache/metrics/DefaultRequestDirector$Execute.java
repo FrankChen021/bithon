@@ -18,6 +18,7 @@ package org.bithon.agent.plugin.httpclient.apache.metrics;
 
 import org.apache.http.HttpConnection;
 import org.apache.http.HttpConnectionMetrics;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.impl.conn.ConnectionShutdownException;
@@ -27,10 +28,12 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.InterceptorContext;
+import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetrics;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
 
 /**
  * Old http client 4.0.1~4.2.5
+ * See {@link org.apache.http.impl.client.DefaultRequestDirector#execute(HttpHost, HttpRequest, HttpContext)}
  *
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
@@ -43,7 +46,7 @@ public class DefaultRequestDirector$Execute extends AbstractInterceptor {
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
         String requestUri = httpRequest.getRequestLine().getUri();
-        if (HttpClientExecuteInterceptor.filter(requestUri)) {
+        if (HttpClientExecuteInterceptor.shouldExclude(requestUri)) {
             return InterceptionDecision.SKIP_LEAVE;
         } else {
             InterceptorContext.set("apache-http-client.httpRequest", httpRequest);
@@ -65,10 +68,10 @@ public class DefaultRequestDirector$Execute extends AbstractInterceptor {
         }
 
         HttpResponse httpResponse = aopContext.castReturningAs();
-        metricRegistry.addRequest(requestUri,
-                                  requestMethod,
-                                  httpResponse.getStatusLine().getStatusCode(),
-                                  aopContext.getCostTime());
+        HttpOutgoingMetrics metrics = metricRegistry.addRequest(requestUri,
+                                                                requestMethod,
+                                                                httpResponse.getStatusLine().getStatusCode(),
+                                                                aopContext.getCostTime());
 
         HttpContext httpContext = (HttpContext) aopContext.getArgs()[2];
         if (httpContext == null) {
@@ -82,9 +85,7 @@ public class DefaultRequestDirector$Execute extends AbstractInterceptor {
 
         try {
             HttpConnectionMetrics connectionMetrics = httpConnection.getMetrics();
-            long requestBytes = connectionMetrics.getSentBytesCount();
-            long responseBytes = connectionMetrics.getReceivedBytesCount();
-            metricRegistry.addBytes(requestUri, requestMethod, requestBytes, responseBytes);
+            metrics.addByteSize(connectionMetrics.getSentBytesCount(), connectionMetrics.getReceivedBytesCount());
         } catch (ConnectionShutdownException e) {
             // This kind of exception has been processed by DefaultRequestDirectorReleaseConnection interceptor
         }
