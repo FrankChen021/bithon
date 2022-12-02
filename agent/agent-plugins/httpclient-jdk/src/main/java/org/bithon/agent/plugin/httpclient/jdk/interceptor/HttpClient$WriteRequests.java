@@ -27,6 +27,9 @@ import org.bithon.component.commons.tracing.Tags;
 import sun.net.www.MessageHeader;
 
 /**
+ * Starts a trace span but do not finish it when the function completes.
+ * Instead of, it will be closed in {@link HttpClient$ParseHTTP}
+ *
  * @author frankchen
  */
 public class HttpClient$WriteRequests extends AbstractInterceptor {
@@ -47,12 +50,12 @@ public class HttpClient$WriteRequests extends AbstractInterceptor {
         /*
          * starts a span which will be finished after HttpClient.parseHttp
          */
-        aopContext.setUserContext(span.method(aopContext.getMethod())
-                                      .kind(SpanKind.CLIENT)
-                                      .tag(Tags.HTTP_URI, clientContext.getUrl())
-                                      .tag(Tags.HTTP_METHOD, clientContext.getMethod())
-                                      .propagate(headers, (headersArgs, key, value) -> headersArgs.set(key, value))
-                                      .start());
+        span.method(aopContext.getMethod())
+            .kind(SpanKind.CLIENT)
+            .tag(Tags.HTTP_URI, clientContext.getUrl())
+            .tag(Tags.HTTP_METHOD, clientContext.getMethod())
+            .propagate(headers, (headersArgs, key, value) -> headersArgs.set(key, value))
+            .start();
 
         return InterceptionDecision.CONTINUE;
     }

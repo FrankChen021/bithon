@@ -19,7 +19,9 @@ package org.bithon.agent.plugin.httpclient.jetty;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
+import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -39,6 +41,14 @@ import java.nio.ByteBuffer;
 public class HttpRequest$Send extends AbstractInterceptor {
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
+
+    private TraceConfig traceConfig;
+
+    @Override
+    public boolean initialize() {
+        traceConfig = AgentContext.getInstance().getAgentConfiguration().getConfig(TraceConfig.class);
+        return true;
+    }
 
     /**
      * {@link org.eclipse.jetty.client.HttpRequest#send(Response.CompleteListener)}
@@ -117,6 +127,16 @@ public class HttpRequest$Send extends AbstractInterceptor {
                 //
                 try {
                     if (!span.isNull()) {
+
+                        traceConfig.getHeaders()
+                                   .getResponse()
+                                   .forEach((name) -> {
+                                       String val = result.getResponse().getHeaders().get(name);
+                                       if (val != null) {
+                                           span.tag("http.response.header." + name, val);
+                                       }
+                                   });
+
                         span.tag(result.getFailure())
                             .tag(Tags.HTTP_STATUS, String.valueOf(result.getResponse().getStatus()))
                             .finish();

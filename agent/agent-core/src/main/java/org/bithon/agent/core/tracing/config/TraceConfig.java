@@ -56,6 +56,27 @@ public class TraceConfig {
         }
     }
 
+    public static class HeaderConfig {
+        private List<String> request = Collections.emptyList();
+        private List<String> response = Collections.emptyList();
+
+        public List<String> getRequest() {
+            return request;
+        }
+
+        public void setRequest(List<String> request) {
+            this.request = request;
+        }
+
+        public List<String> getResponse() {
+            return response;
+        }
+
+        public void setResponse(List<String> response) {
+            this.response = response;
+        }
+    }
+
     /**
      * Sampling configuration for different entries
      * key: entry name. Such as web/quartz/spring-scheduler
@@ -84,15 +105,6 @@ public class TraceConfig {
         this.debug = debug;
     }
 
-    public List<String> getHeaders() {
-        return headers;
-    }
-
-    /**
-     * headers that should be recorded in trace span
-     */
-    private final List<String> headers = Collections.emptyList();
-
     /**
      * If this field is set, the trace id(if current request has) will be added to the header of response.
      * The header name is the value of this field, header value is the trace id.
@@ -105,5 +117,18 @@ public class TraceConfig {
 
     public void setTraceIdInResponse(String traceIdInResponse) {
         this.traceIdInResponse = traceIdInResponse;
+    }
+
+    /**
+     * Assigne a value so that user code won't check if it's null
+     */
+    private HeaderConfig headers = new HeaderConfig();
+
+    public HeaderConfig getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(HeaderConfig headers) {
+        this.headers = headers;
     }
 }

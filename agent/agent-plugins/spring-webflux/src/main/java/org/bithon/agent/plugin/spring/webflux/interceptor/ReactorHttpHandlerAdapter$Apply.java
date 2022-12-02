@@ -115,6 +115,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
                             .tag(Tags.HTTP_METHOD, request.method().name())
                             .tag(Tags.HTTP_VERSION, request.version().text())
                             .tag((span) -> traceConfig.getHeaders()
+                                                      .getRequest()
                                                       .forEach((header) -> span.tag("http.header." + header, request.requestHeaders().get(header))))
                             .method(aopContext.getMethod())
                             .kind(SpanKind.SERVER)

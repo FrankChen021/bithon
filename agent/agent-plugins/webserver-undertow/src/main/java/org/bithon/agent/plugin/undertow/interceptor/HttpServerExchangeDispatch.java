@@ -66,6 +66,7 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
                                                 .tag(Tags.HTTP_METHOD, exchange.getRequestMethod().toString())
                                                 .tag(Tags.HTTP_VERSION, exchange.getProtocol().toString())
                                                 .tag((span) -> traceConfig.getHeaders()
+                                                                          .getRequest()
                                                                           .forEach((header) -> span.tag("http.header." + header,
                                                                                                         exchange.getRequestHeaders().getFirst(header))))
                                                 .method(aopContext.getMethod())

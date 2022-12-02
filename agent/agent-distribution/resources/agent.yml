@@ -33,6 +33,9 @@ dispatchers:
     flushTime: 5000
 
 tracing:
+  headers:
+    request: ["User-Agent"]
+    response: ["X-ClickHouse-Exception-Code", "X-ClickHouse-Summary", "X-ClickHouse-Query-Id", "X-ClickHouse-Server-Display-Name"]
   samplingConfigs:
     default:
       samplingRate: 1

@@ -19,19 +19,36 @@ package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
+import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
+import sun.net.ProgressSource;
 import sun.net.www.MessageHeader;
+import sun.net.www.protocol.http.HttpURLConnection;
+
+import java.util.List;
+import java.util.Map;
 
 /**
+ * {@link sun.net.www.http.HttpClient#parseHTTP(MessageHeader, ProgressSource, HttpURLConnection)}
+ *
  * @author frankchen
  */
 public class HttpClient$ParseHTTP extends AbstractInterceptor {
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
+
+    private TraceConfig traceConfig;
+
+    @Override
+    public boolean initialize() {
+        traceConfig = AgentContext.getInstance().getAgentConfiguration().getConfig(TraceConfig.class);
+        return true;
+    }
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
@@ -61,7 +78,21 @@ public class HttpClient$ParseHTTP extends AbstractInterceptor {
             return;
         }
 
-        span.tag(Tags.HTTP_STATUS, statusCode.toString()).finish();
+        // Record configured response headers in tracing logs
+        if (!traceConfig.getHeaders().getResponse().isEmpty()) {
+            Map<String, List<String>> headers = responseHeader.getHeaders();
+            traceConfig.getHeaders()
+                       .getResponse()
+                       .forEach((name) -> {
+                           List<String> values = headers.get(name);
+                           if (values != null && !values.isEmpty()) {
+                               span.tag("http.response.header." + name, values.get(0));
+                           }
+                       });
+        }
+
+        span.tag(Tags.HTTP_STATUS, statusCode.toString())
+            .finish();
     }
 
     /**
