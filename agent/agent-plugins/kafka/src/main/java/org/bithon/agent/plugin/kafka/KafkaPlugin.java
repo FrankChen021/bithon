@@ -58,6 +58,10 @@ public class KafkaPlugin implements IPlugin {
             forClass("org.springframework.kafka.listener.KafkaMessageListenerContainer$ListenerConsumer")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("org.bithon.agent.plugin.kafka.consumer.interceptor.ListenerConsumer$PollAndInvoke"),
+
+                    MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("pollAndInvoke")
                                                    .to("org.bithon.agent.plugin.kafka.consumer.interceptor.ListenerConsumer$PollAndInvoke")
                 ),

@@ -20,6 +20,11 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>org.springframework.kafka</groupId>
+      <artifactId>spring-kafka</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.bithon</groupId>
       <artifactId>component-commons</artifactId>
     </dependency>

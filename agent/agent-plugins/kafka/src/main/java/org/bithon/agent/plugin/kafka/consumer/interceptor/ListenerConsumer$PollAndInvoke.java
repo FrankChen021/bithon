@@ -18,6 +18,7 @@ package org.bithon.agent.plugin.kafka.consumer.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.tracing.Tracer;
@@ -31,9 +32,16 @@ import org.bithon.agent.core.tracing.sampler.ISampler;
 import org.bithon.agent.core.tracing.sampler.SamplerFactory;
 import org.bithon.agent.core.tracing.sampler.SamplingMode;
 import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.utils.ReflectionUtils;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.support.TopicPartitionOffset;
+
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * {@link org.springframework.kafka.listener.KafkaMessageListenerContainer$ListenerConsumer}
+ *
  * @author Frank Chen
  * @date 28/11/22 8:47 pm
  */
@@ -54,6 +62,31 @@ public class ListenerConsumer$PollAndInvoke extends AbstractInterceptor {
         sampler = SamplerFactory.createSampler(samplingConfig);
 
         return true;
+    }
+
+    /**
+     * Keep topic information on injected fields for further use
+     */
+    @Override
+    public void onConstruct(AopContext aopContext) {
+        String url = null;
+        ContainerProperties properties = (ContainerProperties) ReflectionUtils.getFieldValue(aopContext.getTarget(), "containerProperties");
+        if (properties != null) {
+            String[] topics = properties.getTopics();
+            if (topics != null) {
+                url = "kafka://" + String.join(",", topics);
+            } else if (properties.getTopicPattern() != null) {
+                url = "kafka://" + properties.getTopicPattern().pattern();
+            } else {
+                TopicPartitionOffset[] partitions = properties.getTopicPartitions();
+                if (partitions != null) {
+                    url = "kafka://" + Stream.of(partitions).map(TopicPartitionOffset::getTopic).collect(Collectors.joining(","));
+                }
+            }
+        }
+
+        IBithonObject bithonObject = aopContext.castTargetAs();
+        bithonObject.setInjectedObject(url);
     }
 
     @Override
@@ -81,8 +114,10 @@ public class ListenerConsumer$PollAndInvoke extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext aopContext) {
         ITraceSpan span = aopContext.castUserContextAs();
+
         span.tag(aopContext.getException())
             .tag("status", aopContext.hasException() ? "500" : "200")
+            .tag("uri", ((IBithonObject) aopContext).getInjectedObject())
             .finish();
         span.context().finish();
 
