@@ -80,17 +80,37 @@ public class KafkaPlugin implements IPlugin {
 
             forClass("org.apache.kafka.clients.producer.KafkaProducer")
                 .methods(
+                    /*
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor(Matchers.visibility(Visibility.PACKAGE_PRIVATE).or(Matchers.visibility(Visibility.PRIVATE)))
                                                    .to("org.bithon.agent.plugin.kafka.producer.interceptor.KafkaProducer$Ctor"),
+                     */
 
+                    // tracing
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("doSend")
-                                                   .to("org.bithon.agent.plugin.kafka.producer.interceptor.KafkaProducer$DoSend"),
+                                                   .to("org.bithon.agent.plugin.kafka.producer.interceptor.KafkaProducer$DoSend")
 
+                    /*
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("close")
                                                    .to("org.bithon.agent.plugin.kafka.producer.interceptor.KafkaProducer$Close")
+                     */
+                ),
+
+            forClass("org.apache.kafka.clients.producer.internals.Sender$SenderMetrics")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("updateProduceRequestMetrics")
+                                                   .to("org.bithon.agent.plugin.kafka.producer.interceptor.SenderMetrics$UpdateProduceRequestMetrics"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("recordRetries")
+                                                   .to("org.bithon.agent.plugin.kafka.producer.interceptor.SenderMetrics$RecordRetries"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("recordErrors")
+                                                   .to("org.bithon.agent.plugin.kafka.producer.interceptor.SenderMetrics$RecordErrors")
                 )
         );
     }
