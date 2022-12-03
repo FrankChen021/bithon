@@ -32,12 +32,12 @@ import org.bithon.server.sink.metrics.transformer.ExtractPath;
 import org.bithon.server.sink.metrics.transformer.UriNormalizationTransformer;
 import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.bithon.server.sink.tracing.TraceDataSourceSchemaInitializer;
-import org.bithon.server.sink.tracing.TraceMessageProcessChain;
 import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.sink.tracing.metrics.MetricOverSpanInputSource;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.meta.IMetaStorage;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -101,18 +101,18 @@ public class SinkAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     @ConditionalOnProperty(value = "collector-kafka.enabled", havingValue = "true", matchIfMissing = false)
-    public TraceMessageProcessChain traceSink(TraceSinkConfig traceConfig, ObjectMapper om, ApplicationContext applicationContext) {
-        return new TraceMessageProcessChain(traceConfig.createFilter(om),
-                                            new LocalTraceSink(applicationContext));
+    public LocalTraceSink localTraceSink(TraceSinkConfig traceConfig, ObjectMapper om, ApplicationContext applicationContext) {
+        return new LocalTraceSink(traceConfig, om, applicationContext);
     }
 
     /**
      * input source manager is responsible for hooking the processors on metrics and trace handlers.
-     * So all its dependencies like {@link TraceMessageProcessChain} should be prepared.
+     * So all its dependencies like {@link LocalTraceSink} should be prepared.
      * <p>
-     * If the sink is kafka, {@link TraceMessageProcessChain} is initialized above
-     * If the sink is local, it's initialized in brpc auto configuration.
+     * If the sink is kafka, {@link LocalTraceSink} is initialized above
+     * If the sink is local, it's initialized in brpc autoconfiguration.
      */
     @Bean
     InputSourceManager inputSourceManager(DataSourceSchemaManager dataSourceSchemaManager, ObjectMapper objectMapper) {
