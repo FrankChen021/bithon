@@ -1,0 +1,97 @@
+{
+  "title": "Kafka Producer",
+  "charts": [
+    {
+      "dataSource": "kafka-producer-metrics",
+      "title": "Request",
+      "width": 2,
+      "type": "line",
+      "columns": [
+        "requestCount",
+        {
+          "name": "qps",
+          "yAxis": 1
+        }
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "kafka-producer-metrics",
+        "fields": [
+          "requestCount",
+          {
+            "name": "qps",
+            "expression": "round(requestCount * 1.0/{interval}, 2)"
+          }
+        ]
+      }
+    },
+    {
+      "dataSource": "kafka-producer-metrics",
+      "title": "Produce Records",
+      "width": 2,
+      "type": "line",
+      "columns": [
+        "recordCount",
+        "errorRecordCount",
+        "retryRecordCount"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "kafka-producer-metrics",
+        "fields": [
+          "recordCount",
+          "errorRecordCount",
+          "retryRecordCount"
+        ]
+      }
+    },
+    {
+      "dataSource": "kafka-producer-metrics",
+      "title": "Record Size",
+      "width": 4,
+      "type": "line",
+      "yAxis": [
+        {
+          "format": "binary_byte"
+        }
+      ],
+      "columns": [
+        "batchSize",
+        "maxRecordBytes"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "kafka-producer-metrics",
+        "fields": [
+          "batchSize",
+          "maxRecordBytes"
+        ]
+      }
+    },
+    {
+      "dataSource": "kafka-producer-metrics",
+      "title": "Latency",
+      "width": 4,
+      "type": "line",
+      "yAxis": [
+        {
+          "format": "millisecond"
+        }
+      ],
+      "columns": [
+        "minResponseTime",
+        "avgResponseTime",
+        "maxResponseTime"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "kafka-producer-metrics",
+        "fields": [
+          "minResponseTime",
+          "avgResponseTime",
+          "maxResponseTime"
+        ]
+      }
+    }
+  ]
+}
