@@ -36,4 +36,12 @@ public class ConsumerMetricRegistry extends MetricRegistry<ConsumerMetrics> {
               ConsumerMetrics::new,
               true);
     }
+
+    public ConsumerMetrics getOrCreateMetrics(String cluster,
+                                              String groupId,
+                                              String clientId,
+                                              String topic,
+                                              String partition) {
+        return super.getOrCreateMetrics(cluster, groupId, clientId, topic, partition);
+    }
 }

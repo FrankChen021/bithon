@@ -21,12 +21,13 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.plugin.kafka.producer.ProducerContext;
 import org.bithon.agent.plugin.kafka.producer.metrics.ProducerMetricRegistry;
+import org.bithon.agent.plugin.kafka.producer.metrics.ProducerMetrics;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2022/12/3 16:37
  */
-public class SenderMetrics$RecordRetries extends AbstractInterceptor {
+public class SenderMetrics$RecordLatency extends AbstractInterceptor {
 
     private ProducerMetricRegistry metricRegistry;
 
@@ -39,13 +40,20 @@ public class SenderMetrics$RecordRetries extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        String topic = aopContext.getArgAs(0);
-        int count = aopContext.getArgAs(1);
+        String node = aopContext.getArgAs(0);
+        long latency = aopContext.getArgAs(1);
 
         ProducerContext producerCtx = aopContext.castInjectedOnTargetAs();
-        metricRegistry.getOrCreateMetrics(producerCtx.clusterSupplier.get(),
-                                          ProducerContext.getCurrentDestination(),
-                                          topic,
-                                          producerCtx.clientId).retryRecordCount.update(count);
+        ProducerMetrics metrics = metricRegistry.getOrCreateMetrics(producerCtx.clusterSupplier.get(),
+                                                                    node,
+                                                                    "",
+                                                                    producerCtx.clientId);
+        metrics.minResponseTime.update(latency);
+        metrics.maxResponseTime.update(latency);
+        metrics.responseTime.update(latency);
+
+        // it's not perfect to count the number here,
+        // can be optimized in future to count it before send
+        metrics.requestCount.update(1);
     }
 }

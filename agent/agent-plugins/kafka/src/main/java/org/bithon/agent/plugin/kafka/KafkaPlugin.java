@@ -87,6 +87,15 @@ public class KafkaPlugin implements IPlugin {
 
                 ),
 
+            // Producer metrics helper
+            forClass("org.apache.kafka.clients.producer.internals.Sender")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.withName("handleProduceResponse")
+                                                                     .and(Matchers.takesFirstArgument("org.apache.kafka.clients.ClientResponse")))
+                                                   .to("org.bithon.agent.plugin.kafka.producer.interceptor.Sender$HandleProduceResponse")
+                ),
+
             // Producer metrics
             forClass("org.apache.kafka.clients.producer.internals.Sender$SenderMetrics")
                 .methods(
@@ -100,7 +109,11 @@ public class KafkaPlugin implements IPlugin {
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("recordErrors")
-                                                   .to("org.bithon.agent.plugin.kafka.producer.interceptor.SenderMetrics$RecordErrors")
+                                                   .to("org.bithon.agent.plugin.kafka.producer.interceptor.SenderMetrics$RecordErrors"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("recordLatency")
+                                                   .to("org.bithon.agent.plugin.kafka.producer.interceptor.SenderMetrics$RecordLatency")
                 )
         );
     }

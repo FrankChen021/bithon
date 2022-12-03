@@ -19,10 +19,8 @@ package org.bithon.agent.plugin.kafka.producer.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
+import org.bithon.agent.plugin.kafka.producer.ProducerContext;
 import org.bithon.agent.plugin.kafka.producer.metrics.ProducerMetricRegistry;
-import org.bithon.agent.plugin.kafka.producer.metrics.ProducerMetrics;
-
-import java.util.Arrays;
 
 /**
  * @author frank.chen021@outlook.com
@@ -41,11 +39,14 @@ public class SenderMetrics$RecordErrors extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
+
         String topic = aopContext.getArgAs(0);
         int count = aopContext.getArgAs(1);
 
-        ProducerMetrics metrics = metricRegistry.getOrCreateMetrics(Arrays.asList("", topic),
-                                                                    ProducerMetrics::new);
-        metrics.errorCount.update(count);
+        ProducerContext producerCtx = aopContext.castInjectedOnTargetAs();
+        metricRegistry.getOrCreateMetrics(producerCtx.clusterSupplier.get(),
+                                          ProducerContext.getCurrentDestination(),
+                                          topic,
+                                          producerCtx.clientId).errorRecordCount.update(count);
     }
 }

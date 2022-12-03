@@ -21,12 +21,12 @@ import org.apache.kafka.common.TopicPartition;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
+import org.bithon.agent.plugin.kafka.producer.ProducerContext;
 import org.bithon.agent.plugin.kafka.producer.metrics.ProducerMetricRegistry;
 import org.bithon.agent.plugin.kafka.producer.metrics.ProducerMetrics;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -51,19 +51,19 @@ public class SenderMetrics$UpdateProduceRequestMetrics extends AbstractIntercept
         try {
             topicPartitionField = ReflectionUtils.getField(ProducerBatch.class, "topicPartition");
             topicPartitionField.setAccessible(true);
-        } catch (NoSuchFieldException e) {
+        } catch (NoSuchFieldException ignored) {
         }
 
         try {
             recordCountField = ReflectionUtils.getField(ProducerBatch.class, "recordCount");
             recordCountField.setAccessible(true);
-        } catch (NoSuchFieldException e) {
+        } catch (NoSuchFieldException ignored) {
         }
 
         try {
             maxRecordSizeField = ReflectionUtils.getField(ProducerBatch.class, "maxRecordSize");
             maxRecordSizeField.setAccessible(true);
-        } catch (NoSuchFieldException e) {
+        } catch (NoSuchFieldException ignored) {
         }
 
         return true;
@@ -76,15 +76,22 @@ public class SenderMetrics$UpdateProduceRequestMetrics extends AbstractIntercept
             return;
         }
 
-        for (List<ProducerBatch> nodeBatch : batches.values()) {
-            for (ProducerBatch batch : nodeBatch) {
+        ProducerContext producerCtx = aopContext.castInjectedOnTargetAs();
+
+        for (Map.Entry<Integer, List<ProducerBatch>> entry : batches.entrySet()) {
+            String nodeId = entry.getKey().toString();
+            List<ProducerBatch> batchForNode = entry.getValue();
+
+            for (ProducerBatch batch : batchForNode) {
                 try {
                     TopicPartition topicPartition = (TopicPartition) topicPartitionField.get(batch);
                     int recordCount = (int) recordCountField.get(batch);
                     int maxRecordSize = (int) maxRecordSizeField.get(batch);
 
-                    ProducerMetrics metrics = metricRegistry.getOrCreateMetrics(Arrays.asList("", topicPartition.topic()),
-                                                                                ProducerMetrics::new);
+                    ProducerMetrics metrics = metricRegistry.getOrCreateMetrics(producerCtx.clusterSupplier.get(),
+                                                                                nodeId,
+                                                                                topicPartition.topic(),
+                                                                                producerCtx.clientId);
 
                     // TODO: 0.11 has different method name
                     metrics.batchSize.update(batch.estimatedSizeInBytes());
@@ -100,3 +107,4 @@ public class SenderMetrics$UpdateProduceRequestMetrics extends AbstractIntercept
         }
     }
 }
+

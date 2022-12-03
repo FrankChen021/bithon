@@ -79,7 +79,6 @@ public class KafkaProducer$DoSend extends AbstractInterceptor {
                                       .tag("kafka.messageSize", size)
                                       .start());
 
-
         return InterceptionDecision.CONTINUE;
     }
 

@@ -38,29 +38,38 @@ public class ProducerMetrics implements IMetricSet {
      */
     public Sum maxRecordBytes = new Sum();
 
+    public Min minQueueTimeMs = new Min();
+    public Sum queueTimeMs = new Sum();
+    public Max maxQueueTimeMs = new Max();
+
     /**
      * record count in a batch
      */
     public Sum recordCount = new Sum();
 
-    public Min minQueueTimeMs = new Min();
-    public Sum queueTimeMs = new Sum();
-    public Max maxQueueTimeMs = new Max();
+    public Sum errorRecordCount = new Sum();
+    public Sum retryRecordCount = new Sum();
 
-    public Sum errorCount = new Sum();
-    public Sum retryCount = new Sum();
+    public Sum requestCount = new Sum();
+    public Min minResponseTime = new Min();
+    public Sum responseTime = new Sum();
+    public Max maxResponseTime = new Max();
 
     @Override
     public IMetricValueProvider[] getMetrics() {
         return new IMetricValueProvider[]{
             batchSize,
             maxRecordBytes,
-            recordCount,
             minQueueTimeMs,
             queueTimeMs,
             maxQueueTimeMs,
-            errorCount,
-            retryCount
+            recordCount,
+            errorRecordCount,
+            retryRecordCount,
+            requestCount,
+            minResponseTime,
+            responseTime,
+            maxResponseTime
         };
     }
 }

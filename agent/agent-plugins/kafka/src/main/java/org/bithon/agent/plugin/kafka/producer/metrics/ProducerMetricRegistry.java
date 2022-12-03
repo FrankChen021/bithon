@@ -26,13 +26,10 @@ import java.util.Arrays;
  */
 public class ProducerMetricRegistry extends MetricRegistry<ProducerMetrics> {
     public ProducerMetricRegistry() {
-        super("kafka-producer-metrics",
-              Arrays.asList("cluster",
-                            "topic",
-                            // TODO: 
-                            "clientId"),
-              ProducerMetrics.class,
-              ProducerMetrics::new,
-              true);
+        super("kafka-producer-metrics", Arrays.asList("cluster", "nodeId", "topic", "clientId"), ProducerMetrics.class, ProducerMetrics::new, true);
+    }
+
+    public ProducerMetrics getOrCreateMetrics(String cluster, String nodeId, String topic, String clientId) {
+        return super.getOrCreateMetrics(cluster, nodeId, topic, clientId);
     }
 }

@@ -26,8 +26,6 @@ import org.bithon.agent.plugin.kafka.consumer.ConsumerContext;
 import org.bithon.agent.plugin.kafka.consumer.metrics.ConsumerMetricRegistry;
 import org.bithon.agent.plugin.kafka.consumer.metrics.ConsumerMetrics;
 
-import java.util.Arrays;
-
 /**
  * {@link org.apache.kafka.clients.consumer.internals.Fetcher#parseRecord(TopicPartition, RecordBatch, Record)}
  *
@@ -50,12 +48,11 @@ public class Fetcher$ParseRecord extends AbstractInterceptor {
         Record record = aopContext.getArgAs(2);
 
         ConsumerContext consumerContext = aopContext.castInjectedOnTargetAs();
-        ConsumerMetrics metrics = metricRegistry.getOrCreateMetrics(Arrays.asList(consumerContext.clusterSupplier.get(),
-                                                                                  consumerContext.groupId,
-                                                                                  consumerContext.clientId,
-                                                                                  topicPartition.topic(),
-                                                                                  String.valueOf(topicPartition.partition())),
-                                                                    ConsumerMetrics::new);
+        ConsumerMetrics metrics = metricRegistry.getOrCreateMetrics(consumerContext.clusterSupplier.get(),
+                                                                    consumerContext.groupId,
+                                                                    consumerContext.clientId,
+                                                                    topicPartition.topic(),
+                                                                    String.valueOf(topicPartition.partition()));
         metrics.consumedBytes.update(record.sizeInBytes());
         metrics.consumedRecords.update(1);
     }
