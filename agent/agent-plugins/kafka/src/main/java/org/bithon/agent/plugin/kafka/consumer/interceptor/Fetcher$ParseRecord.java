@@ -57,6 +57,6 @@ public class Fetcher$ParseRecord extends AbstractInterceptor {
                                                                                   String.valueOf(topicPartition.partition())),
                                                                     ConsumerMetrics::new);
         metrics.consumedBytes.update(record.sizeInBytes());
-        metrics.recordCount.update(1);
+        metrics.consumedRecords.update(1);
     }
 }

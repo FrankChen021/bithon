@@ -26,7 +26,7 @@ import java.util.Arrays;
  */
 public class ProducerMetricRegistry extends MetricRegistry<ProducerMetrics> {
     public ProducerMetricRegistry() {
-        super("kafka-producer",
+        super("kafka-producer-metrics",
               Arrays.asList("cluster",
                             "topic"),
               ProducerMetrics.class,

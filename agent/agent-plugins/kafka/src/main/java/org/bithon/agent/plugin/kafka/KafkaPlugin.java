@@ -63,7 +63,7 @@ public class KafkaPlugin implements IPlugin {
                                                                     "org.apache.kafka.common.TopicPartition",
                                                                     "org.apache.kafka.common.record.RecordBatch",
                                                                     "org.apache.kafka.common.record.Record")
-                                                   .to("org.bithon.agent.plugin.kafka.consumer.interceptor.Fetcher010$ParseRecord")
+                                                   .to("org.bithon.agent.plugin.kafka.consumer.interceptor.Fetcher$ParseRecord")
                 ),
 
             // Spring Kafka, can move to an independent plugin

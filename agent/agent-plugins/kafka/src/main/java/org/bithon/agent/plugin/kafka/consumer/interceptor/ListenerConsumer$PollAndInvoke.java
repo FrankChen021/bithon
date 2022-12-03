@@ -117,7 +117,7 @@ public class ListenerConsumer$PollAndInvoke extends AbstractInterceptor {
 
         span.tag(aopContext.getException())
             .tag("status", aopContext.hasException() ? "500" : "200")
-            .tag("uri", ((IBithonObject) aopContext).getInjectedObject())
+            .tag("uri", ((IBithonObject) aopContext.getTarget()).getInjectedObject())
             .finish();
         span.context().finish();
 

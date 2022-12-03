@@ -24,7 +24,7 @@ import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.plugin.kafka.consumer.ConsumerContext;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
-import java.util.stream.Stream;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -37,13 +37,11 @@ public class KafkaConsumer$Ctor extends AbstractInterceptor {
         String groupId = consumerConfig.getString(ConsumerConfig.GROUP_ID_CONFIG);
         String clientId = (String) ReflectionUtils.getFieldValue(aopContext.getTarget(), "clientId");
 
-        String bootstrapServers = consumerConfig.getString(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG);
-        String boostrapServer = Stream.of(bootstrapServers.split(","))
-                                      .map(String::trim)
-                                      .filter((server) -> server.length() > 0)
-                                      .sorted()
-                                      .findFirst()
-                                      .get();
+        List<String> bootstrapServers = consumerConfig.getList(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG);
+        String boostrapServer = bootstrapServers.stream()
+                                                .sorted()
+                                                .findFirst()
+                                                .get();
 
         ConsumerContext consumerContext = new ConsumerContext();
         consumerContext.groupId = groupId;

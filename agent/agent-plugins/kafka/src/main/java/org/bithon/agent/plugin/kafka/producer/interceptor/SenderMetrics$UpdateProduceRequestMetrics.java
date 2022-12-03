@@ -89,7 +89,7 @@ public class SenderMetrics$UpdateProduceRequestMetrics extends AbstractIntercept
                     // TODO: 0.11 has different method name
                     metrics.batchSize.update(batch.estimatedSizeInBytes());
 
-                    metrics.maxRecordSize.update(maxRecordSize);
+                    metrics.maxRecordBytes.update(maxRecordSize);
                     metrics.recordCount.update(recordCount);
 
                 } catch (IllegalAccessException ignored) {

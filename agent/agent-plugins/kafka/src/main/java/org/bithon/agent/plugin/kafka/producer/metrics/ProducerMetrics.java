@@ -36,7 +36,7 @@ public class ProducerMetrics implements IMetricSet {
     /**
      * max record size in a batch
      */
-    public Sum maxRecordSize = new Sum();
+    public Sum maxRecordBytes = new Sum();
 
     /**
      * record count in a batch
@@ -54,7 +54,7 @@ public class ProducerMetrics implements IMetricSet {
     public IMetricValueProvider[] getMetrics() {
         return new IMetricValueProvider[]{
             batchSize,
-            maxRecordSize,
+            maxRecordBytes,
             recordCount,
             minQueueTimeMs,
             queueTimeMs,

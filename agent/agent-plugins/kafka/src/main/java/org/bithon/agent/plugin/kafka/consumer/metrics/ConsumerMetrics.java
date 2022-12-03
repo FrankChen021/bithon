@@ -27,13 +27,12 @@ import org.bithon.agent.core.metric.model.Sum;
 public class ConsumerMetrics implements IMetricSet {
 
     public Sum consumedBytes = new Sum();
-    public Sum recordCount = new Sum();
+    public Sum consumedRecords = new Sum();
 
     @Override
     public IMetricValueProvider[] getMetrics() {
         return new IMetricValueProvider[]{
-            consumedBytes,
-            recordCount
+            consumedBytes, consumedRecords
         };
     }
 }

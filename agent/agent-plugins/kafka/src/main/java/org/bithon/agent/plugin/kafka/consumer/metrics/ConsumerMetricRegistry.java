@@ -26,7 +26,7 @@ import java.util.Arrays;
  */
 public class ConsumerMetricRegistry extends MetricRegistry<ConsumerMetrics> {
     public ConsumerMetricRegistry() {
-        super("kafka-consumer",
+        super("kafka-consumer-metrics",
               Arrays.asList("cluster",
                             "groupId",
                             "clientId",
