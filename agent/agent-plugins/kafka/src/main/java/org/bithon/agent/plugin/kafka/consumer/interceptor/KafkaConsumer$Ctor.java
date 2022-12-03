@@ -16,10 +16,15 @@
 
 package org.bithon.agent.plugin.kafka.consumer.interceptor;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.internals.Fetcher;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.plugin.kafka.consumer.ConsumersMetricsCollector;
+import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.plugin.kafka.consumer.ConsumerContext;
 import org.bithon.component.commons.utils.ReflectionUtils;
+
+import java.util.stream.Stream;
 
 /**
  * @author frank.chen021@outlook.com
@@ -28,12 +33,29 @@ import org.bithon.component.commons.utils.ReflectionUtils;
 public class KafkaConsumer$Ctor extends AbstractInterceptor {
     @Override
     public void onConstruct(AopContext aopContext) {
+        ConsumerConfig consumerConfig = aopContext.getArgAs(0);
+        String groupId = consumerConfig.getString(ConsumerConfig.GROUP_ID_CONFIG);
         String clientId = (String) ReflectionUtils.getFieldValue(aopContext.getTarget(), "clientId");
 
-        ConsumersMetricsCollector.getInstance()
-                                 .register(clientId,
-                                      aopContext.castTargetAs(),
-                                      aopContext.getArgAs(0));
+        String bootstrapServers = consumerConfig.getString(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG);
+        String boostrapServer = Stream.of(bootstrapServers.split(","))
+                                      .map(String::trim)
+                                      .filter((server) -> server.length() > 0)
+                                      .sorted()
+                                      .findFirst()
+                                      .get();
 
+        ConsumerContext consumerContext = new ConsumerContext();
+        consumerContext.groupId = groupId;
+        consumerContext.clientId = clientId;
+        consumerContext.clusterSupplier = () -> boostrapServer;
+
+        Fetcher<?, ?> fetcher = (Fetcher<?, ?>) ReflectionUtils.getFieldValue(aopContext.getTarget(), "fetcher");
+        if (fetcher instanceof IBithonObject) {
+            ((IBithonObject) fetcher).setInjectedObject(consumerContext);
+        }
+
+        IBithonObject kafkaConsumer = aopContext.castTargetAs();
+        kafkaConsumer.setInjectedObject(consumerContext);
     }
 }

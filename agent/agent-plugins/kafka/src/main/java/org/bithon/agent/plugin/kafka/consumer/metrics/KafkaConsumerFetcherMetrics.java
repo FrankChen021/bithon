@@ -17,6 +17,8 @@
 package org.bithon.agent.plugin.kafka.consumer.metrics;
 
 /**
+ * {@link org.apache.kafka.clients.consumer.internals.FetcherMetricsRegistry}
+ *
  * @author frank.chen021@outlook.com
  * @date 2022/11/16 14:18
  */
@@ -26,14 +28,22 @@ public class KafkaConsumerFetcherMetrics {
     public String groupId;
 
     public double bytesConsumedRate;
+    public double bytesConsumedTotal;
+
     public double fetchLatencyAvg;
     public double fetchLatencyMax;
+    public double fetchRequestRate;
+    public double fetchRequestTotal;
+
     public double fetchRate;
     public double fetchSizeAvg;
     public double fetchSizeMax;
+
     public double fetchThrottleTimeAvg;
     public double fetchThrottleTimeMax;
+
     public double recordsConsumedRate;
+    public double recordsConsumedTotal;
     public double recordsLagMax;
     public double recordsPerRequestAvg;
 }

@@ -45,6 +45,7 @@ public class KafkaPlugin implements IPlugin {
                                                        "org.apache.kafka.common.serialization.Deserializer<V>")
                                                    .to("org.bithon.agent.plugin.kafka.consumer.interceptor.KafkaConsumer$Ctor"),
 
+                    // tracing
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethod(Matchers.withName("poll").and(Matchers.visibility(Visibility.PRIVATE)))
                                                    .to("org.bithon.agent.plugin.kafka.consumer.interceptor.KafkaConsumer$Poll"),
@@ -52,6 +53,17 @@ public class KafkaPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("close")
                                                    .to("org.bithon.agent.plugin.kafka.consumer.interceptor.KafkaConsumer$Close")
+                ),
+
+            forClass("org.apache.kafka.clients.consumer.internals.Fetcher")
+                .methods(
+                    // Since 0.11
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndArgs("parseRecord",
+                                                                    "org.apache.kafka.common.TopicPartition",
+                                                                    "org.apache.kafka.common.record.RecordBatch",
+                                                                    "org.apache.kafka.common.record.Record")
+                                                   .to("org.bithon.agent.plugin.kafka.consumer.interceptor.Fetcher010$ParseRecord")
                 ),
 
             // Spring Kafka, can move to an independent plugin
