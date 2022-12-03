@@ -18,7 +18,6 @@ package org.bithon.agent.plugin.kafka.producer.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.plugin.kafka.producer.ProducersMetricsCollector;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 /**
@@ -28,17 +27,8 @@ import org.bithon.component.commons.utils.ReflectionUtils;
 public class KafkaProducer$Ctor extends AbstractInterceptor {
 
     @Override
-    public boolean initialize() {
-        return true;
-    }
-
-    @Override
     public void onConstruct(AopContext aopContext) {
         String clientId = (String) ReflectionUtils.getFieldValue(aopContext.getTarget(), "clientId");
 
-        try {
-            ProducersMetricsCollector.getInstance().register(clientId, aopContext.castTargetAs());
-        } catch (Exception ignored) {
-        }
     }
 }

@@ -48,11 +48,7 @@ public class KafkaPlugin implements IPlugin {
                     // tracing
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethod(Matchers.withName("poll").and(Matchers.visibility(Visibility.PRIVATE)))
-                                                   .to("org.bithon.agent.plugin.kafka.consumer.interceptor.KafkaConsumer$Poll"),
-
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("close")
-                                                   .to("org.bithon.agent.plugin.kafka.consumer.interceptor.KafkaConsumer$Close")
+                                                   .to("org.bithon.agent.plugin.kafka.consumer.interceptor.KafkaConsumer$Poll")
                 ),
 
             forClass("org.apache.kafka.clients.consumer.internals.Fetcher")
@@ -80,24 +76,18 @@ public class KafkaPlugin implements IPlugin {
 
             forClass("org.apache.kafka.clients.producer.KafkaProducer")
                 .methods(
-                    /*
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor(Matchers.visibility(Visibility.PACKAGE_PRIVATE).or(Matchers.visibility(Visibility.PRIVATE)))
                                                    .to("org.bithon.agent.plugin.kafka.producer.interceptor.KafkaProducer$Ctor"),
-                     */
 
                     // tracing
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("doSend")
                                                    .to("org.bithon.agent.plugin.kafka.producer.interceptor.KafkaProducer$DoSend")
 
-                    /*
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("close")
-                                                   .to("org.bithon.agent.plugin.kafka.producer.interceptor.KafkaProducer$Close")
-                     */
                 ),
 
+            // Producer metrics
             forClass("org.apache.kafka.clients.producer.internals.Sender$SenderMetrics")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()

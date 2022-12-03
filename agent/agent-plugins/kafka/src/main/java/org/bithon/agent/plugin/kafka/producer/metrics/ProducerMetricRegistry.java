@@ -28,7 +28,9 @@ public class ProducerMetricRegistry extends MetricRegistry<ProducerMetrics> {
     public ProducerMetricRegistry() {
         super("kafka-producer-metrics",
               Arrays.asList("cluster",
-                            "topic"),
+                            "topic",
+                            // TODO: 
+                            "clientId"),
               ProducerMetrics.class,
               ProducerMetrics::new,
               true);
