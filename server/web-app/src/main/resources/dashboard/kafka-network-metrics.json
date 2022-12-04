@@ -1,0 +1,51 @@
+{
+  "title": "Kafka Network",
+  "charts": [
+    {
+      "dataSource": "kafka-network-metrics",
+      "title": "QPS",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        "qps",
+        {
+          "name": "requestCount",
+          "yAxis": 1
+        }
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "kafka-network-metrics",
+        "fields": [
+          "qps",
+          "requestCount"
+        ]
+      }
+    },
+    {
+      "dataSource": "kafka-network-metrics",
+      "title": "Latency",
+      "width": 4,
+      "type": "line",
+      "yAxis": [
+        {
+          "format": "millisecond"
+        }
+      ],
+      "columns": [
+        "minResponseTime",
+        "avgResponseTime",
+        "maxResponseTime"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "kafka-network-metrics",
+        "fields": [
+          "minResponseTime",
+          "avgResponseTime",
+          "maxResponseTime"
+        ]
+      }
+    }
+  ]
+}

@@ -23,7 +23,7 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
-import org.bithon.agent.plugin.kafka.consumer.ConsumerContext;
+import org.bithon.agent.plugin.kafka.KafkaPluginContext;
 
 import java.time.Duration;
 
@@ -49,7 +49,7 @@ public class KafkaConsumer$Poll extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        ConsumerContext consumerContext = aopContext.castInjectedOnTargetAs();
+        KafkaPluginContext kafkaPluginContext = aopContext.castInjectedOnTargetAs();
 
         KafkaConsumer<?, ?> consumer = aopContext.castTargetAs();
         String topics = null;
@@ -61,7 +61,7 @@ public class KafkaConsumer$Poll extends AbstractInterceptor {
         ConsumerRecords<?, ?> records = aopContext.castReturningAs();
         ITraceSpan span = aopContext.castUserContextAs();
         span.tag(aopContext.getException())
-            .tag("kafka.groupId", consumerContext.groupId)
+            .tag("kafka.groupId", kafkaPluginContext.groupId)
             .tag("kafka.topics", topics)
             .tag("kafka.records", records == null ? 0 : records.count())
             .finish();

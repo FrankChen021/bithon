@@ -22,7 +22,7 @@ import org.apache.kafka.clients.producer.internals.Sender;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.plugin.kafka.producer.ProducerContext;
+import org.bithon.agent.plugin.kafka.KafkaPluginContext;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.util.List;
@@ -46,7 +46,7 @@ public class KafkaProducer$Ctor extends AbstractInterceptor {
                                                 .findFirst()
                                                 .get();
 
-        ProducerContext ctx = new ProducerContext();
+        KafkaPluginContext ctx = new KafkaPluginContext();
         ctx.clientId = (String) ReflectionUtils.getFieldValue(aopContext.getTarget(), "clientId");
         ctx.clusterSupplier = () -> boostrapServer;
         ((IBithonObject) aopContext.getTarget()).setInjectedObject(ctx);
@@ -57,5 +57,10 @@ public class KafkaProducer$Ctor extends AbstractInterceptor {
         Sender sender = (Sender) ReflectionUtils.getFieldValue(aopContext.getTarget(), "sender");
         Object senderMetrics = ReflectionUtils.getFieldValue(sender, "sensors");
         ((IBithonObject) senderMetrics).setInjectedObject(ctx);
+
+        Object networkClient = ReflectionUtils.getFieldValue(sender, "client");
+        if (networkClient instanceof IBithonObject) {
+            ((IBithonObject) networkClient).setInjectedObject(ctx);
+        }
     }
 }

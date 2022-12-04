@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.kafka.producer;
+package org.bithon.agent.plugin.kafka;
 
 import org.bithon.agent.core.context.InterceptorContext;
 
@@ -22,22 +22,28 @@ import java.util.function.Supplier;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/12/3 19:20
+ * @date 2022/12/3 15:53
  */
-public class ProducerContext {
+public class KafkaPluginContext {
+    /**
+     * Available for consumer.
+     * default to empty string so that no need to handle null.
+     */
+    public String groupId = "";
     public String clientId;
     public Supplier<String> clusterSupplier;
 
     public static String getCurrentDestination() {
-        String dest = (String) InterceptorContext.get("kafka-producer-destination");
+        String dest = (String) InterceptorContext.get("kafka-ctx-destination");
         return dest == null ? "" : dest;
     }
 
     public static void setCurrentDestination(String destination) {
-        InterceptorContext.set("kafka-producer-destination", destination);
+        InterceptorContext.set("kafka-ct-destination", destination);
     }
 
     public static void resetCurrentDestination() {
-        InterceptorContext.remove("kafka-producer-destination");
+        InterceptorContext.remove("kafka-ctx-destination");
     }
+
 }

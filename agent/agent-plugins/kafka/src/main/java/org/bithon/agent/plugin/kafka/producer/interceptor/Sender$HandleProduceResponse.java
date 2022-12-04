@@ -20,7 +20,7 @@ import org.apache.kafka.clients.ClientResponse;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.plugin.kafka.producer.ProducerContext;
+import org.bithon.agent.plugin.kafka.KafkaPluginContext;
 
 /**
  * @author frank.chen021@outlook.com
@@ -31,13 +31,13 @@ public class Sender$HandleProduceResponse extends AbstractInterceptor {
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         ClientResponse clientResponse = aopContext.getArgAs(0);
-        ProducerContext.setCurrentDestination(clientResponse.destination());
+        KafkaPluginContext.setCurrentDestination(clientResponse.destination());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        ProducerContext.resetCurrentDestination();
+        KafkaPluginContext.resetCurrentDestination();
     }
 }

@@ -17,16 +17,19 @@
 package org.bithon.agent.plugin.kafka.consumer.interceptor;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.internals.ConsumerNetworkClient;
 import org.apache.kafka.clients.consumer.internals.Fetcher;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.plugin.kafka.consumer.ConsumerContext;
+import org.bithon.agent.plugin.kafka.KafkaPluginContext;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.util.List;
 
 /**
+ * {@link org.apache.kafka.clients.consumer.KafkaConsumer}
+ *
  * @author frank.chen021@outlook.com
  * @date 2022/11/16 11:32
  */
@@ -43,17 +46,23 @@ public class KafkaConsumer$Ctor extends AbstractInterceptor {
                                                 .findFirst()
                                                 .get();
 
-        ConsumerContext consumerContext = new ConsumerContext();
-        consumerContext.groupId = groupId;
-        consumerContext.clientId = clientId;
-        consumerContext.clusterSupplier = () -> boostrapServer;
+        KafkaPluginContext kafkaPluginContext = new KafkaPluginContext();
+        kafkaPluginContext.groupId = groupId;
+        kafkaPluginContext.clientId = clientId;
+        kafkaPluginContext.clusterSupplier = () -> boostrapServer;
 
         Fetcher<?, ?> fetcher = (Fetcher<?, ?>) ReflectionUtils.getFieldValue(aopContext.getTarget(), "fetcher");
         if (fetcher instanceof IBithonObject) {
-            ((IBithonObject) fetcher).setInjectedObject(consumerContext);
+            ((IBithonObject) fetcher).setInjectedObject(kafkaPluginContext);
         }
 
         IBithonObject kafkaConsumer = aopContext.castTargetAs();
-        kafkaConsumer.setInjectedObject(consumerContext);
+        kafkaConsumer.setInjectedObject(kafkaPluginContext);
+
+        ConsumerNetworkClient consumerNetworkClient = (ConsumerNetworkClient) ReflectionUtils.getFieldValue(aopContext.getTarget(), "client");
+        Object kafkaNetworkClient = ReflectionUtils.getFieldValue(consumerNetworkClient, "client");
+        if (kafkaNetworkClient instanceof IBithonObject) {
+            ((IBithonObject) kafkaNetworkClient).setInjectedObject(kafkaPluginContext);
+        }
     }
 }

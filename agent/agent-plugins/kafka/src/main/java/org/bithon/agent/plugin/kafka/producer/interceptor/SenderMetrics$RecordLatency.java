@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.kafka.producer.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
-import org.bithon.agent.plugin.kafka.producer.ProducerContext;
+import org.bithon.agent.plugin.kafka.KafkaPluginContext;
 import org.bithon.agent.plugin.kafka.producer.metrics.ProducerMetricRegistry;
 import org.bithon.agent.plugin.kafka.producer.metrics.ProducerMetrics;
 
@@ -43,7 +43,7 @@ public class SenderMetrics$RecordLatency extends AbstractInterceptor {
         String node = aopContext.getArgAs(0);
         long latency = aopContext.getArgAs(1);
 
-        ProducerContext producerCtx = aopContext.castInjectedOnTargetAs();
+        KafkaPluginContext producerCtx = aopContext.castInjectedOnTargetAs();
         ProducerMetrics metrics = metricRegistry.getOrCreateMetrics(producerCtx.clusterSupplier.get(),
                                                                     node,
                                                                     "",

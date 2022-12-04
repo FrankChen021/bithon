@@ -1,6 +1,6 @@
 {
-  "displayText": "Kafka Producer",
-  "name": "kafka-producer-metrics",
+  "displayText": "Kafka Network",
+  "name": "kafka-network-metrics",
   "timestampSpec": {
     "column": "timestamp",
     "format": "auto"
@@ -17,6 +17,11 @@
       "required": true
     },
     {
+      "name": "type",
+      "displayText": "type",
+      "required": true
+    },
+    {
       "name": "cluster",
       "displayText": "cluster",
       "required": true
@@ -27,47 +32,22 @@
       "required": true
     },
     {
-      "name": "topic",
-      "displayText": "topic",
+      "name": "groupId",
+      "displayText": "groupId",
       "required": true
     },
     {
       "name": "clientId",
       "displayText": "clientId",
       "required": true
+    },
+    {
+      "name": "exception",
+      "displayText": "exception",
+      "required": true
     }
   ],
   "metricsSpec": [
-    {
-      "type": "longSum",
-      "name": "batchSize",
-      "displayText": "batchSize",
-      "unit": "byte"
-    },
-    {
-      "type": "longMax",
-      "name": "maxRecordBytes",
-      "displayText": "maxRecordBytes",
-      "unit": "byte"
-    },
-    {
-      "type": "longSum",
-      "name": "recordCount",
-      "displayText": "recordCount",
-      "unit": ""
-    },
-    {
-      "type": "longSum",
-      "name": "errorRecordCount",
-      "displayText": "errorRecordCount",
-      "unit": ""
-    },
-    {
-      "type": "longSum",
-      "name": "retryRecordCount",
-      "displayText": "retryRecordCount",
-      "unit": ""
-    },
     {
       "type": "longSum",
       "name": "requestCount",
@@ -93,16 +73,9 @@
       "unit": "millisecond"
     },
     {
-      "type": "longMin",
-      "name": "minQueueTimeMs",
-      "displayText": "min Queue Time",
-      "unit": "millisecond"
-    },
-    {
-      "type": "longMax",
-      "name": "maxQueueTimeMs",
-      "displayText": "max Queue Time",
-      "unit": "millisecond"
+      "type": "post",
+      "name": "qps",
+      "expression": "round(requestCount * 1.0 / {interval}, 2)"
     },
     {
       "type": "post",

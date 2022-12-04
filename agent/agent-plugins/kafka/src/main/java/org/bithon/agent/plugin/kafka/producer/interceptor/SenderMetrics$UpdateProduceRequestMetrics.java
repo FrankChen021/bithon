@@ -21,7 +21,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
-import org.bithon.agent.plugin.kafka.producer.ProducerContext;
+import org.bithon.agent.plugin.kafka.KafkaPluginContext;
 import org.bithon.agent.plugin.kafka.producer.metrics.ProducerMetricRegistry;
 import org.bithon.agent.plugin.kafka.producer.metrics.ProducerMetrics;
 import org.bithon.component.commons.utils.ReflectionUtils;
@@ -76,7 +76,7 @@ public class SenderMetrics$UpdateProduceRequestMetrics extends AbstractIntercept
             return;
         }
 
-        ProducerContext producerCtx = aopContext.castInjectedOnTargetAs();
+        KafkaPluginContext producerCtx = aopContext.castInjectedOnTargetAs();
 
         for (Map.Entry<Integer, List<ProducerBatch>> entry : batches.entrySet()) {
             String nodeId = entry.getKey().toString();

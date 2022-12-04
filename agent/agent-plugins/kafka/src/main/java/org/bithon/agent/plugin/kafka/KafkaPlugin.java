@@ -114,8 +114,15 @@ public class KafkaPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("recordLatency")
                                                    .to("org.bithon.agent.plugin.kafka.producer.interceptor.SenderMetrics$RecordLatency")
+                ),
+
+            forClass("org.apache.kafka.clients.NetworkClient")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("completeResponses")
+                                                   .to("org.bithon.agent.plugin.kafka.network.interceptor.NetworkClient$CompleteResponses")
                 )
+
         );
     }
-
 }
