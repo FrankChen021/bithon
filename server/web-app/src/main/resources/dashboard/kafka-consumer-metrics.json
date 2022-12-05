@@ -6,11 +6,6 @@
       "title": "Consumed Records",
       "width": 4,
       "type": "line",
-      "yAxis": [
-        {
-          "format": "byte_rate"
-        }
-      ],
       "columns": [
         "consumedRecordsRate",
         {
