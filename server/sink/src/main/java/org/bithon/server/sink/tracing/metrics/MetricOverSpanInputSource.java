@@ -33,7 +33,7 @@ import org.bithon.server.sink.metrics.MetricSinkConfig;
 import org.bithon.server.sink.metrics.MetricsAggregator;
 import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
-import org.bithon.server.sink.tracing.TraceMessageProcessChain;
+import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
 public class MetricOverSpanInputSource implements IInputSource {
 
     @JsonIgnore
-    private final TraceMessageProcessChain chain;
+    private final LocalTraceSink chain;
 
     @Getter
     private final TransformSpec transformSpec;
@@ -75,7 +75,7 @@ public class MetricOverSpanInputSource implements IInputSource {
 
     @JsonCreator
     public MetricOverSpanInputSource(@JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
-                                     @JacksonInject(useInput = OptBoolean.FALSE) TraceMessageProcessChain chain,
+                                     @JacksonInject(useInput = OptBoolean.FALSE) LocalTraceSink chain,
                                      @JacksonInject(useInput = OptBoolean.FALSE) IMetricStorage metricStorage,
                                      @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         Preconditions.checkArgumentNotNull("transformSpec", transformSpec);

@@ -29,6 +29,7 @@ import org.bithon.server.sink.common.service.UriNormalizer;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.sink.tracing.TraceSpanHelper;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -63,7 +64,7 @@ public class TraceHttpCollector {
     private final TraceHttpCollectorConfig collectorConfig;
 
     public TraceHttpCollector(ObjectMapper om,
-                              ITraceMessageSink traceSink,
+                              @Qualifier("trace-sink-collector") ITraceMessageSink traceSink,
                               UriNormalizer uriNormalizer,
                               TraceHttpCollectorConfig collectorConfig) {
         this.om = om;

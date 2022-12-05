@@ -23,6 +23,7 @@ import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
 import org.bithon.agent.core.metric.model.schema.Schema;
 import org.bithon.agent.core.metric.model.schema.Schema2;
+import org.bithon.agent.core.metric.model.schema.Schema3;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 
 import java.util.Collection;
@@ -51,4 +52,6 @@ public interface IMessageConverter {
     Object from(Schema schema, Collection<IMeasurement> measurementList, long timestamp, int interval);
 
     Object from(Schema2 schema, Collection<IMeasurement> measurementList, long timestamp, int interval);
+
+    Object from(Schema3 schema, List<Object[]> measurementList, long timestamp, int interval);
 }

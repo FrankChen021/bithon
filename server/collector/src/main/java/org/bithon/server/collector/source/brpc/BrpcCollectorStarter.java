@@ -84,7 +84,7 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
 
                 case "tracing":
                     clazz = ITraceCollector.class;
-                    serviceProvider = new BrpcTraceCollector(applicationContext.getBean(ITraceMessageSink.class),
+                    serviceProvider = new BrpcTraceCollector(applicationContext.getBean("trace-sink-collector", ITraceMessageSink.class),
                                                              applicationContext.getBean(UriNormalizer.class));
                     break;
 

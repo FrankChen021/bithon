@@ -51,6 +51,13 @@ public interface ITraceSpan {
 
     ITraceSpan tag(String name, String value);
 
+    default ITraceSpan tag(String name, Object value) {
+        if (value != null) {
+            tag(name, value.toString());
+        }
+        return this;
+    }
+
     ITraceSpan tag(Throwable exception);
 
     default ITraceSpan tag(Consumer<ITraceSpan> config) {

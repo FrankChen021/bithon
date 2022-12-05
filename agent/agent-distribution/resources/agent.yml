@@ -45,4 +45,6 @@ tracing:
       samplingRate: 1
     spring-scheduler:
       samplingRate: 1
+    kafka-consumer:
+      samplingRate: 100
   traceIdInResponse: "X-Bithon-TraceId"
