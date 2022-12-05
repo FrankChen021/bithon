@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpclient.apache.metrics;
+package org.bithon.agent.plugin.httpclient.apache.interceptor;
 
 import org.apache.http.HttpConnectionMetrics;
 import org.apache.http.HttpRequest;
@@ -45,7 +45,6 @@ public class DefaultRequestDirector$ReleaseConnection extends AbstractIntercepto
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
-
         HttpRequest httpRequest = InterceptorContext.getAs("apache-http-client.httpRequest");
         if (httpRequest == null) {
             return InterceptionDecision.SKIP_LEAVE;

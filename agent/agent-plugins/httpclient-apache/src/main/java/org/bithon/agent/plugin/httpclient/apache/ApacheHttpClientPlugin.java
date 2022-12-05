@@ -34,7 +34,7 @@ public class ApacheHttpClientPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             //
-            // metrics
+            // "http client 4.3.4~4.5.3: InternalHttpClient"
             //
             forClass("org.apache.http.impl.client.InternalHttpClient")
                 .methods(
@@ -43,9 +43,12 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.HttpHost",
                                                                     "org.apache.http.HttpRequest",
                                                                     "org.apache.http.protocol.HttpContext")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.metrics.HttpClientExecuteInterceptor")
+                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.InternalHttpClient$DoExecute")
                 ),
 
+            //
+            // http client 4.3.4~4.5.3: RedirectExec"
+            //
             forClass("org.apache.http.impl.execchain.RedirectExec")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
@@ -54,9 +57,12 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.client.methods.HttpRequestWrapper",
                                                                     "org.apache.http.client.protocol.HttpClientContext",
                                                                     "org.apache.http.client.methods.HttpExecutionAware")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.metrics.HttpClientExecuteInterceptor")
+                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.RedirectExec$Execute")
                 ),
 
+            //
+            // "http client 4.3.4~4.5.3: MinimalClientExec"
+            //
             forClass("org.apache.http.impl.execchain.MinimalClientExec")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
@@ -65,7 +71,7 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.client.methods.HttpRequestWrapper",
                                                                     "org.apache.http.client.protocol.HttpClientContext",
                                                                     "org.apache.http.client.methods.HttpExecutionAware")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.metrics.HttpClientExecuteInterceptor")
+                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.MinimalClientExec$Execute")
                 ),
 
             forClass("org.apache.http.impl.client.DefaultRequestDirector")
@@ -75,11 +81,11 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.HttpHost",
                                                                     "org.apache.http.HttpRequest",
                                                                     "org.apache.http.protocol.HttpContext")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.metrics.DefaultRequestDirector$Execute"),
+                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.DefaultRequestDirector$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("releaseConnection")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.metrics.DefaultRequestDirector$ReleaseConnection")
+                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.DefaultRequestDirector$ReleaseConnection")
                 ),
 
             //
