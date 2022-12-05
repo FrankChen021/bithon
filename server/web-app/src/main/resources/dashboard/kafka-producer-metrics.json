@@ -3,30 +3,6 @@
   "charts": [
     {
       "dataSource": "kafka-producer-metrics",
-      "title": "Request",
-      "width": 2,
-      "type": "line",
-      "columns": [
-        "requestCount",
-        {
-          "name": "qps",
-          "yAxis": 1
-        }
-      ],
-      "query": {
-        "type": "timeseries",
-        "dataSource": "kafka-producer-metrics",
-        "fields": [
-          "requestCount",
-          {
-            "name": "qps",
-            "expression": "round(requestCount * 1.0/{interval}, 2)"
-          }
-        ]
-      }
-    },
-    {
-      "dataSource": "kafka-producer-metrics",
       "title": "Produce Records",
       "width": 2,
       "type": "line",
@@ -42,6 +18,27 @@
           "recordCount",
           "errorRecordCount",
           "retryRecordCount"
+        ]
+      }
+    },
+    {
+      "dataSource": "kafka-network-metrics",
+      "title": "Request",
+      "width": 2,
+      "type": "line",
+      "columns": [
+        "qps",
+        {
+          "name": "requestCount",
+          "yAxis": 1
+        }
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "kafka-network-metrics",
+        "fields": [
+          "qps",
+          "requestCount"
         ]
       }
     },
@@ -85,11 +82,20 @@
       ],
       "query": {
         "type": "timeseries",
-        "dataSource": "kafka-producer-metrics",
+        "dataSource": "kafka-network-metrics",
         "fields": [
           "minResponseTime",
           "avgResponseTime",
           "maxResponseTime"
+        ],
+        "filters": [
+          {
+            "dimension": "type",
+            "matcher": {
+              "type": "equal",
+              "pattern": "Produce"
+            }
+          }
         ]
       }
     }

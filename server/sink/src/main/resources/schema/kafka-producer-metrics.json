@@ -69,30 +69,6 @@
       "unit": ""
     },
     {
-      "type": "longSum",
-      "name": "requestCount",
-      "displayText": "requestCount",
-      "unit": ""
-    },
-    {
-      "type": "longMin",
-      "name": "minResponseTime",
-      "displayText": "minResponseTime",
-      "unit": "millisecond"
-    },
-    {
-      "type": "longSum",
-      "name": "responseTime",
-      "displayText": "responseTime",
-      "unit": "millisecond"
-    },
-    {
-      "type": "longMax",
-      "name": "maxResponseTime",
-      "displayText": "maxResponseTime",
-      "unit": "millisecond"
-    },
-    {
       "type": "longMin",
       "name": "minQueueTimeMs",
       "displayText": "min Queue Time",
@@ -102,12 +78,6 @@
       "type": "longMax",
       "name": "maxQueueTimeMs",
       "displayText": "max Queue Time",
-      "unit": "millisecond"
-    },
-    {
-      "type": "post",
-      "name": "avgResponseTime",
-      "expression": "round(responseTime * 1.0 / requestCount, 2)",
       "unit": "millisecond"
     }
   ],

@@ -340,7 +340,7 @@ class ChartComponent {
         if (oldLegend === undefined || oldLegend.length === 0) {
             return false;
         }
-        if (oldLegend[0].selected === undefined)
+        if (oldLegend[0] === null || oldLegend[0].selected === undefined)
             return false;
 
         for (const prop in oldLegend[0].selected) {

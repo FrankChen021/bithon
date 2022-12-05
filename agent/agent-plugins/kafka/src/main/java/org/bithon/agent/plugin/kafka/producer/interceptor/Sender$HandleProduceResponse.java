@@ -22,7 +22,11 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.plugin.kafka.KafkaPluginContext;
 
+import java.util.Map;
+
 /**
+ * {@link org.apache.kafka.clients.producer.internals.Sender#handleProduceResponse(ClientResponse, Map, long)}
+ *
  * @author frank.chen021@outlook.com
  * @date 2022/12/3 20:24
  */

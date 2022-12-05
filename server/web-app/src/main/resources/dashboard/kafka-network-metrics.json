@@ -7,18 +7,14 @@
       "width": 4,
       "type": "line",
       "columns": [
-        "qps",
-        {
-          "name": "requestCount",
-          "yAxis": 1
-        }
+        "qps"
       ],
       "query": {
         "type": "timeseries",
         "dataSource": "kafka-network-metrics",
         "fields": [
-          "qps",
-          "requestCount"
+          "type",
+          "qps"
         ]
       }
     },

@@ -50,11 +50,6 @@ public class ProducerMetrics implements IMetricSet {
     public Sum errorRecordCount = new Sum();
     public Sum retryRecordCount = new Sum();
 
-    public Sum requestCount = new Sum();
-    public Min minResponseTime = new Min();
-    public Sum responseTime = new Sum();
-    public Max maxResponseTime = new Max();
-
     @Override
     public IMetricValueProvider[] getMetrics() {
         return new IMetricValueProvider[]{
@@ -65,11 +60,7 @@ public class ProducerMetrics implements IMetricSet {
             maxQueueTimeMs,
             recordCount,
             errorRecordCount,
-            retryRecordCount,
-            requestCount,
-            minResponseTime,
-            responseTime,
-            maxResponseTime
+            retryRecordCount
         };
     }
 }
