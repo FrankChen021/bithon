@@ -56,7 +56,7 @@ public class SpringWebFluxPlugin implements IPlugin {
             forClass("reactor.netty.http.server.HttpServerOperations")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   // It's ctor varies in different versions, hook to all ctor
+                                                   // Its ctors vary in different versions, hook to all ctors
                                                    .onAllConstructor()
                                                    .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerOperations$Ctor")
                 ),
