@@ -23,6 +23,7 @@ import org.bithon.agent.plugin.spring.webflux.metric.HttpIOMetrics;
 
 /**
  * Inject an object to HttpClientOperations to make the code in HttpBodySizeCollector a little easier
+ * {@link reactor.netty.http.client.HttpClientOperations}
  *
  * @author frank.chen021@outlook.com
  * @date 28/11/21 9:05 pm
@@ -32,6 +33,8 @@ public class HttpClientOperations$Ctor extends AbstractInterceptor {
     @Override
     public void onConstruct(AopContext aopContext) {
         IBithonObject obj = (IBithonObject) aopContext.getTarget();
-        obj.setInjectedObject(new HttpIOMetrics());
+        if (obj.getInjectedObject() == null) {
+            obj.setInjectedObject(new HttpIOMetrics());
+        }
     }
 }
