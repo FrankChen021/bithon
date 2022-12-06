@@ -67,7 +67,7 @@ Once the project has been built, you could run the project in a standalone mode 
 To launch server in evaluation mode, execute the following command:
 
 ```bash
-java -Dspring.profiles.include=storage-jdbc,collector-to-local,webapp -jar server/server-starter/target/server-starter.jar
+java -Dspring.profiles.active=all-in-one -jar server/server-starter/target/server-starter.jar
 ```
 
 By default, the application opens and listens on following ports at local
