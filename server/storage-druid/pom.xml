@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <groupId>org.bithon</groupId>
+    <artifactId>bithon</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>server-storage-druid</artifactId>
+  <name>server-storage-druid</name>
+  <description>Bithon Storage on Apache Druid</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>server-storage-jdbc</artifactId>
+    </dependency>
+
+    <!-- Druid JDBC Driver -->
+    <!-- https://mvnrepository.com/artifact/org.apache.calcite.avatica/avatica-core -->
+    <dependency>
+      <groupId>org.apache.calcite.avatica</groupId>
+      <artifactId>avatica-core</artifactId>
+      <version>1.22.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>component-commons</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>${project.artifactId}</finalName>
+  </build>
+</project>

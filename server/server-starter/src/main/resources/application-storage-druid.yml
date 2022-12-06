@@ -1,0 +1,61 @@
+#
+# This file demonstrates configuring the Bithon server to use ClickHouse as underlying storage
+#
+bithon:
+  storage:
+    tracing:
+      type: jdbc
+      enabled: true
+      ttl:
+        enabled: true
+        ttl: P7D
+        cleanPeriod: PT30M
+    metric:
+      type: druid
+      enabled: true
+      ttl:
+        enabled: true
+        ttl: P7D
+        cleanPeriod: PT30M
+    event:
+      type: jdbc
+      enabled: true
+      ttl:
+        enabled: true
+        ttl: P7D
+        cleanPeriod: PT30M
+    meta:
+      type: jdbc
+      enabled: true
+    setting:
+      type: jdbc
+      enabled: true
+    web:
+      type: jdbc
+    providers:
+      jdbc:
+        enabled: true
+        url: jdbc:h2:mem:bithon;DB_CLOSE_DELAY=-1;MODE=mysql;
+        username: sa
+      druid:
+        enabled: true
+        router: http://localhost:8888
+        kafka:
+          metrics:
+            topic: bithon-metrics-to-druid
+            "[bootstrap.servers]": localhost:9092
+            "[batch.size]": 65536
+            "[buffer.memory]": 67108864
+            "[linger.ms]": 50
+            "[compression.type]": lz4
+            "[max.in.flight.requests.per.connection]": 1
+            "[retries]": 3
+
+
+
+#
+# Suppress useless and boring error logging
+#
+logging:
+  level:
+    org.springframework.boot.autoconfigure.jooq.JooqExceptionTranslator: OFF

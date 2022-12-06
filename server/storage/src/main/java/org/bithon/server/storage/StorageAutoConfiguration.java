@@ -41,7 +41,6 @@ import org.bithon.server.storage.tracing.index.TagIndexConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
@@ -57,7 +56,6 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/1/30 8:34 下午
  */
-@Configuration
 public class StorageAutoConfiguration {
 
     @Bean
