@@ -32,6 +32,10 @@ public class HttpServerOperations$Ctor extends AbstractInterceptor {
     @Override
     public void onConstruct(AopContext aopContext) {
         IBithonObject obj = (IBithonObject) aopContext.getTarget();
-        obj.setInjectedObject(new HttpServerContext());
+
+        // Since this interceptor hooks on all ctors, check if the injected object is assigned first
+        if (obj.getInjectedObject() == null) {
+            obj.setInjectedObject(new HttpServerContext());
+        }
     }
 }

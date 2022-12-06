@@ -18,7 +18,6 @@ package org.bithon.agent.plugin.spring.webflux;
 
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
-import org.bithon.agent.core.aop.matcher.Matchers;
 import org.bithon.agent.core.plugin.IPlugin;
 import org.bithon.agent.core.plugin.PluginConfigurationManager;
 import org.bithon.agent.plugin.spring.webflux.config.GatewayFilterConfigs;
@@ -57,8 +56,8 @@ public class SpringWebFluxPlugin implements IPlugin {
             forClass("reactor.netty.http.server.HttpServerOperations")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onConstructor(Matchers.takesArguments(1)
-                                                                          .or(Matchers.takesArguments(10)))
+                                                   // It's ctor varies in different versions, hook to all ctor
+                                                   .onAllConstructor()
                                                    .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerOperations$Ctor")
                 ),
 
