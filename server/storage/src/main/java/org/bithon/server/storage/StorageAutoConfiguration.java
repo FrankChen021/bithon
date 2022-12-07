@@ -73,8 +73,8 @@ public class StorageAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(value = "bithon.storage.metric.enabled", havingValue = "true")
-    public ISchemaStorage createSchemaStorage(ObjectMapper om, MetricStorageConfig storageConfig) throws IOException {
+    @ConditionalOnProperty(value = "bithon.storage.meta.enabled", havingValue = "true")
+    public ISchemaStorage createSchemaStorage(ObjectMapper om, MetaStorageConfig storageConfig) throws IOException {
         InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
                                               "[%s] can't be blank",
                                               storageConfig.getClass(),
