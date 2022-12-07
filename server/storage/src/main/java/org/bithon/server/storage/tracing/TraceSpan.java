@@ -181,6 +181,11 @@ public class TraceSpan implements IInputRow {
         properties.put(name, value);
     }
 
+    @Override
+    public Object deleteColumn(String name) {
+        throw new RuntimeException("Not Supported");
+    }
+
     static class FieldAccessor {
         private final Field field;
 

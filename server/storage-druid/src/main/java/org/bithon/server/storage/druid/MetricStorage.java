@@ -27,6 +27,7 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.bithon.component.commons.time.DateTime;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.IStorageCleaner;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.input.IInputRow;
@@ -79,8 +80,7 @@ public class MetricStorage extends MetricJdbcStorage {
 
     @Override
     public IMetricWriter createMetricWriter(DataSourceSchema schema) {
-        //TODO: change to singleton
-        return new MetricWriter(this.config, this.objectMapper);
+        return new MetricWriter(schema.getName(), this.config, this.objectMapper);
     }
 
     static class MetricWriter implements IMetricWriter {
@@ -90,7 +90,11 @@ public class MetricStorage extends MetricJdbcStorage {
         private final DruidConfig druidConfig;
         private final String topic;
 
-        MetricWriter(DruidConfig druidConfig, ObjectMapper objectMapper) {
+        private final String name;
+
+        MetricWriter(String name, DruidConfig druidConfig, ObjectMapper objectMapper) {
+            this.name = name;
+
             // Since we're going to change this property object, duplicate it first
             Map<String, Object> kafkaProperties = new HashMap<>(druidConfig.getKafka().getMetrics());
 
@@ -107,12 +111,25 @@ public class MetricStorage extends MetricJdbcStorage {
             StringBuilder build = new StringBuilder(512);
             for (IInputRow row : inputRowList) {
                 try {
-                    build.append(objectMapper.writeValueAsString(row));
-                    build.append('\n');
+                    String metricBody = objectMapper.writeValueAsString(row);
+
+                    long timestamp = (long) row.deleteColumn("timestamp");
+                    String appName = (String) row.deleteColumn("appName");
+                    String instanceName = (String) row.deleteColumn("instanceName");
+
+                    build.append('{');
+                    build.append(StringUtils.format("\"timestamp\": %d,", timestamp));
+                    build.append(StringUtils.format("\"type\": \"%s\",", name));
+                    build.append(StringUtils.format("\"appName\": \"%s\",", appName));
+                    build.append(StringUtils.format("\"instanceName\": \"%s\", ", instanceName));
+                    build.append("\"metrics\":");
+                    build.append(metricBody);
+                    build.append("}\n");
                 } catch (JsonProcessingException ignored) {
                 }
             }
 
+            // construct the producer out of writer to be a shared one
             kafkaProducer.send(new ProducerRecord<>(this.topic, build.toString()));
         }
 

@@ -61,4 +61,6 @@ public interface IInputRow {
     }
 
     void updateColumn(String name, Object value);
+
+    Object deleteColumn(String name);
 }

@@ -92,4 +92,9 @@ public class MetricMessage extends HashMap<String, Object> implements IInputRow 
     public void updateColumn(String name, Object value) {
         this.set(name, value);
     }
+
+    @Override
+    public Object deleteColumn(String name) {
+        return this.remove(name);
+    }
 }

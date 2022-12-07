@@ -64,6 +64,11 @@ public class InputRow implements IInputRow {
     }
 
     @Override
+    public Object deleteColumn(String name) {
+        return columns.remove(name);
+    }
+
+    @Override
     public String toString() {
         return columns.toString();
     }
