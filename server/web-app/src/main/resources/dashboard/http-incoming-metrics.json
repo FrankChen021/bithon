@@ -6,10 +6,6 @@
       "title": "QPS",
       "width": 4,
       "type": "line",
-      "yAxis": [
-        {},
-        {}
-      ],
       "columns": [
         {
           "name": "qps",
@@ -32,6 +28,7 @@
       },
       "details": {
         "columns": [
+          "method",
           "uri",
           "statusCode",
           "qps",
@@ -40,6 +37,7 @@
         "query": {
           "dataSource": "http-incoming-metrics",
           "fields": [
+            "method",
             "uri",
             "statusCode",
             "qps",
@@ -80,16 +78,18 @@
       },
       "details": {
         "columns": [
+          "method",
           "uri",
           "statusCode",
-          "minResponseTime",
-          "avgResponseTime",
-          "maxResponseTime"
+          {"name": "minResponseTime", "format": "nanoFormatter"},
+          {"name":"avgResponseTime", "format": "nanoFormatter"},
+          {"name": "maxResponseTime", "format": "nanoFormatter"}
         ],
         "query": {
           "dataSource": "http-incoming-metrics",
           "type": "groupBy",
           "fields": [
+            "method",
             "uri",
             "statusCode",
             "minResponseTime",
@@ -133,6 +133,7 @@
       "details": {
         "dataSource": "http-incoming-metrics",
         "columns": [
+          "method",
           "uri",
           "statusCode",
           "totalCount"
@@ -140,6 +141,7 @@
         "query": {
           "type": "groupBy",
           "fields": [
+            "method",
             "uri",
             "statusCode",
             "totalCount"
@@ -203,6 +205,7 @@
       },
       "details": {
         "columns": [
+          "method",
           "uri",
           "statusCode",
           "requestByteRate",
@@ -211,6 +214,7 @@
         "query": {
           "type": "groupBy",
           "fields": [
+            "method",
             "uri",
             "statusCode",
             "requestByteRate",

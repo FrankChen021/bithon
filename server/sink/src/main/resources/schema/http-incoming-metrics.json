@@ -22,6 +22,11 @@
       "required": true
     },
     {
+      "name": "method",
+      "displayText": "HTTP Method",
+      "required": false
+    },
+    {
       "name": "uri",
       "displayText": "Request URI",
       "required": true
