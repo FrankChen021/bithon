@@ -21,11 +21,28 @@
     },
     {
       "dataSource": "web-server-metrics",
+      "title": "Queued Tasks",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        "queueSize"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "web-server-metrics",
+        "fields": [
+          "queueSize"
+        ]
+      }
+    },
+    {
+      "dataSource": "web-server-metrics",
       "title": "Web Server Threads",
       "width": 4,
       "type": "line",
       "columns": [
         "activeThreads",
+        "pooledThreads",
         {"name": "maxThreads", "fill": false}
       ],
       "query": {
@@ -33,6 +50,7 @@
         "dataSource": "web-server-metrics",
         "fields": [
           "activeThreads",
+          "pooledThreads",
           "maxThreads"
         ]
       }

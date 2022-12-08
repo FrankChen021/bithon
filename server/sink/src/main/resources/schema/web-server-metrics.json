@@ -32,8 +32,20 @@
     },
     {
       "type": "longLast",
+      "name": "queueSize",
+      "displayText": "Size of queued task",
+      "unit": ""
+    },
+    {
+      "type": "longLast",
       "name": "activeThreads",
       "displayText": "Active Threads",
+      "unit": ""
+    },
+    {
+      "type": "longLast",
+      "name": "pooledThreads",
+      "displayText": "Threads in Pool",
       "unit": ""
     },
     {

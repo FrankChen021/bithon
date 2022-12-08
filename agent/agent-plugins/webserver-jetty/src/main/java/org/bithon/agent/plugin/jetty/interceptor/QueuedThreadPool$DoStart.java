@@ -39,6 +39,8 @@ public class QueuedThreadPool$DoStart extends AbstractInterceptor {
                                                         .getOrCreateMetrics(Collections.singletonList(WebServerType.JETTY.type()),
                                                                             WebServerMetrics::new);
 
+        metrics.queueSize.setProvider(threadPool::getQueueSize);
+        metrics.pooledThreads.setProvider(threadPool::getThreads);
         metrics.activeThreads.setProvider(threadPool::getBusyThreads);
         metrics.maxThreads.setProvider(threadPool::getMaxThreads);
     }

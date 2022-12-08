@@ -17,6 +17,7 @@
 package org.bithon.agent.plugin.tomcat.interceptor;
 
 import org.apache.tomcat.util.net.AbstractEndpoint;
+import org.apache.tomcat.util.threads.ResizableExecutor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.context.AgentContext;
@@ -24,8 +25,11 @@ import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.core.metric.domain.web.WebServerMetricRegistry;
 import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.core.metric.domain.web.WebServerType;
+import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.util.Collections;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author frankchen
@@ -50,6 +54,18 @@ public class AbstractEndpointStart extends AbstractInterceptor {
         metrics.connectionCount.setProvider(endpoint::getConnectionCount);
         metrics.maxConnections.setProvider(endpoint::getMaxConnections);
         metrics.activeThreads.setProvider(endpoint::getCurrentThreadsBusy);
+        metrics.pooledThreads.setProvider(endpoint::getCurrentThreadCount);
         metrics.maxThreads.setProvider(endpoint::getMaxThreads);
+        metrics.queueSize.setProvider(() -> {
+            Executor e = endpoint.getExecutor();
+            if (e instanceof ThreadPoolExecutor) {
+                return ((ThreadPoolExecutor) e).getQueue().size();
+            } else if (e instanceof ResizableExecutor) {
+                org.apache.tomcat.util.threads.ThreadPoolExecutor t = (org.apache.tomcat.util.threads.ThreadPoolExecutor) ReflectionUtils.getFieldValue(e,
+                                                                                                                                                        "executor");
+                return t.getQueue().size();
+            }
+            return -1;
+        });
     }
 }
