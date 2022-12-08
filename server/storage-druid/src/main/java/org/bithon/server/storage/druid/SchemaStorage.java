@@ -64,7 +64,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
                                        Tables.BITHON_META_SCHEMA.SIGNATURE)
                                .from(Tables.BITHON_META_SCHEMA)
                                .getSQL() + " WHERE ";
-        sql += dslContext.renderInlined(Tables.BITHON_META_SCHEMA.TIMESTAMP.ge(new Timestamp(afterTimestamp)));
+        sql += dslContext.renderInlined(Tables.BITHON_META_SCHEMA.TIMESTAMP.ge(new Timestamp(afterTimestamp).toLocalDateTime()));
 
         List<Record> records = dslContext.fetch(sql);
         if (records == null) {

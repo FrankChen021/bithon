@@ -16,18 +16,20 @@
 
 package org.bithon.server.storage.druid;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.jdbc.metric.ISqlDialect;
+import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 1/11/21 5:21 pm
  */
-class DruidSqlDialect implements ISqlDialect {
+@JsonTypeName("DRUID")
+public class DruidSqlDialect implements ISqlDialect {
 
     @Override
-    public String timeFloor(String field, long interval) {
+    public String timeFloorExpression(String field, long interval) {
         return StringUtils.format("CAST(toUnixTimestamp(\"%s\")/ %d AS Int64) * %d", field, interval, interval);
     }
 
@@ -42,7 +44,7 @@ class DruidSqlDialect implements ISqlDialect {
     }
 
     /**
-     * ClickHouse does not support ISO8601 very well, we treat it as timestamp, which only accepts timestamp in seconds not milliseconds
+     * ClickHouse does not support ISO8601 very well; we treat it as timestamp, which only accepts timestamp in seconds not milliseconds
      */
     @Override
     public String formatTimestamp(TimeSpan timeSpan) {

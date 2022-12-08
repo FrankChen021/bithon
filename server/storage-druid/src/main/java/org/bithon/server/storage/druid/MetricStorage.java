@@ -26,15 +26,15 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.common.IStorageCleaner;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.jdbc.metric.ISqlDialect;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
+import org.bithon.server.storage.jdbc.utils.SqlDialectManager;
 import org.bithon.server.storage.metrics.IMetricWriter;
+import org.bithon.server.storage.metrics.MetricStorageConfig;
 
 import java.util.HashMap;
 import java.util.List;
@@ -47,35 +47,22 @@ import java.util.Map;
 @JsonTypeName("druid")
 public class MetricStorage extends MetricJdbcStorage {
 
-    private final DruidSqlDialect sqlDialect;
-    private final DruidConfig config;
     private final ObjectMapper objectMapper;
+    private DruidConfig config;
 
     @JsonCreator
     public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                          @JacksonInject(useInput = OptBoolean.FALSE) DruidJooqContextHolder dslContextHolder,
-                         @JacksonInject(useInput = OptBoolean.FALSE) DruidSqlDialect sqlDialect,
-                         @JacksonInject(useInput = OptBoolean.FALSE) DruidConfig config) {
-        super(dslContextHolder.getDslContext());
-        this.sqlDialect = sqlDialect;
-        this.config = config;
+                         @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
+                         @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialect,
+                         @JacksonInject(useInput = OptBoolean.FALSE) MetricStorageConfig config) {
+        super(dslContextHolder.getDslContext(), schemaManager, config, sqlDialect);
         this.objectMapper = objectMapper;
     }
 
     @Override
     protected void initialize(DataSourceSchema schema, MetricTable table) {
         new TableCreator(config, this.dslContext).createIfNotExist(table);
-    }
-
-    @Override
-    protected ISqlDialect getSqlDialect() {
-        return sqlDialect;
-    }
-
-    @Override
-    public IStorageCleaner createMetricCleaner(DataSourceSchema schema) {
-        String table = "bithon_" + schema.getName().replace('-', '_');
-        return beforeTimestamp -> new DataCleaner(config, dslContext).clean(table, DateTime.toYYYYMMDD(beforeTimestamp.getTime()));
     }
 
     @Override
@@ -108,7 +95,9 @@ public class MetricStorage extends MetricJdbcStorage {
 
         @Override
         public void write(List<IInputRow> inputRowList) {
-            StringBuilder build = new StringBuilder(512);
+            String key = null;
+
+            StringBuilder messageBuilder = new StringBuilder(512);
             for (IInputRow row : inputRowList) {
                 try {
                     String metricBody = objectMapper.writeValueAsString(row);
@@ -117,20 +106,24 @@ public class MetricStorage extends MetricJdbcStorage {
                     String appName = (String) row.deleteColumn("appName");
                     String instanceName = (String) row.deleteColumn("instanceName");
 
-                    build.append('{');
-                    build.append(StringUtils.format("\"timestamp\": %d,", timestamp));
-                    build.append(StringUtils.format("\"type\": \"%s\",", name));
-                    build.append(StringUtils.format("\"appName\": \"%s\",", appName));
-                    build.append(StringUtils.format("\"instanceName\": \"%s\", ", instanceName));
-                    build.append("\"metrics\":");
-                    build.append(metricBody);
-                    build.append("}\n");
+                    if (key == null) {
+                        key = name + "?appName=" + appName;
+                    }
+
+                    messageBuilder.append('{');
+                    messageBuilder.append(StringUtils.format("\"timestamp\": %d,", timestamp));
+                    messageBuilder.append(StringUtils.format("\"type\": \"%s\",", name));
+                    messageBuilder.append(StringUtils.format("\"appName\": \"%s\",", appName));
+                    messageBuilder.append(StringUtils.format("\"instanceName\": \"%s\", ", instanceName));
+                    messageBuilder.append("\"metrics\":");
+                    messageBuilder.append(metricBody);
+                    messageBuilder.append("}\n");
                 } catch (JsonProcessingException ignored) {
                 }
             }
 
-            // construct the producer out of writer to be a shared one
-            kafkaProducer.send(new ProducerRecord<>(this.topic, build.toString()));
+            // construct the producer out of a writer to be shared
+            kafkaProducer.send(new ProducerRecord<>(this.topic, key, messageBuilder.toString()));
         }
 
         @Override

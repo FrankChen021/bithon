@@ -60,7 +60,7 @@ public class DashboardStorage extends JdbcDashboardStorage {
     public List<Dashboard> getDashboard(long afterTimestamp) {
         String sql = dslContext.selectFrom(Tables.BITHON_WEB_DASHBOARD)
                                .getSQL() + " FINAL WHERE ";
-        sql += dslContext.renderInlined(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.ge(new Timestamp(afterTimestamp)));
+        sql += dslContext.renderInlined(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.ge(new Timestamp(afterTimestamp).toLocalDateTime()));
 
         List<Record> records = dslContext.fetch(sql);
         if (records == null) {
@@ -79,7 +79,7 @@ public class DashboardStorage extends JdbcDashboardStorage {
                   .set(Tables.BITHON_WEB_DASHBOARD.NAME, name)
                   .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                   .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
-                  .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, now)
+                  .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, now.toLocalDateTime())
                   .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
                   .execute();
 
@@ -100,7 +100,7 @@ public class DashboardStorage extends JdbcDashboardStorage {
                   .set(Tables.BITHON_WEB_DASHBOARD.NAME, name)
                   .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                   .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
-                  .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, now)
+                  .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, now.toLocalDateTime())
                   .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
                   .execute();
     }
