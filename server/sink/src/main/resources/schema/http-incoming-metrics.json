@@ -24,7 +24,7 @@
     {
       "name": "method",
       "displayText": "HTTP Method",
-      "required": false
+      "required": true
     },
     {
       "name": "uri",

@@ -82,7 +82,7 @@
           "uri",
           "statusCode",
           {"name": "minResponseTime", "format": "nanoFormatter"},
-          {"name":"avgResponseTime", "format": "nanoFormatter"},
+          {"name":"avgResponseTime", "format": "millisecond"},
           {"name": "maxResponseTime", "format": "nanoFormatter"}
         ],
         "query": {

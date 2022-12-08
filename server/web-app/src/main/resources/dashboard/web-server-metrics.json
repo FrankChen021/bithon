@@ -8,14 +8,14 @@
       "type": "line",
       "columns": [
         "connectionCount",
-        "maxConnections"
+        {"name":"maxConnections", "fill": false}
       ],
       "query": {
         "type": "timeseries",
         "dataSource": "web-server-metrics",
         "fields": [
           "connectionCount",
-          {"name":"maxConnections", "fill": false}
+          "maxConnections"
         ]
       }
     },
