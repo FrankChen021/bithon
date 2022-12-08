@@ -25,6 +25,7 @@
     <module>mysql-5.x-6.x</module>
     <module>mysql-8.x</module>
     <module>quartz2</module>
+    <module>jersey</module>
     <module>jdk-thread</module>
     <module>httpclient-okhttp3</module>
     <module>httpclient-okhttp32</module>
@@ -93,6 +94,11 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-webserver-netty</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jersey</artifactId>
       <version>${project.version}</version>
     </dependency>
 
