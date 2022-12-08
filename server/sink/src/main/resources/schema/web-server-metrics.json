@@ -19,25 +19,25 @@
   ],
   "metricsSpec": [
     {
-      "type": "longSum",
+      "type": "longLast",
       "name": "connectionCount",
       "displayText": "Connection Count",
       "unit": ""
     },
     {
-      "type": "longSum",
+      "type": "longMax",
       "name": "maxConnections",
       "displayText": "count of max connections",
       "unit": ""
     },
     {
-      "type": "longSum",
+      "type": "longLast",
       "name": "activeThreads",
       "displayText": "Active Threads",
       "unit": ""
     },
     {
-      "type": "longLast",
+      "type": "longMax",
       "name": "maxThreads",
       "displayText": "Max Threads",
       "unit": ""
