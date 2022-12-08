@@ -56,56 +56,68 @@ public class UndertowStart extends AbstractInterceptor {
         WebServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(WebServerMetricRegistry.NAME, WebServerMetricRegistry::new)
                                                         .getOrCreateMetrics(Collections.singletonList(WebServerType.UNDERTOW.type()),
                                                                             WebServerMetrics::new);
-        metrics.activeThreads.setProvider(accessor::getActiveCount);
-        metrics.maxThreads.setProvider(accessor::getMaximumPoolSize);
+        metrics.activeThreads.setProvider(accessor.getActiveCount::getValue);
+        metrics.maxThreads.setProvider(accessor.getMaximumPoolSize::getValue);
+        metrics.queueSize.setProvider(accessor.getQueueSize::getValue);
+        metrics.pooledThreads.setProvider(accessor.getPoolSize::getValue);
     }
 
     /**
      * Implementations of TaskPool in different version(3.3.8 used by Undertow 1.x vs 3.8 used by Undertow 2.x) differ from each other
-     * Fortunately, they have same method name so that we could use reflect to unify the code together
+     * Fortunately, they have same method name so that we could use reflect to unify the code together.
+     * <p>
+     * For undertow 1.x, the method is provided by the parent of TaskPool, however, on 2.x, the TaskPool is defined as an interface as XnioWorker$TaskPool
      */
     static class TaskPoolAccessor {
-        private final Object taskPool;
-        private final Method getActiveCount;
-        private final Method getMaximumPoolSize;
+        private final Invoker getActiveCount;
+        private final Invoker getMaximumPoolSize;
+        private final Invoker getPoolSize;
+        private final Invoker getQueueSize;
 
         TaskPoolAccessor(Object taskPool) {
-            this.taskPool = taskPool;
-            getActiveCount = getMethod(this.taskPool.getClass(), "getActiveCount");
-            getActiveCount.setAccessible(true);
-            getMaximumPoolSize = getMethod(this.taskPool.getClass(), "getMaximumPoolSize");
-            getMaximumPoolSize.setAccessible(true);
+            getActiveCount = new Invoker(taskPool, "getActiveCount") {
+                @Override
+                public int getValue() {
+                    int v = super.getValue();
+                    return v == -1 ? 0 : v;
+                }
+            };
+            getMaximumPoolSize = new Invoker(taskPool, "getMaximumPoolSize");
+            getPoolSize = new Invoker(taskPool, "getPoolSize");
+            getQueueSize = new Invoker(taskPool, "getQueueSize");
+        }
+    }
+
+    static class Invoker {
+        private final Method method;
+        private final Object target;
+
+        public Invoker(Object target, String method) {
+            this.method = getMethod(target.getClass(), method);
+            this.target = target;
+        }
+
+        public int getValue() {
+            try {
+                return (int) method.invoke(target);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                //TODO: warning log
+                return 0;
+            }
         }
 
         Method getMethod(Class<?> clazz, String name) {
             Class<?> thisClass = clazz;
             while (thisClass != null) {
                 try {
-                    return thisClass.getDeclaredMethod(name);
+                    Method method = thisClass.getDeclaredMethod(name);
+                    method.setAccessible(true);
+                    return method;
                 } catch (NoSuchMethodException e) {
                     thisClass = thisClass.getSuperclass();
                 }
             }
             throw new AgentException("can't find [%s] in [%s]", name, clazz.getName());
-        }
-
-        public int getActiveCount() {
-            try {
-                int activeCount = (int) getActiveCount.invoke(taskPool);
-                return activeCount == -1 ? 0 : activeCount;
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                //TODO: warning log
-                return 0;
-            }
-        }
-
-        public int getMaximumPoolSize() {
-            try {
-                return (int) getMaximumPoolSize.invoke(taskPool);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                //TODO: warning log
-                return 0;
-            }
         }
     }
 }

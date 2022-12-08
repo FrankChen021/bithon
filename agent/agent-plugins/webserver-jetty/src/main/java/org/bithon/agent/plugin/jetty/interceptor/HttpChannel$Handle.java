@@ -48,9 +48,7 @@ public class HttpChannel$Handle extends AbstractInterceptor {
     @Override
     public boolean initialize() {
         requestFilter = new HttpIncomingFilter();
-
         traceConfig = AgentContext.getInstance().getAgentConfiguration().getConfig(TraceConfig.class);
-
         return true;
     }
 
@@ -102,7 +100,6 @@ public class HttpChannel$Handle extends AbstractInterceptor {
 
 
         RequestContext requestContext = (RequestContext) ((IBithonObject) request).getInjectedObject();
-
         InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
         if (requestContext != null) {
             TraceContextHolder.set(requestContext.getTraceContext());

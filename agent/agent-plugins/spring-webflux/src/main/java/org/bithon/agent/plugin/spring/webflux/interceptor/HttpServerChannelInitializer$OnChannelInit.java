@@ -92,6 +92,7 @@ public class HttpServerChannelInitializer$OnChannelInit extends AbstractIntercep
             try {
                 metricCollector.getOrCreateMetrics(((HttpServerRequest) channelOps).requestHeaders()
                                                                                    .get(ITracePropagator.TRACE_HEADER_SRC_APPLICATION),
+                                                   ((HttpInfos) channelOps).method().name(),
                                                    ((HttpInfos) channelOps).fullPath(),
                                                    ((HttpServerResponse) channelOps).status().code())
                                .updateBytes(dataReceived, dataSent);

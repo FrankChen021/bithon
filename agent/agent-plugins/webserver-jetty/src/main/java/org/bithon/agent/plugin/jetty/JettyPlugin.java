@@ -43,14 +43,14 @@ public class JettyPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("doStart")
-                                                   .to("org.bithon.agent.plugin.jetty.interceptor.AbstractConnectorDoStart")
+                                                   .to("org.bithon.agent.plugin.jetty.interceptor.AbstractConnector$DoStart")
                 ),
 
             forClass("org.eclipse.jetty.util.thread.QueuedThreadPool")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("doStart")
-                                                   .to("org.bithon.agent.plugin.jetty.interceptor.QueuedThreadPoolDoStart")
+                                                   .to("org.bithon.agent.plugin.jetty.interceptor.QueuedThreadPool$DoStart")
                 ),
 
             forClass("org.eclipse.jetty.server.HttpChannel")

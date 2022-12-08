@@ -23,14 +23,18 @@ class Dashboard {
         this._formatters['binary_byte'] = (v) => v.formatBinaryByte();
         this._formatters['compact_number'] = (v) => v.formatCompactNumber();
         this._formatters['percentage'] = (v) => v === 'NaN' ? '0%' : v.formatWithNoTrailingZeros(2) + '%';
-        this._formatters['nanoFormatter'] = (v) => nanoFormat(v, 2);
+        this._formatters['nanosecond'] = (v) => nanoFormat(v, 2);
         this._formatters['millisecond'] = (v) => milliFormat(v, 2);
         this._formatters['microsecond'] = (v) => microFormat(v, 2);
         this._formatters['byte_rate'] = (v) => v.formatBinaryByte() + "/s";
+        this._formatters['rate'] = (v) => v.formatCompactNumber() + "/s";
         this._formatters['dateTime'] = (v) => new Date(v).format('yyyy-MM-dd hh:mm:ss');
         this._formatters['shortDateTime'] = (v) => new Date(v).format('MM-dd hh:mm:ss');
         this._formatters['timeDuration'] = (v) => v.formatTimeDuration();
         this._formatters['timeDiff'] = (v) => v.formatTimeDiff();
+
+        // deprecated
+        this._formatters['nanoFormatter'] = (v) => nanoFormat(v, 2);
     }
 
     // PUBLIC

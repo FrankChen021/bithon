@@ -29,7 +29,7 @@ public class HttpIncomingMetricsRegistry extends MetricRegistry<HttpIncomingMetr
 
     public HttpIncomingMetricsRegistry() {
         super("http-incoming-metrics",
-              Arrays.asList("srcApplication", "uri", "statusCode"),
+              Arrays.asList("srcApplication", "method", "uri", "statusCode"),
               HttpIncomingMetrics.class,
               HttpIncomingMetrics::new,
               true);
@@ -39,7 +39,7 @@ public class HttpIncomingMetricsRegistry extends MetricRegistry<HttpIncomingMetr
         return MetricRegistryFactory.getOrCreateRegistry("http-incoming-metrics", HttpIncomingMetricsRegistry::new);
     }
 
-    public HttpIncomingMetrics getOrCreateMetrics(String srcApplication, String uri, int statusCode) {
-        return super.getOrCreateMetrics(srcApplication == null ? "" : srcApplication, uri, String.valueOf(statusCode));
+    public HttpIncomingMetrics getOrCreateMetrics(String srcApplication, String method, String uri, int statusCode) {
+        return super.getOrCreateMetrics(srcApplication == null ? "" : srcApplication, method, uri, String.valueOf(statusCode));
     }
 }

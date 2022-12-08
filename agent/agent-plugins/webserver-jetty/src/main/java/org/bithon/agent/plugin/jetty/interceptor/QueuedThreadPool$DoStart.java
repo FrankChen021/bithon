@@ -18,32 +18,30 @@ package org.bithon.agent.plugin.jetty.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.core.metric.domain.web.WebServerMetricRegistry;
 import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.core.metric.domain.web.WebServerType;
-import org.eclipse.jetty.server.AbstractNetworkConnector;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import java.util.Collections;
 
 /**
  * @author frankchen
  */
-public class AbstractConnectorDoStart extends AbstractInterceptor {
+public class QueuedThreadPool$DoStart extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext context) {
-        AbstractNetworkConnector connector = (AbstractNetworkConnector) context.getTarget();
-
-        // notify to start emit the metrics
-        AgentContext.getInstance().getAppInstance().setPort(connector.getPort());
+        QueuedThreadPool threadPool = context.castTargetAs();
 
         WebServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(WebServerMetricRegistry.NAME, WebServerMetricRegistry::new)
                                                         .getOrCreateMetrics(Collections.singletonList(WebServerType.JETTY.type()),
                                                                             WebServerMetrics::new);
 
-        metrics.connectionCount.setProvider(() -> connector.getConnectedEndPoints().size());
-        metrics.maxConnections.setProvider(connector::getAcceptors);
+        metrics.queueSize.setProvider(threadPool::getQueueSize);
+        metrics.pooledThreads.setProvider(threadPool::getThreads);
+        metrics.activeThreads.setProvider(threadPool::getBusyThreads);
+        metrics.maxThreads.setProvider(threadPool::getMaxThreads);
     }
 }

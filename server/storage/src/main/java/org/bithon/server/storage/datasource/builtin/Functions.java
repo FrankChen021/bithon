@@ -27,6 +27,8 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
+ * Manage the defs of all the supported functions
+ *
  * @author frank.chen021@outlook.com
  * @date 2022/11/2 17:34
  */
@@ -40,7 +42,8 @@ public class Functions {
     private final Map<String, Function> functionMap = new HashMap<>(17);
 
     public Functions() {
-        register(new Function("round", Arrays.asList(new Parameter(DoubleValueType.INSTANCE), new Parameter(LongValueType.INSTANCE)),
+        register(new Function("round",
+                              Arrays.asList(new Parameter(DoubleValueType.INSTANCE), new Parameter(LongValueType.INSTANCE)),
                               (index, expression) -> {
                                   if (index == 1 && expression.getToken(FieldExpressionParser.NUMBER, 0) == null) {
                                       throw new RuntimeException(StringUtils.format(
