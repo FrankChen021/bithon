@@ -41,7 +41,7 @@ public class TracedRunnable implements Runnable {
 
         try {
             delegate.run();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             runnableSpan.tag(e);
             throw e;
         } finally {
