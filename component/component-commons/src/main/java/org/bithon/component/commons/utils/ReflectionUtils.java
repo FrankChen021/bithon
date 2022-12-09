@@ -89,4 +89,10 @@ public class ReflectionUtils {
         }
         return map;
     }
+
+    public static void setFieldValue(Object target, String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
+        Field f = getField(target.getClass(), fieldName);
+        f.setAccessible(true);
+        f.set(target, value);
+    }
 }
