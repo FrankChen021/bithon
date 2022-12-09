@@ -18,7 +18,6 @@ package org.bithon.agent.plugin.thread.threadpool;
 
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
-import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 
 /**
  * @author frank.chen021@outlook.com
@@ -26,30 +25,33 @@ import org.bithon.agent.core.tracing.context.TraceSpanFactory;
  */
 public class TracedRunnable implements Runnable {
     private final Runnable delegate;
-    private final ITraceSpan span;
+    private final ITraceSpan runnableSpan;
 
-    public TracedRunnable(Runnable delegate) {
+    public TracedRunnable(Runnable delegate, ITraceSpan runnableSpan) {
         this.delegate = delegate;
-        this.span = TraceSpanFactory.newAsyncSpan("task")
-                                    .clazz(delegate.getClass().getName())
-                                    .method("run");
+        this.runnableSpan = runnableSpan;
     }
 
     @Override
     public void run() {
-        if (!span.isNull()) {
-            TraceContextHolder.set(span.context());
-            span.start();
-        }
+        // Setup context on current thread
+        TraceContextHolder.set(runnableSpan.context());
+
+        runnableSpan.start();
+
         try {
             delegate.run();
+        } catch (Exception e) {
+            runnableSpan.tag(e);
+            throw e;
         } finally {
-            if (!span.isNull()) {
-                span.tag("thread", Thread.currentThread().getName())
-                    .finish();
-                span.context().finish();
-                TraceContextHolder.remove();
-            }
+            // Set the thread at the end because the thread name might be updated in the users' runnable
+            runnableSpan.tag("thread", Thread.currentThread().getName())
+                        .finish();
+            runnableSpan.context().finish();
+
+            // Clear context on current thread
+            TraceContextHolder.remove();
         }
     }
 }
