@@ -19,6 +19,7 @@ package org.bithon.component.brpc;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.bithon.component.brpc.channel.ClientChannel;
+import org.bithon.component.brpc.channel.ClientChannelBuilder;
 import org.bithon.component.brpc.channel.ServerChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.example.ExampleServiceImpl;
@@ -54,7 +55,7 @@ public class RpcTest {
 
     @Test
     public void testBasicCases() {
-        try (ClientChannel ch = new ClientChannel("127.0.0.1", 8070)) {
+        try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             IServiceController serviceController = (IServiceController) exampleService;
@@ -82,7 +83,7 @@ public class RpcTest {
 
     @Test
     public void testNull() {
-        try (ClientChannel ch = new ClientChannel("127.0.0.1", 8070)) {
+        try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
             IExampleService example = ch.getRemoteService(IExampleService.class);
 
             // test null
@@ -104,7 +105,7 @@ public class RpcTest {
 
     @Test
     public void testSendMessageLite() {
-        try (ClientChannel ch = new ClientChannel("127.0.0.1", 8070)) {
+        try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             Assert.assertEquals("/1", exampleService.sendWebMetrics(WebRequestMetrics.newBuilder().setUri("/1").build()));
@@ -114,7 +115,7 @@ public class RpcTest {
 
     @Test
     public void testMultipleSendMessageLite() {
-        try (ClientChannel ch = new ClientChannel("127.0.0.1", 8070)) {
+        try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             Assert.assertEquals("/1-/2", exampleService.sendWebMetrics1(
@@ -136,7 +137,7 @@ public class RpcTest {
 
     @Test
     public void testInvocationException() {
-        try (ClientChannel ch = new ClientChannel("127.0.0.1", 8070)) {
+        try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             try {
@@ -151,7 +152,7 @@ public class RpcTest {
 
     @Test
     public void testClientSideTimeout() {
-        try (ClientChannel ch = new ClientChannel("127.0.0.1", 8070)) {
+        try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             exampleService.block(2);
@@ -181,7 +182,7 @@ public class RpcTest {
 
     @Test
     public void testConcurrent() {
-        try (ClientChannel ch = new ClientChannel("127.0.0.1", 8070)) {
+        try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             AtomicInteger v = new AtomicInteger();
@@ -209,7 +210,7 @@ public class RpcTest {
      */
     @Test
     public void testServerCallsClient() {
-        try (ClientChannel ch = new ClientChannel("127.0.0.1", 8070)) {
+        try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
             // bind a service at client side
             ch.bindService(new ExampleServiceImpl() {
                 @Override
@@ -264,8 +265,8 @@ public class RpcTest {
 
     @Test
     public void testServerCallsMultipleDifferentClient() {
-        ClientChannel ch1 = new ClientChannel("127.0.0.1", 8070).applicationName("client1");
-        ClientChannel ch2 = new ClientChannel("127.0.0.1", 8070).applicationName("client2");
+        ClientChannel ch1 = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).applicationName("client1").build();
+        ClientChannel ch2 = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).applicationName("client2").build();
 
         // bind a service at client side
         ch1.bindService(new ExampleServiceImpl() {
@@ -310,8 +311,8 @@ public class RpcTest {
 
     @Test
     public void testServerCallsMultipleSameClient() {
-        ClientChannel ch1 = new ClientChannel("127.0.0.1", 8070).applicationName("client1");
-        ClientChannel ch2 = new ClientChannel("127.0.0.1", 8070).applicationName("client1");
+        ClientChannel ch1 = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).applicationName("client1").build();
+        ClientChannel ch2 = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).applicationName("client1").build();
 
         // bind a service at client side
         ch1.bindService(new ExampleServiceImpl() {
@@ -371,7 +372,7 @@ public class RpcTest {
 
     @Test
     public void testJsonSerializer() {
-        try (ClientChannel ch = new ClientChannel("127.0.0.1", 8070)) {
+        try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             // test map
@@ -386,7 +387,7 @@ public class RpcTest {
 
     @Test
     public void testEmptyArgs() {
-        try (ClientChannel ch = new ClientChannel("127.0.0.1", 8070)) {
+        try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             // test map

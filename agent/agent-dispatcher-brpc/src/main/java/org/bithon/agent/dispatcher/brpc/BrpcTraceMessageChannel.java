@@ -26,6 +26,7 @@ import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.bithon.component.brpc.IServiceController;
 import org.bithon.component.brpc.channel.ClientChannel;
+import org.bithon.component.brpc.channel.ClientChannelBuilder;
 import org.bithon.component.brpc.channel.IChannelWriter;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
@@ -43,7 +44,7 @@ import java.util.stream.Stream;
  * @date 2021/6/27 20:14
  */
 public class BrpcTraceMessageChannel implements IMessageChannel {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(BrpcTraceMessageChannel.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(BrpcTraceMessageChannel.class);
 
     private final ITraceCollector traceCollector;
     private final DispatcherConfig dispatcherConfig;
@@ -56,7 +57,10 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
             String[] parts = hostAndPort.split(":");
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
-        this.clientChannel = new ClientChannel(new RoundRobinEndPointProvider(endpoints)).configureRetry(3, Duration.ofMillis(200));
+        this.clientChannel = ClientChannelBuilder.builder()
+                                                 .endpointProvider(new RoundRobinEndPointProvider(endpoints))
+                                                 .maxRetry(3)
+                                                 .retryInterval(Duration.ofMillis(200)).build();
         this.traceCollector = this.clientChannel.getRemoteService(ITraceCollector.class);
 
         this.dispatcherConfig = dispatcherConfig;
@@ -91,7 +95,7 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
 
         IChannelWriter channel = ((IServiceController) traceCollector).getChannel();
         if (channel.getConnectionLifeTime() > dispatcherConfig.getClient().getMaxLifeTime()) {
-            log.info("Disconnect trace-channel for client-side load balancing...");
+            LOG.info("Disconnect trace-channel for client-side load balancing...");
             try {
                 channel.disconnect();
             } catch (Exception ignored) {
@@ -101,7 +105,7 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
         boolean isDebugOn = this.dispatcherConfig.getMessageDebug()
                                                  .getOrDefault(BrpcTraceSpanMessage.class.getName(), false);
         if (isDebugOn) {
-            log.info("[Debugging] Sending Tracing Messages: {}", message);
+            LOG.info("[Debugging] Sending Tracing Messages: {}", message);
         }
 
         try {
@@ -110,7 +114,7 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
                                           (List<BrpcTraceSpanMessage>) message);
         } catch (CallerSideException e) {
             //suppress client exception
-            log.error("Failed to send tracing: {}", e.getMessage());
+            LOG.error("Failed to send tracing: {}", e.getMessage());
         }
     }
 

@@ -25,6 +25,7 @@ import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import org.bithon.component.brpc.IServiceController;
 import org.bithon.component.brpc.channel.ClientChannel;
+import org.bithon.component.brpc.channel.ClientChannelBuilder;
 import org.bithon.component.brpc.channel.IChannelWriter;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
@@ -49,7 +50,7 @@ import java.util.stream.Stream;
  * @date 2021/6/27 20:14
  */
 public class BrpcMetricMessageChannel implements IMessageChannel {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(BrpcMetricMessageChannel.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(BrpcMetricMessageChannel.class);
 
     private final Map<String, Method> sendMethods = new HashMap<>();
     private final DispatcherConfig dispatcherConfig;
@@ -91,7 +92,11 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
             String[] parts = hostAndPort.split(":");
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
-        this.clientChannel = new ClientChannel(new RoundRobinEndPointProvider(endpoints)).configureRetry(3, Duration.ofMillis(100));
+        this.clientChannel = ClientChannelBuilder.builder()
+                                                 .endpointProvider(new RoundRobinEndPointProvider(endpoints))
+                                                 .maxRetry(3)
+                                                 .retryInterval(Duration.ofMillis(100))
+                                                 .build();
         this.metricCollector = clientChannel.getRemoteService(IMetricCollector.class);
 
         this.dispatcherConfig = dispatcherConfig;
@@ -130,7 +135,7 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
 
         IChannelWriter channel = ((IServiceController) metricCollector).getChannel();
         if (channel.getConnectionLifeTime() > dispatcherConfig.getClient().getMaxLifeTime()) {
-            log.info("Disconnect metric-channel for client-side load balancing...");
+            LOG.info("Disconnect metric-channel for client-side load balancing...");
             try {
                 channel.disconnect();
             } catch (Exception ignored) {
@@ -139,22 +144,22 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
 
         Method method = sendMethods.get(messageClass);
         if (null == method) {
-            log.error("No service method found for entity: " + messageClass);
+            LOG.error("No service method found for entity: " + messageClass);
             return;
         }
         try {
             boolean isDebugOn = this.dispatcherConfig.getMessageDebug().getOrDefault(messageClass, false);
             if (isDebugOn) {
-                log.info("[Debugging] Sending Thrift Messages: {}", message);
+                LOG.info("[Debugging] Sending Thrift Messages: {}", message);
             }
             method.invoke(metricCollector, header, message);
         } catch (IllegalAccessException e) {
-            log.warn("Failed to send metrics: []-[]", messageClass, method);
+            LOG.warn("Failed to send metrics: []-[]", messageClass, method);
         } catch (InvocationTargetException e) {
             if (e.getTargetException() instanceof CallerSideException
                 || e.getTargetException() instanceof CalleeSideException) {
                 //suppress client exception
-                log.error("Failed to send metric: {}", e.getTargetException().getMessage());
+                LOG.error("Failed to send metric: {}", e.getTargetException().getMessage());
             } else {
                 throw new RuntimeException(e.getTargetException());
             }

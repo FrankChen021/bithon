@@ -34,6 +34,9 @@ import shaded.io.netty.handler.codec.DecoderException;
 
 import java.io.IOException;
 
+/**
+ * @author frankchen
+ */
 @ChannelHandler.Sharable
 public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
     private static final ILogAdaptor log = LoggerFactory.getLogger(ServiceMessageChannelHandler.class);

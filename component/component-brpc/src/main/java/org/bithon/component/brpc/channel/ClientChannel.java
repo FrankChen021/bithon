@@ -21,7 +21,6 @@ import org.bithon.component.brpc.ServiceRegistry;
 import org.bithon.component.brpc.ServiceRegistryItem;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.IEndPointProvider;
-import org.bithon.component.brpc.endpoint.SingleEndPointProvider;
 import org.bithon.component.brpc.exception.CallerSideException;
 import org.bithon.component.brpc.exception.ChannelException;
 import org.bithon.component.brpc.exception.ServiceNotFoundException;
@@ -56,43 +55,35 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author frankchen
  */
 public class ClientChannel implements IChannelWriter, Closeable {
-    //
-    // channel
-    //
-    public static final int MAX_RETRY = 30;
-    private static final ILogAdaptor log = LoggerFactory.getLogger(ClientChannel.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(ClientChannel.class);
     private final Bootstrap bootstrap;
     private final AtomicReference<Channel> channel = new AtomicReference<>();
     private final IEndPointProvider endPointProvider;
     private final ServiceRegistry serviceRegistry = new ServiceRegistry();
     private NioEventLoopGroup bossGroup;
-    private Duration retryInterval;
-    private int maxRetry;
+    private final Duration retryInterval;
+    private final int maxRetry;
     private long connectionTimestamp;
 
     /**
      * a logic name of the client, which could be used for the servers to find client instances
      */
-    private String appName;
-
-    public ClientChannel(String host, int port) {
-        this(new SingleEndPointProvider(host, port));
-    }
+    private final String appName;
 
     /**
-     * create a ClientChannel object with 1 worker threads
-     */
-    public ClientChannel(IEndPointProvider endPointProvider) {
-        this(endPointProvider, 1);
-    }
-
-    /**
+     * It's better to use {@link ClientChannelBuilder} to instantiate the instance
+     *
      * @param nWorkerThreads if it's 0, worker threads will be default to Runtime.getRuntime().availableProcessors() * 2
      */
-    public ClientChannel(IEndPointProvider endPointProvider, int nWorkerThreads) {
+    public ClientChannel(IEndPointProvider endPointProvider,
+                         int nWorkerThreads,
+                         int maxRetry,
+                         Duration retryInterval,
+                         String appName) {
         this.endPointProvider = endPointProvider;
-        this.maxRetry = MAX_RETRY;
-        this.retryInterval = Duration.ofMillis(100);
+        this.maxRetry = maxRetry;
+        this.retryInterval = retryInterval;
+        this.appName = appName;
 
         bossGroup = new NioEventLoopGroup(nWorkerThreads, NamedThreadFactory.of("brpc-client"));
         bootstrap = new Bootstrap();
@@ -152,20 +143,6 @@ public class ClientChannel implements IChannelWriter, Closeable {
         return connectionTimestamp > 0 ? System.currentTimeMillis() - connectionTimestamp : 0;
     }
 
-    /**
-     * must be called before {@link #getRemoteService(Class)}
-     */
-    public ClientChannel applicationName(String appName) {
-        this.appName = appName;
-        return this;
-    }
-
-    public ClientChannel configureRetry(int maxRetry, Duration interval) {
-        this.maxRetry = maxRetry;
-        this.retryInterval = interval;
-        return this;
-    }
-
     @Override
     public void close() {
         if (this.bossGroup != null) {
@@ -187,12 +164,12 @@ public class ClientChannel implements IChannelWriter, Closeable {
                 connectFuture.await(200, TimeUnit.MILLISECONDS);
                 if (connectFuture.isSuccess()) {
                     connectionTimestamp = System.currentTimeMillis();
-                    log.info("Successfully connected to remote service at [{}:{}]", endpoint.getHost(), endpoint.getPort());
+                    LOG.info("Successfully connected to remote service at [{}:{}]", endpoint.getHost(), endpoint.getPort());
                     return;
                 }
                 int leftCount = maxRetry - i - 1;
                 if (leftCount > 0) {
-                    log.warn("Unable to connect to remote service at [{}:{}]. Left retry count:{}",
+                    LOG.warn("Unable to connect to remote service at [{}:{}]. Left retry count:{}",
                              endpoint.getHost(),
                              endpoint.getPort(),
                              maxRetry - i - 1);

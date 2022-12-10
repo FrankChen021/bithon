@@ -24,6 +24,7 @@ import org.bithon.agent.rpc.brpc.ApplicationType;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
 import org.bithon.component.brpc.channel.ClientChannel;
+import org.bithon.component.brpc.channel.ClientChannelBuilder;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
 import org.bithon.component.brpc.exception.CalleeSideException;
@@ -44,7 +45,7 @@ import java.util.stream.Stream;
  * @date 2021/6/28 10:41 上午
  */
 public class BrpcAgentController implements IAgentController {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(BrpcAgentController.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(BrpcAgentController.class);
 
     private final ClientChannel channel;
     private final ISettingFetcher fetcher;
@@ -55,9 +56,12 @@ public class BrpcAgentController implements IAgentController {
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
 
-        channel = new ClientChannel(new RoundRobinEndPointProvider(endpoints), 2)
-            .applicationName(AgentContext.getInstance().getAppInstance().getQualifiedAppName())
-            .configureRetry(3, Duration.ofSeconds(2));
+        channel = ClientChannelBuilder.builder()
+                                      .endpointProvider(new RoundRobinEndPointProvider(endpoints))
+                                      .workerThreads(2)
+                                      .applicationName(AgentContext.getInstance().getAppInstance().getQualifiedAppName())
+                                      .maxRetry(3)
+                                      .retryInterval(Duration.ofSeconds(2)).build();
 
         fetcher = channel.getRemoteService(ISettingFetcher.class);
     }
@@ -77,11 +81,11 @@ public class BrpcAgentController implements IAgentController {
             return fetcher.fetch(header, lastModifiedSince);
         } catch (CallerSideException e) {
             //suppress client exception
-            log.error("Failed to fetch settings: {}", e.getMessage());
+            LOG.error("Failed to fetch settings: {}", e.getMessage());
             return null;
         } catch (CalleeSideException e) {
             //suppress stack trace since this exception occurs at server side
-            log.error("Failed to fetch settings due to server side exception:\n {}", e.getMessage());
+            LOG.error("Failed to fetch settings due to server side exception:\n {}", e.getMessage());
             return null;
         }
     }
