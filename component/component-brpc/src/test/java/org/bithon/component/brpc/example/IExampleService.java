@@ -55,7 +55,7 @@ public interface IExampleService {
     /**
      * test composite type
      */
-    Map<String, String> merge(Map<String, String> a, Map<String, String> b);
+    Map<String, String> mergeMap(Map<String, String> a, Map<String, String> b);
 
     String sendWebMetrics(WebRequestMetrics metrics);
 

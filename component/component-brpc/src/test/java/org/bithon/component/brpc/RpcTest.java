@@ -26,6 +26,7 @@ import org.bithon.component.brpc.example.ExampleServiceImpl;
 import org.bithon.component.brpc.example.IExampleService;
 import org.bithon.component.brpc.example.protobuf.WebRequestMetrics;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
+import org.bithon.component.brpc.exception.ServiceNotFoundException;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -76,35 +77,35 @@ public class RpcTest {
             // test map
             Assert.assertEquals(
                 ImmutableMap.of("k1", "v1", "k2", "v2"),
-                exampleService.merge(ImmutableMap.of("k1", "v1"), ImmutableMap.of("k2", "v2"))
+                exampleService.mergeMap(ImmutableMap.of("k1", "v1"), ImmutableMap.of("k2", "v2"))
             );
         }
     }
 
     @Test
-    public void testNull() {
+    public void testNullArgument() {
         try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
-            IExampleService example = ch.getRemoteService(IExampleService.class);
+            IExampleService service = ch.getRemoteService(IExampleService.class);
 
-            // test null
+            // test the 2nd argument is null
             Assert.assertEquals(
                 ImmutableMap.of("k1", "v1"),
-                example.merge(ImmutableMap.of("k1", "v1"), null)
+                service.mergeMap(ImmutableMap.of("k1", "v1"), null)
             );
 
-            // test null
+            // test the 1st argument is null
             Assert.assertEquals(
                 ImmutableMap.of("k2", "v2"),
-                example.merge(null, ImmutableMap.of("k2", "v2"))
+                service.mergeMap(null, ImmutableMap.of("k2", "v2"))
             );
 
-            // test null
-            Assert.assertNull(example.merge(null, null));
+            // test both arguments are null
+            Assert.assertNull(service.mergeMap(null, null));
         }
     }
 
     @Test
-    public void testSendMessageLite() {
+    public void testSendProtobufMessage() {
         try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
@@ -136,7 +137,7 @@ public class RpcTest {
     }
 
     @Test
-    public void testInvocationException() {
+    public void testInvocationExceptionRaisedFromRemote() {
         try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
@@ -386,7 +387,7 @@ public class RpcTest {
     }
 
     @Test
-    public void testEmptyArgs() {
+    public void testServiceWithZeroArgument() {
         try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
@@ -398,6 +399,22 @@ public class RpcTest {
             EndPoint endPoint = ctrl.getPeer();
             Assert.assertEquals("127.0.0.1", endPoint.getHost());
             Assert.assertEquals(8070, endPoint.getPort());
+        }
+    }
+
+    @Test
+    public void testCallNotRegisteredService() {
+        try (ServerChannel serverChannel = new ServerChannel().start(18070)) {
+            try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 18070).build()) {
+                try {
+
+                    // IExampleService is not registered at remote, ServiceNotFoundException should be thrown
+                    ch.getRemoteService(IExampleService.class);
+
+                    Assert.fail("Should not go to here");
+                } catch (ServiceNotFoundException ignored) {
+                }
+            }
         }
     }
 }
