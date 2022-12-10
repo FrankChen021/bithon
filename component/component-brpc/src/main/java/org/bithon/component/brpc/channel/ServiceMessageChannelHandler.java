@@ -39,19 +39,25 @@ import java.io.IOException;
  */
 @ChannelHandler.Sharable
 public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(ServiceMessageChannelHandler.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(ServiceMessageChannelHandler.class);
 
-    private final IServiceInvocationExecutor invoker;
+    private final IServiceInvocationExecutor executor;
     private final ServiceRegistry serviceRegistry;
     private boolean channelDebugEnabled;
 
+    /**
+     * Instantiate an instance which calls the service in worker threads
+     */
     public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry) {
         this(serviceRegistry, ServiceInvocationRunnable::run);
     }
 
-    public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry, IServiceInvocationExecutor invoker) {
+    /**
+     * Instantiate an instance which calls the service in specified executor.
+     */
+    public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry, IServiceInvocationExecutor executor) {
         this.serviceRegistry = serviceRegistry;
-        this.invoker = invoker;
+        this.executor = executor;
     }
 
     @Override
@@ -61,21 +67,22 @@ public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
         }
 
         ServiceMessage message = (ServiceMessage) msg;
-        if (message.getMessageType() == ServiceMessageType.CLIENT_REQUEST) {
+        if (message.getMessageType() == ServiceMessageType.CLIENT_REQUEST
+            || message.getMessageType() == ServiceMessageType.CLIENT_REQUEST_V2) {
             ServiceRequestMessageIn request = (ServiceRequestMessageIn) message;
             if (channelDebugEnabled) {
-                log.info("receiving request, txId={}, service={}#{}",
+                LOG.info("receiving request, txId={}, service={}#{}",
                          request.getTransactionId(),
                          request.getServiceName(),
                          request.getMethodName());
             }
 
-            invoker.invoke(new ServiceInvocationRunnable(serviceRegistry,
-                                                         ctx.channel(),
-                                                         (ServiceRequestMessageIn) message));
+            executor.execute(new ServiceInvocationRunnable(serviceRegistry,
+                                                           ctx.channel(),
+                                                           (ServiceRequestMessageIn) message));
         } else if (message.getMessageType() == ServiceMessageType.SERVER_RESPONSE) {
             if (channelDebugEnabled) {
-                log.info("receiving response, txId={}", message.getTransactionId());
+                LOG.info("receiving response, txId={}", message.getTransactionId());
             }
 
             ClientInvocationManager.getInstance().onResponse((ServiceResponseMessageIn) message);
@@ -86,21 +93,21 @@ public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         if (cause instanceof DecoderException) {
             if (cause.getCause() != null) {
-                log.warn(cause.getCause().getMessage());
+                LOG.warn(cause.getCause().getMessage());
             } else {
-                log.warn("Decoder exception: {}", cause.getMessage());
+                LOG.warn("Decoder exception: {}", cause.getMessage());
             }
             return;
         }
         if (cause instanceof IOException) {
             // do not log stack trace for known exceptions
-            log.error("Exception({}) occurred on channel({} --> {}) when processing message: {}",
+            LOG.error("Exception({}) occurred on channel({} --> {}) when processing message: {}",
                       cause.getClass().getName(),
                       ctx.channel().remoteAddress().toString(),
                       ctx.channel().localAddress().toString(),
                       cause.getMessage());
         } else {
-            log.error(StringUtils.format("Exception occurred on channel(%s ---> %s) when processing message",
+            LOG.error(StringUtils.format("Exception occurred on channel(%s ---> %s) when processing message",
                                          ctx.channel().remoteAddress().toString(),
                                          ctx.channel().localAddress().toString()),
                       cause);
@@ -113,7 +120,7 @@ public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
             // set auto read to true if channel is writable.
             ctx.channel().config().setAutoRead(true);
         } else {
-            log.warn("channel is not writable, disable auto reading for back pressing");
+            LOG.warn("channel is not writable, disable auto reading for back pressing");
             ctx.channel().config().setAutoRead(false);
             ctx.flush();
         }

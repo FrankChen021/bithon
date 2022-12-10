@@ -407,7 +407,6 @@ public class RpcTest {
         try (ServerChannel serverChannel = new ServerChannel().start(18070)) {
             try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 18070).build()) {
                 try {
-
                     // IExampleService is not registered at remote, ServiceNotFoundException should be thrown
                     ch.getRemoteService(IExampleService.class);
 
@@ -415,6 +414,16 @@ public class RpcTest {
                 } catch (ServiceNotFoundException ignored) {
                 }
             }
+        }
+    }
+
+    @Test
+    public void testV1Compatibility() {
+        try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
+            IExampleService exampleService = ch.getRemoteService(IExampleService.class);
+
+            // test map
+            Assert.assertEquals("ping", exampleService.testV1Compatibility("ping"));
         }
     }
 }

@@ -25,6 +25,7 @@ import org.bithon.component.brpc.exception.CallerSideException;
 import org.bithon.component.brpc.exception.ChannelException;
 import org.bithon.component.brpc.exception.ServiceNotFoundException;
 import org.bithon.component.brpc.invocation.ServiceStubFactory;
+import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
 import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
@@ -63,12 +64,18 @@ public class ClientChannel implements IChannelWriter, Closeable {
     private NioEventLoopGroup bossGroup;
     private final Duration retryInterval;
     private final int maxRetry;
-    private long connectionTimestamp;
 
     /**
      * a logic name of the client, which could be used for the servers to find client instances
      */
     private final String appName;
+
+    /**
+     * unique id of client application
+     */
+    private final Headers headers = new Headers();
+
+    private long connectionTimestamp;
 
     /**
      * It's better to use {@link ClientChannelBuilder} to instantiate the instance
@@ -181,20 +188,23 @@ public class ClientChannel implements IChannelWriter, Closeable {
         throw new CallerSideException("Unable to connect to remote service at [%s:%d]", endpoint.getHost(), endpoint.getPort());
     }
 
-    public ClientChannel bindService(Object serviceImpl) {
+    public void bindService(Object serviceImpl) {
         serviceRegistry.addService(serviceImpl);
-        return this;
     }
 
     public <T> T getRemoteService(Class<T> serviceType) {
         // check service exist at first
-        IServiceRegistry serviceRegistry = ServiceStubFactory.create(this.appName, this, IServiceRegistry.class);
+        IServiceRegistry serviceRegistry = ServiceStubFactory.create(this.appName, Headers.EMPTY, this, IServiceRegistry.class);
         String serviceName = ServiceRegistryItem.getServiceName(serviceType);
         if (!serviceRegistry.contains(serviceName)) {
             throw new ServiceNotFoundException(serviceName);
         }
 
-        return ServiceStubFactory.create(this.appName, this, serviceType);
+        return ServiceStubFactory.create(this.appName, this.headers, this, serviceType);
+    }
+
+    public void setAppId(String appId) {
+        this.headers.put("appId", appId);
     }
 
     class ClientChannelManager extends ChannelInboundHandlerAdapter {

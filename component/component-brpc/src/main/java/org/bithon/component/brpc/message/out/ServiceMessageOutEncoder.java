@@ -33,7 +33,7 @@ import shaded.io.netty.handler.codec.MessageToByteEncoder;
  * @author frankchen
  */
 public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessageOut> {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(ServiceMessageOutEncoder.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(ServiceMessageOutEncoder.class);
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ServiceMessageOut msg, ByteBuf out) {
@@ -57,7 +57,8 @@ public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessag
             Throwable cause = future.cause();
             if (cause instanceof ServiceMessageEncodingException) {
                 ServiceMessageOut out = ((ServiceMessageEncodingException) cause).out;
-                if (out.getMessageType() == ServiceMessageType.CLIENT_REQUEST) {
+                if (out.getMessageType() == ServiceMessageType.CLIENT_REQUEST
+                    || out.getMessageType() == ServiceMessageType.CLIENT_REQUEST_V2) {
                     ClientInvocationManager.getInstance()
                                            .onClientException(((ServiceMessageEncodingException) cause).out.getTransactionId(),
                                                               cause.getCause());
@@ -65,7 +66,7 @@ public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessag
                 }
             }
 
-            log.error("Exception when encoding out message", cause);
+            LOG.error("Exception when encoding out message", cause);
         }));
     }
 

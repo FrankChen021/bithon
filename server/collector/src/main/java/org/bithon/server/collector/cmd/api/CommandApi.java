@@ -16,6 +16,7 @@
 
 package org.bithon.server.collector.cmd.api;
 
+import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.component.brpc.channel.ServerChannel;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
@@ -45,12 +46,13 @@ public class CommandApi {
     }
 
     @GetMapping("/api/command/clients")
-    public Map<String, List<String>> getClients() {
-        Map<String, List<String>> clients = new HashMap<>(17);
+    public Map<String, List<Map<String, String>>> getClients() {
+        Map<String, List<Map<String, String>>> clients = new HashMap<>(17);
         List<ServerChannel.Session> sessions = commandService.getServerChannel()
                                                              .getSessions();
         for (ServerChannel.Session session : sessions) {
-            clients.computeIfAbsent(session.getAppName(), v -> new ArrayList<>(4)).add(session.getAppId());
+            clients.computeIfAbsent(session.getAppName(), v -> new ArrayList<>(4))
+                   .add(ImmutableMap.of("appId", session.getAppId()));
         }
         return clients;
     }

@@ -27,6 +27,9 @@ import shaded.io.netty.channel.Channel;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+/**
+ * @author frankchen
+ */
 public class ServiceInvocationRunnable implements Runnable {
     private final ServiceRegistry serviceRegistry;
     private final Channel channel;
@@ -38,14 +41,6 @@ public class ServiceInvocationRunnable implements Runnable {
         this.serviceRegistry = serviceRegistry;
         this.serviceRequest = serviceRequest;
         this.channel = channel;
-    }
-
-    public Channel getChannel() {
-        return channel;
-    }
-
-    public ServiceRequestMessageIn getServiceRequest() {
-        return serviceRequest;
     }
 
     @Override
@@ -70,7 +65,7 @@ public class ServiceInvocationRunnable implements Runnable {
 
             Object ret;
             try {
-                ret = serviceInvoker.invoke(serviceRequest.getArgs(serviceInvoker.getParameterTypes()));
+                ret = serviceInvoker.invoke(serviceRequest.readArgs(serviceInvoker.getParameterTypes()));
             } catch (IllegalArgumentException e) {
                 throw new BadRequestException("[Client=%s] Bad Request: Service[%s#%s] exception: Illegal argument",
                                               channel.remoteAddress().toString(),
@@ -97,11 +92,12 @@ public class ServiceInvocationRunnable implements Runnable {
             }
 
             if (!serviceInvoker.isOneway()) {
-                sendResponse(ServiceResponseMessageOut.builder()
-                                                      .serverResponseAt(System.currentTimeMillis())
-                                                      .txId(serviceRequest.getTransactionId())
-                                                      .returning(ret)
-                                                      .build());
+                ServiceResponseMessageOut.builder()
+                                         .serverResponseAt(System.currentTimeMillis())
+                                         .txId(serviceRequest.getTransactionId())
+                                         .serializer(serviceRequest.getSerializer())
+                                         .returning(ret)
+                                         .send(channel);
             }
         } catch (ServiceInvocationException e) {
             Throwable cause = e.getCause() != null ? e.getCause() : e;
@@ -110,16 +106,12 @@ public class ServiceInvocationRunnable implements Runnable {
                                                                           serviceRequest.getServiceName(),
                                                                           serviceRequest.getMethodName(),
                                                                           cause.toString());
-            sendResponse(ServiceResponseMessageOut.builder()
-                                                  .serverResponseAt(System.currentTimeMillis())
-                                                  .txId(serviceRequest.getTransactionId())
-                                                  .exception(cause.getMessage())
-                                                  .build());
+            ServiceResponseMessageOut.builder()
+                                     .serverResponseAt(System.currentTimeMillis())
+                                     .txId(serviceRequest.getTransactionId())
+                                     .serializer(serviceRequest.getSerializer())
+                                     .exception(cause.getMessage())
+                                     .send(channel);
         }
-    }
-
-    private void sendResponse(ServiceResponseMessageOut serviceResponse) {
-        serviceResponse.setSerializer(serviceRequest.getSerializer());
-        channel.writeAndFlush(serviceResponse);
     }
 }

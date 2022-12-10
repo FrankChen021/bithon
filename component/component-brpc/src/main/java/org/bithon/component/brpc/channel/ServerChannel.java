@@ -20,8 +20,7 @@ import org.bithon.component.brpc.BrpcMethod;
 import org.bithon.component.brpc.ServiceRegistry;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.invocation.ServiceStubFactory;
-import org.bithon.component.brpc.message.ServiceMessage;
-import org.bithon.component.brpc.message.ServiceMessageType;
+import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
@@ -76,7 +75,7 @@ public class ServerChannel implements Closeable {
     /**
      * bind current service provider to this channel
      * NOTE:
-     * 1. only those methods defined in interface will be binded
+     * 1. only those methods defined in interface will be bound
      * 2. methods name can be the same, but the methods with same name must use {@link BrpcMethod} to give alias name to each method
      */
     public ServerChannel bindService(Object impl) {
@@ -141,6 +140,7 @@ public class ServerChannel implements Closeable {
                                         .orElse(null);
 
         return ServiceStubFactory.create(null,
+                                         Headers.EMPTY,
                                          new Server2ClientChannelWriter(channel),
                                          serviceClass);
     }
@@ -150,8 +150,9 @@ public class ServerChannel implements Closeable {
                              .stream()
                              .filter(s -> appName.equals(s.getAppName()))
                              .map(s -> ServiceStubFactory.create(null,
-                                                                       new Server2ClientChannelWriter(s.channel),
-                                                                       serviceClass))
+                                                                 Headers.EMPTY,
+                                                                 new Server2ClientChannelWriter(s.channel),
+                                                                 serviceClass))
                              .collect(Collectors.toList());
 
     }
@@ -216,24 +217,21 @@ public class ServerChannel implements Closeable {
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            if (!(msg instanceof ServiceMessage)) {
-                // NO Need to handle messages
-                return;
-            }
-
-            ServiceMessage message = (ServiceMessage) msg;
-            if (message.getMessageType() != ServiceMessageType.CLIENT_REQUEST) {
+            if (!(msg instanceof ServiceRequestMessageIn)) {
                 super.channelRead(ctx, msg);
                 return;
             }
 
-            // Update appName
-            ServiceRequestMessageIn request = (ServiceRequestMessageIn) message;
-            if (!StringUtil.isNullOrEmpty(request.getAppName())) {
-                Session session = sessions.get(ctx.channel().id().asLongText());
-                if (session != null) {
+            Session session = sessions.get(ctx.channel().id().asLongText());
+            if (session != null) {
+
+                // Update appName
+                ServiceRequestMessageIn request = (ServiceRequestMessageIn) msg;
+                if (!StringUtil.isNullOrEmpty(request.getAppName())) {
                     session.appName = request.getAppName();
                 }
+
+                session.setAppId(request.getHeaders().get(Headers.HEADER_APP_ID));
             }
 
             super.channelRead(ctx, msg);

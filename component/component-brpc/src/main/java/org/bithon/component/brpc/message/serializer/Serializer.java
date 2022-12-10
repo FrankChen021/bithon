@@ -25,6 +25,7 @@ import java.lang.reflect.Type;
 
 /**
  * serializer for service arguments and returning object
+ * @author frankchen
  */
 public enum Serializer {
     BINARY {

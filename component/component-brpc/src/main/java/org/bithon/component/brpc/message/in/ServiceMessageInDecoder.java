@@ -27,6 +27,12 @@ import shaded.io.netty.handler.codec.ByteToMessageDecoder;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Decode input stream to incoming service message, either it's {@link ServiceRequestMessageIn}
+ * or {@link ServiceResponseMessageIn}
+ *
+ * @author frankchen
+ */
 public class ServiceMessageInDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws IOException {
@@ -38,8 +44,9 @@ public class ServiceMessageInDecoder extends ByteToMessageDecoder {
         CodedInputStream is = CodedInputStream.newInstance(new ByteBufInputStream(in));
         int messageType = is.readInt32();
         if (messageType == ServiceMessageType.CLIENT_REQUEST
-            || messageType == ServiceMessageType.CLIENT_REQUEST_ONEWAY) {
-            out.add(new ServiceRequestMessageIn().decode(is));
+            || messageType == ServiceMessageType.CLIENT_REQUEST_ONEWAY
+            || messageType == ServiceMessageType.CLIENT_REQUEST_V2) {
+            out.add(new ServiceRequestMessageIn(messageType).decode(is));
         } else if (messageType == ServiceMessageType.SERVER_RESPONSE) {
             out.add(new ServiceResponseMessageIn().decode(is));
         } else {

@@ -16,21 +16,15 @@
 
 package org.bithon.component.brpc.message;
 
+import java.util.HashMap;
+
 /**
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2022/12/10 18:08
  */
-public class ServiceMessageType {
-    public static final int CLIENT_REQUEST = 0x021;
+public class Headers extends HashMap<String, String> {
 
-    /**
-     * Kept for compatibility
-     */
-    public static final int CLIENT_REQUEST_ONEWAY = 0x022;
+    public static final String HEADER_APP_ID = "appId";
 
-    /**
-     * v2 message format with header support
-     */
-    public static final int CLIENT_REQUEST_V2 = 0x23;
-
-    public static final int SERVER_RESPONSE = 0x515;
+    public static final Headers EMPTY = new Headers();
 }

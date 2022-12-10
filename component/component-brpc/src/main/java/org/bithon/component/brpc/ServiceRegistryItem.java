@@ -16,6 +16,7 @@
 
 package org.bithon.component.brpc;
 
+import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.serializer.Serializer;
 import shaded.io.netty.util.internal.StringUtil;
 
@@ -33,10 +34,17 @@ public class ServiceRegistryItem {
     private final boolean isOneway;
     private final Serializer serializer;
 
-    public ServiceRegistryItem(String serviceName, String methodName, boolean isOneway, Serializer serializer) {
+    private final int messageType;
+
+    public ServiceRegistryItem(String serviceName,
+                               String methodName,
+                               boolean isOneway,
+                               int messageType,
+                               Serializer serializer) {
         this.serviceName = serviceName;
         this.methodName = methodName;
         this.isOneway = isOneway;
+        this.messageType = messageType;
         this.serializer = serializer;
     }
 
@@ -69,6 +77,7 @@ public class ServiceRegistryItem {
         return new ServiceRegistryItem(getServiceName(method.getDeclaringClass()),
                                        methodName,
                                        isOneway,
+                                       methodConfig == null ? ServiceMessageType.CLIENT_REQUEST_V2 : methodConfig.messageType(),
                                        serializer);
     }
 
@@ -86,6 +95,10 @@ public class ServiceRegistryItem {
 
     public String getServiceName() {
         return serviceName;
+    }
+
+    public int getMessageType() {
+        return messageType;
     }
 
     public static String getServiceName(Class<?> serviceDeclaring) {
