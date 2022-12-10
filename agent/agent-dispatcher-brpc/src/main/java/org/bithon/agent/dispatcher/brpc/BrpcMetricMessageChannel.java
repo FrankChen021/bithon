@@ -31,6 +31,7 @@ import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
 import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.CallerSideException;
+import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -54,8 +55,9 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
 
     private final Map<String, Method> sendMethods = new HashMap<>();
     private final DispatcherConfig dispatcherConfig;
-    private final IMetricCollector metricCollector;
+
     private final ClientChannel clientChannel;
+    private IMetricCollector metricCollector;
     private BrpcMessageHeader header;
 
     public BrpcMetricMessageChannel(DispatcherConfig dispatcherConfig) {
@@ -97,8 +99,6 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
                                                  .maxRetry(3)
                                                  .retryInterval(Duration.ofMillis(100))
                                                  .build();
-        this.metricCollector = clientChannel.getRemoteService(IMetricCollector.class);
-
         this.dispatcherConfig = dispatcherConfig;
 
         AppInstance appInstance = AgentContext.getInstance().getAppInstance();
@@ -122,6 +122,15 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
 
     @Override
     public void sendMessage(Object message) {
+        if (this.metricCollector == null) {
+            try {
+                this.metricCollector = clientChannel.getRemoteService(IMetricCollector.class);
+            } catch (ServiceInvocationException e) {
+                LOG.warn("Unable to get remote IMetricCollector service: {}", e.getMessage());
+                return;
+            }
+        }
+
         final String messageClass;
         if ((message instanceof List)) {
             if (((List<?>) message).isEmpty()) {

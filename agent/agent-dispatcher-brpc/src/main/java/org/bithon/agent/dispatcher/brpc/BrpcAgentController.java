@@ -29,6 +29,7 @@ import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
 import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.CallerSideException;
+import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -48,7 +49,7 @@ public class BrpcAgentController implements IAgentController {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(BrpcAgentController.class);
 
     private final ClientChannel channel;
-    private final ISettingFetcher fetcher;
+    private ISettingFetcher fetcher;
 
     public BrpcAgentController(AgentControllerConfig config) {
         List<EndPoint> endpoints = Stream.of(config.getServers().split(",")).map(hostAndPort -> {
@@ -56,18 +57,30 @@ public class BrpcAgentController implements IAgentController {
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
 
+        AppInstance appInstance = AgentContext.getInstance().getAppInstance();
         channel = ClientChannelBuilder.builder()
                                       .endpointProvider(new RoundRobinEndPointProvider(endpoints))
                                       .workerThreads(2)
-                                      .applicationName(AgentContext.getInstance().getAppInstance().getQualifiedAppName())
+                                      .applicationName(appInstance.getQualifiedAppName())
                                       .maxRetry(3)
-                                      .retryInterval(Duration.ofSeconds(2)).build();
+                                      .retryInterval(Duration.ofSeconds(2))
+                                      .build();
 
-        fetcher = channel.getRemoteService(ISettingFetcher.class);
+        // Update appId once the port is configured
+        appInstance.addListener((port) -> channel.setAppId(AgentContext.getInstance().getAppInstance().getHostAndPort()));
     }
 
     @Override
     public Map<String, String> fetch(String appName, String env, long lastModifiedSince) {
+        if (fetcher == null) {
+            try {
+                fetcher = channel.getRemoteService(ISettingFetcher.class);
+            } catch (ServiceInvocationException e) {
+                LOG.warn("Unable to get remote ISettingFetcher service: {}", e.getMessage());
+                return null;
+            }
+        }
+
         AppInstance appInstance = AgentContext.getInstance().getAppInstance();
         BrpcMessageHeader header = BrpcMessageHeader.newBuilder()
                                                     .setAppName(appInstance.getAppName())

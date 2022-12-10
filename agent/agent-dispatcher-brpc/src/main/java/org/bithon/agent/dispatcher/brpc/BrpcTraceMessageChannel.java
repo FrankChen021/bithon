@@ -31,6 +31,7 @@ import org.bithon.component.brpc.channel.IChannelWriter;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
 import org.bithon.component.brpc.exception.CallerSideException;
+import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -46,9 +47,9 @@ import java.util.stream.Stream;
 public class BrpcTraceMessageChannel implements IMessageChannel {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(BrpcTraceMessageChannel.class);
 
-    private final ITraceCollector traceCollector;
     private final DispatcherConfig dispatcherConfig;
     private final ClientChannel clientChannel;
+    private ITraceCollector traceCollector;
     private BrpcMessageHeader header;
 
     public BrpcTraceMessageChannel(DispatcherConfig dispatcherConfig) {
@@ -60,8 +61,8 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
         this.clientChannel = ClientChannelBuilder.builder()
                                                  .endpointProvider(new RoundRobinEndPointProvider(endpoints))
                                                  .maxRetry(3)
-                                                 .retryInterval(Duration.ofMillis(200)).build();
-        this.traceCollector = this.clientChannel.getRemoteService(ITraceCollector.class);
+                                                 .retryInterval(Duration.ofMillis(200))
+                                                 .build();
 
         this.dispatcherConfig = dispatcherConfig;
 
@@ -86,6 +87,15 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
 
     @Override
     public void sendMessage(Object message) {
+        if (this.traceCollector == null) {
+            try {
+                this.traceCollector = this.clientChannel.getRemoteService(ITraceCollector.class);
+            } catch (ServiceInvocationException e) {
+                LOG.warn("Unable to get remote ITraceCollector service: {}", e.getMessage());
+                return;
+            }
+        }
+
         if (!(message instanceof List)) {
             return;
         }

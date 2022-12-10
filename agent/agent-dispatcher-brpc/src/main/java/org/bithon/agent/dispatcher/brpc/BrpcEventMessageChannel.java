@@ -31,6 +31,7 @@ import org.bithon.component.brpc.channel.IChannelWriter;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
 import org.bithon.component.brpc.exception.CallerSideException;
+import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -48,7 +49,7 @@ public class BrpcEventMessageChannel implements IMessageChannel {
 
     private final ClientChannel clientChannel;
     private final DispatcherConfig dispatcherConfig;
-    private final IEventCollector eventCollector;
+    private IEventCollector eventCollector;
     private BrpcMessageHeader header;
 
     public BrpcEventMessageChannel(DispatcherConfig dispatcherConfig) {
@@ -61,8 +62,6 @@ public class BrpcEventMessageChannel implements IMessageChannel {
                                                  .maxRetry(3)
                                                  .retryInterval(Duration.ofMillis(200))
                                                  .build();
-
-        this.eventCollector = clientChannel.getRemoteService(IEventCollector.class);
 
         this.dispatcherConfig = dispatcherConfig;
 
@@ -87,6 +86,15 @@ public class BrpcEventMessageChannel implements IMessageChannel {
 
     @Override
     public void sendMessage(Object message) {
+        if (this.eventCollector == null) {
+            try {
+                this.eventCollector = clientChannel.getRemoteService(IEventCollector.class);
+            } catch (ServiceInvocationException e) {
+                LOG.warn("Unable to get remote service: {}", e.getMessage());
+                return;
+            }
+        }
+
         IChannelWriter channel = ((IServiceController) eventCollector).getChannel();
         if (channel.getConnectionLifeTime() > dispatcherConfig.getClient().getMaxLifeTime()) {
             LOG.info("Disconnect for event-channel load balancing...");
