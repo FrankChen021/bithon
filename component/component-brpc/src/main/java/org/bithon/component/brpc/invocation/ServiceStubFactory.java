@@ -25,6 +25,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.InetSocketAddress;
 
+/**
+ * @author frankchen
+ */
 public class ServiceStubFactory {
 
     private static Method setDebugMethod;
@@ -47,24 +50,24 @@ public class ServiceStubFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T create(String appName, IChannelWriter channelWriter, Class<T> serviceInterface) {
+    public static <T> T create(String clientAppName, IChannelWriter channelWriter, Class<T> serviceInterface) {
         return (T) Proxy.newProxyInstance(serviceInterface.getClassLoader(),
                                           new Class[]{serviceInterface, IServiceController.class},
-                                          new ServiceInvocationHandler(appName,
-                                                                       channelWriter,
-                                                                       ClientInvocationManager.getInstance()));
+                                          new ServiceInvocationStub(clientAppName,
+                                                                    channelWriter,
+                                                                    ClientInvocationManager.getInstance()));
     }
 
-    static class ServiceInvocationHandler implements InvocationHandler {
+    static class ServiceInvocationStub implements InvocationHandler {
         private final IChannelWriter channelWriter;
         private final ClientInvocationManager clientInvocationManager;
         private final String appName;
         private boolean debugEnabled;
         private long timeout = 5000;
 
-        public ServiceInvocationHandler(String appName,
-                                        IChannelWriter channelWriter,
-                                        ClientInvocationManager clientInvocationManager) {
+        public ServiceInvocationStub(String appName,
+                                     IChannelWriter channelWriter,
+                                     ClientInvocationManager clientInvocationManager) {
             this.appName = appName;
             this.channelWriter = channelWriter;
             this.clientInvocationManager = clientInvocationManager;

@@ -36,8 +36,8 @@ public class ServiceInvocationRunnable implements Runnable {
                                      Channel channel,
                                      ServiceRequestMessageIn serviceRequest) {
         this.serviceRegistry = serviceRegistry;
-        this.channel = channel;
         this.serviceRequest = serviceRequest;
+        this.channel = channel;
     }
 
     public Channel getChannel() {
@@ -50,7 +50,6 @@ public class ServiceInvocationRunnable implements Runnable {
 
     @Override
     public void run() {
-
         try {
             if (serviceRequest.getServiceName() == null) {
                 throw new BadRequestException("[Client=%s] serviceName is null", channel.remoteAddress().toString());
@@ -60,9 +59,9 @@ public class ServiceInvocationRunnable implements Runnable {
                 throw new BadRequestException("[Client=%s] methodName is null", channel.remoteAddress().toString());
             }
 
-            ServiceRegistry.RegistryItem serviceProvider = serviceRegistry.findServiceProvider(serviceRequest.getServiceName(),
+            ServiceRegistry.ServiceInvoker serviceInvoker = serviceRegistry.findServiceInvoker(serviceRequest.getServiceName(),
                                                                                                serviceRequest.getMethodName());
-            if (serviceProvider == null) {
+            if (serviceInvoker == null) {
                 throw new BadRequestException("[Client=%s] Can't find service provider %s#%s",
                                               channel.remoteAddress().toString(),
                                               serviceRequest.getServiceName(),
@@ -71,8 +70,7 @@ public class ServiceInvocationRunnable implements Runnable {
 
             Object ret;
             try {
-                Object[] inputArgs = serviceRequest.getArgs(serviceProvider.getParameterTypes());
-                ret = serviceProvider.invoke(inputArgs);
+                ret = serviceInvoker.invoke(serviceRequest.getArgs(serviceInvoker.getParameterTypes()));
             } catch (IllegalArgumentException e) {
                 throw new BadRequestException("[Client=%s] Bad Request: Service[%s#%s] exception: Illegal argument",
                                               channel.remoteAddress().toString(),
@@ -98,7 +96,7 @@ public class ServiceInvocationRunnable implements Runnable {
                                               e.getMessage());
             }
 
-            if (!serviceProvider.isOneway()) {
+            if (!serviceInvoker.isOneway()) {
                 sendResponse(ServiceResponseMessageOut.builder()
                                                       .serverResponseAt(System.currentTimeMillis())
                                                       .txId(serviceRequest.getTransactionId())
@@ -124,5 +122,4 @@ public class ServiceInvocationRunnable implements Runnable {
         serviceResponse.setSerializer(serviceRequest.getSerializer());
         channel.writeAndFlush(serviceResponse);
     }
-
 }

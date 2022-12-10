@@ -29,6 +29,9 @@ import shaded.io.netty.channel.ChannelPromise;
 import shaded.io.netty.handler.codec.EncoderException;
 import shaded.io.netty.handler.codec.MessageToByteEncoder;
 
+/**
+ * @author frankchen
+ */
 public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessageOut> {
     private static final ILogAdaptor log = LoggerFactory.getLogger(ServiceMessageOutEncoder.class);
 

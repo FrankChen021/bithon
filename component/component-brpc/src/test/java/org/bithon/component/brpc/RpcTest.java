@@ -33,7 +33,6 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -43,8 +42,8 @@ public class RpcTest {
 
     @BeforeClass
     public static void setup() {
-        serverChannel = new ServerChannel()
-            .bindService(new ExampleServiceImpl()).start(8070).debug(true);
+        serverChannel = new ServerChannel().bindService(new ExampleServiceImpl())
+                                           .start(8070);
     }
 
     @AfterClass
@@ -222,16 +221,13 @@ public class RpcTest {
             //make sure the client has been connected to the server
             IExampleService calculator = ch.getRemoteService(IExampleService.class);
 
-            Assert.assertEquals(0, serverChannel.getClientEndpoints().size());
-
             Assert.assertEquals(20, calculator.div(100, 5));
 
-            Set<EndPoint> clients = serverChannel.getClientEndpoints();
+            List<ServerChannel.Session> clients = serverChannel.getSessions();
             Assert.assertEquals(1, clients.size());
 
-            //noinspection OptionalGetWithoutIsPresent
-            EndPoint endpoint = clients.stream().findFirst().get();
-            IExampleService clientService = serverChannel.getRemoteService(endpoint, IExampleService.class);
+            String appId = clients.get(0).getAppId();
+            IExampleService clientService = serverChannel.getRemoteService(appId, IExampleService.class);
 
             //
             // test service call from server to client
@@ -288,9 +284,9 @@ public class RpcTest {
 
         try {
             //no clients since clients sessions have not established
-            Assert.assertEquals(0, serverChannel.getClientEndpoints().size());
-            Assert.assertEquals(0, serverChannel.getRemoteService("client1", IExampleService.class).size());
-            Assert.assertEquals(0, serverChannel.getRemoteService("client2", IExampleService.class).size());
+            Assert.assertEquals(0, serverChannel.getSessions().size());
+            Assert.assertEquals(0, serverChannel.getRemoteServices("client1", IExampleService.class).size());
+            Assert.assertEquals(0, serverChannel.getRemoteServices("client2", IExampleService.class).size());
 
             //make sure the client has been connected to the server
             IExampleService client1 = ch1.getRemoteService(IExampleService.class);
@@ -299,11 +295,11 @@ public class RpcTest {
             IExampleService client2 = ch2.getRemoteService(IExampleService.class);
             Assert.assertEquals(5, client2.div(100, 20));
 
-            List<IExampleService> client1Services = serverChannel.getRemoteService("client1", IExampleService.class);
+            List<IExampleService> client1Services = serverChannel.getRemoteServices("client1", IExampleService.class);
             Assert.assertEquals(1, client1Services.size());
             Assert.assertEquals("pong1", client1Services.get(0).ping());
 
-            List<IExampleService> client2Services = serverChannel.getRemoteService("client2", IExampleService.class);
+            List<IExampleService> client2Services = serverChannel.getRemoteServices("client2", IExampleService.class);
             Assert.assertEquals(1, client2Services.size());
             Assert.assertEquals("pong2", client2Services.get(0).ping());
         } finally {
@@ -334,8 +330,8 @@ public class RpcTest {
 
         try {
             //no clients since clients sessions have not established
-            Assert.assertEquals(0, serverChannel.getClientEndpoints().size());
-            Assert.assertEquals(0, serverChannel.getRemoteService("client1", IExampleService.class).size());
+            Assert.assertEquals(0, serverChannel.getSessions().size());
+            Assert.assertEquals(0, serverChannel.getRemoteServices("client1", IExampleService.class).size());
 
             //make sure the client has been connected to the server
             IExampleService client1 = ch1.getRemoteService(IExampleService.class);
@@ -343,8 +339,8 @@ public class RpcTest {
 
             IExampleService client2 = ch2.getRemoteService(IExampleService.class);
             Assert.assertEquals(5, client2.div(100, 20));
-            List<IExampleService> client1Services = serverChannel.getRemoteService("client1",
-                                                                                   IExampleService.class);
+            List<IExampleService> client1Services = serverChannel.getRemoteServices("client1",
+                                                                                    IExampleService.class);
             Assert.assertEquals(2, client1Services.size());
             Assert.assertEquals(ImmutableSet.of("pong1", "pong2"), ImmutableSet.of(
                 client1Services.get(0).ping(),
@@ -355,17 +351,17 @@ public class RpcTest {
             // close the channel actively
             //
             ch1.close();
-            Assert.assertEquals(1, serverChannel.getClientEndpoints().size());
-            List<IExampleService> client2Services = serverChannel.getRemoteService("client1",
-                                                                                   IExampleService.class);
+            Assert.assertEquals(1, serverChannel.getSessions().size());
+            List<IExampleService> client2Services = serverChannel.getRemoteServices("client1",
+                                                                                    IExampleService.class);
             Assert.assertEquals(1, client2Services.size());
             Assert.assertEquals("pong2", client2Services.get(0).ping());
 
             //
             ch2.close();
-            Assert.assertEquals(0, serverChannel.getClientEndpoints().size());
-            List<IExampleService> client3Services = serverChannel.getRemoteService("client1",
-                                                                                   IExampleService.class);
+            Assert.assertEquals(0, serverChannel.getSessions().size());
+            List<IExampleService> client3Services = serverChannel.getRemoteServices("client1",
+                                                                                    IExampleService.class);
             Assert.assertEquals(0, client3Services.size());
         } finally {
             ch1.close();

@@ -46,9 +46,9 @@ public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
         this(serviceRegistry, ServiceInvocationRunnable::run);
     }
 
-    public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry, IServiceInvocationExecutor dispatcher) {
+    public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry, IServiceInvocationExecutor invoker) {
         this.serviceRegistry = serviceRegistry;
-        this.invoker = dispatcher;
+        this.invoker = invoker;
     }
 
     @Override

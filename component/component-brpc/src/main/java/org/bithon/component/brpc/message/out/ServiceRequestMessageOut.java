@@ -22,6 +22,9 @@ import shaded.com.google.protobuf.CodedOutputStream;
 
 import java.io.IOException;
 
+/**
+ * @author frankchen
+ */
 public class ServiceRequestMessageOut extends ServiceMessageOut {
 
     private String serviceName;
@@ -32,7 +35,7 @@ public class ServiceRequestMessageOut extends ServiceMessageOut {
      */
     private String appName;
 
-    // will NOT serialized into message
+    // will NOT serialize into message
     private boolean isOneway;
 
     public String getServiceName() {

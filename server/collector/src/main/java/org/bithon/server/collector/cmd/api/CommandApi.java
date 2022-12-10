@@ -17,7 +17,7 @@
 package org.bithon.server.collector.cmd.api;
 
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
-import org.bithon.component.brpc.endpoint.EndPoint;
+import org.bithon.component.brpc.channel.ServerChannel;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.collector.cmd.service.CommandService;
@@ -27,8 +27,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -42,17 +44,22 @@ public class CommandApi {
         this.commandService = commandService;
     }
 
-    @GetMapping("/api/command/client")
-    public Set<EndPoint> getClients() {
-        return commandService.getServerChannel().getClientEndpoints();
+    @GetMapping("/api/command/clients")
+    public Map<String, List<String>> getClients() {
+        Map<String, List<String>> clients = new HashMap<>(17);
+        List<ServerChannel.Session> sessions = commandService.getServerChannel()
+                                                             .getSessions();
+        for (ServerChannel.Session session : sessions) {
+            clients.computeIfAbsent(session.getAppName(), v -> new ArrayList<>(4)).add(session.getAppId());
+        }
+        return clients;
     }
 
     @PostMapping("/api/command/jvm/dumpThread")
     public CommandResponse<List<IJvmCommand.ThreadInfo>> dumpThread(@Valid @RequestBody CommandArgs<Void> args) {
-        ClientApplication client = args.getClient();
-        IJvmCommand command = commandService.getServerChannel().getRemoteService(new EndPoint(client.getHost(), client.getPort()), IJvmCommand.class);
+        IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
         if (command == null) {
-            return CommandResponse.error(StringUtils.format("client[%s:%d] not found", client.getHost(), client.getPort()));
+            return CommandResponse.error(StringUtils.format("client by id [%s] not found", args.getAppId()));
         }
         try {
             return CommandResponse.success(command.dumpThreads());

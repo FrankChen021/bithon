@@ -27,17 +27,20 @@ import javax.validation.constraints.NotNull;
  * @date 2022/8/7 21:20
  */
 public class CommandArgs<T> {
+    /**
+     * unique client app id
+     */
     @NotNull
     @Getter
-    private final ClientApplication client;
+    private final String appId;
 
     @Getter
     private final T args;
 
     @JsonCreator
-    public CommandArgs(@JsonProperty("client") ClientApplication client,
+    public CommandArgs(@JsonProperty("appId") String appId,
                        @JsonProperty("args") T args) {
-        this.client = client;
+        this.appId = appId;
         this.args = args;
     }
 }

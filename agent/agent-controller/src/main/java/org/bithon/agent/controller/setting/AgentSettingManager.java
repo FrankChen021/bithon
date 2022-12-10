@@ -65,7 +65,7 @@ public class AgentSettingManager {
 
     public static void createInstance(String appName, String env, IAgentController controller) {
         INSTANCE = new AgentSettingManager(appName, env, controller);
-        INSTANCE.startPeriodicallyFetech();
+        INSTANCE.startPeriodicallyFetch();
     }
 
     public static AgentSettingManager getInstance() {
@@ -80,7 +80,7 @@ public class AgentSettingManager {
         listeners.computeIfAbsent(name, key -> new ArrayList<>()).add(listener);
     }
 
-    private void startPeriodicallyFetech() {
+    private void startPeriodicallyFetch() {
         if (controller != null) {
             new Timer("setting-fetcher").schedule(new TimerTask() {
                 @Override

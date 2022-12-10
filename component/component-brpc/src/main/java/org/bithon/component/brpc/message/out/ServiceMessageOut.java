@@ -22,6 +22,9 @@ import shaded.com.google.protobuf.CodedOutputStream;
 
 import java.io.IOException;
 
+/**
+ * @author frankchen
+ */
 public abstract class ServiceMessageOut extends ServiceMessage {
 
     private Serializer serializer = Serializer.BINARY;

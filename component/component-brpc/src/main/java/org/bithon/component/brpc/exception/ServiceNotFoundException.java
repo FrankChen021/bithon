@@ -14,25 +14,16 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.cmd.api;
+package org.bithon.component.brpc.exception;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
+import org.bithon.component.commons.utils.StringUtils;
 
 /**
- * @author Frank Chen
- * @date 2022/8/7 21:20
+ * @author frank.chen021@outlook.com
+ * @date 20/10/21 9:23 pm
  */
-public class ClientApplication {
-    @Getter
-    private final String host;
-    @Getter
-    private final int port;
-
-    @JsonCreator
-    public ClientApplication(@JsonProperty("host") String host, @JsonProperty("port") int port) {
-        this.host = host;
-        this.port = port;
+public class ServiceNotFoundException extends CallerSideException {
+    public ServiceNotFoundException(String serviceName) {
+        super(StringUtils.format("Service [%s] not found", serviceName));
     }
 }

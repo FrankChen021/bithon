@@ -58,8 +58,8 @@ public class SentinelRuleApi {
         // dispatch to instances
         //
         commandService.getServerChannel()
-                      .getRemoteService(rule.getAppName(),
-                                        IFlowRuleManager.class)
+                      .getRemoteServices(rule.getAppName(),
+                                         IFlowRuleManager.class)
                       .parallelStream()
                       .forEach(flowRuleManager -> {
                           IServiceController ctrl = (IServiceController) flowRuleManager;
@@ -75,8 +75,8 @@ public class SentinelRuleApi {
         // dispatch to instances
         //
         commandService.getServerChannel()
-                      .getRemoteService(flowRule.getAppName(),
-                                        IFlowRuleManager.class)
+                      .getRemoteServices(flowRule.getAppName(),
+                                         IFlowRuleManager.class)
                       .parallelStream()
                       .forEach(flowRuleManager -> {
                           IServiceController ctrl = (IServiceController) flowRuleManager;
@@ -98,8 +98,8 @@ public class SentinelRuleApi {
         // dispatch to instances
         //
         commandService.getServerChannel()
-                      .getRemoteService(rule.getAppName(),
-                                        IDegradingRuleManager.class)
+                      .getRemoteServices(rule.getAppName(),
+                                         IDegradingRuleManager.class)
                       .parallelStream()
                       .forEach(ruleManager -> {
                           IServiceController ctrl = (IServiceController) ruleManager;
@@ -115,8 +115,8 @@ public class SentinelRuleApi {
         // dispatch to instances
         //
         commandService.getServerChannel()
-                      .getRemoteService(flowRule.getAppName(),
-                                        IDegradingRuleManager.class)
+                      .getRemoteServices(flowRule.getAppName(),
+                                         IDegradingRuleManager.class)
                       .parallelStream()
                       .forEach(ruleManager -> {
                           IServiceController ctrl = (IServiceController) ruleManager;

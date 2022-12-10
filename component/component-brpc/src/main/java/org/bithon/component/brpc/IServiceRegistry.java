@@ -14,28 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.brpc.exception;
-
-import java.lang.reflect.Method;
+package org.bithon.component.brpc;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 20/10/21 9:23 pm
+ * @date 2022/12/9 21:21
  */
-public class BadServiceException extends RuntimeException {
-    private final Class interfaceClass;
-    private final Method method;
-
-    public BadServiceException(Class interfaceClass, Method method) {
-        this.interfaceClass = interfaceClass;
-        this.method = method;
-    }
-
-    public Method getMethod() {
-        return method;
-    }
-
-    public Class getInterfaceClass() {
-        return interfaceClass;
-    }
+@BrpcService(name = "brpc.IServiceRegistry")
+public interface IServiceRegistry {
+    boolean contains(String service);
 }

@@ -18,6 +18,9 @@ package org.bithon.component.brpc.exception;
 
 import java.util.Locale;
 
+/**
+ * @author frankchen
+ */
 public class TimeoutException extends ServiceInvocationException {
     public TimeoutException(String serviceAddress,
                             CharSequence service,

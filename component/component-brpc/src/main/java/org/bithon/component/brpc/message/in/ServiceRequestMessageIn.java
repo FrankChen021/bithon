@@ -26,6 +26,9 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Locale;
 
+/**
+ * @author frankchen
+ */
 public class ServiceRequestMessageIn extends ServiceMessageIn {
 
     private String serviceName;

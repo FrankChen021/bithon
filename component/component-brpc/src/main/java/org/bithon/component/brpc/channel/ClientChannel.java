@@ -16,12 +16,15 @@
 
 package org.bithon.component.brpc.channel;
 
+import org.bithon.component.brpc.IServiceRegistry;
 import org.bithon.component.brpc.ServiceRegistry;
+import org.bithon.component.brpc.ServiceRegistryItem;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.IEndPointProvider;
 import org.bithon.component.brpc.endpoint.SingleEndPointProvider;
 import org.bithon.component.brpc.exception.CallerSideException;
 import org.bithon.component.brpc.exception.ChannelException;
+import org.bithon.component.brpc.exception.ServiceNotFoundException;
 import org.bithon.component.brpc.invocation.ServiceStubFactory;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
 import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
@@ -49,6 +52,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Should only be used at the client side
+ *
+ * @author frankchen
  */
 public class ClientChannel implements IChannelWriter, Closeable {
     //
@@ -82,14 +87,14 @@ public class ClientChannel implements IChannelWriter, Closeable {
     }
 
     /**
-     * @param nThreads if it's 0, worker threads will be default to Runtime.getRuntime().availableProcessors() * 2
+     * @param nWorkerThreads if it's 0, worker threads will be default to Runtime.getRuntime().availableProcessors() * 2
      */
-    public ClientChannel(IEndPointProvider endPointProvider, int nThreads) {
+    public ClientChannel(IEndPointProvider endPointProvider, int nWorkerThreads) {
         this.endPointProvider = endPointProvider;
         this.maxRetry = MAX_RETRY;
         this.retryInterval = Duration.ofMillis(100);
 
-        bossGroup = new NioEventLoopGroup(nThreads, NamedThreadFactory.of("brpc-client"));
+        bossGroup = new NioEventLoopGroup(nWorkerThreads, NamedThreadFactory.of("brpc-client"));
         bootstrap = new Bootstrap();
         bootstrap.group(bossGroup)
                  .channel(NioSocketChannel.class)
@@ -205,6 +210,13 @@ public class ClientChannel implements IChannelWriter, Closeable {
     }
 
     public <T> T getRemoteService(Class<T> serviceType) {
+        // check service exist at first
+        IServiceRegistry serviceRegistry = ServiceStubFactory.create(this.appName, this, IServiceRegistry.class);
+        String serviceName = ServiceRegistryItem.getServiceName(serviceType);
+        if (!serviceRegistry.contains(serviceName)) {
+            throw new ServiceNotFoundException(serviceName);
+        }
+
         return ServiceStubFactory.create(this.appName, this, serviceType);
     }
 

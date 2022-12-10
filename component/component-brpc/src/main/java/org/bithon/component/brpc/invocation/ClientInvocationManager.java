@@ -16,7 +16,7 @@
 
 package org.bithon.component.brpc.invocation;
 
-import org.bithon.component.brpc.ServiceConfiguration;
+import org.bithon.component.brpc.ServiceRegistryItem;
 import org.bithon.component.brpc.channel.IChannelWriter;
 import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.CallerSideException;
@@ -38,8 +38,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * Manage inflight requests from a service client to a service provider
  * <p>
  * Note: the concept 'client' here is a relative concept.
- * It could be a network client, which connects to a RPC server,
- * it could also be a RPC server which calls service provided by a network client
+ * It could be a network client, which connects to an RPC server,
+ * it could also be an RPC server which calls service provided by a network client
  */
 public class ClientInvocationManager {
 
@@ -51,7 +51,7 @@ public class ClientInvocationManager {
      */
     private final Map<Long, InflightRequest> inflightRequests = new ConcurrentHashMap<>();
 
-    private final Map<Method, ServiceConfiguration> configurationMap = new ConcurrentHashMap<>();
+    private final Map<Method, ServiceRegistryItem> registryItems = new ConcurrentHashMap<>();
 
     public static ClientInvocationManager getInstance() {
         return INSTANCE;
@@ -93,15 +93,15 @@ public class ClientInvocationManager {
                                           serviceAddress);
         }
 
-        ServiceConfiguration serviceConfiguration = configurationMap.computeIfAbsent(method, ServiceConfiguration::getServiceConfiguration);
+        ServiceRegistryItem serviceRegistryItem = registryItems.computeIfAbsent(method, ServiceRegistryItem::create);
 
         ServiceRequestMessageOut serviceRequest = ServiceRequestMessageOut.builder()
-                                                                          .serviceName(serviceConfiguration.getServiceName())
-                                                                          .methodName(serviceConfiguration.getMethodName())
+                                                                          .serviceName(serviceRegistryItem.getServiceName())
+                                                                          .methodName(serviceRegistryItem.getMethodName())
                                                                           .transactionId(transactionId.incrementAndGet())
                                                                           .args(args)
-                                                                          .serializer(serviceConfiguration.getSerializer())
-                                                                          .isOneway(serviceConfiguration.isOneway())
+                                                                          .serializer(serviceRegistryItem.getSerializer())
+                                                                          .isOneway(serviceRegistryItem.isOneway())
                                                                           .applicationName(appName)
                                                                           .build();
 
