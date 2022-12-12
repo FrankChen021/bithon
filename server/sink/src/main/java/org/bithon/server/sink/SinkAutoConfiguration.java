@@ -31,7 +31,6 @@ import org.bithon.server.sink.metrics.transformer.ExtractHost;
 import org.bithon.server.sink.metrics.transformer.ExtractPath;
 import org.bithon.server.sink.metrics.transformer.UriNormalizationTransformer;
 import org.bithon.server.sink.tracing.LocalTraceSink;
-import org.bithon.server.sink.tracing.TraceDataSourceSchemaInitializer;
 import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.sink.tracing.metrics.MetricOverSpanInputSource;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
@@ -51,15 +50,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @Conditional(SinkModuleEnabler.class)
 public class SinkAutoConfiguration {
-
-    /**
-     * ConditionalOnBean(DataSourceSchemaManager.class) seems does not work.
-     * Use bean initialization mechanism to initialize the related data source schema
-     */
-    @Bean
-    TraceDataSourceSchemaInitializer traceDataSourceSchemaInitializer(TraceSinkConfig traceConfig) {
-        return new TraceDataSourceSchemaInitializer(traceConfig);
-    }
 
     @Bean
     TopoTransformers topoTransformers(IMetaStorage metaStorage) {

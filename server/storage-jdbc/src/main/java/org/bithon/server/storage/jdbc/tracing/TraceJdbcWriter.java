@@ -20,10 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.storage.tracing.index.TagIndex;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.jooq.BatchBindStep;
@@ -49,12 +49,12 @@ public class TraceJdbcWriter implements ITraceWriter {
 
     private final DSLContext dslContext;
     private final ObjectMapper objectMapper;
-    private final TraceSinkConfig traceConfig;
+    private final TraceStorageConfig traceStorageConfig;
 
-    public TraceJdbcWriter(DSLContext dslContext, ObjectMapper objectMapper, TraceSinkConfig traceConfig) {
+    public TraceJdbcWriter(DSLContext dslContext, ObjectMapper objectMapper, TraceStorageConfig traceStorageConfig) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
-        this.traceConfig = traceConfig;
+        this.traceStorageConfig = traceStorageConfig;
     }
 
     private String getOrDefault(String v) {
@@ -229,7 +229,7 @@ public class TraceJdbcWriter implements ITraceWriter {
                 return r;
             });
 
-            int fieldIndex = this.traceConfig.getIndexes().getColumnPos(index.getName());
+            int fieldIndex = this.traceStorageConfig.getIndexes().getColumnPos(index.getName());
             if (fieldIndex == 0 || fieldIndex >= values.length) {
                 // TODO: log error
                 continue;

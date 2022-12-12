@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.sink.common.BatchConfig;
-import org.bithon.server.sink.tracing.index.TagIndexConfig;
 import org.bithon.server.sink.tracing.mapping.TraceIdMappingConfig;
 import org.bithon.server.sink.tracing.sanitization.SanitizerConfig;
 import org.bithon.server.storage.datasource.input.filter.AndFilter;
@@ -56,7 +55,6 @@ public class TraceSinkConfig {
     private SanitizerConfig globalSanitizer;
     private Map<String, SanitizerConfig> applicationSanitizer;
 
-    private TagIndexConfig indexes;
     private BatchConfig batch;
 
     @Nullable

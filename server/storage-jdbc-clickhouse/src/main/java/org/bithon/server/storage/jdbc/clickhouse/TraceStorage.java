@@ -89,7 +89,7 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @Override
     public ITraceWriter createWriter() {
-        return new TraceJdbcWriter(dslContext, objectMapper, traceConfig) {
+        return new TraceJdbcWriter(dslContext, objectMapper, traceStorageConfig) {
             @Override
             protected boolean isTransactionSupported() {
                 return false;
@@ -99,7 +99,7 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @Override
     public ITraceReader createReader() {
-        return new TraceJdbcReader(this.dslContext, this.objectMapper, this.traceSpanSchema, this.traceTagIndexSchema, this.traceConfig) {
+        return new TraceJdbcReader(this.dslContext, this.objectMapper, traceSpanSchema, this.traceTagIndexSchema, this.traceSinkConfig, this.traceStorageConfig) {
             @Override
             public List<Histogram> getTraceDistribution(List<IFilter> filters, Timestamp start, Timestamp end) {
                 BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;

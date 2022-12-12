@@ -33,6 +33,7 @@ import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record1;
@@ -56,6 +57,7 @@ public class TraceJdbcReader implements ITraceReader {
     private final DSLContext dslContext;
     private final ObjectMapper objectMapper;
     private final TraceSinkConfig traceConfig;
+    private final TraceStorageConfig traceStorageConfig;
     private final DataSourceSchema traceSpanSchema;
     private final DataSourceSchema traceTagIndexSchema;
 
@@ -63,10 +65,12 @@ public class TraceJdbcReader implements ITraceReader {
                            ObjectMapper objectMapper,
                            DataSourceSchema traceSpanSchema,
                            DataSourceSchema traceTagIndexSchema,
-                           TraceSinkConfig traceConfig) {
+                           TraceSinkConfig traceSinkConfig,
+                           TraceStorageConfig traceStorageConfig) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
-        this.traceConfig = traceConfig;
+        this.traceConfig = traceSinkConfig;
+        this.traceStorageConfig = traceStorageConfig;
         this.traceSpanSchema = traceSpanSchema;
         this.traceTagIndexSchema = traceTagIndexSchema;
     }
@@ -203,9 +207,9 @@ public class TraceJdbcReader implements ITraceReader {
                 throw new RuntimeException(StringUtils.format("Wrong tag name [%s]", filter.getName()));
             }
 
-            Preconditions.checkNotNull(this.traceConfig.getIndexes(), "No index configured for 'tags' attribute.");
+            Preconditions.checkNotNull(this.traceStorageConfig.getIndexes(), "No index configured for 'tags' attribute.");
 
-            int tagIndex = this.traceConfig.getIndexes().getColumnPos(tagName);
+            int tagIndex = this.traceStorageConfig.getIndexes().getColumnPos(tagName);
             if (tagIndex == 0) {
                 throw new RuntimeException(StringUtils.format("Can't search on tag [%s] because it is not configured in the index.", tagName));
             }
