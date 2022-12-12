@@ -60,13 +60,13 @@ public abstract class AbstractKafkaConsumer implements IKafkaConsumer, BatchMess
     @Override
     public IKafkaConsumer start(final Map<String, Object> props) {
         int pollTimeout = NumberUtils.getInteger(props.remove("pollTimeout"), 1000);
-        Preconditions.checkIf(pollTimeout >= 100, "'pollTimeout' must be >= 100, given value is %d", pollTimeout);
+        Preconditions.checkIfTrue(pollTimeout >= 100, "'pollTimeout' must be >= 100, given value is %d", pollTimeout);
 
         int ackTime = NumberUtils.getInteger(props.remove("ackTime"), 5000);
-        Preconditions.checkIf(ackTime >= 100 && ackTime <= 60_000, "'ackTime' must be >= 100 && <= 60_000, given value is %d", ackTime);
+        Preconditions.checkIfTrue(ackTime >= 100 && ackTime <= 60_000, "'ackTime' must be >= 100 && <= 60_000, given value is %d", ackTime);
 
         int concurrency = NumberUtils.getInteger(props.remove("concurrency"), 1);
-        Preconditions.checkIf(concurrency > 0 && concurrency <= 64, "'concurrency' must be > 0 and <= 64, given values is: %d", concurrency);
+        Preconditions.checkIfTrue(concurrency > 0 && concurrency <= 64, "'concurrency' must be > 0 and <= 64, given values is: %d", concurrency);
 
         topic = (String) props.remove("topic");
         Preconditions.checkNotNull(topic, "topic for [%s] is not configured.", this.getClass().getSimpleName());

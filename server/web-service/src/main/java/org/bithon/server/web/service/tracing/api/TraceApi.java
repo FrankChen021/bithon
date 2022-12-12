@@ -94,9 +94,9 @@ public class TraceApi {
         for (IFilter filter : request.getFilters()) {
             if (filter.getName().startsWith("tags.")) {
                 String tagName = filter.getName().substring("tags.".length());
-                Preconditions.checkIf(traceConfig.getIndexes().getColumnPos(tagName) > 0,
-                                      "Can't search on tag [%s] because there's no index defined for this tag.",
-                                      tagName);
+                Preconditions.checkIfTrue(traceConfig.getIndexes().getColumnPos(tagName) > 0,
+                                          "Can't search on tag [%s] because there's no index defined for this tag.",
+                                          tagName);
             }
         }
 

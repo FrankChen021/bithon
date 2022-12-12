@@ -44,6 +44,11 @@
     </dependency>
 
     <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>component-commons</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
