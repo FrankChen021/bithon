@@ -99,7 +99,7 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @Override
     public ITraceReader createReader() {
-        return new TraceJdbcReader(this.dslContext, this.objectMapper, traceSpanSchema, traceConfig) {
+        return new TraceJdbcReader(this.dslContext, this.objectMapper, this.traceSpanSchema, this.traceTagIndexSchema, this.traceConfig) {
             @Override
             public List<Histogram> getTraceDistribution(List<IFilter> filters, Timestamp start, Timestamp end) {
                 BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;

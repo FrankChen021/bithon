@@ -29,6 +29,7 @@ import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanSummaryRecord;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
+import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
@@ -56,15 +57,18 @@ public class TraceJdbcReader implements ITraceReader {
     private final ObjectMapper objectMapper;
     private final TraceSinkConfig traceConfig;
     private final DataSourceSchema traceSpanSchema;
+    private final DataSourceSchema traceTagIndexSchema;
 
     public TraceJdbcReader(DSLContext dslContext,
                            ObjectMapper objectMapper,
                            DataSourceSchema traceSpanSchema,
+                           DataSourceSchema traceTagIndexSchema,
                            TraceSinkConfig traceConfig) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
         this.traceConfig = traceConfig;
         this.traceSpanSchema = traceSpanSchema;
+        this.traceTagIndexSchema = traceTagIndexSchema;
     }
 
     @Override
@@ -218,7 +222,8 @@ public class TraceJdbcReader implements ITraceReader {
                                      .where(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.ge(start))
                                      .and(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.lt(end));
             }
-            tagQuery = tagQuery.and(filter.getMatcher().accept(new SQLFilterBuilder("f" + tagIndex)));
+            tagQuery = tagQuery.and(filter.getMatcher().accept(new SQLFilterBuilder(this.traceTagIndexSchema,
+                                                                                    new DimensionFilter("f" + tagIndex, filter.getMatcher()))));
         }
 
         return tagQuery;

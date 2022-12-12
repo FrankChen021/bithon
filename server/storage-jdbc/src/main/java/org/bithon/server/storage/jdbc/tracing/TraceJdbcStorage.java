@@ -48,6 +48,7 @@ public class TraceJdbcStorage implements ITraceStorage {
     protected final TraceStorageConfig config;
     protected final TraceSinkConfig traceConfig;
     protected final DataSourceSchema traceSpanSchema;
+    protected final DataSourceSchema traceTagIndexSchema;
 
     @JsonCreator
     public TraceJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder,
@@ -68,6 +69,7 @@ public class TraceJdbcStorage implements ITraceStorage {
         this.config = storageConfig;
         this.traceConfig = traceConfig;
         this.traceSpanSchema = schemaManager.getDataSourceSchema("trace_span_summary");
+        this.traceTagIndexSchema = schemaManager.getDataSourceSchema("trace_span_tag_index");
     }
 
     @Override
@@ -97,7 +99,7 @@ public class TraceJdbcStorage implements ITraceStorage {
 
     @Override
     public ITraceReader createReader() {
-        return new TraceJdbcReader(this.dslContext, this.objectMapper, this.traceSpanSchema, this.traceConfig);
+        return new TraceJdbcReader(this.dslContext, this.objectMapper, this.traceSpanSchema, this.traceTagIndexSchema, this.traceConfig);
     }
 
     @Override

@@ -46,18 +46,13 @@ import java.util.stream.Stream;
 
 /**
  * build SQL where clause
+ * @author frank.chenling
  */
 public class SQLFilterBuilder implements IMatcherVisitor<String> {
 
     private final DataSourceSchema schema;
     private final String fieldName;
     private final IColumnSpec columnSpec;
-
-    public SQLFilterBuilder(String fieldName) {
-        this.fieldName = fieldName;
-        this.schema = null;
-        this.columnSpec = null;
-    }
 
     public SQLFilterBuilder(DataSourceSchema schema, IFilter filter) {
         IDimensionSpec dimSpec = null;
@@ -86,10 +81,10 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
         return build(schema, filters.stream());
     }
 
-    public static String build(DataSourceSchema schema, Stream<IFilter> stream) {
-        return stream.map(cond -> cond.getMatcher()
-                                      .accept(new SQLFilterBuilder(schema, cond)))
-                     .collect(Collectors.joining(" AND "));
+    public static String build(DataSourceSchema schema, Stream<IFilter> filterStream) {
+        return filterStream.map(filter -> filter.getMatcher()
+                                                .accept(new SQLFilterBuilder(schema, filter)))
+                           .collect(Collectors.joining(" AND "));
     }
 
     @Override
