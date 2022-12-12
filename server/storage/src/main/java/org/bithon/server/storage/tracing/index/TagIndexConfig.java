@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.tracing.index;
+package org.bithon.server.storage.tracing.index;
 
 import lombok.Data;
 
@@ -36,7 +36,7 @@ public class TagIndexConfig {
      * <p>
      * key: tag name
      * val: column name in bithon_trace_span_tag_index table ranging from 1 to 16. Different tag names SHOULD NOT share a same column name.
-     *
+     * <p>
      * LinkedHashMap is used to keep the order of the configuration
      */
     private Map<String, Integer> map;

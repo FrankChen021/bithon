@@ -51,7 +51,7 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
     }
 
     public boolean addDataSourceSchema(DataSourceSchema schema) {
-        if (schemas.putIfAbsent(schema.getName(), schema) == null) {
+        if (schema != null && schemas.putIfAbsent(schema.getName(), schema) == null) {
             if (!schema.isVirtual()) {
                 try {
                     schemaStorage.putIfNotExist(schema.getName(), schema);

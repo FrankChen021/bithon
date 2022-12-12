@@ -25,6 +25,7 @@ import org.bithon.server.sink.tracing.sanitization.SanitizerFactory;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.springframework.context.ApplicationContext;
 
@@ -56,7 +57,7 @@ public class TraceSinkHandler extends AbstractThreadPoolMessageHandler<List<Trac
         this.mappingExtractor = TraceMappingFactory.create(applicationContext);
         this.sanitizerFactory = new SanitizerFactory(applicationContext.getBean(ObjectMapper.class),
                                                      sinkConfig);
-        this.tagIndexBuilder = new TagIndexGenerator(sinkConfig);
+        this.tagIndexBuilder = new TagIndexGenerator(applicationContext.getBean(TraceStorageConfig.class).getIndexes());
     }
 
     @Override
