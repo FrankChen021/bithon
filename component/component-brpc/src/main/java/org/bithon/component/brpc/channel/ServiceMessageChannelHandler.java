@@ -67,25 +67,26 @@ public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
         }
 
         ServiceMessage message = (ServiceMessage) msg;
-        if (message.getMessageType() == ServiceMessageType.CLIENT_REQUEST
-            || message.getMessageType() == ServiceMessageType.CLIENT_REQUEST_V2) {
-            ServiceRequestMessageIn request = (ServiceRequestMessageIn) message;
-            if (channelDebugEnabled) {
-                LOG.info("receiving request, txId={}, service={}#{}",
-                         request.getTransactionId(),
-                         request.getServiceName(),
-                         request.getMethodName());
-            }
+        switch (message.getMessageType()) {
+            case ServiceMessageType.CLIENT_REQUEST_ONEWAY:
+            case ServiceMessageType.CLIENT_REQUEST:
+            case ServiceMessageType.CLIENT_REQUEST_V2:
+                ServiceRequestMessageIn request = (ServiceRequestMessageIn) message;
+                if (channelDebugEnabled) {
+                    LOG.info("Receiving request, txId={}, service={}#{}", request.getTransactionId(), request.getServiceName(), request.getMethodName());
+                }
 
-            executor.execute(new ServiceInvocationRunnable(serviceRegistry,
-                                                           ctx.channel(),
-                                                           (ServiceRequestMessageIn) message));
-        } else if (message.getMessageType() == ServiceMessageType.SERVER_RESPONSE) {
-            if (channelDebugEnabled) {
-                LOG.info("receiving response, txId={}", message.getTransactionId());
-            }
-
-            ClientInvocationManager.getInstance().onResponse((ServiceResponseMessageIn) message);
+                executor.execute(new ServiceInvocationRunnable(serviceRegistry, ctx.channel(), (ServiceRequestMessageIn) message));
+                break;
+            case ServiceMessageType.SERVER_RESPONSE:
+                if (channelDebugEnabled) {
+                    LOG.info("Receiving response, txId={}", message.getTransactionId());
+                }
+                ClientInvocationManager.getInstance().onResponse((ServiceResponseMessageIn) message);
+                break;
+            default:
+                LOG.warn("Receiving unknown message: {}", message.getMessageType());
+                break;
         }
     }
 
@@ -109,8 +110,7 @@ public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
         } else {
             LOG.error(StringUtils.format("Exception occurred on channel(%s ---> %s) when processing message",
                                          ctx.channel().remoteAddress().toString(),
-                                         ctx.channel().localAddress().toString()),
-                      cause);
+                                         ctx.channel().localAddress().toString()), cause);
         }
     }
 
