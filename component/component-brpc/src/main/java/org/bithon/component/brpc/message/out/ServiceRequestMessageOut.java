@@ -16,12 +16,16 @@
 
 package org.bithon.component.brpc.message.out;
 
+import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.serializer.Serializer;
 import shaded.com.google.protobuf.CodedOutputStream;
 
 import java.io.IOException;
 
+/**
+ * @author frankchen
+ */
 public class ServiceRequestMessageOut extends ServiceMessageOut {
 
     private String serviceName;
@@ -32,8 +36,13 @@ public class ServiceRequestMessageOut extends ServiceMessageOut {
      */
     private String appName;
 
-    // will NOT serialized into message
+    private Headers headers;
+
+    /**
+     * runtime property, not a part of message sending on wire
+     */
     private boolean isOneway;
+    private int messageType = ServiceMessageType.CLIENT_REQUEST_V2;
 
     public String getServiceName() {
         return serviceName;
@@ -54,14 +63,13 @@ public class ServiceRequestMessageOut extends ServiceMessageOut {
 
     @Override
     public int getMessageType() {
-        return isOneway ? ServiceMessageType.CLIENT_REQUEST_ONEWAY : ServiceMessageType.CLIENT_REQUEST;
+        return this.messageType;
     }
 
     @Override
     public void encode(CodedOutputStream out) throws IOException {
         out.writeInt32NoTag(this.getMessageType());
         out.writeInt64NoTag(this.getTransactionId());
-
         out.writeStringNoTag(this.serviceName);
         out.writeStringNoTag(this.methodName);
 
@@ -74,6 +82,13 @@ public class ServiceRequestMessageOut extends ServiceMessageOut {
 
         Serializer serializer = getSerializer();
         out.writeInt32NoTag(serializer.getType());
+
+        // Header
+        if (messageType == ServiceMessageType.CLIENT_REQUEST_V2) {
+            serializer.serialize(out, this.headers == null ? Headers.EMPTY : this.headers);
+        }
+
+        // Args
         if (this.args == null) {
             out.writeInt32NoTag(0);
         } else {
@@ -118,6 +133,22 @@ public class ServiceRequestMessageOut extends ServiceMessageOut {
 
         public Builder applicationName(String appName) {
             request.appName = appName;
+            return this;
+        }
+
+        /**
+         * @param messageType {@link ServiceMessageType}
+         */
+        public Builder messageType(int messageType) {
+            request.messageType = messageType;
+            return this;
+        }
+
+        public Builder headers(Headers headers) {
+            if (request.headers == null) {
+                request.headers = new Headers();
+            }
+            request.headers.putAll(headers);
             return this;
         }
 

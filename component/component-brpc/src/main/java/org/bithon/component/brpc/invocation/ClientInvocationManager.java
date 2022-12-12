@@ -16,12 +16,13 @@
 
 package org.bithon.component.brpc.invocation;
 
-import org.bithon.component.brpc.ServiceConfiguration;
+import org.bithon.component.brpc.ServiceRegistryItem;
 import org.bithon.component.brpc.channel.IChannelWriter;
 import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.CallerSideException;
 import org.bithon.component.brpc.exception.ChannelException;
 import org.bithon.component.brpc.exception.TimeoutException;
+import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import shaded.io.netty.channel.Channel;
@@ -38,8 +39,10 @@ import java.util.concurrent.atomic.AtomicLong;
  * Manage inflight requests from a service client to a service provider
  * <p>
  * Note: the concept 'client' here is a relative concept.
- * It could be a network client, which connects to a RPC server,
- * it could also be a RPC server which calls service provided by a network client
+ * It could be a network client, which connects to an RPC server,
+ * it could also be an RPC server which calls service provided by a network client.
+ *
+ * @author frankchen
  */
 public class ClientInvocationManager {
 
@@ -51,19 +54,19 @@ public class ClientInvocationManager {
      */
     private final Map<Long, InflightRequest> inflightRequests = new ConcurrentHashMap<>();
 
-    private final Map<Method, ServiceConfiguration> configurationMap = new ConcurrentHashMap<>();
+    private final Map<Method, ServiceRegistryItem> serviceRegistryItems = new ConcurrentHashMap<>();
 
     public static ClientInvocationManager getInstance() {
         return INSTANCE;
     }
 
     public Object invoke(String appName,
+                         Headers headers,
                          IChannelWriter channelWriter,
                          boolean debug,
                          long timeoutMillisecond,
                          Method method,
-                         Object[] args)
-        throws Throwable {
+                         Object[] args) throws Throwable {
         //
         // make sure channel has been established
         //
@@ -79,30 +82,32 @@ public class ClientInvocationManager {
                                           method.getName());
         }
 
-        String serviceAddress = ch.remoteAddress().toString();
         if (!ch.isActive()) {
             throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not active",
                                           method.getDeclaringClass().getSimpleName(),
                                           method.getName(),
-                                          serviceAddress);
+                                          ch.remoteAddress().toString());
         }
         if (!ch.isWritable()) {
             throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not writable",
                                           method.getDeclaringClass().getSimpleName(),
                                           method.getName(),
-                                          serviceAddress);
+                                          ch.remoteAddress().toString());
         }
 
-        ServiceConfiguration serviceConfiguration = configurationMap.computeIfAbsent(method, ServiceConfiguration::getServiceConfiguration);
+        ServiceRegistryItem serviceRegistryItem = serviceRegistryItems.computeIfAbsent(method, ServiceRegistryItem::create);
 
         ServiceRequestMessageOut serviceRequest = ServiceRequestMessageOut.builder()
-                                                                          .serviceName(serviceConfiguration.getServiceName())
-                                                                          .methodName(serviceConfiguration.getMethodName())
+                                                                          .serviceName(serviceRegistryItem.getServiceName())
+                                                                          .methodName(serviceRegistryItem.getMethodName())
                                                                           .transactionId(transactionId.incrementAndGet())
-                                                                          .args(args)
-                                                                          .serializer(serviceConfiguration.getSerializer())
-                                                                          .isOneway(serviceConfiguration.isOneway())
+
+                                                                          .serializer(serviceRegistryItem.getSerializer())
+                                                                          .isOneway(serviceRegistryItem.isOneway())
+                                                                          .messageType(serviceRegistryItem.getMessageType())
                                                                           .applicationName(appName)
+                                                                          .headers(headers)
+                                                                          .args(args)
                                                                           .build();
 
         InflightRequest inflightRequest = null;
@@ -131,7 +136,6 @@ public class ClientInvocationManager {
 
         if (inflightRequest != null) {
             try {
-                //noinspection SynchronizationOnLocalVariableOrMethodParameter
                 synchronized (inflightRequest) {
                     inflightRequest.wait(timeoutMillisecond);
                 }
@@ -140,7 +144,7 @@ public class ClientInvocationManager {
                 throw new CallerSideException("Failed to invoke %s#%s at [%s] due to invocation is interrupted",
                                               method.getDeclaringClass().getSimpleName(),
                                               method.getName(),
-                                              serviceAddress);
+                                              ch.remoteAddress().toString());
             }
 
             //make sure it has been cleared when timeout
@@ -151,7 +155,7 @@ public class ClientInvocationManager {
             }
 
             if (!inflightRequest.returned) {
-                throw new TimeoutException(serviceAddress,
+                throw new TimeoutException(ch.remoteAddress().toString(),
                                            serviceRequest.getServiceName(),
                                            serviceRequest.getMethodName(),
                                            timeoutMillisecond);

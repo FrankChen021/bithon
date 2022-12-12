@@ -17,6 +17,7 @@
 package org.bithon.component.brpc.message.in;
 
 import org.bithon.component.brpc.exception.BadRequestException;
+import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.serializer.Serializer;
@@ -26,17 +27,26 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Locale;
 
+/**
+ * @author frankchen
+ */
 public class ServiceRequestMessageIn extends ServiceMessageIn {
 
+    private final int messageType;
     private String serviceName;
     private String methodName;
     private String appName;
+    private Headers headers = Headers.EMPTY;
 
     /**
      * args
      */
-    private CodedInputStream args;
+    private CodedInputStream argsInputStream;
     private Serializer serializer;
+
+    public ServiceRequestMessageIn(int messageType) {
+        this.messageType = messageType;
+    }
 
     public Serializer getSerializer() {
         return serializer;
@@ -44,7 +54,7 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
 
     @Override
     public int getMessageType() {
-        return ServiceMessageType.CLIENT_REQUEST;
+        return messageType;
     }
 
     @Override
@@ -59,7 +69,13 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
         }
 
         this.serializer = Serializer.getSerializer(in.readInt32());
-        this.args = in;
+
+        // Header
+        if (messageType == ServiceMessageType.CLIENT_REQUEST_V2) {
+            this.headers = (Headers) this.serializer.deserialize(in, Headers.class);
+        }
+
+        this.argsInputStream = in;
         return this;
     }
 
@@ -75,8 +91,12 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
         return appName;
     }
 
-    public Object[] getArgs(Type[] parameterTypes) throws BadRequestException, IOException {
-        int argLength = this.args.readInt32();
+    public Headers getHeaders() {
+        return headers;
+    }
+
+    public Object[] readArgs(Type[] parameterTypes) throws BadRequestException, IOException {
+        int argLength = this.argsInputStream.readInt32();
         if (argLength != parameterTypes.length) {
             throw new BadRequestException(String.format(Locale.ENGLISH,
                                                         "Argument size not match. Expected %d, but given %d",
@@ -87,7 +107,7 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
         Object[] inputArgs = new Object[argLength];
         for (int i = 0; i < argLength; i++) {
             try {
-                inputArgs[i] = serializer.deserialize(this.args, parameterTypes[i]);
+                inputArgs[i] = serializer.deserialize(this.argsInputStream, parameterTypes[i]);
             } catch (IOException | IllegalStateException e) {
                 throw new BadRequestException("Bad args for %s#%s: %s",
                                               serviceName,

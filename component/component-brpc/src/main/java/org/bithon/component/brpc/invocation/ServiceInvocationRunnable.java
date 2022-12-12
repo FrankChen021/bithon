@@ -27,6 +27,9 @@ import shaded.io.netty.channel.Channel;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+/**
+ * @author frankchen
+ */
 public class ServiceInvocationRunnable implements Runnable {
     private final ServiceRegistry serviceRegistry;
     private final Channel channel;
@@ -36,21 +39,12 @@ public class ServiceInvocationRunnable implements Runnable {
                                      Channel channel,
                                      ServiceRequestMessageIn serviceRequest) {
         this.serviceRegistry = serviceRegistry;
-        this.channel = channel;
         this.serviceRequest = serviceRequest;
-    }
-
-    public Channel getChannel() {
-        return channel;
-    }
-
-    public ServiceRequestMessageIn getServiceRequest() {
-        return serviceRequest;
+        this.channel = channel;
     }
 
     @Override
     public void run() {
-
         try {
             if (serviceRequest.getServiceName() == null) {
                 throw new BadRequestException("[Client=%s] serviceName is null", channel.remoteAddress().toString());
@@ -60,9 +54,9 @@ public class ServiceInvocationRunnable implements Runnable {
                 throw new BadRequestException("[Client=%s] methodName is null", channel.remoteAddress().toString());
             }
 
-            ServiceRegistry.RegistryItem serviceProvider = serviceRegistry.findServiceProvider(serviceRequest.getServiceName(),
+            ServiceRegistry.ServiceInvoker serviceInvoker = serviceRegistry.findServiceInvoker(serviceRequest.getServiceName(),
                                                                                                serviceRequest.getMethodName());
-            if (serviceProvider == null) {
+            if (serviceInvoker == null) {
                 throw new BadRequestException("[Client=%s] Can't find service provider %s#%s",
                                               channel.remoteAddress().toString(),
                                               serviceRequest.getServiceName(),
@@ -71,8 +65,7 @@ public class ServiceInvocationRunnable implements Runnable {
 
             Object ret;
             try {
-                Object[] inputArgs = serviceRequest.getArgs(serviceProvider.getParameterTypes());
-                ret = serviceProvider.invoke(inputArgs);
+                ret = serviceInvoker.invoke(serviceRequest.readArgs(serviceInvoker.getParameterTypes()));
             } catch (IllegalArgumentException e) {
                 throw new BadRequestException("[Client=%s] Bad Request: Service[%s#%s] exception: Illegal argument",
                                               channel.remoteAddress().toString(),
@@ -98,12 +91,13 @@ public class ServiceInvocationRunnable implements Runnable {
                                               e.getMessage());
             }
 
-            if (!serviceProvider.isOneway()) {
-                sendResponse(ServiceResponseMessageOut.builder()
-                                                      .serverResponseAt(System.currentTimeMillis())
-                                                      .txId(serviceRequest.getTransactionId())
-                                                      .returning(ret)
-                                                      .build());
+            if (!serviceInvoker.isOneway()) {
+                ServiceResponseMessageOut.builder()
+                                         .serverResponseAt(System.currentTimeMillis())
+                                         .txId(serviceRequest.getTransactionId())
+                                         .serializer(serviceRequest.getSerializer())
+                                         .returning(ret)
+                                         .send(channel);
             }
         } catch (ServiceInvocationException e) {
             Throwable cause = e.getCause() != null ? e.getCause() : e;
@@ -112,17 +106,12 @@ public class ServiceInvocationRunnable implements Runnable {
                                                                           serviceRequest.getServiceName(),
                                                                           serviceRequest.getMethodName(),
                                                                           cause.toString());
-            sendResponse(ServiceResponseMessageOut.builder()
-                                                  .serverResponseAt(System.currentTimeMillis())
-                                                  .txId(serviceRequest.getTransactionId())
-                                                  .exception(cause.getMessage())
-                                                  .build());
+            ServiceResponseMessageOut.builder()
+                                     .serverResponseAt(System.currentTimeMillis())
+                                     .txId(serviceRequest.getTransactionId())
+                                     .serializer(serviceRequest.getSerializer())
+                                     .exception(cause.getMessage())
+                                     .send(channel);
         }
     }
-
-    private void sendResponse(ServiceResponseMessageOut serviceResponse) {
-        serviceResponse.setSerializer(serviceRequest.getSerializer());
-        channel.writeAndFlush(serviceResponse);
-    }
-
 }

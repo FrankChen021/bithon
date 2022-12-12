@@ -16,6 +16,7 @@
 
 package org.bithon.component.brpc;
 
+import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.serializer.Serializer;
 
 import java.lang.annotation.ElementType;
@@ -24,7 +25,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This method level configuration can override the type level configuration which is {@link BrpcService}
+ * Optional annotation on method to override the type level configuration which is {@link BrpcService}
  *
  * @author frankchen
  */
@@ -37,6 +38,12 @@ public @interface BrpcMethod {
     String name() default "";
 
     boolean isOneway() default false;
+
+    /**
+     * This is mainly for UT compatibility test.
+     * Should not be used directly.
+     */
+    int messageType() default ServiceMessageType.CLIENT_REQUEST_V2;
 
     Serializer serializer() default Serializer.BINARY;
 }

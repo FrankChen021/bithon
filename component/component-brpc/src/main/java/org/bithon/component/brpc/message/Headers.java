@@ -14,28 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.brpc.exception;
+package org.bithon.component.brpc.message;
 
-import java.lang.reflect.Method;
+import java.util.HashMap;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 20/10/21 9:23 pm
+ * @date 2022/12/10 18:08
  */
-public class BadServiceException extends RuntimeException {
-    private final Class interfaceClass;
-    private final Method method;
+public class Headers extends HashMap<String, String> {
 
-    public BadServiceException(Class interfaceClass, Method method) {
-        this.interfaceClass = interfaceClass;
-        this.method = method;
-    }
+    public static final String HEADER_APP_ID = "appId";
 
-    public Method getMethod() {
-        return method;
-    }
-
-    public Class getInterfaceClass() {
-        return interfaceClass;
-    }
+    public static final Headers EMPTY = new Headers();
 }

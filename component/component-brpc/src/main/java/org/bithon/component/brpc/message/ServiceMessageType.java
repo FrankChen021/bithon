@@ -16,8 +16,21 @@
 
 package org.bithon.component.brpc.message;
 
+/**
+ * @author frankchen
+ */
 public class ServiceMessageType {
     public static final int CLIENT_REQUEST = 0x021;
+
+    /**
+     * Kept for compatibility
+     */
     public static final int CLIENT_REQUEST_ONEWAY = 0x022;
+
+    /**
+     * v2 message format with header support
+     */
+    public static final int CLIENT_REQUEST_V2 = 0x23;
+
     public static final int SERVER_RESPONSE = 0x515;
 }

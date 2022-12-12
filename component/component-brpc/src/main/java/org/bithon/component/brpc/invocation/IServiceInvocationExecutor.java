@@ -16,6 +16,9 @@
 
 package org.bithon.component.brpc.invocation;
 
+/**
+ * @author frankchen
+ */
 public interface IServiceInvocationExecutor {
-    void invoke(ServiceInvocationRunnable runnable);
+    void execute(ServiceInvocationRunnable runnable);
 }

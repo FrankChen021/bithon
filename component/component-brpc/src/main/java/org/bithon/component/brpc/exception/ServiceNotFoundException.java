@@ -16,16 +16,14 @@
 
 package org.bithon.component.brpc.exception;
 
-import java.util.Locale;
+import org.bithon.component.commons.utils.StringUtils;
 
 /**
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 20/10/21 9:23 pm
  */
-public class TimeoutException extends ServiceInvocationException {
-    public TimeoutException(String serviceAddress,
-                            CharSequence service,
-                            CharSequence method,
-                            long timeout) {
-        super(String.format(Locale.ENGLISH, "Timeout(%d millisecond) to call [%s#%s] at [%s]", timeout, service, method, serviceAddress));
+public class ServiceNotFoundException extends CallerSideException {
+    public ServiceNotFoundException(String serviceName) {
+        super(StringUtils.format("Service [%s] not found", serviceName));
     }
 }

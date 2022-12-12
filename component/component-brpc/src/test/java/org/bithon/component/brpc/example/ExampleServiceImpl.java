@@ -68,7 +68,7 @@ public class ExampleServiceImpl implements IExampleService {
     }
 
     @Override
-    public Map<String, String> merge(Map<String, String> a, Map<String, String> b) {
+    public Map<String, String> mergeMap(Map<String, String> a, Map<String, String> b) {
         if (b != null) {
             if (a != null) {
                 b.forEach(a::put);
@@ -102,7 +102,7 @@ public class ExampleServiceImpl implements IExampleService {
 
     @Override
     public Map<String, String> mergeWithJson(Map<String, String> a, Map<String, String> b) {
-        return merge(a, b);
+        return mergeMap(a, b);
     }
 
     @Override

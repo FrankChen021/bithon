@@ -30,13 +30,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ServiceRegistry {
+/**
+ * @author frankchen
+ */
+public class ServiceRegistry implements IServiceRegistry {
 
     /**
      * key is the service name
      * val is its methods where key is the method name, val is the registry
      */
-    private final Map<String, Map<String, RegistryItem>> registry = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, ServiceInvoker>> registry = new ConcurrentHashMap<>();
+
+    public ServiceRegistry() {
+        // register self as a service provider
+        addService(this);
+    }
 
     public void addService(Object serviceImpl) {
         Set<Class<?>> interfaces = new HashSet<>();
@@ -60,49 +68,38 @@ public class ServiceRegistry {
 
     private void addService(Class<?> interfaceType, Object serviceImpl) {
         for (Method method : interfaceType.getDeclaredMethods()) {
-            ServiceConfiguration configuration = ServiceConfiguration.getServiceConfiguration(method);
+            ServiceRegistryItem registryItem = ServiceRegistryItem.create(method);
 
-            if (null != registry.computeIfAbsent(configuration.getServiceName(), v -> new ConcurrentHashMap<>())
-                                .putIfAbsent(configuration.getMethodName(), new RegistryItem(method, serviceImpl))) {
+            if (null != registry.computeIfAbsent(registryItem.getServiceName(), v -> new ConcurrentHashMap<>(7))
+                                .putIfAbsent(registryItem.getMethodName(), new ServiceInvoker(serviceImpl, method, registryItem.isOneway()))) {
 
-                throw new DuplicateServiceException(interfaceType, method, configuration.getServiceName(), configuration.getMethodName());
+                throw new DuplicateServiceException(interfaceType,
+                                                    method,
+                                                    registryItem.getServiceName(),
+                                                    registryItem.getMethodName());
             }
         }
     }
 
-    public RegistryItem findServiceProvider(String serviceName, String methodName) {
+    public ServiceInvoker findServiceInvoker(String serviceName, String methodName) {
         return registry.getOrDefault(serviceName, Collections.emptyMap()).get(methodName);
     }
 
-    public static class ParameterType {
-        private final Type rawType;
-        private final Type messageType;
-
-        public ParameterType(Type rawType, Type messageType) {
-            this.rawType = rawType;
-            this.messageType = messageType;
-        }
-
-        public Type getRawType() {
-            return rawType;
-        }
-
-        public Type getMessageType() {
-            return messageType;
-        }
+    @Override
+    public boolean contains(String service) {
+        return registry.containsKey(service);
     }
 
-    public static class RegistryItem {
+    public static class ServiceInvoker {
         private final Method method;
         private final Object serviceImpl;
         private final boolean isOneway;
         private final Type[] parameterTypes;
 
-        public RegistryItem(Method method, Object serviceImpl) {
+        public ServiceInvoker(Object serviceImpl, Method method, boolean isOneway) {
             this.method = method;
             this.serviceImpl = serviceImpl;
-            BrpcMethod sp = method.getAnnotation(BrpcMethod.class);
-            this.isOneway = sp != null && sp.isOneway();
+            this.isOneway = isOneway;
             this.parameterTypes = method.getGenericParameterTypes();
         }
 

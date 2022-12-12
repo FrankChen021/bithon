@@ -19,12 +19,16 @@ package org.bithon.component.brpc.invocation;
 import org.bithon.component.brpc.IServiceController;
 import org.bithon.component.brpc.channel.IChannelWriter;
 import org.bithon.component.brpc.endpoint.EndPoint;
+import org.bithon.component.brpc.message.Headers;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.InetSocketAddress;
 
+/**
+ * @author frankchen
+ */
 public class ServiceStubFactory {
 
     private static Method setDebugMethod;
@@ -47,25 +51,35 @@ public class ServiceStubFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T create(String appName, IChannelWriter channelWriter, Class<T> serviceInterface) {
+    public static <T> T create(String clientAppName,
+                               Headers headers,
+                               IChannelWriter channelWriter,
+                               Class<T> serviceInterface) {
         return (T) Proxy.newProxyInstance(serviceInterface.getClassLoader(),
                                           new Class[]{serviceInterface, IServiceController.class},
-                                          new ServiceInvocationHandler(appName,
-                                                                       channelWriter,
-                                                                       ClientInvocationManager.getInstance()));
+                                          new ServiceInvocationStub(clientAppName,
+                                                                    headers,
+                                                                    channelWriter,
+                                                                    ClientInvocationManager.getInstance()));
     }
 
-    static class ServiceInvocationHandler implements InvocationHandler {
+    /**
+     * Service stub that proxies a remote service
+     */
+    static class ServiceInvocationStub implements InvocationHandler {
         private final IChannelWriter channelWriter;
         private final ClientInvocationManager clientInvocationManager;
         private final String appName;
+        private final Headers headers;
         private boolean debugEnabled;
         private long timeout = 5000;
 
-        public ServiceInvocationHandler(String appName,
-                                        IChannelWriter channelWriter,
-                                        ClientInvocationManager clientInvocationManager) {
+        public ServiceInvocationStub(String appName,
+                                     Headers headers,
+                                     IChannelWriter channelWriter,
+                                     ClientInvocationManager clientInvocationManager) {
             this.appName = appName;
+            this.headers = headers;
             this.channelWriter = channelWriter;
             this.clientInvocationManager = clientInvocationManager;
         }
@@ -94,7 +108,13 @@ public class ServiceStubFactory {
             if (getChannelMethod.equals(method)) {
                 return this.channelWriter;
             }
-            return clientInvocationManager.invoke(appName, channelWriter, debugEnabled, timeout, method, args);
+            return clientInvocationManager.invoke(appName,
+                                                  headers,
+                                                  channelWriter,
+                                                  debugEnabled,
+                                                  timeout,
+                                                  method,
+                                                  args);
         }
     }
 }

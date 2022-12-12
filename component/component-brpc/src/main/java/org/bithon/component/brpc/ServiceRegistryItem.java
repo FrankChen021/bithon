@@ -16,29 +16,39 @@
 
 package org.bithon.component.brpc;
 
+import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.serializer.Serializer;
 import shaded.io.netty.util.internal.StringUtil;
 
 import java.lang.reflect.Method;
 
 /**
+ * metadata of a method in remote service
+ *
  * @author frank.chen021@outlook.com
  * @date 20/10/21 9:20 pm
  */
-public class ServiceConfiguration {
+public class ServiceRegistryItem {
     private final String serviceName;
     private final String methodName;
     private final boolean isOneway;
     private final Serializer serializer;
 
-    public ServiceConfiguration(String serviceName, String methodName, boolean isOneway, Serializer serializer) {
+    private final int messageType;
+
+    public ServiceRegistryItem(String serviceName,
+                               String methodName,
+                               boolean isOneway,
+                               int messageType,
+                               Serializer serializer) {
         this.serviceName = serviceName;
         this.methodName = methodName;
         this.isOneway = isOneway;
+        this.messageType = messageType;
         this.serializer = serializer;
     }
 
-    public static ServiceConfiguration getServiceConfiguration(Method method) {
+    public static ServiceRegistryItem create(Method method) {
         BrpcService serviceConfig = method.getDeclaringClass().getAnnotation(BrpcService.class);
         BrpcMethod methodConfig = method.getAnnotation(BrpcMethod.class);
 
@@ -64,11 +74,11 @@ public class ServiceConfiguration {
             serializer = serviceConfig == null ? Serializer.BINARY : serviceConfig.serializer();
         }
 
-        String serviceName = serviceConfig != null && !StringUtil.isNullOrEmpty(serviceConfig.name())
-                             ? serviceConfig.name()
-                             : method.getDeclaringClass().getName();
-
-        return new ServiceConfiguration(serviceName, methodName, isOneway, serializer);
+        return new ServiceRegistryItem(getServiceName(method.getDeclaringClass()),
+                                       methodName,
+                                       isOneway,
+                                       methodConfig == null ? ServiceMessageType.CLIENT_REQUEST_V2 : methodConfig.messageType(),
+                                       serializer);
     }
 
     public Serializer getSerializer() {
@@ -85,5 +95,16 @@ public class ServiceConfiguration {
 
     public String getServiceName() {
         return serviceName;
+    }
+
+    public int getMessageType() {
+        return messageType;
+    }
+
+    public static String getServiceName(Class<?> serviceDeclaring) {
+        BrpcService serviceConfig = serviceDeclaring.getAnnotation(BrpcService.class);
+        return serviceConfig != null && !StringUtil.isNullOrEmpty(serviceConfig.name())
+               ? serviceConfig.name()
+               : serviceDeclaring.getName();
     }
 }

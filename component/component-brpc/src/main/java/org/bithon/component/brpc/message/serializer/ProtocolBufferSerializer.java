@@ -55,6 +55,9 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * @author frankchen
+ */
 public class ProtocolBufferSerializer {
 
     public void serialize(MessageLite obj, CodedOutputStream os) throws IOException {
@@ -472,7 +475,7 @@ public class ProtocolBufferSerializer {
                 superType = ((Class<?>) type).getGenericSuperclass();
             }
             if (!(superType instanceof ParameterizedType)) {
-                throw new IllegalStateException("Unsupport Map type to deserialize: " + type.toString());
+                throw new IllegalStateException("Unsupported Map type to deserialize: " + type.toString());
             }
             ParameterizedType parameterizedType = (ParameterizedType) superType;
             Type keyType = parameterizedType.getActualTypeArguments()[0];
@@ -532,7 +535,7 @@ public class ProtocolBufferSerializer {
 
             Class<?> clazz = (Class<?>) type;
             if (clazz.isInterface()) {
-                throw new IllegalStateException("unsupport type " + type);
+                throw new IllegalStateException("unsupported type " + type);
             }
 
             if ("java.util.Collections$UnmodifiableMap".equals(clazz.getName())) {
@@ -543,7 +546,7 @@ public class ProtocolBufferSerializer {
                 //noinspection unchecked
                 return (Map<Object, Object>) clazz.getDeclaredConstructor().newInstance();
             } catch (Exception e) {
-                throw new IllegalStateException("unsupport type " + type, e);
+                throw new IllegalStateException("unsupported type " + type, e);
             }
         }
     }
@@ -570,7 +573,7 @@ public class ProtocolBufferSerializer {
             } catch (InvocationTargetException e) {
                 throw new IllegalStateException("Unable to deserialize object:" + e.getTargetException());
             } catch (IllegalAccessException e) {
-                throw new IllegalStateException("UnknowN class to deserialize:" + e.getMessage());
+                throw new IllegalStateException("UnknownN class to deserialize:" + e.getMessage());
             }
         }
     }

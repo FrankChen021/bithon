@@ -14,25 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.cmd.api;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
+package org.bithon.component.brpc;
 
 /**
- * @author Frank Chen
- * @date 2022/8/7 21:20
+ * @author frank.chen021@outlook.com
+ * @date 2022/12/9 21:21
  */
-public class ClientApplication {
-    @Getter
-    private final String host;
-    @Getter
-    private final int port;
-
-    @JsonCreator
-    public ClientApplication(@JsonProperty("host") String host, @JsonProperty("port") int port) {
-        this.host = host;
-        this.port = port;
-    }
+@BrpcService(name = "brpc.IServiceRegistry")
+public interface IServiceRegistry {
+    boolean contains(String service);
 }

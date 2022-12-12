@@ -20,8 +20,7 @@ import org.bithon.component.brpc.BrpcMethod;
 import org.bithon.component.brpc.ServiceRegistry;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.invocation.ServiceStubFactory;
-import org.bithon.component.brpc.message.ServiceMessage;
-import org.bithon.component.brpc.message.ServiceMessageType;
+import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
@@ -40,23 +39,20 @@ import shaded.io.netty.channel.socket.nio.NioServerSocketChannel;
 import shaded.io.netty.channel.socket.nio.NioSocketChannel;
 import shaded.io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import shaded.io.netty.handler.codec.LengthFieldPrepender;
-import shaded.io.netty.util.Attribute;
-import shaded.io.netty.util.AttributeKey;
 import shaded.io.netty.util.internal.StringUtil;
 
 import java.io.Closeable;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
+/**
+ * @author frankchen
+ */
 public class ServerChannel implements Closeable {
-
-    private static final AttributeKey<String> ATTR_CLIENT_NAME = AttributeKey.valueOf("client.name");
 
     private final NioEventLoopGroup bossGroup;
     private final NioEventLoopGroup workerGroup;
@@ -65,7 +61,7 @@ public class ServerChannel implements Closeable {
     /**
      * 服务端的请求直接在worker线程中处理，无需单独定义线程池
      */
-    private final ClientChannelManager clientChannelManager = new ClientChannelManager();
+    private final SessionManager sessionManager = new SessionManager();
 
     public ServerChannel() {
         this(8);
@@ -79,7 +75,7 @@ public class ServerChannel implements Closeable {
     /**
      * bind current service provider to this channel
      * NOTE:
-     * 1. only those methods defined in interface will be binded
+     * 1. only those methods defined in interface will be bound
      * 2. methods name can be the same, but the methods with same name must use {@link BrpcMethod} to give alias name to each method
      */
     public ServerChannel bindService(Object impl) {
@@ -93,14 +89,10 @@ public class ServerChannel implements Closeable {
         serverBootstrap
             .group(bossGroup, workerGroup)
             .channel(NioServerSocketChannel.class)
-            //设置底层使用对象池减少内存开销 提升GC效率
             .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
             .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-            //服务端可连接队列数,对应TCP/IP协议listen函数中backlog参数
             .option(ChannelOption.SO_BACKLOG, 1024)
-            //设置TCP长连接,一般如果两个小时内没有数据的通信时,TCP会自动发送一个活动探测数据报文
             .childOption(ChannelOption.SO_KEEPALIVE, false)
-            //将小的数据包包装成更大的帧进行传送，提高网络的负载
             .childOption(ChannelOption.TCP_NODELAY, true)
             .childHandler(new ChannelInitializer<NioSocketChannel>() {
                 @Override
@@ -110,7 +102,7 @@ public class ServerChannel implements Closeable {
                     pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
                     pipeline.addLast("decoder", new ServiceMessageInDecoder());
                     pipeline.addLast("encoder", new ServiceMessageOutEncoder());
-                    pipeline.addLast(clientChannelManager);
+                    pipeline.addLast(sessionManager);
                     pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry));
                 }
             });
@@ -120,10 +112,6 @@ public class ServerChannel implements Closeable {
             System.exit(-1);
         }
         Runtime.getRuntime().addShutdownHook(new Thread(this::close));
-        return this;
-    }
-
-    public ServerChannel debug(boolean on) {
         return this;
     }
 
@@ -139,80 +127,111 @@ public class ServerChannel implements Closeable {
         }
     }
 
-    public Set<EndPoint> getClientEndpoints() {
-        return clientChannelManager.getEndpoints();
+    public List<Session> getSessions() {
+        return sessionManager.getSessions();
     }
 
-    public <T> T getRemoteService(EndPoint clientEndpoint, Class<T> serviceClass) {
-        Channel channel = clientChannelManager.getChannel(clientEndpoint);
-        if (channel == null) {
-            return null;
-        }
+    public <T> T getRemoteService(String remoteAppId, Class<T> serviceClass) {
+        Channel channel = sessionManager.getSessions()
+                                        .stream()
+                                        .filter(s -> remoteAppId.equals(s.getAppId()))
+                                        .findFirst()
+                                        .map(value -> value.channel)
+                                        .orElse(null);
 
         return ServiceStubFactory.create(null,
+                                         Headers.EMPTY,
                                          new Server2ClientChannelWriter(channel),
                                          serviceClass);
     }
 
-    public <T> List<T> getRemoteService(String appName, Class<T> serviceClass) {
+    public <T> List<T> getRemoteServices(String appName, Class<T> serviceClass) {
+        return sessionManager.getSessions()
+                             .stream()
+                             .filter(s -> appName.equals(s.getAppName()))
+                             .map(s -> ServiceStubFactory.create(null,
+                                                                 Headers.EMPTY,
+                                                                 new Server2ClientChannelWriter(s.channel),
+                                                                 serviceClass))
+                             .collect(Collectors.toList());
 
-        List<T> services = new ArrayList<>();
-        this.clientChannelManager.getApp2Channels().getOrDefault(appName, Collections.emptySet()).forEach(channel -> {
-            T service = ServiceStubFactory.create(null,
-                                                  new Server2ClientChannelWriter(channel),
-                                                  serviceClass);
-            services.add(service);
-        });
-        return services;
+    }
+
+    public static class Session {
+        private final Channel channel;
+
+        /**
+         * Socket endpoint of client
+         */
+        private final EndPoint endpoint;
+        private String appName;
+
+        /**
+         * a unique id for client
+         */
+        private String appId;
+
+        public Session(Channel channel) {
+            this.channel = channel;
+            this.endpoint = EndPoint.of((InetSocketAddress) channel.remoteAddress());
+
+            // appId default to endpoint at first
+            this.appId = this.endpoint.toString();
+        }
+
+        public String getAppName() {
+            return appName;
+        }
+
+        public Channel getChannel() {
+            return channel;
+        }
+
+        public EndPoint getEndpoint() {
+            return endpoint;
+        }
+
+        public String getAppId() {
+            return appId;
+        }
+
+        public void setAppId(String appId) {
+            this.appId = appId;
+        }
     }
 
     @ChannelHandler.Sharable
-    private static class ClientChannelManager extends ChannelInboundHandlerAdapter {
+    private static class SessionManager extends ChannelInboundHandlerAdapter {
 
-        private final Map<EndPoint, Channel> endpoint2Channels = new ConcurrentHashMap<>();
-        private final Map<String, Set<Channel>> app2Channels = new ConcurrentHashMap<>();
+        private final Map<String, Session> sessions = new ConcurrentHashMap<>();
 
-        public Set<EndPoint> getEndpoints() {
-            return endpoint2Channels.keySet();
-        }
-
-        public Channel getChannel(EndPoint endpoint) {
-            return endpoint2Channels.get(endpoint);
-        }
-
-        public Map<String, Set<Channel>> getApp2Channels() {
-            return app2Channels;
+        public List<Session> getSessions() {
+            return new ArrayList<>(sessions.values());
         }
 
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            InetSocketAddress socketAddress = (InetSocketAddress) ctx.channel().remoteAddress();
-            endpoint2Channels.computeIfAbsent(EndPoint.of(socketAddress), key -> ctx.channel());
+            sessions.computeIfAbsent(ctx.channel().id().asLongText(), key -> new Session(ctx.channel()));
             super.channelActive(ctx);
         }
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            if (!(msg instanceof ServiceMessage)) {
-                // NO Need to handle messages
-                return;
-            }
-
-            ServiceMessage message = (ServiceMessage) msg;
-            if (message.getMessageType() != ServiceMessageType.CLIENT_REQUEST) {
+            if (!(msg instanceof ServiceRequestMessageIn)) {
                 super.channelRead(ctx, msg);
                 return;
             }
 
-            ServiceRequestMessageIn request = (ServiceRequestMessageIn) message;
-            if (StringUtil.isNullOrEmpty(request.getAppName())) {
-                super.channelRead(ctx, msg);
-                return;
-            }
+            Session session = sessions.get(ctx.channel().id().asLongText());
+            if (session != null) {
 
-            Attribute<String> clientName = ctx.channel().attr(ATTR_CLIENT_NAME);
-            if (clientName.get() == null && clientName.setIfAbsent(request.getAppName()) == null) {
-                app2Channels.computeIfAbsent(request.getAppName(), client -> new HashSet<>()).add(ctx.channel());
+                // Update appName
+                ServiceRequestMessageIn request = (ServiceRequestMessageIn) msg;
+                if (!StringUtil.isNullOrEmpty(request.getAppName())) {
+                    session.appName = request.getAppName();
+                }
+
+                session.setAppId(request.getHeaders().get(Headers.HEADER_APP_ID));
             }
 
             super.channelRead(ctx, msg);
@@ -220,20 +239,7 @@ public class ServerChannel implements Closeable {
 
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-            InetSocketAddress socketAddress = (InetSocketAddress) ctx.channel().remoteAddress();
-            endpoint2Channels.remove(EndPoint.of(socketAddress));
-
-            Attribute<String> clientNameKey = ctx.channel().attr(ATTR_CLIENT_NAME);
-            String clientName = clientNameKey.get();
-            if (clientName != null) {
-                Set<Channel> chs = app2Channels.get(clientName);
-                chs.remove(ctx.channel());
-
-                if (chs.isEmpty()) {
-                    app2Channels.remove(clientName);
-                }
-            }
-
+            sessions.remove(ctx.channel().id().asLongText());
             super.channelInactive(ctx);
         }
     }
