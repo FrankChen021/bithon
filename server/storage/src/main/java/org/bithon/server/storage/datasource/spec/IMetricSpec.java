@@ -30,7 +30,6 @@ import org.bithon.server.storage.datasource.spec.max.LongMaxMetricSpec;
 import org.bithon.server.storage.datasource.spec.min.LongMinMetricSpec;
 import org.bithon.server.storage.datasource.spec.sum.DoubleSumMetricSpec;
 import org.bithon.server.storage.datasource.spec.sum.LongSumMetricSpec;
-import org.bithon.server.storage.datasource.typing.IValueType;
 
 /**
  * @author frank.chen021@outlook.com
@@ -87,9 +86,6 @@ public interface IMetricSpec extends IColumnSpec {
      * 指标单位
      */
     String getUnit();
-
-    @JsonIgnore
-    IValueType getValueType();
 
     void setOwner(DataSourceSchema dataSource);
 
