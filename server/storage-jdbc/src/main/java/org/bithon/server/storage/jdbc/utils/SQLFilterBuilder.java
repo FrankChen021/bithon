@@ -35,7 +35,6 @@ import org.bithon.server.commons.matcher.StringRegexMatcher;
 import org.bithon.server.commons.matcher.StringStartsWithMatcher;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.IColumnSpec;
-import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.typing.StringValueType;
 import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
@@ -46,6 +45,7 @@ import java.util.stream.Stream;
 
 /**
  * build SQL where clause
+ *
  * @author frank.chenling
  */
 public class SQLFilterBuilder implements IMatcherVisitor<String> {
@@ -55,7 +55,6 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     private final IColumnSpec columnSpec;
 
     public SQLFilterBuilder(DataSourceSchema schema, IFilter filter) {
-        IDimensionSpec dimSpec = null;
         if (IFilter.TYPE_DIMENSION.equals(filter.getType())) {
             String nameType = ((DimensionFilter) filter).getNameType();
             if ("name".equals(nameType)) {
@@ -67,7 +66,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
             }
             Preconditions.checkNotNull(columnSpec, "dimension [%s] is not defined in data source [%s]", filter.getName(), schema.getName());
 
-            this.fieldName = dimSpec.getName();
+            this.fieldName = columnSpec.getName();
         } else {
             columnSpec = schema.getMetricSpecByName(filter.getName());
             Preconditions.checkNotNull(columnSpec, "metric [%s] is not defined in data source [%s]", filter.getName(), schema.getName());

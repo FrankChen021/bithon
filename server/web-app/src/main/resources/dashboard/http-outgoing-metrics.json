@@ -127,8 +127,8 @@
             {
               "dimension": "statusCode",
               "matcher": {
-                "type": "notEqual",
-                "pattern": "200"
+                "type": "gt",
+                "value": "200"
               }
             }
           ]
