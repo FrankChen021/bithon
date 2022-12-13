@@ -83,31 +83,29 @@ public class PluginManager {
 
     private IPlugin loadPlugin(JarEntry jarEntry, JarClassLoader pluginClassLoader) {
         String jarEntryName = jarEntry.getName();
-        String className = jarEntryName.substring(0, jarEntryName.length() - ".class".length()).replace('/', '.');
+        String pluginClassName = jarEntryName.substring(0, jarEntryName.length() - ".class".length()).replace('/', '.');
 
         try {
-            Class<?> pluginClass = Class.forName(className,
-                                                 true,
-                                                 pluginClassLoader);
+            Class<?> pluginClass = Class.forName(pluginClassName, true, pluginClassLoader);
 
             Boolean isPluginDisabled = PluginConfigurationManager.load(pluginClass)
-                                                                 .getConfig(PluginConfigurationManager.getPluginConfigurationPrefixName(className)
-                                                                            + "disabled", Boolean.class);
+                                                                 .getConfig(PluginConfigurationManager.getPluginConfigurationPrefixName(pluginClassName) + "disabled",
+                                                                            Boolean.class);
             if (isPluginDisabled != null && isPluginDisabled) {
-                LOG.info("Found plugin {}, but it's DISABLED by configuration", jarEntry.getName());
+                LOG.info("Found plugin {}, but it's DISABLED by configuration", pluginClassName);
                 return null;
             }
 
-            LOG.info("Found plugin {}", className);
+            LOG.info("Found plugin {}", pluginClassName);
             Object pluginInstance = pluginClass.getDeclaredConstructor().newInstance();
             if (pluginInstance instanceof IPlugin) {
                 return (IPlugin) pluginInstance;
             } else {
-                LOG.info("Resource [{}] is not type of IPlugin", className);
+                LOG.info("Resource [{}] is not type of IPlugin. The class name does not comply with the plugin standard. Please change it.", pluginClassName);
                 return null;
             }
         } catch (Throwable e) {
-            LOG.error(String.format(Locale.ENGLISH, "Failed to load plugin [%s]", jarEntryName), e);
+            LOG.error(String.format(Locale.ENGLISH, "Failed to load plugin [%s]", pluginClassName), e);
             return null;
         }
     }
