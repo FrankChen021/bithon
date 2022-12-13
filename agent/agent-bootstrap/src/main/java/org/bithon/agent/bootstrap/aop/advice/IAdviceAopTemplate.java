@@ -17,6 +17,7 @@
 package org.bithon.agent.bootstrap.aop.advice;
 
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
+import org.bithon.agent.bootstrap.aop.IAopLogger;
 import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -27,7 +28,7 @@ import java.util.Locale;
  * Classes of spring beans are re-transformed after these classes are loaded,
  * so we HAVE to use {@link Advice} instead of {@link shaded.net.bytebuddy.implementation.MethodDelegation}to intercept methods
  * <p>
- * And because the byte code of the methods are weaved into target classes which are loaded by many different class loaders,
+ * And because the byte code of the methods are weaved into target classes which are loaded by many class loaders,
  * we also HAVE to inject any dependencies to the bootstrap class loader so that they could be found via any class loader
  *
  * @author frank.chen021@outlook.com
@@ -35,7 +36,11 @@ import java.util.Locale;
  */
 public class IAdviceAopTemplate {
 
-    // assigned by class generator
+    private static final IAopLogger LOG = BootstrapHelper.createAopLogger(IAdviceAopTemplate.class);
+
+    /**
+     * assigned by class generator
+     */
     private static String INTERCEPTOR_CLASS_NAME;
 
     private static volatile IAdviceInterceptor interceptorInstance;
@@ -46,7 +51,7 @@ public class IAdviceAopTemplate {
         }
 
         try {
-            // load class out of sync to eliminate potential dead lock
+            // load class out of sync to eliminate potential deadlock
             Class<?> interceptorClass = Class.forName(INTERCEPTOR_CLASS_NAME,
                                                       true,
                                                       BootstrapHelper.getPluginClassLoader());
@@ -56,12 +61,11 @@ public class IAdviceAopTemplate {
                     return interceptorInstance;
                 }
 
-                interceptorInstance = (IAdviceInterceptor) interceptorClass.newInstance();
+                interceptorInstance = (IAdviceInterceptor) interceptorClass.getDeclaredConstructor().newInstance();
             }
 
         } catch (Exception e) {
-            BootstrapHelper.createAopLogger(IAdviceAopTemplate.class)
-                           .error(String.format(Locale.ENGLISH, "Failed to create interceptor [%s]", INTERCEPTOR_CLASS_NAME), e);
+            LOG.error(String.format(Locale.ENGLISH, "Failed to create interceptor [%s]", INTERCEPTOR_CLASS_NAME), e);
         }
         return interceptorInstance;
     }
@@ -80,10 +84,15 @@ public class IAdviceAopTemplate {
         if (interceptor != null) {
             Object[] newArgs = args;
 
-            context = interceptor.onMethodEnter(method, target, newArgs);
+            try {
+                context = interceptor.onMethodEnter(method, target, newArgs);
+            } catch (Throwable t) {
+                LOG.error(String.format(Locale.ENGLISH, "Failed to execute interceptor [%s]", INTERCEPTOR_CLASS_NAME), t);
+                return;
+            }
 
-            //this assignment must be kept since it tells bytebuddy that args might have been re-written
-            // so that bytebyddy re-map the args to original function input argument
+            // This assignment must be kept since it tells bytebuddy that args might have been re-written
+            // so that bytebuddy re-map the args to original function input argument
             args = newArgs;
         }
     }
@@ -98,11 +107,18 @@ public class IAdviceAopTemplate {
                             final @Advice.AllArguments Object[] args,
                             final @Advice.Thrown Throwable exception,
                             final @Advice.Local("context") Object context) {
-        if (context != null) {
-            IAdviceInterceptor interceptor = getOrCreateInterceptor();
-            if (interceptor != null) {
-                returning = interceptor.onMethodExit(method, target, args, returning, exception, context);
-            }
+        if (context == null) {
+            return;
+        }
+
+        IAdviceInterceptor interceptor = getOrCreateInterceptor();
+        if (interceptor == null) {
+            return;
+        }
+        try {
+            returning = interceptor.onMethodExit(method, target, args, returning, exception, context);
+        } catch (Throwable t) {
+            LOG.error(String.format(Locale.ENGLISH, "Failed to execute exit interceptor [%s]", INTERCEPTOR_CLASS_NAME), t);
         }
     }
 }
