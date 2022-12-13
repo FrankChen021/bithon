@@ -16,6 +16,7 @@
 
 package org.bithon.agent.plugin.kafka.consumer.interceptor;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
@@ -69,22 +70,32 @@ public class ListenerConsumer$PollAndInvoke extends AbstractInterceptor {
      */
     @Override
     public void onConstruct(AopContext aopContext) {
-        String url = null;
+
         ContainerProperties properties = (ContainerProperties) ReflectionUtils.getFieldValue(aopContext.getTarget(), "containerProperties");
-        if (properties != null) {
-            String[] topics = properties.getTopics();
-            if (topics != null) {
-                url = "kafka://" + String.join(",", topics);
-            } else if (properties.getTopicPattern() != null) {
-                url = "kafka://" + properties.getTopicPattern().pattern();
-            } else {
-                TopicPartitionOffset[] partitions = properties.getTopicPartitions();
-                if (partitions != null) {
-                    url = "kafka://" + Stream.of(partitions).map(TopicPartitionOffset::getTopic).collect(Collectors.joining(","));
-                }
+        if (properties == null) {
+            return;
+        }
+
+        String bootstrapServers = properties.getKafkaConsumerProperties().getProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG);
+        if (bootstrapServers == null) {
+            return;
+        }
+        String bootstrapServer = Stream.of(bootstrapServers.split(",")).map(String::trim).filter(s -> !s.isEmpty()).sorted().findFirst().get();
+
+        String url = "kafka://" + bootstrapServer;
+        String[] topics = properties.getTopics();
+        if (topics != null) {
+            url += "?topic=?" + String.join(",", topics);
+        } else if (properties.getTopicPattern() != null) {
+            url += "?topic=?" + properties.getTopicPattern().pattern();
+        } else {
+            TopicPartitionOffset[] partitions = properties.getTopicPartitions();
+            if (partitions != null) {
+                url += "?topic=?" + Stream.of(partitions).map(TopicPartitionOffset::getTopic).collect(Collectors.joining(","));
             }
         }
 
+        // Keep the uri for further use
         IBithonObject bithonObject = aopContext.castTargetAs();
         bithonObject.setInjectedObject(url);
     }
