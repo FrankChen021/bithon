@@ -19,6 +19,7 @@
     <module>apache-druid</module>
     <module>bithon-brpc</module>
     <module>bithon-sdk</module>
+    <module>grpc</module>
     <module>guice</module>
     <module>jvm</module>
     <module>kafka</module>
@@ -65,6 +66,13 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-bithon-sdk</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- Google gRPC -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-grpc</artifactId>
       <version>${project.version}</version>
     </dependency>
 
