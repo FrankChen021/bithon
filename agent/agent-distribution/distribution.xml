@@ -83,7 +83,7 @@
     </fileSet>
 
     <fileSet>
-      <directory>../agent-plugins/target/agent-plugins</directory>
+      <directory>../agent-plugins/target/</directory>
       <outputDirectory>plugins</outputDirectory>
       <includes>
         <include>*.jar</include>

@@ -246,6 +246,9 @@
   <build>
     <finalName>agent-plugins</finalName>
     <plugins>
+      <!--
+      Use assembly to move all plugins to a target directory and then pack them into one jar
+      -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
@@ -261,6 +264,27 @@
             <phase>package</phase>
             <goals>
               <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!--
+      Rename the target jar because maven-assembly has no capability to rename a file.
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <configuration>
+              <target>
+                <move file="${project.build.directory}/${project.build.finalName}.jar" tofile="${project.build.directory}/agent-plugins-all-in-one.jar" />
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
             </goals>
           </execution>
         </executions>
