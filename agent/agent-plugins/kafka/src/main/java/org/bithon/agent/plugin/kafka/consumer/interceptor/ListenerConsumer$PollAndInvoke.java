@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.kafka.consumer.interceptor;
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
@@ -32,6 +32,7 @@ import org.bithon.agent.core.tracing.propagation.TraceMode;
 import org.bithon.agent.core.tracing.sampler.ISampler;
 import org.bithon.agent.core.tracing.sampler.SamplerFactory;
 import org.bithon.agent.core.tracing.sampler.SamplingMode;
+import org.bithon.agent.plugin.kafka.KafkaPluginContext;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.ReflectionUtils;
 import org.springframework.kafka.listener.ContainerProperties;
@@ -70,28 +71,27 @@ public class ListenerConsumer$PollAndInvoke extends AbstractInterceptor {
      */
     @Override
     public void onConstruct(AopContext aopContext) {
+        KafkaConsumer<?, ?> consumer = (KafkaConsumer<?, ?>) ReflectionUtils.getFieldValue(aopContext.getTarget(), "consumer");
+        if (consumer == null) {
+            return;
+        }
+        String cluster = ((KafkaPluginContext) ((IBithonObject) consumer).getInjectedObject()).clusterSupplier.get();
 
         ContainerProperties properties = (ContainerProperties) ReflectionUtils.getFieldValue(aopContext.getTarget(), "containerProperties");
         if (properties == null) {
             return;
         }
 
-        String bootstrapServers = properties.getKafkaConsumerProperties().getProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG);
-        if (bootstrapServers == null) {
-            return;
-        }
-        String bootstrapServer = Stream.of(bootstrapServers.split(",")).map(String::trim).filter(s -> !s.isEmpty()).sorted().findFirst().get();
-
-        String url = "kafka://" + bootstrapServer;
+        String url = "kafka://" + cluster;
         String[] topics = properties.getTopics();
         if (topics != null) {
-            url += "?topic=?" + String.join(",", topics);
+            url += "?topic=" + String.join(",", topics);
         } else if (properties.getTopicPattern() != null) {
-            url += "?topic=?" + properties.getTopicPattern().pattern();
+            url += "?topic=" + properties.getTopicPattern().pattern();
         } else {
             TopicPartitionOffset[] partitions = properties.getTopicPartitions();
             if (partitions != null) {
-                url += "?topic=?" + Stream.of(partitions).map(TopicPartitionOffset::getTopic).collect(Collectors.joining(","));
+                url += "?topic=" + Stream.of(partitions).map(TopicPartitionOffset::getTopic).collect(Collectors.joining(","));
             }
         }
 
