@@ -69,4 +69,36 @@ public class CommandApi {
             return CommandResponse.exception(e);
         }
     }
+
+    /**
+     *
+     * @param args A string pattern which comply with database's like expression.
+     *             For example:
+     *             "%CommandApi" will match all classes whose name ends with CommandApi
+     *             "CommandApi" matches only qualified class name that is the exact CommandApi
+     *             "%bithon% matches all qualified classes whose name contains bithon
+     */
+    @PostMapping("/api/command/jvm/dumpClazz")
+    public CommandResponse<List<String>> dumpClazz(@Valid @RequestBody CommandArgs<String> args) {
+        IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
+        if (command == null) {
+            return CommandResponse.error(StringUtils.format("client by id [%s] not found", args.getAppId()));
+        }
+        try {
+            String pattern;
+            if (StringUtils.isEmpty(args.getArgs())) {
+                pattern = ".*";
+            } else {
+                pattern = args.getArgs();
+                pattern = pattern.replace(".", "\\.").replace("%", ".*");
+            }
+            List<String> clazzList = command.dumpClazz(pattern);
+            if (clazzList != null) {
+                clazzList.sort(String::compareTo);
+            }
+            return CommandResponse.success(clazzList);
+        } catch (ServiceInvocationException e) {
+            return CommandResponse.exception(e);
+        }
+    }
 }

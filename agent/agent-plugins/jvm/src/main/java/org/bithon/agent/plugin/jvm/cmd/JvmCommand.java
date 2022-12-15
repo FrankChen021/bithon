@@ -17,13 +17,17 @@
 package org.bithon.agent.plugin.jvm.cmd;
 
 import org.bithon.agent.controller.cmd.IAgentCommand;
+import org.bithon.agent.core.aop.InstrumentationHelper;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -42,6 +46,15 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
         stackTraces.forEach((thread, stacks) -> threadsInfo.add(toThreadInfo(threadMxBean, cpuTimeEnabled, thread, stacks)));
 
         return threadsInfo;
+    }
+
+    @Override
+    public List<String> dumpClazz(String pattern) {
+        Pattern p = Pattern.compile(pattern);
+        return Arrays.stream(InstrumentationHelper.getInstance().getAllLoadedClasses())
+                     .map(Class::getName)
+                     .filter(name -> p.matcher(name).matches())
+                     .collect(Collectors.toList());
     }
 
     private static ThreadInfo toThreadInfo(ThreadMXBean threadMxBean, boolean cpuTimeEnabled, Thread thread, StackTraceElement[] stacks) {
