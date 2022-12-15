@@ -19,6 +19,7 @@ package org.bithon.agent.rpc.brpc.cmd;
 import org.bithon.component.brpc.BrpcService;
 import org.bithon.component.brpc.message.serializer.Serializer;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -105,5 +106,5 @@ public interface IJvmCommand {
 
     List<ThreadInfo> dumpThreads();
 
-    List<String> dumpClazz(String pattern);
+    Collection<String> dumpClazz(String pattern);
 }

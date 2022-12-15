@@ -24,6 +24,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -49,12 +50,12 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
     }
 
     @Override
-    public List<String> dumpClazz(String pattern) {
+    public Collection<String> dumpClazz(String pattern) {
         Pattern p = Pattern.compile(pattern);
         return Arrays.stream(InstrumentationHelper.getInstance().getAllLoadedClasses())
+                     .filter(clazz -> !clazz.isAnonymousClass() && !clazz.isSynthetic() && p.matcher(clazz.getName()).matches())
                      .map(Class::getName)
-                     .filter(name -> p.matcher(name).matches())
-                     .collect(Collectors.toList());
+                     .collect(Collectors.toSet());
     }
 
     private static ThreadInfo toThreadInfo(ThreadMXBean threadMxBean, boolean cpuTimeEnabled, Thread thread, StackTraceElement[] stacks) {

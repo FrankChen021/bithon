@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * @author Frank Chen
@@ -71,7 +73,6 @@ public class CommandApi {
     }
 
     /**
-     *
      * @param args A string pattern which comply with database's like expression.
      *             For example:
      *             "%CommandApi" will match all classes whose name ends with CommandApi
@@ -79,7 +80,7 @@ public class CommandApi {
      *             "%bithon% matches all qualified classes whose name contains bithon
      */
     @PostMapping("/api/command/jvm/dumpClazz")
-    public CommandResponse<List<String>> dumpClazz(@Valid @RequestBody CommandArgs<String> args) {
+    public CommandResponse<Set<String>> dumpClazz(@Valid @RequestBody CommandArgs<String> args) {
         IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
         if (command == null) {
             return CommandResponse.error(StringUtils.format("client by id [%s] not found", args.getAppId()));
@@ -92,11 +93,8 @@ public class CommandApi {
                 pattern = args.getArgs();
                 pattern = pattern.replace(".", "\\.").replace("%", ".*");
             }
-            List<String> clazzList = command.dumpClazz(pattern);
-            if (clazzList != null) {
-                clazzList.sort(String::compareTo);
-            }
-            return CommandResponse.success(clazzList);
+
+            return CommandResponse.success(new TreeSet<>(command.dumpClazz(pattern)));
         } catch (ServiceInvocationException e) {
             return CommandResponse.exception(e);
         }
