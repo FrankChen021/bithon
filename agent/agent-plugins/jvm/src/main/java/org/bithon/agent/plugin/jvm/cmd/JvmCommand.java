@@ -52,10 +52,23 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
     @Override
     public Collection<String> dumpClazz(String pattern) {
         Pattern p = Pattern.compile(pattern);
+
         return Arrays.stream(InstrumentationHelper.getInstance().getAllLoadedClasses())
-                     .filter(clazz -> !clazz.isAnonymousClass() && !clazz.isSynthetic() && p.matcher(clazz.getName()).matches())
+                     .filter(clazz -> !clazz.isSynthetic() &&
+                                      !isAnonymousClassOrLambda(clazz) &&
+                                      p.matcher(clazz.getName()).matches())
                      .map(Class::getName)
+                     // There might be same classes loaded into different class loaders, use set to deduplicate them
                      .collect(Collectors.toSet());
+    }
+
+    private boolean isAnonymousClassOrLambda(Class<?> clazz) {
+        try {
+            return clazz.getName().indexOf('/') > 0 || clazz.isAnonymousClass();
+        } catch (Throwable e) {
+            // Sometime is throws IllegalAccessError internally, need to catch and ignore it
+            return false;
+        }
     }
 
     private static ThreadInfo toThreadInfo(ThreadMXBean threadMxBean, boolean cpuTimeEnabled, Thread thread, StackTraceElement[] stacks) {
