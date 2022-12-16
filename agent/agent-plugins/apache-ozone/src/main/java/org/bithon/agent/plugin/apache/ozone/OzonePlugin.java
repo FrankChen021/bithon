@@ -35,10 +35,15 @@ public class OzonePlugin implements IPlugin {
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
-            forClass("org.apache.hadoop.ozone.client.rpc.RpcClient")
+            forClass("org.apache.hadoop.ozone.om.protocolPB.OzoneManagerProtocolClientSideTranslatorPB")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(ElementMatchers.isOverriddenFrom(ElementMatchers.named("org.apache.hadoop.ozone.client.protocol.ClientProtocol")))
+                                                   .onMethod(ElementMatchers.isOverriddenFrom(ElementMatchers.named(
+                                                       "org.apache.hadoop.ozone.om.protocol.OzoneManagerProtocol")))
+                                                   .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndNoArgs("close")
                                                    .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
                 )
         );

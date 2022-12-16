@@ -46,7 +46,7 @@ public class AbstractJavaResourceMethodDispatcher$Ctor extends AbstractIntercept
         InvocationHandler enhancedInvoker = (proxy, method, args) -> {
             ITraceSpan span = null;
             try {
-                span = TraceSpanFactory.newSpan("");
+                span = TraceSpanFactory.newSpan("endpoint");
             } catch (Exception ignored) {
             }
             try {
