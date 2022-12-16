@@ -17,6 +17,7 @@
   <modules>
     <module>alibaba-druid</module>
     <module>apache-druid</module>
+    <module>apache-ozone</module>
     <module>bithon-brpc</module>
     <module>bithon-sdk</module>
     <module>glassfish</module>
@@ -56,6 +57,11 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-apache-druid</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-ozone</artifactId>
       <version>${project.version}</version>
     </dependency>
 
