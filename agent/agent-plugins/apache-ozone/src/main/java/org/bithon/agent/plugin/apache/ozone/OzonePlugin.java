@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.apache.ozone;
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.core.plugin.IPlugin;
-import shaded.net.bytebuddy.matcher.ElementMatchers;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.Arrays;
 import java.util.List;
@@ -35,12 +35,24 @@ public class OzonePlugin implements IPlugin {
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
-            forClass("org.apache.hadoop.ozone.client.rpc.RpcClient")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(ElementMatchers.isOverriddenFrom(ElementMatchers.named("org.apache.hadoop.ozone.client.protocol.ClientProtocol")))
-                                                   .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
-                )
+                forClass("org.apache.hadoop.ozone.client.rpc.RpcClient")
+                        .methods(
+                                MethodPointCutDescriptorBuilder.build()
+                                        .onMethod(ElementMatchers.isOverriddenFrom(ElementMatchers.named("org.apache.hadoop.ozone.client.protocol.ClientProtocol")))
+                                        .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
+                        ),
+
+                forClass("org.apache.hadoop.ozone.om.protocolPB.OzoneManagerProtocolClientSideTranslatorPB")
+                        .methods(
+                                MethodPointCutDescriptorBuilder.build()
+                                        .onMethod(ElementMatchers.isOverriddenFrom(ElementMatchers.named(
+                                                "org.apache.hadoop.ozone.om.protocol.OzoneManagerProtocol")))
+                                        .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All"),
+
+                                MethodPointCutDescriptorBuilder.build()
+                                        .onMethodAndNoArgs("close")
+                                        .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
+                        )
         );
     }
 }
