@@ -1,11 +1,17 @@
 <assembly>
   <id>plugin</id>
   <formats>
-    <format>dir</format>
+    <format>jar</format>
   </formats>
   <includeBaseDirectory>false</includeBaseDirectory>
   <dependencySets>
     <dependencySet>
+      <unpack>true</unpack>
+      <unpackOptions>
+        <excludes>
+          <exclude>META-INF/maven/</exclude>
+        </excludes>
+      </unpackOptions>
       <useTransitiveDependencies>false</useTransitiveDependencies>
       <outputDirectory>/</outputDirectory>
     </dependencySet>

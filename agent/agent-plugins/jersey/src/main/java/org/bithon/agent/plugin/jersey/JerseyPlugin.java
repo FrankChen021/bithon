@@ -28,7 +28,7 @@ import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.
 /**
  * @author frankchen
  */
-public class Jersey implements IPlugin {
+public class JerseyPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {

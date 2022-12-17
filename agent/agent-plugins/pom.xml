@@ -262,6 +262,9 @@
   <build>
     <finalName>agent-plugins</finalName>
     <plugins>
+      <!--
+      Use assembly to move all plugins to a target directory and then pack them into one jar
+      -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
