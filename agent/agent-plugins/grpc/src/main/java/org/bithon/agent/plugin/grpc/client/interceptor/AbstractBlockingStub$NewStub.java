@@ -32,6 +32,8 @@ import shaded.net.bytebuddy.dynamic.ClassFileLocator;
 import shaded.net.bytebuddy.dynamic.DynamicType;
 
 import java.lang.reflect.ParameterizedType;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * Intercept {@link io.grpc.stub.AbstractBlockingStub#newStub(AbstractStub.StubFactory, Channel, CallOptions)} to enhance the generated stub classes
@@ -40,6 +42,8 @@ import java.lang.reflect.ParameterizedType;
  * @date 13/12/22 5:36 pm
  */
 public class AbstractBlockingStub$NewStub extends AbstractInterceptor {
+
+    private static final Set<String> INSTRUMENTED = new ConcurrentSkipListSet<>();
 
     private DynamicType.Unloaded<?> grpcStubAopClass;
 
@@ -63,6 +67,10 @@ public class AbstractBlockingStub$NewStub extends AbstractInterceptor {
         // StubFactory is defined to accept one generic argument
         ParameterizedType genericArgumentType = (ParameterizedType) stubFactory.getClass().getGenericInterfaces()[0];
         Class<?> clientStubClass = (Class<?>) genericArgumentType.getActualTypeArguments()[0];
+
+        if (!INSTRUMENTED.add(clientStubClass.getName())) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
 
         // Enhance the stub class
         DynamicInterceptorInstaller.getInstance().installOne(new DynamicInterceptorInstaller.AopDescriptor(clientStubClass.getName(),
