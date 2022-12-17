@@ -16,17 +16,17 @@
 
 package org.bithon.agent.rpc.brpc.cmd;
 
-import org.bithon.component.brpc.BrpcMethod;
 import org.bithon.component.brpc.BrpcService;
 import org.bithon.component.brpc.message.serializer.Serializer;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/7/2 3:50 下午
  */
-@BrpcService
+@BrpcService(serializer = Serializer.JSON)
 public interface IJvmCommand {
 
     class ThreadInfo {
@@ -104,6 +104,7 @@ public interface IJvmCommand {
         }
     }
 
-    @BrpcMethod(serializer = Serializer.JSON)
     List<ThreadInfo> dumpThreads();
+
+    Collection<String> dumpClazz(String pattern);
 }

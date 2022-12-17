@@ -16,7 +16,6 @@
 
 package org.bithon.server.collector.cmd.api;
 
-import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.component.brpc.channel.ServerChannel;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
@@ -32,6 +31,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * @author Frank Chen
@@ -51,8 +52,14 @@ public class CommandApi {
         List<ServerChannel.Session> sessions = commandService.getServerChannel()
                                                              .getSessions();
         for (ServerChannel.Session session : sessions) {
-            clients.computeIfAbsent(session.getAppName(), v -> new ArrayList<>(4))
-                   .add(ImmutableMap.of("appId", session.getAppId()));
+            Map<String, String> properties = new HashMap<>();
+            if (StringUtils.hasText(session.getAppId())) {
+                properties.put("appId", session.getAppId());
+            }
+            properties.put("endpoint", session.getEndpoint().toString());
+
+            clients.computeIfAbsent(session.getAppName(), v -> new ArrayList<>())
+                   .add(properties);
         }
         return clients;
     }
@@ -65,6 +72,34 @@ public class CommandApi {
         }
         try {
             return CommandResponse.success(command.dumpThreads());
+        } catch (ServiceInvocationException e) {
+            return CommandResponse.exception(e);
+        }
+    }
+
+    /**
+     * @param args A string pattern which comply with database's like expression.
+     *             For example:
+     *             "%CommandApi" will match all classes whose name ends with CommandApi
+     *             "CommandApi" matches only qualified class name that is the exact CommandApi
+     *             "%bithon% matches all qualified classes whose name contains bithon
+     */
+    @PostMapping("/api/command/jvm/dumpClazz")
+    public CommandResponse<Set<String>> dumpClazz(@Valid @RequestBody CommandArgs<String> args) {
+        IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
+        if (command == null) {
+            return CommandResponse.error(StringUtils.format("client by id [%s] not found", args.getAppId()));
+        }
+        try {
+            String pattern;
+            if (StringUtils.isEmpty(args.getArgs())) {
+                pattern = ".*";
+            } else {
+                pattern = args.getArgs();
+                pattern = pattern.replace(".", "\\.").replace("%", ".*");
+            }
+
+            return CommandResponse.success(new TreeSet<>(command.dumpClazz(pattern)));
         } catch (ServiceInvocationException e) {
             return CommandResponse.exception(e);
         }
