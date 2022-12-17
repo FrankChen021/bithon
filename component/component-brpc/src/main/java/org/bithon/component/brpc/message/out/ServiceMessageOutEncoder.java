@@ -20,14 +20,14 @@ import org.bithon.component.brpc.invocation.ClientInvocationManager;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-import shaded.com.google.protobuf.CodedOutputStream;
-import shaded.io.netty.buffer.ByteBuf;
-import shaded.io.netty.buffer.ByteBufOutputStream;
-import shaded.io.netty.channel.ChannelFutureListener;
-import shaded.io.netty.channel.ChannelHandlerContext;
-import shaded.io.netty.channel.ChannelPromise;
-import shaded.io.netty.handler.codec.EncoderException;
-import shaded.io.netty.handler.codec.MessageToByteEncoder;
+import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
+import org.bithon.shaded.io.netty.buffer.ByteBuf;
+import org.bithon.shaded.io.netty.buffer.ByteBufOutputStream;
+import org.bithon.shaded.io.netty.channel.ChannelFutureListener;
+import org.bithon.shaded.io.netty.channel.ChannelHandlerContext;
+import org.bithon.shaded.io.netty.channel.ChannelPromise;
+import org.bithon.shaded.io.netty.handler.codec.EncoderException;
+import org.bithon.shaded.io.netty.handler.codec.MessageToByteEncoder;
 
 /**
  * @author frankchen

@@ -27,10 +27,10 @@ import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
-import shaded.io.netty.channel.ChannelHandler;
-import shaded.io.netty.channel.ChannelHandlerContext;
-import shaded.io.netty.channel.ChannelInboundHandlerAdapter;
-import shaded.io.netty.handler.codec.DecoderException;
+import org.bithon.shaded.io.netty.channel.ChannelHandler;
+import org.bithon.shaded.io.netty.channel.ChannelHandlerContext;
+import org.bithon.shaded.io.netty.channel.ChannelInboundHandlerAdapter;
+import org.bithon.shaded.io.netty.handler.codec.DecoderException;
 
 import java.io.IOException;
 

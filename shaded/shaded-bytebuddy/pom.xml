@@ -41,7 +41,7 @@
               <relocations>
                 <relocation>
                   <pattern>net.bytebuddy</pattern>
-                  <shadedPattern>shaded.net.bytebuddy</shadedPattern>
+                  <shadedPattern>org.bithon.shaded.net.bytebuddy</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>

@@ -18,13 +18,13 @@ package org.bithon.agent.sentinel.servlet;
 
 import org.bithon.agent.sentinel.ISentinelListener;
 import org.bithon.agent.sentinel.SentinelRuleManager;
-import shaded.com.alibaba.csp.sentinel.Entry;
-import shaded.com.alibaba.csp.sentinel.EntryType;
-import shaded.com.alibaba.csp.sentinel.ResourceTypeConstants;
-import shaded.com.alibaba.csp.sentinel.SphU;
-import shaded.com.alibaba.csp.sentinel.slots.block.BlockException;
-import shaded.com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
-import shaded.com.alibaba.csp.sentinel.slots.block.flow.FlowException;
+import org.bithon.shaded.com.alibaba.csp.sentinel.Entry;
+import org.bithon.shaded.com.alibaba.csp.sentinel.EntryType;
+import org.bithon.shaded.com.alibaba.csp.sentinel.ResourceTypeConstants;
+import org.bithon.shaded.com.alibaba.csp.sentinel.SphU;
+import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.BlockException;
+import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
+import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.flow.FlowException;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;

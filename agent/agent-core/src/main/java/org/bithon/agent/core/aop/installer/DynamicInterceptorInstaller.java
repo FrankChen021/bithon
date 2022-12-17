@@ -20,16 +20,16 @@ import org.bithon.agent.core.aop.AopDebugger;
 import org.bithon.agent.core.aop.InstrumentationHelper;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-import shaded.net.bytebuddy.agent.builder.AgentBuilder;
-import shaded.net.bytebuddy.asm.Advice;
-import shaded.net.bytebuddy.description.method.MethodDescription;
-import shaded.net.bytebuddy.description.type.TypeDescription;
-import shaded.net.bytebuddy.dynamic.DynamicType;
-import shaded.net.bytebuddy.matcher.ElementMatcher;
-import shaded.net.bytebuddy.matcher.ElementMatchers;
-import shaded.net.bytebuddy.matcher.NameMatcher;
-import shaded.net.bytebuddy.matcher.StringSetMatcher;
-import shaded.net.bytebuddy.utility.JavaModule;
+import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
+import org.bithon.shaded.net.bytebuddy.asm.Advice;
+import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
+import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
+import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
+import org.bithon.shaded.net.bytebuddy.matcher.NameMatcher;
+import org.bithon.shaded.net.bytebuddy.matcher.StringSetMatcher;
+import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
 
 import java.security.ProtectionDomain;
 import java.util.Collections;
@@ -59,7 +59,7 @@ public class DynamicInterceptorInstaller {
      * Install one interceptor
      */
     public void installOne(AopDescriptor descriptor) {
-        new AgentBuilder.Default().ignore(ElementMatchers.nameStartsWith("shaded."))
+        new AgentBuilder.Default().ignore(ElementMatchers.nameStartsWith("org.bithon.shaded."))
                                   .disableClassFormatChanges()
                                   .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
                                   .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
@@ -75,7 +75,7 @@ public class DynamicInterceptorInstaller {
     public void install(Map<String, AopDescriptor> descriptors) {
         ElementMatcher<? super TypeDescription> typeMatcher = new NameMatcher<>(new StringSetMatcher(new HashSet<>(descriptors.keySet())));
 
-        new AgentBuilder.Default().ignore(ElementMatchers.nameStartsWith("shaded."))
+        new AgentBuilder.Default().ignore(ElementMatchers.nameStartsWith("org.bithon.shaded."))
                                   .disableClassFormatChanges()
                                   .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
                                   .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)

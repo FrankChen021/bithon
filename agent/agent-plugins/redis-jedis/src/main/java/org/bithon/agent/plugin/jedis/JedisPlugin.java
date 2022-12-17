@@ -21,7 +21,7 @@ import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.core.aop.matcher.Matchers;
 import org.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
 import org.bithon.agent.core.plugin.IPlugin;
-import shaded.net.bytebuddy.matcher.ElementMatchers;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.Arrays;
 import java.util.List;

@@ -18,8 +18,8 @@ package org.bithon.agent.core.aop;
 
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-import shaded.net.bytebuddy.agent.builder.AgentBuilder;
-import shaded.net.bytebuddy.utility.JavaModule;
+import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
+import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
 
 import java.util.Locale;
 

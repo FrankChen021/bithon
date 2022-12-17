@@ -18,11 +18,11 @@ package org.bithon.component.brpc.message.in;
 
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.UnknownMessageException;
-import shaded.com.google.protobuf.CodedInputStream;
-import shaded.io.netty.buffer.ByteBuf;
-import shaded.io.netty.buffer.ByteBufInputStream;
-import shaded.io.netty.channel.ChannelHandlerContext;
-import shaded.io.netty.handler.codec.ByteToMessageDecoder;
+import org.bithon.shaded.com.google.protobuf.CodedInputStream;
+import org.bithon.shaded.io.netty.buffer.ByteBuf;
+import org.bithon.shaded.io.netty.buffer.ByteBufInputStream;
+import org.bithon.shaded.io.netty.channel.ChannelHandlerContext;
+import org.bithon.shaded.io.netty.handler.codec.ByteToMessageDecoder;
 
 import java.io.IOException;
 import java.util.List;

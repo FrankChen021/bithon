@@ -16,8 +16,8 @@
 
 package org.bithon.agent.core.utils.filter;
 
-import shaded.com.fasterxml.jackson.annotation.JsonCreator;
-import shaded.com.fasterxml.jackson.annotation.JsonProperty;
+import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonCreator;
+import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author frank.chen021@outlook.com

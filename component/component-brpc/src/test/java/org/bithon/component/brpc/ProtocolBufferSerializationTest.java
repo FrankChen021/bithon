@@ -18,10 +18,10 @@ package org.bithon.component.brpc;
 
 import org.bithon.component.brpc.example.protobuf.WebRequestMetrics;
 import org.bithon.component.brpc.message.serializer.ProtocolBufferSerializer;
+import org.bithon.shaded.com.google.protobuf.CodedInputStream;
+import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
 import org.junit.Assert;
 import org.junit.Test;
-import shaded.com.google.protobuf.CodedInputStream;
-import shaded.com.google.protobuf.CodedOutputStream;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

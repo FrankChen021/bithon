@@ -40,12 +40,12 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSpec;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.FieldType;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
-import shaded.com.fasterxml.jackson.core.JsonProcessingException;
-import shaded.com.fasterxml.jackson.databind.ObjectMapper;
-import shaded.com.fasterxml.jackson.databind.SerializationFeature;
-import shaded.com.google.protobuf.Any;
-import shaded.com.google.protobuf.DoubleValue;
-import shaded.com.google.protobuf.Int64Value;
+import org.bithon.shaded.com.fasterxml.jackson.core.JsonProcessingException;
+import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.shaded.com.fasterxml.jackson.databind.SerializationFeature;
+import org.bithon.shaded.com.google.protobuf.Any;
+import org.bithon.shaded.com.google.protobuf.DoubleValue;
+import org.bithon.shaded.com.google.protobuf.Int64Value;
 
 import java.util.Collection;
 import java.util.List;

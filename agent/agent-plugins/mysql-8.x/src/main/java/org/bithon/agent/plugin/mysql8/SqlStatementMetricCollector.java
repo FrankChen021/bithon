@@ -27,10 +27,10 @@ import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
 import org.bithon.agent.core.utils.MiscUtils;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-import shaded.com.alibaba.druid.sql.visitor.ParameterizedOutputVisitorUtils;
-import shaded.com.alibaba.druid.util.JdbcConstants;
-import shaded.com.fasterxml.jackson.databind.JsonNode;
-import shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.shaded.com.alibaba.druid.sql.visitor.ParameterizedOutputVisitorUtils;
+import org.bithon.shaded.com.alibaba.druid.util.JdbcConstants;
+import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
+import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.sql.SQLException;
 import java.sql.Statement;

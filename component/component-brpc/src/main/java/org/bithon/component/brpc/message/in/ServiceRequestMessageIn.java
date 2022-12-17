@@ -21,7 +21,7 @@ import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.serializer.Serializer;
-import shaded.com.google.protobuf.CodedInputStream;
+import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 
 import java.io.IOException;
 import java.lang.reflect.Type;

@@ -21,9 +21,9 @@ import org.bithon.agent.controller.IAgentController;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.CollectionUtils;
-import shaded.com.fasterxml.jackson.databind.DeserializationFeature;
-import shaded.com.fasterxml.jackson.databind.JsonNode;
-import shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.shaded.com.fasterxml.jackson.databind.DeserializationFeature;
+import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
+import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.Collections;

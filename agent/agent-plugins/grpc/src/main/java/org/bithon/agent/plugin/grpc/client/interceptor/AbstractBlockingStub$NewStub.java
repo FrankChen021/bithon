@@ -26,10 +26,10 @@ import org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate;
 import org.bithon.agent.core.aop.AopClassHelper;
 import org.bithon.agent.core.aop.installer.DynamicInterceptorInstaller;
 import org.bithon.agent.core.aop.matcher.Matchers;
-import shaded.net.bytebuddy.asm.Advice;
-import shaded.net.bytebuddy.description.modifier.Visibility;
-import shaded.net.bytebuddy.dynamic.ClassFileLocator;
-import shaded.net.bytebuddy.dynamic.DynamicType;
+import org.bithon.shaded.net.bytebuddy.asm.Advice;
+import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
+import org.bithon.shaded.net.bytebuddy.dynamic.ClassFileLocator;
+import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.Set;
