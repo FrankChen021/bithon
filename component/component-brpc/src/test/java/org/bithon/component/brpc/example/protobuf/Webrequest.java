@@ -22,25 +22,25 @@ package org.bithon.component.brpc.example.protobuf;
 public final class Webrequest {
   private Webrequest() {}
   public static void registerAllExtensions(
-      shaded.com.google.protobuf.ExtensionRegistryLite registry) {
+      org.bithon.shaded.com.google.protobuf.ExtensionRegistryLite registry) {
   }
 
   public static void registerAllExtensions(
-      shaded.com.google.protobuf.ExtensionRegistry registry) {
+      org.bithon.shaded.com.google.protobuf.ExtensionRegistry registry) {
     registerAllExtensions(
-        (shaded.com.google.protobuf.ExtensionRegistryLite) registry);
+        (org.bithon.shaded.com.google.protobuf.ExtensionRegistryLite) registry);
   }
-  static final shaded.com.google.protobuf.Descriptors.Descriptor
+  static final org.bithon.shaded.com.google.protobuf.Descriptors.Descriptor
     internal_static_cn_bithon_rpc_WebRequestMetrics_descriptor;
   static final 
-    shaded.com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+    org.bithon.shaded.com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_cn_bithon_rpc_WebRequestMetrics_fieldAccessorTable;
 
-  public static shaded.com.google.protobuf.Descriptors.FileDescriptor
+  public static org.bithon.shaded.com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
     return descriptor;
   }
-  private static  shaded.com.google.protobuf.Descriptors.FileDescriptor
+  private static  org.bithon.shaded.com.google.protobuf.Descriptors.FileDescriptor
       descriptor;
   static {
     String[] descriptorData = {
@@ -51,14 +51,14 @@ public final class Webrequest {
       "estBytes\030\010 \001(\003\022\025\n\rresponseBytes\030\t \001(\003B\002P" +
       "\001b\006proto3"
     };
-    descriptor = shaded.com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = org.bithon.shaded.com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
-        new shaded.com.google.protobuf.Descriptors.FileDescriptor[] {
+        new org.bithon.shaded.com.google.protobuf.Descriptors.FileDescriptor[] {
         });
     internal_static_cn_bithon_rpc_WebRequestMetrics_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_cn_bithon_rpc_WebRequestMetrics_fieldAccessorTable = new
-      shaded.com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+      org.bithon.shaded.com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_cn_bithon_rpc_WebRequestMetrics_descriptor,
         new String[] { "Uri", "CostNanoTime", "Requests", "Count4Xx", "Count5Xx", "RequestBytes", "ResponseBytes", });
   }

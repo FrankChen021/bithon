@@ -25,8 +25,8 @@ import org.bithon.component.brpc.exception.TimeoutException;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
-import shaded.io.netty.channel.Channel;
-import shaded.io.netty.util.internal.StringUtil;
+import org.bithon.shaded.io.netty.channel.Channel;
+import org.bithon.shaded.io.netty.util.internal.StringUtil;
 
 import java.io.IOException;
 import java.lang.reflect.Method;

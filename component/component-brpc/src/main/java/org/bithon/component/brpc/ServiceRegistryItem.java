@@ -18,7 +18,7 @@ package org.bithon.component.brpc;
 
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.serializer.Serializer;
-import shaded.io.netty.util.internal.StringUtil;
+import org.bithon.shaded.io.netty.util.internal.StringUtil;
 
 import java.lang.reflect.Method;
 

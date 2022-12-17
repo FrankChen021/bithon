@@ -16,11 +16,11 @@
 
 package org.bithon.agent.bootstrap.aop.advice;
 
-import shaded.net.bytebuddy.asm.Advice;
-import shaded.net.bytebuddy.description.method.MethodDescription;
-import shaded.net.bytebuddy.description.type.TypeDescription;
-import shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
-import shaded.net.bytebuddy.implementation.bytecode.constant.MethodConstant;
+import org.bithon.shaded.net.bytebuddy.asm.Advice;
+import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
+import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
+import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
+import org.bithon.shaded.net.bytebuddy.implementation.bytecode.constant.MethodConstant;
 
 import javax.annotation.Nonnull;
 

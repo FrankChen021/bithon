@@ -35,7 +35,7 @@
               <relocations>
                 <relocation>
                   <pattern>com.alibaba.csp.sentinel</pattern>
-                  <shadedPattern>shaded.com.alibaba.csp.sentinel</shadedPattern>
+                  <shadedPattern>org.bithon.shaded.com.alibaba.csp.sentinel</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>

@@ -20,14 +20,12 @@ import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.core.aop.matcher.Matchers;
 import org.bithon.agent.core.plugin.IPlugin;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.Arrays;
 import java.util.List;
 
 import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
-import static shaded.net.bytebuddy.matcher.ElementMatchers.isStatic;
-import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
-import static shaded.net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 /**
  * jdk http-connection plugin
@@ -83,10 +81,10 @@ public class JdkHttpClientPlugin implements IPlugin {
             forClass("sun.net.www.http.HttpClient")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(named("New")
-                                                                 .and(isStatic())
-                                                                 .and(takesArguments(5))
-                                                                 .and(Matchers.takesArgument(4, "sun.net.www.protocol.http.HttpURLConnection")))
+                                                   .onMethod(ElementMatchers.named("New")
+                                                                            .and(ElementMatchers.isStatic())
+                                                                            .and(ElementMatchers.takesArguments(5))
+                                                                            .and(Matchers.takesArgument(4, "sun.net.www.protocol.http.HttpURLConnection")))
                                                    .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$New"),
 
                     MethodPointCutDescriptorBuilder.build()
@@ -100,21 +98,21 @@ public class JdkHttpClientPlugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$WriteRequests"),
 
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(named("parseHTTP").and(Matchers.takesArgument(0, "sun.net.www.MessageHeader")))
+                                                   .onMethod(ElementMatchers.named("parseHTTP").and(Matchers.takesArgument(0, "sun.net.www.MessageHeader")))
                                                    .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$ParseHTTP")),
 
             // HttpsClient inherits from HttpClient
             forClass("sun.net.www.protocol.https.HttpsClient")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(named("New")
-                                                                 .and(isStatic())
-                                                                 .and(takesArguments(7))
-                                                                 // there're two overridden versions of 'New' both of which have 7 parameters
-                                                                 // and they don't share the 3rd parameter
-                                                                 .and(Matchers.takesArgument(3, "java.net.Proxy"))
-                                                                 .and(Matchers.takesArgument(6,
-                                                                                             "sun.net.www.protocol.http.HttpURLConnection")))
+                                                   .onMethod(ElementMatchers.named("New")
+                                                                            .and(ElementMatchers.isStatic())
+                                                                            .and(ElementMatchers.takesArguments(7))
+                                                                            // there are two overridden versions of 'New' both of which have 7 parameters,
+                                                                            // and they don't share the 3rd parameter
+                                                                            .and(Matchers.takesArgument(3, "java.net.Proxy"))
+                                                                            .and(Matchers.takesArgument(6,
+                                                                                                        "sun.net.www.protocol.http.HttpURLConnection")))
                                                    .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpsClient$New"))
 
         );

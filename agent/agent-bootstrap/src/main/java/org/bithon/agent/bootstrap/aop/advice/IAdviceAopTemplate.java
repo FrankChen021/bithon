@@ -17,8 +17,8 @@
 package org.bithon.agent.bootstrap.aop.advice;
 
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
-import shaded.net.bytebuddy.asm.Advice;
-import shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
+import org.bithon.shaded.net.bytebuddy.asm.Advice;
+import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
 import java.lang.reflect.Method;
 import java.util.Locale;

@@ -16,9 +16,9 @@
 
 package org.bithon.agent.core.utils.filter;
 
-import shaded.com.fasterxml.jackson.annotation.JsonSubTypes;
-import shaded.com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import shaded.com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonSubTypes;
+import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * @author frank.chen021@outlook.com

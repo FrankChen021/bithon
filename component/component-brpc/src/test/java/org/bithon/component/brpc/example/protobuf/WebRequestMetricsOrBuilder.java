@@ -21,7 +21,7 @@ package org.bithon.component.brpc.example.protobuf;
 
 public interface WebRequestMetricsOrBuilder extends
     // @@protoc_insertion_point(interface_extends:cn.bithon.rpc.example.WebRequestMetrics)
-    shaded.com.google.protobuf.MessageOrBuilder {
+    org.bithon.shaded.com.google.protobuf.MessageOrBuilder {
 
   /**
    * <code>string uri = 2;</code>
@@ -32,7 +32,7 @@ public interface WebRequestMetricsOrBuilder extends
    * <code>string uri = 2;</code>
    * @return The bytes for uri.
    */
-  shaded.com.google.protobuf.ByteString
+  org.bithon.shaded.com.google.protobuf.ByteString
       getUriBytes();
 
   /**

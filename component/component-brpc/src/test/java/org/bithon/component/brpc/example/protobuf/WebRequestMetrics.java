@@ -23,12 +23,12 @@ package org.bithon.component.brpc.example.protobuf;
  * Protobuf type {@code cn.bithon.rpc.example.WebRequestMetrics}
  */
 public final class WebRequestMetrics extends
-    shaded.com.google.protobuf.GeneratedMessageV3 implements
+    org.bithon.shaded.com.google.protobuf.GeneratedMessageV3 implements
     // @@protoc_insertion_point(message_implements:cn.bithon.rpc.example.WebRequestMetrics)
     WebRequestMetricsOrBuilder {
 private static final long serialVersionUID = 0L;
   // Use WebRequestMetrics.newBuilder() to construct.
-  private WebRequestMetrics(shaded.com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  private WebRequestMetrics(org.bithon.shaded.com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
   private WebRequestMetrics() {
@@ -43,20 +43,20 @@ private static final long serialVersionUID = 0L;
   }
 
   @Override
-  public final shaded.com.google.protobuf.UnknownFieldSet
+  public final org.bithon.shaded.com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
   }
   private WebRequestMetrics(
-      shaded.com.google.protobuf.CodedInputStream input,
-      shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws shaded.com.google.protobuf.InvalidProtocolBufferException {
+      org.bithon.shaded.com.google.protobuf.CodedInputStream input,
+      org.bithon.shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws org.bithon.shaded.com.google.protobuf.InvalidProtocolBufferException {
     this();
     if (extensionRegistry == null) {
       throw new NullPointerException();
     }
-    shaded.com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-        shaded.com.google.protobuf.UnknownFieldSet.newBuilder();
+    org.bithon.shaded.com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+        org.bithon.shaded.com.google.protobuf.UnknownFieldSet.newBuilder();
     try {
       boolean done = false;
       while (!done) {
@@ -110,17 +110,17 @@ private static final long serialVersionUID = 0L;
           }
         }
       }
-    } catch (shaded.com.google.protobuf.InvalidProtocolBufferException e) {
+    } catch (org.bithon.shaded.com.google.protobuf.InvalidProtocolBufferException e) {
       throw e.setUnfinishedMessage(this);
     } catch (java.io.IOException e) {
-      throw new shaded.com.google.protobuf.InvalidProtocolBufferException(
+      throw new org.bithon.shaded.com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
     }
   }
-  public static final shaded.com.google.protobuf.Descriptors.Descriptor
+  public static final org.bithon.shaded.com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
     return Webrequest.internal_static_cn_bithon_rpc_WebRequestMetrics_descriptor;
   }
@@ -145,8 +145,8 @@ private static final long serialVersionUID = 0L;
     if (ref instanceof String) {
       return (String) ref;
     } else {
-      shaded.com.google.protobuf.ByteString bs = 
-          (shaded.com.google.protobuf.ByteString) ref;
+      org.bithon.shaded.com.google.protobuf.ByteString bs = 
+          (org.bithon.shaded.com.google.protobuf.ByteString) ref;
       String s = bs.toStringUtf8();
       uri_ = s;
       return s;
@@ -157,17 +157,17 @@ private static final long serialVersionUID = 0L;
    * @return The bytes for uri.
    */
   @Override
-  public shaded.com.google.protobuf.ByteString
+  public org.bithon.shaded.com.google.protobuf.ByteString
       getUriBytes() {
     Object ref = uri_;
     if (ref instanceof String) {
-      shaded.com.google.protobuf.ByteString b = 
-          shaded.com.google.protobuf.ByteString.copyFromUtf8(
+      org.bithon.shaded.com.google.protobuf.ByteString b = 
+          org.bithon.shaded.com.google.protobuf.ByteString.copyFromUtf8(
               (String) ref);
       uri_ = b;
       return b;
     } else {
-      return (shaded.com.google.protobuf.ByteString) ref;
+      return (org.bithon.shaded.com.google.protobuf.ByteString) ref;
     }
   }
 
@@ -249,10 +249,10 @@ private static final long serialVersionUID = 0L;
   }
 
   @Override
-  public void writeTo(shaded.com.google.protobuf.CodedOutputStream output)
+  public void writeTo(org.bithon.shaded.com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (!getUriBytes().isEmpty()) {
-      shaded.com.google.protobuf.GeneratedMessageV3.writeString(output, 2, uri_);
+      org.bithon.shaded.com.google.protobuf.GeneratedMessageV3.writeString(output, 2, uri_);
     }
     if (costNanoTime_ != 0L) {
       output.writeInt64(3, costNanoTime_);
@@ -282,30 +282,30 @@ private static final long serialVersionUID = 0L;
 
     size = 0;
     if (!getUriBytes().isEmpty()) {
-      size += shaded.com.google.protobuf.GeneratedMessageV3.computeStringSize(2, uri_);
+      size += org.bithon.shaded.com.google.protobuf.GeneratedMessageV3.computeStringSize(2, uri_);
     }
     if (costNanoTime_ != 0L) {
-      size += shaded.com.google.protobuf.CodedOutputStream
+      size += org.bithon.shaded.com.google.protobuf.CodedOutputStream
         .computeInt64Size(3, costNanoTime_);
     }
     if (requests_ != 0L) {
-      size += shaded.com.google.protobuf.CodedOutputStream
+      size += org.bithon.shaded.com.google.protobuf.CodedOutputStream
         .computeInt64Size(4, requests_);
     }
     if (count4Xx_ != 0L) {
-      size += shaded.com.google.protobuf.CodedOutputStream
+      size += org.bithon.shaded.com.google.protobuf.CodedOutputStream
         .computeInt64Size(6, count4Xx_);
     }
     if (count5Xx_ != 0L) {
-      size += shaded.com.google.protobuf.CodedOutputStream
+      size += org.bithon.shaded.com.google.protobuf.CodedOutputStream
         .computeInt64Size(7, count5Xx_);
     }
     if (requestBytes_ != 0L) {
-      size += shaded.com.google.protobuf.CodedOutputStream
+      size += org.bithon.shaded.com.google.protobuf.CodedOutputStream
         .computeInt64Size(8, requestBytes_);
     }
     if (responseBytes_ != 0L) {
-      size += shaded.com.google.protobuf.CodedOutputStream
+      size += org.bithon.shaded.com.google.protobuf.CodedOutputStream
         .computeInt64Size(9, responseBytes_);
     }
     size += unknownFields.getSerializedSize();
@@ -351,22 +351,22 @@ private static final long serialVersionUID = 0L;
     hash = (37 * hash) + URI_FIELD_NUMBER;
     hash = (53 * hash) + getUri().hashCode();
     hash = (37 * hash) + COSTNANOTIME_FIELD_NUMBER;
-    hash = (53 * hash) + shaded.com.google.protobuf.Internal.hashLong(
+    hash = (53 * hash) + org.bithon.shaded.com.google.protobuf.Internal.hashLong(
         getCostNanoTime());
     hash = (37 * hash) + REQUESTS_FIELD_NUMBER;
-    hash = (53 * hash) + shaded.com.google.protobuf.Internal.hashLong(
+    hash = (53 * hash) + org.bithon.shaded.com.google.protobuf.Internal.hashLong(
         getRequests());
     hash = (37 * hash) + COUNT4XX_FIELD_NUMBER;
-    hash = (53 * hash) + shaded.com.google.protobuf.Internal.hashLong(
+    hash = (53 * hash) + org.bithon.shaded.com.google.protobuf.Internal.hashLong(
         getCount4Xx());
     hash = (37 * hash) + COUNT5XX_FIELD_NUMBER;
-    hash = (53 * hash) + shaded.com.google.protobuf.Internal.hashLong(
+    hash = (53 * hash) + org.bithon.shaded.com.google.protobuf.Internal.hashLong(
         getCount5Xx());
     hash = (37 * hash) + REQUESTBYTES_FIELD_NUMBER;
-    hash = (53 * hash) + shaded.com.google.protobuf.Internal.hashLong(
+    hash = (53 * hash) + org.bithon.shaded.com.google.protobuf.Internal.hashLong(
         getRequestBytes());
     hash = (37 * hash) + RESPONSEBYTES_FIELD_NUMBER;
-    hash = (53 * hash) + shaded.com.google.protobuf.Internal.hashLong(
+    hash = (53 * hash) + org.bithon.shaded.com.google.protobuf.Internal.hashLong(
         getResponseBytes());
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -375,71 +375,71 @@ private static final long serialVersionUID = 0L;
 
   public static WebRequestMetrics parseFrom(
       java.nio.ByteBuffer data)
-      throws shaded.com.google.protobuf.InvalidProtocolBufferException {
+      throws org.bithon.shaded.com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
   public static WebRequestMetrics parseFrom(
       java.nio.ByteBuffer data,
-      shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws shaded.com.google.protobuf.InvalidProtocolBufferException {
+      org.bithon.shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws org.bithon.shaded.com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
   public static WebRequestMetrics parseFrom(
-      shaded.com.google.protobuf.ByteString data)
-      throws shaded.com.google.protobuf.InvalidProtocolBufferException {
+      org.bithon.shaded.com.google.protobuf.ByteString data)
+      throws org.bithon.shaded.com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
   public static WebRequestMetrics parseFrom(
-      shaded.com.google.protobuf.ByteString data,
-      shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws shaded.com.google.protobuf.InvalidProtocolBufferException {
+      org.bithon.shaded.com.google.protobuf.ByteString data,
+      org.bithon.shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws org.bithon.shaded.com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
   public static WebRequestMetrics parseFrom(byte[] data)
-      throws shaded.com.google.protobuf.InvalidProtocolBufferException {
+      throws org.bithon.shaded.com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
   public static WebRequestMetrics parseFrom(
       byte[] data,
-      shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws shaded.com.google.protobuf.InvalidProtocolBufferException {
+      org.bithon.shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws org.bithon.shaded.com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
   public static WebRequestMetrics parseFrom(java.io.InputStream input)
       throws java.io.IOException {
-    return shaded.com.google.protobuf.GeneratedMessageV3
+    return org.bithon.shaded.com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
   public static WebRequestMetrics parseFrom(
       java.io.InputStream input,
-      shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      org.bithon.shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
-    return shaded.com.google.protobuf.GeneratedMessageV3
+    return org.bithon.shaded.com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
   public static WebRequestMetrics parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
-    return shaded.com.google.protobuf.GeneratedMessageV3
+    return org.bithon.shaded.com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
   public static WebRequestMetrics parseDelimitedFrom(
       java.io.InputStream input,
-      shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      org.bithon.shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
-    return shaded.com.google.protobuf.GeneratedMessageV3
+    return org.bithon.shaded.com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
   public static WebRequestMetrics parseFrom(
-      shaded.com.google.protobuf.CodedInputStream input)
+      org.bithon.shaded.com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
-    return shaded.com.google.protobuf.GeneratedMessageV3
+    return org.bithon.shaded.com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
   public static WebRequestMetrics parseFrom(
-      shaded.com.google.protobuf.CodedInputStream input,
-      shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      org.bithon.shaded.com.google.protobuf.CodedInputStream input,
+      org.bithon.shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
-    return shaded.com.google.protobuf.GeneratedMessageV3
+    return org.bithon.shaded.com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
@@ -467,10 +467,10 @@ private static final long serialVersionUID = 0L;
    * Protobuf type {@code cn.bithon.rpc.example.WebRequestMetrics}
    */
   public static final class Builder extends
-      shaded.com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+      org.bithon.shaded.com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
       // @@protoc_insertion_point(builder_implements:cn.bithon.rpc.example.WebRequestMetrics)
       WebRequestMetricsOrBuilder {
-    public static final shaded.com.google.protobuf.Descriptors.Descriptor
+    public static final org.bithon.shaded.com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
       return Webrequest.internal_static_cn_bithon_rpc_WebRequestMetrics_descriptor;
     }
@@ -494,7 +494,7 @@ private static final long serialVersionUID = 0L;
       maybeForceBuilderInitialization();
     }
     private void maybeForceBuilderInitialization() {
-      if (shaded.com.google.protobuf.GeneratedMessageV3
+      if (org.bithon.shaded.com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
       }
     }
@@ -519,7 +519,7 @@ private static final long serialVersionUID = 0L;
     }
 
     @Override
-    public shaded.com.google.protobuf.Descriptors.Descriptor
+    public org.bithon.shaded.com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return Webrequest.internal_static_cn_bithon_rpc_WebRequestMetrics_descriptor;
     }
@@ -558,34 +558,34 @@ private static final long serialVersionUID = 0L;
     }
     @Override
     public Builder setField(
-        shaded.com.google.protobuf.Descriptors.FieldDescriptor field,
+        org.bithon.shaded.com.google.protobuf.Descriptors.FieldDescriptor field,
         Object value) {
       return super.setField(field, value);
     }
     @Override
     public Builder clearField(
-        shaded.com.google.protobuf.Descriptors.FieldDescriptor field) {
+        org.bithon.shaded.com.google.protobuf.Descriptors.FieldDescriptor field) {
       return super.clearField(field);
     }
     @Override
     public Builder clearOneof(
-        shaded.com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        org.bithon.shaded.com.google.protobuf.Descriptors.OneofDescriptor oneof) {
       return super.clearOneof(oneof);
     }
     @Override
     public Builder setRepeatedField(
-        shaded.com.google.protobuf.Descriptors.FieldDescriptor field,
+        org.bithon.shaded.com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, Object value) {
       return super.setRepeatedField(field, index, value);
     }
     @Override
     public Builder addRepeatedField(
-        shaded.com.google.protobuf.Descriptors.FieldDescriptor field,
+        org.bithon.shaded.com.google.protobuf.Descriptors.FieldDescriptor field,
         Object value) {
       return super.addRepeatedField(field, value);
     }
     @Override
-    public Builder mergeFrom(shaded.com.google.protobuf.Message other) {
+    public Builder mergeFrom(org.bithon.shaded.com.google.protobuf.Message other) {
       if (other instanceof WebRequestMetrics) {
         return mergeFrom((WebRequestMetrics)other);
       } else {
@@ -630,13 +630,13 @@ private static final long serialVersionUID = 0L;
 
     @Override
     public Builder mergeFrom(
-        shaded.com.google.protobuf.CodedInputStream input,
-        shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        org.bithon.shaded.com.google.protobuf.CodedInputStream input,
+        org.bithon.shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       WebRequestMetrics parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-      } catch (shaded.com.google.protobuf.InvalidProtocolBufferException e) {
+      } catch (org.bithon.shaded.com.google.protobuf.InvalidProtocolBufferException e) {
         parsedMessage = (WebRequestMetrics) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
@@ -655,8 +655,8 @@ private static final long serialVersionUID = 0L;
     public String getUri() {
       Object ref = uri_;
       if (!(ref instanceof String)) {
-        shaded.com.google.protobuf.ByteString bs =
-            (shaded.com.google.protobuf.ByteString) ref;
+        org.bithon.shaded.com.google.protobuf.ByteString bs =
+            (org.bithon.shaded.com.google.protobuf.ByteString) ref;
         String s = bs.toStringUtf8();
         uri_ = s;
         return s;
@@ -668,17 +668,17 @@ private static final long serialVersionUID = 0L;
      * <code>string uri = 2;</code>
      * @return The bytes for uri.
      */
-    public shaded.com.google.protobuf.ByteString
+    public org.bithon.shaded.com.google.protobuf.ByteString
         getUriBytes() {
       Object ref = uri_;
       if (ref instanceof String) {
-        shaded.com.google.protobuf.ByteString b = 
-            shaded.com.google.protobuf.ByteString.copyFromUtf8(
+        org.bithon.shaded.com.google.protobuf.ByteString b = 
+            org.bithon.shaded.com.google.protobuf.ByteString.copyFromUtf8(
                 (String) ref);
         uri_ = b;
         return b;
       } else {
-        return (shaded.com.google.protobuf.ByteString) ref;
+        return (org.bithon.shaded.com.google.protobuf.ByteString) ref;
       }
     }
     /**
@@ -712,7 +712,7 @@ private static final long serialVersionUID = 0L;
      * @return This builder for chaining.
      */
     public Builder setUriBytes(
-        shaded.com.google.protobuf.ByteString value) {
+        org.bithon.shaded.com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
@@ -910,13 +910,13 @@ private static final long serialVersionUID = 0L;
     }
     @Override
     public final Builder setUnknownFields(
-        final shaded.com.google.protobuf.UnknownFieldSet unknownFields) {
+        final org.bithon.shaded.com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
     @Override
     public final Builder mergeUnknownFields(
-        final shaded.com.google.protobuf.UnknownFieldSet unknownFields) {
+        final org.bithon.shaded.com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
     }
 
@@ -934,23 +934,23 @@ private static final long serialVersionUID = 0L;
     return DEFAULT_INSTANCE;
   }
 
-  private static final shaded.com.google.protobuf.Parser<WebRequestMetrics>
-      PARSER = new shaded.com.google.protobuf.AbstractParser<WebRequestMetrics>() {
+  private static final org.bithon.shaded.com.google.protobuf.Parser<WebRequestMetrics>
+      PARSER = new org.bithon.shaded.com.google.protobuf.AbstractParser<WebRequestMetrics>() {
     @Override
     public WebRequestMetrics parsePartialFrom(
-        shaded.com.google.protobuf.CodedInputStream input,
-        shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws shaded.com.google.protobuf.InvalidProtocolBufferException {
+        org.bithon.shaded.com.google.protobuf.CodedInputStream input,
+        org.bithon.shaded.com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws org.bithon.shaded.com.google.protobuf.InvalidProtocolBufferException {
       return new WebRequestMetrics(input, extensionRegistry);
     }
   };
 
-  public static shaded.com.google.protobuf.Parser<WebRequestMetrics> parser() {
+  public static org.bithon.shaded.com.google.protobuf.Parser<WebRequestMetrics> parser() {
     return PARSER;
   }
 
   @Override
-  public shaded.com.google.protobuf.Parser<WebRequestMetrics> getParserForType() {
+  public org.bithon.shaded.com.google.protobuf.Parser<WebRequestMetrics> getParserForType() {
     return PARSER;
   }
 

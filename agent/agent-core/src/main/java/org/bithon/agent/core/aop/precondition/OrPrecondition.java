@@ -16,7 +16,7 @@
 
 package org.bithon.agent.core.aop.precondition;
 
-import shaded.net.bytebuddy.description.type.TypeDescription;
+import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 
 /**
  * @author frank.chen021@outlook.com

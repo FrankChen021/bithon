@@ -21,10 +21,10 @@ import com.sbss.bithon.agent.sentinel.expt.SentinelCommandException;
 import com.sbss.bithon.agent.sentinel.flow.FlowRuleDto;
 import org.junit.Assert;
 import org.junit.Test;
-import shaded.com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
-import shaded.com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager;
-import shaded.com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
-import shaded.com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
+import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
+import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager;
+import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
+import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
 
 import java.util.Arrays;
 import java.util.Collection;

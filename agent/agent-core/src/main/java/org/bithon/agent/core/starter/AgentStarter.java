@@ -27,7 +27,7 @@ import org.bithon.agent.core.dispatcher.Dispatchers;
 import org.bithon.agent.core.plugin.PluginManager;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-import shaded.net.bytebuddy.agent.builder.AgentBuilder;
+import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;

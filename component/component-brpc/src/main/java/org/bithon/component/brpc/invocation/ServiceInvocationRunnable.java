@@ -22,7 +22,7 @@ import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
 import org.bithon.component.commons.logging.LoggerFactory;
-import shaded.io.netty.channel.Channel;
+import org.bithon.shaded.io.netty.channel.Channel;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;

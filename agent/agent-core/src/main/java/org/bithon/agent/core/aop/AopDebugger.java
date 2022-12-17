@@ -18,9 +18,9 @@ package org.bithon.agent.core.aop;
 
 
 import org.bithon.agent.core.context.AgentContext;
-import shaded.net.bytebuddy.description.type.TypeDescription;
-import shaded.net.bytebuddy.dynamic.DynamicType;
-import shaded.net.bytebuddy.utility.JavaModule;
+import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
+import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
+import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
 
 import java.io.File;
 import java.io.IOException;

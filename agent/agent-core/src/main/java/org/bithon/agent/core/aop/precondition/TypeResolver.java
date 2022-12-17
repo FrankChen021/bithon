@@ -16,7 +16,7 @@
 
 package org.bithon.agent.core.aop.precondition;
 
-import shaded.net.bytebuddy.pool.TypePool;
+import org.bithon.shaded.net.bytebuddy.pool.TypePool;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -17,14 +17,12 @@
 package org.bithon.agent.bootstrap.aop.advice;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import shaded.net.bytebuddy.description.annotation.AnnotationList;
-import shaded.net.bytebuddy.description.field.FieldDescription;
-import shaded.net.bytebuddy.description.type.TypeDescription;
+import org.bithon.shaded.net.bytebuddy.description.annotation.AnnotationList;
+import org.bithon.shaded.net.bytebuddy.description.field.FieldDescription;
+import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
+import org.bithon.shaded.net.bytebuddy.jar.asm.Opcodes;
 
 import javax.annotation.Nonnull;
-
-import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
-import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_STATIC;
 
 /**
  * @author frank.chen021@outlook.com
@@ -56,7 +54,7 @@ public class InterceptorResolver extends FieldDescription.InDefinedShape.Abstrac
 
     @Override
     public int getModifiers() {
-        return ACC_PRIVATE | ACC_STATIC;
+        return Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC;
     }
 
     @Nonnull

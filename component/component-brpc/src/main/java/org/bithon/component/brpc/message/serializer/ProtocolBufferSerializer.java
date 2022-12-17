@@ -16,11 +16,11 @@
 
 package org.bithon.component.brpc.message.serializer;
 
-import shaded.com.google.protobuf.CodedInputStream;
-import shaded.com.google.protobuf.CodedOutputStream;
-import shaded.com.google.protobuf.ExtensionRegistryLite;
-import shaded.com.google.protobuf.GeneratedMessageV3;
-import shaded.com.google.protobuf.MessageLite;
+import org.bithon.shaded.com.google.protobuf.CodedInputStream;
+import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
+import org.bithon.shaded.com.google.protobuf.ExtensionRegistryLite;
+import org.bithon.shaded.com.google.protobuf.GeneratedMessageV3;
+import org.bithon.shaded.com.google.protobuf.MessageLite;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
