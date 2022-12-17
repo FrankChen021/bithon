@@ -41,7 +41,7 @@ import java.util.Map;
  * @date 2021/7/10 13:05
  */
 public class DynamicInterceptorInstaller {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(DynamicInterceptorInstaller.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(DynamicInterceptorInstaller.class);
     private static final DynamicInterceptorInstaller INSTANCE = new DynamicInterceptorInstaller();
 
     public static DynamicInterceptorInstaller getInstance() {
@@ -49,38 +49,29 @@ public class DynamicInterceptorInstaller {
     }
 
     private DynamicType.Builder<?> install(AopDescriptor descriptor,
-                                           TypeDescription typeDescription,
-                                           ClassLoader classLoader,
                                            DynamicType.Builder<?> builder) {
 
-        log.info("Dynamically install interceptor for [{}]", descriptor.targetClass);
-
-        /*
-           TODO: Use the unified install
-           Problem: the unified installer injects static fields and static initializer for these fields,
-                    but for dynamic class injection, the class format changes has been disabled, it's not possible to do that
-                    So, in the future it's better to inject those interceptor object via customer Advice annotation
-        new InterceptorInstaller.Installer(builder, typeDescription, classLoader)
-            .install("Dynamic",
-                     MethodPointCutDescriptorBuilder.build()
-                                                    .onMethod(descriptor.getMethodMatcher())
-                                                    .to(descriptor.interceptorClass)
-            );
-         */
-        return builder.visit(descriptor.advice.on(descriptor.methodMatcher));
+        LOG.info("Dynamically install interceptor for [{}]", descriptor.getTargetClass());
+        return builder.visit(descriptor.getAdvice().on(descriptor.getMethodMatcher()));
     }
 
+    /**
+     * Install one interceptor
+     */
     public void installOne(AopDescriptor descriptor) {
         new AgentBuilder.Default().ignore(ElementMatchers.nameStartsWith("org.bithon.shaded."))
                                   .disableClassFormatChanges()
                                   .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
                                   .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
                                   .type(ElementMatchers.named(descriptor.targetClass))
-                                  .transform((builder, typeDescription, classLoader, javaModule, protectionDomain) -> install(descriptor, typeDescription, classLoader, builder))
+                                  .transform((builder, typeDescription, classLoader, javaModule, protectionDomain) -> install(descriptor, builder))
                                   .with(new AopDebugger(new HashSet<>(Collections.singletonList(descriptor.getTargetClass()))))
                                   .installOn(InstrumentationHelper.getInstance());
     }
 
+    /**
+     * Install multiple interceptors at one time
+     */
     public void install(Map<String, AopDescriptor> descriptors) {
         ElementMatcher<? super TypeDescription> typeMatcher = new NameMatcher<>(new StringSetMatcher(new HashSet<>(descriptors.keySet())));
 
@@ -90,14 +81,15 @@ public class DynamicInterceptorInstaller {
                                   .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
                                   .type(typeMatcher)
                                   .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule, ProtectionDomain protectionDomain) -> {
+
                                       AopDescriptor descriptor = descriptors.get(typeDescription.getTypeName());
                                       if (descriptor == null) {
                                           // this must be an error
-                                          log.error("Can't find BeanAopDescriptor for [{}]", typeDescription.getTypeName());
+                                          LOG.error("Can't find BeanAopDescriptor for [{}]", typeDescription.getTypeName());
                                           return builder;
                                       }
 
-                                      return install(descriptor, typeDescription, classLoader, builder);
+                                      return install(descriptor, builder);
 
                                   })
                                   .with(new AopDebugger(new HashSet<>(descriptors.keySet())))
