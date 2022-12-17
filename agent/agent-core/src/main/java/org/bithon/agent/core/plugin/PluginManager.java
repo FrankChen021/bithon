@@ -83,29 +83,30 @@ public class PluginManager {
 
     private IPlugin loadPlugin(JarEntry jarEntry, JarClassLoader pluginClassLoader) {
         String jarEntryName = jarEntry.getName();
-        String pluginClassName = jarEntryName.substring(0, jarEntryName.length() - ".class".length()).replace('/', '.');
+        String pluginFullClassName = jarEntryName.substring(0, jarEntryName.length() - ".class".length()).replace('/', '.');
 
         try {
-            Class<?> pluginClass = Class.forName(pluginClassName, true, pluginClassLoader);
+            Class<?> pluginClass = Class.forName(pluginFullClassName, true, pluginClassLoader);
 
             Boolean isPluginDisabled = PluginConfigurationManager.load(pluginClass)
-                                                                 .getConfig(PluginConfigurationManager.getPluginConfigurationPrefixName(pluginClassName) + "disabled",
+                                                                 .getConfig(PluginConfigurationManager.getPluginConfigurationPrefixName(pluginFullClassName) + "disabled",
                                                                             Boolean.class);
             if (isPluginDisabled != null && isPluginDisabled) {
-                LOG.info("Found plugin {}, but it's DISABLED by configuration", pluginClassName);
+                LOG.info("Found plugin {}, but it's DISABLED by configuration", pluginClass.getSimpleName());
                 return null;
             }
 
-            LOG.info("Found plugin {}", pluginClassName);
+            LOG.info("Found plugin {}", pluginClass.getSimpleName());
             Object pluginInstance = pluginClass.getDeclaredConstructor().newInstance();
             if (pluginInstance instanceof IPlugin) {
                 return (IPlugin) pluginInstance;
             } else {
-                LOG.info("Resource [{}] is not type of IPlugin. The class name does not comply with the plugin standard. Please change it.", pluginClassName);
+                LOG.info("Resource [{}] is not type of IPlugin. The class name does not comply with the plugin standard. Please change it.",
+                         pluginFullClassName);
                 return null;
             }
         } catch (Throwable e) {
-            LOG.error(String.format(Locale.ENGLISH, "Failed to load plugin [%s]", pluginClassName), e);
+            LOG.error(String.format(Locale.ENGLISH, "Failed to load plugin [%s]", pluginFullClassName), e);
             return null;
         }
     }

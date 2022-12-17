@@ -104,7 +104,7 @@ public class JarClassLoader extends ClassLoader {
             try {
                 ClassLoader parentLoader = parent.getClassLoader();
                 if (parentLoader != this) {
-                    // parent is a provider, it could be set dynamically to be instance of current class
+                    // parent is a provider, it could be set dynamically to be instanced of current class
                     return parentLoader.loadClass(name);
                 }
             } catch (ClassNotFoundException ignored) {
