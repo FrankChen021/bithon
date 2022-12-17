@@ -22,7 +22,7 @@ import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
 import org.bithon.component.commons.logging.LoggerFactory;
-import shaded.io.netty.channel.Channel;
+import org.bithon.shaded.io.netty.channel.Channel;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -78,11 +78,11 @@ public class ServiceInvocationRunnable implements Runnable {
                                                      serviceRequest.getMethodName(),
                                                      e.getMessage());
             } catch (InvocationTargetException e) {
-                throw new ServiceInvocationException("[Client=%s] Service[%s#%s] invocation exception: %s",
+                throw new ServiceInvocationException(e.getTargetException(),
+                                                     "[Client=%s] Service[%s#%s] invocation exception",
                                                      channel.remoteAddress().toString(),
                                                      serviceRequest.getServiceName(),
-                                                     serviceRequest.getMethodName(),
-                                                     e.getTargetException().toString());
+                                                     serviceRequest.getMethodName());
             } catch (IOException e) {
                 throw new BadRequestException("[Client=%s] Bad Request: Service[%s#%s]: %s",
                                               channel.remoteAddress().toString(),
@@ -101,11 +101,11 @@ public class ServiceInvocationRunnable implements Runnable {
             }
         } catch (ServiceInvocationException e) {
             Throwable cause = e.getCause() != null ? e.getCause() : e;
-            LoggerFactory.getLogger(ServiceInvocationRunnable.class).warn("[Client={}] Service Invocation on {}.{} exception: {}",
+            LoggerFactory.getLogger(ServiceInvocationRunnable.class).warn("[Client={}] Service Invocation on {}.{}",
                                                                           channel.remoteAddress().toString(),
                                                                           serviceRequest.getServiceName(),
                                                                           serviceRequest.getMethodName(),
-                                                                          cause.toString());
+                                                                          cause);
             ServiceResponseMessageOut.builder()
                                      .serverResponseAt(System.currentTimeMillis())
                                      .txId(serviceRequest.getTransactionId())

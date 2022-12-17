@@ -18,7 +18,7 @@ package org.bithon.component.brpc.message.out;
 
 import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.serializer.Serializer;
-import shaded.com.google.protobuf.CodedOutputStream;
+import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
 
 import java.io.IOException;
 

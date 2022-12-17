@@ -29,4 +29,8 @@ public class ServiceInvocationException extends RuntimeException {
     public ServiceInvocationException(String messageFormat, Object... args) {
         super(String.format(Locale.ENGLISH, messageFormat, args));
     }
+
+    public ServiceInvocationException(Throwable cause, String messageFormat, Object... args) {
+        super(String.format(Locale.ENGLISH, messageFormat, args), cause);
+    }
 }

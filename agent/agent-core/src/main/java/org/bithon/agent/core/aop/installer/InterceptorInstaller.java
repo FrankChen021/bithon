@@ -32,32 +32,26 @@ import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
-import shaded.net.bytebuddy.agent.builder.AgentBuilder;
-import shaded.net.bytebuddy.asm.Advice;
-import shaded.net.bytebuddy.description.method.MethodDescription;
-import shaded.net.bytebuddy.description.type.TypeDescription;
-import shaded.net.bytebuddy.dynamic.DynamicType;
-import shaded.net.bytebuddy.implementation.FieldAccessor;
-import shaded.net.bytebuddy.implementation.Implementation;
-import shaded.net.bytebuddy.implementation.MethodCall;
-import shaded.net.bytebuddy.implementation.StubMethod;
-import shaded.net.bytebuddy.matcher.ElementMatchers;
-import shaded.net.bytebuddy.matcher.NameMatcher;
-import shaded.net.bytebuddy.matcher.StringSetMatcher;
-import shaded.net.bytebuddy.utility.JavaModule;
-import shaded.net.bytebuddy.utility.RandomString;
+import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
+import org.bithon.shaded.net.bytebuddy.asm.Advice;
+import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
+import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
+import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
+import org.bithon.shaded.net.bytebuddy.implementation.FieldAccessor;
+import org.bithon.shaded.net.bytebuddy.implementation.Implementation;
+import org.bithon.shaded.net.bytebuddy.implementation.MethodCall;
+import org.bithon.shaded.net.bytebuddy.implementation.StubMethod;
+import org.bithon.shaded.net.bytebuddy.jar.asm.Opcodes;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
+import org.bithon.shaded.net.bytebuddy.matcher.NameMatcher;
+import org.bithon.shaded.net.bytebuddy.matcher.StringSetMatcher;
+import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
+import org.bithon.shaded.net.bytebuddy.utility.RandomString;
 
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
 import java.util.HashSet;
 import java.util.Set;
-
-import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
-import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_STATIC;
-import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_VOLATILE;
-import static shaded.net.bytebuddy.matcher.ElementMatchers.isSynthetic;
-import static shaded.net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
-import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
 
 /**
  * @author frank.chen021@outlook.com
@@ -77,7 +71,7 @@ public class InterceptorInstaller {
         Set<String> types = new HashSet<>(descriptors.getTypes());
 
         agentBuilder
-            .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(nameStartsWith("shaded.").or(isSynthetic())))
+            .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(ElementMatchers.nameStartsWith("org.bithon.shaded.").or(ElementMatchers.isSynthetic())))
             .type(new NameMatcher<>(new StringSetMatcher(types)))
             .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule, ProtectionDomain protectionDomain) -> {
                 //
@@ -96,7 +90,7 @@ public class InterceptorInstaller {
                 //
                 if (!typeDescription.isAssignableTo(IBithonObject.class)) {
                     // define an object field on this class to hold objects across interceptors for state sharing
-                    builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME, Object.class, ACC_PRIVATE | ACC_VOLATILE)
+                    builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME, Object.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_VOLATILE)
                                      .implement(IBithonObject.class)
                                      .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
                 }
@@ -146,7 +140,7 @@ public class InterceptorInstaller {
 
             getInterceptorMethod = new TypeDescription.ForLoadedType(InterceptorManager.class)
                 .getDeclaredMethods()
-                .filter(named("getInterceptor"))
+                .filter(ElementMatchers.named("getInterceptor"))
                 .getOnly();
         }
 
@@ -172,7 +166,7 @@ public class InterceptorInstaller {
         private void install(MethodPointCutDescriptor pointCutDescriptor) {
             // Add a field to hold the interceptor object
             String fieldName = "intcep" + StringUtils.getSimpleClassName(pointCutDescriptor.getInterceptorClassName()) + "_" + RandomString.make();
-            builder = builder.defineField(fieldName, interceptorTypeDescription, ACC_PRIVATE | ACC_STATIC);
+            builder = builder.defineField(fieldName, interceptorTypeDescription, Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC);
 
             // generate assignment to the static field
             MethodCall.FieldSetting interceptorFieldInitializer = MethodCall.invoke(getInterceptorMethod)
@@ -181,7 +175,7 @@ public class InterceptorInstaller {
                                                                             // 2nd argument
                                                                             .with(typeDescription)
                                                                             // assignment
-                                                                            .setsField(named(fieldName));
+                                                                            .setsField(ElementMatchers.named(fieldName));
             if (interceptorInitializers == null) {
                 interceptorInitializers = interceptorFieldInitializer;
             } else {

@@ -18,7 +18,7 @@ package org.bithon.agent.sentinel.flow;
 
 import org.bithon.agent.sentinel.expt.ParamInvalidException;
 import org.bithon.agent.sentinel.expt.ParamNullException;
-import shaded.com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
+import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 
 import java.util.Objects;
 

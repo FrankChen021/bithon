@@ -18,7 +18,7 @@ package org.bithon.agent.sentinel.degrade;
 
 import org.bithon.agent.sentinel.expt.ParamInvalidException;
 import org.bithon.agent.sentinel.expt.ParamNullException;
-import shaded.com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
+import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
 
 import java.util.Objects;
 

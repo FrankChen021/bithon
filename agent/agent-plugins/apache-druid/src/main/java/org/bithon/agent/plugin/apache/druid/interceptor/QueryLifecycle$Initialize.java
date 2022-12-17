@@ -23,10 +23,10 @@ import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-import shaded.com.fasterxml.jackson.core.JsonProcessingException;
-import shaded.com.fasterxml.jackson.databind.ObjectMapper;
-import shaded.com.fasterxml.jackson.databind.SerializationFeature;
-import shaded.com.fasterxml.jackson.datatype.joda.JodaModule;
+import org.bithon.shaded.com.fasterxml.jackson.core.JsonProcessingException;
+import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.shaded.com.fasterxml.jackson.databind.SerializationFeature;
+import org.bithon.shaded.com.fasterxml.jackson.datatype.joda.JodaModule;
 
 /**
  * @author frank.chen021@outlook.com

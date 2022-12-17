@@ -17,7 +17,7 @@
 package org.bithon.component.brpc.message.in;
 
 import org.bithon.component.brpc.message.ServiceMessage;
-import shaded.com.google.protobuf.CodedInputStream;
+import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 
 import java.io.IOException;
 

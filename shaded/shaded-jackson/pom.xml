@@ -67,11 +67,11 @@
               <relocations>
                 <relocation>
                   <pattern>com.fasterxml.jackson</pattern>
-                  <shadedPattern>shaded.com.fasterxml.jackson</shadedPattern>
+                  <shadedPattern>org.bithon.shaded.com.fasterxml.jackson</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.yaml</pattern>
-                  <shadedPattern>shaded.org.yaml</shadedPattern>
+                  <shadedPattern>org.bithon.shaded.org.yaml</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>

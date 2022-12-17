@@ -18,14 +18,14 @@ package org.bithon.agent.core.aop.matcher;
 
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-import shaded.net.bytebuddy.description.NamedElement;
-import shaded.net.bytebuddy.description.annotation.AnnotationDescription;
-import shaded.net.bytebuddy.description.annotation.AnnotationList;
-import shaded.net.bytebuddy.description.annotation.AnnotationSource;
-import shaded.net.bytebuddy.description.method.MethodDescription;
-import shaded.net.bytebuddy.description.method.ParameterList;
-import shaded.net.bytebuddy.description.modifier.Visibility;
-import shaded.net.bytebuddy.matcher.ElementMatcher;
+import org.bithon.shaded.net.bytebuddy.description.NamedElement;
+import org.bithon.shaded.net.bytebuddy.description.annotation.AnnotationDescription;
+import org.bithon.shaded.net.bytebuddy.description.annotation.AnnotationList;
+import org.bithon.shaded.net.bytebuddy.description.annotation.AnnotationSource;
+import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
+import org.bithon.shaded.net.bytebuddy.description.method.ParameterList;
+import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 
 import java.util.Arrays;
 import java.util.HashSet;
