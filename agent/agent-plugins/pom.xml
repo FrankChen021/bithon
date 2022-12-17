@@ -77,7 +77,7 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- Google Guice -->
+    <!-- Eclipse glassfish -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-glassfish</artifactId>
