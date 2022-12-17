@@ -13,6 +13,7 @@
   <packaging>pom</packaging>
 
   <dependencies>
+    <!-- Declare all dependencies so that they will be assembled in the distribution -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-main</artifactId>
@@ -43,6 +44,12 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-sdk</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugins</artifactId>
+      <version>${project.version}</version>
     </dependency>
 
     <!-- a lib used by plugins -->

@@ -58,6 +58,10 @@
         <exclude>${project.parent.groupId}:agent-bootstrap</exclude>
         <exclude>${project.parent.groupId}:agent-main</exclude>
         <exclude>${project.parent.groupId}:agent-sdk</exclude>
+
+        <!-- Plugins are in a dedicated directory, exclude them from lib -->
+        <exclude>${project.parent.groupId}:agent-plugin-*</exclude>
+        <exclude>${project.parent.groupId}:agent-plugins</exclude>
       </excludes>
       <outputDirectory>lib</outputDirectory>
     </dependencySet>
@@ -69,6 +73,14 @@
       </includes>
       <outputDirectory>/sdk</outputDirectory>
       <outputFileNameMapping>agent-sdk.jar</outputFileNameMapping>
+    </dependencySet>
+
+    <dependencySet>
+      <includes>
+        <include>${project.parent.groupId}:agent-plugins</include>
+      </includes>
+      <outputDirectory>/plugins</outputDirectory>
+      <outputFileNameMapping>all-in-one.jar</outputFileNameMapping>
     </dependencySet>
   </dependencySets>
 
@@ -82,13 +94,5 @@
       </includes>
     </fileSet>
   </fileSets>
-  <files>
-    <file>
-      <source>../agent-plugins/target/agent-plugins.jar</source>
-      <outputDirectory>plugins</outputDirectory>
-      <destName>agent-plugins-all-in-one.jar</destName>
-    </file>
-  </files>
-
 
 </assembly>
