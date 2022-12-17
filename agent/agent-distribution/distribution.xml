@@ -81,15 +81,14 @@
         <include>*.xml</include>
       </includes>
     </fileSet>
-
-    <fileSet>
-      <directory>../agent-plugins/target/</directory>
-      <outputDirectory>plugins</outputDirectory>
-      <includes>
-        <include>*.jar</include>
-      </includes>
-    </fileSet>
-
   </fileSets>
+  <files>
+    <file>
+      <source>../agent-plugins/target/agent-plugins.jar</source>
+      <outputDirectory>plugins</outputDirectory>
+      <destName>agent-plugins-all-in-one.jar</destName>
+    </file>
+  </files>
+
 
 </assembly>
