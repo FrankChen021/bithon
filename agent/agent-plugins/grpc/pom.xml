@@ -25,18 +25,5 @@
 
   <build>
     <finalName>${project.artifactId}</finalName>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifestEntries>
-              <Plugin-Class>org.bithon.agent.plugin.grpc.GrpcPlugin</Plugin-Class>
-            </manifestEntries>
-          </archive>
-        </configuration>
-      </plugin>
-    </plugins>
   </build>
 </project>
