@@ -16,8 +16,8 @@
 
 package org.bithon.agent.core.aop.descriptor;
 
-import shaded.net.bytebuddy.description.method.MethodDescription;
-import shaded.net.bytebuddy.matcher.ElementMatcher;
+import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 
 /**
  * @author frankchen

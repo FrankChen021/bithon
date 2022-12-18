@@ -48,9 +48,7 @@ public class HttpChannel$Handle extends AbstractInterceptor {
     @Override
     public boolean initialize() {
         requestFilter = new HttpIncomingFilter();
-
         traceConfig = AgentContext.getInstance().getAgentConfiguration().getConfig(TraceConfig.class);
-
         return true;
     }
 
@@ -79,7 +77,9 @@ public class HttpChannel$Handle extends AbstractInterceptor {
                             .tag(Tags.HTTP_URI, request.getRequestURI())
                             .tag(Tags.HTTP_METHOD, request.getMethod())
                             .tag(Tags.HTTP_VERSION, request.getHttpVersion().toString())
-                            .tag((span) -> traceConfig.getHeaders().forEach((header) -> span.tag("http.header." + header, request.getHeader(header))))
+                            .tag((span) -> traceConfig.getHeaders()
+                                                      .getRequest()
+                                                      .forEach((header) -> span.tag("http.header." + header, request.getHeader(header))))
                             .method(aopContext.getMethod())
                             .kind(SpanKind.SERVER)
                             .start();
@@ -100,7 +100,6 @@ public class HttpChannel$Handle extends AbstractInterceptor {
 
 
         RequestContext requestContext = (RequestContext) ((IBithonObject) request).getInjectedObject();
-
         InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
         if (requestContext != null) {
             TraceContextHolder.set(requestContext.getTraceContext());

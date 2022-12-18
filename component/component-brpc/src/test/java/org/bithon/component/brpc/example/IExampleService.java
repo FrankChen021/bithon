@@ -19,6 +19,7 @@ package org.bithon.component.brpc.example;
 import org.bithon.component.brpc.BrpcMethod;
 import org.bithon.component.brpc.BrpcService;
 import org.bithon.component.brpc.example.protobuf.WebRequestMetrics;
+import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.serializer.Serializer;
 
 import java.util.List;
@@ -55,7 +56,7 @@ public interface IExampleService {
     /**
      * test composite type
      */
-    Map<String, String> merge(Map<String, String> a, Map<String, String> b);
+    Map<String, String> mergeMap(Map<String, String> a, Map<String, String> b);
 
     String sendWebMetrics(WebRequestMetrics metrics);
 
@@ -75,4 +76,9 @@ public interface IExampleService {
      * empty arg test
      */
     String ping();
+
+    @BrpcMethod(messageType = ServiceMessageType.CLIENT_REQUEST)
+    default String testV1Compatibility(String echo) {
+        return echo;
+    }
 }

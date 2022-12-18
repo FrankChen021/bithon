@@ -30,8 +30,11 @@ public class WebServerMetrics implements IMetricSet {
     public final Gauge2 maxConnections = new Gauge2();
     public final Gauge2 activeThreads = new Gauge2();
     public final Gauge2 maxThreads = new Gauge2();
+    public final Gauge2 pooledThreads = new Gauge2();
+    public final Gauge2 queueSize = new Gauge2();
+
     public final IMetricValueProvider[] metrics = new IMetricValueProvider[]{
-        connectionCount, maxConnections, activeThreads, maxThreads
+        connectionCount, maxConnections, activeThreads, maxThreads, pooledThreads, queueSize
     };
 
     @Override

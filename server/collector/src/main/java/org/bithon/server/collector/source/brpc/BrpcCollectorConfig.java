@@ -32,5 +32,13 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "collector-brpc")
 public class BrpcCollectorConfig {
     private Map<String, Integer> port;
-    private SinkConfig sink;
+
+    private Sinks sinks;
+
+    @Data
+    public static class Sinks {
+        private SinkConfig metrics;
+        private SinkConfig event;
+        private SinkConfig tracing;
+    }
 }

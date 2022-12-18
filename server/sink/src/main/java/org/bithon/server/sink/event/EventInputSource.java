@@ -23,10 +23,11 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.server.sink.common.input.IInputSource;
+import org.bithon.server.sink.metrics.MetricSinkConfig;
 import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.input.IInputSource;
 import org.bithon.server.storage.datasource.input.TransformSpec;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
@@ -47,7 +48,6 @@ public class EventInputSource implements IInputSource {
     private final ApplicationContext applicationContext;
     private final EventMessageHandlers handlers;
     private final String eventType;
-    private String schemaName;
 
     @JsonCreator
     public EventInputSource(@JsonProperty("eventType") String eventType,
@@ -67,7 +67,7 @@ public class EventInputSource implements IInputSource {
 
     @Override
     public void start(DataSourceSchema schema) {
-        schemaName = schema.getName();
+        final String schemaName = schema.getName();
         try {
             handlers.add(new MetricOverEventHandler(eventType,
                                                     schemaName,
@@ -75,7 +75,8 @@ public class EventInputSource implements IInputSource {
                                                     applicationContext.getBean(ObjectMapper.class),
                                                     applicationContext.getBean(IMetaStorage.class),
                                                     applicationContext.getBean(IMetricStorage.class),
-                                                    applicationContext.getBean(DataSourceSchemaManager.class)));
+                                                    applicationContext.getBean(DataSourceSchemaManager.class),
+                                                    applicationContext.getBean(MetricSinkConfig.class)));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -18,38 +18,80 @@ package org.bithon.server.sink.metrics;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.storage.datasource.input.IInputRow;
-
-import java.util.List;
+import org.bithon.server.sink.metrics.topo.TopoTransformers;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.meta.IMetaStorage;
+import org.bithon.server.storage.metrics.IMetricStorage;
+import org.springframework.context.ApplicationContext;
 
 /**
- * This sink is designed for function evaluation and local development.
- * It calls message handlers directly in process.
- *
  * @author frank.chen021@outlook.com
- * @date 2021/3/15
+ * @date 3/10/21 14:11
  */
 @Slf4j
-@JsonTypeName("local")
 public class LocalMetricSink implements IMetricMessageSink {
 
-    private MetricMessageHandlers handlers;
+    final MetricMessageHandlers handlers;
+    final DataSourceSchemaManager schemaManager;
+    final ApplicationContext applicationContext;
 
     @JsonCreator
-    public LocalMetricSink(@JacksonInject(useInput = OptBoolean.FALSE) MetricMessageHandlers handlers) {
-        this.handlers = handlers;
+    public LocalMetricSink(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+        this.schemaManager = applicationContext.getBean(DataSourceSchemaManager.class);
+        this.handlers = MetricMessageHandlers.getInstance();
+        this.applicationContext = applicationContext;
     }
 
     @Override
-    public void process(String messageType, List<IInputRow> messages) {
+    public void process(String messageType, SchemaMetricMessage message) {
+        MetricMessageHandler handler = getMessageHandler(messageType, message);
+        if (handler == null) {
+            log.error("Can't find handler for {}", messageType);
+            return;
+        }
+
+        handler.process(message.getMetrics());
+    }
+
+    private MetricMessageHandler getMessageHandler(String messageType, SchemaMetricMessage message) {
         MetricMessageHandler handler = handlers.getHandler(messageType);
         if (handler != null) {
-            handler.process(messages);
-        } else {
-            log.error("No Handler for message [{}]", messageType);
+            // TODO: check if schema is changed
+            return handler;
+        }
+
+        if (message.getSchema() == null) {
+            return null;
+        }
+
+        //
+        // create  a handler
+        //
+        synchronized (this) {
+            handler = handlers.getHandler(messageType);
+            if (handler != null) {
+                // double check
+                return handler;
+            }
+
+            schemaManager.addDataSourceSchema(message.getSchema());
+            try {
+                handler = new MetricMessageHandler(messageType,
+                                                   applicationContext.getBean(TopoTransformers.class),
+                                                   applicationContext.getBean(IMetaStorage.class),
+                                                   applicationContext.getBean(IMetricStorage.class),
+                                                   schemaManager,
+                                                   null,
+                                                   applicationContext.getBean(MetricSinkConfig.class));
+
+                handlers.add(handler);
+                return handler;
+            } catch (Exception e) {
+                log.error("error", e);
+                return null;
+            }
         }
     }
 

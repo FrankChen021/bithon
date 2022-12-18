@@ -16,31 +16,34 @@
 
 package org.bithon.component.brpc.channel;
 
+import org.bithon.component.brpc.IServiceRegistry;
 import org.bithon.component.brpc.ServiceRegistry;
+import org.bithon.component.brpc.ServiceRegistryItem;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.IEndPointProvider;
-import org.bithon.component.brpc.endpoint.SingleEndPointProvider;
 import org.bithon.component.brpc.exception.CallerSideException;
 import org.bithon.component.brpc.exception.ChannelException;
+import org.bithon.component.brpc.exception.ServiceNotFoundException;
 import org.bithon.component.brpc.invocation.ServiceStubFactory;
+import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
 import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-import shaded.io.netty.bootstrap.Bootstrap;
-import shaded.io.netty.channel.Channel;
-import shaded.io.netty.channel.ChannelHandlerContext;
-import shaded.io.netty.channel.ChannelInboundHandlerAdapter;
-import shaded.io.netty.channel.ChannelInitializer;
-import shaded.io.netty.channel.ChannelOption;
-import shaded.io.netty.channel.ChannelPipeline;
-import shaded.io.netty.channel.nio.NioEventLoopGroup;
-import shaded.io.netty.channel.socket.SocketChannel;
-import shaded.io.netty.channel.socket.nio.NioSocketChannel;
-import shaded.io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import shaded.io.netty.handler.codec.LengthFieldPrepender;
-import shaded.io.netty.util.concurrent.Future;
+import org.bithon.shaded.io.netty.bootstrap.Bootstrap;
+import org.bithon.shaded.io.netty.channel.Channel;
+import org.bithon.shaded.io.netty.channel.ChannelHandlerContext;
+import org.bithon.shaded.io.netty.channel.ChannelInboundHandlerAdapter;
+import org.bithon.shaded.io.netty.channel.ChannelInitializer;
+import org.bithon.shaded.io.netty.channel.ChannelOption;
+import org.bithon.shaded.io.netty.channel.ChannelPipeline;
+import org.bithon.shaded.io.netty.channel.nio.NioEventLoopGroup;
+import org.bithon.shaded.io.netty.channel.socket.SocketChannel;
+import org.bithon.shaded.io.netty.channel.socket.nio.NioSocketChannel;
+import org.bithon.shaded.io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import org.bithon.shaded.io.netty.handler.codec.LengthFieldPrepender;
+import org.bithon.shaded.io.netty.util.concurrent.Future;
 
 import java.io.Closeable;
 import java.time.Duration;
@@ -49,47 +52,47 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Should only be used at the client side
+ *
+ * @author frankchen
  */
 public class ClientChannel implements IChannelWriter, Closeable {
-    //
-    // channel
-    //
-    public static final int MAX_RETRY = 30;
-    private static final ILogAdaptor log = LoggerFactory.getLogger(ClientChannel.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(ClientChannel.class);
     private final Bootstrap bootstrap;
     private final AtomicReference<Channel> channel = new AtomicReference<>();
     private final IEndPointProvider endPointProvider;
     private final ServiceRegistry serviceRegistry = new ServiceRegistry();
     private NioEventLoopGroup bossGroup;
-    private Duration retryInterval;
-    private int maxRetry;
-    private long connectionTimestamp;
+    private final Duration retryInterval;
+    private final int maxRetry;
 
     /**
      * a logic name of the client, which could be used for the servers to find client instances
      */
-    private String appName;
-
-    public ClientChannel(String host, int port) {
-        this(new SingleEndPointProvider(host, port));
-    }
+    private final String appName;
 
     /**
-     * create a ClientChannel object with 1 worker threads
+     * unique id of client application
      */
-    public ClientChannel(IEndPointProvider endPointProvider) {
-        this(endPointProvider, 1);
-    }
+    private final Headers headers = new Headers();
+
+    private long connectionTimestamp;
 
     /**
-     * @param nThreads if it's 0, worker threads will be default to Runtime.getRuntime().availableProcessors() * 2
+     * It's better to use {@link ClientChannelBuilder} to instantiate the instance
+     *
+     * @param nWorkerThreads if it's 0, worker threads will be default to Runtime.getRuntime().availableProcessors() * 2
      */
-    public ClientChannel(IEndPointProvider endPointProvider, int nThreads) {
+    public ClientChannel(IEndPointProvider endPointProvider,
+                         int nWorkerThreads,
+                         int maxRetry,
+                         Duration retryInterval,
+                         String appName) {
         this.endPointProvider = endPointProvider;
-        this.maxRetry = MAX_RETRY;
-        this.retryInterval = Duration.ofMillis(100);
+        this.maxRetry = maxRetry;
+        this.retryInterval = retryInterval;
+        this.appName = appName;
 
-        bossGroup = new NioEventLoopGroup(nThreads, NamedThreadFactory.of("brpc-client"));
+        bossGroup = new NioEventLoopGroup(nWorkerThreads, NamedThreadFactory.of("brpc-client"));
         bootstrap = new Bootstrap();
         bootstrap.group(bossGroup)
                  .channel(NioSocketChannel.class)
@@ -147,20 +150,6 @@ public class ClientChannel implements IChannelWriter, Closeable {
         return connectionTimestamp > 0 ? System.currentTimeMillis() - connectionTimestamp : 0;
     }
 
-    /**
-     * must be called before {@link #getRemoteService(Class)}
-     */
-    public ClientChannel applicationName(String appName) {
-        this.appName = appName;
-        return this;
-    }
-
-    public ClientChannel configureRetry(int maxRetry, Duration interval) {
-        this.maxRetry = maxRetry;
-        this.retryInterval = interval;
-        return this;
-    }
-
     @Override
     public void close() {
         if (this.bossGroup != null) {
@@ -182,12 +171,12 @@ public class ClientChannel implements IChannelWriter, Closeable {
                 connectFuture.await(200, TimeUnit.MILLISECONDS);
                 if (connectFuture.isSuccess()) {
                     connectionTimestamp = System.currentTimeMillis();
-                    log.info("Successfully connected to remote service at [{}:{}]", endpoint.getHost(), endpoint.getPort());
+                    LOG.info("Successfully connected to remote service at [{}:{}]", endpoint.getHost(), endpoint.getPort());
                     return;
                 }
                 int leftCount = maxRetry - i - 1;
                 if (leftCount > 0) {
-                    log.warn("Unable to connect to remote service at [{}:{}]. Left retry count:{}",
+                    LOG.warn("Unable to connect to remote service at [{}:{}]. Left retry count:{}",
                              endpoint.getHost(),
                              endpoint.getPort(),
                              maxRetry - i - 1);
@@ -199,13 +188,23 @@ public class ClientChannel implements IChannelWriter, Closeable {
         throw new CallerSideException("Unable to connect to remote service at [%s:%d]", endpoint.getHost(), endpoint.getPort());
     }
 
-    public ClientChannel bindService(Object serviceImpl) {
+    public void bindService(Object serviceImpl) {
         serviceRegistry.addService(serviceImpl);
-        return this;
     }
 
     public <T> T getRemoteService(Class<T> serviceType) {
-        return ServiceStubFactory.create(this.appName, this, serviceType);
+        // check service exist at first
+        IServiceRegistry serviceRegistry = ServiceStubFactory.create(this.appName, Headers.EMPTY, this, IServiceRegistry.class);
+        String serviceName = ServiceRegistryItem.getServiceName(serviceType);
+        if (!serviceRegistry.contains(serviceName)) {
+            throw new ServiceNotFoundException(serviceName);
+        }
+
+        return ServiceStubFactory.create(this.appName, this.headers, this, serviceType);
+    }
+
+    public void setAppId(String appId) {
+        this.headers.put("appId", appId);
     }
 
     class ClientChannelManager extends ChannelInboundHandlerAdapter {

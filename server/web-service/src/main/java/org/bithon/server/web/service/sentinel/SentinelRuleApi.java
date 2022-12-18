@@ -21,6 +21,8 @@ import org.bithon.agent.sentinel.degrade.IDegradingRuleManager;
 import org.bithon.agent.sentinel.flow.IFlowRuleManager;
 import org.bithon.component.brpc.IServiceController;
 import org.bithon.server.collector.cmd.service.CommandService;
+import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,6 +37,7 @@ import javax.validation.Valid;
 @Slf4j
 @CrossOrigin
 @RestController
+@Conditional(WebServiceModuleEnabler.class)
 public class SentinelRuleApi {
 
     private final CommandService commandService;
@@ -55,8 +58,8 @@ public class SentinelRuleApi {
         // dispatch to instances
         //
         commandService.getServerChannel()
-                      .getRemoteService(rule.getAppName(),
-                                        IFlowRuleManager.class)
+                      .getRemoteServices(rule.getAppName(),
+                                         IFlowRuleManager.class)
                       .parallelStream()
                       .forEach(flowRuleManager -> {
                           IServiceController ctrl = (IServiceController) flowRuleManager;
@@ -72,8 +75,8 @@ public class SentinelRuleApi {
         // dispatch to instances
         //
         commandService.getServerChannel()
-                      .getRemoteService(flowRule.getAppName(),
-                                        IFlowRuleManager.class)
+                      .getRemoteServices(flowRule.getAppName(),
+                                         IFlowRuleManager.class)
                       .parallelStream()
                       .forEach(flowRuleManager -> {
                           IServiceController ctrl = (IServiceController) flowRuleManager;
@@ -95,8 +98,8 @@ public class SentinelRuleApi {
         // dispatch to instances
         //
         commandService.getServerChannel()
-                      .getRemoteService(rule.getAppName(),
-                                        IDegradingRuleManager.class)
+                      .getRemoteServices(rule.getAppName(),
+                                         IDegradingRuleManager.class)
                       .parallelStream()
                       .forEach(ruleManager -> {
                           IServiceController ctrl = (IServiceController) ruleManager;
@@ -112,8 +115,8 @@ public class SentinelRuleApi {
         // dispatch to instances
         //
         commandService.getServerChannel()
-                      .getRemoteService(flowRule.getAppName(),
-                                        IDegradingRuleManager.class)
+                      .getRemoteServices(flowRule.getAppName(),
+                                         IDegradingRuleManager.class)
                       .parallelStream()
                       .forEach(ruleManager -> {
                           IServiceController ctrl = (IServiceController) ruleManager;

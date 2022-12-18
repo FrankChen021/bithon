@@ -20,6 +20,8 @@ package org.bithon.component.brpc.message;
  * 4: messageType
  * 4: serializer(JSON/Binary)
  * 8: transactionId
+ *
+ * @author frankchen
  */
 public abstract class ServiceMessage {
     protected long transactionId;

@@ -39,20 +39,21 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
+ * handler per schema, but can be called in multiple threads such as Kafka consumer threads or brpc collector threads
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/3/3 11:17 下午
  */
 @Slf4j
 @Getter
 public class MetricMessageHandler {
+    private static volatile IMetricWriter topoMetricWriter;
 
     private final ThreadPoolExecutor executor;
     private final DataSourceSchema schema;
     private final DataSourceSchema endpointSchema;
     private final IMetaStorage metaStorage;
-    private final IMetricWriter metricStorageWriter;
-    private final IMetricWriter endpointMetricStorageWriter;
-
+    private final IMetricWriter metricWriter;
     private final TopoTransformers topoTransformers;
     private final TransformSpec transformSpec;
 
@@ -61,17 +62,26 @@ public class MetricMessageHandler {
                                 IMetaStorage metaStorage,
                                 IMetricStorage metricStorage,
                                 DataSourceSchemaManager dataSourceSchemaManager,
-                                TransformSpec transformSpec) throws IOException {
+                                TransformSpec transformSpec,
+                                MetricSinkConfig metricSinkConfig) throws IOException {
 
         this.topoTransformers = topoTransformers;
 
         this.schema = dataSourceSchemaManager.getDataSourceSchema(dataSourceName);
         this.metaStorage = metaStorage;
-        this.metricStorageWriter = metricStorage.createMetricWriter(schema);
+        this.metricWriter = new MetricBatchWriter(dataSourceName, metricStorage.createMetricWriter(schema), metricSinkConfig);
 
         this.endpointSchema = dataSourceSchemaManager.getDataSourceSchema("topo-metrics");
         this.endpointSchema.setEnforceDuplicationCheck(false);
-        this.endpointMetricStorageWriter = metricStorage.createMetricWriter(endpointSchema);
+        if (topoMetricWriter == null) {
+            synchronized (MetricMessageHandler.class) {
+                if (topoMetricWriter == null) {
+                    topoMetricWriter = new MetricBatchWriter(endpointSchema.getName(),
+                                                             metricStorage.createMetricWriter(endpointSchema),
+                                                             metricSinkConfig);
+                }
+            }
+        }
 
         this.transformSpec = transformSpec;
 
@@ -145,7 +155,7 @@ public class MetricMessageHandler {
             // save endpoint metrics in batch
             //
             try {
-                endpointMetricStorageWriter.write(endpointDataSource.getRows());
+                topoMetricWriter.write(endpointDataSource.getRows());
             } catch (IOException e) {
                 log.error("save metrics", e);
             }
@@ -154,7 +164,7 @@ public class MetricMessageHandler {
             // save metrics in batch
             //
             try {
-                metricStorageWriter.write(inputRowList);
+                metricWriter.write(inputRowList);
             } catch (IOException e) {
                 log.error("Failed to save metrics [dataSource={}] due to: {}",
                           schema.getName(),
@@ -194,6 +204,20 @@ public class MetricMessageHandler {
         try {
             executor.awaitTermination(30, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {
+        }
+
+        try {
+            this.metricWriter.close();
+        } catch (Exception ignored) {
+        }
+        synchronized (MetricMessageHandler.class) {
+            if (topoMetricWriter != null) {
+                try {
+                    topoMetricWriter.close();
+                } catch (Exception ignored) {
+                }
+                topoMetricWriter = null;
+            }
         }
     }
 }

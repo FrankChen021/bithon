@@ -21,9 +21,9 @@ import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.utils.filter.IMatcher;
 import org.bithon.agent.core.utils.filter.InCollectionMatcher;
 import org.bithon.agent.core.utils.filter.StringEqualMatcher;
-import shaded.net.bytebuddy.asm.Advice;
-import shaded.net.bytebuddy.description.method.MethodDescription;
-import shaded.net.bytebuddy.matcher.ElementMatcher;
+import org.bithon.shaded.net.bytebuddy.asm.Advice;
+import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

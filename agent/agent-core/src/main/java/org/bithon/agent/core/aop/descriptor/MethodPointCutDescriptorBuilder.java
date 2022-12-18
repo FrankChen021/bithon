@@ -18,12 +18,9 @@ package org.bithon.agent.core.aop.descriptor;
 
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.aop.matcher.Matchers;
-import shaded.net.bytebuddy.description.method.MethodDescription;
-import shaded.net.bytebuddy.matcher.ElementMatcher;
-import shaded.net.bytebuddy.matcher.ElementMatchers;
-
-import static shaded.net.bytebuddy.matcher.ElementMatchers.isConstructor;
-import static shaded.net.bytebuddy.matcher.ElementMatchers.takesNoArguments;
+import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 /**
  * @author frankchen
@@ -86,7 +83,7 @@ public class MethodPointCutDescriptorBuilder {
 
     public MethodPointCutDescriptorBuilder onMethodAndNoArgs(String method) {
         this.method = Matchers.withName(method);
-        this.argsMatcher = takesNoArguments();
+        this.argsMatcher = ElementMatchers.takesNoArguments();
         this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
@@ -104,7 +101,7 @@ public class MethodPointCutDescriptorBuilder {
     }
 
     public MethodPointCutDescriptorBuilder onConstructor(ElementMatcher.Junction<MethodDescription> matcher) {
-        this.method = isConstructor().and(matcher);
+        this.method = ElementMatchers.isConstructor().and(matcher);
         this.methodType = MethodType.CONSTRUCTOR;
         return this;
     }
@@ -131,7 +128,7 @@ public class MethodPointCutDescriptorBuilder {
     }
 
     public MethodPointCutDescriptorBuilder noArgs() {
-        argsMatcher = takesNoArguments();
+        argsMatcher = ElementMatchers.takesNoArguments();
         return this;
     }
 

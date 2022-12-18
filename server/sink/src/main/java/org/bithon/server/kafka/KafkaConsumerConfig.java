@@ -30,5 +30,7 @@ import java.util.Map;
 @Configuration
 @ConfigurationProperties(prefix = "collector-kafka")
 public class KafkaConsumerConfig {
-    private Map<String, Object> source;
+    private Map<String, Object> metrics;
+    private Map<String, Object> event;
+    private Map<String, Object> tracing;
 }

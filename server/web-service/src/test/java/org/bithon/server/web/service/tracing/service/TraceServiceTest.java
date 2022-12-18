@@ -39,9 +39,8 @@ public class TraceServiceTest {
         long end = System.currentTimeMillis() + fromSecond(40);
 
         TraceService.Bucket bucket = TraceService.getTimeBucket(start, end);
-        Assert.assertEquals(1, bucket.getNums());
-        Assert.assertEquals(60, bucket.getLength());
-
+        Assert.assertEquals(12, bucket.getNums());
+        Assert.assertEquals(5, bucket.getLength());
     }
 
     @Test
@@ -50,8 +49,8 @@ public class TraceServiceTest {
         long end = System.currentTimeMillis() + fromMinute(1);
 
         TraceService.Bucket bucket = TraceService.getTimeBucket(start, end);
-        Assert.assertEquals(1, bucket.getNums());
-        Assert.assertEquals(60, bucket.getLength());
+        Assert.assertEquals(12, bucket.getNums());
+        Assert.assertEquals(5, bucket.getLength());
     }
 
     @Test

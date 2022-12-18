@@ -97,7 +97,7 @@ public class HttpChannel$OnCompleted extends AbstractInterceptor {
             responseByteSize = jettyResponse.getContentCount();
         }
 
-        this.metricRegistry.getOrCreateMetrics(srcApplication, uri, httpStatus)
+        this.metricRegistry.getOrCreateMetrics(srcApplication, httpServletRequest.getMethod(), uri, httpStatus)
                            .updateRequest(costTime, count4xx, count5xx)
                            .updateBytes(requestByteSize, responseByteSize);
     }

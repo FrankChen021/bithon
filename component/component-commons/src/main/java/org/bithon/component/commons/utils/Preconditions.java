@@ -42,13 +42,13 @@ public class Preconditions {
         return value;
     }
 
-    public static void checkIf(boolean expression, String message) {
+    public static void checkIfTrue(boolean expression, String message) {
         if (!expression) {
             throw new InvalidValueException(message);
         }
     }
 
-    public static void checkIf(boolean expression, String messageFormat, Object... args) {
+    public static void checkIfTrue(boolean expression, String messageFormat, Object... args) {
         if (!expression) {
             throw new InvalidValueException(messageFormat, args);
         }

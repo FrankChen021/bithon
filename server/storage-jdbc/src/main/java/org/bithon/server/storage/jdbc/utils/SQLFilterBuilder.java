@@ -34,7 +34,8 @@ import org.bithon.server.commons.matcher.StringNotEqualMatcher;
 import org.bithon.server.commons.matcher.StringRegexMatcher;
 import org.bithon.server.commons.matcher.StringStartsWithMatcher;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.IColumnSpec;
+import org.bithon.server.storage.datasource.typing.StringValueType;
 import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
 
@@ -44,32 +45,31 @@ import java.util.stream.Stream;
 
 /**
  * build SQL where clause
+ *
+ * @author frank.chenling
  */
 public class SQLFilterBuilder implements IMatcherVisitor<String> {
 
     private final DataSourceSchema schema;
     private final String fieldName;
-
-    public SQLFilterBuilder(String fieldName) {
-        this.fieldName = fieldName;
-        this.schema = null;
-    }
+    private final IColumnSpec columnSpec;
 
     public SQLFilterBuilder(DataSourceSchema schema, IFilter filter) {
-        IDimensionSpec dimSpec = null;
         if (IFilter.TYPE_DIMENSION.equals(filter.getType())) {
             String nameType = ((DimensionFilter) filter).getNameType();
             if ("name".equals(nameType)) {
-                dimSpec = schema.getDimensionSpecByName(filter.getName());
+                columnSpec = schema.getDimensionSpecByName(filter.getName());
             } else if ("alias".equals(nameType)) {
-                dimSpec = schema.getDimensionSpecByAlias(filter.getName());
+                columnSpec = schema.getDimensionSpecByAlias(filter.getName());
+            } else {
+                columnSpec = null;
             }
-            Preconditions.checkNotNull(dimSpec, "dimension [%s] is not defined in data source [%s]", filter.getName(), schema.getName());
+            Preconditions.checkNotNull(columnSpec, "dimension [%s] is not defined in data source [%s]", filter.getName(), schema.getName());
 
-            this.fieldName = dimSpec.getName();
+            this.fieldName = columnSpec.getName();
         } else {
-            Preconditions.checkNotNull(schema.getMetricSpecByName(filter.getName()),
-                                       "metric [%s] is not defined in data source [%s]", filter.getName(), schema.getName());
+            columnSpec = schema.getMetricSpecByName(filter.getName());
+            Preconditions.checkNotNull(columnSpec, "metric [%s] is not defined in data source [%s]", filter.getName(), schema.getName());
 
             this.fieldName = filter.getName();
         }
@@ -80,10 +80,10 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
         return build(schema, filters.stream());
     }
 
-    public static String build(DataSourceSchema schema, Stream<IFilter> stream) {
-        return stream.map(cond -> cond.getMatcher()
-                                      .accept(new SQLFilterBuilder(schema, cond)))
-                     .collect(Collectors.joining(" AND "));
+    public static String build(DataSourceSchema schema, Stream<IFilter> filterStream) {
+        return filterStream.map(filter -> filter.getMatcher()
+                                                .accept(new SQLFilterBuilder(schema, filter)))
+                           .collect(Collectors.joining(" AND "));
     }
 
     @Override
@@ -167,13 +167,27 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     @Override
     public String visit(GreaterThanMatcher matcher) {
         String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
-        return StringUtils.format("\"%s\".\"%s\" > %s", tableName, fieldName, matcher.getValue().toString());
+
+        String pattern;
+        if (columnSpec.getValueType() instanceof StringValueType) {
+            pattern = "\"%s\".\"%s\" > '%s'";
+        } else {
+            pattern = "\"%s\".\"%s\" > %s";
+        }
+        return StringUtils.format(pattern, tableName, fieldName, matcher.getValue().toString());
     }
 
     @Override
     public String visit(GreaterThanOrEqualMatcher matcher) {
         String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
-        return StringUtils.format("\"%s\".\"%s\" >= %s", tableName, fieldName, matcher.getValue().toString());
+
+        String pattern;
+        if (columnSpec.getValueType() instanceof StringValueType) {
+            pattern = "\"%s\".\"%s\" >= '%s'";
+        } else {
+            pattern = "\"%s\".\"%s\" >= %s";
+        }
+        return StringUtils.format(pattern, tableName, fieldName, matcher.getValue().toString());
     }
 
     @Override

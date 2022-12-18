@@ -18,6 +18,9 @@ package org.bithon.component.brpc.exception;
 
 import java.util.Locale;
 
+/**
+ * @author frankchen
+ */
 public class ServiceInvocationException extends RuntimeException {
     public ServiceInvocationException(CharSequence message) {
         super(message instanceof String ? (String) message : message.toString());
@@ -25,5 +28,9 @@ public class ServiceInvocationException extends RuntimeException {
 
     public ServiceInvocationException(String messageFormat, Object... args) {
         super(String.format(Locale.ENGLISH, messageFormat, args));
+    }
+
+    public ServiceInvocationException(Throwable cause, String messageFormat, Object... args) {
+        super(String.format(Locale.ENGLISH, messageFormat, args), cause);
     }
 }

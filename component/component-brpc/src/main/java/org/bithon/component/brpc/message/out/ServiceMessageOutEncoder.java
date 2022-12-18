@@ -20,17 +20,20 @@ import org.bithon.component.brpc.invocation.ClientInvocationManager;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-import shaded.com.google.protobuf.CodedOutputStream;
-import shaded.io.netty.buffer.ByteBuf;
-import shaded.io.netty.buffer.ByteBufOutputStream;
-import shaded.io.netty.channel.ChannelFutureListener;
-import shaded.io.netty.channel.ChannelHandlerContext;
-import shaded.io.netty.channel.ChannelPromise;
-import shaded.io.netty.handler.codec.EncoderException;
-import shaded.io.netty.handler.codec.MessageToByteEncoder;
+import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
+import org.bithon.shaded.io.netty.buffer.ByteBuf;
+import org.bithon.shaded.io.netty.buffer.ByteBufOutputStream;
+import org.bithon.shaded.io.netty.channel.ChannelFutureListener;
+import org.bithon.shaded.io.netty.channel.ChannelHandlerContext;
+import org.bithon.shaded.io.netty.channel.ChannelPromise;
+import org.bithon.shaded.io.netty.handler.codec.EncoderException;
+import org.bithon.shaded.io.netty.handler.codec.MessageToByteEncoder;
 
+/**
+ * @author frankchen
+ */
 public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessageOut> {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(ServiceMessageOutEncoder.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(ServiceMessageOutEncoder.class);
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ServiceMessageOut msg, ByteBuf out) {
@@ -54,7 +57,8 @@ public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessag
             Throwable cause = future.cause();
             if (cause instanceof ServiceMessageEncodingException) {
                 ServiceMessageOut out = ((ServiceMessageEncodingException) cause).out;
-                if (out.getMessageType() == ServiceMessageType.CLIENT_REQUEST) {
+                if (out.getMessageType() == ServiceMessageType.CLIENT_REQUEST
+                    || out.getMessageType() == ServiceMessageType.CLIENT_REQUEST_V2) {
                     ClientInvocationManager.getInstance()
                                            .onClientException(((ServiceMessageEncodingException) cause).out.getTransactionId(),
                                                               cause.getCause());
@@ -62,7 +66,7 @@ public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessag
                 }
             }
 
-            log.error("Exception when encoding out message", cause);
+            LOG.error("Exception when encoding out message", cause);
         }));
     }
 

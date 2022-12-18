@@ -19,12 +19,12 @@ package org.bithon.server.storage.datasource;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;
 import lombok.Setter;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.dimension.LongDimensionSpec;
-import org.bithon.server.storage.datasource.input.IInputSource;
 import org.bithon.server.storage.datasource.spec.CountMetricSpec;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 
@@ -53,7 +53,7 @@ public class DataSourceSchema {
     private final List<IMetricSpec> metricsSpec;
 
     @Getter
-    private final IInputSource inputSourceSpec;
+    private final JsonNode inputSourceSpec;
 
     /**
      * data source level ttl.
@@ -110,7 +110,7 @@ public class DataSourceSchema {
                             @JsonProperty("timestampSpec") @Nullable TimestampSpec timestampSpec,
                             @JsonProperty("dimensionsSpec") List<IDimensionSpec> dimensionsSpec,
                             @JsonProperty("metricsSpec") List<IMetricSpec> metricsSpec,
-                            @JsonProperty("inputSourceSpec") @Nullable IInputSource inputSourceSpec,
+                            @JsonProperty("inputSourceSpec") @Nullable JsonNode inputSourceSpec,
                             @JsonProperty("ttl") @Nullable Period ttl) {
         this.displayText = displayText == null ? name : displayText;
         this.name = name;

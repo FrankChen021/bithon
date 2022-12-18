@@ -58,12 +58,13 @@ public class HttpOutgoingMetrics implements IMetricSet {
         this.requestCount.incr();
     }
 
-    public void addException(long responseTime, int exceptionCount) {
+    public HttpOutgoingMetrics addException(long responseTime, int exceptionCount) {
         this.responseTime.update(responseTime);
         this.maxResponseTime.update(responseTime);
         this.minResponseTime.update(responseTime);
         this.countException.update(exceptionCount);
         this.requestCount.incr();
+        return this;
     }
 
     public void addByteSize(long requestByteSize, long responseByteSize) {

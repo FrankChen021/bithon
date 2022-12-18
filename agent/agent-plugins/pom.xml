@@ -19,11 +19,15 @@
     <module>apache-druid</module>
     <module>bithon-brpc</module>
     <module>bithon-sdk</module>
+    <module>glassfish</module>
+    <module>grpc</module>
     <module>guice</module>
     <module>jvm</module>
+    <module>kafka</module>
     <module>mysql-5.x-6.x</module>
     <module>mysql-8.x</module>
     <module>quartz2</module>
+    <module>jersey</module>
     <module>jdk-thread</module>
     <module>httpclient-okhttp3</module>
     <module>httpclient-okhttp32</module>
@@ -66,6 +70,20 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- Google gRPC -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-grpc</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- Eclipse glassfish -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-glassfish</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- Google Guice -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
@@ -92,6 +110,11 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-webserver-netty</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jersey</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -208,6 +231,7 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- MongoDb -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-mongodb</artifactId>
@@ -218,6 +242,14 @@
       <artifactId>agent-plugin-mongodb-3.8</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <!-- Kafka -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-kafka</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- end-->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -230,6 +262,9 @@
   <build>
     <finalName>agent-plugins</finalName>
     <plugins>
+      <!--
+      Use assembly to move all plugins to a target directory and then pack them into one jar
+      -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>

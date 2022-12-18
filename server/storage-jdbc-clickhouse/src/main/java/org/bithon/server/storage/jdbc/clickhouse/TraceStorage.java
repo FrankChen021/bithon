@@ -24,12 +24,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.sink.tracing.TraceConfig;
+import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.common.IStorageCleaner;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
-import org.bithon.server.storage.jdbc.tracing.TraceJdbcBatchWriter;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcReader;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
@@ -59,7 +58,7 @@ public class TraceStorage extends TraceJdbcStorage {
     public TraceStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseJooqContextHolder dslContextHolder,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
-                        @JacksonInject(useInput = OptBoolean.FALSE) TraceConfig traceConfig,
+                        @JacksonInject(useInput = OptBoolean.FALSE) TraceSinkConfig traceConfig,
                         @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config,
                         @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
         super(dslContextHolder.getDslContext(), objectMapper, storageConfig, traceConfig, schemaManager);
@@ -90,17 +89,17 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @Override
     public ITraceWriter createWriter() {
-        return new TraceJdbcBatchWriter(new TraceJdbcWriter(dslContext, objectMapper, traceConfig) {
+        return new TraceJdbcWriter(dslContext, objectMapper, traceStorageConfig) {
             @Override
             protected boolean isTransactionSupported() {
                 return false;
             }
-        }, super.config);
+        };
     }
 
     @Override
     public ITraceReader createReader() {
-        return new TraceJdbcReader(this.dslContext, this.objectMapper, traceSpanSchema, traceConfig) {
+        return new TraceJdbcReader(this.dslContext, this.objectMapper, traceSpanSchema, this.traceTagIndexSchema, this.traceSinkConfig, this.traceStorageConfig) {
             @Override
             public List<Histogram> getTraceDistribution(List<IFilter> filters, Timestamp start, Timestamp end) {
                 BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
@@ -114,8 +113,7 @@ public class TraceStorage extends TraceJdbcStorage {
                                                      summaryTable.TIMESTAMP.getName(),
                                                      DateTime.toYYYYMMDDhhmmss(end.getTime())));
 
-                String moreFilter = SQLFilterBuilder.build(traceSpanSchema,
-                                                           filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
+                String moreFilter = SQLFilterBuilder.build(traceSpanSchema, filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
                 if (StringUtils.hasText(moreFilter)) {
                     sqlBuilder.append(" AND ");
                     sqlBuilder.append(moreFilter);
@@ -128,9 +126,7 @@ public class TraceStorage extends TraceJdbcStorage {
                     sqlBuilder.append(dslContext.renderInlined(summaryTable.TRACEID.in(tagQuery)));
                 }
 
-                String finalSqlBuilder = "SELECT histogram.1 AS lower, histogram.2 AS upper, histogram.3 AS height FROM ("
-                                         + sqlBuilder
-                                         + " )";
+                String finalSqlBuilder = "SELECT histogram.1 AS lower, histogram.2 AS upper, histogram.3 AS height FROM (" + sqlBuilder + " )";
 
                 List<Histogram> histograms = dslContext.fetch(finalSqlBuilder).into(Histogram.class);
 

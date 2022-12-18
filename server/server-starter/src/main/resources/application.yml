@@ -1,17 +1,28 @@
-server:
-  port: 9897
-
 bithon:
-  tracing:
-    globalSanitizer:
-      type: uri
-      args:
-        sensitiveParameters:
-          - password
-    mapping:
-      - type: uri
+  sinks:
+    event:
+      batch:
+        size: 1000
+        interval: 2
+    metrics:
+      batch:
+        size: 1000
+        interval: 2
+    tracing:
+      batch:
+        size: 10000
+      filters:
+        - type: expression
+          expression: clazz <> 'org.bithon.server.sink.common.service.UriNormalizer'
+      globalSanitizer:
+        type: uri
         args:
-          parameters: ["query_id"]
-      - type: name
-        args:
-          names: ["query_id"]
+          sensitiveParameters:
+            - password
+      mapping:
+        - type: uri
+          args:
+            parameters: ["query_id"]
+        - type: name
+          args:
+            names: ["query_id"]

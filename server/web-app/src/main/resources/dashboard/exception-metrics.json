@@ -5,18 +5,26 @@
       "dataSource": "exception-metrics",
       "title": "Exceptions",
       "width": 4,
+      "type": "line",
       "yAxis": [
         {
           "format": "compact_number"
         }
       ],
-      "metrics": [
+      "columns": [
         {
           "name": "eventCount",
           "chartType": "line",
           "fill": false
         }
-      ]
+      ],
+      "query": {
+        "dataSource": "exception-metrics",
+        "type": "timeseries",
+        "fields": [
+          "eventCount"
+        ]
+      }
     },
     {
       "dataSource": "exception-metrics",

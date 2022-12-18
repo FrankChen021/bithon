@@ -22,5 +22,8 @@ package org.bithon.agent.core.dispatcher.channel;
  */
 public interface IMessageChannel extends AutoCloseable {
 
+    /**
+     * In current design, this method is called in one thread only, so it's thread safe.
+     */
     void sendMessage(Object message);
 }

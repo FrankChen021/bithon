@@ -35,7 +35,7 @@
               <relocations>
                 <relocation>
                   <pattern>com.alibaba.druid</pattern>
-                  <shadedPattern>shaded.com.alibaba.druid</shadedPattern>
+                  <shadedPattern>org.bithon.shaded.com.alibaba.druid</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>

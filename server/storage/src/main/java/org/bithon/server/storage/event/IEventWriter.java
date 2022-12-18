@@ -17,7 +17,7 @@
 package org.bithon.server.storage.event;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -25,5 +25,5 @@ import java.util.Collection;
  */
 public interface IEventWriter extends AutoCloseable {
 
-    void write(Collection<EventMessage> eventMessage) throws IOException;
+    void write(List<EventMessage> eventMessage) throws IOException;
 }

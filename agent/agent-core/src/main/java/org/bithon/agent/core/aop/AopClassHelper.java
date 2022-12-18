@@ -17,10 +17,10 @@
 package org.bithon.agent.core.aop;
 
 
-import shaded.net.bytebuddy.ByteBuddy;
-import shaded.net.bytebuddy.dynamic.DynamicType;
-import shaded.net.bytebuddy.dynamic.loading.ClassInjector;
-import shaded.net.bytebuddy.matcher.ElementMatchers;
+import org.bithon.shaded.net.bytebuddy.ByteBuddy;
+import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
+import org.bithon.shaded.net.bytebuddy.dynamic.loading.ClassInjector;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.HashMap;
 import java.util.Map;

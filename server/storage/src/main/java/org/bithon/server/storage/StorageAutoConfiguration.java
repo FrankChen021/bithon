@@ -21,6 +21,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.TimestampSpec;
+import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.dimension.StringDimensionSpec;
 import org.bithon.server.storage.datasource.spec.CountMetricSpec;
 import org.bithon.server.storage.datasource.spec.sum.LongSumMetricSpec;
@@ -36,6 +37,7 @@ import org.bithon.server.storage.setting.ISettingStorage;
 import org.bithon.server.storage.setting.SettingStorageConfig;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
+import org.bithon.server.storage.tracing.index.TagIndexConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -44,9 +46,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -213,17 +218,37 @@ public class StorageAutoConfiguration {
                                                                         true)));
     }
 
+    private DataSourceSchema createTraceTagIndexSchema(TagIndexConfig tagIndexConfig) {
+        List<IDimensionSpec> dimensionSpecs = new ArrayList<>();
+        if (tagIndexConfig != null) {
+            for (Map.Entry<String, Integer> entry : tagIndexConfig.getMap().entrySet()) {
+                String tagName = entry.getKey();
+                Integer indexPos = entry.getValue();
+                dimensionSpecs.add(new StringDimensionSpec("f" + indexPos,
+                                                           tagName,
+                                                           tagName,
+                                                           true,
+                                                           null,
+                                                           null));
+            }
+        }
+
+        final DataSourceSchema spanTagSchema = new DataSourceSchema("trace_span_tag_index",
+                                                                    "trace_span_tag_index",
+                                                                    new TimestampSpec("timestamp", null, null),
+                                                                    dimensionSpecs,
+                                                                    Collections.singletonList(CountMetricSpec.INSTANCE));
+        spanTagSchema.setVirtual(true);
+        return spanTagSchema;
+    }
+
     @Bean
     @ConditionalOnBean(ISchemaStorage.class)
-    DataSourceSchemaManager schemaManager(ISchemaStorage schemaStorage, ObjectMapper objectMapper) {
-        final DataSourceSchema eventTableSchema = createEventTableSchema();
-        final DataSourceSchema traceTableSchema = createTraceSpanSchema();
-
-        DataSourceSchemaManager schemaManager = new DataSourceSchemaManager(schemaStorage, objectMapper);
-
-        schemaManager.addDataSourceSchema(eventTableSchema);
-        schemaManager.addDataSourceSchema(traceTableSchema);
-
+    DataSourceSchemaManager schemaManager(ISchemaStorage schemaStorage, TraceStorageConfig traceStorageConfig) {
+        DataSourceSchemaManager schemaManager = new DataSourceSchemaManager(schemaStorage);
+        schemaManager.addDataSourceSchema(createEventTableSchema());
+        schemaManager.addDataSourceSchema(createTraceSpanSchema());
+        schemaManager.addDataSourceSchema(createTraceTagIndexSchema(traceStorageConfig.getIndexes()));
         return schemaManager;
     }
 }

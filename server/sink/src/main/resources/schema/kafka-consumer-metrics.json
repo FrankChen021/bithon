@@ -1,0 +1,76 @@
+{
+  "displayText": "Kafka Consumer",
+  "name": "kafka-consumer-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "name": "appName",
+      "displayText": "Application",
+      "required": true
+    },
+    {
+      "name": "instanceName",
+      "displayText": "Instance",
+      "required": true
+    },
+    {
+      "name": "cluster",
+      "displayText": "cluster",
+      "required": true
+    },
+    {
+      "name": "topic",
+      "displayText": "topic",
+      "required": true
+    },
+    {
+      "name": "partition",
+      "displayText": "partition",
+      "required": true
+    },
+    {
+      "name": "groupId",
+      "displayText": "groupId",
+      "required": true
+    },
+    {
+      "name": "clientId",
+      "displayText": "clientId",
+      "required": true
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longSum",
+      "name": "consumedBytes",
+      "displayText": "consumedBytes",
+      "unit": "byte"
+    },
+    {
+      "type": "longSum",
+      "name": "consumedRecords",
+      "displayText": "consumedRecords",
+      "unit": ""
+    },
+    {
+      "type": "post",
+      "name": "consumedBytesRate",
+      "displayText": "consumedBytesRate",
+      "expression": "round(consumedBytes * 1.0/{interval}, 2)",
+      "unit": ""
+    },
+    {
+      "type": "post",
+      "name": "consumedRecordsRate",
+      "displayText": "consumedRecordsRate",
+      "expression": "round(consumedRecords * 1.0/{interval}, 2)",
+      "unit": ""
+    }
+  ],
+  "inputSourceSpec": {
+    "type": "metric"
+  }
+}

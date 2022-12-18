@@ -1,0 +1,90 @@
+{
+  "displayText": "Kafka Network",
+  "name": "kafka-network-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "name": "appName",
+      "displayText": "Application",
+      "required": true
+    },
+    {
+      "name": "instanceName",
+      "displayText": "Instance",
+      "required": true
+    },
+    {
+      "name": "type",
+      "displayText": "type",
+      "required": true
+    },
+    {
+      "name": "cluster",
+      "displayText": "cluster",
+      "required": true
+    },
+    {
+      "name": "nodeId",
+      "displayText": "nodeId",
+      "required": true
+    },
+    {
+      "name": "groupId",
+      "displayText": "groupId",
+      "required": true
+    },
+    {
+      "name": "clientId",
+      "displayText": "clientId",
+      "required": true
+    },
+    {
+      "name": "exception",
+      "displayText": "exception",
+      "required": true
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longSum",
+      "name": "requestCount",
+      "displayText": "requestCount",
+      "unit": ""
+    },
+    {
+      "type": "longMin",
+      "name": "minResponseTime",
+      "displayText": "minResponseTime",
+      "unit": "millisecond"
+    },
+    {
+      "type": "longSum",
+      "name": "responseTime",
+      "displayText": "responseTime",
+      "unit": "millisecond"
+    },
+    {
+      "type": "longMax",
+      "name": "maxResponseTime",
+      "displayText": "maxResponseTime",
+      "unit": "millisecond"
+    },
+    {
+      "type": "post",
+      "name": "qps",
+      "expression": "round(requestCount * 1.0 / {interval}, 2)"
+    },
+    {
+      "type": "post",
+      "name": "avgResponseTime",
+      "expression": "round(responseTime * 1.0 / requestCount, 2)",
+      "unit": "millisecond"
+    }
+  ],
+  "inputSourceSpec": {
+    "type": "metric"
+  }
+}

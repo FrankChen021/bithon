@@ -22,10 +22,10 @@ import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
-import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,6 +94,10 @@ public class MetricsAggregator {
      * get aggregated result
      */
     public List<IInputRow> getRows() {
+        if (this.rows.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         final List<IInputRow> finalRows = new ArrayList<>(this.rows.size());
         this.rows.forEach((key, aggregators) -> {
             Map<String, Object> row = new HashMap<>(23);

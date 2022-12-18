@@ -22,6 +22,8 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import java.util.concurrent.ForkJoinPool;
 
 /**
+ * {@link java.util.concurrent.ForkJoinPool#tryTerminate(boolean, boolean)}
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 11:15 下午
  */

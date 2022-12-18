@@ -31,7 +31,6 @@ import org.bithon.server.storage.datasource.query.ast.OrderBy;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SelectExpression;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.datasource.query.ast.StringNode;
 import org.bithon.server.storage.datasource.query.ast.Table;
 import org.bithon.server.storage.datasource.query.ast.Where;
@@ -352,13 +351,6 @@ public class SelectExpressionBuilder {
                     selectExpression.getResultColumnList().add(new StringNode(function.accept(generator)), resultColumn.getAlias());
 
                     String underlyingFieldName = ((Name) function.getArguments().get(0)).getName();
-
-                    // Special case for some aggregators, they must also be grouped in sub-query
-                    // for cardinality, we put it here instead of in `convertToGroupByQuery`
-                    // because in some cases, this operator don't need to be in the groupBy expression which is constructed in that method
-                    if (function.getFnName().equals(SimpleAggregateExpressions.CardinalityAggregateExpression.TYPE)) {
-                        selectExpression.getGroupBy().addField(underlyingFieldName);
-                    }
 
                     // This metric should also be in the sub-query, see the example in the javadoc above
                     subSelectExpression.getResultColumnList().add(underlyingFieldName);

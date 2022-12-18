@@ -17,6 +17,7 @@
 package org.bithon.agent.plugin.httpclient.apache.interceptor;
 
 
+import org.apache.http.Header;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -25,6 +26,8 @@ import org.apache.http.protocol.HttpContext;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -36,6 +39,14 @@ import org.bithon.component.commons.tracing.Tags;
  * @author frankchen
  */
 public class HttpRequestExecutor$Execute extends AbstractInterceptor {
+
+    private TraceConfig traceConfig;
+
+    @Override
+    public boolean initialize() {
+        traceConfig = AgentContext.getInstance().getAgentConfiguration().getConfig(TraceConfig.class);
+        return true;
+    }
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
@@ -79,6 +90,18 @@ public class HttpRequestExecutor$Execute extends AbstractInterceptor {
 
         HttpResponse response = context.castReturningAs();
         String status = response == null ? "-1" : (response.getStatusLine() == null ? "-1" : Integer.toString(response.getStatusLine().getStatusCode()));
-        thisSpan.tag(Tags.HTTP_STATUS, status).tag(context.getException()).finish();
+        thisSpan.tag(Tags.HTTP_STATUS, status)
+                .tag(context.getException());
+        if (response != null) {
+            traceConfig.getHeaders()
+                       .getResponse()
+                       .forEach((name) -> {
+                           Header header = response.getFirstHeader(name);
+                           if (header != null) {
+                               thisSpan.tag("http.response.header." + name, header.getValue());
+                           }
+                       });
+        }
+        thisSpan.finish();
     }
 }

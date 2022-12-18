@@ -66,6 +66,7 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
                                                 .tag(Tags.HTTP_METHOD, exchange.getRequestMethod().toString())
                                                 .tag(Tags.HTTP_VERSION, exchange.getProtocol().toString())
                                                 .tag((span) -> traceConfig.getHeaders()
+                                                                          .getRequest()
                                                                           .forEach((header) -> span.tag("http.header." + header,
                                                                                                         exchange.getRequestHeaders().getFirst(header))))
                                                 .method(aopContext.getMethod())
@@ -100,6 +101,7 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
 
     private void update(HttpServerExchange exchange, long startNano) {
         String srcApplication = exchange.getRequestHeaders().getLast(ITracePropagator.TRACE_HEADER_SRC_APPLICATION);
+        String method = exchange.getRequestMethod().toString();
         String uri = exchange.getRequestPath();
         int httpStatus = exchange.getStatusCode();
         int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;
@@ -108,7 +110,7 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
         long responseByteSize = exchange.getResponseBytesSent();
         long costTime = System.nanoTime() - startNano;
 
-        this.metricRegistry.getOrCreateMetrics(srcApplication, uri, httpStatus)
+        this.metricRegistry.getOrCreateMetrics(srcApplication, method, uri, httpStatus)
                            .updateRequest(costTime, count4xx, count5xx)
                            .updateBytes(requestByteSize, responseByteSize);
     }

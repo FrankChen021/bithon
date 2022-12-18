@@ -20,34 +20,122 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.server.storage.datasource.input.filter.IInputRowFilter;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.context.ApplicationContext;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/16
+ * @date 12/4/22 11:38 AM
  */
+@Slf4j
 @JsonTypeName("local")
 public class LocalTraceSink implements ITraceMessageSink {
 
-    @Getter
-    private final TraceMessageHandler handler;
+    static class SinkImpl implements ITraceMessageSink {
+
+        @Getter
+        private final TraceSinkHandler handler;
+
+        public SinkImpl(ApplicationContext applicationContext) {
+            this.handler = new TraceSinkHandler(applicationContext);
+        }
+
+        @Override
+        public void process(String messageType, List<TraceSpan> messages) {
+            handler.submit(messages);
+        }
+
+        @Override
+        public void close() throws Exception {
+            handler.close();
+        }
+    }
+
+    private final List<ITraceMessageSink> sinks = Collections.synchronizedList(new ArrayList<>());
+
+    private final ExecutorService executorService;
+    private final IInputRowFilter filter;
 
     @JsonCreator
-    public LocalTraceSink(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        this.handler = new TraceMessageHandler(applicationContext);
+    public LocalTraceSink(@JacksonInject(useInput = OptBoolean.FALSE) TraceSinkConfig traceSinkConfig,
+                          @JacksonInject(useInput = OptBoolean.FALSE)ObjectMapper objectMapper,
+                          @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+        this.filter = traceSinkConfig.createFilter(objectMapper);
+        this.executorService = Executors.newCachedThreadPool(NamedThreadFactory.of("trace-processor"));
+        link(new SinkImpl(applicationContext));
+    }
+
+    public <T extends ITraceMessageSink> T link(T sink) {
+        sinks.add(sink);
+        return sink;
+    }
+
+    public <T extends ITraceMessageSink> T unlink(T sink) {
+        sinks.remove(sink);
+        return sink;
     }
 
     @Override
-    public void process(String messageType, List<TraceSpan> messages) {
-        handler.submit(messages);
+    public void process(String messageType, List<TraceSpan> spans) {
+        if (spans.isEmpty()) {
+            return;
+        }
+        if (this.filter != null) {
+            spans = spans.stream().filter(this.filter::shouldInclude).collect(Collectors.toList());
+        }
+        if (spans.isEmpty()) {
+            return;
+        }
+        for (ITraceMessageSink sink : sinks) {
+            executorService.execute(new TraceMessageSinkRunnable(sink, messageType, spans));
+        }
+    }
+
+    /**
+     * Use an explicitly defined class instead of lambda
+     * because it helps improve the observability of tracing logs on {@link ExecutorService#execute}
+     */
+    static class TraceMessageSinkRunnable implements Runnable {
+        private final ITraceMessageSink sink;
+        private final String messageType;
+        private final List<TraceSpan> spans;
+
+        TraceMessageSinkRunnable(ITraceMessageSink sink, String messageType, List<TraceSpan> spans) {
+            this.sink = sink;
+            this.messageType = messageType;
+            this.spans = spans;
+        }
+
+        @Override
+        public void run() {
+            try {
+                sink.process(messageType, spans);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        }
     }
 
     @Override
     public void close() throws Exception {
-        handler.close();
+        for (ITraceMessageSink sink : sinks) {
+            sink.close();
+        }
+        this.executorService.shutdownNow();
+        //noinspection ResultOfMethodCallIgnored
+        this.executorService.awaitTermination(10, TimeUnit.SECONDS);
     }
 }

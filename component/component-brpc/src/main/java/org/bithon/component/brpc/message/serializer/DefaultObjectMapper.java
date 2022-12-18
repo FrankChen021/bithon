@@ -16,12 +16,12 @@
 
 package org.bithon.component.brpc.message.serializer;
 
-import shaded.com.fasterxml.jackson.core.JsonFactory;
-import shaded.com.fasterxml.jackson.databind.DeserializationFeature;
-import shaded.com.fasterxml.jackson.databind.ObjectMapper;
-import shaded.com.fasterxml.jackson.databind.SerializationFeature;
-import shaded.com.fasterxml.jackson.dataformat.smile.SmileFactory;
-import shaded.com.fasterxml.jackson.dataformat.smile.SmileGenerator;
+import org.bithon.shaded.com.fasterxml.jackson.core.JsonFactory;
+import org.bithon.shaded.com.fasterxml.jackson.databind.DeserializationFeature;
+import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.shaded.com.fasterxml.jackson.databind.SerializationFeature;
+import org.bithon.shaded.com.fasterxml.jackson.dataformat.smile.SmileFactory;
+import org.bithon.shaded.com.fasterxml.jackson.dataformat.smile.SmileGenerator;
 
 public class DefaultObjectMapper extends ObjectMapper {
 

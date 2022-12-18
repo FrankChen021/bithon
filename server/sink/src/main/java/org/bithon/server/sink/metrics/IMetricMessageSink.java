@@ -18,9 +18,6 @@ package org.bithon.server.sink.metrics;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.datasource.input.IInputRow;
-
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -31,5 +28,5 @@ import java.util.List;
     @JsonSubTypes.Type(name = "local", value = LocalMetricSink.class),
 })
 public interface IMetricMessageSink extends AutoCloseable {
-    void process(String messageType, List<IInputRow> message);
+    void process(String messageType, SchemaMetricMessage message);
 }

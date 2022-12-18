@@ -17,7 +17,7 @@
 package org.bithon.agent.plugin.alibaba.druid.config;
 
 import org.bithon.agent.core.config.ConfigurationProperties;
-import shaded.com.fasterxml.jackson.annotation.JsonProperty;
+import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author frank.chen021@outlook.com

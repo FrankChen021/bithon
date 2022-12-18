@@ -18,9 +18,9 @@ package org.bithon.server.sink.tracing.index;
 
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.sink.tracing.TraceConfig;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.index.TagIndex;
+import org.bithon.server.storage.tracing.index.TagIndexConfig;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,8 +39,8 @@ public class TagIndexGenerator {
      */
     private final TagIndexConfig config;
 
-    public TagIndexGenerator(TraceConfig config) {
-        this.config = config.getIndexes();
+    public TagIndexGenerator(TagIndexConfig config) {
+        this.config = config;
     }
 
     public List<TagIndex> generate(Collection<TraceSpan> spans) {

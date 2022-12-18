@@ -16,8 +16,6 @@
 
 package org.bithon.server.sink.metrics;
 
-import org.springframework.stereotype.Component;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,8 +24,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author frank.chen021@outlook.com
  * @date 2022/7/31 12:17
  */
-@Component
 public class MetricMessageHandlers {
+
+    private static final MetricMessageHandlers INSTANCE = new MetricMessageHandlers();
+
+    public static MetricMessageHandlers getInstance() {
+        return INSTANCE;
+    }
 
     private final Map<String, MetricMessageHandler> handlers = new ConcurrentHashMap<>();
 

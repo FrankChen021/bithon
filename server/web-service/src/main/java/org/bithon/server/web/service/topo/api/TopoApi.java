@@ -32,9 +32,11 @@ import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
+import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.topo.service.EndpointBo;
 import org.bithon.server.web.service.topo.service.Link;
 import org.bithon.server.web.service.topo.service.Topo;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,6 +55,7 @@ import java.util.stream.Stream;
  */
 @CrossOrigin
 @RestController
+@Conditional(WebServiceModuleEnabler.class)
 public class TopoApi {
 
     private final IMetricReader metricReader;

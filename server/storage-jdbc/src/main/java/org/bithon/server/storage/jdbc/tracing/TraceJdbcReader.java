@@ -22,16 +22,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.sink.tracing.TraceConfig;
+import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanSummaryRecord;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
+import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record1;
@@ -54,17 +56,23 @@ public class TraceJdbcReader implements ITraceReader {
     public static final String SPAN_TAGS_PREFIX = "tags.";
     private final DSLContext dslContext;
     private final ObjectMapper objectMapper;
-    private final TraceConfig traceConfig;
+    private final TraceSinkConfig traceConfig;
+    private final TraceStorageConfig traceStorageConfig;
     private final DataSourceSchema traceSpanSchema;
+    private final DataSourceSchema traceTagIndexSchema;
 
     public TraceJdbcReader(DSLContext dslContext,
                            ObjectMapper objectMapper,
                            DataSourceSchema traceSpanSchema,
-                           TraceConfig traceConfig) {
+                           DataSourceSchema traceTagIndexSchema,
+                           TraceSinkConfig traceSinkConfig,
+                           TraceStorageConfig traceStorageConfig) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
-        this.traceConfig = traceConfig;
+        this.traceConfig = traceSinkConfig;
+        this.traceStorageConfig = traceStorageConfig;
         this.traceSpanSchema = traceSpanSchema;
+        this.traceTagIndexSchema = traceTagIndexSchema;
     }
 
     @Override
@@ -199,9 +207,9 @@ public class TraceJdbcReader implements ITraceReader {
                 throw new RuntimeException(StringUtils.format("Wrong tag name [%s]", filter.getName()));
             }
 
-            Preconditions.checkNotNull(this.traceConfig.getIndexes(), "No index configured for 'tags' attribute.");
+            Preconditions.checkNotNull(this.traceStorageConfig.getIndexes(), "No index configured for 'tags' attribute.");
 
-            int tagIndex = this.traceConfig.getIndexes().getColumnPos(tagName);
+            int tagIndex = this.traceStorageConfig.getIndexes().getColumnPos(tagName);
             if (tagIndex == 0) {
                 throw new RuntimeException(StringUtils.format("Can't search on tag [%s] because it is not configured in the index.", tagName));
             }
@@ -218,7 +226,8 @@ public class TraceJdbcReader implements ITraceReader {
                                      .where(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.ge(start))
                                      .and(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.lt(end));
             }
-            tagQuery = tagQuery.and(filter.getMatcher().accept(new SQLFilterBuilder("f" + tagIndex)));
+            tagQuery = tagQuery.and(filter.getMatcher().accept(new SQLFilterBuilder(this.traceTagIndexSchema,
+                                                                                    new DimensionFilter("f" + tagIndex, filter.getMatcher()))));
         }
 
         return tagQuery;

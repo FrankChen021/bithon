@@ -16,15 +16,16 @@
 
 package org.bithon.component.brpc.message.serializer;
 
-import shaded.com.fasterxml.jackson.databind.ObjectMapper;
-import shaded.com.google.protobuf.CodedInputStream;
-import shaded.com.google.protobuf.CodedOutputStream;
+import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.shaded.com.google.protobuf.CodedInputStream;
+import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
 
 /**
  * serializer for service arguments and returning object
+ * @author frankchen
  */
 public enum Serializer {
     BINARY {

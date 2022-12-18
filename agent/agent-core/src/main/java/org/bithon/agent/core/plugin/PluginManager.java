@@ -23,14 +23,13 @@ import org.bithon.agent.core.context.AgentContext;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
-import java.util.zip.ZipFile;
 
 /**
  * @author frank.chen021@outlook.com
@@ -38,7 +37,7 @@ import java.util.zip.ZipFile;
  */
 public class PluginManager {
 
-    private static final ILogAdaptor log = LoggerFactory.getLogger(PluginManager.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(PluginManager.class);
 
     private final List<IPlugin> plugins;
 
@@ -71,45 +70,44 @@ public class PluginManager {
     }
 
     private List<IPlugin> loadPlugins() {
-
         JarClassLoader pluginClassLoader = PluginClassLoaderManager.getDefaultLoader();
-        List<JarFile> pluginJars = pluginClassLoader.getJars()
-                                                    .stream()
-                                                    .sorted(Comparator.comparing(ZipFile::getName))
-                                                    .collect(Collectors.toList());
+        return pluginClassLoader.getJars()
+                                .stream()
+                                .flatMap(JarFile::stream)
+                                .filter(jarEntry -> jarEntry.getName().endsWith("Plugin.class"))
+                                .sorted(Comparator.comparing(JarEntry::getName))
+                                .map((jarEntry) -> loadPlugin(jarEntry, pluginClassLoader))
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toList());
+    }
 
-        final List<IPlugin> plugins = new ArrayList<>();
-        for (JarFile jar : pluginJars) {
-            String jarFileName = new File(jar.getName()).getName();
-            try {
-                String pluginClassName = jar.getManifest().getMainAttributes().getValue("Plugin-Class");
-                if (pluginClassName == null) {
-                    log.info("Invalid plugin {}", jarFileName);
-                    continue;
-                }
+    private IPlugin loadPlugin(JarEntry jarEntry, JarClassLoader pluginClassLoader) {
+        String jarEntryName = jarEntry.getName();
+        String pluginFullClassName = jarEntryName.substring(0, jarEntryName.length() - ".class".length()).replace('/', '.');
 
-                //noinspection unchecked
-                Class<? extends IPlugin> pluginClass = (Class<? extends IPlugin>) Class.forName(pluginClassName,
-                                                                                                true,
-                                                                                                pluginClassLoader);
+        try {
+            Class<?> pluginClass = Class.forName(pluginFullClassName, true, pluginClassLoader);
 
-                Boolean isPluginDisabled = PluginConfigurationManager.load(pluginClass)
-                                                                     .getConfig(PluginConfigurationManager.getPluginConfigurationPrefixName(pluginClassName)
-                                                                                + "disabled", Boolean.class);
-                if (isPluginDisabled != null && isPluginDisabled) {
-                    log.info("Found plugin {}, but it's DISABLED by configuration", jarFileName);
-                    continue;
-                }
-
-                log.info("Found plugin {}", jarFileName);
-                plugins.add(pluginClass.getDeclaredConstructor().newInstance());
-            } catch (Throwable e) {
-                log.error(String.format(Locale.ENGLISH,
-                                        "Failed to add plugin from jar %s",
-                                        new File(jar.getName()).getName()),
-                          e);
+            Boolean isPluginDisabled = PluginConfigurationManager.load(pluginClass)
+                                                                 .getConfig(PluginConfigurationManager.getPluginConfigurationPrefixName(pluginFullClassName) + "disabled",
+                                                                            Boolean.class);
+            if (isPluginDisabled != null && isPluginDisabled) {
+                LOG.info("Found plugin {}, but it's DISABLED by configuration", pluginClass.getSimpleName());
+                return null;
             }
+
+            LOG.info("Found plugin {}", pluginClass.getSimpleName());
+            Object pluginInstance = pluginClass.getDeclaredConstructor().newInstance();
+            if (pluginInstance instanceof IPlugin) {
+                return (IPlugin) pluginInstance;
+            } else {
+                LOG.info("Resource [{}] is not type of IPlugin. The class name does not comply with the plugin standard. Please change it.",
+                         pluginFullClassName);
+                return null;
+            }
+        } catch (Throwable e) {
+            LOG.error(String.format(Locale.ENGLISH, "Failed to load plugin [%s]", pluginFullClassName), e);
+            return null;
         }
-        return plugins;
     }
 }

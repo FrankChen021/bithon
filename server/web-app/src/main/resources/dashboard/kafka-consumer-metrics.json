@@ -1,0 +1,55 @@
+{
+  "title": "Kafka Consumer",
+  "charts": [
+    {
+      "dataSource": "kafka-consumer-metrics",
+      "title": "Consumed Records",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        "consumedRecordsRate",
+        {
+          "name": "consumedRecords",
+          "yAxis": 1
+        }
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "kafka-consumer-metrics",
+        "fields": [
+          "consumedRecordsRate",
+          "consumedRecords"
+        ]
+      }
+    },
+    {
+      "dataSource": "kafka-consumer-metrics",
+      "title": "Consumed Bytes",
+      "width": 4,
+      "type": "line",
+      "yAxis": [
+        {
+          "format": "byte_rate"
+        },
+        {
+          "format": "binary_byte"
+        }
+      ],
+      "columns": [
+        "consumedBytesRate",
+        {
+          "name": "consumedBytes",
+          "yAxis": 1
+        }
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "kafka-consumer-metrics",
+        "fields": [
+          "consumedBytesRate",
+          "consumedBytes"
+        ]
+      }
+    }
+  ]
+}

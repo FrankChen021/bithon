@@ -26,17 +26,18 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.commons.time.Period;
+import org.bithon.server.sink.common.input.IInputSource;
 import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.MetricMessageHandler;
+import org.bithon.server.sink.metrics.MetricSinkConfig;
 import org.bithon.server.sink.metrics.MetricsAggregator;
 import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
-import org.bithon.server.sink.tracing.TraceMessageProcessChain;
+import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.IInputSource;
 import org.bithon.server.storage.datasource.input.TransformSpec;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.meta.IMetaStorage;
@@ -58,7 +59,7 @@ import java.util.stream.Collectors;
 public class MetricOverSpanInputSource implements IInputSource {
 
     @JsonIgnore
-    private final TraceMessageProcessChain chain;
+    private final LocalTraceSink chain;
 
     @Getter
     private final TransformSpec transformSpec;
@@ -74,7 +75,7 @@ public class MetricOverSpanInputSource implements IInputSource {
 
     @JsonCreator
     public MetricOverSpanInputSource(@JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
-                                     @JacksonInject(useInput = OptBoolean.FALSE) TraceMessageProcessChain chain,
+                                     @JacksonInject(useInput = OptBoolean.FALSE) LocalTraceSink chain,
                                      @JacksonInject(useInput = OptBoolean.FALSE) IMetricStorage metricStorage,
                                      @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         Preconditions.checkArgumentNotNull("transformSpec", transformSpec);
@@ -139,7 +140,8 @@ public class MetricOverSpanInputSource implements IInputSource {
                                                           applicationContext.getBean(IMetaStorage.class),
                                                           metricStorage,
                                                           applicationContext.getBean(DataSourceSchemaManager.class),
-                                                          null);
+                                                          null,
+                                                          applicationContext.getBean(MetricSinkConfig.class));
         }
 
         @Override

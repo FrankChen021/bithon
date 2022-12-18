@@ -25,7 +25,12 @@ public interface IInputRow {
     Object getCol(String columnName);
 
     default Long getColAsLong(String columnName) {
-        return getColAs(columnName, Long.class);
+        Object val = getCol(columnName);
+        if (val instanceof Number) {
+            return ((Number) val).longValue();
+        } else {
+            return 0L;
+        }
     }
 
     default long getColAsLong(String columnName, long defaultValue) {

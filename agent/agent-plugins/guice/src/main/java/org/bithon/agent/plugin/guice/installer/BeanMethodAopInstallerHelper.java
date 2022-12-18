@@ -22,9 +22,9 @@ import org.bithon.agent.core.aop.installer.BeanMethodAopInstaller;
 import org.bithon.agent.core.plugin.PluginConfigurationManager;
 import org.bithon.agent.plugin.guice.GuicePlugin;
 import org.bithon.agent.plugin.guice.interceptor.GuiceBeanMethod$Invoke;
-import shaded.net.bytebuddy.asm.Advice;
-import shaded.net.bytebuddy.dynamic.ClassFileLocator;
-import shaded.net.bytebuddy.dynamic.DynamicType;
+import org.bithon.shaded.net.bytebuddy.asm.Advice;
+import org.bithon.shaded.net.bytebuddy.dynamic.ClassFileLocator;
+import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
 
 /**
  * @author frank.chen021@outlook.com

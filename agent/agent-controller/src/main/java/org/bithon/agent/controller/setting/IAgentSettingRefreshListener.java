@@ -16,8 +16,8 @@
 
 package org.bithon.agent.controller.setting;
 
-import shaded.com.fasterxml.jackson.databind.JsonNode;
-import shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
+import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author frankchen

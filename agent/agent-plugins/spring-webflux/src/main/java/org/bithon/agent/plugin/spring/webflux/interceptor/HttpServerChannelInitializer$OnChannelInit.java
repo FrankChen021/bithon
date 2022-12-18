@@ -92,6 +92,7 @@ public class HttpServerChannelInitializer$OnChannelInit extends AbstractIntercep
             try {
                 metricCollector.getOrCreateMetrics(((HttpServerRequest) channelOps).requestHeaders()
                                                                                    .get(ITracePropagator.TRACE_HEADER_SRC_APPLICATION),
+                                                   ((HttpInfos) channelOps).method().name(),
                                                    ((HttpInfos) channelOps).fullPath(),
                                                    ((HttpServerResponse) channelOps).status().code())
                                .updateBytes(dataReceived, dataSent);
@@ -100,6 +101,11 @@ public class HttpServerChannelInitializer$OnChannelInit extends AbstractIntercep
             }
         }
 
+        /**
+         * @param bithonObject Type of ChannelOperations<?, ?>
+         *                     In this case, it's type of {@link reactor.netty.http.server.HttpServerOperations}.
+         *                     And the injected object is assigned in {@link HttpServerOperations$Ctor}
+         */
         @Override
         protected HttpIOMetrics getMetricContext(IBithonObject bithonObject) {
             // raw type is HttpServerOperations

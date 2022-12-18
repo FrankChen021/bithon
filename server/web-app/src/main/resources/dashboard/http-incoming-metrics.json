@@ -5,25 +5,30 @@
       "dataSource": "http-incoming-metrics",
       "title": "QPS",
       "width": 4,
-      "yAxis": [
-        {},
-        {}
-      ],
-      "metrics": [
+      "type": "line",
+      "columns": [
         {
-          "name": "qps"
+          "name": "qps",
+          "title": "QPS"
         },
-        {
-          "name": "okQPS"
-        },
+        "okQPS",
         {
           "name": "totalCount",
           "yAxis": 1
         }
       ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "http-incoming-metrics",
+        "fields": [
+          "qps",
+          "okQPS",
+          "totalCount"
+        ]
+      },
       "details": {
-        "type": "groupBy",
         "columns": [
+          "method",
           "uri",
           "statusCode",
           "qps",
@@ -32,6 +37,7 @@
         "query": {
           "dataSource": "http-incoming-metrics",
           "fields": [
+            "method",
             "uri",
             "statusCode",
             "qps",
@@ -54,32 +60,47 @@
       "dataSource": "http-incoming-metrics",
       "title": "Response Time",
       "width": 4,
+      "type": "line",
       "yAxis": [
         {
           "format": "millisecond"
         }
       ],
-      "metrics": [
-        {
-          "name": "minResponseTime"
-        },
-        {
-          "name": "avgResponseTime"
-        },
-        {
-          "name": "maxResponseTime"
-        }
-      ],
-      "details": {
-        "groupBy": [
-          "uri",
-          "statusCode"
-        ],
-        "metrics": [
+      "columns": ["minResponseTime", "avgResponseTime", "maxResponseTime"],
+      "query": {
+        "dataSource": "http-incoming-metrics",
+        "type": "timeseries",
+        "fields": [
           "minResponseTime",
           "avgResponseTime",
           "maxResponseTime"
+        ]
+      },
+      "details": {
+        "columns": [
+          "method",
+          "uri",
+          "statusCode",
+          {"name": "minResponseTime", "format": "nanoFormatter"},
+          {"name":"avgResponseTime", "format": "millisecond"},
+          {"name": "maxResponseTime", "format": "nanoFormatter"}
         ],
+        "query": {
+          "dataSource": "http-incoming-metrics",
+          "type": "groupBy",
+          "fields": [
+            "method",
+            "uri",
+            "statusCode",
+            "minResponseTime",
+            "avgResponseTime",
+            "maxResponseTime"
+          ],
+          "orderBy": {
+            "name": "avgResponseTime",
+            "order": "desc"
+          }
+        },
         "tracing": {
           "dimensionMaps": {
             "uri": "normalizedUrl",
@@ -92,37 +113,53 @@
       "dataSource": "http-incoming-metrics",
       "title": "Errors",
       "width": 4,
-      "metrics": [
-        {
-          "name": "count4xx"
-        },
-        {
-          "name": "count5xx"
-        },
-        {
-          "name": "flowedCount"
-        },
-        {
-          "name": "degradedCount"
-        }
+      "type": "line",
+      "columns": [
+        "count4xx",
+        "count5xx",
+        "flowedCount",
+        "degradedCount"
       ],
+      "query": {
+        "dataSource": "http-incoming-metrics",
+        "type": "timeseries",
+        "fields": [
+          "count4xx",
+          "count5xx",
+          "flowedCount",
+          "degradedCount"
+        ]
+      },
       "details": {
-        "groupBy": [
+        "dataSource": "http-incoming-metrics",
+        "columns": [
+          "method",
           "uri",
-          "statusCode"
-        ],
-        "metrics": [
+          "statusCode",
           "totalCount"
         ],
-        "filters": [
-          {
-            "dimension": "statusCode",
-            "matcher": {
-              "type": "notEqual",
-              "pattern": "200"
+        "query": {
+          "type": "groupBy",
+          "fields": [
+            "method",
+            "uri",
+            "statusCode",
+            "totalCount"
+          ],
+          "orderBy": {
+            "name": "totalCount",
+            "order": "desc"
+          },
+          "filters": [
+            {
+              "dimension": "statusCode",
+              "matcher": {
+                "type": "gt",
+                "value": "200"
+              }
             }
-          }
-        ],
+          ]
+        },
         "tracing": {
           "dimensionMaps": {
             "uri": "normalizedUrl",
@@ -135,6 +172,7 @@
       "dataSource": "http-incoming-metrics",
       "title": "IO",
       "width": 4,
+      "type": "line",
       "yAxis": [
         {
           "format": "byte_rate"
@@ -143,13 +181,9 @@
           "format": "binary_byte"
         }
       ],
-      "metrics": [
-        {
-          "name": "requestByteRate"
-        },
-        {
-          "name": "responseByteRate"
-        },
+      "columns": [
+        "requestByteRate",
+        "responseByteRate",
         {
           "name": "requestBytes",
           "yAxis": 1
@@ -159,15 +193,34 @@
           "yAxis": 1
         }
       ],
+      "query": {
+        "dataSource": "http-incoming-metrics",
+        "type": "timeseries",
+        "fields": [
+          "requestByteRate",
+          "responseByteRate",
+          "requestBytes",
+          "responseBytes"
+        ]
+      },
       "details": {
-        "groupBy": [
+        "columns": [
+          "method",
           "uri",
-          "statusCode"
-        ],
-        "metrics": [
+          "statusCode",
           "requestByteRate",
           "responseByteRate"
-        ]
+        ],
+        "query": {
+          "type": "groupBy",
+          "fields": [
+            "method",
+            "uri",
+            "statusCode",
+            "requestByteRate",
+            "responseByteRate"
+          ]
+        }
       }
     }
   ]

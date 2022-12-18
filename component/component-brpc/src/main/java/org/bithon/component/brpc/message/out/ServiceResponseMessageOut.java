@@ -18,10 +18,14 @@ package org.bithon.component.brpc.message.out;
 
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.serializer.Serializer;
-import shaded.com.google.protobuf.CodedOutputStream;
+import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
+import org.bithon.shaded.io.netty.channel.Channel;
 
 import java.io.IOException;
 
+/**
+ * @author frankchen
+ */
 public class ServiceResponseMessageOut extends ServiceMessageOut {
     private long serverResponseAt;
     private Object returning;
@@ -79,10 +83,6 @@ public class ServiceResponseMessageOut extends ServiceMessageOut {
             return this;
         }
 
-        public ServiceResponseMessageOut build() {
-            return response;
-        }
-
         public Builder returning(Object ret) {
             response.returning = ret;
             return this;
@@ -91,6 +91,10 @@ public class ServiceResponseMessageOut extends ServiceMessageOut {
         public Builder serializer(Serializer serializer) {
             response.setSerializer(serializer);
             return this;
+        }
+
+        public void send(Channel channel) {
+            channel.writeAndFlush(response);
         }
     }
 }

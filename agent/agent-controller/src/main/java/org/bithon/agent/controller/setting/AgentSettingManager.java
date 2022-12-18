@@ -21,9 +21,9 @@ import org.bithon.agent.controller.IAgentController;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.CollectionUtils;
-import shaded.com.fasterxml.jackson.databind.DeserializationFeature;
-import shaded.com.fasterxml.jackson.databind.JsonNode;
-import shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.shaded.com.fasterxml.jackson.databind.DeserializationFeature;
+import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
+import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,7 +65,7 @@ public class AgentSettingManager {
 
     public static void createInstance(String appName, String env, IAgentController controller) {
         INSTANCE = new AgentSettingManager(appName, env, controller);
-        INSTANCE.startPeriodicallyFetech();
+        INSTANCE.startPeriodicallyFetch();
     }
 
     public static AgentSettingManager getInstance() {
@@ -80,7 +80,7 @@ public class AgentSettingManager {
         listeners.computeIfAbsent(name, key -> new ArrayList<>()).add(listener);
     }
 
-    private void startPeriodicallyFetech() {
+    private void startPeriodicallyFetch() {
         if (controller != null) {
             new Timer("setting-fetcher").schedule(new TimerTask() {
                 @Override

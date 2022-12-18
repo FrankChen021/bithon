@@ -1,0 +1,87 @@
+{
+  "displayText": "Kafka Producer",
+  "name": "kafka-producer-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "name": "appName",
+      "displayText": "Application",
+      "required": true
+    },
+    {
+      "name": "instanceName",
+      "displayText": "Instance",
+      "required": true
+    },
+    {
+      "name": "cluster",
+      "displayText": "cluster",
+      "required": true
+    },
+    {
+      "name": "nodeId",
+      "displayText": "nodeId",
+      "required": true
+    },
+    {
+      "name": "topic",
+      "displayText": "topic",
+      "required": true
+    },
+    {
+      "name": "clientId",
+      "displayText": "clientId",
+      "required": true
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longSum",
+      "name": "batchSize",
+      "displayText": "batchSize",
+      "unit": "byte"
+    },
+    {
+      "type": "longMax",
+      "name": "maxRecordBytes",
+      "displayText": "maxRecordBytes",
+      "unit": "byte"
+    },
+    {
+      "type": "longSum",
+      "name": "recordCount",
+      "displayText": "recordCount",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "errorRecordCount",
+      "displayText": "errorRecordCount",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "retryRecordCount",
+      "displayText": "retryRecordCount",
+      "unit": ""
+    },
+    {
+      "type": "longMin",
+      "name": "minQueueTimeMs",
+      "displayText": "min Queue Time",
+      "unit": "millisecond"
+    },
+    {
+      "type": "longMax",
+      "name": "maxQueueTimeMs",
+      "displayText": "max Queue Time",
+      "unit": "millisecond"
+    }
+  ],
+  "inputSourceSpec": {
+    "type": "metric"
+  }
+}

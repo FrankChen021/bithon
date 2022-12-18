@@ -19,25 +19,37 @@
   ],
   "metricsSpec": [
     {
-      "type": "longSum",
+      "type": "longLast",
       "name": "connectionCount",
       "displayText": "Connection Count",
       "unit": ""
     },
     {
-      "type": "longSum",
+      "type": "longMax",
       "name": "maxConnections",
       "displayText": "count of max connections",
       "unit": ""
     },
     {
-      "type": "longSum",
+      "type": "longLast",
+      "name": "queueSize",
+      "displayText": "Size of queued task",
+      "unit": ""
+    },
+    {
+      "type": "longLast",
       "name": "activeThreads",
       "displayText": "Active Threads",
       "unit": ""
     },
     {
       "type": "longLast",
+      "name": "pooledThreads",
+      "displayText": "Threads in Pool",
+      "unit": ""
+    },
+    {
+      "type": "longMax",
       "name": "maxThreads",
       "displayText": "Max Threads",
       "unit": ""

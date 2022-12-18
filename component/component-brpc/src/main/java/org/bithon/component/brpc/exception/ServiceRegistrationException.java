@@ -23,9 +23,6 @@ import org.bithon.component.commons.utils.StringUtils;
  * @date 29/12/21 6:21 PM
  */
 public class ServiceRegistrationException extends RuntimeException {
-    public ServiceRegistrationException(String message) {
-        super(message);
-    }
 
     public ServiceRegistrationException(String format, Object... formatArgs) {
         super(StringUtils.format(format, formatArgs));

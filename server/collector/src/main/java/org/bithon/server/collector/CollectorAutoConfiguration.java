@@ -19,22 +19,16 @@ package org.bithon.server.collector;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.server.collector.sink.SinkConfig;
 import org.bithon.server.collector.sink.kafka.KafkaEventSink;
 import org.bithon.server.collector.sink.kafka.KafkaMetricSink;
 import org.bithon.server.collector.sink.kafka.KafkaTraceSink;
 import org.bithon.server.collector.source.brpc.BrpcCollectorConfig;
 import org.bithon.server.sink.event.IEventMessageSink;
-import org.bithon.server.sink.metrics.IMessageSink;
 import org.bithon.server.sink.metrics.IMetricMessageSink;
-import org.bithon.server.sink.metrics.LocalSchemaMetricSink;
-import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
-import org.bithon.server.sink.tracing.TraceMessageProcessChain;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -71,37 +65,24 @@ public class CollectorAutoConfiguration {
         };
     }
 
-    @Bean("schemaMetricSink")
-    @ConditionalOnExpression(value = "${collector-brpc.enabled: false} or ${collector-http.enabled: false}")
-    public IMessageSink<SchemaMetricMessage> schemaMetricSink(BrpcCollectorConfig config,
-                                                              ApplicationContext applicationContext) {
-        if ("local".equals(config.getSink().getType())) {
-            return new LocalSchemaMetricSink(applicationContext);
-        } else {
-            // TODO
-            // Kafka is not support yet
-            return null;
-        }
-    }
-
     @Bean
     @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
     public IMetricMessageSink metricSink(BrpcCollectorConfig config,
                                          ObjectMapper om) throws IOException {
-        return SinkConfig.createSink(config.getSink(), om, IMetricMessageSink.class);
+        return config.getSinks().getMetrics().createSink(om, IMetricMessageSink.class);
     }
 
     @Bean
     @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
     public IEventMessageSink eventSink(BrpcCollectorConfig config,
                                        ObjectMapper om) throws IOException {
-        return SinkConfig.createSink(config.getSink(), om, IEventMessageSink.class);
+        return config.getSinks().getEvent().createSink(om, IEventMessageSink.class);
     }
 
-    @Bean
+    @Bean("trace-sink-collector")
     @ConditionalOnExpression(value = "${collector-brpc.enabled: false} or ${collector-http.enabled: false}")
-    public TraceMessageProcessChain traceSink(BrpcCollectorConfig config,
-                                              ObjectMapper om) throws IOException {
-        return new TraceMessageProcessChain(SinkConfig.createSink(config.getSink(), om, ITraceMessageSink.class));
+    public ITraceMessageSink traceSink(BrpcCollectorConfig config,
+                                       ObjectMapper om) throws IOException {
+        return config.getSinks().getTracing().createSink(om, ITraceMessageSink.class);
     }
 }

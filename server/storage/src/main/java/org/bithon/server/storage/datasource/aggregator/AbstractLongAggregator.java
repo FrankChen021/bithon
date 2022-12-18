@@ -28,7 +28,7 @@ public abstract class AbstractLongAggregator extends NumberAggregator {
 
     @Override
     public final void aggregate(long timestamp, Object value) {
-        aggregate(timestamp, NumberUtils.getLong(value));
+        aggregate(timestamp, NumberUtils.getLong(value, 0));
     }
 
     @Override

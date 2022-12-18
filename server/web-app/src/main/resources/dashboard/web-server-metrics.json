@@ -3,16 +3,57 @@
   "charts": [
     {
       "dataSource": "web-server-metrics",
-      "title": "Web Server",
+      "title": "Web Server Connections",
       "width": 4,
-      "metrics": [
-        {
-          "name": "connectionCount"
-        },
-        {
-          "name": "activeThreads"
-        }
-      ]
+      "type": "line",
+      "columns": [
+        "connectionCount",
+        {"name":"maxConnections", "fill": false}
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "web-server-metrics",
+        "fields": [
+          "connectionCount",
+          "maxConnections"
+        ]
+      }
+    },
+    {
+      "dataSource": "web-server-metrics",
+      "title": "Queued Tasks",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        "queueSize"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "web-server-metrics",
+        "fields": [
+          "queueSize"
+        ]
+      }
+    },
+    {
+      "dataSource": "web-server-metrics",
+      "title": "Web Server Threads",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        "activeThreads",
+        "pooledThreads",
+        {"name": "maxThreads", "fill": false}
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "web-server-metrics",
+        "fields": [
+          "activeThreads",
+          "pooledThreads",
+          "maxThreads"
+        ]
+      }
     }
   ]
 }

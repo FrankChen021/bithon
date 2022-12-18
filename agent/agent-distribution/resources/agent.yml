@@ -33,6 +33,9 @@ dispatchers:
     flushTime: 5000
 
 tracing:
+  headers:
+    request: ["User-Agent", "Content-Length"]
+    response: ["X-ClickHouse-Exception-Code", "X-ClickHouse-Summary", "X-ClickHouse-Query-Id", "X-ClickHouse-Server-Display-Name"]
   samplingConfigs:
     default:
       samplingRate: 1
@@ -42,4 +45,6 @@ tracing:
       samplingRate: 1
     spring-scheduler:
       samplingRate: 1
+    kafka-consumer:
+      samplingRate: 100
   traceIdInResponse: "X-Bithon-TraceId"

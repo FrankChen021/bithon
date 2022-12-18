@@ -22,6 +22,7 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
+import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -51,7 +52,10 @@ public class ThreadPoolExecutor$Execute extends AbstractInterceptor {
                                                 .start());
 
         // change users' runnable
-        aopContext.getArgs()[0] = new TracedRunnable(runnable);
+        aopContext.getArgs()[0] = new TracedRunnable(runnable,
+                                                     TraceSpanFactory.newAsyncSpan("task")
+                                                                     .clazz(runnable.getClass().getName())
+                                                                     .method("run"));
 
         return InterceptionDecision.CONTINUE;
     }

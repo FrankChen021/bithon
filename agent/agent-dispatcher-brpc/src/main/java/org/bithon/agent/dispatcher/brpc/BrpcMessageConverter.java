@@ -24,20 +24,28 @@ import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
 import org.bithon.agent.core.metric.model.schema.Schema;
 import org.bithon.agent.core.metric.model.schema.Schema2;
+import org.bithon.agent.core.metric.model.schema.Schema3;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericDimensionSpec;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMeasurement;
+import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMeasurementV3;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessageV2;
+import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessageV3;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSchema;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSchemaV2;
+import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSchemaV3;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSpec;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
+import org.bithon.agent.rpc.brpc.metrics.FieldType;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
-import shaded.com.fasterxml.jackson.core.JsonProcessingException;
-import shaded.com.fasterxml.jackson.databind.ObjectMapper;
-import shaded.com.fasterxml.jackson.databind.SerializationFeature;
+import org.bithon.shaded.com.fasterxml.jackson.core.JsonProcessingException;
+import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.shaded.com.fasterxml.jackson.databind.SerializationFeature;
+import org.bithon.shaded.com.google.protobuf.Any;
+import org.bithon.shaded.com.google.protobuf.DoubleValue;
+import org.bithon.shaded.com.google.protobuf.Int64Value;
 
 import java.util.Collection;
 import java.util.List;
@@ -213,6 +221,49 @@ public class BrpcMessageConverter implements IMessageConverter {
                     measurementBuilder.addMetric(measurement.getMetricValue(i));
                 }
                 messageBuilder.addMeasurement(measurementBuilder.build());
+            } catch (RuntimeException ignored) {
+                // ignore invalid metric values
+            }
+        });
+
+        return messageBuilder.build();
+    }
+
+    @Override
+    public Object from(Schema3 schema, List<Object[]> measurementList, long timestamp, int interval) {
+        BrpcGenericMetricSchemaV3.Builder schemaBuilder = BrpcGenericMetricSchemaV3.newBuilder()
+                                                                                   .setName(schema.getName());
+        schema.getFields()
+              .stream()
+              .map((fieldSpec -> BrpcGenericMetricSchemaV3.FieldSpec
+                  .newBuilder()
+                  .setName(fieldSpec.getName())
+                  .setType(FieldType.DOUBLE).build()))
+              .forEach((schemaBuilder::addFieldSpec));
+
+        BrpcGenericMetricMessageV3.Builder messageBuilder = BrpcGenericMetricMessageV3.newBuilder();
+        messageBuilder.setSchema(schemaBuilder.build());
+        messageBuilder.setInterval(interval);
+        messageBuilder.setTimestamp(timestamp);
+
+        measurementList.forEach(measurement -> {
+            try {
+                BrpcGenericMeasurementV3.Builder measurementBuilder = BrpcGenericMeasurementV3.newBuilder();
+
+                for (Object v : measurement) {
+                    if (v instanceof Long) {
+                        measurementBuilder.addValue(Any.pack(Int64Value.of((Long) v)));
+                    } else if (v instanceof Integer) {
+                        measurementBuilder.addValue(Any.pack(Int64Value.of((Integer) v)));
+                    } else if (v instanceof Double) {
+                        measurementBuilder.addValue(Any.pack(DoubleValue.of((Double) v)));
+                    } else if (v instanceof Float) {
+                        measurementBuilder.addValue(Any.pack(DoubleValue.of((Float) v)));
+                    } else {
+                        throw new RuntimeException("Not supported type " + v.getClass().getName());
+                    }
+                }
+                messageBuilder.setMeasurement(measurementBuilder.build());
             } catch (RuntimeException ignored) {
                 // ignore invalid metric values
             }

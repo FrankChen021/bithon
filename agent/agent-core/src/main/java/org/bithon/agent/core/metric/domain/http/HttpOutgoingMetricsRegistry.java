@@ -42,11 +42,11 @@ public class HttpOutgoingMetricsRegistry extends MetricRegistry<HttpOutgoingMetr
         return MetricRegistryFactory.getOrCreateRegistry(NAME, HttpOutgoingMetricsRegistry::new);
     }
 
-    public void addExceptionRequest(String uri,
+    public HttpOutgoingMetrics addExceptionRequest(String uri,
                                     String method,
                                     long responseTime) {
         String path = uri.split("\\?")[0];
-        getOrCreateMetrics(path, method, "-").addException(responseTime, 1);
+        return getOrCreateMetrics(path, method, "-").addException(responseTime, 1);
     }
 
     /**

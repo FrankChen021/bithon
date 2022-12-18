@@ -19,6 +19,7 @@ package org.bithon.server.commons.matcher;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import org.bithon.component.commons.utils.Preconditions;
 
 /**
  * @author frank.chen021@outlook.com
@@ -27,19 +28,24 @@ import lombok.Getter;
 public class LessThanOrEqualMatcher implements IMatcher {
 
     @Getter
-    private final Number value;
+    private final Object value;
 
     @JsonCreator
-    public LessThanOrEqualMatcher(@JsonProperty("value") Number value) {
+    public LessThanOrEqualMatcher(@JsonProperty("value") Object value) {
+        Preconditions.checkNotNull(value, "value can't be null.");
+        Preconditions.checkIfTrue((value instanceof Number) || (value instanceof String), "value must be type of number or string.");
         this.value = value;
     }
 
     @Override
     public boolean matches(Object input) {
-        if (input instanceof Integer || input instanceof Long) {
-            return ((Number) input).longValue() <= value.longValue();
+        if (input instanceof Number) {
+            if (input instanceof Integer || input instanceof Long) {
+                return ((Number) input).longValue() <= ((Number) value).longValue();
+            }
+            return ((Number) input).doubleValue() <= ((Number) value).doubleValue();
         }
-        return ((Number) input).doubleValue() <= value.doubleValue();
+        return input.toString().compareTo(value.toString()) <= 0;
     }
 
     @Override

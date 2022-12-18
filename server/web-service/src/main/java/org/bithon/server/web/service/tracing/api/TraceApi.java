@@ -20,13 +20,15 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.sink.tracing.TraceConfig;
 import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.bithon.server.storage.tracing.TraceStorageConfig;
+import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.tracing.service.TraceService;
 import org.bithon.server.web.service.tracing.service.TraceTopoBuilder;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,12 +45,13 @@ import java.util.List;
  */
 @CrossOrigin
 @RestController
+@Conditional(WebServiceModuleEnabler.class)
 public class TraceApi {
 
-    private final TraceConfig traceConfig;
+    private final TraceStorageConfig traceConfig;
     private final TraceService traceService;
 
-    public TraceApi(TraceConfig traceConfig, TraceService traceService) {
+    public TraceApi(TraceStorageConfig traceConfig, TraceService traceService) {
         this.traceConfig = traceConfig;
         this.traceService = traceService;
     }
@@ -91,9 +94,9 @@ public class TraceApi {
         for (IFilter filter : request.getFilters()) {
             if (filter.getName().startsWith("tags.")) {
                 String tagName = filter.getName().substring("tags.".length());
-                Preconditions.checkIf(traceConfig.getIndexes().getColumnPos(tagName) > 0,
-                                      "Can't search on tag [%s] because there's no index defined for this tag.",
-                                      tagName);
+                Preconditions.checkIfTrue(traceConfig.getIndexes().getColumnPos(tagName) > 0,
+                                          "Can't search on tag [%s] because there's no index defined for this tag.",
+                                          tagName);
             }
         }
 

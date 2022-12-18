@@ -25,15 +25,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.bithon.component.commons.collection.IteratorableCollection;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.sink.event.IEventMessageSink;
 import org.bithon.server.storage.event.EventMessage;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -46,26 +47,34 @@ public class KafkaEventSink implements IEventMessageSink {
 
     private final KafkaTemplate<String, String> producer;
     private final ObjectMapper objectMapper;
+    private final String topic;
 
     @JsonCreator
     public KafkaEventSink(@JsonProperty("props") Map<String, Object> props,
                           @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+        this.topic = (String) props.remove("topic");
+        Preconditions.checkNotNull(topic, "topic is not configured for event sink");
+
         this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props,
                                                                               new StringSerializer(),
                                                                               new StringSerializer()),
-                                            ImmutableMap.of("client.id", "event"));
+                                            ImmutableMap.of(ProducerConfig.CLIENT_ID_CONFIG, "event"));
         this.objectMapper = objectMapper;
     }
 
     @Override
     public void process(String messageType, IteratorableCollection<EventMessage> messages) {
         String key = null;
-        StringBuilder messageText = new StringBuilder();
+
+        StringBuilder messageText = new StringBuilder(512);
+        messageText.append('[');
         while (messages.hasNext()) {
             EventMessage eventMessage = messages.next();
 
             // Sink receives messages from an agent, it's safe to use instance name of first item
-            key = eventMessage.getInstanceName();
+            if (key == null) {
+                key = messageType + "/" + eventMessage.getAppName() + "/" + eventMessage.getInstanceName();
+            }
 
             // deserialization
             try {
@@ -73,18 +82,21 @@ public class KafkaEventSink implements IEventMessageSink {
             } catch (JsonProcessingException ignored) {
             }
 
-            //it's not necessary, only used to improve readability of text when debugging
-            messageText.append('\n');
+            messageText.append(",\n");
         }
+        if (messageText.length() > 2) {
+            // Remove last separator
+            messageText.delete(messageText.length() - 2, messageText.length());
+        }
+        messageText.append(']');
         if (key != null) {
-            ProducerRecord<String, String> record = new ProducerRecord<>("bithon-event", key, messageText.toString());
-            record.headers().add("type", messageType.getBytes(StandardCharsets.UTF_8));
+            ProducerRecord<String, String> record = new ProducerRecord<>(this.topic, key, messageText.toString());
             producer.send(record);
         }
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         producer.destroy();
     }
 }

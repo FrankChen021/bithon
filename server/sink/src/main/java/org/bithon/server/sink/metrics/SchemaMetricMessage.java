@@ -16,6 +16,7 @@
 
 package org.bithon.server.sink.metrics;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,6 +24,7 @@ import lombok.NoArgsConstructor;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -34,6 +36,16 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SchemaMetricMessage {
+    /**
+     * It's nullable because not all messages(like some predefined metrics such as jvm-metrics) contains schema
+     */
+    @Nullable
     private DataSourceSchema schema;
+
+    /**
+     * Since we support extract metrics from TraceSpan, we here use {@link IInputRow} as type declaration instead of {@link MetricMessage}.
+     * But for deserialization, we always deserialize the input as {@link MetricMessage}
+     */
+    @JsonDeserialize(using = MetricMessageListDeserializer.class)
     private List<IInputRow> metrics;
 }

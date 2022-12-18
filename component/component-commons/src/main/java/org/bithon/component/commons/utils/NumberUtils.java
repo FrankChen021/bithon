@@ -23,30 +23,55 @@ package org.bithon.component.commons.utils;
 public class NumberUtils {
     private static final char[] HEX_CHARS = "0123456789abcdef".toCharArray();
 
-    public static long getLong(Object value) {
+    public static long getLong(Object value, long defaultValue) {
         if (value == null) {
-            return 0;
+            return defaultValue;
         }
         if (value instanceof Number) {
             return ((Number) value).longValue();
         }
         if (value instanceof String) {
-            return Long.parseLong((String) value);
+            try {
+                return Long.parseLong((String) value);
+            } catch (NumberFormatException ignored) {
+                return defaultValue;
+            }
         }
-        throw new IllegalArgumentException("Unknown type of value for Long: " + value.getClass().getName());
+        return defaultValue;
     }
 
-    public static double getDouble(Object value) {
+    public static int getInteger(Object value, int defaultValue) {
         if (value == null) {
-            return 0;
+            return defaultValue;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        if (value instanceof String) {
+            try {
+                return Integer.parseInt((String) value);
+            } catch (NumberFormatException ignored) {
+                return defaultValue;
+            }
+        }
+        return defaultValue;
+    }
+
+    public static double getDouble(Object value, double defaultValue) {
+        if (value == null) {
+            return defaultValue;
         }
         if (value instanceof Number) {
             return ((Number) value).doubleValue();
         }
         if (value instanceof String) {
-            return Double.parseDouble((String) value);
+            try {
+                return Double.parseDouble((String) value);
+            } catch (NumberFormatException ignored) {
+                return defaultValue;
+            }
         }
-        throw new IllegalArgumentException("Unknown type of value for Double: " + value.getClass().getName());
+        return defaultValue;
     }
 
     public static String toHexString(byte[] bytes) {

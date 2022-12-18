@@ -20,7 +20,7 @@ import org.bithon.agent.core.config.ConfigurationProperties;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.utils.filter.IMatcher;
 import org.bithon.agent.core.utils.filter.StringSuffixMatcher;
-import shaded.com.fasterxml.jackson.annotation.JsonProperty;
+import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -17,7 +17,6 @@
 package org.bithon.agent.core.context;
 
 import org.bithon.agent.core.utils.NetworkUtils;
-import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
 
@@ -31,8 +30,6 @@ import java.util.List;
  * @date 2021/1/21 9:58 下午
  */
 public class AppInstance {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(AppInstance.class);
-
     private final String appName;
     private final String qualifiedAppName;
     private final String hostIp;
@@ -78,7 +75,7 @@ public class AppInstance {
             try {
                 listener.onPortChanged(port);
             } catch (Exception e) {
-                log.error("portChanged Notify failed", e);
+                LoggerFactory.getLogger(AppInstance.class).error("portChanged Notify failed", e);
             }
         }
     }

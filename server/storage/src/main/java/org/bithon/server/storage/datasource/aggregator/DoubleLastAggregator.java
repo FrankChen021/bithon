@@ -29,7 +29,7 @@ public class DoubleLastAggregator extends AbstractDoubleAggregator {
     protected void aggregate(long timestamp, double value) {
         if (this.timestamp < timestamp) {
             this.timestamp = timestamp;
-            this.value = NumberUtils.getDouble(value);
+            this.value = NumberUtils.getDouble(value, 0);
         }
     }
 }

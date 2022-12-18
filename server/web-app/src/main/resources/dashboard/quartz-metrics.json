@@ -5,23 +5,25 @@
       "dataSource": "quartz-metrics",
       "title": "Status",
       "width": 4,
-      "yAxis": [
-        {
-          "format": "compact_number"
-        }
-      ],
-      "metrics": [
+      "type": "line",
+      "columns": [
         {
           "name": "successfulCount",
-          "type": "line",
           "fill": false
         },
         {
           "name": "exceptionCount",
-          "type": "line",
           "fill": false
         }
       ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "quartz-metrics",
+        "fields": [
+          "successfulCount",
+          "exceptionCount"
+        ]
+      },
 
       "details": {
         "columns": [
@@ -51,7 +53,23 @@
             "formatter": "template",
             "template": "<a target='_blank' href='/web/trace/detail/?id={value}'><span class='fa fa-forward'></span></a>"
           }
-        ]
+        ],
+        "pagination": [25, 50, 100],
+        "query": {
+          "type": "list",
+          "fields": [
+            "timestamp",
+            "job",
+            "class",
+            "exception",
+            "duration",
+            "traceId"
+          ],
+          "orderBy": {
+            "name": "timestamp",
+            "order": "asc"
+          }
+        }
       }
     }
   ]

@@ -69,6 +69,7 @@ public class StandardContextCtor extends AbstractInterceptor {
         @Override
         public void onDegraded(HttpServletRequest request) {
             registry.getOrCreateMetrics(request.getHeader(ITracePropagator.TRACE_HEADER_SRC_APPLICATION),
+                                        request.getMethod(),
                                         request.getRequestURI(),
                                         429)
                     .getDegradedCount()
@@ -78,6 +79,7 @@ public class StandardContextCtor extends AbstractInterceptor {
         @Override
         public void onFlowControlled(HttpServletRequest request) {
             registry.getOrCreateMetrics(request.getHeader(ITracePropagator.TRACE_HEADER_SRC_APPLICATION),
+                                        request.getMethod(),
                                         request.getRequestURI(),
                                         429)
                     .getFlowedCount()

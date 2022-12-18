@@ -33,7 +33,7 @@ public class PluginConfigurationManager {
     /**
      * load plugin configuration from static plugin.yml and dynamic configuration from environment variable and command line arguments
      */
-    public static Configuration load(Class<? extends IPlugin> pluginClass) {
+    public static Configuration load(Class<?> pluginClass) {
         String name = pluginClass.getPackage().getName() + ".yml";
         String dynamicPrefix = "bithon." + getPluginConfigurationPrefixName(pluginClass.getName());
 
