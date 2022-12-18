@@ -387,7 +387,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.2.0</version>
+        <version>3.3.0</version>
         <configuration>
           <ignoreNonCompile>true</ignoreNonCompile>
           <failOnWarning>true</failOnWarning>
@@ -395,6 +395,9 @@
           <ignoredUsedUndeclaredDependencies>
             <ignoredUsedUndeclaredDependency>*</ignoredUsedUndeclaredDependency>
           </ignoredUsedUndeclaredDependencies>
+          <ignoredNonTestScopedDependencies>
+            <ignoredNonTestScopedDependency>*</ignoredNonTestScopedDependency>
+          </ignoredNonTestScopedDependencies>
           <ignoredUnusedDeclaredDependencies>
             <!-- all -->
             <dependency>org.springframework.*</dependency>
