@@ -26,10 +26,9 @@ import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import java.util.List;
 
 /**
- * 
  * {@link org.apache.hadoop.hdds.scm.XceiverClientGrpc#sendCommand(ContainerProtos.ContainerCommandRequestProto)}
  * {@link org.apache.hadoop.hdds.scm.XceiverClientGrpc#sendCommand(ContainerProtos.ContainerCommandRequestProto, List)}
- * 
+ *
  * @author Frank Chen
  * @date 19/12/22 2:35 pm
  */
@@ -45,7 +44,7 @@ public class XceiverClientGrpc$SendCommand extends AbstractInterceptor {
         ContainerProtos.ContainerCommandRequestProto request = aopContext.getArgAs(0);
 
         aopContext.setUserContext(span.method(aopContext.getMethod())
-                                      .tag("request" , request.getCmdType().name())
+                                      .tag("request", request.getCmdType().name())
                                       .start());
 
         return InterceptionDecision.CONTINUE;

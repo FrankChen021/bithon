@@ -40,7 +40,7 @@ public class XceiverClientGrpc$SendCommandOnAllNodes extends AbstractInterceptor
         ContainerProtos.ContainerCommandRequestProto request = aopContext.getArgAs(0);
 
         aopContext.setUserContext(span.method(aopContext.getMethod())
-                                      .tag("request" , request.getCmdType().name())
+                                      .tag("request", request.getCmdType().name())
                                       .start());
 
         return InterceptionDecision.CONTINUE;
