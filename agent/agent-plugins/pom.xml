@@ -17,13 +17,13 @@
   <modules>
     <module>alibaba-druid</module>
     <module>apache-druid</module>
+    <module>apache-kafka</module>
     <module>bithon-brpc</module>
     <module>bithon-sdk</module>
     <module>glassfish</module>
     <module>grpc</module>
     <module>guice</module>
     <module>jvm</module>
-    <module>kafka</module>
     <module>mysql-5.x-6.x</module>
     <module>mysql-8.x</module>
     <module>quartz2</module>
@@ -56,6 +56,13 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-apache-druid</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- Apache Kafka -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-kafka</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -240,13 +247,6 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-mongodb-3.8</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- Kafka -->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-kafka</artifactId>
       <version>${project.version}</version>
     </dependency>
 
