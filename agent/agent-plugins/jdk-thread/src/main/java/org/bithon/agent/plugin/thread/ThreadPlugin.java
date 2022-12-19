@@ -70,20 +70,20 @@ public class ThreadPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("rejectedExecution")
-                                                   .to("org.bithon.agent.plugin.thread.interceptor.rejected.rejected.CallerRunsPolicy$RejectedExecution")
+                                                   .to("org.bithon.agent.plugin.thread.interceptor.rejected.CallerRunsPolicy$RejectedExecution")
                 ),
 
             forClass("java.util.concurrent.ThreadPoolExecutor$DiscardPolicy")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("rejectedExecution")
-                                                   .to("org.bithon.agent.plugin.thread.interceptor.rejected.rejected.DiscardPolicy$RejectedExecution")),
+                                                   .to("org.bithon.agent.plugin.thread.interceptor.rejected.DiscardPolicy$RejectedExecution")),
 
             forClass("java.util.concurrent.ThreadPoolExecutor$DiscardOldestPolicy")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("rejectedExecution")
-                                                   .to("org.bithon.agent.plugin.thread.interceptor.rejected.rejected.DiscardOldestPolicy$RejectedExecution")
+                                                   .to("org.bithon.agent.plugin.thread.interceptor.rejected.DiscardOldestPolicy$RejectedExecution")
                 ),
 
             forClass("java.util.concurrent.ForkJoinPool")
