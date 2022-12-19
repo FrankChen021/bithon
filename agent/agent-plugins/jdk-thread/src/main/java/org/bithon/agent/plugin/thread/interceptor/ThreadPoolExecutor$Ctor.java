@@ -19,9 +19,9 @@ package org.bithon.agent.plugin.thread.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.expt.AgentException;
+import org.bithon.agent.plugin.thread.ThreadPoolUtils;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolExecutorMetrics;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
-import org.bithon.agent.plugin.thread.ThreadPoolUtils;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -31,8 +31,8 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 9:10 下午
  */
-public class ThreadPoolExecutorConstructor extends AbstractInterceptor {
-    private static final ILogAdaptor LOG = LoggerFactory.getLogger(ThreadPoolExecutorConstructor.class);
+public class ThreadPoolExecutor$Ctor extends AbstractInterceptor {
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(ThreadPoolExecutor$Ctor.class);
 
     @Override
     public void onConstruct(AopContext aopContext) {

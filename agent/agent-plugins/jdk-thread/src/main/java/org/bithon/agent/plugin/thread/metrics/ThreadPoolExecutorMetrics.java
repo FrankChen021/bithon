@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.threadpool;
+package org.bithon.agent.plugin.thread.metrics;
 
 import org.bithon.agent.core.metric.domain.thread.ThreadPoolMetrics;
 
@@ -24,13 +24,13 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 10:48 下午
  */
-class ThreadPoolExecutorMetrics extends ThreadPoolMetrics {
+public class ThreadPoolExecutorMetrics extends ThreadPoolMetrics {
 
-    ThreadPoolExecutorMetrics(ThreadPoolExecutor executor) {
+    public ThreadPoolExecutorMetrics(ThreadPoolExecutor executor) {
         super(executor::getActiveCount,
-              executor::getPoolSize,
-              executor::getMaximumPoolSize,
-              executor::getLargestPoolSize,
-              () -> executor.getQueue().size());
+                executor::getPoolSize,
+                executor::getMaximumPoolSize,
+                executor::getLargestPoolSize,
+                () -> executor.getQueue().size());
     }
 }

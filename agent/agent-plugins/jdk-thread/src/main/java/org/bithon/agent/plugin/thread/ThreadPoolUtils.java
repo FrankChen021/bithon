@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.threadpool;
+package org.bithon.agent.plugin.thread;
 
 import org.bithon.agent.bootstrap.expt.AgentException;
 
@@ -33,6 +33,7 @@ public class ThreadPoolUtils {
 
     private static final Map<String, String> THREAD_FACTORY_NAMES = new HashMap<>();
 
+    // TODO: move to configuration
     static {
         THREAD_FACTORY_NAMES.put("java.util.concurrent.Executors$DefaultThreadFactory", "namePrefix");
         THREAD_FACTORY_NAMES.put("org.springframework.util.CustomizableThreadCreator", "threadNamePrefix");

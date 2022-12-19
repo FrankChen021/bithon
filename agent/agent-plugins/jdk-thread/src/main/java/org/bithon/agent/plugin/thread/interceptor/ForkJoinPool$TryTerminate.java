@@ -20,22 +20,19 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
 
-import java.util.concurrent.ForkJoinPool;
-
 /**
  * {@link java.util.concurrent.ForkJoinPool#tryTerminate(boolean, boolean)}
  *
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 11:15 下午
  */
-public class ForkJoinPoolTryTerminate extends AbstractInterceptor {
+public class ForkJoinPool$TryTerminate extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        ThreadPoolMetricRegistry collector = ThreadPoolMetricRegistry.getInstance();
-        if (collector != null) {
-            ForkJoinPool pool = aopContext.castTargetAs();
-            collector.deleteThreadPool(pool);
+        ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
+        if (registry != null) {
+            registry.deleteThreadPool(aopContext.castTargetAs());
         }
     }
 }

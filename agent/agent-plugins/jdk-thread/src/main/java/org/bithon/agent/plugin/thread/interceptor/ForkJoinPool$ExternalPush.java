@@ -26,7 +26,7 @@ import java.util.concurrent.ForkJoinPool;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 11:15 下午
  */
-public class ForkJoinPoolExternalPush extends AbstractInterceptor {
+public class ForkJoinPool$ExternalPush extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
