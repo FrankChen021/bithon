@@ -37,16 +37,13 @@ public class ThreadPoolUtils {
         THREAD_FACTORY_NAMES.put("java.util.concurrent.Executors$DefaultThreadFactory", "namePrefix");
         THREAD_FACTORY_NAMES.put("org.springframework.util.CustomizableThreadCreator", "threadNamePrefix");
         THREAD_FACTORY_NAMES.put("com.zaxxer.hikari.util.UtilityElf$DefaultThreadFactory", "threadName");
-
         THREAD_FACTORY_NAMES.put("com.alibaba.druid.util", "nameStart");
-
         THREAD_FACTORY_NAMES.put("", "name");
     }
 
     public static String getThreadPoolName(ThreadFactory threadFactory) {
-
         //
-        // search the class hierachy to see if this ThreadFactory is a sub-class of above defined classes
+        // search the class hierarchy to see if this ThreadFactory is a subclass of above defined classes
         //
         String fieldName = null;
         Class<?> factoryClass = threadFactory.getClass();
@@ -91,6 +88,6 @@ public class ThreadPoolUtils {
                 return text;
             }
         }
-        return text;
+        return null;
     }
 }

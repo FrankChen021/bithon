@@ -14,10 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.threadpool;
+package org.bithon.agent.plugin.thread.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.plugin.thread.metrics.ForkJoinPoolMetrics;
+import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
+import org.bithon.agent.plugin.thread.ThreadPoolUtils;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.util.concurrent.ForkJoinPool;
