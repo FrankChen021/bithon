@@ -14,24 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.threadpool;
+package org.bithon.agent.plugin.thread.interceptor.rejected;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
 
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
+ * {@link java.util.concurrent.ThreadPoolExecutor.DiscardPolicy#rejectedExecution(Runnable, ThreadPoolExecutor)}
+ *
  * @author frank.chen021@outlook.com
- * @date 2021/2/25 11:15 下午
+ * @date 2021/2/25 9:12 下午
  */
-public class ForkJoinPoolExternalPush extends AbstractInterceptor {
+public class DiscardPolicy$RejectedExecution extends AbstractRejectedExecutionInterceptor {
 
-    @Override
-    public void onMethodLeave(AopContext aopContext) {
-        ForkJoinPool pool = aopContext.castTargetAs();
-
-        //TODO: record task exception of ForkJoinPool
-        ThreadPoolMetricRegistry.getInstance().addTotal(pool);
+    public DiscardPolicy$RejectedExecution() {
+        super((threadPool) -> ThreadPoolMetricRegistry.getInstance().addDiscard(threadPool));
     }
 }

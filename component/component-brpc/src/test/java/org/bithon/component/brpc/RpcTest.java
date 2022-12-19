@@ -212,6 +212,8 @@ public class RpcTest {
     @Test
     public void testServerCallsClient() {
         try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
+            ch.setAppId("app1");
+
             // bind a service at client side
             ch.bindService(new ExampleServiceImpl() {
                 @Override

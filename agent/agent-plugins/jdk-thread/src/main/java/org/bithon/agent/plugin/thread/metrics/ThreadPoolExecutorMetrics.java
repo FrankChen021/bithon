@@ -14,22 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.threadpool;
+package org.bithon.agent.plugin.thread.metrics;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.core.metric.domain.thread.ThreadPoolMetrics;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/25 9:11 下午
+ * @date 2021/2/25 10:48 下午
  */
-public class ThreadPoolExecutorDiscardOldestPolicy extends AbstractInterceptor {
+public class ThreadPoolExecutorMetrics extends ThreadPoolMetrics {
 
-    @Override
-    public void onMethodLeave(AopContext joinPoint) {
-        ThreadPoolExecutor executor = (ThreadPoolExecutor) joinPoint.getArgs()[1];
-        ThreadPoolMetricRegistry.getInstance().addDiscardOldest(executor);
+    public ThreadPoolExecutorMetrics(ThreadPoolExecutor executor) {
+        super(executor::getActiveCount,
+              executor::getPoolSize,
+              executor::getMaximumPoolSize,
+              executor::getLargestPoolSize,
+              () -> executor.getQueue().size());
     }
 }

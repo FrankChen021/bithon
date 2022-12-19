@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.threadpool;
+package org.bithon.agent.plugin.thread.metrics;
 
 import org.bithon.agent.core.metric.domain.thread.ThreadPoolMetrics;
 import org.bithon.agent.core.metric.model.IMetricValueProvider;

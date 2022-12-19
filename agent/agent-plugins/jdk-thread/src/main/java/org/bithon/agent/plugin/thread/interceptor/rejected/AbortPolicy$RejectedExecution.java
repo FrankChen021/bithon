@@ -14,22 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.threadpool;
+package org.bithon.agent.plugin.thread.interceptor.rejected;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
+ * {@link java.util.concurrent.ThreadPoolExecutor.AbortPolicy#rejectedExecution(Runnable, ThreadPoolExecutor)}
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 9:09 下午
  */
-public class ThreadPoolExecutorAbort extends AbstractInterceptor {
+public class AbortPolicy$RejectedExecution extends AbstractRejectedExecutionInterceptor {
 
-    @Override
-    public void onMethodLeave(AopContext joinPoint) {
-        ThreadPoolExecutor executor = (ThreadPoolExecutor) joinPoint.getArgs()[1];
-        ThreadPoolMetricRegistry.getInstance().addAbort(executor);
+    public AbortPolicy$RejectedExecution() {
+        super((threadPool) -> ThreadPoolMetricRegistry.getInstance().addAbort(threadPool));
     }
 }

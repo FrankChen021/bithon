@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.threadpool;
+package org.bithon.agent.plugin.thread;
 
 import org.bithon.agent.bootstrap.expt.AgentException;
 
@@ -33,20 +33,25 @@ public class ThreadPoolUtils {
 
     private static final Map<String, String> THREAD_FACTORY_NAMES = new HashMap<>();
 
+    // TODO: move to configuration
     static {
         THREAD_FACTORY_NAMES.put("java.util.concurrent.Executors$DefaultThreadFactory", "namePrefix");
         THREAD_FACTORY_NAMES.put("org.springframework.util.CustomizableThreadCreator", "threadNamePrefix");
         THREAD_FACTORY_NAMES.put("com.zaxxer.hikari.util.UtilityElf$DefaultThreadFactory", "threadName");
-
         THREAD_FACTORY_NAMES.put("com.alibaba.druid.util", "nameStart");
+        THREAD_FACTORY_NAMES.put("1", "name");
+        THREAD_FACTORY_NAMES.put("2", "nameFormat");
 
-        THREAD_FACTORY_NAMES.put("", "name");
+        /**
+         * com.google.common.util.concurrent.ThreadFactoryBuilder creates an anonymous thread factory,
+         * and java compiles the nameFormat as val$nameFormat
+         */
+        THREAD_FACTORY_NAMES.put("3", "val$nameFormat");
     }
 
     public static String getThreadPoolName(ThreadFactory threadFactory) {
-
         //
-        // search the class hierachy to see if this ThreadFactory is a sub-class of above defined classes
+        // search the class hierarchy to see if this ThreadFactory is a subclass of above defined classes
         //
         String fieldName = null;
         Class<?> factoryClass = threadFactory.getClass();
@@ -91,6 +96,6 @@ public class ThreadPoolUtils {
                 return text;
             }
         }
-        return text;
+        return null;
     }
 }
