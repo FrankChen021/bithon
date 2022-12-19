@@ -22,9 +22,9 @@ import org.apache.kafka.common.record.RecordBatch;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
-import org.bithon.agent.plugin.apache.kafka.consumer.metrics.ConsumerMetrics;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.agent.plugin.apache.kafka.consumer.metrics.ConsumerMetricRegistry;
+import org.bithon.agent.plugin.apache.kafka.consumer.metrics.ConsumerMetrics;
 
 /**
  * {@link org.apache.kafka.clients.consumer.internals.Fetcher#parseRecord(TopicPartition, RecordBatch, Record)}
