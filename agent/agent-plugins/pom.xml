@@ -246,7 +246,7 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- MongoDb -->
+    <!-- MongoDB -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-mongodb</artifactId>

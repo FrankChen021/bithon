@@ -18,6 +18,7 @@ package org.bithon.agent.plugin.apache.ozone;
 
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
+import org.bithon.agent.core.aop.matcher.Matchers;
 import org.bithon.agent.core.plugin.IPlugin;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
@@ -35,24 +36,46 @@ public class OzonePlugin implements IPlugin {
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
-                forClass("org.apache.hadoop.ozone.client.rpc.RpcClient")
-                        .methods(
-                                MethodPointCutDescriptorBuilder.build()
-                                        .onMethod(ElementMatchers.isOverriddenFrom(ElementMatchers.named("org.apache.hadoop.ozone.client.protocol.ClientProtocol")))
-                                        .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
-                        ),
+            forClass("org.apache.hadoop.ozone.client.rpc.RpcClient")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(ElementMatchers.isOverriddenFrom(ElementMatchers.named(
+                                                       "org.apache.hadoop.ozone.client.protocol.ClientProtocol")))
+                                                   .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
+                ),
 
-                forClass("org.apache.hadoop.ozone.om.protocolPB.OzoneManagerProtocolClientSideTranslatorPB")
-                        .methods(
-                                MethodPointCutDescriptorBuilder.build()
-                                        .onMethod(ElementMatchers.isOverriddenFrom(ElementMatchers.named(
-                                                "org.apache.hadoop.ozone.om.protocol.OzoneManagerProtocol")))
-                                        .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All"),
+            forClass("org.apache.hadoop.ozone.om.protocolPB.OzoneManagerProtocolClientSideTranslatorPB")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(ElementMatchers.isOverriddenFrom(ElementMatchers.named(
+                                                       "org.apache.hadoop.ozone.om.protocol.OzoneManagerProtocol")))
+                                                   .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All"),
 
-                                MethodPointCutDescriptorBuilder.build()
-                                        .onMethodAndNoArgs("close")
-                                        .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
-                        )
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndNoArgs("close")
+                                                   .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
+                ),
+
+            // s3g -> scm
+            forClass("org.apache.hadoop.hdds.scm.XceiverClientGrpc")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndNoArgs("connect")
+                                                   .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("sendCommand")
+                                                   .to("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientGrpc$SendCommand"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("sendCommandOnAllNodes")
+                                                   .to("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientGrpc$SendCommandOnAllNodes"),
+
+                    // sendCommandAsync contains the DataNode parameter that we know where the command is sent to
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.withName("sendCommandAsync").and(Matchers.takesArguments(2)))
+                                                   .to("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientGrpc$SendCommandAsync")
+                )
         );
     }
 }

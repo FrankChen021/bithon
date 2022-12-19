@@ -14,6 +14,14 @@
       <groupId>${project.parent.groupId}</groupId>
       <artifactId>agent-core</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>org.apache.ozone</groupId>
+      <artifactId>hdds-client</artifactId>
+      <version>1.3.0</version>
+      <scope>provided</scope>
+    </dependency>
+
   </dependencies>
 
   <build>

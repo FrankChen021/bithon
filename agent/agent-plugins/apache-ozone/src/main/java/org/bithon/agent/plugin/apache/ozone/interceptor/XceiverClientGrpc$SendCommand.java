@@ -16,28 +16,37 @@
 
 package org.bithon.agent.plugin.apache.ozone.interceptor;
 
+import org.apache.hadoop.hdds.protocol.datanode.proto.ContainerProtos;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 
+import java.util.List;
+
 /**
- * Tracing support to all methods in org.apache.hadoop.ozone.client.rpc.RpcClient
- *
+ * 
+ * {@link org.apache.hadoop.hdds.scm.XceiverClientGrpc#sendCommand(ContainerProtos.ContainerCommandRequestProto)}
+ * {@link org.apache.hadoop.hdds.scm.XceiverClientGrpc#sendCommand(ContainerProtos.ContainerCommandRequestProto, List)}
+ * 
  * @author Frank Chen
- * @date 14/12/22 10:37 pm
+ * @date 19/12/22 2:35 pm
  */
-public class RpcClient$All extends AbstractInterceptor {
+public class XceiverClientGrpc$SendCommand extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan("ozone-om");
+        ITraceSpan span = TraceSpanFactory.newSpan("ozone-hdds");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setUserContext(span.method(aopContext.getMethod()).start());
+        ContainerProtos.ContainerCommandRequestProto request = aopContext.getArgAs(0);
+
+        aopContext.setUserContext(span.method(aopContext.getMethod())
+                                      .tag("request" , request.getCmdType().name())
+                                      .start());
 
         return InterceptionDecision.CONTINUE;
     }
