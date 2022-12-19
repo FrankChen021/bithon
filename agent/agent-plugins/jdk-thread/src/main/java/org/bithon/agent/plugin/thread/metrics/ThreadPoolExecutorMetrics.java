@@ -28,9 +28,9 @@ public class ThreadPoolExecutorMetrics extends ThreadPoolMetrics {
 
     public ThreadPoolExecutorMetrics(ThreadPoolExecutor executor) {
         super(executor::getActiveCount,
-                executor::getPoolSize,
-                executor::getMaximumPoolSize,
-                executor::getLargestPoolSize,
-                () -> executor.getQueue().size());
+              executor::getPoolSize,
+              executor::getMaximumPoolSize,
+              executor::getLargestPoolSize,
+              () -> executor.getQueue().size());
     }
 }
