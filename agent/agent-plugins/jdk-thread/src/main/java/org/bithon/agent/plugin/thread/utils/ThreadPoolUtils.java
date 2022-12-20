@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread;
+package org.bithon.agent.plugin.thread.utils;
 
 import org.bithon.agent.bootstrap.expt.AgentException;
 
@@ -42,10 +42,8 @@ public class ThreadPoolUtils {
         THREAD_FACTORY_NAMES.put("1", "name");
         THREAD_FACTORY_NAMES.put("2", "nameFormat");
 
-        /**
-         * com.google.common.util.concurrent.ThreadFactoryBuilder creates an anonymous thread factory,
-         * and java compiles the nameFormat as val$nameFormat
-         */
+        // com.google.common.util.concurrent.ThreadFactoryBuilder creates an anonymous thread factory,
+        // and java compiles the nameFormat as val$nameFormat
         THREAD_FACTORY_NAMES.put("3", "val$nameFormat");
     }
 
