@@ -58,7 +58,9 @@ public class AbstractEndpointStart extends AbstractInterceptor {
         metrics.maxThreads.setProvider(endpoint::getMaxThreads);
         metrics.queueSize.setProvider(() -> {
             Executor e = endpoint.getExecutor();
-            if (e instanceof ThreadPoolExecutor) {
+            if (e instanceof org.apache.tomcat.util.threads.ThreadPoolExecutor) {
+                return ((org.apache.tomcat.util.threads.ThreadPoolExecutor) e).getQueue().size();
+            } else if (e instanceof ThreadPoolExecutor) {
                 return ((ThreadPoolExecutor) e).getQueue().size();
             } else if (e instanceof ResizableExecutor) {
                 org.apache.tomcat.util.threads.ThreadPoolExecutor t = (org.apache.tomcat.util.threads.ThreadPoolExecutor) ReflectionUtils.getFieldValue(e,
