@@ -20,6 +20,7 @@ import org.apache.hadoop.hdds.protocol.DatanodeDetails;
 import org.apache.hadoop.hdds.protocol.datanode.proto.ContainerProtos;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
@@ -42,7 +43,8 @@ public class XceiverClientRatis$SendCommandAsync extends AbstractInterceptor {
         ContainerProtos.ContainerCommandRequestProto request = aopContext.getArgAs(0);
 
         // injected in Connect interceptor
-        DatanodeDetails dn = aopContext.castTargetAs();
+        IBithonObject bithonObject = aopContext.castTargetAs();
+        DatanodeDetails dn = (DatanodeDetails) bithonObject.getInjectedObject();
 
         aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .tag("request", request.getCmdType().name())
