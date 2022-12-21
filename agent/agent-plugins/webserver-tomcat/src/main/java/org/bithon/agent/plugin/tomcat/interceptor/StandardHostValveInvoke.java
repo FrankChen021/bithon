@@ -77,6 +77,7 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
 
         traceContext.currentSpan()
                     .component("tomcat")
+                    .tag(Tags.REMOTE_ADDR, request.getRemoteAddr())
                     .tag(Tags.HTTP_URI, request.getRequestURI())
                     .tag(Tags.HTTP_METHOD, request.getMethod())
                     .tag(Tags.HTTP_VERSION, request.getProtocol())

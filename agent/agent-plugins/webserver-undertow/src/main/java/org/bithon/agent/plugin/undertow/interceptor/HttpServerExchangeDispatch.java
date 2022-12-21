@@ -62,6 +62,7 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
 
         final ITraceSpan rootSpan = traceContext.currentSpan()
                                                 .component("undertow")
+                                                .tag(Tags.REMOTE_ADDR, exchange.getConnection().getPeerAddress())
                                                 .tag(Tags.HTTP_URI, exchange.getRequestURI())
                                                 .tag(Tags.HTTP_METHOD, exchange.getRequestMethod().toString())
                                                 .tag(Tags.HTTP_VERSION, exchange.getProtocol().toString())
