@@ -1,4 +1,4 @@
-package org.bithon.agent.plugin.apache.ozone.interceptor;/*
+/*
  *    Copyright 2020 bithon.org
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,8 @@ package org.bithon.agent.plugin.apache.ozone.interceptor;/*
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
+package org.bithon.agent.plugin.apache.ozone.interceptor;
 
 import org.apache.hadoop.hdds.protocol.datanode.proto.ContainerProtos;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
