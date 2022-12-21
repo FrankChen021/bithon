@@ -26,7 +26,13 @@ import java.lang.reflect.Method;
  * @author Frank Chen
  * @date 13/12/22 6:06 pm
  */
-public class GrpcStubInterceptor implements IAdviceInterceptor {
+public class AbstractGrpcStubInterceptor implements IAdviceInterceptor {
+
+    private final String component;
+
+    protected AbstractGrpcStubInterceptor(String component) {
+        this.component = component;
+    }
 
     @Override
     public Object onMethodEnter(
@@ -34,7 +40,7 @@ public class GrpcStubInterceptor implements IAdviceInterceptor {
         final Object target,
         final Object[] args
     ) {
-        ITraceSpan span = TraceSpanFactory.newSpan("grpc");
+        ITraceSpan span = TraceSpanFactory.newSpan(component);
         if (span == null) {
             return null;
         }
@@ -52,5 +58,23 @@ public class GrpcStubInterceptor implements IAdviceInterceptor {
                                final Object context) {
         ((ITraceSpan) context).tag(exception).finish();
         return returning;
+    }
+
+    public static class BlockingStubInterceptor extends AbstractGrpcStubInterceptor {
+        public BlockingStubInterceptor() {
+            super("grpc-blocking-client");
+        }
+    }
+
+    public static class FutureStubInterceptor extends AbstractGrpcStubInterceptor {
+        public FutureStubInterceptor() {
+            super("grpc-future-client");
+        }
+    }
+
+    public static class AsyncStubInterceptor extends AbstractGrpcStubInterceptor {
+        public AsyncStubInterceptor() {
+            super("grpc-async-client");
+        }
     }
 }

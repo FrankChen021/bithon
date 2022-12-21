@@ -36,12 +36,12 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
- * Intercept {@link io.grpc.stub.AbstractBlockingStub#newStub(AbstractStub.StubFactory, Channel, CallOptions)} to enhance the generated stub classes
+ * Intercept {@link io.grpc.stub.AbstractAsyncStub#newStub(AbstractStub.StubFactory, Channel, CallOptions)} to enhance the generated stub classes
  *
  * @author Frank Chen
  * @date 13/12/22 5:36 pm
  */
-public class AbstractBlockingStub$NewStub extends AbstractInterceptor {
+public class AbstractAsyncStub$NewStub extends AbstractInterceptor {
 
     private static final Set<String> INSTRUMENTED = new ConcurrentSkipListSet<>();
 
@@ -49,11 +49,11 @@ public class AbstractBlockingStub$NewStub extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        String targetAopClassName = AbstractBlockingStub$NewStub.class.getPackage().getName() + ".BlockingStubAop";
+        String targetAopClassName = AbstractAsyncStub$NewStub.class.getPackage().getName() + ".AsyncStubAop";
 
         grpcStubAopClass = AopClassHelper.generateAopClass(IAdviceAopTemplate.class,
                                                            targetAopClassName,
-                                                           AbstractGrpcStubInterceptor.BlockingStubInterceptor.class.getName(),
+                                                           AbstractGrpcStubInterceptor.AsyncStubInterceptor.class.getName(),
                                                            true);
         AopClassHelper.inject(grpcStubAopClass);
 
@@ -74,7 +74,7 @@ public class AbstractBlockingStub$NewStub extends AbstractInterceptor {
 
         // Enhance the stub class
         DynamicInterceptorInstaller.getInstance().installOne(new DynamicInterceptorInstaller.AopDescriptor(clientStubClass.getName(),
-                                                                                                           AbstractGrpcStubInterceptor.BlockingStubInterceptor.class.getName(),
+                                                                                                           AbstractGrpcStubInterceptor.AsyncStubInterceptor.class.getName(),
                                                                                                            Advice.to(grpcStubAopClass.getTypeDescription(), ClassFileLocator.Simple.of(grpcStubAopClass.getAllTypes())),
                                                                                                            Matchers.visibility(Visibility.PUBLIC)));
 
