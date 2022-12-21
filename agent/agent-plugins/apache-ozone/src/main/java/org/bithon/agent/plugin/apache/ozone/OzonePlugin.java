@@ -75,6 +75,25 @@ public class OzonePlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethod(Matchers.withName("sendCommandAsync").and(Matchers.takesArguments(2)))
                                                    .to("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientGrpc$SendCommandAsync")
+                ),
+
+            forClass("org.apache.hadoop.hdds.scm.XceiverClientRatis")
+                .methods(
+                    // Hook to save leader info
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndNoArgs("connect")
+                                                   .to("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientRatis$Connect"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.withName("sendCommandAsync").and(Matchers.takesArguments(1)))
+                                                   .to("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientRatis$SendCommandAsync")
+                ),
+
+            forClass("org.apache.hadoop.hdds.scm.XceiverClientSpi")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("sendCommand")
+                                                   .to("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientSpi$SendCommand")
                 )
         );
     }
