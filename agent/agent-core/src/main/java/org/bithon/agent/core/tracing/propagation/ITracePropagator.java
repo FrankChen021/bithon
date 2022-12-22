@@ -32,5 +32,11 @@ public interface ITracePropagator {
 
     <R> void inject(ITraceContext context, R request, PropagationSetter<R> setter);
 
+    /**
+     * Extract OpenTelemetry | Zipkin tracing context from given request object
+     * @param request the object that might contain incoming tracing context
+     * @param getter the functional object that extract value from the given request object
+     * @return tracing context. can be null
+     */
     <R> ITraceContext extract(R request, PropagationGetter<R> getter);
 }

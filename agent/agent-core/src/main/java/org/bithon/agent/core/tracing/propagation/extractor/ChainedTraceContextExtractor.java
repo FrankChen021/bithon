@@ -21,6 +21,7 @@ import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.TraceContextFactory;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
+import org.bithon.agent.core.tracing.sampler.ISampler;
 import org.bithon.agent.core.tracing.sampler.SamplingMode;
 
 /**
@@ -33,6 +34,12 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
         new B3Extractor(),
         new OpenTelemetryExtractor(),
         };
+
+    private final ISampler sampler;
+
+    public ChainedTraceContextExtractor(ISampler sampler) {
+        this.sampler = sampler;
+    }
 
     @Override
     public <R> ITraceContext extract(R request, PropagationGetter<R> getter) {
@@ -51,11 +58,13 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
         // then handle to sampling decision maker to decide whether this request should be sampled
         //
         ITraceContext context;
-        SamplingMode mode = Tracer.get().sampler().decideSamplingMode(request);
-        if (mode == SamplingMode.NONE) {
+        SamplingMode mode = sampler.decideSamplingMode(request);
+        if (mode == SamplingMode.SIMPLIFIED) {
             // create a propagation trace context to propagation trace context along the service call without reporting trace data
             context = TraceContextFactory.create(TraceMode.PROPAGATION,
                                                  "P-" + Tracer.get().traceIdGenerator().newTraceId());
+        } else if (mode == SamplingMode.NONE) {
+            return null;
         } else {
             // create a traceable context
             context = TraceContextFactory.create(TraceMode.TRACE,

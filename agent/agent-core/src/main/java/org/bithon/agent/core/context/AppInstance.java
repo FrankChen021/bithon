@@ -42,7 +42,7 @@ public class AppInstance {
         this.appName = appConfiguration.getName();
         this.qualifiedAppName = appName + "-" + appConfiguration.getEnv();
         this.env = appConfiguration.getEnv();
-        this.port = 0;
+        this.port = appConfiguration.getPort();
 
         if (StringUtils.isEmpty(appConfiguration.getInstance())) {
             NetworkUtils.IpAddress ipAddress = NetworkUtils.getIpAddress();
@@ -54,7 +54,7 @@ public class AppInstance {
             this.hostIp = appConfiguration.getInstance();
         }
 
-        this.hostAndPort = hostIp;
+        this.hostAndPort = this.port > 0 ? hostIp + ":" + this.port : hostIp;
     }
 
     public String getQualifiedAppName() {

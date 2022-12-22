@@ -33,7 +33,7 @@ import java.util.Stack;
  * @author frank.chen021@outlook.com
  * @date 2021/7/17 15:38
  */
-class PropagationTraceContext implements ITraceContext {
+public class PropagationTraceContext implements ITraceContext {
 
     private final ITraceReporter noopTraceReporter = spans -> {
     };

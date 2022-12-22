@@ -44,6 +44,15 @@ public class AgentContext {
         private String name;
 
         /**
+         * For non web application, the port can't be detected automatically.
+         * In this case in order to make the agent work, the port needs to be specified manually.
+         */
+        private int port = 0;
+
+        /**
+         * Indicate the host and port of the monitored application instance.
+         * In the format of ip:port
+         *
          * This is not for configuration.
          * In most cases, this field is automatically retrieved by the agent.
          * But if the applications is deployed in Docker on different host, the container ip may be the same.
@@ -73,6 +82,14 @@ public class AgentContext {
 
         public void setInstance(String instance) {
             this.instance = instance;
+        }
+
+        public int getPort() {
+            return port;
+        }
+
+        public void setPort(int port) {
+            this.port = port;
         }
     }
 
