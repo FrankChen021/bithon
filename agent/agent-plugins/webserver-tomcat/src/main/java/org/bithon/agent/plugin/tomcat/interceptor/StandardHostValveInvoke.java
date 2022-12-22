@@ -27,7 +27,6 @@ import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
-import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -69,11 +68,12 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
-
         ITraceContext traceContext = Tracer.get()
                                            .propagator()
                                            .extract(request, Request::getHeader);
+        if (traceContext == null) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
 
         traceContext.currentSpan()
                     .component("tomcat")
@@ -102,6 +102,8 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
 
         aopContext.setUserContext(traceContext);
 
+        InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
+
         return InterceptionDecision.CONTINUE;
     }
 
@@ -110,22 +112,12 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
         InterceptorContext.remove(InterceptorContext.KEY_URI);
 
         ITraceContext traceContext = aopContext.castUserContextAs();
-        if (traceContext == null) {
-            //exception occurs in 'Enter'
-            return;
-        }
-
         try {
-            ITraceSpan span = traceContext.currentSpan();
-            if (span == null) {
-                // TODO: ERROR
-                return;
-            }
-
             Response response = (Response) aopContext.getArgs()[1];
-            span.tag(Tags.HTTP_STATUS, Integer.toString(response.getStatus()))
-                .tag(aopContext.getException())
-                .finish();
+            traceContext.currentSpan()
+                        .tag(Tags.HTTP_STATUS, Integer.toString(response.getStatus()))
+                        .tag(aopContext.getException())
+                        .finish();
         } finally {
             traceContext.finish();
             try {

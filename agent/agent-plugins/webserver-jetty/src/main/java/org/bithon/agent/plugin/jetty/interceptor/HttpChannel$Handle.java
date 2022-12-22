@@ -67,7 +67,7 @@ public class HttpChannel$Handle extends AbstractInterceptor {
                 return InterceptionDecision.SKIP_LEAVE;
             }
 
-            ITraceContext traceContext = Tracer.get().propagator().extract(request, (carrier, key) -> carrier.getHeader(key));
+            ITraceContext traceContext = Tracer.get().propagator().extract(request, Request::getHeader);
             if (traceContext != null) {
                 TraceContextHolder.set(traceContext);
                 InterceptorContext.set(InterceptorContext.KEY_TRACEID, traceContext.traceId());
@@ -98,7 +98,6 @@ public class HttpChannel$Handle extends AbstractInterceptor {
 
             ((IBithonObject) request).setInjectedObject(new RequestContext(System.nanoTime(), traceContext));
         }
-
 
         RequestContext requestContext = (RequestContext) ((IBithonObject) request).getInjectedObject();
         InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());

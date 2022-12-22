@@ -106,35 +106,37 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
             if (injected instanceof HttpServerContext) {
                 final ITraceContext traceContext = Tracer.get()
                                                          .propagator()
-                                                         .extract(request,
-                                                                  (req, key) -> req.requestHeaders().get(key));
+                                                         .extract(request, (req, key) -> req.requestHeaders().get(key));
 
-                traceContext.currentSpan()
-                            .component("webflux")
-                            .tag(Tags.REMOTE_ADDR, request.remoteAddress())
-                            .tag(Tags.HTTP_URI, request.uri())
-                            .tag(Tags.HTTP_METHOD, request.method().name())
-                            .tag(Tags.HTTP_VERSION, request.version().text())
-                            .tag((span) -> traceConfig.getHeaders()
-                                                      .getRequest()
-                                                      .forEach((header) -> span.tag("http.header." + header, request.requestHeaders().get(header))))
-                            .method(aopContext.getMethod())
-                            .kind(SpanKind.SERVER)
-                            .start();
+                if (traceContext != null) {
 
-                // put the trace id in the header so that the applications have chance to know whether this request is being sampled
-                if (traceContext.traceMode().equals(TraceMode.TRACE)) {
-                    request.requestHeaders().set("X-Bithon-TraceId", traceContext.traceId());
+                    traceContext.currentSpan()
+                                .component("webflux")
+                                .tag(Tags.REMOTE_ADDR, request.remoteAddress())
+                                .tag(Tags.HTTP_URI, request.uri())
+                                .tag(Tags.HTTP_METHOD, request.method().name())
+                                .tag(Tags.HTTP_VERSION, request.version().text())
+                                .tag((span) -> traceConfig.getHeaders()
+                                                          .getRequest()
+                                                          .forEach((header) -> span.tag("http.header." + header, request.requestHeaders().get(header))))
+                                .method(aopContext.getMethod())
+                                .kind(SpanKind.SERVER)
+                                .start();
 
-                    // Add trace id to response
-                    String traceIdHeader = traceConfig.getTraceIdInResponse();
-                    if (StringUtils.hasText(traceIdHeader)) {
-                        final HttpServerResponse response = aopContext.getArgAs(1);
-                        response.addHeader(traceIdHeader, traceContext.traceId());
+                    // put the trace id in the header so that the applications have chance to know whether this request is being sampled
+                    if (traceContext.traceMode().equals(TraceMode.TRACE)) {
+                        request.requestHeaders().set("X-Bithon-TraceId", traceContext.traceId());
+
+                        // Add trace id to response
+                        String traceIdHeader = traceConfig.getTraceIdInResponse();
+                        if (StringUtils.hasText(traceIdHeader)) {
+                            final HttpServerResponse response = aopContext.getArgAs(1);
+                            response.addHeader(traceIdHeader, traceContext.traceId());
+                        }
                     }
-                }
 
-                ((HttpServerContext) injected).setTraceContext(traceContext);
+                    ((HttpServerContext) injected).setTraceContext(traceContext);
+                }
             }
         }
 

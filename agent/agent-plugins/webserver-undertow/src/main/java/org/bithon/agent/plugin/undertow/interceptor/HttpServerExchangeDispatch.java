@@ -29,7 +29,6 @@ import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
-import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -60,38 +59,40 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
                                                  .propagator()
                                                  .extract(exchange.getRequestHeaders(), HeaderMap::getFirst);
 
-        final ITraceSpan rootSpan = traceContext.currentSpan()
-                                                .component("undertow")
-                                                .tag(Tags.REMOTE_ADDR, exchange.getConnection().getPeerAddress())
-                                                .tag(Tags.HTTP_URI, exchange.getRequestURI())
-                                                .tag(Tags.HTTP_METHOD, exchange.getRequestMethod().toString())
-                                                .tag(Tags.HTTP_VERSION, exchange.getProtocol().toString())
-                                                .tag((span) -> traceConfig.getHeaders()
-                                                                          .getRequest()
-                                                                          .forEach((header) -> span.tag("http.header." + header,
-                                                                                                        exchange.getRequestHeaders().getFirst(header))))
-                                                .method(aopContext.getMethod())
-                                                .kind(SpanKind.SERVER)
-                                                .start();
+        if (traceContext != null) {
+            traceContext.currentSpan()
+                        .component("undertow")
+                        .tag(Tags.REMOTE_ADDR, exchange.getConnection().getPeerAddress())
+                        .tag(Tags.HTTP_URI, exchange.getRequestURI())
+                        .tag(Tags.HTTP_METHOD, exchange.getRequestMethod().toString())
+                        .tag(Tags.HTTP_VERSION, exchange.getProtocol().toString())
+                        .tag((span) -> traceConfig.getHeaders()
+                                                  .getRequest()
+                                                  .forEach((header) -> span.tag("http.header." + header,
+                                                                                exchange.getRequestHeaders().getFirst(header))))
+                        .method(aopContext.getMethod())
+                        .kind(SpanKind.SERVER)
+                        .start();
 
-        if (traceContext.traceMode().equals(TraceMode.TRACE)) {
-            ServletRequestContext servletRequestContext = exchange.getAttachment(ServletRequestContext.ATTACHMENT_KEY);
-            servletRequestContext.getServletRequest().setAttribute("X-Bithon-TraceId", traceContext.traceId());
+            if (traceContext.traceMode().equals(TraceMode.TRACE)) {
+                ServletRequestContext servletRequestContext = exchange.getAttachment(ServletRequestContext.ATTACHMENT_KEY);
+                servletRequestContext.getServletRequest().setAttribute("X-Bithon-TraceId", traceContext.traceId());
 
-            String traceIdHeader = traceConfig.getTraceIdInResponse();
-            if (StringUtils.hasText(traceIdHeader)) {
-                exchange.getResponseHeaders().add(HttpString.tryFromString(traceIdHeader), traceContext.traceId());
+                String traceIdHeader = traceConfig.getTraceIdInResponse();
+                if (StringUtils.hasText(traceIdHeader)) {
+                    exchange.getResponseHeaders().add(HttpString.tryFromString(traceIdHeader), traceContext.traceId());
+                }
             }
         }
-
         final long startTime = System.nanoTime();
         exchange.addExchangeCompleteListener((httpExchange, nextListener) -> {
-
             try {
                 update(httpExchange, startTime);
 
-                rootSpan.tag(Tags.HTTP_STATUS, Integer.toString(httpExchange.getStatusCode())).finish();
-                traceContext.finish();
+                if (traceContext != null) {
+                    traceContext.currentSpan().tag(Tags.HTTP_STATUS, Integer.toString(httpExchange.getStatusCode())).finish();
+                    traceContext.finish();
+                }
             } catch (Exception ignored) {
             }
 
