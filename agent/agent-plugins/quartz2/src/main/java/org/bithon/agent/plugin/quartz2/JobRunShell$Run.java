@@ -107,7 +107,7 @@ public class JobRunShell$Run extends AbstractInterceptor {
         ITraceSpan span = aopContext.castUserContextAs();
         span.tag(exception == null ? null : exception.getUnderlyingException())
             .tag("status", exception != null ? "500" : "200")
-            .tag("uri", jobExecutionContext == null ? null : "/quartz/" + jobExecutionContext.getJobDetail().getJobClass().getName().replace('.', '/'))
+            .tag("uri", jobExecutionContext == null ? null : "quartz://" + jobExecutionContext.getJobDetail().getJobClass().getName().replace('.', '/'))
             .finish();
         span.context().finish();
         TraceContextHolder.remove();
