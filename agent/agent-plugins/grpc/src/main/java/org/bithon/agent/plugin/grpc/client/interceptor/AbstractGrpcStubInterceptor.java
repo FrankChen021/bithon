@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.grpc.client.interceptor;
 import org.bithon.agent.bootstrap.aop.advice.IAdviceInterceptor;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
+import org.bithon.component.commons.tracing.SpanKind;
 
 import java.lang.reflect.Method;
 
@@ -46,6 +47,7 @@ public class AbstractGrpcStubInterceptor implements IAdviceInterceptor {
         }
 
         return span.method(method)
+                   .kind(SpanKind.CLIENT)
                    .start();
     }
 
