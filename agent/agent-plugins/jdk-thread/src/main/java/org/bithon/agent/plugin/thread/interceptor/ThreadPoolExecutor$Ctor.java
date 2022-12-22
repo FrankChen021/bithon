@@ -19,15 +19,21 @@ package org.bithon.agent.plugin.thread.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.expt.AgentException;
-import org.bithon.agent.plugin.thread.ThreadPoolUtils;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolExecutorMetrics;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
+import org.bithon.agent.plugin.thread.utils.ThreadPoolUtils;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
+ * {@link java.util.concurrent.ThreadPoolExecutor#ThreadPoolExecutor(int, int, long, TimeUnit, BlockingQueue, ThreadFactory, RejectedExecutionHandler)}
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 9:10 下午
  */
@@ -37,16 +43,16 @@ public class ThreadPoolExecutor$Ctor extends AbstractInterceptor {
     @Override
     public void onConstruct(AopContext aopContext) {
         ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
-        if (registry != null) {
-            try {
-                ThreadPoolExecutor executor = aopContext.castTargetAs();
-                registry.addThreadPool(executor,
-                                       executor.getClass().getName(),
-                                       ThreadPoolUtils.getThreadPoolName(executor.getThreadFactory()),
-                                       new ThreadPoolExecutorMetrics(executor));
-            } catch (AgentException e) {
-                LOG.warn(e.getMessage());
-            }
+        if (registry == null) {
+            return;
+        }
+
+        ThreadPoolExecutor executor = aopContext.castTargetAs();
+        try {
+            String poolName = ThreadPoolUtils.detectThreadPoolName(executor);
+            registry.addThreadPool(executor, executor.getClass().getName(), poolName, new ThreadPoolExecutorMetrics(executor));
+        } catch (AgentException e) {
+            LOG.warn(e.getMessage());
         }
     }
 }

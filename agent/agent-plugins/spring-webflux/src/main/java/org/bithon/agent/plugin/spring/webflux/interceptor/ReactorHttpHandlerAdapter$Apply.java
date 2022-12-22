@@ -111,6 +111,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
 
                 traceContext.currentSpan()
                             .component("webflux")
+                            .tag(Tags.REMOTE_ADDR, request.remoteAddress())
                             .tag(Tags.HTTP_URI, request.uri())
                             .tag(Tags.HTTP_METHOD, request.method().name())
                             .tag(Tags.HTTP_VERSION, request.version().text())

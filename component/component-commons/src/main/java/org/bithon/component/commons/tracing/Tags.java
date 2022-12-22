@@ -40,4 +40,6 @@ public class Tags {
      *  mysql://127.0.0.1:3309
      */
     public static final String TARGET = "target";
+
+    public static final String REMOTE_ADDR = "remote.address";
 }
