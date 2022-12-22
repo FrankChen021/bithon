@@ -26,7 +26,6 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -41,12 +40,6 @@ import java.util.concurrent.TimeUnit;
 public class ThreadPoolExecutor$Ctor extends AbstractInterceptor {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ThreadPoolExecutor$Ctor.class);
 
-    /**
-     * Since defaultThreadFactory returns a new object for each call,
-     * in order to reduce unnecessary object creation, we cache its class name
-     */
-    private static final String DEFAULT_THREAD_FACTORY = Executors.defaultThreadFactory().getClass().getName();
-
     @Override
     public void onConstruct(AopContext aopContext) {
         ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
@@ -55,36 +48,11 @@ public class ThreadPoolExecutor$Ctor extends AbstractInterceptor {
         }
 
         ThreadPoolExecutor executor = aopContext.castTargetAs();
-        String poolName = detectThreadPoolName(executor);
-        if (poolName != null) {
-            registry.addThreadPool(executor, executor.getClass().getName(), poolName, new ThreadPoolExecutorMetrics(executor));
-        }
-    }
-
-    private String detectThreadPoolName(ThreadPoolExecutor executor) {
-        //
-        // For default thread factory, it's pool name is meaningless
-        // So, we find the caller name as the thread pool name,
-        //
-        ThreadFactory threadFactory = executor.getThreadFactory();
-        if (DEFAULT_THREAD_FACTORY.equals(threadFactory.getClass().getName())) {
-            StackTraceElement[] stackTraceElements = new RuntimeException().getStackTrace();
-
-            // index 0 is current method, skip it
-            for (int i = 1; i < stackTraceElements.length; i++) {
-                StackTraceElement stack = stackTraceElements[i];
-                if (!stack.getClassName().startsWith("java.util.concurrent")
-                && !stack.getClassName().startsWith("org.bithon.agent.plugin.thread")) {
-                    return stack.getClassName();
-                }
-            }
-        }
-
         try {
-            return ThreadPoolUtils.getThreadPoolName(threadFactory);
+            String poolName = ThreadPoolUtils.detectThreadPoolName(executor);
+            registry.addThreadPool(executor, executor.getClass().getName(), poolName, new ThreadPoolExecutorMetrics(executor));
         } catch (AgentException e) {
             LOG.warn(e.getMessage());
-            return null;
         }
     }
 }

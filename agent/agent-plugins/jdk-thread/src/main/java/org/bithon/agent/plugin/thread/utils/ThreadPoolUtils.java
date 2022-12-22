@@ -23,13 +23,21 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 10:49 下午
  */
 public class ThreadPoolUtils {
+
+    /**
+     * Since defaultThreadFactory returns a new object for each call,
+     * in order to reduce unnecessary object creation, we cache its class name
+     */
+    private static final String DEFAULT_THREAD_FACTORY = Executors.defaultThreadFactory().getClass().getName();
 
     private static final Map<String, String> THREAD_FACTORY_NAMES = new HashMap<>();
 
@@ -47,7 +55,29 @@ public class ThreadPoolUtils {
         THREAD_FACTORY_NAMES.put("3", "val$nameFormat");
     }
 
-    public static String getThreadPoolName(ThreadFactory threadFactory) {
+    public static String detectThreadPoolName(ThreadPoolExecutor executor) {
+        //
+        // For default thread factory, it's pool name is meaningless
+        // So, we find the caller name as the thread pool name,
+        //
+        ThreadFactory threadFactory = executor.getThreadFactory();
+        if (DEFAULT_THREAD_FACTORY.equals(threadFactory.getClass().getName())) {
+            StackTraceElement[] stackTraceElements = new RuntimeException().getStackTrace();
+
+            // index 0 is current method, skip it
+            for (int i = 1; i < stackTraceElements.length; i++) {
+                StackTraceElement stack = stackTraceElements[i];
+                if (!stack.getClassName().startsWith("java.util.concurrent")
+                    && !stack.getClassName().startsWith("org.bithon.agent.plugin.thread")) {
+                    return stack.getClassName();
+                }
+            }
+        }
+
+        return detectThreadPoolNameFromField(threadFactory);
+    }
+
+    private static String detectThreadPoolNameFromField(ThreadFactory threadFactory) {
         //
         // search the class hierarchy to see if this ThreadFactory is a subclass of above defined classes
         //
@@ -70,9 +100,9 @@ public class ThreadPoolUtils {
         }
     }
 
-    public static String getThreadPoolName(ThreadFactory threadFactoryObj,
-                                           Class<?> threadFactoryClass,
-                                           Collection<String> nameFields) {
+    private static String getThreadPoolName(ThreadFactory threadFactoryObj,
+                                            Class<?> threadFactoryClass,
+                                            Collection<String> nameFields) {
         for (String nameField : nameFields) {
             try {
                 Field f = threadFactoryClass.getDeclaredField(nameField);
