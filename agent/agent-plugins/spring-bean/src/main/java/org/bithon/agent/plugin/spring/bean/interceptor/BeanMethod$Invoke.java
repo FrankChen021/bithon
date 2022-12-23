@@ -84,7 +84,7 @@ public class BeanMethod$Invoke implements IAdviceInterceptor {
             for (Annotation annotation : annotations) {
                 String name = ANNOTATION2_NAME.get(annotation.annotationType().getName());
                 if (name != null) {
-                    COMPONENT_NAMES.put(annotation.annotationType(), name);
+                    COMPONENT_NAMES.put(beanClass, name);
                     return name;
                 }
             }
