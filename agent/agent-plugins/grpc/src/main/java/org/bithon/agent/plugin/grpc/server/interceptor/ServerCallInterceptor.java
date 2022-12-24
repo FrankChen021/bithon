@@ -105,8 +105,8 @@ final class ServerCallInterceptor implements ServerInterceptor {
             try {
                 delegate().onMessage(message);
             } catch (Throwable t) {
-                context.currentSpan().tag(t).finish();
-                context.finish();
+                context.currentSpan().tag(t);
+                throw t;
             }
         }
 
@@ -114,13 +114,13 @@ final class ServerCallInterceptor implements ServerInterceptor {
         public void onHalfClose() {
             TraceContextHolder.set(context);
 
-            // Overwrite the default thread name initialized in TraceContextFactory when its context is setup
+            // Overwrite the default thread name initialized in TraceContextFactory when its context is set up
             context.currentSpan().tag("thread", Thread.currentThread().getName());
             try {
                 delegate().onHalfClose();
             } catch (Throwable t) {
-                context.currentSpan().tag(t).finish();
-                context.finish();
+                context.currentSpan().tag(t);
+                // If exception occurs, the onComplete will be called at last
                 throw t;
             } finally {
                 TraceContextHolder.remove();
