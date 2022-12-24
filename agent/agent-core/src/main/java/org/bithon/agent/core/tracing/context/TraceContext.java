@@ -21,7 +21,6 @@ import org.bithon.agent.core.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
 import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 import org.bithon.agent.core.tracing.reporter.ITraceReporter;
-import org.bithon.agent.core.tracing.sampler.SamplingMode;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.time.Clock;
 
@@ -41,8 +40,6 @@ class TraceContext implements ITraceContext {
     private final String traceId;
     private final ISpanIdGenerator spanIdGenerator;
     private ITraceReporter reporter;
-    private SamplingMode samplingMode;
-    private TraceMode traceMode;
 
     public TraceContext(String traceId,
                         ISpanIdGenerator spanIdGenerator) {
@@ -108,6 +105,9 @@ class TraceContext implements ITraceContext {
             this.reporter.report(this.spans);
         } catch (Throwable e) {
             LoggerFactory.getLogger(TraceContext.class).error("Exception occurred when finish a context", e);
+        } finally {
+            // Clear to allow this method to re-enter
+            this.spans.clear();
         }
     }
 
@@ -142,12 +142,6 @@ class TraceContext implements ITraceContext {
         }
 
         TraceContextListener.getInstance().onSpanFinished(span);
-    }
-
-    @Override
-    public TraceContext samplingMode(SamplingMode mode) {
-        this.samplingMode = mode;
-        return this;
     }
 
     @Override

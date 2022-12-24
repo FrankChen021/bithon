@@ -25,7 +25,6 @@ import io.grpc.ForwardingClientCallListener;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
-import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.PropagationTraceContext;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
@@ -46,42 +45,42 @@ public class ClientCallInterceptor implements ClientInterceptor {
         // Must be the first, this would sometimes call DnsNameResolver
         ClientCall<REQ, RSP> result = next.newCall(method, callOptions);
 
-        // Not sure when the
+        // Not sure when the other methods will be called,
+        // so, it's better to create a new tracing context for this gRPC client call
         ITraceSpan span = TraceSpanFactory.newAsyncSpan("grpc-client")
                                           .clazz(ClientInterceptor.class.getName())
                                           .method("interceptCall")
+                                          .tag("remote.address", this.target)
                                           .start();
 
         if (span.isNull() || span.context() instanceof PropagationTraceContext) {
             return result;
         }
 
-        span.tag("remote.address", target);
-
-        return new TracedClientCall<>(span.context(), result);
+        return new TracedClientCall<>(span, result);
     }
 
     static class TracedClientCall<REQ, RSP> extends ForwardingClientCall.SimpleForwardingClientCall<REQ, RSP> {
-        private final ITraceContext context;
+        private final ITraceSpan span;
 
-        public TracedClientCall(ITraceContext context, ClientCall<REQ, RSP> delegate) {
+        public TracedClientCall(ITraceSpan span, ClientCall<REQ, RSP> delegate) {
             super(delegate);
-            this.context = context;
+            this.span = span;
         }
 
         @Override
         public void start(Listener<RSP> responseListener, Metadata headers) {
             // Propagate the tracing context to remote server
-            context.propagate(headers, (request, key, val) -> request.put(Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER), val));
+            span.context().propagate(headers, (request, key, val) -> request.put(Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER), val));
 
             try {
                 // Hook the message listener to end the tracing span
-                Listener<RSP> listener = new TracedClientCallListener<>(context, responseListener);
+                Listener<RSP> listener = new TracedClientCallListener<>(span, responseListener);
 
                 super.start(listener, headers);
             } catch (Throwable t) {
-                context.currentSpan().tag(t).finish();
-                context.finish();
+                span.tag(t).finish();
+                span.context().finish();
                 throw t;
             }
         }
@@ -91,25 +90,25 @@ public class ClientCallInterceptor implements ClientInterceptor {
             try {
                 super.sendMessage(message);
             } catch (Throwable t) {
-                context.currentSpan().tag(t).finish();
-                context.finish();
+                span.tag(t).finish();
+                span.context().finish();
                 throw t;
             }
         }
     }
 
     static class TracedClientCallListener<RSP> extends ForwardingClientCallListener.SimpleForwardingClientCallListener<RSP> {
-        private final ITraceContext context;
+        private final ITraceSpan span;
 
-        public TracedClientCallListener(ITraceContext context, ClientCall.Listener<RSP> delegate) {
+        public TracedClientCallListener(ITraceSpan span, ClientCall.Listener<RSP> delegate) {
             super(delegate);
-            this.context = context;
+            this.span = span;
         }
 
         @Override
         public void onClose(Status status, Metadata trailers) {
-            context.currentSpan().tag(status.getCause()).tag("status", status.getCode().toString()).finish();
-            context.finish();
+            span.tag(status.getCause()).tag("status", status.getCode().toString()).finish();
+            span.context().finish();
 
             super.onClose(status, trailers);
         }

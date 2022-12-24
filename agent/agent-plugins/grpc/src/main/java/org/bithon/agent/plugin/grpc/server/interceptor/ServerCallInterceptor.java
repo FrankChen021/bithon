@@ -27,6 +27,7 @@ import io.grpc.ServerInterceptor;
 import io.grpc.Status;
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.context.ITraceContext;
+import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.extractor.ITraceContextExtractor;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -49,28 +50,28 @@ final class ServerCallInterceptor implements ServerInterceptor {
             return next.startCall(call, headers);
         }
 
-        context.reporter(Tracer.get().reporter())
-               .currentSpan()
-               .component("grpc-server")
-               .kind(SpanKind.SERVER)
-               .clazz(call.getMethodDescriptor().getServiceName())
-               .method(call.getMethodDescriptor().getBareMethodName())
-               .tag("uri", "grpc://" + call.getMethodDescriptor().getFullMethodName())
-               .start();
+        ITraceSpan rootSpan = context.reporter(Tracer.get().reporter())
+                                     .currentSpan()
+                                     .component("grpc-server")
+                                     .kind(SpanKind.SERVER)
+                                     .clazz(call.getMethodDescriptor().getServiceName())
+                                     .method(call.getMethodDescriptor().getBareMethodName())
+                                     .tag("uri", "grpc://" + call.getMethodDescriptor().getFullMethodName())
+                                     .start();
 
-        return new TracedServerCall<>(call, context).start(headers, next);
+        return new TracedServerCall<>(call, rootSpan).start(headers, next);
     }
 
     private static final class TracedServerCall<REQ, RSP> extends ForwardingServerCall.SimpleForwardingServerCall<REQ, RSP> {
-        private final ITraceContext context;
+        private final ITraceSpan rootSpan;
 
-        TracedServerCall(ServerCall<REQ, RSP> delegate, ITraceContext context) {
+        TracedServerCall(ServerCall<REQ, RSP> delegate, ITraceSpan rootSpan) {
             super(delegate);
-            this.context = context;
+            this.rootSpan = rootSpan;
         }
 
         TracedServerCallListener<REQ> start(Metadata headers, ServerCallHandler<REQ, RSP> next) {
-            return new TracedServerCallListener<>(context,
+            return new TracedServerCallListener<>(rootSpan,
                                                   Contexts.interceptCall(Context.current(), this, headers, next));
         }
 
@@ -84,20 +85,20 @@ final class ServerCallInterceptor implements ServerInterceptor {
             try {
                 delegate().close(status, trailers);
             } catch (Throwable e) {
-                context.currentSpan().tag(e);
+                rootSpan.tag(e);
                 throw e;
             }
             String code = status.isOk() ? "200" : status.getCode().toString();
-            context.currentSpan().tag("status", code).tag(status.getCause());
+            rootSpan.tag("status", code).tag(status.getCause());
         }
     }
 
     private static final class TracedServerCallListener<REQ> extends ForwardingServerCallListener.SimpleForwardingServerCallListener<REQ> {
-        private final ITraceContext context;
+        private final ITraceSpan rootSpan;
 
-        TracedServerCallListener(ITraceContext context, ServerCall.Listener<REQ> delegate) {
+        TracedServerCallListener(ITraceSpan rootSpan, ServerCall.Listener<REQ> delegate) {
             super(delegate);
-            this.context = context;
+            this.rootSpan = rootSpan;
         }
 
         @Override
@@ -105,21 +106,21 @@ final class ServerCallInterceptor implements ServerInterceptor {
             try {
                 delegate().onMessage(message);
             } catch (Throwable t) {
-                context.currentSpan().tag(t);
+                rootSpan.tag(t);
                 throw t;
             }
         }
 
         @Override
         public void onHalfClose() {
-            TraceContextHolder.set(context);
+            TraceContextHolder.set(rootSpan.context());
 
             // Overwrite the default thread name initialized in TraceContextFactory when its context is set up
-            context.currentSpan().tag("thread", Thread.currentThread().getName());
+            rootSpan.tag("thread", Thread.currentThread().getName());
             try {
                 delegate().onHalfClose();
             } catch (Throwable t) {
-                context.currentSpan().tag(t);
+                rootSpan.tag(t);
                 // If exception occurs, the onComplete will be called at last
                 throw t;
             } finally {
@@ -132,11 +133,11 @@ final class ServerCallInterceptor implements ServerInterceptor {
             try {
                 delegate().onCancel();
             } catch (Throwable t) {
-                context.currentSpan().tag(t);
+                rootSpan.tag(t);
                 throw t;
             } finally {
-                context.currentSpan().finish();
-                context.finish();
+                rootSpan.finish();
+                rootSpan.context().finish();
             }
         }
 
@@ -145,11 +146,11 @@ final class ServerCallInterceptor implements ServerInterceptor {
             try {
                 delegate().onComplete();
             } catch (Throwable t) {
-                context.currentSpan().tag(t);
+                rootSpan.tag(t);
                 throw t;
             } finally {
-                context.currentSpan().finish();
-                context.finish();
+                rootSpan.finish();
+                rootSpan.context().finish();
             }
         }
 
@@ -158,8 +159,8 @@ final class ServerCallInterceptor implements ServerInterceptor {
             try {
                 delegate().onReady();
             } catch (Throwable t) {
-                context.currentSpan().tag(t).finish();
-                context.finish();
+                rootSpan.tag(t).finish();
+                rootSpan.context().finish();
                 throw t;
             }
         }

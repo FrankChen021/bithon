@@ -21,7 +21,6 @@ import org.bithon.agent.core.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
 import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 import org.bithon.agent.core.tracing.reporter.ITraceReporter;
-import org.bithon.agent.core.tracing.sampler.SamplingMode;
 import org.bithon.component.commons.time.Clock;
 
 import java.util.Stack;
@@ -96,11 +95,6 @@ public class PropagationTraceContext implements ITraceContext {
             // TODO: error
             spanStack.clear();
         }
-    }
-
-    @Override
-    public ITraceContext samplingMode(SamplingMode mode) {
-        return null;
     }
 
     @Override
