@@ -52,7 +52,6 @@ public class Tracer {
     private ITraceIdGenerator traceIdGenerator;
     private ITraceReporter reporter;
     private ITracePropagator propagator;
-    private ISampler sampler;
     private ISpanIdGenerator spanIdGenerator;
 
     public Tracer(String appName, String instanceName) {
@@ -76,12 +75,12 @@ public class Tracer {
                     }
                     AppInstance appInstance = AgentContext.getInstance().getAppInstance();
                     try {
+                        ISampler sampler = SamplerFactory.createSampler(samplingConfig);
                         INSTANCE = new Tracer(appInstance.getQualifiedAppName(), appInstance.getHostAndPort())
-                            .propagator(new DefaultPropagator())
+                            .propagator(new DefaultPropagator(sampler))
                             .traceIdGenerator(new UUIDGenerator())
                             .spanIdGenerator(new DefaultSpanIdGenerator())
-                            .reporter(samplingConfig.isDisabled() ? new NoopReporter() : new DefaultReporter())
-                            .sampler(SamplerFactory.createSampler(samplingConfig));
+                            .reporter(samplingConfig.isDisabled() ? new NoopReporter() : new DefaultReporter());
                     } catch (Exception e) {
                         LoggerFactory.getLogger(Tracer.class).info("Failed to create Tracer", e);
                     }
@@ -133,15 +132,6 @@ public class Tracer {
 
     public String instanceName() {
         return instanceName;
-    }
-
-    public ISampler sampler() {
-        return this.sampler;
-    }
-
-    public Tracer sampler(ISampler sampler) {
-        this.sampler = sampler;
-        return this;
     }
 
     static class NoopReporter implements ITraceReporter {

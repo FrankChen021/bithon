@@ -23,6 +23,7 @@ import org.bithon.agent.core.tracing.propagation.extractor.PropagationGetter;
 import org.bithon.agent.core.tracing.propagation.injector.ITraceContextInjector;
 import org.bithon.agent.core.tracing.propagation.injector.OpenTelemetryInjector;
 import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
+import org.bithon.agent.core.tracing.sampler.ISampler;
 
 /**
  * @author frank.chen021@outlook.com
@@ -31,7 +32,11 @@ import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 public class DefaultPropagator implements ITracePropagator {
 
     private final ITraceContextInjector injector = new OpenTelemetryInjector();
-    private final ITraceContextExtractor extractor = new ChainedTraceContextExtractor();
+    private final ITraceContextExtractor extractor;
+
+    public DefaultPropagator(ISampler sampler) {
+        extractor = new ChainedTraceContextExtractor(sampler);
+    }
 
     @Override
     public <R> void inject(ITraceContext context, R request, PropagationSetter<R> setter) {

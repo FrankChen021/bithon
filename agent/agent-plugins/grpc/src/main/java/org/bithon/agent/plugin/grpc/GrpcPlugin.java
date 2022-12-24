@@ -56,6 +56,23 @@ public class GrpcPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethod(Matchers.withName("newStub").and(Matchers.takesArguments(3)))
                                                    .to("org.bithon.agent.plugin.grpc.client.interceptor.AbstractAsyncStub$NewStub")
+                ),
+
+            forClass("io.grpc.internal.ManagedChannelImplBuilder")
+                .methods(
+                    // Hook to enhance stub classes
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndNoArgs("build")
+                                                   .to("org.bithon.agent.plugin.grpc.client.interceptor.ManagedChannelImplBuilder$Build")
+                ),
+
+
+
+            forClass("io.grpc.internal.ServerImplBuilder")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndNoArgs("build")
+                                                   .to("org.bithon.agent.plugin.grpc.server.interceptor.ServerBuilder$Build")
                 )
         );
     }

@@ -24,7 +24,7 @@ import org.bithon.agent.core.tracing.config.TraceConfig;
  */
 public class SamplerFactory {
     public static ISampler createSampler(TraceConfig.SamplingConfig samplingConfig) {
-        if (samplingConfig.getSamplingRate() == 0) {
+        if (samplingConfig == null || samplingConfig.getSamplingRate() == 0) {
             return (request) -> SamplingMode.NONE;
         }
         if (samplingConfig.getSamplingRate() == 100) {
