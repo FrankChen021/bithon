@@ -19,8 +19,10 @@ package org.bithon.agent.plugin.grpc;
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.core.aop.matcher.Matchers;
+import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.plugin.IPlugin;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,7 +35,7 @@ public class GrpcPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
-        return Arrays.asList(
+        List<InterceptorDescriptor> grpcInterceptorDescriptors = Arrays.asList(
             forClass("io.grpc.stub.AbstractBlockingStub")
                 .methods(
                     // Hook to enhance stub classes
@@ -67,7 +69,6 @@ public class GrpcPlugin implements IPlugin {
                 ),
 
 
-
             forClass("io.grpc.internal.ServerImplBuilder")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
@@ -75,5 +76,26 @@ public class GrpcPlugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.grpc.server.interceptor.ServerBuilder$Build")
                 )
         );
+
+        //
+        // Install interceptor for shaded gRPC
+        //
+        List<String> shadedGrpcList = AgentContext.getInstance().getAgentConfiguration().getConfig(ShadedGrpcList.class);
+        if (!shadedGrpcList.isEmpty()) {
+            List<InterceptorDescriptor> shadedGrpcInterceptors = new ArrayList<>();
+
+            // create interceptor descriptors for shaded grpc
+            for (String shadedGrpc : shadedGrpcList) {
+                for (InterceptorDescriptor interceptorDescriptor : grpcInterceptorDescriptors) {
+                    String shadedGrpcClazz = interceptorDescriptor.getTargetClass().replace("io.grpc", shadedGrpc);
+                    shadedGrpcInterceptors.add(interceptorDescriptor.withTargetClazz(shadedGrpcClazz));
+                }
+            }
+
+            // Merge interceptors
+            grpcInterceptorDescriptors.addAll(shadedGrpcInterceptors);
+        }
+
+        return grpcInterceptorDescriptors;
     }
 }
