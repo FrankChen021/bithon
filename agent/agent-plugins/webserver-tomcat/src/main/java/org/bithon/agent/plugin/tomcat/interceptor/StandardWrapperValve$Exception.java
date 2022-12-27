@@ -18,8 +18,11 @@ package org.bithon.agent.plugin.tomcat.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.plugin.tomcat.metric.ExceptionMetricCollector;
+import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.context.InterceptorContext;
+import org.bithon.agent.core.event.ExceptionCollector;
+
+import java.util.Collections;
 
 /**
  * handle exception thrown by tomcat service, not by the tomcat itself
@@ -28,17 +31,16 @@ import org.bithon.agent.plugin.tomcat.metric.ExceptionMetricCollector;
  */
 public class StandardWrapperValve$Exception extends AbstractInterceptor {
 
-    private ExceptionMetricCollector metricCollector;
-
     @Override
-    public boolean initialize() {
-        metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("tomcat-exception", ExceptionMetricCollector.class);
-        return true;
-    }
+    public InterceptionDecision onMethodEnter(AopContext context) {
+        String uri = (String) InterceptorContext.get("uri");
+        if (uri == null) {
+            ExceptionCollector.collect((Throwable) context.getArgs()[2]);
+        } else {
+            ExceptionCollector.collect((Throwable) context.getArgs()[2],
+                                       Collections.singletonMap("uri", uri));
+        }
 
-    @Override
-    public void onMethodLeave(AopContext context) {
-        metricCollector.update((Throwable) context.getArgs()[2]);
+        return InterceptionDecision.SKIP_LEAVE;
     }
 }

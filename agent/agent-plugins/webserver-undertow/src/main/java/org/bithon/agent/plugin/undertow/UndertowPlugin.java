@@ -59,7 +59,7 @@ public class UndertowPlugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.undertow.interceptor.HttpServerExchangeDispatch")
                 ),
 
-            forClass("io.undertow.servlet.api.LoggingExceptionHandlerHandleThrowable")
+            forClass("io.undertow.servlet.api.LoggingExceptionHandler")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("handleThrowable")
@@ -67,7 +67,7 @@ public class UndertowPlugin implements IPlugin {
                                                            "javax.servlet.ServletRequest",
                                                            "javax.servlet.ServletResponse",
                                                            "java.lang.Throwable")
-                                                   .to("org.bithon.agent.plugin.undertow.interceptor.LoggingExceptionHandlerHandleThrowable")
+                                                   .to("org.bithon.agent.plugin.undertow.interceptor.LoggingExceptionHandler$HandleThrowable")
                 )
         );
     }
