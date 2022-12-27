@@ -92,6 +92,9 @@ public class GrpcPlugin implements IPlugin {
                 }
             }
 
+            // Copy the readonly list to a new writable list
+            grpcInterceptorDescriptors = new ArrayList<>(grpcInterceptorDescriptors);
+
             // Merge interceptors
             grpcInterceptorDescriptors.addAll(shadedGrpcInterceptors);
         }
