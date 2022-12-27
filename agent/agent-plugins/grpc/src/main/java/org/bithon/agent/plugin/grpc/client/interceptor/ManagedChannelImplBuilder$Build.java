@@ -48,7 +48,7 @@ public class ManagedChannelImplBuilder$Build extends AbstractInterceptor {
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         String targetClazzName = aopContext.getTargetClass().getName();
-        if (shadedGrpcList.isEmpty() || targetClazzName.startsWith("io.grpc")) {
+        if (shadedGrpcList.isEmpty() || targetClazzName.startsWith("io.grpc.")) {
             // No shaded gRPC or current target is not a shaded one, then create a default interceptor
             // Note: use string name instead of class name because this class might be executed in a shaded grpc lib
             return createInterceptor(aopContext, "org.bithon.agent.plugin.grpc.client.interceptor.ClientCallInterceptor");
