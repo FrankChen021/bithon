@@ -16,17 +16,24 @@
 
 package org.bithon.agent.plugin.undertow.interceptor;
 
+import io.undertow.server.HttpServerExchange;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.plugin.undertow.metric.ExceptionMetricCollector;
+import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.event.ExceptionCollector;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 
 /**
+ * {@link io.undertow.servlet.api.LoggingExceptionHandler#handleThrowable(HttpServerExchange, ServletRequest, ServletResponse, Throwable)}
+ *
  * @author frankchen
  */
-public class LoggingExceptionHandlerHandleThrowable extends AbstractInterceptor {
-
+public class LoggingExceptionHandler$HandleThrowable extends AbstractInterceptor {
     @Override
-    public void onMethodLeave(AopContext context) {
-        ExceptionMetricCollector.getInstance().update((Throwable) context.getArgs()[3]);
+    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+        ExceptionCollector.collect((Throwable) aopContext.getArgs()[3]);
+        return InterceptionDecision.SKIP_LEAVE;
     }
 }

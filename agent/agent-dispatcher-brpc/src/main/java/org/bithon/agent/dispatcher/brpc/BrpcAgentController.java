@@ -66,6 +66,10 @@ public class BrpcAgentController implements IAgentController {
                                       .retryInterval(Duration.ofSeconds(2))
                                       .build();
 
+        if (appInstance.getPort() > 0) {
+            channel.setAppId(appInstance.getHostAndPort());
+        }
+
         // Update appId once the port is configured
         appInstance.addListener((port) -> channel.setAppId(AgentContext.getInstance().getAppInstance().getHostAndPort()));
     }

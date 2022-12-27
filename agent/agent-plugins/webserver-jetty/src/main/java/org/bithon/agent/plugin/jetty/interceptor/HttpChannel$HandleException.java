@@ -14,25 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.log4j2.interceptor;
+package org.bithon.agent.plugin.jetty.interceptor;
 
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.spi.StandardLevel;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.event.ExceptionCollector;
 
 /**
- * @author frankchen
+ * @author Frank Chen
+ * @date 27/12/22 2:11 pm
  */
-public class LoggerLogMessage extends AbstractInterceptor {
+public class HttpChannel$HandleException extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        Level logLevel = (Level) aopContext.getArgs()[1];
-        Throwable exception = (Throwable) aopContext.getArgs()[4];
-        if (exception == null || !StandardLevel.ERROR.equals(logLevel.getStandardLevel())) {
+    public InterceptionDecision onMethodEnter(AopContext context) {
+        Throwable exception = context.getArgAs(0);
+        if (exception == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 

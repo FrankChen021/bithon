@@ -63,6 +63,10 @@
         <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
     </Match>
     <Match>
+        <Class name="org.bithon.agent.plugin.jetty.interceptor.HttpChannel$HandleException"/>
+        <Bug pattern="NM_CLASS_NOT_EXCEPTION" />
+    </Match>
+    <Match>
         <Class name="org.bithon.agent.plugin.tomcat.interceptor.StandardWrapperValve$Exception"/>
         <Bug pattern="NM_CLASS_NOT_EXCEPTION" />
     </Match>

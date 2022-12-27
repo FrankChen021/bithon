@@ -61,7 +61,12 @@ public class JettyPlugin implements IPlugin {
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("onCompleted")
-                                                   .to("org.bithon.agent.plugin.jetty.interceptor.HttpChannel$OnCompleted")
+                                                   .to("org.bithon.agent.plugin.jetty.interceptor.HttpChannel$OnCompleted"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndArgs("handleException", "java.lang.Throwable")
+                                                   .to("org.bithon.agent.plugin.jetty.interceptor.HttpChannel$HandleException")
+
                 )
         );
     }
