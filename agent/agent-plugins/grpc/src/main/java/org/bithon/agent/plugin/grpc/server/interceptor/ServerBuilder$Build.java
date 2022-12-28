@@ -26,6 +26,8 @@ import org.bithon.agent.core.tracing.propagation.extractor.ChainedTraceContextEx
 import org.bithon.agent.core.tracing.sampler.SamplerFactory;
 
 /**
+ * Interceptor for {@link ServerBuilder#build()}
+ *
  * @author Frank Chen
  * @date 22/12/22 3:54 pm
  */
@@ -44,7 +46,7 @@ public class ServerBuilder$Build extends AbstractInterceptor {
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
 
-        ServerBuilder<?> builder = aopContext.castTargetAs();
+        ServerBuilder<?> builder = aopContext.getTargetAs();
         builder.intercept(new ServerCallInterceptor(contextExtractor));
 
         return InterceptionDecision.SKIP_LEAVE;

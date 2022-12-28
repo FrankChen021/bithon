@@ -89,7 +89,7 @@ public class JobRunShell$Run extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         JobExecutionContextImpl jobExecutionContext = null;
         try {
-            JobRunShell jobRunShell = aopContext.castTargetAs();
+            JobRunShell jobRunShell = aopContext.getTargetAs();
             Field field = jobRunShell.getClass().getDeclaredField("jec");
             field.setAccessible(true);
             jobExecutionContext = (JobExecutionContextImpl) field.get(jobRunShell);
@@ -100,11 +100,11 @@ public class JobRunShell$Run extends AbstractInterceptor {
         }
 
         // assigned in NotifyJobListenersComplete
-        IBithonObject bithonObject = aopContext.castTargetAs();
+        IBithonObject bithonObject = aopContext.getTargetAs();
         JobExecutionException exception = (JobExecutionException) bithonObject.getInjectedObject();
 
         // tracing
-        ITraceSpan span = aopContext.castUserContextAs();
+        ITraceSpan span = aopContext.getUserContextAs();
         span.tag(exception == null ? null : exception.getUnderlyingException())
             .tag("status", exception != null ? "500" : "200")
             .tag("uri", jobExecutionContext == null ? null : "quartz://" + jobExecutionContext.getJobDetail().getJobClass().getName())

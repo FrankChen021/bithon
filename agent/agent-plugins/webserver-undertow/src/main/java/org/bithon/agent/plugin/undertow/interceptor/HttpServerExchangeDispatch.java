@@ -49,7 +49,7 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        final HttpServerExchange exchange = aopContext.castTargetAs();
+        final HttpServerExchange exchange = aopContext.getTargetAs();
 
         if (this.requestFilter.shouldBeExcluded(exchange.getRequestPath(), exchange.getRequestHeaders().getFirst("User-Agent"))) {
             return InterceptionDecision.SKIP_LEAVE;

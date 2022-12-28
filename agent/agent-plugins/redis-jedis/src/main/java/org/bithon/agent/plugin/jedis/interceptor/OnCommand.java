@@ -35,7 +35,7 @@ public class OnCommand extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
-        Jedis jedis = aopContext.castTargetAs();
+        Jedis jedis = aopContext.getTargetAs();
         String hostAndPort = jedis.getClient().getHost() + ":" + jedis.getClient().getPort();
         //String db = jedis.getDB();
 
@@ -53,6 +53,6 @@ public class OnCommand extends AbstractInterceptor {
             return;
         }
 
-        ctx.getMetrics().addRequest(aopContext.getCostTime(), aopContext.hasException() ? 1 : 0);
+        ctx.getMetrics().addRequest(aopContext.getExecutionTime(), aopContext.hasException() ? 1 : 0);
     }
 }

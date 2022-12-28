@@ -33,7 +33,7 @@ public class ManagedChannelImplBuilder$Build extends AbstractInterceptor {
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
 
-        ManagedChannelBuilder<?> builder = aopContext.castTargetAs();
+        ManagedChannelBuilder<?> builder = aopContext.getTargetAs();
         builder.intercept(new ClientCallInterceptor((String) ReflectionUtils.getFieldValue(builder, "target")));
 
         return InterceptionDecision.SKIP_LEAVE;

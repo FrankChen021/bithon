@@ -30,7 +30,7 @@ public class ForkJoinPool$ExternalPush extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        ForkJoinPool pool = aopContext.castTargetAs();
+        ForkJoinPool pool = aopContext.getTargetAs();
 
         //TODO: record task exception of ForkJoinPool
         ThreadPoolMetricRegistry.getInstance().addTotal(pool);

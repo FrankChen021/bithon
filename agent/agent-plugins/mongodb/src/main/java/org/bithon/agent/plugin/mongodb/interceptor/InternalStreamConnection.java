@@ -35,7 +35,7 @@ public class InternalStreamConnection {
     public static class Constructor extends AbstractInterceptor {
         @Override
         public void onConstruct(AopContext aopContext) {
-            IBithonObject bithonObject = aopContext.castTargetAs();
+            IBithonObject bithonObject = aopContext.getTargetAs();
             bithonObject.setInjectedObject(((ServerId) aopContext.getArgAs(0)).getAddress().toString());
         }
     }

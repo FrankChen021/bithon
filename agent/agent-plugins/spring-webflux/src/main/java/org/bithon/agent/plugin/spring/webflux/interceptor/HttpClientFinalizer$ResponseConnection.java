@@ -45,12 +45,12 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        HttpClient httpClient = aopContext.castTargetAs();
+        HttpClient httpClient = aopContext.getTargetAs();
         String uri = httpClient.configuration().uri();
         String method = httpClient.configuration().method().name();
 
         // injected by HttpClientFinalizer$Send's onMethodLeave
-        IBithonObject bithonObject = aopContext.castTargetAs();
+        IBithonObject bithonObject = aopContext.getTargetAs();
         HttpClientContext httpClientContext = (HttpClientContext) bithonObject.getInjectedObject();
 
         //noinspection unchecked,rawtypes
@@ -90,16 +90,16 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        HttpClient httpClient = aopContext.castTargetAs();
+        HttpClient httpClient = aopContext.getTargetAs();
         String uri = httpClient.configuration().uri();
         String method = httpClient.configuration().method().name();
 
-        IBithonObject bithonObject = aopContext.castTargetAs();
+        IBithonObject bithonObject = aopContext.getTargetAs();
 
         // injected by HttpClientFinalizer$Send's onMethodLeave
         HttpClientContext httpClientContext = (HttpClientContext) bithonObject.getInjectedObject();
 
-        Flux<?> responseFlux = aopContext.castReturningAs();
+        Flux<?> responseFlux = aopContext.getReturningAs();
 
         /**
          * Hook on exception

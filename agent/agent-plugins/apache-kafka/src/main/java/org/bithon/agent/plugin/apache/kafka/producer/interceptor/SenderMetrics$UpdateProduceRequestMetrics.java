@@ -76,7 +76,7 @@ public class SenderMetrics$UpdateProduceRequestMetrics extends AbstractIntercept
             return;
         }
 
-        KafkaPluginContext producerCtx = aopContext.castInjectedOnTargetAs();
+        KafkaPluginContext producerCtx = aopContext.getInjectedOnTargetAs();
 
         for (Map.Entry<Integer, List<ProducerBatch>> entry : batches.entrySet()) {
             String nodeId = entry.getKey().toString();

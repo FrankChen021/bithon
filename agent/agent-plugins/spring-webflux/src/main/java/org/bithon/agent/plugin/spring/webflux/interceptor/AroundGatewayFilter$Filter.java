@@ -95,7 +95,7 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         TraceContextHolder.remove();
 
-        ITraceSpan span = aopContext.castUserContextAs();
+        ITraceSpan span = aopContext.getUserContextAs();
         if (span == null) {
             // in case of exception in the Enter interceptor
             return;
@@ -110,7 +110,7 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
             // For the 2nd case, the span is closed before entering the filter chain. It's safe to call the finish method once more
             span.tag(aopContext.getException()).finish();
         } else {
-            Mono<Void> originalReturning = aopContext.castReturningAs();
+            Mono<Void> originalReturning = aopContext.getReturningAs();
             Mono<Void> replacedReturning = originalReturning.doOnError(span::tag)
                                                             .doFinally((s) -> span.finish());
             aopContext.setReturning(replacedReturning);

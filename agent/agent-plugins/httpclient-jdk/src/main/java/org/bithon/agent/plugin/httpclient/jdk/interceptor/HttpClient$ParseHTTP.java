@@ -56,7 +56,7 @@ public class HttpClient$ParseHTTP extends AbstractInterceptor {
         String statusLine = responseHeader.getValue(0);
         Integer statusCode = parseStatusCode(statusLine);
 
-        IBithonObject bithonObject = aopContext.castTargetAs();
+        IBithonObject bithonObject = aopContext.getTargetAs();
         HttpClientContext clientContext = (HttpClientContext) bithonObject.getInjectedObject();
         String httpMethod = clientContext.getMethod();
         String requestUri = clientContext.getUrl();

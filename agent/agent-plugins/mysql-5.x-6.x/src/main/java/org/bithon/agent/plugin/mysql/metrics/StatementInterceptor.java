@@ -48,7 +48,7 @@ public class StatementInterceptor extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        String connectionString = aopContext.castUserContextAs();
+        String connectionString = aopContext.getUserContextAs();
         if (connectionString == null) {
             return;
         }
@@ -60,13 +60,13 @@ public class StatementInterceptor extends AbstractInterceptor {
             isQuery = false;
         } else if ((MySqlPlugin.METHOD_EXECUTE.equals(methodName) || MySqlPlugin.METHOD_EXECUTE_INTERNAL.equals(
             methodName))) {
-            Object result = aopContext.castReturningAs();
+            Object result = aopContext.getReturningAs();
             if (result instanceof Boolean && !(boolean) result) {
                 isQuery = false;
             }
         }
 
         metricRegistry.getOrCreateMetrics(connectionString)
-                      .update(isQuery, aopContext.hasException(), aopContext.getCostTime());
+                      .update(isQuery, aopContext.hasException(), aopContext.getExecutionTime());
     }
 }

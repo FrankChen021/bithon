@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.bithon.brpc.interceptor;
+package org.bithon.agent.plugin.spring.scheduling;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
@@ -22,22 +22,23 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.config.TraceConfig;
-import org.bithon.agent.core.tracing.context.ITraceContext;
-import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextFactory;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
 import org.bithon.agent.core.tracing.sampler.ISampler;
 import org.bithon.agent.core.tracing.sampler.SamplerFactory;
 import org.bithon.agent.core.tracing.sampler.SamplingMode;
-import org.bithon.component.commons.tracing.SpanKind;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 12/5/22 10:25 PM
+ * {@link org.springframework.scheduling.support.DelegatingErrorHandlingRunnable#run()}
+ *
+ * This class wraps the actual schedule runnable, we need to set up tracing context here,
+ * so that the exception handling in {@link org.springframework.scheduling.support.DelegatingErrorHandlingRunnable#run()} can access the tracing context.
+ *
+ * @author Frank Chen
+ * @date 28/12/22 11:08 am
  */
-public class BrpcMethodInterceptor extends AbstractInterceptor {
-
+public class DelegatingErrorHandlingRunnable$Run extends AbstractInterceptor {
     private ISampler sampler;
 
     @Override
@@ -45,7 +46,7 @@ public class BrpcMethodInterceptor extends AbstractInterceptor {
         TraceConfig traceConfig = AgentContext.getInstance()
                                               .getAgentConfiguration()
                                               .getConfig(TraceConfig.class);
-        TraceConfig.SamplingConfig samplingConfig = traceConfig.getSamplingConfigs().get("brpc");
+        TraceConfig.SamplingConfig samplingConfig = traceConfig.getSamplingConfigs().get("spring-scheduler");
         if (samplingConfig == null || samplingConfig.isDisabled() || samplingConfig.getSamplingRate() == 0) {
             return false;
         }
@@ -56,36 +57,21 @@ public class BrpcMethodInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        ITraceContext context;
+    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
         SamplingMode mode = sampler.decideSamplingMode(null);
         if (mode == SamplingMode.NONE) {
             return InterceptionDecision.SKIP_LEAVE;
-        } else {
-            // create a traceable context
-            context = TraceContextFactory.create(TraceMode.TRACE,
-                                                 Tracer.get().traceIdGenerator().newTraceId());
         }
 
-        aopContext.setUserContext(context.currentSpan()
-                                         .component("brpc")
-                                         .kind(SpanKind.SERVER)
-                                         .method(aopContext.getMethod())
-                                         .tag("uri", "brpc://" + aopContext.getTarget().getClass().getSimpleName() + "/" + aopContext.getMethod().getName())
-                                         .start());
+        // create a traceable context
+        TraceContextHolder.set(TraceContextFactory.create(TraceMode.TRACE,
+                                                          Tracer.get().traceIdGenerator().newTraceId()));
 
-        TraceContextHolder.set(context);
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
-        span.tag(aopContext.getException())
-            .tag("status", aopContext.hasException() ? "500" : "200")
-            .finish();
-        span.context().finish();
-
         TraceContextHolder.remove();
     }
 }

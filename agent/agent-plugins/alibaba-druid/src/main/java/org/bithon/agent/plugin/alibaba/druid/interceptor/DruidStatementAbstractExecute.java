@@ -64,7 +64,7 @@ public abstract class DruidStatementAbstractExecute extends AbstractInterceptor 
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
-        Statement statement = aopContext.castTargetAs();
+        Statement statement = aopContext.getTargetAs();
 
         // TODO: cache the cleaned-up connection string in IBithonObject after connection object instantiation
         // to improve performance
@@ -90,7 +90,7 @@ public abstract class DruidStatementAbstractExecute extends AbstractInterceptor 
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        UserContext context = aopContext.castUserContextAs();
+        UserContext context = aopContext.getUserContextAs();
         if (context.span != null) {
             try {
                 context.span.tag(Tags.SQL, getExecutingSql(aopContext))
@@ -119,7 +119,7 @@ public abstract class DruidStatementAbstractExecute extends AbstractInterceptor 
                 /*
                  * execute method return true if the first result is a ResultSet
                  */
-                isQuery = aopContext.getReturning() == null ? null : (boolean) aopContext.castReturningAs();
+                isQuery = aopContext.getReturning() == null ? null : (boolean) aopContext.getReturningAs();
             } else if (DruidPlugin.METHOD_EXECUTE_QUERY.equals(methodName)) {
                 isQuery = true;
             } else {
@@ -127,7 +127,7 @@ public abstract class DruidStatementAbstractExecute extends AbstractInterceptor 
                 log.warn("unknown method intercepted by druid-sql-counter : {}", methodName);
             }
 
-            metricRegistry.getOrCreateMetrics(context.uri).update(isQuery, aopContext.hasException(), aopContext.getCostTime());
+            metricRegistry.getOrCreateMetrics(context.uri).update(isQuery, aopContext.hasException(), aopContext.getExecutionTime());
         }
     }
 

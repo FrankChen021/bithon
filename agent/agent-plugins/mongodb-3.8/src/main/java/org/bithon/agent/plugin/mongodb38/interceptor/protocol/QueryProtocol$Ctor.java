@@ -32,7 +32,7 @@ public class QueryProtocol$Ctor extends AbstractInterceptor {
     @Override
     public void onConstruct(AopContext aopContext) {
         MongoNamespace ns = aopContext.getArgAs(0);
-        IBithonObject bithonObject = aopContext.castTargetAs();
+        IBithonObject bithonObject = aopContext.getTargetAs();
         bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
                                                         ns.getCollectionName(),
                                                         "Query"));

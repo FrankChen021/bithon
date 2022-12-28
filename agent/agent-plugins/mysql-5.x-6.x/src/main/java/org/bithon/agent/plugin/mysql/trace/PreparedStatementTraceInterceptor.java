@@ -49,7 +49,7 @@ public class PreparedStatementTraceInterceptor extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        ITraceSpan mysqlSpan = aopContext.castUserContextAs();
+        ITraceSpan mysqlSpan = aopContext.getUserContextAs();
         try {
             String sql;
             if ((sql = (String) InterceptorContext.get(ConnectionTraceInterceptor.KEY)) != null) {

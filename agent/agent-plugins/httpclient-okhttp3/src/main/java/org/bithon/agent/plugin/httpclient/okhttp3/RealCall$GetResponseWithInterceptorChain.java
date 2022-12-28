@@ -69,13 +69,13 @@ public class RealCall$GetResponseWithInterceptorChain extends AbstractIntercepto
         if (aopContext.getException() != null) {
             metricRegistry.addExceptionRequest(uri,
                                                httpMethod,
-                                               aopContext.getCostTime());
+                                               aopContext.getExecutionTime());
         } else {
-            Response response = aopContext.castReturningAs();
+            Response response = aopContext.getReturningAs();
             metricRegistry.addRequest(uri,
                                       httpMethod,
                                       response.code(),
-                                      aopContext.getCostTime());
+                                      aopContext.getExecutionTime());
         }
 
         this.addBytes(uri,

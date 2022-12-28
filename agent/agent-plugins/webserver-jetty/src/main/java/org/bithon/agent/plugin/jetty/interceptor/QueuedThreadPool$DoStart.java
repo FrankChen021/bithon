@@ -33,7 +33,7 @@ public class QueuedThreadPool$DoStart extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext context) {
-        QueuedThreadPool threadPool = context.castTargetAs();
+        QueuedThreadPool threadPool = context.getTargetAs();
 
         WebServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(WebServerMetricRegistry.NAME, WebServerMetricRegistry::new)
                                                         .getOrCreateMetrics(Collections.singletonList(WebServerType.JETTY.type()),

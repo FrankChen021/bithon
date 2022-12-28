@@ -47,7 +47,7 @@ public class Fetcher$ParseRecord extends AbstractInterceptor {
         TopicPartition topicPartition = aopContext.getArgAs(0);
         Record record = aopContext.getArgAs(2);
 
-        KafkaPluginContext kafkaPluginContext = aopContext.castInjectedOnTargetAs();
+        KafkaPluginContext kafkaPluginContext = aopContext.getInjectedOnTargetAs();
         ConsumerMetrics metrics = metricRegistry.getOrCreateMetrics(kafkaPluginContext.clusterSupplier.get(),
                                                                     kafkaPluginContext.groupId,
                                                                     kafkaPluginContext.clientId,

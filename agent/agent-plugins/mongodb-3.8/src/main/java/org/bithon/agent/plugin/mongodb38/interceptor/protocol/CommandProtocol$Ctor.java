@@ -31,7 +31,7 @@ import org.bson.codecs.Decoder;
 public class CommandProtocol$Ctor extends AbstractInterceptor {
     @Override
     public void onConstruct(AopContext aopContext) {
-        IBithonObject obj = aopContext.castTargetAs();
+        IBithonObject obj = aopContext.getTargetAs();
         obj.setInjectedObject(new MongoCommand(aopContext.getArgAs(0),
                                                MongoNamespace.COMMAND_COLLECTION_NAME,
                                                "Command"));

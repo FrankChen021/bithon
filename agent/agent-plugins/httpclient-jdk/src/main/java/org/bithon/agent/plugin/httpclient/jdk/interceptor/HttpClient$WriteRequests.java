@@ -36,7 +36,7 @@ public class HttpClient$WriteRequests extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        IBithonObject injectedObject = aopContext.castTargetAs();
+        IBithonObject injectedObject = aopContext.getTargetAs();
         HttpClientContext clientContext = (HttpClientContext) injectedObject.getInjectedObject();
 
         clientContext.setWriteAt(System.nanoTime());

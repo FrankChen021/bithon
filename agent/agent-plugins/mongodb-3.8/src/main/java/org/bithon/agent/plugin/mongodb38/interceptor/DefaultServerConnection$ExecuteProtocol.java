@@ -59,7 +59,7 @@ public class DefaultServerConnection$ExecuteProtocol extends AbstractInterceptor
      */
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        DefaultServerConnection connection = aopContext.castTargetAs();
+        DefaultServerConnection connection = aopContext.getTargetAs();
         String hostAndPort = connection.getDescription().getServerAddress().toString();
 
         MongoCommand command = null;
@@ -75,7 +75,7 @@ public class DefaultServerConnection$ExecuteProtocol extends AbstractInterceptor
         //
         // trace
         //
-        ITraceSpan span = aopContext.castUserContextAs();
+        ITraceSpan span = aopContext.getUserContextAs();
         if (span != null) {
             span.tag(aopContext.getException())
                 .tag("server", hostAndPort)
@@ -94,7 +94,7 @@ public class DefaultServerConnection$ExecuteProtocol extends AbstractInterceptor
                                              command.getDatabase(),
                                              command.getCollection(),
                                              command.getCommand())
-                          .add(aopContext.getCostTime(), exceptionCount);
+                          .add(aopContext.getExecutionTime(), exceptionCount);
         }
     }
 }

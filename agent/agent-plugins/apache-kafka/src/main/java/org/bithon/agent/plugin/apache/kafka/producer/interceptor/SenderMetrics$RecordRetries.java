@@ -42,7 +42,7 @@ public class SenderMetrics$RecordRetries extends AbstractInterceptor {
         String topic = aopContext.getArgAs(0);
         int count = aopContext.getArgAs(1);
 
-        KafkaPluginContext producerCtx = aopContext.castInjectedOnTargetAs();
+        KafkaPluginContext producerCtx = aopContext.getInjectedOnTargetAs();
         metricRegistry.getOrCreateMetrics(producerCtx.clusterSupplier.get(),
                                           KafkaPluginContext.getCurrentDestination(),
                                           topic,

@@ -24,19 +24,19 @@ import java.lang.reflect.Executable;
  *
  * @author frankchen
  */
-public class AopContext {
+public abstract class AopContext {
 
     private final Object target;
     private final Executable method;
     private final Object[] args;
     private Object userContext;
     private Object returning;
-    private Throwable exception;
+    protected Throwable exception;
 
-    private long startNanoTime;
-    private long endNanoTime;
-    private long startTimestamp;
-    private long endTimestamp;
+    protected long startNanoTime;
+    protected long endNanoTime;
+    protected long startTimestamp;
+    protected long endTimestamp;
 
     public AopContext(Executable method,
                       Object target,
@@ -55,21 +55,20 @@ public class AopContext {
     }
 
     /**
-     * The target object which intercepted method is invoked on
-     * <p>
-     * If the intercepted method is a static method, returns null, otherwise returns non-null
+     * The target object which intercepted method is invoked on.
+     * If the intercepted method is a static method, this method returns null.
      */
     public Object getTarget() {
         return target;
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T castTargetAs() {
+    public <T> T getTargetAs() {
         return (T) target;
     }
 
     /**
-     * get the intercepted method
+     * Get the intercepted method
      * if the intercepted method is a constructor, instance of {@link java.lang.reflect.Constructor} is returned
      * or instance of {@link java.lang.reflect.Method} is returned
      */
@@ -95,7 +94,7 @@ public class AopContext {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T castUserContextAs() {
+    public <T> T getUserContextAs() {
         return (T) userContext;
     }
 
@@ -107,6 +106,9 @@ public class AopContext {
         return returning;
     }
 
+    /**
+     * WARNING: this will change the returning object for the intercepted method
+     */
     public void setReturning(Object returning) {
         this.returning = returning;
     }
@@ -115,20 +117,16 @@ public class AopContext {
      * cast the returning result returned by intercepted method
      */
     @SuppressWarnings("unchecked")
-    public <T> T castReturningAs() {
+    public <T> T getReturningAs() {
         return (T) returning;
     }
 
     /**
-     * exception thrown by intercepted method
+     * Exception thrown by intercepted method
      * Note: only available in {@link AbstractInterceptor#onMethodLeave(AopContext)}
      */
     public Throwable getException() {
         return exception;
-    }
-
-    public void setException(Throwable exception) {
-        this.exception = exception;
     }
 
     public boolean hasException() {
@@ -139,29 +137,25 @@ public class AopContext {
      * How long the execution of intercepted method takes in nanoseconds
      * Note: Only available in {@link AbstractInterceptor#onMethodLeave}
      */
-    public long getCostTime() {
+    public long getExecutionTime() {
         return endNanoTime - startNanoTime;
     }
 
     /**
-     * the timestamp that after {@link AbstractInterceptor#onMethodEnter(AopContext)} and before the intercepted method
+     * The timestamp that after {@link AbstractInterceptor#onMethodEnter(AopContext)} and before the intercepted method
      */
     public long getStartTimestamp() {
         return startTimestamp;
     }
 
     /**
-     * the timestamp that after the intercepted method and before the {@link AbstractInterceptor#onMethodLeave(AopContext)}
+     * The timestamp that after the intercepted method and before the {@link AbstractInterceptor#onMethodLeave(AopContext)}
      */
     public long getEndTimestamp() {
         return endTimestamp;
     }
 
-    public void setEndTimestamp(long timestamp) {
-        this.endTimestamp = timestamp;
-    }
-
-    public <T> T castInjectedOnTargetAs() {
+    public <T> T getInjectedOnTargetAs() {
         //noinspection unchecked
         return (T) ((IBithonObject) this.target).getInjectedObject();
     }
@@ -172,21 +166,5 @@ public class AopContext {
 
     public long getEndNanoTime() {
         return endNanoTime;
-    }
-
-    /**
-     * An internal interface. SHOULD NOT be used by users' code
-     */
-    public void onBeforeTargetMethodInvocation() {
-        startNanoTime = System.nanoTime();
-        startTimestamp = System.currentTimeMillis();
-    }
-
-    /**
-     * An internal interface. SHOULD NOT be used by users' code
-     */
-    public void onAfterTargetMethodInvocation() {
-        endNanoTime = System.nanoTime();
-        endTimestamp = System.currentTimeMillis();
     }
 }

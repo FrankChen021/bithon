@@ -53,7 +53,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AbstractIntercepto
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        Call realCall = aopContext.castTargetAs();
+        Call realCall = aopContext.getTargetAs();
         Request originRequest = realCall.request();
         String uri = originRequest.url().uri().toString().split("\\?")[0];
         return needIgnore(uri) ? InterceptionDecision.SKIP_LEAVE : InterceptionDecision.CONTINUE;
@@ -70,10 +70,10 @@ public class RealCall$GetResponseWithInterceptorChain extends AbstractIntercepto
         if (aopContext.getException() != null) {
             metricRegistry.addExceptionRequest(requestUri,
                                                requestMethod,
-                                               aopContext.getCostTime());
+                                               aopContext.getExecutionTime());
         } else {
-            Response response = aopContext.castReturningAs();
-            metricRegistry.addRequest(requestUri, requestMethod, response.code(), aopContext.getCostTime());
+            Response response = aopContext.getReturningAs();
+            metricRegistry.addRequest(requestUri, requestMethod, response.code(), aopContext.getExecutionTime());
         }
 
         addBytes(requestUri, requestMethod, originRequest, realCall);

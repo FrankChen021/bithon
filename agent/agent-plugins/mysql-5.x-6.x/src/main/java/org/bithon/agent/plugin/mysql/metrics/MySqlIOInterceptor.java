@@ -43,7 +43,7 @@ public class MySqlIOInterceptor extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) throws SQLException {
         String methodName = aopContext.getMethod().getName();
 
-        MysqlIO mysqlIO = aopContext.castTargetAs();
+        MysqlIO mysqlIO = aopContext.getTargetAs();
 
         MySQLConnection connection = (MySQLConnection) ReflectionUtils.getFieldValue(mysqlIO, "connection");
 
@@ -55,7 +55,7 @@ public class MySqlIOInterceptor extends AbstractInterceptor {
                 metric.updateBytesOut(queryPacket.getPosition());
             }
         } else {
-            ResultSetImpl resultSet = aopContext.castReturningAs();
+            ResultSetImpl resultSet = aopContext.getReturningAs();
             int bytesIn = resultSet.getBytesSize();
             if (bytesIn > 0) {
                 metric.updateBytesIn(bytesIn);
