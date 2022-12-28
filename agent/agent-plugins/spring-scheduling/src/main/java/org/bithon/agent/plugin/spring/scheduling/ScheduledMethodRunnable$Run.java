@@ -23,6 +23,7 @@ import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.component.commons.tracing.SpanKind;
+import org.springframework.scheduling.support.ScheduledMethodRunnable;
 
 /**
  * {@link org.springframework.scheduling.support.ScheduledMethodRunnable#run()}
@@ -43,11 +44,17 @@ public class ScheduledMethodRunnable$Run extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
+        // Don't use runnable.getTarget().getClass().getName()
+        // This is because Spring might use cglib to subclass the real user class,
+        // and the class that above method returns is the subclass whose name is confusing for end-user
+        ScheduledMethodRunnable runnable = aopContext.getTargetAs();
+        String targetClass = runnable.getMethod().getDeclaringClass().getName();
+
         aopContext.setUserContext(context.currentSpan()
                                          .component("springScheduler")
                                          .kind(SpanKind.TIMER)
-                                         .method(aopContext.getMethod())
-                                         .tag("uri", "spring-scheduler://" + aopContext.getTargetClass().getName())
+                                         .method(runnable.getMethod())
+                                         .tag("uri", "spring-scheduler://" + targetClass)
                                          .start());
 
         return InterceptionDecision.CONTINUE;
