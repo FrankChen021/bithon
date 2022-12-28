@@ -47,7 +47,7 @@ public class ThreadPoolExecutor$Ctor extends AbstractInterceptor {
             return;
         }
 
-        ThreadPoolExecutor executor = aopContext.castTargetAs();
+        ThreadPoolExecutor executor = aopContext.getTargetAs();
         try {
             String poolName = ThreadPoolUtils.detectThreadPoolName(executor);
             registry.addThreadPool(executor, executor.getClass().getName(), poolName, new ThreadPoolExecutorMetrics(executor));

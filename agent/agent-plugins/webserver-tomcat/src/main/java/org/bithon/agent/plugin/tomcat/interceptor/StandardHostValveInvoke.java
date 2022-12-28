@@ -111,7 +111,7 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         InterceptorContext.remove(InterceptorContext.KEY_URI);
 
-        ITraceContext traceContext = aopContext.castUserContextAs();
+        ITraceContext traceContext = aopContext.getUserContextAs();
         try {
             Response response = (Response) aopContext.getArgs()[1];
             traceContext.currentSpan()

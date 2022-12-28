@@ -56,7 +56,7 @@ public class KafkaConsumer$Ctor extends AbstractInterceptor {
             ((IBithonObject) fetcher).setInjectedObject(kafkaPluginContext);
         }
 
-        IBithonObject kafkaConsumer = aopContext.castTargetAs();
+        IBithonObject kafkaConsumer = aopContext.getTargetAs();
         kafkaConsumer.setInjectedObject(kafkaPluginContext);
 
         ConsumerNetworkClient consumerNetworkClient = (ConsumerNetworkClient) ReflectionUtils.getFieldValue(aopContext.getTarget(), "client");

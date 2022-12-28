@@ -38,7 +38,7 @@ public class CommandProtocolImpl$Execute extends AbstractInterceptor {
      */
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
-        IBithonObject bithonObject = aopContext.castTargetAs();
+        IBithonObject bithonObject = aopContext.getTargetAs();
 
         InterceptorContext.set("mongo-3.8-command", bithonObject.getInjectedObject());
 

@@ -52,7 +52,7 @@ public class PreparedStatementInterceptor extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext aopContext) {
         String methodName = aopContext.getMethod().getName();
-        String connectionString = aopContext.castUserContextAs();
+        String connectionString = aopContext.getUserContextAs();
 
         SQLMetrics metric = metricRegistry.getOrCreateMetrics(connectionString);
         boolean isQuery = true;
@@ -66,7 +66,7 @@ public class PreparedStatementInterceptor extends AbstractInterceptor {
                 isQuery = false;
             }
         }
-        metric.update(isQuery, aopContext.hasException(), aopContext.getCostTime());
+        metric.update(isQuery, aopContext.hasException(), aopContext.getExecutionTime());
 
 
         statementCollector.update(aopContext);

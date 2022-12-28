@@ -75,12 +75,12 @@ public class CommandHelper$ExecuteCommand extends AbstractInterceptor {
         InternalConnection connection = aopContext.getArgAs(lastIndex);
         String server = connection.getDescription().getServerAddress().toString();
 
-        MongoCommand command = aopContext.castUserContextAs();
+        MongoCommand command = aopContext.getUserContextAs();
         metricRegistry.getOrCreateMetric(server,
                                          command.getDatabase(),
                                          command.getCollection(),
                                          command.getCommand())
-                      .add(aopContext.getCostTime(), aopContext.hasException() ? 1 : 0);
+                      .add(aopContext.getExecutionTime(), aopContext.hasException() ? 1 : 0);
         super.onMethodLeave(aopContext);
     }
 }

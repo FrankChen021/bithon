@@ -148,9 +148,9 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
         final HttpServerRequest request = (HttpServerRequest) aopContext.getArgs()[0];
         final HttpServerResponse response = (HttpServerResponse) aopContext.getArgs()[1];
 
-        Mono<Void> mono = aopContext.castReturningAs();
+        Mono<Void> mono = aopContext.getReturningAs();
         if (aopContext.hasException() || mono.equals(Mono.empty())) {
-            update(request, response, aopContext.getCostTime());
+            update(request, response, aopContext.getExecutionTime());
             finishTrace(request, response, null);
 
             return;

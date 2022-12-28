@@ -96,7 +96,7 @@ public class ListenerConsumer$PollAndInvoke extends AbstractInterceptor {
         }
 
         // Keep the uri for further use
-        IBithonObject bithonObject = aopContext.castTargetAs();
+        IBithonObject bithonObject = aopContext.getTargetAs();
         bithonObject.setInjectedObject(url);
     }
 
@@ -124,7 +124,7 @@ public class ListenerConsumer$PollAndInvoke extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        ITraceSpan span = aopContext.castUserContextAs();
+        ITraceSpan span = aopContext.getUserContextAs();
 
         span.tag(aopContext.getException())
             .tag("status", aopContext.hasException() ? "500" : "200")

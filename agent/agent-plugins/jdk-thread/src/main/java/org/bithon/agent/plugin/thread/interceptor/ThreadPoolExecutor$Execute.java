@@ -63,7 +63,7 @@ public class ThreadPoolExecutor$Execute extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        ITraceSpan span = aopContext.castUserContextAs();
+        ITraceSpan span = aopContext.getUserContextAs();
         span.finish();
     }
 }

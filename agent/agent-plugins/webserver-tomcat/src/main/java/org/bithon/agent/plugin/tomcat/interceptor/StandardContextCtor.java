@@ -45,7 +45,7 @@ public class StandardContextCtor extends AbstractInterceptor {
      */
     @Override
     public void onConstruct(AopContext aopContext) {
-        StandardContext servletContext = aopContext.castTargetAs();
+        StandardContext servletContext = aopContext.getTargetAs();
 
         //
         // register sentinel filter

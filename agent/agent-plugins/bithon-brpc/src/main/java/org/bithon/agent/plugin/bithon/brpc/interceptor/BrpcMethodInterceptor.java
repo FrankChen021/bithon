@@ -80,7 +80,7 @@ public class BrpcMethodInterceptor extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        ITraceSpan span = aopContext.castUserContextAs();
+        ITraceSpan span = aopContext.getUserContextAs();
         span.tag(aopContext.getException())
             .tag("status", aopContext.hasException() ? "500" : "200")
             .finish();

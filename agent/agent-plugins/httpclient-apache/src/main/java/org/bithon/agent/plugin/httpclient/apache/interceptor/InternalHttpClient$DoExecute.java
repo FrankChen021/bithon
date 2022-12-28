@@ -70,12 +70,12 @@ public class InternalHttpClient$DoExecute extends AbstractInterceptor {
         String requestMethod = httpRequest.getRequestLine().getMethod();
 
         if (aopContext.hasException()) {
-            metrics = metricRegistry.addExceptionRequest(requestUri, requestMethod, aopContext.getCostTime());
+            metrics = metricRegistry.addExceptionRequest(requestUri, requestMethod, aopContext.getExecutionTime());
         } else {
             metrics = metricRegistry.addRequest(requestUri,
                                                 requestMethod,
                                                 ((HttpResponse) aopContext.getReturning()).getStatusLine().getStatusCode(),
-                                                aopContext.getCostTime());
+                                                aopContext.getExecutionTime());
         }
 
         HttpContext httpContext = aopContext.getArgAs(2);

@@ -82,13 +82,13 @@ public class HttpRequestExecutor$Execute extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext context) {
-        ITraceSpan thisSpan = context.castUserContextAs();
+        ITraceSpan thisSpan = context.getUserContextAs();
         if (thisSpan == null) {
             // in case of exception in above
             return;
         }
 
-        HttpResponse response = context.castReturningAs();
+        HttpResponse response = context.getReturningAs();
         String status = response == null ? "-1" : (response.getStatusLine() == null ? "-1" : Integer.toString(response.getStatusLine().getStatusCode()));
         thisSpan.tag(Tags.HTTP_STATUS, status)
                 .tag(context.getException());

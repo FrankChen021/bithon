@@ -57,7 +57,7 @@ public class HttpChannel$Handle extends AbstractInterceptor {
         TraceContextHolder.remove();
         InterceptorContext.remove(InterceptorContext.KEY_TRACEID);
 
-        HttpChannel httpChannel = aopContext.castTargetAs();
+        HttpChannel httpChannel = aopContext.getTargetAs();
 
         Request request = httpChannel.getRequest();
 

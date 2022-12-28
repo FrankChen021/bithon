@@ -78,7 +78,7 @@ public class StatementMetricCollector implements IMetricCollector, IAgentSetting
 
     public void sqlStats(AopContext aopContext,
                          String connectionString) {
-        long responseTime = aopContext.getCostTime();
+        long responseTime = aopContext.getExecutionTime();
 
         String sql = (String) InterceptorContext.get("sql");
 

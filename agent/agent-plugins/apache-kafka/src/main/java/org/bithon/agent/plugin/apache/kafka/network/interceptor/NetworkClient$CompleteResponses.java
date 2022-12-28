@@ -41,7 +41,7 @@ public class NetworkClient$CompleteResponses extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) throws Exception {
-        KafkaPluginContext pluginContext = aopContext.castInjectedOnTargetAs();
+        KafkaPluginContext pluginContext = aopContext.getInjectedOnTargetAs();
 
         List<ClientResponse> responses = aopContext.getArgAs(0);
         for (ClientResponse response : responses) {

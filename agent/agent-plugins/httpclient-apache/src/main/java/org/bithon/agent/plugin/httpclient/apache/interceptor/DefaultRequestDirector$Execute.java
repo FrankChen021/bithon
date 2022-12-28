@@ -64,13 +64,13 @@ public class DefaultRequestDirector$Execute extends AbstractInterceptor {
 
         HttpOutgoingMetrics metrics;
         if (aopContext.hasException()) {
-            metrics = metricRegistry.addExceptionRequest(requestUri, requestMethod, aopContext.getCostTime());
+            metrics = metricRegistry.addExceptionRequest(requestUri, requestMethod, aopContext.getExecutionTime());
         } else {
-            HttpResponse httpResponse = aopContext.castReturningAs();
+            HttpResponse httpResponse = aopContext.getReturningAs();
             metrics = metricRegistry.addRequest(requestUri,
                                                 requestMethod,
                                                 httpResponse.getStatusLine().getStatusCode(),
-                                                aopContext.getCostTime());
+                                                aopContext.getExecutionTime());
         }
 
         HttpContext httpContext = aopContext.getArgAs(2);

@@ -55,7 +55,7 @@ public class HttpRequest$Send extends AbstractInterceptor {
      */
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
-        HttpRequest httpRequest = aopContext.castTargetAs();
+        HttpRequest httpRequest = aopContext.getTargetAs();
 
         final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpClient-jetty")
                                                 .method(aopContext.getMethod())

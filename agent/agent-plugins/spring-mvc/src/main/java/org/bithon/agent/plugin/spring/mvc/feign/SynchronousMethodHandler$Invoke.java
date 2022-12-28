@@ -39,7 +39,7 @@ public class SynchronousMethodHandler$Invoke extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        IBithonObject methodHandler = aopContext.castTargetAs();
+        IBithonObject methodHandler = aopContext.getTargetAs();
         FeignInvocationContext invocationContext = (FeignInvocationContext) methodHandler.getInjectedObject();
         if (invocationContext == null) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -60,7 +60,7 @@ public class SynchronousMethodHandler$Invoke extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        ITraceSpan span = aopContext.castUserContextAs();
+        ITraceSpan span = aopContext.getUserContextAs();
 
         span.tag(aopContext.getException())
             .finish();

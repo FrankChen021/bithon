@@ -30,8 +30,8 @@ import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSourceManager;
 public class DruidDataSourceGetValueAndReset extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        updateMetrics(aopContext.castTargetAs(),
-                      aopContext.castReturningAs());
+        updateMetrics(aopContext.getTargetAs(),
+                      aopContext.getReturningAs());
     }
 
     private void updateMetrics(DruidDataSource dataSource, DruidDataSourceStatValue statistic) {

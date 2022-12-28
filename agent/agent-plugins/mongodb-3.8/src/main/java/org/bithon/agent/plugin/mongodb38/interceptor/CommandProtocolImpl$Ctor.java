@@ -35,7 +35,7 @@ import org.bithon.agent.core.metric.domain.mongo.MongoCommand;
 public class CommandProtocolImpl$Ctor extends AbstractInterceptor {
     @Override
     public void onConstruct(AopContext aopContext) {
-        IBithonObject obj = aopContext.castTargetAs();
+        IBithonObject obj = aopContext.getTargetAs();
         obj.setInjectedObject(new MongoCommand(aopContext.getArgAs(0),
                                                MongoNamespace.COMMAND_COLLECTION_NAME,
                                                "Command"));

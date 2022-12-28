@@ -90,7 +90,7 @@ public class BeforeGatewayFilter$Filter extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext aopContext) {
         final ServerWebExchange exchange = aopContext.getArgAs(0);
-        ITraceSpan span = aopContext.castUserContextAs();
+        ITraceSpan span = aopContext.getUserContextAs();
         if (span == null) {
             return;
         }

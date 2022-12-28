@@ -73,7 +73,7 @@ public class SqlStatementMetricCollector implements IMetricCollector, IAgentSett
     }
 
     public void update(AopContext aopContext) {
-        long costTime = aopContext.getCostTime();
+        long costTime = aopContext.getExecutionTime();
 
         if (!(aopContext.getTarget() instanceof Statement)) {
             return;

@@ -28,7 +28,7 @@ public class DruidDataSourceClose extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext context) {
-        MonitoredSourceManager.getInstance().rmvDataSource(context.castTargetAs());
+        MonitoredSourceManager.getInstance().rmvDataSource(context.getTargetAs());
 
         return InterceptionDecision.SKIP_LEAVE;
     }

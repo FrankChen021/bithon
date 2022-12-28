@@ -42,8 +42,8 @@ public class HttpClientFinalizer$Send extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        HttpClient httpClient = aopContext.castTargetAs();
-        IBithonObject bithonObject = aopContext.castTargetAs();
+        HttpClient httpClient = aopContext.getTargetAs();
+        IBithonObject bithonObject = aopContext.getTargetAs();
 
         // span will be finished in ResponseConnection interceptor
         // so we need an extra object to pass the context
@@ -88,8 +88,8 @@ public class HttpClientFinalizer$Send extends AbstractInterceptor {
      */
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        IBithonObject currObj = aopContext.castTargetAs();
-        IBithonObject newCopy = aopContext.castReturningAs();
+        IBithonObject currObj = aopContext.getTargetAs();
+        IBithonObject newCopy = aopContext.getReturningAs();
         newCopy.setInjectedObject(currObj.getInjectedObject());
     }
 }

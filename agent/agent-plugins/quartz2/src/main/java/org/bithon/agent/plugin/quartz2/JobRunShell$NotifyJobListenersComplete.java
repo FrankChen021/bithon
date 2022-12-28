@@ -68,7 +68,7 @@ public class JobRunShell$NotifyJobListenersComplete extends AbstractInterceptor 
 
         // save the object on current target,
         // so that JobRunShell$Run can get the exception
-        IBithonObject bithonObject = aopContext.castTargetAs();
+        IBithonObject bithonObject = aopContext.getTargetAs();
         bithonObject.setInjectedObject(exception);
 
         return InterceptionDecision.SKIP_LEAVE;

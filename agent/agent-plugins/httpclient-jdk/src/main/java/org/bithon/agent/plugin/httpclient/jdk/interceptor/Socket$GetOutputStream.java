@@ -36,12 +36,12 @@ public class Socket$GetOutputStream extends AbstractInterceptor {
         }
 
         // this object is assigned at NetworkClient#doConnect
-        HttpClientContext clientContext = aopContext.castInjectedOnTargetAs();
+        HttpClientContext clientContext = aopContext.getInjectedOnTargetAs();
         if (clientContext == null) {
             return;
         }
 
-        OutputStream os = aopContext.castReturningAs();
+        OutputStream os = aopContext.getReturningAs();
 
         aopContext.setReturning(new FilterOutputStream(os) {
             @Override

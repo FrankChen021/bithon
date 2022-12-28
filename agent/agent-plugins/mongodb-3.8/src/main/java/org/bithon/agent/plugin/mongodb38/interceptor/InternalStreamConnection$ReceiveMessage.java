@@ -45,7 +45,7 @@ public class InternalStreamConnection$ReceiveMessage extends AbstractInterceptor
         InternalStreamConnection target = (InternalStreamConnection) aopContext.getTarget();
         ConnectionId connectionId = target.getDescription().getConnectionId();
 
-        ResponseBuffers result = aopContext.castReturningAs();
+        ResponseBuffers result = aopContext.getReturningAs();
         int bytesIn = result.getReplyHeader().getMessageLength()
                       + result.getBodyByteBuffer().remaining();
 

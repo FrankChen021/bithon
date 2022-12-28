@@ -46,7 +46,7 @@ public class HttpChannel$OnCompleted extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        HttpChannel httpChannel = aopContext.castTargetAs();
+        HttpChannel httpChannel = aopContext.getTargetAs();
         Request request = httpChannel.getRequest();
 
         RequestContext requestContext = (RequestContext) ((IBithonObject) request).getInjectedObject();

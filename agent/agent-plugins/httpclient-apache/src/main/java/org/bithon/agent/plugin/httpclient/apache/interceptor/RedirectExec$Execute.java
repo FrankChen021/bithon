@@ -51,7 +51,7 @@ public class RedirectExec$Execute extends AbstractInterceptor {
         if (aopContext.hasException()) {
             String requestUri = httpRequestWrapper.getRequestLine().getUri();
             String requestMethod = httpRequestWrapper.getRequestLine().getMethod();
-            metrics = metricRegistry.addExceptionRequest(requestUri, requestMethod, aopContext.getCostTime());
+            metrics = metricRegistry.addExceptionRequest(requestUri, requestMethod, aopContext.getExecutionTime());
         } else {
             String requestUri = httpRequestWrapper.getOriginal().getRequestLine().getUri();
             String requestMethod = httpRequestWrapper.getOriginal().getRequestLine().getMethod();
@@ -59,7 +59,7 @@ public class RedirectExec$Execute extends AbstractInterceptor {
             metrics = metricRegistry.addRequest(requestUri,
                                                 requestMethod,
                                                 ((HttpResponse) aopContext.getReturning()).getStatusLine().getStatusCode(),
-                                                aopContext.getCostTime());
+                                                aopContext.getExecutionTime());
         }
 
         HttpContext httpContext = aopContext.getArgAs(2);

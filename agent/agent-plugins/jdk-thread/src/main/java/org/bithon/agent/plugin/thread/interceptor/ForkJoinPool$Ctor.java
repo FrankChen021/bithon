@@ -34,7 +34,7 @@ public class ForkJoinPool$Ctor extends AbstractInterceptor {
     public void onConstruct(AopContext aopContext) {
         ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
         if (registry != null) {
-            ForkJoinPool pool = aopContext.castTargetAs();
+            ForkJoinPool pool = aopContext.getTargetAs();
             registry.addThreadPool(pool,
                                    pool.getClass().getName(),
                                    ThreadPoolUtils.stripSuffix((String) ReflectionUtils.getFieldValue(pool, "workerNamePrefix"), "-"),
