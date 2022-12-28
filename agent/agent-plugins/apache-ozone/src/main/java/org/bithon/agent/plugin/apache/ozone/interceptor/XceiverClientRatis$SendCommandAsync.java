@@ -43,7 +43,7 @@ public class XceiverClientRatis$SendCommandAsync extends AbstractInterceptor {
         ContainerProtos.ContainerCommandRequestProto request = aopContext.getArgAs(0);
 
         // injected in Connect interceptor
-        IBithonObject bithonObject = aopContext.castTargetAs();
+        IBithonObject bithonObject = aopContext.getTargetAs();
         DatanodeDetails dn = (DatanodeDetails) bithonObject.getInjectedObject();
 
         aopContext.setUserContext(span.method(aopContext.getMethod())
@@ -57,7 +57,7 @@ public class XceiverClientRatis$SendCommandAsync extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        ITraceSpan span = aopContext.castUserContextAs();
+        ITraceSpan span = aopContext.getUserContextAs();
         span.tag(aopContext.getException()).finish();
     }
 }

@@ -38,7 +38,7 @@ public class XceiverClientRatis$Connect extends AbstractInterceptor {
         AtomicReference<RaftClient> client = (AtomicReference<RaftClient>) ReflectionUtils.getFieldValue(aopContext.getTarget(), "client");
 
         if (client != null && client.get() == null) {
-            XceiverClientRatis ratisClient = aopContext.castTargetAs();
+            XceiverClientRatis ratisClient = aopContext.getTargetAs();
 
             // save the node info
             ((IBithonObject) aopContext.getTarget()).setInjectedObject(ratisClient.getPipeline().getLeaderNode());

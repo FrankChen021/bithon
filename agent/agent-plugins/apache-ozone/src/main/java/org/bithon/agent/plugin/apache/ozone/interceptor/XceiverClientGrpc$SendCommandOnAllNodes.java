@@ -48,7 +48,7 @@ public class XceiverClientGrpc$SendCommandOnAllNodes extends AbstractInterceptor
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        ITraceSpan span = aopContext.castUserContextAs();
+        ITraceSpan span = aopContext.getUserContextAs();
         span.tag(aopContext.getException()).finish();
     }
 }
