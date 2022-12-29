@@ -14,10 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.shading;
+package org.bithon.agent.core.bytecode;
 
 import org.bithon.agent.core.aop.AopDebugger;
 import org.bithon.agent.core.aop.InstrumentationHelper;
+import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.dynamic.loading.ClassInjector;
 import org.bithon.shaded.net.bytebuddy.jar.asm.ClassReader;
 import org.bithon.shaded.net.bytebuddy.jar.asm.ClassWriter;
@@ -32,29 +33,29 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
- * Rename the package name of all class references in a specified class to another package name, and then create a new class.
- * It's like the 'mvn shade plugin'.
- *
+ * Copy the bytecode of a class into a new class,
+ * and package renaming(including all references) are supported.
  *
  * @author frank.chen021@outlook.com
  * @date 2022/12/25 17:52
  */
-public class ClassShader {
-    private final String oldPackage;
-    private final String newPackage;
-
+public class ClassCopier {
     static class Pair {
         /**
          * slash-separated full qualified name.
          * e.g. org/bithon/agent/core/shading/ClassShader
          */
-        String newClazzName;
-        Class<?> originalClass;
+        String targetClazzName;
 
-        public Pair(Class<?> originalClass, String newClassName) {
-            this.newClazzName = newClassName;
-            this.originalClass = originalClass;
+        /**
+         * slash-separated full qualified name.
+         * e.g. org/bithon/agent/core/shading/ClassShader
+         */
+        String sourceClassName;
+
+        public Pair(String originalClass, String newClassName) {
+            this.targetClazzName = newClassName;
+            this.sourceClassName = originalClass;
         }
     }
 
@@ -63,36 +64,46 @@ public class ClassShader {
      */
     private final Map<String, Pair> shadedNames = new HashMap<>();
 
-    /**
-     * a map that holds the result
-     */
+    private String oldPackage;
+    private String newPackage;
 
-
-    public ClassShader(String oldPackage, String newPackage) {
+    public ClassCopier changePackage(String oldPackage, String newPackage) {
         this.oldPackage = oldPackage.replace('.', '/');
         this.newPackage = newPackage.replace('.', '/');
-    }
-
-    /**
-     * Replace all references to the {@link #oldPackage} in the {@code originalClazz} to the {@link #newPackage}
-     */
-    public ClassShader add(Class<?> originalClazz, String newClazzName) throws IOException {
-        shadedNames.put(originalClazz.getName().replace('.', '/'), new Pair(originalClazz, newClazzName.replace('.', '/')));
         return this;
     }
 
-    public void shade(ClassLoader targetClassLoader) throws IOException {
+    /**
+     * Replace all references to the {@link #oldPackage} in the {@code oldClass} to the {@link #newPackage}
+     */
+    public ClassCopier copyClass(String oldClass, String newClass) throws IOException {
+        oldClass = oldClass.replace('.', '/');
+        shadedNames.put(oldClass, new Pair(oldClass, newClass.replace('.', '/')));
+        return this;
+    }
+
+    /**
+     * @param classLoader The class loader that the original classes can be loaded and the target class will be injected into.
+     */
+    public void to(ClassLoader classLoader) throws IOException {
         Map<String, byte[]> shadedClasses = new HashMap<>(3);
 
         for (Map.Entry<String, Pair> entry : this.shadedNames.entrySet()) {
             Pair val = entry.getValue();
 
-            byte[] classInBytes = shade(val.originalClass);
-            shadedClasses.put(val.newClazzName, classInBytes);
+            byte[] classInBytes = copy(val.sourceClassName, classLoader);
+            if (classInBytes == null) {
+                LoggerFactory.getLogger(ClassCopier.class)
+                             .error("Can't copy class from [{}] to [{}]: source class not found", val.sourceClassName, val.targetClazzName);
+                continue;
+            }
+
+            // save for further injection
+            shadedClasses.put(val.targetClazzName, classInBytes);
 
             if (AopDebugger.IS_DEBUG_ENABLED) {
                 try {
-                    File file = new File(AopDebugger.CLASS_FILE_DIR, val.newClazzName + ".class");
+                    File file = new File(AopDebugger.CLASS_FILE_DIR, val.targetClazzName + ".class");
                     file.getParentFile().mkdirs();
                     try (FileOutputStream output = new FileOutputStream(file)) {
                         output.write(classInBytes);
@@ -106,12 +117,12 @@ public class ClassShader {
         // Inject into target class loader
         //
         ClassInjector.UsingUnsafe.Factory factory = ClassInjector.UsingUnsafe.Factory.resolve(InstrumentationHelper.getInstance());
-        factory.make(targetClassLoader, null).injectRaw(shadedClasses);
+        factory.make(classLoader, null).injectRaw(shadedClasses);
     }
 
-    private byte[] shade(Class<?> clazz) throws IOException {
-        String classFile = clazz.getName().replace('.', '/') + ".class";
-        try (InputStream clazzByteStream = clazz.getClassLoader().getResourceAsStream(classFile)) {
+    private byte[] copy(String clazz, ClassLoader classLoader) throws IOException {
+        String classFile = clazz + ".class";
+        try (InputStream clazzByteStream = classLoader.getResourceAsStream(classFile)) {
             if (clazzByteStream == null) {
                 return null;
             }
@@ -123,7 +134,7 @@ public class ClassShader {
                 public String mapType(String internalName) {
                     Pair shaded = shadedNames.get(internalName);
                     if (shaded != null) {
-                        return shaded.newClazzName;
+                        return shaded.targetClazzName;
                     } else {
                         return super.mapType(internalName);
                     }
@@ -131,7 +142,11 @@ public class ClassShader {
 
                 @Override
                 public String map(String internalName) {
-                    return internalName.replace(oldPackage, newPackage);
+                    if (oldPackage != null && newPackage != null) {
+                        return internalName.replace(oldPackage, newPackage);
+                    } else {
+                        return super.map(internalName);
+                    }
                 }
             }), ClassReader.EXPAND_FRAMES);
 

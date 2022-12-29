@@ -19,8 +19,8 @@ package org.bithon.agent.plugin.grpc.server.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.bytecode.ClassCopier;
 import org.bithon.agent.core.context.AgentContext;
-import org.bithon.agent.core.shading.ClassShader;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.propagation.extractor.ChainedTraceContextExtractor;
 import org.bithon.agent.core.tracing.propagation.extractor.ITraceContextExtractor;
@@ -101,13 +101,13 @@ public class ServerImplBuilder$Build extends AbstractInterceptor {
 
                 String currentPackage = ServerImplBuilder$Build.class.getPackage().getName();
                 String serverInterceptor = currentPackage + "." + shadedPackage + ".ShadedServerCallInterceptor";
-
                 try {
-                    new ClassShader("io.grpc", shadedPackage.toString())
-                        .add(ServerCallInterceptor.TracedServerCallListener.class, currentPackage + "." + shadedPackage + ".ShadedTracedServerCallListener")
-                        .add(ServerCallInterceptor.TracedServerCall.class, currentPackage + "." + shadedPackage + ".ShadedTracedServerCall")
-                        .add(ServerCallInterceptor.class, serverInterceptor)
-                        .shade(this.getClass().getClassLoader());
+                    new ClassCopier()
+                        .changePackage("io.grpc", shadedPackage.toString())
+                        .copyClass(currentPackage + ".ServerCallInterceptor$TracedServerCallListener", currentPackage + "." + shadedPackage + ".ShadedTracedServerCallListener")
+                        .copyClass(currentPackage + ".ServerCallInterceptor$TracedServerCall", currentPackage + "." + shadedPackage + ".ShadedTracedServerCall")
+                        .copyClass(currentPackage + ".ServerCallInterceptor", serverInterceptor)
+                        .to(this.getClass().getClassLoader());
 
                     // Save for future use
                     shadedGrpcClassMap.put(targetClazzName, serverInterceptor);

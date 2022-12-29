@@ -20,8 +20,8 @@ import io.grpc.internal.ManagedChannelImplBuilder;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.bytecode.ClassCopier;
 import org.bithon.agent.core.context.AgentContext;
-import org.bithon.agent.core.shading.ClassShader;
 import org.bithon.agent.plugin.grpc.ShadedGrpcList;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.ReflectionUtils;
@@ -86,13 +86,15 @@ public class ManagedChannelImplBuilder$Build extends AbstractInterceptor {
                 }
 
                 // Create shaded ClientCallInterceptor
-                ClassShader shader = new ClassShader("io.grpc", shadedPackage.toString());
-                String clientInterceptor = shadedPackage + ".shaded.ClientCallInterceptor";
+                String currentPackage = this.getClass().getPackage().getName();
+                String clientInterceptor = currentPackage + "." + shadedPackage + ".ShadedClientCallInterceptor";
                 try {
-                    shader.add(ClientCallInterceptor.TracedClientCallListener.class, shadedPackage + ".shaded.TracedClientCallListener")
-                          .add(ClientCallInterceptor.TracedClientCall.class, shadedPackage + ".shaded.TracedClientCall")
-                          .add(ClientCallInterceptor.class, clientInterceptor)
-                          .shade(this.getClass().getClassLoader());
+                    new ClassCopier()
+                        .changePackage("io.grpc", shadedPackage.toString())
+                        .copyClass(currentPackage + ".ClientCallInterceptor$TracedClientCallListener", currentPackage + "." + shadedPackage + ".ShadedTracedClientCallListener")
+                        .copyClass(currentPackage + ".ClientCallInterceptor$TracedClientCall", currentPackage + "." + shadedPackage + ".ShadedTracedClientCall")
+                        .copyClass(currentPackage + ".ClientCallInterceptor", clientInterceptor)
+                        .to(this.getClass().getClassLoader());
 
                     // Save for future use
                     shadedGrpcClassMap.put(targetClazzName, clientInterceptor);
