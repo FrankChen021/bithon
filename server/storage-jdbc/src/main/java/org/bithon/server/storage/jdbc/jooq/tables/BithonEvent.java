@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonEvent extends TableImpl<BithonEventRecord> {
 
-    private static final long serialVersionUID = 1796487138;
+    private static final long serialVersionUID = 2050969602;
 
     /**
      * The reference instance of <code>bithon_event</code>
@@ -110,7 +110,7 @@ public class BithonEvent extends TableImpl<BithonEventRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_EVENT_IDX_EVENT_APPNAME, Indexes.BITHON_EVENT_IDX_EVENT_INSTANCENAME, Indexes.BITHON_EVENT_IDX_EVENT_TIMESTAMP, Indexes.BITHON_EVENT_IDX_EVENT_TYPE);
+        return Arrays.<Index>asList(Indexes.BITHON_EVENT_IDX_EVENT_1_TIMESTAMP, Indexes.BITHON_EVENT_IDX_EVENT_APPNAME, Indexes.BITHON_EVENT_IDX_EVENT_INSTANCENAME, Indexes.BITHON_EVENT_IDX_EVENT_TYPE);
     }
 
     @Override
