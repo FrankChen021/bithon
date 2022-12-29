@@ -92,7 +92,9 @@ public class ClassShader {
 
             if (AopDebugger.IS_DEBUG_ENABLED) {
                 try {
-                    try (FileOutputStream output = new FileOutputStream(new File(AopDebugger.CLASS_FILE_DIR, val.newClazzName.replace('/', '.') + ".class"))) {
+                    File file = new File(AopDebugger.CLASS_FILE_DIR, val.newClazzName + ".class");
+                    file.getParentFile().mkdirs();
+                    try (FileOutputStream output = new FileOutputStream(file)) {
                         output.write(classInBytes);
                     }
                 } catch (IOException ignored) {

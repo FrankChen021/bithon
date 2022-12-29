@@ -73,7 +73,7 @@ public class GrpcPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("build")
-                                                   .to("org.bithon.agent.plugin.grpc.server.interceptor.ServerBuilder$Build")
+                                                   .to("org.bithon.agent.plugin.grpc.server.interceptor.ServerImplBuilder$Build")
                 )
         );
 

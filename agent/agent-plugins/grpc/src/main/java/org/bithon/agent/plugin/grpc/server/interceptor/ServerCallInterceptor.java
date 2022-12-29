@@ -36,7 +36,10 @@ final class ServerCallInterceptor implements ServerInterceptor {
 
     private final ITraceContextExtractor contextExtractor;
 
-    ServerCallInterceptor(ITraceContextExtractor contextExtractor) {
+    /**
+     * Declare the ctor as public to allow reflection without setting extra flags to access it
+     */
+    public ServerCallInterceptor(ITraceContextExtractor contextExtractor) {
         this.contextExtractor = contextExtractor;
     }
 
@@ -62,7 +65,7 @@ final class ServerCallInterceptor implements ServerInterceptor {
         return new TracedServerCall<>(call, rootSpan).start(headers, next);
     }
 
-    private static final class TracedServerCall<REQ, RSP> extends ForwardingServerCall.SimpleForwardingServerCall<REQ, RSP> {
+    static final class TracedServerCall<REQ, RSP> extends ForwardingServerCall.SimpleForwardingServerCall<REQ, RSP> {
         private final ITraceSpan rootSpan;
 
         TracedServerCall(ServerCall<REQ, RSP> delegate, ITraceSpan rootSpan) {
@@ -93,7 +96,7 @@ final class ServerCallInterceptor implements ServerInterceptor {
         }
     }
 
-    private static final class TracedServerCallListener<REQ> extends ForwardingServerCallListener.SimpleForwardingServerCallListener<REQ> {
+    static final class TracedServerCallListener<REQ> extends ForwardingServerCallListener.SimpleForwardingServerCallListener<REQ> {
         private final ITraceSpan rootSpan;
 
         TracedServerCallListener(ITraceSpan rootSpan, ServerCall.Listener<REQ> delegate) {
