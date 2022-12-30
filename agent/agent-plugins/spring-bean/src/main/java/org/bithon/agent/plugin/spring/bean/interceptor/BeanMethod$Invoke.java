@@ -36,8 +36,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class BeanMethod$Invoke implements IAdviceInterceptor {
 
-    private final Map<Class<?>, String> componentNames = new ConcurrentHashMap<>();
-
     @Override
     public Object onMethodEnter(
         final Method method,
@@ -72,11 +70,11 @@ public class BeanMethod$Invoke implements IAdviceInterceptor {
         // Use string format class name instead of using Class to avoid ClassNotFound problem
         // when target application does not ship with spring-web
         static {
-            ANNOTATION2_NAME.put("org.springframework.stereotype.Component", "springComponent");
-            ANNOTATION2_NAME.put("org.springframework.stereotype.Controller", "springController");
-            ANNOTATION2_NAME.put("org.springframework.stereotype.Repository", "springRepository");
-            ANNOTATION2_NAME.put("org.springframework.stereotype.Service", "springService");
-            ANNOTATION2_NAME.put("org.springframework.web.bind.annotation.RestController", "springRestController");
+            ANNOTATION2_NAME.put("org.springframework.stereotype.Component", "spring-component");
+            ANNOTATION2_NAME.put("org.springframework.stereotype.Controller", "spring-controller");
+            ANNOTATION2_NAME.put("org.springframework.stereotype.Repository", "spring-repository");
+            ANNOTATION2_NAME.put("org.springframework.stereotype.Service", "spring-service");
+            ANNOTATION2_NAME.put("org.springframework.web.bind.annotation.RestController", "spring-controller");
         }
 
         public static String getOrCreateComponentName(Class<?> beanClass) {
