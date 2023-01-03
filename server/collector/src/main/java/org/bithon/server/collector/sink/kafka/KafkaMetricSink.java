@@ -61,7 +61,7 @@ public class KafkaMetricSink implements IMetricMessageSink {
     private final KafkaTemplate<byte[], byte[]> producer;
     private final ObjectMapper objectMapper;
     private final String topic;
-    private final ThreadLocal<KafkaMessage> bufferThreadLocal;
+    private final ThreadLocal<FixedSizeBuffer> bufferThreadLocal;
     private final CompressionType compressionType;
 
     @JsonCreator
@@ -70,9 +70,13 @@ public class KafkaMetricSink implements IMetricMessageSink {
         this.topic = (String) props.remove("topic");
         Preconditions.checkNotNull(topic, "topic is not configured for metrics sink");
 
-        int maxSizePerMessage = (int) props.getOrDefault(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, 1024 * 1024);
+        int maxSizePerMessage = (int) props.getOrDefault(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, ProducerConfig.configDef()
+                                                                                                               .configKeys()
+                                                                                                               .get(ProducerConfig.MAX_REQUEST_SIZE_CONFIG).defaultValue);
+        Preconditions.checkIfTrue(maxSizePerMessage >= 1024, ProducerConfig.MAX_REQUEST_SIZE_CONFIG, "max request size must be >= 1024");
+
         this.compressionType = CompressionType.forName((String) props.getOrDefault(ProducerConfig.COMPRESSION_TYPE_CONFIG, "none"));
-        this.bufferThreadLocal = ThreadLocal.withInitial(() -> new KafkaMessage(maxSizePerMessage));
+        this.bufferThreadLocal = ThreadLocal.withInitial(() -> new FixedSizeBuffer(maxSizePerMessage));
 
         this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props,
                                                                               new ByteArraySerializer(),
@@ -97,21 +101,20 @@ public class KafkaMetricSink implements IMetricMessageSink {
 
         RecordHeader header = new RecordHeader("type", messageType.getBytes(StandardCharsets.UTF_8));
 
-        KafkaMessage kafkaMessage = this.bufferThreadLocal.get();
-        kafkaMessage.reset();
-        kafkaMessage.writeChar('{');
+        FixedSizeBuffer messageBuffer = this.bufferThreadLocal.get();
+        messageBuffer.reset();
+        messageBuffer.writeChar('{');
         if (message.getSchema() != null) {
             try {
-                byte[] schemaBytes = this.objectMapper.writeValueAsBytes(message.getSchema());
-                kafkaMessage.writeString("\"schema\":");
-                kafkaMessage.writeBytes(schemaBytes);
-                kafkaMessage.writeChar(',');
+                messageBuffer.writeString("\"schema\":");
+                messageBuffer.writeBytes(this.objectMapper.writeValueAsBytes(message.getSchema()));
+                messageBuffer.writeChar(',');
             } catch (JsonProcessingException ignored) {
             }
         }
-        kafkaMessage.writeString("\"metrics\": [");
+        messageBuffer.writeString("\"metrics\": [");
 
-        int metricStartOffset = kafkaMessage.getOffset();
+        int metricStartOffset = messageBuffer.getOffset();
 
         for (IInputRow row : message.getMetrics()) {
             byte[] metricBytes;
@@ -124,36 +127,36 @@ public class KafkaMetricSink implements IMetricMessageSink {
             int currentSize = AbstractRecords.estimateSizeInBytesUpperBound(RecordBatch.CURRENT_MAGIC_VALUE,
                                                                             this.compressionType,
                                                                             ByteBuffer.wrap(messageKey),
-                                                                            kafkaMessage.toByteBuffer(),
+                                                                            messageBuffer.toByteBuffer(),
                                                                             new Header[]{header});
 
             // plus 3 to leave 3 bytes as margin
-            if (currentSize + metricBytes.length + 3 > kafkaMessage.capacity()) {
-                send(header, messageKey, kafkaMessage);
+            if (currentSize + metricBytes.length + 3 > messageBuffer.limit()) {
+                send(header, messageKey, messageBuffer);
 
-                kafkaMessage.reset(metricStartOffset);
+                messageBuffer.reset(metricStartOffset);
             }
 
-            kafkaMessage.writeBytes(metricBytes);
-            kafkaMessage.writeChar(',');
+            messageBuffer.writeBytes(metricBytes);
+            messageBuffer.writeChar(',');
         }
 
-        send(header, messageKey, kafkaMessage);
+        send(header, messageKey, messageBuffer);
     }
 
-    private void send(RecordHeader header, byte[] key, KafkaMessage kafkaMessage) {
-        if (kafkaMessage.isEmpty()) {
+    private void send(RecordHeader header, byte[] key, FixedSizeBuffer messageBuffer) {
+        if (messageBuffer.isEmpty()) {
             return;
         }
 
         // Remove last separator
-        kafkaMessage.deleteFromEnd(1);
+        messageBuffer.deleteFromEnd(1);
 
         // Close JSON objects
-        kafkaMessage.writeChar(']');
-        kafkaMessage.writeChar('}');
+        messageBuffer.writeChar(']');
+        messageBuffer.writeChar('}');
 
-        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, key, kafkaMessage.toBytes());
+        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, key, messageBuffer.toBytes());
         record.headers().add(header);
         try {
             producer.send(record);

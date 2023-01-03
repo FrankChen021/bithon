@@ -16,6 +16,8 @@
 
 package org.bithon.server.collector.sink.kafka;
 
+import org.bithon.component.commons.utils.StringUtils;
+
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
@@ -23,16 +25,16 @@ import java.nio.charset.StandardCharsets;
  * @author Frank Chen
  * @date 3/1/23 11:41 am
  */
-class KafkaMessage {
-    private byte[] buf;
+class FixedSizeBuffer {
+    private final byte[] buf;
     private int size;
 
-    KafkaMessage(int limit) {
+    FixedSizeBuffer(int limit) {
         this.buf = new byte[limit];
         this.size = 0;
     }
 
-    int capacity() {
+    int limit() {
         return buf.length;
     }
 
@@ -40,19 +42,19 @@ class KafkaMessage {
         return size == 0;
     }
 
-    void writeBytes(byte[] buf) {
-        ensureCapacity(buf.length);
-        System.arraycopy(buf, 0, this.buf, this.size, buf.length);
-        this.size += buf.length;
+    void writeBytes(byte[] value) {
+        ensureCapacity(value.length);
+        System.arraycopy(value, 0, this.buf, this.size, value.length);
+        this.size += value.length;
     }
 
-    void writeChar(char chr) {
+    void writeChar(char value) {
         ensureCapacity(1);
-        this.buf[this.size++] = (byte) chr;
+        this.buf[this.size++] = (byte) value;
     }
 
-    void writeString(String str) {
-        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+    void writeString(String value) {
+        byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
         ensureCapacity(bytes.length);
         writeBytes(bytes);
     }
@@ -64,13 +66,9 @@ class KafkaMessage {
     }
 
     byte[] toBytes() {
-        if (size == this.buf.length) {
-            return this.buf;
-        } else {
-            byte[] d = new byte[this.size];
-            System.arraycopy(this.buf, 0, d, 0, this.size);
-            return d;
-        }
+        byte[] d = new byte[this.size];
+        System.arraycopy(this.buf, 0, d, 0, this.size);
+        return d;
     }
 
     ByteBuffer toByteBuffer() {
@@ -90,14 +88,8 @@ class KafkaMessage {
     }
 
     private void ensureCapacity(int extraSize) {
-        int newSize = buf.length;
-        while (this.size + extraSize > newSize) {
-            newSize *= 2;
-        }
-        if (newSize != buf.length) {
-            byte[] newBuff = new byte[newSize];
-            System.arraycopy(this.buf, 0, newBuff, 0, this.size);
-            this.buf = newBuff;
+        if (this.size + extraSize > this.buf.length) {
+            throw new RuntimeException(StringUtils.format("Buffer is limited to size of %d, but requires %d.", buf.length, this.size + extraSize));
         }
     }
 }

@@ -60,7 +60,7 @@ public class KafkaTraceSink implements ITraceMessageSink {
     private final CompressionType compressionType;
     private final Header header;
 
-    private final ThreadLocal<KafkaMessage> bufferThreadLocal;
+    private final ThreadLocal<FixedSizeBuffer> bufferThreadLocal;
 
     @JsonCreator
     public KafkaTraceSink(@JsonProperty("props") Map<String, Object> props,
@@ -70,7 +70,7 @@ public class KafkaTraceSink implements ITraceMessageSink {
 
         int maxSizePerMessage = (int) props.getOrDefault(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, 1024 * 1024);
         this.compressionType = CompressionType.forName((String) props.getOrDefault(ProducerConfig.COMPRESSION_TYPE_CONFIG, "none"));
-        this.bufferThreadLocal = ThreadLocal.withInitial(() -> new KafkaMessage(maxSizePerMessage));
+        this.bufferThreadLocal = ThreadLocal.withInitial(() -> new FixedSizeBuffer(maxSizePerMessage));
 
         this.header = new RecordHeader("type", "tracing".getBytes(StandardCharsets.UTF_8));
 
@@ -96,9 +96,9 @@ public class KafkaTraceSink implements ITraceMessageSink {
         //
         // But since Producer/Broker has size limitation on each message, we also limit the size in case of failure on send.
         //
-        KafkaMessage kafkaMessage = this.bufferThreadLocal.get();
-        kafkaMessage.reset();
-        kafkaMessage.writeChar('[');
+        FixedSizeBuffer messageBuffer = this.bufferThreadLocal.get();
+        messageBuffer.reset();
+        messageBuffer.writeChar('[');
         for (TraceSpan span : spans) {
             if (key == null) {
                 key = (span.getAppName() + "/" + span.getInstanceName()).getBytes(StandardCharsets.UTF_8);
@@ -114,33 +114,33 @@ public class KafkaTraceSink implements ITraceMessageSink {
             int currentSize = AbstractRecords.estimateSizeInBytesUpperBound(RecordBatch.CURRENT_MAGIC_VALUE,
                                                                             this.compressionType,
                                                                             ByteBuffer.wrap(key),
-                                                                            kafkaMessage.toByteBuffer(),
+                                                                            messageBuffer.toByteBuffer(),
                                                                             new Header[]{header});
 
             // plus 2 to leave 2 bytes as margin
-            if (currentSize + serializedSpan.length + 2 > kafkaMessage.capacity()) {
-                send(key, kafkaMessage);
+            if (currentSize + serializedSpan.length + 2 > messageBuffer.limit()) {
+                send(key, messageBuffer);
 
-                kafkaMessage.reset();
-                kafkaMessage.writeChar('[');
+                messageBuffer.reset();
+                messageBuffer.writeChar('[');
             }
 
-            kafkaMessage.writeBytes(serializedSpan);
-            kafkaMessage.writeChar(',');
+            messageBuffer.writeBytes(serializedSpan);
+            messageBuffer.writeChar(',');
         }
-        send(key, kafkaMessage);
+        send(key, messageBuffer);
     }
 
-    private void send(byte[] key, KafkaMessage kafkaMessage) {
-        if (kafkaMessage.isEmpty()) {
+    private void send(byte[] key, FixedSizeBuffer messageBuffer) {
+        if (messageBuffer.isEmpty()) {
             return;
         }
 
         // Remove last separator
-        kafkaMessage.deleteFromEnd(1);
-        kafkaMessage.writeChar(']');
+        messageBuffer.deleteFromEnd(1);
+        messageBuffer.writeChar(']');
 
-        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, key, kafkaMessage.toBytes());
+        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, key, messageBuffer.toBytes());
         record.headers().add(header);
         try {
             producer.send(record);
