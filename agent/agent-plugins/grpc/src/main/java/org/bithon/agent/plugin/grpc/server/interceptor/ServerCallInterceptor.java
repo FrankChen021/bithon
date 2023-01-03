@@ -32,11 +32,17 @@ import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.extractor.ITraceContextExtractor;
 import org.bithon.component.commons.tracing.SpanKind;
 
-final class ServerCallInterceptor implements ServerInterceptor {
+/**
+ * @author Frank Chen
+ */
+public class ServerCallInterceptor implements ServerInterceptor {
 
     private final ITraceContextExtractor contextExtractor;
 
-    ServerCallInterceptor(ITraceContextExtractor contextExtractor) {
+    /**
+     * Declare the ctor as public to allow reflection without setting extra flags to access it
+     */
+    public ServerCallInterceptor(ITraceContextExtractor contextExtractor) {
         this.contextExtractor = contextExtractor;
     }
 
@@ -62,7 +68,7 @@ final class ServerCallInterceptor implements ServerInterceptor {
         return new TracedServerCall<>(call, rootSpan).start(headers, next);
     }
 
-    private static final class TracedServerCall<REQ, RSP> extends ForwardingServerCall.SimpleForwardingServerCall<REQ, RSP> {
+    static class TracedServerCall<REQ, RSP> extends ForwardingServerCall.SimpleForwardingServerCall<REQ, RSP> {
         private final ITraceSpan rootSpan;
 
         TracedServerCall(ServerCall<REQ, RSP> delegate, ITraceSpan rootSpan) {
@@ -70,7 +76,7 @@ final class ServerCallInterceptor implements ServerInterceptor {
             this.rootSpan = rootSpan;
         }
 
-        TracedServerCallListener<REQ> start(Metadata headers, ServerCallHandler<REQ, RSP> next) {
+        ServerCall.Listener<REQ> start(Metadata headers, ServerCallHandler<REQ, RSP> next) {
             return new TracedServerCallListener<>(rootSpan,
                                                   Contexts.interceptCall(Context.current(), this, headers, next));
         }
@@ -93,7 +99,7 @@ final class ServerCallInterceptor implements ServerInterceptor {
         }
     }
 
-    private static final class TracedServerCallListener<REQ> extends ForwardingServerCallListener.SimpleForwardingServerCallListener<REQ> {
+    static class TracedServerCallListener<REQ> extends ForwardingServerCallListener.SimpleForwardingServerCallListener<REQ> {
         private final ITraceSpan rootSpan;
 
         TracedServerCallListener(ITraceSpan rootSpan, ServerCall.Listener<REQ> delegate) {

@@ -47,4 +47,8 @@ public class InterceptorDescriptor {
     public boolean isDebug() {
         return debug;
     }
+
+    public InterceptorDescriptor withTargetClazz(String targetClass) {
+        return new InterceptorDescriptor(debug, targetClass, methodPointCutDescriptors);
+    }
 }

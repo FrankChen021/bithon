@@ -1,0 +1,5 @@
+agent:
+  plugin:
+    grpc:
+      shaded:
+        - org.apache.ratis.thirdparty.io.grpc

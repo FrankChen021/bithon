@@ -35,12 +35,12 @@ import static java.io.File.separator;
  * @author frankchen
  */
 public class AopDebugger extends AopTransformationListener {
-    private static final File CLASS_FILE_DIR;
+    public static final File CLASS_FILE_DIR;
 
     /**
      * corresponding to <b>bithon.aop.debug</b> configuration item
      */
-    private static final boolean IS_DEBUG_ENABLED;
+    public static final boolean IS_DEBUG_ENABLED;
 
     static {
         IS_DEBUG_ENABLED = AgentContext.getInstance().getAgentConfiguration().getConfig(AopConfig.class).isDebug();

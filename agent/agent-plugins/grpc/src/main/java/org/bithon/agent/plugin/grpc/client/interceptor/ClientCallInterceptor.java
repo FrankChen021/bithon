@@ -28,6 +28,7 @@ import io.grpc.Status;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.PropagationTraceContext;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
+import org.bithon.component.commons.tracing.SpanKind;
 
 /**
  * @author Frank Chen
@@ -51,6 +52,7 @@ public class ClientCallInterceptor implements ClientInterceptor {
                                           .clazz(ClientInterceptor.class.getName())
                                           .method("interceptCall")
                                           .tag("remote.address", this.target)
+                                          .kind(SpanKind.CLIENT)
                                           .start();
 
         if (span.isNull() || span.context() instanceof PropagationTraceContext) {
