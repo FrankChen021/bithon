@@ -31,5 +31,9 @@ import java.util.List;
     @JsonSubTypes.Type(name = "local", value = LocalTraceSink.class),
 })
 public interface ITraceMessageSink extends AutoCloseable {
+    /**
+     * process messages.
+     * If it's closing, this process method won't be called again
+     */
     void process(String messageType, List<TraceSpan> messages);
 }
