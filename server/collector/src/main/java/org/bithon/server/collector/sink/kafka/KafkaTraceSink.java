@@ -132,7 +132,7 @@ public class KafkaTraceSink implements ITraceMessageSink {
     }
 
     private void send(byte[] key, FixedSizeBuffer messageBuffer) {
-        if (messageBuffer.isEmpty()) {
+        if (messageBuffer.size() <= 1) {
             return;
         }
 

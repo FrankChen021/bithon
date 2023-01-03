@@ -38,6 +38,10 @@ class FixedSizeBuffer {
         return buf.length;
     }
 
+    public int size() {
+        return size;
+    }
+
     boolean isEmpty() {
         return size == 0;
     }

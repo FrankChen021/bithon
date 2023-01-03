@@ -97,8 +97,8 @@ public class KafkaMetricSink implements IMetricMessageSink {
         if (appName == null || instanceName == null) {
             return;
         }
-        byte[] messageKey = (messageType + "/" + appName + "/" + instanceName).getBytes(StandardCharsets.UTF_8);
 
+        byte[] messageKey = (messageType + "/" + appName + "/" + instanceName).getBytes(StandardCharsets.UTF_8);
         RecordHeader header = new RecordHeader("type", messageType.getBytes(StandardCharsets.UTF_8));
 
         FixedSizeBuffer messageBuffer = this.bufferThreadLocal.get();
@@ -145,7 +145,7 @@ public class KafkaMetricSink implements IMetricMessageSink {
     }
 
     private void send(RecordHeader header, byte[] key, FixedSizeBuffer messageBuffer) {
-        if (messageBuffer.isEmpty()) {
+        if (messageBuffer.size() <= 1) {
             return;
         }
 
