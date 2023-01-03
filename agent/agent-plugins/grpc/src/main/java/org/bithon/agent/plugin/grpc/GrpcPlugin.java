@@ -19,8 +19,8 @@ package org.bithon.agent.plugin.grpc;
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.core.aop.matcher.Matchers;
-import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.plugin.IPlugin;
+import org.bithon.agent.core.plugin.PluginConfigurationManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,7 +80,7 @@ public class GrpcPlugin implements IPlugin {
         //
         // Install interceptor for shaded gRPC
         //
-        List<String> shadedGrpcList = AgentContext.getInstance().getAgentConfiguration().getConfig(ShadedGrpcList.class);
+        List<String> shadedGrpcList = PluginConfigurationManager.load(GrpcPlugin.class).getConfig(ShadedGrpcList.class);
         if (!shadedGrpcList.isEmpty()) {
             List<InterceptorDescriptor> shadedGrpcInterceptors = new ArrayList<>();
 
