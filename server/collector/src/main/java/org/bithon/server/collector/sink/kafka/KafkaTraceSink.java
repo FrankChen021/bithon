@@ -58,10 +58,9 @@ public class KafkaTraceSink implements ITraceMessageSink {
     private final ObjectMapper objectMapper;
     private final String topic;
     private final CompressionType compressionType;
-    private final int maxSizePerMessage;
     private final Header header;
 
-    private final ThreadLocal<Buffer> bufferThreadLocal;
+    private final ThreadLocal<KafkaMessage> bufferThreadLocal;
 
     @JsonCreator
     public KafkaTraceSink(@JsonProperty("props") Map<String, Object> props,
@@ -69,79 +68,15 @@ public class KafkaTraceSink implements ITraceMessageSink {
         this.topic = (String) props.remove("topic");
         Preconditions.checkNotNull(topic, "topic is not configured for tracing sink");
 
-        this.maxSizePerMessage = (int) props.getOrDefault(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, 1024 * 1024);
+        int maxSizePerMessage = (int) props.getOrDefault(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, 1024 * 1024);
         this.compressionType = CompressionType.forName((String) props.getOrDefault(ProducerConfig.COMPRESSION_TYPE_CONFIG, "none"));
+        this.bufferThreadLocal = ThreadLocal.withInitial(() -> new KafkaMessage(maxSizePerMessage));
+
         this.header = new RecordHeader("type", "tracing".getBytes(StandardCharsets.UTF_8));
-        this.bufferThreadLocal = ThreadLocal.withInitial(() -> new Buffer(this.maxSizePerMessage));
 
         this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props, new ByteArraySerializer(), new ByteArraySerializer()),
                                             ImmutableMap.of(ProducerConfig.CLIENT_ID_CONFIG, "trace"));
         this.objectMapper = objectMapper;
-    }
-
-    private static class Buffer {
-        private byte[] buf;
-        private int size;
-
-        Buffer(int initCapacity) {
-            this.buf = new byte[initCapacity];
-            this.size = 0;
-        }
-
-        int capacity() {
-            return buf.length;
-        }
-
-        boolean isEmpty() {
-            return size == 0;
-        }
-
-        void write(byte[] buf) {
-            ensureCapacity(buf.length);
-            System.arraycopy(buf, 0, this.buf, this.size, buf.length);
-            this.size += buf.length;
-        }
-
-        void write(char chr) {
-            ensureCapacity(1);
-            this.buf[this.size++] = (byte) chr;
-        }
-
-        public void deleteFromEnd(int length) {
-            if (size >= length) {
-                size -= length;
-            }
-        }
-
-        byte[] toBytes() {
-            if (size == this.buf.length) {
-                return this.buf;
-            } else {
-                byte[] d = new byte[this.size];
-                System.arraycopy(this.buf, 0, d, 0, this.size);
-                return d;
-            }
-        }
-
-        ByteBuffer toByteBuffer() {
-            return ByteBuffer.wrap(this.buf, 0, this.size);
-        }
-
-        public void reset() {
-            this.size = 0;
-        }
-
-        private void ensureCapacity(int extraSize) {
-            int newSize = buf.length;
-            while (this.size + extraSize > newSize) {
-                newSize *= 2;
-            }
-            if (newSize != buf.length) {
-                byte[] newBuff = new byte[newSize];
-                System.arraycopy(this.buf, 0, newBuff, 0, this.size);
-                this.buf = newBuff;
-            }
-        }
     }
 
     @SneakyThrows
@@ -161,9 +96,9 @@ public class KafkaTraceSink implements ITraceMessageSink {
         //
         // But since Producer/Broker has size limitation on each message, we also limit the size in case of failure on send.
         //
-        Buffer messageBuffer = this.bufferThreadLocal.get();
-        messageBuffer.reset();
-        messageBuffer.write('[');
+        KafkaMessage kafkaMessage = this.bufferThreadLocal.get();
+        kafkaMessage.reset();
+        kafkaMessage.writeChar('[');
         for (TraceSpan span : spans) {
             if (key == null) {
                 key = (span.getAppName() + "/" + span.getInstanceName()).getBytes(StandardCharsets.UTF_8);
@@ -179,33 +114,33 @@ public class KafkaTraceSink implements ITraceMessageSink {
             int currentSize = AbstractRecords.estimateSizeInBytesUpperBound(RecordBatch.CURRENT_MAGIC_VALUE,
                                                                             this.compressionType,
                                                                             ByteBuffer.wrap(key),
-                                                                            messageBuffer.toByteBuffer(),
+                                                                            kafkaMessage.toByteBuffer(),
                                                                             new Header[]{header});
 
             // plus 2 to leave 2 bytes as margin
-            if (currentSize + serializedSpan.length + 2 > messageBuffer.capacity()) {
-                send(key, messageBuffer);
+            if (currentSize + serializedSpan.length + 2 > kafkaMessage.capacity()) {
+                send(key, kafkaMessage);
 
-                messageBuffer.reset();
-                messageBuffer.write('[');
+                kafkaMessage.reset();
+                kafkaMessage.writeChar('[');
             }
 
-            messageBuffer.write(serializedSpan);
-            messageBuffer.write(',');
+            kafkaMessage.writeBytes(serializedSpan);
+            kafkaMessage.writeChar(',');
         }
-        send(key, messageBuffer);
+        send(key, kafkaMessage);
     }
 
-    private void send(byte[] key, Buffer buffer) {
-        if (buffer.isEmpty()) {
+    private void send(byte[] key, KafkaMessage kafkaMessage) {
+        if (kafkaMessage.isEmpty()) {
             return;
         }
 
         // Remove last separator
-        buffer.deleteFromEnd(1);
-        buffer.write(']');
+        kafkaMessage.deleteFromEnd(1);
+        kafkaMessage.writeChar(']');
 
-        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, key, buffer.toBytes());
+        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, key, kafkaMessage.toBytes());
         record.headers().add(header);
         try {
             producer.send(record);
@@ -217,5 +152,6 @@ public class KafkaTraceSink implements ITraceMessageSink {
     @Override
     public void close() {
         producer.destroy();
+        bufferThreadLocal.remove();
     }
 }
