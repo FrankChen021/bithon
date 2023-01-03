@@ -18,6 +18,7 @@
     <module>alibaba-druid</module>
     <module>apache-druid</module>
     <module>apache-kafka</module>
+    <module>apache-ozone</module>
     <module>bithon-brpc</module>
     <module>bithon-sdk</module>
     <module>glassfish</module>
@@ -63,6 +64,13 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-apache-kafka</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- Apache Ozone -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-ozone</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -238,7 +246,7 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- MongoDb -->
+    <!-- MongoDB -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-mongodb</artifactId>
