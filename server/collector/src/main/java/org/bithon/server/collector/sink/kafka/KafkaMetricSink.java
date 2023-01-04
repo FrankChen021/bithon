@@ -161,7 +161,7 @@ public class KafkaMetricSink implements IMetricMessageSink {
         try {
             producer.send(record);
         } catch (Exception e) {
-            log.error("Error to send metric [{}]", new String(header.value()), e);
+            log.error("Error to send metric [{}]", new String(header.value(), StandardCharsets.UTF_8), e);
         }
     }
 

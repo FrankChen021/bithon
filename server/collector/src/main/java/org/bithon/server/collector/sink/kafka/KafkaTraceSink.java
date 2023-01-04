@@ -145,7 +145,7 @@ public class KafkaTraceSink implements ITraceMessageSink {
         try {
             producer.send(record);
         } catch (Exception e) {
-            log.error("Error to send trace from {}", new String(messageKey.array()), e);
+            log.error("Error to send trace from {}", new String(messageKey.array(), StandardCharsets.UTF_8), e);
         }
     }
 
