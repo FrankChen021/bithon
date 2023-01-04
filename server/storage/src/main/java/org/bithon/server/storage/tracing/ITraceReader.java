@@ -19,6 +19,7 @@ package org.bithon.server.storage.tracing;
 import lombok.Data;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.metrics.IFilter;
+import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -46,7 +47,10 @@ public interface ITraceReader {
 
     List<TraceSpan> getTraceByParentSpanId(String parentSpanId);
 
-    String getTraceIdByMapping(String id);
+    /**
+     * Get id mapping by given user id
+     */
+    TraceIdMapping getTraceIdByMapping(String userId);
 
     @Data
     class Histogram {
