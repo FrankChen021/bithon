@@ -98,7 +98,7 @@ public class KafkaMetricSink implements IMetricMessageSink {
             return;
         }
 
-        byte[] messageKey = (messageType + "/" + appName + "/" + instanceName).getBytes(StandardCharsets.UTF_8);
+        ByteBuffer messageKey = ByteBuffer.wrap((messageType + "/" + appName + "/" + instanceName).getBytes(StandardCharsets.UTF_8));
         RecordHeader header = new RecordHeader("type", messageType.getBytes(StandardCharsets.UTF_8));
 
         FixedSizeBuffer messageBuffer = this.bufferThreadLocal.get();
@@ -116,17 +116,17 @@ public class KafkaMetricSink implements IMetricMessageSink {
 
         int metricStartOffset = messageBuffer.getOffset();
 
-        for (IInputRow row : message.getMetrics()) {
+        for (IInputRow metric : message.getMetrics()) {
             byte[] metricBytes;
             try {
-                metricBytes = objectMapper.writeValueAsBytes(row);
+                metricBytes = objectMapper.writeValueAsBytes(metric);
             } catch (JsonProcessingException ignored) {
                 continue;
             }
 
             int currentSize = AbstractRecords.estimateSizeInBytesUpperBound(RecordBatch.CURRENT_MAGIC_VALUE,
                                                                             this.compressionType,
-                                                                            ByteBuffer.wrap(messageKey),
+                                                                            messageKey,
                                                                             messageBuffer.toByteBuffer(),
                                                                             new Header[]{header});
 
@@ -144,7 +144,7 @@ public class KafkaMetricSink implements IMetricMessageSink {
         send(header, messageKey, messageBuffer);
     }
 
-    private void send(RecordHeader header, byte[] key, FixedSizeBuffer messageBuffer) {
+    private void send(RecordHeader header, ByteBuffer messageKey, FixedSizeBuffer messageBuffer) {
         if (messageBuffer.size() <= 1) {
             return;
         }
@@ -156,7 +156,7 @@ public class KafkaMetricSink implements IMetricMessageSink {
         messageBuffer.writeChar(']');
         messageBuffer.writeChar('}');
 
-        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, key, messageBuffer.toBytes());
+        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, messageKey.array(), messageBuffer.toBytes());
         record.headers().add(header);
         try {
             producer.send(record);

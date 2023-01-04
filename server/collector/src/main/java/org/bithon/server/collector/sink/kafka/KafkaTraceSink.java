@@ -86,7 +86,7 @@ public class KafkaTraceSink implements ITraceMessageSink {
             return;
         }
 
-        byte[] key = null;
+        ByteBuffer messageKey = null;
 
         //
         // A batch message in written into a single kafka message in which each text line is a single metric message.
@@ -100,8 +100,8 @@ public class KafkaTraceSink implements ITraceMessageSink {
         messageBuffer.reset();
         messageBuffer.writeChar('[');
         for (TraceSpan span : spans) {
-            if (key == null) {
-                key = (span.getAppName() + "/" + span.getInstanceName()).getBytes(StandardCharsets.UTF_8);
+            if (messageKey == null) {
+                messageKey = ByteBuffer.wrap((span.getAppName() + "/" + span.getInstanceName()).getBytes(StandardCharsets.UTF_8));
             }
 
             byte[] serializedSpan;
@@ -113,13 +113,13 @@ public class KafkaTraceSink implements ITraceMessageSink {
 
             int currentSize = AbstractRecords.estimateSizeInBytesUpperBound(RecordBatch.CURRENT_MAGIC_VALUE,
                                                                             this.compressionType,
-                                                                            ByteBuffer.wrap(key),
+                                                                            messageKey,
                                                                             messageBuffer.toByteBuffer(),
                                                                             new Header[]{header});
 
             // plus 2 to leave 2 bytes as margin
             if (currentSize + serializedSpan.length + 2 > messageBuffer.limit()) {
-                send(key, messageBuffer);
+                send(messageKey, messageBuffer);
 
                 messageBuffer.reset();
                 messageBuffer.writeChar('[');
@@ -128,10 +128,10 @@ public class KafkaTraceSink implements ITraceMessageSink {
             messageBuffer.writeBytes(serializedSpan);
             messageBuffer.writeChar(',');
         }
-        send(key, messageBuffer);
+        send(messageKey, messageBuffer);
     }
 
-    private void send(byte[] key, FixedSizeBuffer messageBuffer) {
+    private void send(ByteBuffer messageKey, FixedSizeBuffer messageBuffer) {
         if (messageBuffer.size() <= 1) {
             return;
         }
@@ -140,12 +140,12 @@ public class KafkaTraceSink implements ITraceMessageSink {
         messageBuffer.deleteFromEnd(1);
         messageBuffer.writeChar(']');
 
-        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, key, messageBuffer.toBytes());
+        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, messageKey.array(), messageBuffer.toBytes());
         record.headers().add(header);
         try {
             producer.send(record);
         } catch (Exception e) {
-            log.error("Error to send trace from {}, message: {}", key, e.getMessage());
+            log.error("Error to send trace from {}", new String(messageKey.array()), e);
         }
     }
 

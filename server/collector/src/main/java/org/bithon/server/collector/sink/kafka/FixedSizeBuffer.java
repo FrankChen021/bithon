@@ -38,12 +38,8 @@ class FixedSizeBuffer {
         return buf.length;
     }
 
-    public int size() {
+    int size() {
         return size;
-    }
-
-    boolean isEmpty() {
-        return size == 0;
     }
 
     void writeBytes(byte[] value) {
@@ -63,7 +59,7 @@ class FixedSizeBuffer {
         writeBytes(bytes);
     }
 
-    public void deleteFromEnd(int length) {
+    void deleteFromEnd(int length) {
         if (size >= length) {
             size -= length;
         }
