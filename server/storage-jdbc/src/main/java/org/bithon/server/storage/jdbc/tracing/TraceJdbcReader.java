@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
@@ -34,6 +33,7 @@ import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
+import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record1;
@@ -56,7 +56,6 @@ public class TraceJdbcReader implements ITraceReader {
     public static final String SPAN_TAGS_PREFIX = "tags.";
     private final DSLContext dslContext;
     private final ObjectMapper objectMapper;
-    private final TraceSinkConfig traceConfig;
     private final TraceStorageConfig traceStorageConfig;
     private final DataSourceSchema traceSpanSchema;
     private final DataSourceSchema traceTagIndexSchema;
@@ -65,11 +64,9 @@ public class TraceJdbcReader implements ITraceReader {
                            ObjectMapper objectMapper,
                            DataSourceSchema traceSpanSchema,
                            DataSourceSchema traceTagIndexSchema,
-                           TraceSinkConfig traceSinkConfig,
                            TraceStorageConfig traceStorageConfig) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
-        this.traceConfig = traceSinkConfig;
         this.traceStorageConfig = traceStorageConfig;
         this.traceSpanSchema = traceSpanSchema;
         this.traceTagIndexSchema = traceTagIndexSchema;
@@ -181,13 +178,19 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public String getTraceIdByMapping(String id) {
-        return dslContext.select(Tables.BITHON_TRACE_MAPPING.TRACE_ID)
+    public TraceIdMapping getTraceIdByMapping(String userId) {
+        return dslContext.select(Tables.BITHON_TRACE_MAPPING.TRACE_ID, Tables.BITHON_TRACE_MAPPING.TIMESTAMP)
                          .from(Tables.BITHON_TRACE_MAPPING)
-                         .where(Tables.BITHON_TRACE_MAPPING.USER_TX_ID.eq(id))
+                         .where(Tables.BITHON_TRACE_MAPPING.USER_TX_ID.eq(userId))
                          .orderBy(Tables.BITHON_TRACE_MAPPING.TIMESTAMP.desc())
                          .limit(1)
-                         .fetchOne(Tables.BITHON_TRACE_MAPPING.TRACE_ID);
+                         .fetchOne((v) -> {
+                             TraceIdMapping mapping = new TraceIdMapping();
+                             mapping.setTraceId(v.getValue(0, String.class));
+                             mapping.setTimestamp(v.get(1, Timestamp.class).getTime());
+                             mapping.setUserId(userId);
+                             return mapping;
+                         });
     }
 
     /**
