@@ -16,7 +16,7 @@
 
 package org.bithon.agent.core.tracing.context;
 
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.AgentConfiguration;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -39,7 +39,7 @@ public class TraceContextListener {
     }
 
     public TraceContextListener() {
-        TraceConfig config = AgentContext.getInstance().getAgentConfiguration().getConfig(TraceConfig.class);
+        TraceConfig config = AgentConfiguration.getInstance().getConfig(TraceConfig.class);
         if (config != null && config.isDebug()) {
             listeners.add(new SpanEventLogger());
         }

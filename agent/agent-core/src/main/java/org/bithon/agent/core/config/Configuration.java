@@ -50,75 +50,74 @@ public class Configuration {
     }
 
     /**
-     *
      * @return NotNull object
      */
-    public static Configuration create(String location,
+    public static Configuration create(String configFileFormat,
                                        InputStream staticConfig,
                                        String dynamicPropertyPrefix,
                                        String... environmentVariables) {
-        JsonNode staticConfiguration = readStaticConfiguration(location, staticConfig);
+        JsonNode staticConfiguration = readStaticConfiguration(configFileFormat, staticConfig);
         JsonNode dynamicConfiguration = readDynamicConfiguration(dynamicPropertyPrefix, environmentVariables);
         return new Configuration(mergeConfiguration(staticConfiguration, dynamicConfiguration));
     }
 
-    private static JsonNode mergeConfiguration(JsonNode target, JsonNode source) {
-        if (source == null) {
-            return target;
+    private static JsonNode mergeConfiguration(JsonNode to, JsonNode from) {
+        if (from == null) {
+            return to;
         }
 
-        Iterator<String> names = source.fieldNames();
+        Iterator<String> names = from.fieldNames();
         while (names.hasNext()) {
 
             String fieldName = names.next();
-            JsonNode targetNode = target.get(fieldName);
-            JsonNode sourceNode = source.get(fieldName);
+            JsonNode targetNode = to.get(fieldName);
+            JsonNode sourceNode = from.get(fieldName);
 
             if (targetNode == null) {
-                ((ObjectNode) target).set(fieldName, sourceNode);
+                ((ObjectNode) to).set(fieldName, sourceNode);
                 continue;
             }
 
             if (targetNode.isObject()) {
-                // target json node exists, and it's an object, recursively merge
+                // to json node exists, and it's an object, recursively merge
                 mergeConfiguration(targetNode, sourceNode);
             } else if (targetNode.isArray()) {
                 if (sourceNode.isArray()) {
                     // merge arrays
                     ArrayNode sourceArray = (ArrayNode) sourceNode;
 
-                    // insert source nodes at the beginning of the target node
-                    // this makes the source nodes higher priority
+                    // Insert source nodes at the beginning of the target node.
+                    // This makes the source nodes higher priority
                     for (int i = 0; i < sourceArray.size(); i++) {
                         ((ArrayNode) targetNode).insert(i, sourceArray.get(i));
                     }
                 } else {
-                    // use the source node to replace the target node
-                    ((ObjectNode) target).set(fieldName, sourceNode);
+                    // use the source node to replace the to node
+                    ((ObjectNode) to).set(fieldName, sourceNode);
                 }
             } else {
-                // use the source node to replace the target node
-                ((ObjectNode) target).set(fieldName, sourceNode);
+                // use the source node to replace the to node
+                ((ObjectNode) to).set(fieldName, sourceNode);
             }
         }
 
-        return target;
+        return to;
     }
 
-    private static JsonNode readStaticConfiguration(String location, InputStream configFile) {
+    private static JsonNode readStaticConfiguration(String configFileFormat, InputStream configFile) {
         if (configFile == null) {
             return new ObjectNode(new JsonNodeFactory(true));
         }
 
         ObjectMapper mapper;
-        if (location.endsWith(".yaml") || location.endsWith(".yml")) {
+        if (configFileFormat.endsWith(".yaml") || configFileFormat.endsWith(".yml")) {
             mapper = new ObjectMapper(new YAMLFactory());
-        } else if (location.endsWith(".properties")) {
+        } else if (configFileFormat.endsWith(".properties")) {
             mapper = new JavaPropsMapper();
-        } else if (location.endsWith(".json")) {
+        } else if (configFileFormat.endsWith(".json")) {
             mapper = new ObjectMapper();
         } else {
-            throw new AgentException("Unknown property file type: %s", location);
+            throw new AgentException("Unknown property file type: %s", configFileFormat);
         }
 
         try {
@@ -127,7 +126,7 @@ public class Configuration {
             return mapper.readTree(configFile);
         } catch (IOException e) {
             throw new AgentException("Failed to read property from static file[%s]:%s",
-                                     location,
+                                     configFileFormat,
                                      e.getMessage());
         }
     }
@@ -140,7 +139,7 @@ public class Configuration {
         // read properties from environment variables.
         // environment variables have the lowest priority
         //
-        if (environmentVariables != null && environmentVariables.length > 0) {
+        if (environmentVariables != null) {
             for (String envName : environmentVariables) {
                 String envValue = System.getenv(envName);
                 if (!StringUtils.isEmpty(envValue)) {
@@ -193,11 +192,29 @@ public class Configuration {
     }
 
     public void merge(Configuration configuration) {
-
+        mergeConfiguration(this.configurationNode, configuration.configurationNode);
     }
 
     public boolean isEmpty() {
         return this.configurationNode.isEmpty();
+    }
+
+    /**
+     * check if the configuration contains only the properties specified by given {@param pathPrefix}.
+     */
+    public boolean validate(String pathPrefix) {
+        String[] paths = pathPrefix.split("\\.");
+        JsonNode node = this.configurationNode;
+        for (String path : paths) {
+            if (node.size() > 1) {
+                return false;
+            }
+            node = node.get(path);
+            if (node == null) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public <T> T getConfig(Class<T> clazz) {

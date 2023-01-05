@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.guice.installer;
 import org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate;
 import org.bithon.agent.core.aop.AopClassHelper;
 import org.bithon.agent.core.aop.installer.BeanMethodAopInstaller;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.AgentConfiguration;
 import org.bithon.agent.plugin.guice.interceptor.GuiceBeanMethod$Invoke;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.dynamic.ClassFileLocator;
@@ -40,8 +40,8 @@ public class BeanMethodAopInstallerHelper {
      * So we use one interceptor for all spring-beans, and generates an Aop for that interceptor
      */
     public static void initialize() {
-        transformationConfig = AgentContext.getInstance().getAgentConfiguration()
-                                           .getConfig("agent.plugin.guice", BeanMethodAopInstaller.BeanTransformationConfig.class);
+        transformationConfig = AgentConfiguration.getInstance()
+                                                 .getConfig("agent.plugin.guice", BeanMethodAopInstaller.BeanTransformationConfig.class);
 
         String targetAopClassName = BeanMethodAopInstallerHelper.class.getPackage().getName() + ".GuiceMethodAop";
 

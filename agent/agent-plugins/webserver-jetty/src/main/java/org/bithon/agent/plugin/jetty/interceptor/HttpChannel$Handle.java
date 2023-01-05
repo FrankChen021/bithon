@@ -20,7 +20,7 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.AgentConfiguration;
 import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.core.tracing.Tracer;
@@ -48,7 +48,7 @@ public class HttpChannel$Handle extends AbstractInterceptor {
     @Override
     public boolean initialize() {
         requestFilter = new HttpIncomingFilter();
-        traceConfig = AgentContext.getInstance().getAgentConfiguration().getConfig(TraceConfig.class);
+        traceConfig = AgentConfiguration.getInstance().getConfig(TraceConfig.class);
         return true;
     }
 

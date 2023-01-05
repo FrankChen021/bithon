@@ -26,7 +26,7 @@ import org.apache.http.protocol.HttpContext;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.AgentConfiguration;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
@@ -44,7 +44,7 @@ public class HttpRequestExecutor$Execute extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        traceConfig = AgentContext.getInstance().getAgentConfiguration().getConfig(TraceConfig.class);
+        traceConfig = AgentConfiguration.getInstance().getConfig(TraceConfig.class);
         return true;
     }
 

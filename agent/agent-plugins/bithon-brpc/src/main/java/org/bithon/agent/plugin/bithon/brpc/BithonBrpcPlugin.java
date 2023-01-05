@@ -18,8 +18,8 @@ package org.bithon.agent.plugin.bithon.brpc;
 
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
+import org.bithon.agent.core.config.AgentConfiguration;
 import org.bithon.agent.core.config.ConfigurationProperties;
-import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.plugin.IPlugin;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
@@ -51,7 +51,7 @@ public class BithonBrpcPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
-        ServiceProviderConfig config = AgentContext.getInstance().getAgentConfiguration().getConfig(ServiceProviderConfig.class);
+        ServiceProviderConfig config = AgentConfiguration.getInstance().getConfig(ServiceProviderConfig.class);
         if (config == null) {
             return Collections.emptyList();
         }

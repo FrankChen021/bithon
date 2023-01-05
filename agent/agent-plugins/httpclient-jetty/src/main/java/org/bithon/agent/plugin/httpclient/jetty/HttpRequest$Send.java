@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.httpclient.jetty;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.AgentConfiguration;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
@@ -46,7 +46,7 @@ public class HttpRequest$Send extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        traceConfig = AgentContext.getInstance().getAgentConfiguration().getConfig(TraceConfig.class);
+        traceConfig = AgentConfiguration.getInstance().getConfig(TraceConfig.class);
         return true;
     }
 

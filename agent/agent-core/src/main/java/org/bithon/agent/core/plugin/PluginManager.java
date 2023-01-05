@@ -19,6 +19,7 @@ package org.bithon.agent.core.plugin;
 import org.bithon.agent.bootstrap.loader.JarClassLoader;
 import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.core.aop.descriptor.Descriptors;
+import org.bithon.agent.core.config.AgentConfiguration;
 import org.bithon.agent.core.config.Configuration;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.component.commons.logging.ILogAdaptor;
@@ -94,10 +95,11 @@ public class PluginManager {
                 return null;
             }
 
-            Configuration pluginConfiguration = PluginConfigurationManager.load(pluginClass);
+            Configuration pluginConfiguration = PluginConfiguration.load(pluginClass);
             if (!pluginConfiguration.isEmpty()) {
-                Boolean isPluginDisabled = pluginConfiguration.getConfig(PluginConfigurationManager.getPluginConfigurationPrefixName(pluginFullClassName)
-                                                                         + "disabled",
+                String pluginConfigurationPrefix = PluginConfiguration.getPluginConfigurationPrefixName(pluginFullClassName);
+
+                Boolean isPluginDisabled = pluginConfiguration.getConfig(pluginConfigurationPrefix + ".disabled",
                                                                          Boolean.class);
                 if (isPluginDisabled != null && isPluginDisabled) {
                     LOG.info("Found plugin {}, but it's DISABLED by configuration", pluginClass.getSimpleName());
@@ -106,7 +108,7 @@ public class PluginManager {
             }
 
             // Merge the plugin configuration into agent configuration first so that the plugin initialization can obtain its configuration
-            AgentContext.getInstance().getAgentConfiguration().merge(pluginConfiguration);
+            AgentConfiguration.getInstance().merge(pluginConfiguration);
 
             LOG.info("Found plugin {}", pluginClass.getSimpleName());
             return (IPlugin) pluginClass.getDeclaredConstructor().newInstance();

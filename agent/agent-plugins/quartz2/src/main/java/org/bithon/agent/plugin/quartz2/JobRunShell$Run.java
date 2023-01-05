@@ -20,7 +20,7 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.AgentConfiguration;
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
@@ -50,9 +50,7 @@ public class JobRunShell$Run extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        TraceConfig traceConfig = AgentContext.getInstance()
-                                              .getAgentConfiguration()
-                                              .getConfig(TraceConfig.class);
+        TraceConfig traceConfig = AgentConfiguration.getInstance().getConfig(TraceConfig.class);
         TraceConfig.SamplingConfig samplingConfig = traceConfig.getSamplingConfigs().get("quartz");
         if (samplingConfig == null || samplingConfig.isDisabled() || samplingConfig.getSamplingRate() == 0) {
             return false;

@@ -16,82 +16,14 @@
 
 package org.bithon.agent.core.context;
 
-import org.bithon.agent.bootstrap.expt.AgentException;
+import org.bithon.agent.core.config.AppConfiguration;
 import org.bithon.agent.core.config.Configuration;
-import org.bithon.agent.core.config.ConfigurationProperties;
-import org.bithon.agent.core.config.validation.NotBlank;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import static java.io.File.separator;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/6 2:18 下午
  */
 public class AgentContext {
-
-    @ConfigurationProperties(prefix = "application")
-    public static class AppConfiguration {
-
-        @NotBlank(message = "'bithon.application.env' should not be blank")
-        private String env;
-
-        @NotBlank(message = "'bithon.application.name' should not be blank")
-        private String name;
-
-        /**
-         * For non web application, the port can't be detected automatically.
-         * In this case in order to make the agent work, the port needs to be specified manually.
-         */
-        private int port = 0;
-
-        /**
-         * Indicate the host and port of the monitored application instance.
-         * In the format of ip:port
-         *
-         * This is not for configuration.
-         * In most cases, this field is automatically retrieved by the agent.
-         * But if the applications is deployed in Docker on different host, the container ip may be the same.
-         * In such case, user can use this configuration to override the automatically retrieved instance name.
-         */
-        private String instance;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getEnv() {
-            return env;
-        }
-
-        public void setEnv(String env) {
-            this.env = env;
-        }
-
-        public String getInstance() {
-            return instance;
-        }
-
-        public void setInstance(String instance) {
-            this.instance = instance;
-        }
-
-        public int getPort() {
-            return port;
-        }
-
-        public void setPort(int port) {
-            this.port = port;
-        }
-    }
 
     public static final String BITHON_APPLICATION_ENV = "bithon.application.env";
     public static final String BITHON_APPLICATION_NAME = "bithon.application.name";
@@ -101,16 +33,11 @@ public class AgentContext {
     private static AgentContext INSTANCE;
     private String agentDirectory;
     private AppInstance appInstance;
-    private Configuration agentConfiguration;
 
-    public static AgentContext createInstance(String agentPath) {
-        Configuration configuration = loadAgentConfiguration(agentPath);
-        AppConfiguration appConfiguration = configuration.getConfig(AppConfiguration.class);
-
+    public static AgentContext createInstance(String agentPath, Configuration agentConfiguration) {
         INSTANCE = new AgentContext();
         INSTANCE.agentDirectory = agentPath;
-        INSTANCE.agentConfiguration = configuration;
-        INSTANCE.appInstance = new AppInstance(appConfiguration);
+        INSTANCE.appInstance = new AppInstance(agentConfiguration.getConfig(AppConfiguration.class));
         return INSTANCE;
     }
 
@@ -124,24 +51,5 @@ public class AgentContext {
 
     public AppInstance getAppInstance() {
         return appInstance;
-    }
-
-    public Configuration getAgentConfiguration() {
-        return agentConfiguration;
-    }
-
-    private static Configuration loadAgentConfiguration(String agentDirectory) {
-        File staticConfig = new File(agentDirectory + separator + CONF_DIR + separator + "agent.yml");
-        try (FileInputStream is = new FileInputStream(staticConfig)) {
-            return Configuration.create(staticConfig.getAbsolutePath(),
-                                        is,
-                                        "bithon.",
-                                        BITHON_APPLICATION_NAME,
-                                        BITHON_APPLICATION_ENV);
-        } catch (FileNotFoundException e) {
-            throw new AgentException("Unable to find static config at [%s]", staticConfig.getAbsolutePath());
-        } catch (IOException e) {
-            throw new AgentException("Unexpected IO exception occurred: %s", e.getMessage());
-        }
     }
 }

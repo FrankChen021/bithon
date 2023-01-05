@@ -21,7 +21,7 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.bytecode.ClassCopier;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.AgentConfiguration;
 import org.bithon.agent.plugin.grpc.ShadedGrpcList;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.ReflectionUtils;
@@ -43,7 +43,7 @@ import java.util.Map;
 public class ManagedChannelImplBuilder$Build extends AbstractInterceptor {
 
     private final Map<String, String> shadedGrpcClassMap = new HashMap<>();
-    private final List<String> shadedGrpcList = AgentContext.getInstance().getAgentConfiguration().getConfig(ShadedGrpcList.class);
+    private final List<String> shadedGrpcList = AgentConfiguration.getInstance().getConfig(ShadedGrpcList.class);
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {

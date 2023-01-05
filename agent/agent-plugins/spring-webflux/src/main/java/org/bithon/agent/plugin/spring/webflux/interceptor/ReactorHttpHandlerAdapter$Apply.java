@@ -21,7 +21,7 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.AgentConfiguration;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.core.tracing.Tracer;
@@ -69,13 +69,8 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
     public boolean initialize() {
         requestFilter = new HttpIncomingFilter();
 
-        traceConfig = AgentContext.getInstance()
-                                  .getAgentConfiguration()
-                                  .getConfig(TraceConfig.class);
-
-        responseConfigs = AgentContext.getInstance()
-                                      .getAgentConfiguration()
-                                      .getConfig(ResponseConfigs.class);
+        traceConfig = AgentConfiguration.getInstance().getConfig(TraceConfig.class);
+        responseConfigs = AgentConfiguration.getInstance().getConfig(ResponseConfigs.class);
 
         // remove the special header for fast processing later
         xforwardTagName = responseConfigs.getHeaders().remove(X_FORWARDED_FOR);
