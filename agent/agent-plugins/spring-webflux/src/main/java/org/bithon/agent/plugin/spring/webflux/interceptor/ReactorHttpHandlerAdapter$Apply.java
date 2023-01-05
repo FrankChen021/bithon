@@ -162,7 +162,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
         };
 
         // replace the returned Mono so that we can do sth when this request completes
-        aopContext.setReturning(mono.doOnSuccess((Void) -> onSuccessOrError.accept(null, null))
+        aopContext.setReturning(mono.doOnSuccess((v) -> onSuccessOrError.accept(null, null))
                                     .doOnError((error) -> onSuccessOrError.accept(null, error)));
     }
 
