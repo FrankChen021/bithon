@@ -19,8 +19,7 @@ package org.bithon.agent.plugin.spring.bean.installer;
 import org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate;
 import org.bithon.agent.core.aop.AopClassHelper;
 import org.bithon.agent.core.aop.installer.BeanMethodAopInstaller;
-import org.bithon.agent.core.plugin.PluginConfigurationManager;
-import org.bithon.agent.plugin.spring.bean.SpringBeanPlugin;
+import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.plugin.spring.bean.interceptor.BeanMethod$Invoke;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.dynamic.ClassFileLocator;
@@ -41,8 +40,8 @@ public class BeanMethodAopInstallerHelper {
      * So we use one interceptor for all spring-beans, and generates an Aop for that interceptor
      */
     public static void initialize() {
-        transformationConfig = PluginConfigurationManager.load(SpringBeanPlugin.class)
-                                                         .getConfig("agent.plugin.spring.bean", BeanMethodAopInstaller.BeanTransformationConfig.class);
+        transformationConfig = AgentContext.getInstance().getAgentConfiguration()
+                                           .getConfig("agent.plugin.spring.bean", BeanMethodAopInstaller.BeanTransformationConfig.class);
 
         String targetAopClassName = BeanMethodAopInstallerHelper.class.getPackage().getName() + ".SpringBeanMethodAop";
 

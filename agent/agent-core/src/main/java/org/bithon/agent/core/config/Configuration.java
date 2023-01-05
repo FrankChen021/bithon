@@ -43,14 +43,16 @@ import java.util.function.Supplier;
  */
 public class Configuration {
 
-    public static final Configuration EMPTY = new Configuration(null);
-
     private final JsonNode configurationNode;
 
     public Configuration(JsonNode configurationNode) {
         this.configurationNode = configurationNode;
     }
 
+    /**
+     *
+     * @return NotNull object
+     */
     public static Configuration create(String location,
                                        InputStream staticConfig,
                                        String dynamicPropertyPrefix,
@@ -188,6 +190,14 @@ public class Configuration {
             throw new AgentException("Failed to read property user configuration:%s",
                                      e.getMessage());
         }
+    }
+
+    public void merge(Configuration configuration) {
+
+    }
+
+    public boolean isEmpty() {
+        return this.configurationNode.isEmpty();
     }
 
     public <T> T getConfig(Class<T> clazz) {

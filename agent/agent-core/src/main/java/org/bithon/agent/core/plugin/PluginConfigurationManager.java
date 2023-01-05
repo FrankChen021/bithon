@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2021/8/11 16:31
  */
-public class PluginConfigurationManager {
+class PluginConfigurationManager {
 
     /**
      * load plugin configuration from static plugin.yml and dynamic configuration from environment variable and command line arguments
@@ -49,7 +49,7 @@ public class PluginConfigurationManager {
     public static String getPluginConfigurationPrefixName(String pluginClassName) {
         String prefix = "org.bithon.agent.plugin.";
         if (!pluginClassName.startsWith(prefix)) {
-            throw new AgentException("Plugin class name[%s] does not under 'org.bithon.agent.plugin' package.");
+            throw new AgentException("Plugin class name[%s] does not under 'org.bithon.agent.plugin.' package.");
         }
 
         String[] parts = pluginClassName.substring(prefix.length()).split("\\.");

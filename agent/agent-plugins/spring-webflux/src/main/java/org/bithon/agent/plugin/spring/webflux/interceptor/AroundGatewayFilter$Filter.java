@@ -20,11 +20,10 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.plugin.PluginConfigurationManager;
+import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
-import org.bithon.agent.plugin.spring.webflux.SpringWebFluxPlugin;
 import org.bithon.agent.plugin.spring.webflux.config.GatewayFilterConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.springframework.http.server.reactive.AbstractServerHttpRequest;
@@ -46,7 +45,7 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
     private final GatewayFilterConfigs configs;
 
     public AroundGatewayFilter$Filter() {
-        configs = PluginConfigurationManager.load(SpringWebFluxPlugin.class).getConfig(GatewayFilterConfigs.class);
+        configs = AgentContext.getInstance().getAgentConfiguration().getConfig(GatewayFilterConfigs.class);
     }
 
     @Override
