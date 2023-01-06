@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.core.config.AgentConfiguration;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
@@ -46,7 +46,7 @@ public class HttpClient$ParseHTTP extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        traceConfig = AgentConfiguration.getInstance().getConfig(TraceConfig.class);
+        traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
         return true;
     }
 

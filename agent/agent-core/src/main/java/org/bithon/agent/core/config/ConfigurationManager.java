@@ -33,22 +33,22 @@ import static java.io.File.separator;
  * @author frank.chen021@outlook.com
  * @date 2023/1/5 22:20
  */
-public class AgentConfiguration {
+public class ConfigurationManager {
 
-    private static AgentConfiguration INSTANCE;
+    private static ConfigurationManager INSTANCE;
 
-    public static AgentConfiguration getInstance() {
+    public static ConfigurationManager getInstance() {
         return INSTANCE;
     }
 
-    public static AgentConfiguration create(String agentDirectory) {
+    public static ConfigurationManager create(String agentDirectory) {
         File staticConfig = new File(agentDirectory + separator + AgentContext.CONF_DIR + separator + "agent.yml");
         try (FileInputStream is = new FileInputStream(staticConfig)) {
-            INSTANCE = new AgentConfiguration(Configuration.create(staticConfig.getAbsolutePath(),
-                                                                   is,
-                                                                   "bithon.",
-                                                                   AgentContext.BITHON_APPLICATION_NAME,
-                                                                   AgentContext.BITHON_APPLICATION_ENV));
+            INSTANCE = new ConfigurationManager(Configuration.create(staticConfig.getAbsolutePath(),
+                                                                     is,
+                                                                     "bithon.",
+                                                                     AgentContext.BITHON_APPLICATION_NAME,
+                                                                     AgentContext.BITHON_APPLICATION_ENV));
             return INSTANCE;
         } catch (FileNotFoundException e) {
             throw new AgentException("Unable to find static config at [%s]", staticConfig.getAbsolutePath());
@@ -60,14 +60,14 @@ public class AgentConfiguration {
     private final Configuration configuration;
     private final Map<String, Object> configurationBeans = new ConcurrentHashMap<>(19);
 
-    public AgentConfiguration(Configuration configuration) {
+    public ConfigurationManager(Configuration configuration) {
         this.configuration = configuration;
     }
 
     /**
      * @return false is the plugin is disabled by configuration
      */
-    public boolean loadPluginConfiguration(Class<?> pluginClass) {
+    public boolean addPluginConfiguration(Class<?> pluginClass) {
         Configuration pluginConfiguration = PluginConfiguration.load(pluginClass);
         if (!pluginConfiguration.isEmpty()) {
             String pluginConfigurationPrefix = PluginConfiguration.getPluginConfigurationPrefixName(pluginClass.getName());

@@ -17,7 +17,6 @@
 package org.bithon.agent.core.config;
 
 import org.bithon.agent.bootstrap.expt.AgentException;
-import org.bithon.agent.core.config.Configuration;
 
 import java.io.BufferedReader;
 import java.io.IOException;

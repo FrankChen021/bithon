@@ -20,7 +20,7 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.config.AgentConfiguration;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
@@ -45,7 +45,7 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
     private final GatewayFilterConfigs configs;
 
     public AroundGatewayFilter$Filter() {
-        configs = AgentConfiguration.getInstance().getConfig(GatewayFilterConfigs.class);
+        configs = ConfigurationManager.getInstance().getConfig(GatewayFilterConfigs.class);
     }
 
     @Override

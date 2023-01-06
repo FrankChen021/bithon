@@ -16,7 +16,7 @@
 
 package org.bithon.agent.core.tracing;
 
-import org.bithon.agent.core.config.AgentConfiguration;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.dispatcher.Dispatcher;
@@ -65,8 +65,8 @@ public class Tracer {
             synchronized (Tracer.class) {
                 if (INSTANCE == null) {
 
-                    TraceConfig traceConfig = AgentConfiguration.getInstance()
-                                                                .getConfig(TraceConfig.class);
+                    TraceConfig traceConfig = ConfigurationManager.getInstance()
+                                                                  .getConfig(TraceConfig.class);
 
                     TraceConfig.SamplingConfig samplingConfig = traceConfig.getSamplingConfigs().get("default");
                     if (samplingConfig == null) {

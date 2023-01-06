@@ -19,7 +19,7 @@ package org.bithon.agent.core.plugin;
 import org.bithon.agent.bootstrap.loader.JarClassLoader;
 import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.core.aop.descriptor.Descriptors;
-import org.bithon.agent.core.config.AgentConfiguration;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -94,7 +94,7 @@ public class PluginManager {
                 return null;
             }
 
-            if (!AgentConfiguration.getInstance().loadPluginConfiguration(pluginClass)) {
+            if (!ConfigurationManager.getInstance().addPluginConfiguration(pluginClass)) {
                 LOG.info("Found plugin {}, but it's DISABLED by configuration", pluginClass.getSimpleName());
                 return null;
             }

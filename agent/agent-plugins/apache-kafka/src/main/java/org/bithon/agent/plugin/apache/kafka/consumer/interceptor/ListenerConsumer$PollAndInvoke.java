@@ -21,7 +21,7 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.config.AgentConfiguration;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
@@ -53,7 +53,7 @@ public class ListenerConsumer$PollAndInvoke extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        TraceConfig traceConfig = AgentConfiguration.getInstance().getConfig(TraceConfig.class);
+        TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
         TraceConfig.SamplingConfig samplingConfig = traceConfig.getSamplingConfigs().get("kafka-consumer");
         if (samplingConfig == null || samplingConfig.isDisabled() || samplingConfig.getSamplingRate() == 0) {
             return false;

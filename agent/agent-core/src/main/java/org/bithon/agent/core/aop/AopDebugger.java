@@ -17,7 +17,7 @@
 package org.bithon.agent.core.aop;
 
 
-import org.bithon.agent.core.config.AgentConfiguration;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
@@ -44,7 +44,7 @@ public class AopDebugger extends AopTransformationListener {
     public static final boolean IS_DEBUG_ENABLED;
 
     static {
-        IS_DEBUG_ENABLED = AgentConfiguration.getInstance().getConfig(AopConfig.class).isDebug();
+        IS_DEBUG_ENABLED = ConfigurationManager.getInstance().getConfig(AopConfig.class).isDebug();
 
         CLASS_FILE_DIR = new File(AgentContext.getInstance().getAgentDirectory()
                                   + separator

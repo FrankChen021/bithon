@@ -20,7 +20,7 @@ import org.bithon.agent.bootstrap.loader.AgentClassLoader;
 import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.controller.cmd.IAgentCommand;
 import org.bithon.agent.controller.setting.AgentSettingManager;
-import org.bithon.agent.core.config.AgentConfiguration;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.starter.IAgentLifeCycle;
 import org.bithon.component.commons.logging.ILogAdaptor;
@@ -40,7 +40,7 @@ public class AgentControllerLifeCycle implements IAgentLifeCycle {
     public void start(AgentContext context) throws Exception {
         LOG.info("Initializing agent controller");
 
-        AgentControllerConfig ctrlConfig = AgentConfiguration.getInstance().getConfig(AgentControllerConfig.class);
+        AgentControllerConfig ctrlConfig = ConfigurationManager.getInstance().getConfig(AgentControllerConfig.class);
         if (ctrlConfig == null || StringUtils.isEmpty(ctrlConfig.getClient())) {
             LOG.warn("Agent Controller has not configured.");
             return;
