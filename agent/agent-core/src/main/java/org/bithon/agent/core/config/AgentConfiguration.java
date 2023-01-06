@@ -18,6 +18,7 @@ package org.bithon.agent.core.config;
 
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.context.AgentContext;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,25 +33,48 @@ import static java.io.File.separator;
  */
 public class AgentConfiguration {
 
-    private static Configuration INSTANCE;
+    private static AgentConfiguration INSTANCE;
 
-    public static Configuration getInstance() {
+    public AgentConfiguration(Configuration configuration) {
+        this.configuration = configuration;
+    }
+
+    public static AgentConfiguration getInstance() {
         return INSTANCE;
     }
 
-    public static Configuration create(String agentDirectory) {
+    public static AgentConfiguration create(String agentDirectory) {
         File staticConfig = new File(agentDirectory + separator + AgentContext.CONF_DIR + separator + "agent.yml");
         try (FileInputStream is = new FileInputStream(staticConfig)) {
-            INSTANCE = Configuration.create(staticConfig.getAbsolutePath(),
-                                            is,
-                                            "bithon.",
-                                            AgentContext.BITHON_APPLICATION_NAME,
-                                            AgentContext.BITHON_APPLICATION_ENV);
+            INSTANCE = new AgentConfiguration(Configuration.create(staticConfig.getAbsolutePath(),
+                                                                   is,
+                                                                   "bithon.",
+                                                                   AgentContext.BITHON_APPLICATION_NAME,
+                                                                   AgentContext.BITHON_APPLICATION_ENV));
             return INSTANCE;
         } catch (FileNotFoundException e) {
             throw new AgentException("Unable to find static config at [%s]", staticConfig.getAbsolutePath());
         } catch (IOException e) {
             throw new AgentException("Unexpected IO exception occurred: %s", e.getMessage());
         }
+    }
+
+    private final Configuration configuration;
+
+    public <T> T getConfig(Class<T> clazz) {
+        ConfigurationProperties cfg = clazz.getAnnotation(ConfigurationProperties.class);
+        if (cfg != null && !StringUtils.isEmpty(cfg.prefix())) {
+            return getConfig(cfg.prefix(), clazz);
+        } else {
+            throw new AgentException("Class [%s] does not have valid ConfigurationProperties.", clazz.getName());
+        }
+    }
+
+    public <T> T getConfig(String prefixes, Class<T> clazz) {
+        return configuration.getConfig(prefixes, clazz);
+    }
+
+    public void addConfiguration(Configuration pluginConfiguration) {
+        configuration.merge(pluginConfiguration);
     }
 }

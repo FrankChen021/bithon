@@ -108,7 +108,7 @@ public class PluginManager {
             }
 
             // Merge the plugin configuration into agent configuration first so that the plugin initialization can obtain its configuration
-            AgentConfiguration.getInstance().merge(pluginConfiguration);
+            AgentConfiguration.getInstance().addConfiguration(pluginConfiguration);
 
             LOG.info("Found plugin {}", pluginClass.getSimpleName());
             return (IPlugin) pluginClass.getDeclaredConstructor().newInstance();

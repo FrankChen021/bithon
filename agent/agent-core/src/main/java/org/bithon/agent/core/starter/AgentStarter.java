@@ -22,6 +22,7 @@ import org.bithon.agent.bootstrap.loader.AgentClassLoader;
 import org.bithon.agent.core.aop.InstrumentationHelper;
 import org.bithon.agent.core.aop.installer.InterceptorInstaller;
 import org.bithon.agent.core.config.AgentConfiguration;
+import org.bithon.agent.core.config.AppConfiguration;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
@@ -74,7 +75,9 @@ public class AgentStarter {
                         .sorted()
                         .forEach(name -> log.info("Found lib {}", name));
 
-        AgentContext agentContext = AgentContext.createInstance(agentPath, AgentConfiguration.create(agentPath));
+        AgentConfiguration.create(agentPath);
+        AgentContext agentContext = AgentContext.createInstance(agentPath,
+                                                                AgentConfiguration.getInstance().getConfig(AppConfiguration.class));
 
         final PluginManager pluginManager = new PluginManager(agentContext);
 

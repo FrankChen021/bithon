@@ -17,7 +17,6 @@
 package org.bithon.agent.core.context;
 
 import org.bithon.agent.core.config.AppConfiguration;
-import org.bithon.agent.core.config.Configuration;
 
 /**
  * @author frank.chen021@outlook.com
@@ -34,10 +33,10 @@ public class AgentContext {
     private String agentDirectory;
     private AppInstance appInstance;
 
-    public static AgentContext createInstance(String agentPath, Configuration agentConfiguration) {
+    public static AgentContext createInstance(String agentPath, AppConfiguration appConfiguration) {
         INSTANCE = new AgentContext();
         INSTANCE.agentDirectory = agentPath;
-        INSTANCE.appInstance = new AppInstance(agentConfiguration.getConfig(AppConfiguration.class));
+        INSTANCE.appInstance = new AppInstance(appConfiguration);
         return INSTANCE;
     }
 
