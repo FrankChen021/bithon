@@ -24,6 +24,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.io.File.separator;
 
@@ -34,10 +36,6 @@ import static java.io.File.separator;
 public class AgentConfiguration {
 
     private static AgentConfiguration INSTANCE;
-
-    public AgentConfiguration(Configuration configuration) {
-        this.configuration = configuration;
-    }
 
     public static AgentConfiguration getInstance() {
         return INSTANCE;
@@ -60,21 +58,46 @@ public class AgentConfiguration {
     }
 
     private final Configuration configuration;
+    private final Map<String, Object> configurationBeans = new ConcurrentHashMap<>(19);
+
+    public AgentConfiguration(Configuration configuration) {
+        this.configuration = configuration;
+    }
+
+    /**
+     * @return false is the plugin is disabled by configuration
+     */
+    public boolean loadPluginConfiguration(Class<?> pluginClass) {
+        Configuration pluginConfiguration = PluginConfiguration.load(pluginClass);
+        if (!pluginConfiguration.isEmpty()) {
+            String pluginConfigurationPrefix = PluginConfiguration.getPluginConfigurationPrefixName(pluginClass.getName());
+
+            Boolean isPluginDisabled = pluginConfiguration.getConfig(pluginConfigurationPrefix + ".disabled",
+                                                                     Boolean.class);
+            if (isPluginDisabled != null && isPluginDisabled) {
+                return false;
+            }
+        }
+
+        // Merge the plugin configuration into agent configuration first so that the plugin initialization can obtain its configuration
+        configuration.merge(pluginConfiguration);
+
+        return true;
+    }
 
     public <T> T getConfig(Class<T> clazz) {
         ConfigurationProperties cfg = clazz.getAnnotation(ConfigurationProperties.class);
-        if (cfg != null && !StringUtils.isEmpty(cfg.prefix())) {
-            return getConfig(cfg.prefix(), clazz);
-        } else {
+        if (cfg == null || StringUtils.isEmpty(cfg.prefix())) {
             throw new AgentException("Class [%s] does not have valid ConfigurationProperties.", clazz.getName());
         }
+
+        return getConfig(cfg.prefix(), clazz);
     }
 
     public <T> T getConfig(String prefixes, Class<T> clazz) {
-        return configuration.getConfig(prefixes, clazz);
-    }
-
-    public void addConfiguration(Configuration pluginConfiguration) {
-        configuration.merge(pluginConfiguration);
+        if (clazz.isPrimitive()) {
+            return configuration.getConfig(prefixes, clazz);
+        }
+        return (T) configurationBeans.computeIfAbsent(prefixes, (k) -> configuration.getConfig(prefixes, clazz));
     }
 }

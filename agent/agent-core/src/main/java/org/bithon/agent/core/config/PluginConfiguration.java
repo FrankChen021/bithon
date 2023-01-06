@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.plugin;
+package org.bithon.agent.core.config;
 
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.config.Configuration;
@@ -51,6 +51,7 @@ class PluginConfiguration {
         }
 
         if (!pluginConfiguration.isEmpty() && !pluginConfiguration.validate(pluginConfigurationPrefix)) {
+            // Dump file content if it's invalid
             StringBuilder config = new StringBuilder(128);
             try {
                 try (InputStream stream = pluginClass.getClassLoader().getResourceAsStream(configFormat)) {

@@ -20,7 +20,6 @@ import org.bithon.agent.bootstrap.loader.JarClassLoader;
 import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.core.aop.descriptor.Descriptors;
 import org.bithon.agent.core.config.AgentConfiguration;
-import org.bithon.agent.core.config.Configuration;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -95,20 +94,10 @@ public class PluginManager {
                 return null;
             }
 
-            Configuration pluginConfiguration = PluginConfiguration.load(pluginClass);
-            if (!pluginConfiguration.isEmpty()) {
-                String pluginConfigurationPrefix = PluginConfiguration.getPluginConfigurationPrefixName(pluginFullClassName);
-
-                Boolean isPluginDisabled = pluginConfiguration.getConfig(pluginConfigurationPrefix + ".disabled",
-                                                                         Boolean.class);
-                if (isPluginDisabled != null && isPluginDisabled) {
-                    LOG.info("Found plugin {}, but it's DISABLED by configuration", pluginClass.getSimpleName());
-                    return null;
-                }
+            if (!AgentConfiguration.getInstance().loadPluginConfiguration(pluginClass)) {
+                LOG.info("Found plugin {}, but it's DISABLED by configuration", pluginClass.getSimpleName());
+                return null;
             }
-
-            // Merge the plugin configuration into agent configuration first so that the plugin initialization can obtain its configuration
-            AgentConfiguration.getInstance().addConfiguration(pluginConfiguration);
 
             LOG.info("Found plugin {}", pluginClass.getSimpleName());
             return (IPlugin) pluginClass.getDeclaredConstructor().newInstance();

@@ -51,7 +51,7 @@ public class AgentSettingManager {
     private final Map<String, List<IAgentSettingRefreshListener>> listeners;
     private Long lastModifiedAt = 0L;
     private Map<String, JsonNode> latestSettings = Collections.emptyMap();
-    private ObjectMapper om;
+    private final ObjectMapper om;
 
     private AgentSettingManager(String appName, String env, IAgentController controller) {
         this.appName = appName;
