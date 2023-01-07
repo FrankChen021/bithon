@@ -21,7 +21,7 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.tracing.Tracer;
-import org.bithon.agent.core.tracing.config.TraceConfig;
+import org.bithon.agent.core.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextFactory;
@@ -40,7 +40,7 @@ public class BrpcMethodInterceptor extends AbstractInterceptor {
 
     private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
                                                                                       .getDynamicConfig("tracing.samplingConfigs.brpc",
-                                                                                                        TraceConfig.SamplingConfig.class));
+                                                                                                        TraceSamplingConfig.class));
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {

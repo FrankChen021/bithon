@@ -21,7 +21,7 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.bytecode.ClassCopier;
 import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.tracing.config.TraceConfig;
+import org.bithon.agent.core.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.core.tracing.propagation.extractor.ChainedTraceContextExtractor;
 import org.bithon.agent.core.tracing.propagation.extractor.ITraceContextExtractor;
 import org.bithon.agent.core.tracing.sampler.SamplerFactory;
@@ -55,7 +55,7 @@ public class ServerImplBuilder$Build extends AbstractInterceptor {
         shadedGrpcList = ConfigurationManager.getInstance().getConfig(ShadedGrpcList.class);
         contextExtractor = new ChainedTraceContextExtractor(SamplerFactory.createSampler(ConfigurationManager.getInstance()
                                                                                                              .getDynamicConfig("tracing.samplingConfigs.grpc",
-                                                                                                                               TraceConfig.SamplingConfig.class)));
+                                                                                                                               TraceSamplingConfig.class)));
     }
 
     @Override

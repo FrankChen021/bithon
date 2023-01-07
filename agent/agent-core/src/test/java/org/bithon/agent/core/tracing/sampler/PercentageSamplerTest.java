@@ -16,7 +16,7 @@
 
 package org.bithon.agent.core.tracing.sampler;
 
-import org.bithon.agent.core.tracing.config.TraceConfig;
+import org.bithon.agent.core.tracing.config.TraceSamplingConfig;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -27,7 +27,7 @@ import org.junit.Test;
 public class PercentageSamplerTest {
 
     private ISampler createSampler(int rate) {
-        TraceConfig.SamplingConfig config = new TraceConfig.SamplingConfig();
+        TraceSamplingConfig config = new TraceSamplingConfig();
         config.setSamplingRate(rate);
         return new PercentageSampler(config);
     }

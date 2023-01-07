@@ -17,7 +17,6 @@
 package org.bithon.agent.core.tracing.config;
 
 import org.bithon.agent.core.config.ConfigurationProperties;
-import org.bithon.agent.core.config.validation.Range;
 
 import java.util.Collections;
 import java.util.List;
@@ -29,32 +28,6 @@ import java.util.Map;
  */
 @ConfigurationProperties(prefix = "tracing")
 public class TraceConfig {
-
-    public static class SamplingConfig {
-        /**
-         * in range of [0, 100]
-         */
-        @Range(min = 0, max = 100)
-        private int samplingRate = 0;
-
-        private boolean disabled = false;
-
-        public int getSamplingRate() {
-            return samplingRate;
-        }
-
-        public void setSamplingRate(int samplingRate) {
-            this.samplingRate = samplingRate;
-        }
-
-        public boolean isDisabled() {
-            return disabled;
-        }
-
-        public void setDisabled(boolean disabled) {
-            this.disabled = disabled;
-        }
-    }
 
     public static class HeaderConfig {
         private List<String> request = Collections.emptyList();
@@ -75,20 +48,6 @@ public class TraceConfig {
         public void setResponse(List<String> response) {
             this.response = response;
         }
-    }
-
-    /**
-     * Sampling configuration for different entries
-     * key: entry name. Such as web/quartz/spring-scheduler
-     */
-    private Map<String, SamplingConfig> samplingConfigs = Collections.emptyMap();
-
-    public Map<String, SamplingConfig> getSamplingConfigs() {
-        return samplingConfigs;
-    }
-
-    public void setSamplingConfigs(Map<String, SamplingConfig> samplingConfigs) {
-        this.samplingConfigs = samplingConfigs;
     }
 
     /**

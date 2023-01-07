@@ -16,7 +16,7 @@
 
 package org.bithon.agent.core.tracing.sampler;
 
-import org.bithon.agent.core.tracing.config.TraceConfig;
+import org.bithon.agent.core.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.core.utils.lang.MathUtils;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -29,14 +29,14 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class PercentageSampler implements ISampler {
     private final AtomicLong counter = new AtomicLong();
-    private final TraceConfig.SamplingConfig samplingConfig;
+    private final TraceSamplingConfig samplingConfig;
 
     /**
      * Holding SamplingConfig object so that it supports dynamic configuration
      *
      * @param samplingConfig [1, 100]
      */
-    public PercentageSampler(TraceConfig.SamplingConfig samplingConfig) {
+    public PercentageSampler(TraceSamplingConfig samplingConfig) {
         this.samplingConfig = samplingConfig;
     }
 

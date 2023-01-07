@@ -21,7 +21,7 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.tracing.Tracer;
-import org.bithon.agent.core.tracing.config.TraceConfig;
+import org.bithon.agent.core.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.core.tracing.context.TraceContextFactory;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
@@ -41,7 +41,7 @@ import org.bithon.agent.core.tracing.sampler.SamplingMode;
 public class DelegatingErrorHandlingRunnable$Run extends AbstractInterceptor {
     private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
                                                                                       .getDynamicConfig("tracing.samplingConfigs.spring-scheduler",
-                                                                                                        TraceConfig.SamplingConfig.class));
+                                                                                                        TraceSamplingConfig.class));
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {

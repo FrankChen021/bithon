@@ -21,7 +21,7 @@ import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
-import org.bithon.agent.core.tracing.config.TraceConfig;
+import org.bithon.agent.core.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.core.tracing.id.ITraceIdGenerator;
@@ -68,7 +68,7 @@ public class Tracer {
                     try {
                         ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
                                                                                             .getDynamicConfig("tracing.samplingConfigs.default",
-                                                                                                              TraceConfig.SamplingConfig.class));
+                                                                                                              TraceSamplingConfig.class));
                         INSTANCE = new Tracer(appInstance.getQualifiedAppName(), appInstance.getHostAndPort())
                             .propagator(new DefaultPropagator(sampler))
                             .traceIdGenerator(new UUIDGenerator())

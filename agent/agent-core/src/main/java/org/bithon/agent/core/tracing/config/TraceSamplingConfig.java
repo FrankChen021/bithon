@@ -14,16 +14,26 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.sampler;
+package org.bithon.agent.core.tracing.config;
 
-import org.bithon.agent.core.tracing.config.TraceSamplingConfig;
+import org.bithon.agent.core.config.validation.Range;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/8/7 18:04
+ * @date 2023/1/7 20:27
  */
-public class SamplerFactory {
-    public static ISampler createSampler(TraceSamplingConfig samplingConfig) {
-        return new PercentageSampler(samplingConfig);
+public class TraceSamplingConfig {
+    /**
+     * in range of [0, 100]
+     */
+    @Range(min = 0, max = 100)
+    private int samplingRate = 0;
+
+    public int getSamplingRate() {
+        return samplingRate;
+    }
+
+    public void setSamplingRate(int samplingRate) {
+        this.samplingRate = samplingRate;
     }
 }
