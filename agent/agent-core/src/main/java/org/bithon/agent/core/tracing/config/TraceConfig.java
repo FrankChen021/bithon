@@ -20,7 +20,6 @@ import org.bithon.agent.core.config.ConfigurationProperties;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
