@@ -16,11 +16,15 @@
 
 package org.bithon.server.collector.cmd.api;
 
+import lombok.Data;
+import org.bithon.agent.rpc.brpc.cmd.IConfigCommand;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.component.brpc.channel.ServerChannel;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.collector.cmd.service.CommandService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -102,6 +106,31 @@ public class CommandApi {
             return CommandResponse.success(new TreeSet<>(command.dumpClazz(pattern)));
         } catch (ServiceInvocationException e) {
             return CommandResponse.exception(e);
+        }
+    }
+
+    @Data
+    static class GetConfigurationRequest {
+        private String format;
+        private boolean pretty;
+    }
+
+    @PostMapping("/api/command/config/get")
+    public ResponseEntity<String> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args) {
+        IConfigCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IConfigCommand.class);
+        if (command == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                 .header("Content-Type", "application/text")
+                                 .body(StringUtils.format("client by id [%s] not found", args.getAppId()));
+        }
+        try {
+            return ResponseEntity.status(HttpStatus.OK)
+                                 .header("Content-Type", "application/text")
+                                 .body(command.getConfiguration(args.getArgs().getFormat(), args.getArgs().isPretty()));
+        } catch (ServiceInvocationException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .header("Content-Type", "application/text")
+                                 .body(e.getMessage());
         }
     }
 }

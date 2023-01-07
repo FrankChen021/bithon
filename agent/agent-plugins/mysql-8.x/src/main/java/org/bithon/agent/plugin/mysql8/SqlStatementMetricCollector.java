@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.mysql8;
 
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.controller.setting.AgentSettingManager;
-import org.bithon.agent.controller.setting.IAgentSettingRefreshListener;
+import org.bithon.agent.controller.config.DynamicConfigurationManager;
+import org.bithon.agent.controller.config.IAgentSettingRefreshListener;
 import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector;
@@ -58,7 +58,7 @@ public class SqlStatementMetricCollector implements IMetricCollector, IAgentSett
             log.error("druid counter init failed due to ", e);
         }
 
-        AgentSettingManager.getInstance().register("sql", this);
+        DynamicConfigurationManager.getInstance().register("sql", this);
     }
 
     static SqlStatementMetricCollector getInstance() {

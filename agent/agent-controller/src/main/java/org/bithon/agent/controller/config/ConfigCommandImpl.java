@@ -14,19 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller.setting;
+package org.bithon.agent.controller.config;
 
-import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
-import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.agent.core.config.ConfigurationManager;
+import org.bithon.agent.rpc.brpc.cmd.IConfigCommand;
 
 /**
- * @author frankchen
- * @date 2020-05-27 14:41:22
+ * @author frank.chen021@outlook.com
+ * @date 2023/1/7 17:33
  */
-public interface IAgentSettingRefreshListener {
-    /**
-     * om.treeToValue(configNode, YourPojo.class)
-     * om.readValue(configNode, YourPojo.class)
-     */
-    void onRefresh(ObjectMapper om, JsonNode configNode);
+public class ConfigCommandImpl implements IConfigCommand {
+    @Override
+    public String getConfiguration(String format, boolean prettyFormat) {
+        return ConfigurationManager.getInstance().format(format.toLowerCase(), prettyFormat);
+    }
 }

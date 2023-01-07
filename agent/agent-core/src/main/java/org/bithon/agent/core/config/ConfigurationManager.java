@@ -174,5 +174,7 @@ public class ConfigurationManager {
         });
     }
 
-
+    public String format(String format, boolean prettyFormat) {
+        return configuration.format(format, prettyFormat);
+    }
 }

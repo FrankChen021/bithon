@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.setting;
+package org.bithon.server.collector.config;
 
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
@@ -27,14 +27,15 @@ import java.util.Map;
  */
 public class BrpcSettingFetcher implements ISettingFetcher {
 
-    private final AgentSettingService settingService;
+    private final AgentConfigurationService settingService;
 
-    public BrpcSettingFetcher(AgentSettingService settingService) {
+    public BrpcSettingFetcher(AgentConfigurationService settingService) {
         this.settingService = settingService;
     }
 
     @Override
     public Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince) {
-        return settingService.getSettings(header.getAppName(), header.getEnv(), lastModifiedSince);
+        // Always fetch all configuration by setting 'since' parameter to 0
+        return settingService.getSettings(header.getAppName(), header.getEnv(), 0);
     }
 }

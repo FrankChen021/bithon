@@ -14,32 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller;
+package org.bithon.agent.controller.config;
 
-import org.bithon.agent.core.config.ConfigurationProperties;
+import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
+import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/1/16 2:48 下午
+ * @author frankchen
+ * @date 2020-05-27 14:41:22
  */
-@ConfigurationProperties(prefix = "controller", dynamic = false)
-public class AgentControllerConfig {
-    private String client;
-    private String servers;
-
-    public String getClient() {
-        return client;
-    }
-
-    public void setClient(String client) {
-        this.client = client;
-    }
-
-    public String getServers() {
-        return servers;
-    }
-
-    public void setServers(String servers) {
-        this.servers = servers;
-    }
+public interface IAgentSettingRefreshListener {
+    /**
+     * om.treeToValue(configNode, YourPojo.class)
+     * om.readValue(configNode, YourPojo.class)
+     */
+    void onRefresh(ObjectMapper om, JsonNode configNode);
 }

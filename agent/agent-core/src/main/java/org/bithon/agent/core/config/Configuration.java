@@ -19,9 +19,11 @@ package org.bithon.agent.core.config;
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.config.validation.Validator;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 import org.bithon.shaded.com.fasterxml.jackson.databind.DeserializationFeature;
 import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.shaded.com.fasterxml.jackson.databind.SerializationFeature;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.ObjectNode;
@@ -114,8 +116,8 @@ public class Configuration {
         return to;
     }
 
-    private static JsonNode readStaticConfiguration(String configFileFormat, InputStream configFile) {
-        if (configFile == null) {
+    public static JsonNode readStaticConfiguration(String configFileFormat, InputStream configStream) {
+        if (configStream == null) {
             return new ObjectNode(new JsonNodeFactory(true));
         }
 
@@ -133,7 +135,7 @@ public class Configuration {
         try {
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-            return mapper.readTree(configFile);
+            return mapper.readTree(configStream);
         } catch (IOException e) {
             throw new AgentException("Failed to read property from static file[%s]:%s",
                                      configFileFormat,
@@ -325,5 +327,28 @@ public class Configuration {
         }
 
         return value;
+    }
+
+    public String format(String format, boolean prettyFormat) {
+        ObjectMapper mapper;
+        if ("yaml".equals(format) || "yml".equals(format)) {
+            mapper = new ObjectMapper(new YAMLFactory());
+        } else if ("properties".equals(format)) {
+            mapper = new JavaPropsMapper();
+        } else if ("json".equals(format)) {
+            mapper = new ObjectMapper();
+        } else {
+            throw new AgentException("Unknown format: %s", format);
+        }
+
+        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        if (prettyFormat) {
+            mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+        }
+        try {
+            return mapper.writeValueAsString(this.configurationNode);
+        } catch (JsonProcessingException e) {
+            throw new AgentException(e);
+        }
     }
 }

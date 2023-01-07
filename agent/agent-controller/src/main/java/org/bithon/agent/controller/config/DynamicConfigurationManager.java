@@ -14,23 +14,32 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller.setting;
+package org.bithon.agent.controller.config;
 
 
 import org.bithon.agent.controller.IAgentController;
+import org.bithon.agent.core.config.Configuration;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.shaded.com.fasterxml.jackson.databind.DeserializationFeature;
 import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,10 +49,10 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author frank.chen021@outlook.com
  */
-public class AgentSettingManager {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(AgentSettingManager.class);
+public class DynamicConfigurationManager {
+    private static final ILogAdaptor log = LoggerFactory.getLogger(DynamicConfigurationManager.class);
 
-    private static AgentSettingManager INSTANCE = null;
+    private static DynamicConfigurationManager INSTANCE = null;
 
     private final String appName;
     private final String env;
@@ -51,9 +60,11 @@ public class AgentSettingManager {
     private final Map<String, List<IAgentSettingRefreshListener>> listeners;
     private Long lastModifiedAt = 0L;
     private Map<String, JsonNode> latestSettings = Collections.emptyMap();
+    private final Map<String, String> configSignatures = new HashMap<>();
+
     private final ObjectMapper om;
 
-    private AgentSettingManager(String appName, String env, IAgentController controller) {
+    private DynamicConfigurationManager(String appName, String env, IAgentController controller) {
         this.appName = appName;
         this.env = env;
         this.controller = controller;
@@ -61,14 +72,15 @@ public class AgentSettingManager {
         this.om = new ObjectMapper();
         om.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
         om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.controller.attachCommands(new ConfigCommandImpl());
     }
 
     public static void createInstance(String appName, String env, IAgentController controller) {
-        INSTANCE = new AgentSettingManager(appName, env, controller);
+        INSTANCE = new DynamicConfigurationManager(appName, env, controller);
         INSTANCE.startPeriodicallyFetch();
     }
 
-    public static AgentSettingManager getInstance() {
+    public static DynamicConfigurationManager getInstance() {
         return INSTANCE;
     }
 
@@ -86,7 +98,7 @@ public class AgentSettingManager {
                 @Override
                 public void run() {
                     try {
-                        fetchSettings();
+                        retrieveConfigurations();
                     } catch (Throwable e) {
                         log.error("Failed to fetch plugin settings", e);
                     }
@@ -95,39 +107,54 @@ public class AgentSettingManager {
         }
     }
 
-    private void fetchSettings() {
-        log.info("Fetch setting for {}-{}", appName, env);
+    private void retrieveConfigurations() throws IOException {
+        log.info("Fetch configuration for {}-{}", appName, env);
 
-        Map<String, String> settings = controller.fetch(appName, env, lastModifiedAt);
-        if (CollectionUtils.isEmpty(settings)) {
+        // Get configuration from remote server
+        Map<String, String> configurations = controller.fetch(appName, env, lastModifiedAt);
+        if (CollectionUtils.isEmpty(configurations)) {
             return;
         }
 
         Map<String, JsonNode> latestSettings = new HashMap<>();
-        settings.forEach((sectionName, settingString) -> {
-            List<IAgentSettingRefreshListener> listeners = this.listeners.get(sectionName);
-            if (CollectionUtils.isEmpty(listeners)) {
-                return;
+        for (Map.Entry<String, String> entry : configurations.entrySet()) {
+            String name = entry.getKey();
+            String text = entry.getValue();
+
+            // Compare signature to determine if the configuration changes
+            String signature = HashGenerator.sha256Hex(text);
+            if (configSignatures.getOrDefault(name, "").equals(signature)) {
+                continue;
             }
 
-            JsonNode configNode;
-            try {
-                configNode = om.readTree(settingString);
-            } catch (Exception e) {
-                log.warn("Can't deserialize setting for {}.\n{}", sectionName, settingString);
-                return;
-            }
+            log.info("Refresh configuration [{}]", name);
+            configSignatures.put(name, signature);
 
-            latestSettings.put(sectionName, configNode);
+            try (InputStream is = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))) {
+                JsonNode configNode = Configuration.readStaticConfiguration(".json", is);
 
-            for (IAgentSettingRefreshListener listener : listeners) {
-                try {
-                    listener.onRefresh(om, configNode);
-                } catch (Exception e) {
-                    log.warn(String.format(Locale.ENGLISH, "Exception when refresh setting %s.%n%s", sectionName, settingString), e);
+                // Refresh global configuration
+                ConfigurationManager.getInstance().refresh(new Configuration(configNode));
+
+                List<IAgentSettingRefreshListener> listeners = this.listeners.get(name);
+                if (CollectionUtils.isEmpty(listeners)) {
+                    continue;
+                }
+                for (IAgentSettingRefreshListener listener : listeners) {
+                    try {
+                        listener.onRefresh(om, configNode);
+                    } catch (Exception e) {
+                        log.warn(String.format(Locale.ENGLISH, "Exception when refresh setting %s.%n%s", name, text), e);
+                    }
                 }
             }
-        });
+        }
+
+        Set<String> notExistConfigs = new HashSet<>(configSignatures.keySet());
+        notExistConfigs.removeAll(configurations.keySet());
+
+        // TODO: Remove
+
         this.latestSettings = latestSettings;
         this.lastModifiedAt = System.currentTimeMillis();
     }

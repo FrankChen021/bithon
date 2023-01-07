@@ -19,7 +19,7 @@ package org.bithon.agent.controller;
 import org.bithon.agent.bootstrap.loader.AgentClassLoader;
 import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.controller.cmd.IAgentCommand;
-import org.bithon.agent.controller.setting.AgentSettingManager;
+import org.bithon.agent.controller.config.DynamicConfigurationManager;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.starter.IAgentLifeCycle;
@@ -65,9 +65,9 @@ public class AgentControllerLifeCycle implements IAgentLifeCycle {
         //
         // start fetcher
         //
-        AgentSettingManager.createInstance(context.getAppInstance().getAppName(),
-                                           context.getAppInstance().getEnv(),
-                                           controller);
+        DynamicConfigurationManager.createInstance(context.getAppInstance().getAppName(),
+                                                   context.getAppInstance().getEnv(),
+                                                   controller);
     }
 
     @Override

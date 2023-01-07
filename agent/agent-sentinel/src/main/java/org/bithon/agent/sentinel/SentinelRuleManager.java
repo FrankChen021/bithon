@@ -16,8 +16,8 @@
 
 package org.bithon.agent.sentinel;
 
-import org.bithon.agent.controller.setting.AgentSettingManager;
-import org.bithon.agent.controller.setting.IAgentSettingRefreshListener;
+import org.bithon.agent.controller.config.DynamicConfigurationManager;
+import org.bithon.agent.controller.config.IAgentSettingRefreshListener;
 import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
 import org.bithon.agent.sentinel.expt.SentinelCommandException;
 import org.bithon.agent.sentinel.flow.FlowRuleDto;
@@ -74,14 +74,14 @@ public class SentinelRuleManager {
     }
 
     private SentinelRuleManager() {
-        AgentSettingManager manager = AgentSettingManager.getInstance();
+        DynamicConfigurationManager manager = DynamicConfigurationManager.getInstance();
         FlowRuleRefreshListener flowRuleListener = new FlowRuleRefreshListener();
         manager.register("flowRules", flowRuleListener);
 
         DegradingRuleRefreshListener degradeRuleListener = new DegradingRuleRefreshListener();
         manager.register("degradingRules", degradeRuleListener);
 
-        Map<String, JsonNode> latestSettings = AgentSettingManager.getInstance().getLatestSettings();
+        Map<String, JsonNode> latestSettings = DynamicConfigurationManager.getInstance().getLatestSettings();
         JsonNode flowRuleNodes = latestSettings.get("flowRules");
         if (flowRuleNodes != null) {
             flowRuleListener.onRefresh(manager.getObjectMapper(), flowRuleNodes);
