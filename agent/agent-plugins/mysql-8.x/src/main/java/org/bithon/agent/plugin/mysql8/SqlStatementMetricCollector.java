@@ -17,8 +17,6 @@
 package org.bithon.agent.plugin.mysql8;
 
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.controller.config.DynamicConfigurationManager;
-import org.bithon.agent.controller.config.IAgentSettingRefreshListener;
 import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector;
@@ -29,8 +27,6 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.shaded.com.alibaba.druid.sql.visitor.ParameterizedOutputVisitorUtils;
 import org.bithon.shaded.com.alibaba.druid.util.JdbcConstants;
-import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
-import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -44,7 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author frankchen
  */
-public class SqlStatementMetricCollector implements IMetricCollector, IAgentSettingRefreshListener {
+public class SqlStatementMetricCollector implements IMetricCollector {
     private static final ILogAdaptor log = LoggerFactory.getLogger(SqlStatementMetricCollector.class);
     private static final String MYSQL_COUNTER_NAME = "mysql8_sql_stats";
     private static SqlStatementMetricCollector INSTANCE;
@@ -57,8 +53,6 @@ public class SqlStatementMetricCollector implements IMetricCollector, IAgentSett
         } catch (Exception e) {
             log.error("druid counter init failed due to ", e);
         }
-
-        DynamicConfigurationManager.getInstance().register("sql", this);
     }
 
     static SqlStatementMetricCollector getInstance() {
@@ -131,13 +125,5 @@ public class SqlStatementMetricCollector implements IMetricCollector, IAgentSett
             });
         });
         return messages;
-    }
-
-    @Override
-    public void onRefresh(ObjectMapper om, JsonNode configNode) {
-        JsonNode val = configNode.get("sqlTime");
-        if (val.isNumber()) {
-            this.sqlTimeThreshold = val.asInt();
-        }
     }
 }

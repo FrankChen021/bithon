@@ -17,8 +17,6 @@
 package org.bithon.agent.plugin.mysql.metrics;
 
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.controller.config.DynamicConfigurationManager;
-import org.bithon.agent.controller.config.IAgentSettingRefreshListener;
 import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector;
@@ -28,8 +26,6 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.shaded.com.alibaba.druid.sql.visitor.ParameterizedOutputVisitorUtils;
 import org.bithon.shaded.com.alibaba.druid.util.JdbcConstants;
-import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
-import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,11 +36,13 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author frankchen
  */
-public class StatementMetricCollector implements IMetricCollector, IAgentSettingRefreshListener {
+public class StatementMetricCollector implements IMetricCollector {
     private static final ILogAdaptor log = LoggerFactory.getLogger(StatementMetricCollector.class);
     private static final String MYSQL_COUNTER_NAME = "sql_stats";
     private static volatile StatementMetricCollector INSTANCE;
     private final Map<String, Map<String, SQLStatementMetrics>> metricMap = new ConcurrentHashMap<>();
+
+    // TODO: Turn into dynamic configuration
     private long sqlTime = 1000;
 
     private StatementMetricCollector() {
@@ -53,8 +51,6 @@ public class StatementMetricCollector implements IMetricCollector, IAgentSetting
         } catch (Exception e) {
             log.error("druid counter init failed due to ", e);
         }
-
-        DynamicConfigurationManager.getInstance().register("sql", this);
     }
 
     static StatementMetricCollector getInstance() {
@@ -66,14 +62,6 @@ public class StatementMetricCollector implements IMetricCollector, IAgentSetting
             }
         }
         return INSTANCE;
-    }
-
-    @Override
-    public void onRefresh(ObjectMapper om, JsonNode configNode) {
-        JsonNode val = configNode.get("sqlTime");
-        if (val.isNumber()) {
-            this.sqlTime = val.asInt();
-        }
     }
 
     public void sqlStats(AopContext aopContext,

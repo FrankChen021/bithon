@@ -30,6 +30,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.io.File.separator;
@@ -105,11 +106,11 @@ public class ConfigurationManager {
      *
      * @param newConfiguration incremental new configuration
      */
-    public void refresh(Configuration newConfiguration) {
+    public Set<String> refresh(Configuration newConfiguration) {
         // Replace the configuration and get the diff
         this.configuration.replace(newConfiguration);
 
-        List<String> changedKeys = newConfiguration.getKeys();
+        Set<String> changedKeys = newConfiguration.getKeys();
 
         // Re-bind the based on changes
         List<String> beanPrefixList = new ArrayList<>(delegatedBeans.keySet());
@@ -133,6 +134,8 @@ public class ConfigurationManager {
                 }
             }
         }
+
+        return changedKeys;
     }
 
     /**
@@ -151,10 +154,10 @@ public class ConfigurationManager {
      * Bind configuration to an object. And if configuration changes, it will reflect on this object
      */
     public <T> T getConfig(String prefixes, Class<T> clazz) {
-        return getConfig(prefixes, clazz, true);
+        return getConfig(prefixes, clazz, false);
     }
 
-    private <T> T getConfig(String prefixes, Class<T> clazz, boolean isDynamic) {
+    public <T> T getConfig(String prefixes, Class<T> clazz, boolean isDynamic) {
         if (clazz.isPrimitive() || !isDynamic) {
             return configuration.getConfig(prefixes, clazz);
         }

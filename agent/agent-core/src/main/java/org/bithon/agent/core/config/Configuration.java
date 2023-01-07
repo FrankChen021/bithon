@@ -33,12 +33,15 @@ import org.bithon.shaded.com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -233,13 +236,13 @@ public class Configuration {
         return true;
     }
 
-    public List<String> getKeys() {
-        List<String> result = new ArrayList<>();
+    public Set<String> getKeys() {
+        Set<String> result = new HashSet<>();
         getKeys(result, new ArrayList<>(), this.configurationNode);
         return result;
     }
 
-    private void getKeys(List<String> result, List<String> path, JsonNode node) {
+    private void getKeys(Set<String> result, List<String> path, JsonNode node) {
         Iterator<String> names = node.fieldNames();
         while (names.hasNext()) {
             String fieldName = names.next();
@@ -269,21 +272,27 @@ public class Configuration {
 
     @SuppressWarnings("unchecked")
     public <T> T getConfig(String prefixes, Class<T> clazz) {
-        return getConfig(prefixes, clazz, () -> {
-            try {
-                if (clazz == Boolean.class) {
-                    //noinspection unchecked
-                    return (T) Boolean.FALSE;
-                }
-                return clazz.getDeclaredConstructor().newInstance();
-            } catch (IllegalAccessException e) {
-                throw new AgentException("Unable create instance for [%s]: %s", clazz.getName(), e.getMessage());
-            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException e) {
-                throw new AgentException("Unable create instance for [%s]: %s",
-                                         clazz.getName(),
-                                         e.getCause().getMessage());
-            }
-        });
+        return getConfig(prefixes,
+                         clazz,
+                         () -> {
+                             // default value provider
+                             try {
+                                 if (clazz == Boolean.class) {
+                                     //noinspection unchecked
+                                     return (T) Boolean.FALSE;
+                                 }
+                                 if (clazz.isArray()) {
+                                     return (T) Array.newInstance(clazz.getComponentType(), 0);
+                                 }
+                                 return clazz.getDeclaredConstructor().newInstance();
+                             } catch (IllegalAccessException e) {
+                                 throw new AgentException("Unable create instance for [%s]: %s", clazz.getName(), e.getMessage());
+                             } catch (NoSuchMethodException | InvocationTargetException | InstantiationException e) {
+                                 throw new AgentException("Unable create instance for [%s]: %s",
+                                                          clazz.getName(),
+                                                          e.getCause() == null ? e.getMessage() : e.getCause().getMessage());
+                             }
+                         });
     }
 
     public <T> T getConfig(String prefixes, Class<T> clazz, Supplier<T> defaultSupplier) {

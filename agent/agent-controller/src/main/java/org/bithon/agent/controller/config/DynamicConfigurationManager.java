@@ -24,9 +24,7 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.shaded.com.fasterxml.jackson.databind.DeserializationFeature;
 import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
-import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -37,12 +35,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Dynamic Setting Manager for Plugins
@@ -57,21 +53,15 @@ public class DynamicConfigurationManager {
     private final String appName;
     private final String env;
     private final IAgentController controller;
-    private final Map<String, List<IAgentSettingRefreshListener>> listeners;
+    private final List<IConfigurationRefreshListener> listeners;
     private Long lastModifiedAt = 0L;
-    private Map<String, JsonNode> latestSettings = Collections.emptyMap();
     private final Map<String, String> configSignatures = new HashMap<>();
-
-    private final ObjectMapper om;
 
     private DynamicConfigurationManager(String appName, String env, IAgentController controller) {
         this.appName = appName;
         this.env = env;
         this.controller = controller;
-        this.listeners = new ConcurrentHashMap<>();
-        this.om = new ObjectMapper();
-        om.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-        om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.listeners = Collections.synchronizedList(new ArrayList<>());
         this.controller.attachCommands(new ConfigCommandImpl());
     }
 
@@ -84,12 +74,8 @@ public class DynamicConfigurationManager {
         return INSTANCE;
     }
 
-    public Map<String, JsonNode> getLatestSettings() {
-        return latestSettings;
-    }
-
-    public void register(String name, IAgentSettingRefreshListener listener) {
-        listeners.computeIfAbsent(name, key -> new ArrayList<>()).add(listener);
+    public void register(IConfigurationRefreshListener listener) {
+        listeners.add(listener);
     }
 
     private void startPeriodicallyFetch() {
@@ -116,7 +102,7 @@ public class DynamicConfigurationManager {
             return;
         }
 
-        Map<String, JsonNode> latestSettings = new HashMap<>();
+        Set<String> changedKeys = new HashSet<>();
         for (Map.Entry<String, String> entry : configurations.entrySet()) {
             String name = entry.getKey();
             String text = entry.getValue();
@@ -133,33 +119,27 @@ public class DynamicConfigurationManager {
             try (InputStream is = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))) {
                 JsonNode configNode = Configuration.readStaticConfiguration(".json", is);
 
-                // Refresh global configuration
-                ConfigurationManager.getInstance().refresh(new Configuration(configNode));
+                // Refresh global configuration and keep the changed keys
+                changedKeys.addAll(ConfigurationManager.getInstance().refresh(new Configuration(configNode)));
+            }
+        }
+        if (changedKeys.isEmpty()) {
+            return;
+        }
 
-                List<IAgentSettingRefreshListener> listeners = this.listeners.get(name);
-                if (CollectionUtils.isEmpty(listeners)) {
-                    continue;
-                }
-                for (IAgentSettingRefreshListener listener : listeners) {
-                    try {
-                        listener.onRefresh(om, configNode);
-                    } catch (Exception e) {
-                        log.warn(String.format(Locale.ENGLISH, "Exception when refresh setting %s.%n%s", name, text), e);
-                    }
-                }
+        List<IConfigurationRefreshListener> listeners = new ArrayList<>(this.listeners);
+        for (IConfigurationRefreshListener listener : listeners) {
+            try {
+                listener.onRefresh(changedKeys);
+            } catch (Exception e) {
+                log.warn("Exception when refresh setting", e);
             }
         }
 
+        // TODO: Remove
         Set<String> notExistConfigs = new HashSet<>(configSignatures.keySet());
         notExistConfigs.removeAll(configurations.keySet());
 
-        // TODO: Remove
-
-        this.latestSettings = latestSettings;
         this.lastModifiedAt = System.currentTimeMillis();
-    }
-
-    public ObjectMapper getObjectMapper() {
-        return om;
     }
 }

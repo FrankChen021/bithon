@@ -19,6 +19,8 @@ package org.bithon.agent.controller.config;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.rpc.brpc.cmd.IConfigCommand;
 
+import java.util.Locale;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/1/7 17:33
@@ -26,6 +28,6 @@ import org.bithon.agent.rpc.brpc.cmd.IConfigCommand;
 public class ConfigCommandImpl implements IConfigCommand {
     @Override
     public String getConfiguration(String format, boolean prettyFormat) {
-        return ConfigurationManager.getInstance().format(format.toLowerCase(), prettyFormat);
+        return ConfigurationManager.getInstance().format(format.toLowerCase(Locale.ENGLISH), prettyFormat);
     }
 }

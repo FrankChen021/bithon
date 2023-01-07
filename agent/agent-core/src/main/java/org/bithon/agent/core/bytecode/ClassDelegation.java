@@ -74,7 +74,7 @@ public class ClassDelegation {
         try {
             defaultCtor = baseClass.getConstructor();
         } catch (NoSuchMethodException e) {
-            throw new AgentException("Configuration class [%s] does not define a default constructor.");
+            throw new AgentException("Configuration class [%s] does not define a default constructor.", baseClass.getName());
         }
 
         ElementMatcher<? super MethodDescription> delegationMethods = ElementMatchers.isMethod()
