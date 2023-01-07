@@ -16,8 +16,6 @@
 
 package org.bithon.agent.core.context;
 
-import org.bithon.agent.core.config.AppConfiguration;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/6 2:18 下午
@@ -33,15 +31,18 @@ public class AgentContext {
     private String agentDirectory;
     private AppInstance appInstance;
 
-    public static AgentContext createInstance(String agentPath, AppConfiguration appConfiguration) {
+    public static AgentContext createInstance(String agentPath) {
         INSTANCE = new AgentContext();
         INSTANCE.agentDirectory = agentPath;
-        INSTANCE.appInstance = new AppInstance(appConfiguration);
         return INSTANCE;
     }
 
     public static AgentContext getInstance() {
         return INSTANCE;
+    }
+
+    public void setAppInstance(AppInstance appInstance) {
+        this.appInstance = appInstance;
     }
 
     public String getAgentDirectory() {

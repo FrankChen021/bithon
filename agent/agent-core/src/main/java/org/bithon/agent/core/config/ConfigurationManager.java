@@ -17,6 +17,8 @@
 package org.bithon.agent.core.config;
 
 import org.bithon.agent.bootstrap.expt.AgentException;
+import org.bithon.agent.core.bytecode.ClassDelegation;
+import org.bithon.agent.core.bytecode.IDelegation;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.component.commons.utils.StringUtils;
 
@@ -24,6 +26,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -57,10 +62,21 @@ public class ConfigurationManager {
         }
     }
 
-    private final Configuration configuration;
-    private final Map<String, Object> configurationBeans = new ConcurrentHashMap<>(19);
+    /**
+     * for test only
+     */
+    static ConfigurationManager create(Configuration configuration) {
+        INSTANCE = new ConfigurationManager(configuration);
+        return INSTANCE;
+    }
 
-    public ConfigurationManager(Configuration configuration) {
+    private final Configuration configuration;
+    /**
+     * the value in the map is actually a dynamic type of {@link IDelegation}
+     */
+    private final Map<String, Object> delegatedBeans = new ConcurrentHashMap<>(19);
+
+    private ConfigurationManager(Configuration configuration) {
         this.configuration = configuration;
     }
 
@@ -72,8 +88,7 @@ public class ConfigurationManager {
         if (!pluginConfiguration.isEmpty()) {
             String pluginConfigurationPrefix = PluginConfiguration.getPluginConfigurationPrefixName(pluginClass.getName());
 
-            Boolean isPluginDisabled = pluginConfiguration.getConfig(pluginConfigurationPrefix + ".disabled",
-                                                                     Boolean.class);
+            Boolean isPluginDisabled = pluginConfiguration.getConfig(pluginConfigurationPrefix + ".disabled", Boolean.class);
             if (isPluginDisabled != null && isPluginDisabled) {
                 return false;
             }
@@ -85,19 +100,79 @@ public class ConfigurationManager {
         return true;
     }
 
+    /**
+     * Refresh configuration and reflect configuration changes to binding beans that support dynamic.
+     *
+     * @param newConfiguration incremental new configuration
+     */
+    public void refresh(Configuration newConfiguration) {
+        // Replace the configuration and get the diff
+        this.configuration.replace(newConfiguration);
+
+        List<String> changedKeys = newConfiguration.getKeys();
+
+        // Re-bind the based on changes
+        List<String> beanPrefixList = new ArrayList<>(delegatedBeans.keySet());
+        for (String beanPrefix : beanPrefixList) {
+
+            // If any changed key matches the bean configuration prefix,
+            // we will reload the whole configuration
+            for (String changedPrefix : changedKeys) {
+                if (changedPrefix.startsWith(beanPrefix)) {
+                    IDelegation delegatedObject = (IDelegation) delegatedBeans.get(beanPrefix);
+
+                    // Create a new configuration object
+                    Object newValue = getConfig(beanPrefix,
+                                                // the delegated object is a generated class which inherits from real configuration class
+                                                delegatedObject.getDelegationClass(),
+                                                false);
+
+                    // Update delegation
+                    delegatedObject.setDelegation(newValue);
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Bind configuration to an object. And if configuration changes, it will reflect on this object
+     */
     public <T> T getConfig(Class<T> clazz) {
         ConfigurationProperties cfg = clazz.getAnnotation(ConfigurationProperties.class);
         if (cfg == null || StringUtils.isEmpty(cfg.prefix())) {
             throw new AgentException("Class [%s] does not have valid ConfigurationProperties.", clazz.getName());
         }
 
-        return getConfig(cfg.prefix(), clazz);
+        return getConfig(cfg.prefix(), clazz, cfg.dynamic());
     }
 
+    /**
+     * Bind configuration to an object. And if configuration changes, it will reflect on this object
+     */
     public <T> T getConfig(String prefixes, Class<T> clazz) {
-        if (clazz.isPrimitive()) {
+        return getConfig(prefixes, clazz, true);
+    }
+
+    private <T> T getConfig(String prefixes, Class<T> clazz, boolean isDynamic) {
+        if (clazz.isPrimitive() || !isDynamic) {
             return configuration.getConfig(prefixes, clazz);
         }
-        return (T) configurationBeans.computeIfAbsent(prefixes, (k) -> configuration.getConfig(prefixes, clazz));
+
+        //noinspection unchecked
+        return (T) delegatedBeans.computeIfAbsent(prefixes, (k) -> {
+            Class<?> proxyClass = ClassDelegation.create(clazz);
+
+            T val = configuration.getConfig(prefixes, clazz);
+            try {
+                return proxyClass.getConstructor(clazz).newInstance(val);
+            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e.getCause());
+            }
+        });
     }
+
+
 }

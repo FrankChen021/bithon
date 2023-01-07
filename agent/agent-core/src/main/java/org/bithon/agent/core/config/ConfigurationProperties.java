@@ -36,4 +36,10 @@ public @interface ConfigurationProperties {
      * not null
      */
     String prefix();
+
+    /**
+     * If this configuration class can receive dynamic configuration changes.
+     * If true, a proxy class will be generated for the target configuration class.
+     */
+    boolean dynamic() default true;
 }

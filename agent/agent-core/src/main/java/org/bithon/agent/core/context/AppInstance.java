@@ -39,7 +39,7 @@ public class AppInstance {
     private int port;
     private String hostAndPort;
 
-    AppInstance(AppConfiguration appConfiguration) {
+    public AppInstance(AppConfiguration appConfiguration) {
         this.appName = appConfiguration.getName();
         this.qualifiedAppName = appName + "-" + appConfiguration.getEnv();
         this.env = appConfiguration.getEnv();

@@ -32,8 +32,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -58,10 +60,13 @@ public class Configuration {
                                        String... environmentVariables) {
         JsonNode staticConfiguration = readStaticConfiguration(configFileFormat, staticConfig);
         JsonNode dynamicConfiguration = readDynamicConfiguration(dynamicPropertyPrefix, environmentVariables);
-        return new Configuration(mergeConfiguration(staticConfiguration, dynamicConfiguration));
+        return new Configuration(mergeNodes(staticConfiguration, dynamicConfiguration, false));
     }
 
-    private static JsonNode mergeConfiguration(JsonNode to, JsonNode from) {
+    /**
+     * Merge two configuration nodes into one recursively
+     */
+    private static JsonNode mergeNodes(JsonNode to, JsonNode from, boolean isReplace) {
         if (from == null) {
             return to;
         }
@@ -80,7 +85,7 @@ public class Configuration {
 
             if (targetNode.isObject()) {
                 // to json node exists, and it's an object, recursively merge
-                mergeConfiguration(targetNode, sourceNode);
+                mergeNodes(targetNode, sourceNode, isReplace);
             } else if (targetNode.isArray()) {
                 if (sourceNode.isArray()) {
                     // merge arrays
@@ -88,8 +93,13 @@ public class Configuration {
 
                     // Insert source nodes at the beginning of the target node.
                     // This makes the source nodes higher priority
-                    for (int i = 0; i < sourceArray.size(); i++) {
-                        ((ArrayNode) targetNode).insert(i, sourceArray.get(i));
+                    if (isReplace) {
+                        ((ArrayNode) targetNode).removeAll();
+                        ((ArrayNode) targetNode).addAll(sourceArray);
+                    } else {
+                        for (int i = 0; i < sourceArray.size(); i++) {
+                            ((ArrayNode) targetNode).insert(i, sourceArray.get(i));
+                        }
                     }
                 } else {
                     // use the source node to replace the to node
@@ -192,7 +202,11 @@ public class Configuration {
     }
 
     public void merge(Configuration configuration) {
-        mergeConfiguration(this.configurationNode, configuration.configurationNode);
+        mergeNodes(this.configurationNode, configuration.configurationNode, false);
+    }
+
+    public void replace(Configuration configuration) {
+        mergeNodes(this.configurationNode, configuration.configurationNode, true);
     }
 
     public boolean isEmpty() {
@@ -215,6 +229,31 @@ public class Configuration {
             }
         }
         return true;
+    }
+
+    public List<String> getKeys() {
+        List<String> result = new ArrayList<>();
+        getKeys(result, new ArrayList<>(), this.configurationNode);
+        return result;
+    }
+
+    private void getKeys(List<String> result, List<String> path, JsonNode node) {
+        Iterator<String> names = node.fieldNames();
+        while (names.hasNext()) {
+            String fieldName = names.next();
+            JsonNode targetNode = node.get(fieldName);
+
+            int addIndex = path.size();
+            path.add(fieldName);
+
+            if (targetNode.isObject()) {
+                getKeys(result, path, targetNode);
+            } else {
+                // use the source node to replace the to node
+                result.add(String.join(".", path));
+            }
+            path.remove(addIndex);
+        }
     }
 
     public <T> T getConfig(Class<T> clazz) {

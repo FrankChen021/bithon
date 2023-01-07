@@ -14,23 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.aop;
-
-import org.bithon.agent.core.config.ConfigurationProperties;
+package org.bithon.agent.core.bytecode;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/8/7 13:53
+ * @date 2023/1/7 16:12
  */
-@ConfigurationProperties(prefix = "aop", dynamic = false)
-public class AopConfig {
-    private boolean debug = false;
-
-    public boolean isDebug() {
-        return debug;
-    }
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
-    }
+public interface IDelegation {
+    Class<?> getDelegationClass();
+    void setDelegation(Object val);
 }

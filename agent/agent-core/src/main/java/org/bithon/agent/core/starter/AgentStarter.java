@@ -24,6 +24,7 @@ import org.bithon.agent.core.aop.installer.InterceptorInstaller;
 import org.bithon.agent.core.config.AppConfiguration;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
 import org.bithon.agent.core.plugin.PluginManager;
@@ -74,10 +75,10 @@ public class AgentStarter {
                         .map(jar -> new File(jar.getName()).getName())
                         .sorted()
                         .forEach(name -> log.info("Found lib {}", name));
+        AgentContext agentContext = AgentContext.createInstance(agentPath);
 
         ConfigurationManager.create(agentPath);
-        AgentContext agentContext = AgentContext.createInstance(agentPath,
-                                                                ConfigurationManager.getInstance().getConfig(AppConfiguration.class));
+        agentContext.setAppInstance(new AppInstance(ConfigurationManager.getInstance().getConfig(AppConfiguration.class)));
 
         final PluginManager pluginManager = new PluginManager(agentContext);
 

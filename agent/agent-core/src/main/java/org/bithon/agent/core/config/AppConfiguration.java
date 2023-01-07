@@ -22,7 +22,7 @@ import org.bithon.agent.core.config.validation.NotBlank;
  * @author frank.chen021@outlook.com
  * @date 2023/1/5 22:30
  */
-@ConfigurationProperties(prefix = "application")
+@ConfigurationProperties(prefix = "application", dynamic = false)
 public class AppConfiguration {
 
     @NotBlank(message = "'bithon.application.env' should not be blank")
