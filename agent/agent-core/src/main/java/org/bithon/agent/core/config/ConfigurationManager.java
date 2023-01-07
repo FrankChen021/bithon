@@ -150,6 +150,10 @@ public class ConfigurationManager {
         return getConfig(cfg.prefix(), clazz, cfg.dynamic());
     }
 
+    public <T> T getDynamicConfig(String prefix, Class<T> clazz) {
+        return getConfig(prefix, clazz, true);
+    }
+
     /**
      * Bind configuration to an object. And if configuration changes, it will reflect on this object
      */

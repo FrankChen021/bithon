@@ -38,20 +38,9 @@ import org.bithon.component.commons.tracing.SpanKind;
  */
 public class BrpcMethodInterceptor extends AbstractInterceptor {
 
-    private ISampler sampler;
-
-    @Override
-    public boolean initialize() {
-        TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
-        TraceConfig.SamplingConfig samplingConfig = traceConfig.getSamplingConfigs().get("brpc");
-        if (samplingConfig == null || samplingConfig.isDisabled() || samplingConfig.getSamplingRate() == 0) {
-            return false;
-        }
-
-        sampler = SamplerFactory.createSampler(samplingConfig);
-
-        return true;
-    }
+    private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
+                                                                                      .getDynamicConfig("tracing.samplingConfigs.brpc",
+                                                                                                        TraceConfig.SamplingConfig.class));
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {

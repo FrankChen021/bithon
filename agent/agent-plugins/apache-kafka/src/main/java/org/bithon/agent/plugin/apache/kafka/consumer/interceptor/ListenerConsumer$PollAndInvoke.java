@@ -49,20 +49,9 @@ import java.util.stream.Stream;
  */
 public class ListenerConsumer$PollAndInvoke extends AbstractInterceptor {
 
-    private ISampler sampler;
-
-    @Override
-    public boolean initialize() {
-        TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
-        TraceConfig.SamplingConfig samplingConfig = traceConfig.getSamplingConfigs().get("kafka-consumer");
-        if (samplingConfig == null || samplingConfig.isDisabled() || samplingConfig.getSamplingRate() == 0) {
-            return false;
-        }
-
-        sampler = SamplerFactory.createSampler(samplingConfig);
-
-        return true;
-    }
+    private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
+                                                                                      .getDynamicConfig("tracing.samplingConfigs.kafka-consumer",
+                                                                                                        TraceConfig.SamplingConfig.class));
 
     /**
      * Keep topic information on injected fields for further use

@@ -39,23 +39,12 @@ import org.bithon.agent.core.tracing.sampler.SamplingMode;
  * @date 28/12/22 11:08 am
  */
 public class DelegatingErrorHandlingRunnable$Run extends AbstractInterceptor {
-    private ISampler sampler;
+    private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
+                                                                                      .getDynamicConfig("tracing.samplingConfigs.spring-scheduler",
+                                                                                                        TraceConfig.SamplingConfig.class));
 
     @Override
-    public boolean initialize() {
-        TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
-        TraceConfig.SamplingConfig samplingConfig = traceConfig.getSamplingConfigs().get("spring-scheduler");
-        if (samplingConfig == null || samplingConfig.isDisabled() || samplingConfig.getSamplingRate() == 0) {
-            return false;
-        }
-
-        sampler = SamplerFactory.createSampler(samplingConfig);
-
-        return true;
-    }
-
-    @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision onMethodEnter(AopContext aopContext) {
         SamplingMode mode = sampler.decideSamplingMode(null);
         if (mode == SamplingMode.NONE) {
             return InterceptionDecision.SKIP_LEAVE;

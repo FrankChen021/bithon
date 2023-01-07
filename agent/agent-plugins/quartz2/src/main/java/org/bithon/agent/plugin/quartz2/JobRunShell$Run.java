@@ -46,19 +46,9 @@ import java.lang.reflect.Field;
 public class JobRunShell$Run extends AbstractInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(JobRunShell$Run.class);
 
-    private ISampler sampler;
-
-    @Override
-    public boolean initialize() {
-        TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
-        TraceConfig.SamplingConfig samplingConfig = traceConfig.getSamplingConfigs().get("quartz");
-        if (samplingConfig == null || samplingConfig.isDisabled() || samplingConfig.getSamplingRate() == 0) {
-            return false;
-        }
-
-        sampler = SamplerFactory.createSampler(samplingConfig);
-        return true;
-    }
+    private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
+                                                                                      .getDynamicConfig("tracing.samplingConfigs.quartz",
+                                                                                                        TraceConfig.SamplingConfig.class));
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {

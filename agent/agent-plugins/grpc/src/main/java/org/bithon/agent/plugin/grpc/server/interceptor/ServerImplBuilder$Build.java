@@ -48,12 +48,14 @@ import java.util.stream.Stream;
 public class ServerImplBuilder$Build extends AbstractInterceptor {
 
     private final Map<String, String> shadedGrpcClassMap = new HashMap<>();
-    private final List<String> shadedGrpcList = ConfigurationManager.getInstance().getConfig(ShadedGrpcList.class);
+    private final List<String> shadedGrpcList;
     private final ChainedTraceContextExtractor contextExtractor;
 
     public ServerImplBuilder$Build() {
-        TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
-        contextExtractor = new ChainedTraceContextExtractor(SamplerFactory.createSampler(traceConfig.getSamplingConfigs().get("grpc")));
+        shadedGrpcList = ConfigurationManager.getInstance().getConfig(ShadedGrpcList.class);
+        contextExtractor = new ChainedTraceContextExtractor(SamplerFactory.createSampler(ConfigurationManager.getInstance()
+                                                                                                             .getDynamicConfig("tracing.samplingConfigs.grpc",
+                                                                                                                               TraceConfig.SamplingConfig.class)));
     }
 
     @Override
