@@ -52,6 +52,10 @@ public class Configuration {
 
     private final JsonNode configurationNode;
 
+    public static Configuration from(String configFileFormat, InputStream configStream) {
+        return new Configuration(readStaticConfiguration(configFileFormat, configStream));
+    }
+
     public Configuration(JsonNode configurationNode) {
         this.configurationNode = configurationNode;
     }
@@ -119,7 +123,7 @@ public class Configuration {
         return to;
     }
 
-    public static JsonNode readStaticConfiguration(String configFileFormat, InputStream configStream) {
+    private static JsonNode readStaticConfiguration(String configFileFormat, InputStream configStream) {
         if (configStream == null) {
             return new ObjectNode(new JsonNodeFactory(true));
         }

@@ -24,7 +24,6 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -102,7 +101,7 @@ public class DynamicConfigurationManager {
             return;
         }
 
-        Set<String> changedKeys = new HashSet<>();
+        Configuration config = null;
         for (Map.Entry<String, String> entry : configurations.entrySet()) {
             String name = entry.getKey();
             String text = entry.getValue();
@@ -117,12 +116,20 @@ public class DynamicConfigurationManager {
             configSignatures.put(name, signature);
 
             try (InputStream is = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))) {
-                JsonNode configNode = Configuration.readStaticConfiguration(".json", is);
+                Configuration cfg = Configuration.from(".json", is);
 
-                // Refresh global configuration and keep the changed keys
-                changedKeys.addAll(ConfigurationManager.getInstance().refresh(new Configuration(configNode)));
+                if (config == null) {
+                    config = cfg;
+                } else {
+                    config.merge(cfg);
+                }
             }
         }
+        if (config == null) {
+            return;
+        }
+
+        Set<String> changedKeys = ConfigurationManager.getInstance().refresh(config);
         if (changedKeys.isEmpty()) {
             return;
         }
