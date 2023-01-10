@@ -21,7 +21,7 @@ import org.apache.catalina.connector.Response;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.core.tracing.Tracer;
@@ -46,9 +46,8 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
     @Override
     public boolean initialize() {
         requestFilter = new HttpIncomingFilter();
-        traceConfig = AgentContext.getInstance()
-                                  .getAgentConfiguration()
-                                  .getConfig(TraceConfig.class);
+        traceConfig = ConfigurationManager.getInstance()
+                                          .getConfig(TraceConfig.class);
 
         return true;
     }

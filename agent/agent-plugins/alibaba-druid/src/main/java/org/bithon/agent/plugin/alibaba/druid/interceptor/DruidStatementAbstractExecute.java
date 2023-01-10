@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.alibaba.druid.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
@@ -54,7 +54,7 @@ public abstract class DruidStatementAbstractExecute extends AbstractInterceptor 
 
     @Override
     public boolean initialize() {
-        DruidPluginConfig config = AgentContext.getInstance().getAgentConfiguration().getConfig(DruidPluginConfig.class);
+        DruidPluginConfig config = ConfigurationManager.getInstance().getConfig(DruidPluginConfig.class);
         isSQLMetricEnabled = config.isSQLMetricEnabled();
         if (isSQLMetricEnabled) {
             metricRegistry = SqlMetricRegistry.get();

@@ -21,7 +21,7 @@ import org.apache.kafka.common.header.Header;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import org.bithon.agent.plugin.apache.kafka.producer.KafkaProducerTracingConfig;
@@ -41,7 +41,7 @@ public class KafkaProducer$DoSend extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        tracingConfig = AgentContext.getInstance().getAgentConfiguration().getConfig(KafkaProducerTracingConfig.class);
+        tracingConfig = ConfigurationManager.getInstance().getConfig(KafkaProducerTracingConfig.class);
         return true;
     }
 

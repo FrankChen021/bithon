@@ -14,32 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller;
+package org.bithon.agent.controller.config;
 
-import org.bithon.agent.core.config.ConfigurationProperties;
+import org.bithon.agent.core.config.ConfigurationManager;
+import org.bithon.agent.rpc.brpc.cmd.IConfigCommand;
+
+import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/16 2:48 下午
+ * @date 2023/1/7 17:33
  */
-@ConfigurationProperties(prefix = "controller", dynamic = false)
-public class AgentControllerConfig {
-    private String client;
-    private String servers;
-
-    public String getClient() {
-        return client;
-    }
-
-    public void setClient(String client) {
-        this.client = client;
-    }
-
-    public String getServers() {
-        return servers;
-    }
-
-    public void setServers(String servers) {
-        this.servers = servers;
+public class ConfigCommandImpl implements IConfigCommand {
+    @Override
+    public String getConfiguration(String format, boolean prettyFormat) {
+        return ConfigurationManager.getInstance().format(format.toLowerCase(Locale.ENGLISH), prettyFormat);
     }
 }

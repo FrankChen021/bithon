@@ -16,6 +16,7 @@
 
 package org.bithon.agent.core.tracing.sampler;
 
+import org.bithon.agent.core.tracing.config.TraceSamplingConfig;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,9 +26,15 @@ import org.junit.Test;
  */
 public class PercentageSamplerTest {
 
+    private ISampler createSampler(int rate) {
+        TraceSamplingConfig config = new TraceSamplingConfig();
+        config.setSamplingRate(rate);
+        return new PercentageSampler(config);
+    }
+
     @Test
     public void test_Percentage1() {
-        ISampler sampler = new PercentageSampler(1);
+        ISampler sampler = createSampler(1);
 
         Assert.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
 
@@ -40,7 +47,7 @@ public class PercentageSamplerTest {
 
     @Test
     public void test_Percentage25() {
-        ISampler sampler = new PercentageSampler(25);
+        ISampler sampler = createSampler(25);
 
         for (int i = 0; i < 10; i++) {
             Assert.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
@@ -52,7 +59,7 @@ public class PercentageSamplerTest {
 
     @Test
     public void test_Percentage33() {
-        ISampler sampler = new PercentageSampler(33);
+        ISampler sampler = createSampler(33);
 
         for (int i = 0; i < 5; i++) {
             Assert.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
@@ -63,7 +70,7 @@ public class PercentageSamplerTest {
 
     @Test
     public void test_Percentage50() {
-        ISampler sampler = new PercentageSampler(50);
+        ISampler sampler = createSampler(50);
 
         for (int i = 0; i < 10; i++) {
             Assert.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
@@ -73,7 +80,7 @@ public class PercentageSamplerTest {
 
     @Test
     public void test_Percentage75() {
-        ISampler sampler = new PercentageSampler(75);
+        ISampler sampler = createSampler(75);
 
         for (int i = 0; i < 10; i++) {
             Assert.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));

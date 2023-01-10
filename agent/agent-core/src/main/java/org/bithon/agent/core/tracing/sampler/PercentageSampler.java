@@ -16,6 +16,7 @@
 
 package org.bithon.agent.core.tracing.sampler;
 
+import org.bithon.agent.core.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.core.utils.lang.MathUtils;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -27,23 +28,30 @@ import java.util.concurrent.atomic.AtomicLong;
  * @date 2021/2/9 10:55 下午
  */
 public class PercentageSampler implements ISampler {
-    private final int samplingRate;
     private final AtomicLong counter = new AtomicLong();
+    private final TraceSamplingConfig samplingConfig;
 
     /**
-     * @param samplingRate (0, 100)
+     * Holding SamplingConfig object so that it supports dynamic configuration
+     *
+     * @param samplingConfig [1, 100]
      */
-    public PercentageSampler(int samplingRate) {
-        if (samplingRate < 1 || samplingRate >= 100) {
-            throw new IllegalArgumentException("samplingRate must be in the range of (0,100)");
-        }
-
-        this.samplingRate = samplingRate;
+    public PercentageSampler(TraceSamplingConfig samplingConfig) {
+        this.samplingConfig = samplingConfig;
     }
 
     @Override
     public SamplingMode decideSamplingMode(Object request) {
-        long reminder = MathUtils.floorMod(counter.addAndGet(this.samplingRate), 100);
-        return reminder > 0 && reminder <= this.samplingRate ? SamplingMode.FULL : SamplingMode.NONE;
+        int samplingRate = samplingConfig.getSamplingRate();
+
+        if (samplingRate <= 0) {
+            return SamplingMode.NONE;
+        }
+        if (samplingRate >= 100) {
+            return SamplingMode.FULL;
+        }
+
+        long reminder = MathUtils.floorMod(counter.addAndGet(samplingRate), 100);
+        return reminder > 0 && reminder <= samplingRate ? SamplingMode.FULL : SamplingMode.NONE;
     }
 }

@@ -14,32 +14,26 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller;
+package org.bithon.agent.core.tracing.config;
 
-import org.bithon.agent.core.config.ConfigurationProperties;
+import org.bithon.agent.core.config.validation.Range;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/16 2:48 下午
+ * @date 2023/1/7 20:27
  */
-@ConfigurationProperties(prefix = "controller", dynamic = false)
-public class AgentControllerConfig {
-    private String client;
-    private String servers;
+public class TraceSamplingConfig {
+    /**
+     * in range of [0, 100]
+     */
+    @Range(min = 0, max = 100)
+    private int samplingRate = 0;
 
-    public String getClient() {
-        return client;
+    public int getSamplingRate() {
+        return samplingRate;
     }
 
-    public void setClient(String client) {
-        this.client = client;
-    }
-
-    public String getServers() {
-        return servers;
-    }
-
-    public void setServers(String servers) {
-        this.servers = servers;
+    public void setSamplingRate(int samplingRate) {
+        this.samplingRate = samplingRate;
     }
 }

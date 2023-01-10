@@ -17,6 +17,7 @@
 package org.bithon.agent.core.aop;
 
 
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
@@ -43,32 +44,36 @@ public class AopDebugger extends AopTransformationListener {
     public static final boolean IS_DEBUG_ENABLED;
 
     static {
-        IS_DEBUG_ENABLED = AgentContext.getInstance().getAgentConfiguration().getConfig(AopConfig.class).isDebug();
+        IS_DEBUG_ENABLED = ConfigurationManager.getInstance().getConfig(AopConfig.class).isDebug();
 
-        CLASS_FILE_DIR = new File(AgentContext.getInstance().getAgentDirectory()
-                                  + separator
-                                  + AgentContext.TMP_DIR
-                                  + separator
-                                  + AgentContext.getInstance().getAppInstance().getQualifiedAppName()
-                                  + separator
-                                  + "classes");
+        if (!IS_DEBUG_ENABLED) {
+            CLASS_FILE_DIR = null;
+        } else {
+            CLASS_FILE_DIR = new File(AgentContext.getInstance().getAgentDirectory()
+                                      + separator
+                                      + AgentContext.TMP_DIR
+                                      + separator
+                                      + AgentContext.getInstance().getAppInstance().getQualifiedAppName()
+                                      + separator
+                                      + "classes");
 
-        // clean up directories before startup
-        // this is convenient for debugging
-        try {
-            Files.walk(CLASS_FILE_DIR.toPath())
-                 .sorted(Comparator.reverseOrder())
-                 .map(Path::toFile)
-                 .forEach(File::delete);
-        } catch (IOException ignored) {
-        }
-
-        try {
-            if (!CLASS_FILE_DIR.exists()) {
-                CLASS_FILE_DIR.mkdirs();
+            // clean up directories before startup
+            // this is convenient for debugging
+            try {
+                Files.walk(CLASS_FILE_DIR.toPath())
+                     .sorted(Comparator.reverseOrder())
+                     .map(Path::toFile)
+                     .forEach(File::delete);
+            } catch (IOException ignored) {
             }
-        } catch (Exception e) {
-            log.error("log error", e);
+
+            try {
+                if (!CLASS_FILE_DIR.exists()) {
+                    CLASS_FILE_DIR.mkdirs();
+                }
+            } catch (Exception e) {
+                log.error("log error", e);
+            }
         }
     }
 

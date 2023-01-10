@@ -16,20 +16,14 @@
 
 package org.bithon.agent.core.tracing.sampler;
 
-import org.bithon.agent.core.tracing.config.TraceConfig;
+import org.bithon.agent.core.tracing.config.TraceSamplingConfig;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/8/7 18:04
  */
 public class SamplerFactory {
-    public static ISampler createSampler(TraceConfig.SamplingConfig samplingConfig) {
-        if (samplingConfig == null || samplingConfig.getSamplingRate() == 0) {
-            return (request) -> SamplingMode.NONE;
-        }
-        if (samplingConfig.getSamplingRate() == 100) {
-            return (request) -> SamplingMode.FULL;
-        }
-        return new PercentageSampler(samplingConfig.getSamplingRate());
+    public static ISampler createSampler(TraceSamplingConfig samplingConfig) {
+        return new PercentageSampler(samplingConfig);
     }
 }

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.setting;
+package org.bithon.server.collector.config;
 
 import org.bithon.server.storage.setting.ISettingReader;
 import org.bithon.server.storage.setting.ISettingStorage;
@@ -29,11 +29,11 @@ import java.util.Map;
  */
 @Service
 @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
-public class AgentSettingService {
+public class AgentConfigurationService {
 
     private final ISettingReader settingReader;
 
-    public AgentSettingService(ISettingStorage storage) {
+    public AgentConfigurationService(ISettingStorage storage) {
         this.settingReader = storage.createReader();
     }
 

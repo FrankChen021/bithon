@@ -14,32 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller;
+package org.bithon.agent.rpc.brpc.cmd;
 
-import org.bithon.agent.core.config.ConfigurationProperties;
+import org.bithon.component.brpc.BrpcService;
+import org.bithon.component.brpc.message.serializer.Serializer;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/16 2:48 下午
+ * @date 2023/1/7 17:31
  */
-@ConfigurationProperties(prefix = "controller", dynamic = false)
-public class AgentControllerConfig {
-    private String client;
-    private String servers;
+@BrpcService(serializer = Serializer.JSON)
+public interface IConfigCommand {
 
-    public String getClient() {
-        return client;
-    }
-
-    public void setClient(String client) {
-        this.client = client;
-    }
-
-    public String getServers() {
-        return servers;
-    }
-
-    public void setServers(String servers) {
-        this.servers = servers;
-    }
+    /**
+     * get current loaded configuration from the agent for debug
+     *
+     * @param format JSON | YAML
+     */
+    String getConfiguration(String format, boolean prettyFormat);
 }

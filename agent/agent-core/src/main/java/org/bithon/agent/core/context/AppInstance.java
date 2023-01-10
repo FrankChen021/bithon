@@ -16,6 +16,7 @@
 
 package org.bithon.agent.core.context;
 
+import org.bithon.agent.core.config.AppConfiguration;
 import org.bithon.agent.core.utils.NetworkUtils;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
@@ -38,7 +39,7 @@ public class AppInstance {
     private int port;
     private String hostAndPort;
 
-    AppInstance(AgentContext.AppConfiguration appConfiguration) {
+    public AppInstance(AppConfiguration appConfiguration) {
         this.appName = appConfiguration.getName();
         this.qualifiedAppName = appName + "-" + appConfiguration.getEnv();
         this.env = appConfiguration.getEnv();

@@ -21,17 +21,15 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
-import org.bithon.agent.core.plugin.PluginConfigurationManager;
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
-import org.bithon.agent.plugin.spring.webflux.SpringWebFluxPlugin;
 import org.bithon.agent.plugin.spring.webflux.config.ResponseConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.bithon.component.commons.logging.ILogAdaptor;
@@ -71,12 +69,8 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
     public boolean initialize() {
         requestFilter = new HttpIncomingFilter();
 
-        traceConfig = AgentContext.getInstance()
-                                  .getAgentConfiguration()
-                                  .getConfig(TraceConfig.class);
-
-        responseConfigs = PluginConfigurationManager.load(SpringWebFluxPlugin.class)
-                                                    .getConfig(ResponseConfigs.class);
+        traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
+        responseConfigs = ConfigurationManager.getInstance().getConfig(ResponseConfigs.class);
 
         // remove the special header for fast processing later
         xforwardTagName = responseConfigs.getHeaders().remove(X_FORWARDED_FOR);
@@ -168,7 +162,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
         };
 
         // replace the returned Mono so that we can do sth when this request completes
-        aopContext.setReturning(mono.doOnSuccess((Void) -> onSuccessOrError.accept(null, null))
+        aopContext.setReturning(mono.doOnSuccess((v) -> onSuccessOrError.accept(null, null))
                                     .doOnError((error) -> onSuccessOrError.accept(null, error)));
     }
 

@@ -16,11 +16,12 @@
 
 package org.bithon.agent.core.tracing;
 
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
-import org.bithon.agent.core.tracing.config.TraceConfig;
+import org.bithon.agent.core.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.core.tracing.id.ITraceIdGenerator;
@@ -63,24 +64,16 @@ public class Tracer {
         if (INSTANCE == null) {
             synchronized (Tracer.class) {
                 if (INSTANCE == null) {
-
-                    TraceConfig traceConfig = AgentContext.getInstance()
-                                                          .getAgentConfiguration()
-                                                          .getConfig(TraceConfig.class);
-
-                    TraceConfig.SamplingConfig samplingConfig = traceConfig.getSamplingConfigs().get("default");
-                    if (samplingConfig == null) {
-                        samplingConfig = new TraceConfig.SamplingConfig();
-                        samplingConfig.setSamplingRate(0);
-                    }
                     AppInstance appInstance = AgentContext.getInstance().getAppInstance();
                     try {
-                        ISampler sampler = SamplerFactory.createSampler(samplingConfig);
+                        ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
+                                                                                            .getDynamicConfig("tracing.samplingConfigs.default",
+                                                                                                              TraceSamplingConfig.class));
                         INSTANCE = new Tracer(appInstance.getQualifiedAppName(), appInstance.getHostAndPort())
                             .propagator(new DefaultPropagator(sampler))
                             .traceIdGenerator(new UUIDGenerator())
                             .spanIdGenerator(new DefaultSpanIdGenerator())
-                            .reporter(samplingConfig.isDisabled() ? new NoopReporter() : new DefaultReporter());
+                            .reporter(new DefaultReporter());
                     } catch (Exception e) {
                         LoggerFactory.getLogger(Tracer.class).info("Failed to create Tracer", e);
                     }

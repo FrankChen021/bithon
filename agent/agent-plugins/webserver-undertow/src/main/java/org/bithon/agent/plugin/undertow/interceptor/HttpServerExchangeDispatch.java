@@ -23,7 +23,7 @@ import io.undertow.util.HttpString;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.core.tracing.Tracer;
@@ -42,10 +42,7 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
 
     private final HttpIncomingFilter requestFilter = new HttpIncomingFilter();
     private final HttpIncomingMetricsRegistry metricRegistry = HttpIncomingMetricsRegistry.get();
-    private final TraceConfig traceConfig = AgentContext.getInstance()
-                                                        .getAgentConfiguration()
-                                                        .getConfig(TraceConfig.class);
-
+    private final TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {

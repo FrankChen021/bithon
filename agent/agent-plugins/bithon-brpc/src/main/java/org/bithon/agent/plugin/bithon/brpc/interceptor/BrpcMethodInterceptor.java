@@ -19,9 +19,9 @@ package org.bithon.agent.plugin.bithon.brpc.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.tracing.Tracer;
-import org.bithon.agent.core.tracing.config.TraceConfig;
+import org.bithon.agent.core.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextFactory;
@@ -38,22 +38,9 @@ import org.bithon.component.commons.tracing.SpanKind;
  */
 public class BrpcMethodInterceptor extends AbstractInterceptor {
 
-    private ISampler sampler;
-
-    @Override
-    public boolean initialize() {
-        TraceConfig traceConfig = AgentContext.getInstance()
-                                              .getAgentConfiguration()
-                                              .getConfig(TraceConfig.class);
-        TraceConfig.SamplingConfig samplingConfig = traceConfig.getSamplingConfigs().get("brpc");
-        if (samplingConfig == null || samplingConfig.isDisabled() || samplingConfig.getSamplingRate() == 0) {
-            return false;
-        }
-
-        sampler = SamplerFactory.createSampler(samplingConfig);
-
-        return true;
-    }
+    private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
+                                                                                      .getDynamicConfig("tracing.samplingConfigs.brpc",
+                                                                                                        TraceSamplingConfig.class));
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {

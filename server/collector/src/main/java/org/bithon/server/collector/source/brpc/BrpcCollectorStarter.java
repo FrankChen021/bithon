@@ -25,8 +25,8 @@ import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.bithon.component.brpc.channel.ServerChannel;
 import org.bithon.server.collector.cmd.service.CommandService;
-import org.bithon.server.collector.setting.AgentSettingService;
-import org.bithon.server.collector.setting.BrpcSettingFetcher;
+import org.bithon.server.collector.config.AgentConfigurationService;
+import org.bithon.server.collector.config.BrpcSettingFetcher;
 import org.bithon.server.sink.common.service.UriNormalizer;
 import org.bithon.server.sink.event.IEventMessageSink;
 import org.bithon.server.sink.metrics.IMetricMessageSink;
@@ -91,7 +91,7 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
                 case "ctrl":
                     isCtrl = true;
                     serviceDefinition = ISettingFetcher.class;
-                    serviceImplementation = new BrpcSettingFetcher(applicationContext.getBean(AgentSettingService.class));
+                    serviceImplementation = new BrpcSettingFetcher(applicationContext.getBean(AgentConfigurationService.class));
                     break;
 
                 default:

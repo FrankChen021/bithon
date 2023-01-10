@@ -16,8 +16,8 @@
 
 package org.bithon.agent.core.metric.domain.web;
 
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.config.ConfigurationProperties;
-import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.utils.filter.IMatcher;
 import org.bithon.agent.core.utils.filter.StringSuffixMatcher;
 import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonProperty;
@@ -67,9 +67,8 @@ public class HttpIncomingFilter {
     public HttpIncomingFilter() {
         uriMatchers = new ArrayList<>();
         {
-            UriFilterConfiguration uriFilterConfig = AgentContext.getInstance()
-                                                                 .getAgentConfiguration()
-                                                                 .getConfig(UriFilterConfiguration.class);
+            UriFilterConfiguration uriFilterConfig = ConfigurationManager.getInstance()
+                                                                         .getConfig(UriFilterConfiguration.class);
 
             dotSuffix = new HashSet<>();
             for (String suffix : uriFilterConfig.getSuffixes().split(",")) {
@@ -82,9 +81,8 @@ public class HttpIncomingFilter {
             }
         }
 
-        userAgentConfig = AgentContext.getInstance()
-                                      .getAgentConfiguration()
-                                      .getConfig(UserAgentFilterConfiguration.class);
+        userAgentConfig = ConfigurationManager.getInstance()
+                                              .getConfig(UserAgentFilterConfiguration.class);
     }
 
     public boolean shouldBeExcluded(String uri, String userAgent) {

@@ -20,13 +20,11 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.bytecode.ClassCopier;
-import org.bithon.agent.core.context.AgentContext;
-import org.bithon.agent.core.plugin.PluginConfigurationManager;
-import org.bithon.agent.core.tracing.config.TraceConfig;
+import org.bithon.agent.core.config.ConfigurationManager;
+import org.bithon.agent.core.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.core.tracing.propagation.extractor.ChainedTraceContextExtractor;
 import org.bithon.agent.core.tracing.propagation.extractor.ITraceContextExtractor;
 import org.bithon.agent.core.tracing.sampler.SamplerFactory;
-import org.bithon.agent.plugin.grpc.GrpcPlugin;
 import org.bithon.agent.plugin.grpc.ShadedGrpcList;
 import org.bithon.agent.plugin.grpc.client.interceptor.ManagedChannelImplBuilder$Build;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -50,15 +48,14 @@ import java.util.stream.Stream;
 public class ServerImplBuilder$Build extends AbstractInterceptor {
 
     private final Map<String, String> shadedGrpcClassMap = new HashMap<>();
-    private final List<String> shadedGrpcList = PluginConfigurationManager.load(GrpcPlugin.class).getConfig(ShadedGrpcList.class);
+    private final List<String> shadedGrpcList;
     private final ChainedTraceContextExtractor contextExtractor;
 
     public ServerImplBuilder$Build() {
-        TraceConfig traceConfig = AgentContext.getInstance()
-                                              .getAgentConfiguration()
-                                              .getConfig(TraceConfig.class);
-
-        contextExtractor = new ChainedTraceContextExtractor(SamplerFactory.createSampler(traceConfig.getSamplingConfigs().get("grpc")));
+        shadedGrpcList = ConfigurationManager.getInstance().getConfig(ShadedGrpcList.class);
+        contextExtractor = new ChainedTraceContextExtractor(SamplerFactory.createSampler(ConfigurationManager.getInstance()
+                                                                                                             .getDynamicConfig("tracing.samplingConfigs.grpc",
+                                                                                                                               TraceSamplingConfig.class)));
     }
 
     @Override
@@ -106,7 +103,8 @@ public class ServerImplBuilder$Build extends AbstractInterceptor {
                 try {
                     new ClassCopier()
                         .changePackage("io.grpc", shadedPackage.toString())
-                        .copyClass(currentPackage + ".ServerCallInterceptor$TracedServerCallListener", currentPackage + "." + shadedPackage + ".ShadedTracedServerCallListener")
+                        .copyClass(currentPackage + ".ServerCallInterceptor$TracedServerCallListener",
+                                   currentPackage + "." + shadedPackage + ".ShadedTracedServerCallListener")
                         .copyClass(currentPackage + ".ServerCallInterceptor$TracedServerCall", currentPackage + "." + shadedPackage + ".ShadedTracedServerCall")
                         .copyClass(currentPackage + ".ServerCallInterceptor", serverInterceptor)
                         .to(this.getClass().getClassLoader());
