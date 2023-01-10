@@ -32,7 +32,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,6 +53,11 @@ public class DynamicConfigurationManager {
     private final IAgentController controller;
     private final List<IConfigurationRefreshListener> listeners;
     private Long lastModifiedAt = 0L;
+
+    /**
+     * key: configuration name in configuration storage. Has no meaning at agent side
+     * val: configuration text
+     */
     private final Map<String, String> configSignatures = new HashMap<>();
 
     private DynamicConfigurationManager(String appName, String env, IAgentController controller) {
@@ -73,13 +77,13 @@ public class DynamicConfigurationManager {
         return INSTANCE;
     }
 
-    public void register(IConfigurationRefreshListener listener) {
+    public void addRefreshListener(IConfigurationRefreshListener listener) {
         listeners.add(listener);
     }
 
     private void startPeriodicallyFetch() {
         if (controller != null) {
-            new Timer("setting-fetcher").schedule(new TimerTask() {
+            new Timer("bithon-cfg-fetcher").schedule(new TimerTask() {
                 @Override
                 public void run() {
                     try {
@@ -129,11 +133,18 @@ public class DynamicConfigurationManager {
             return;
         }
 
+        // Update configuration
+        // TODO: incremental configuration deletion is not supported because of complexity.
+        // if the incremental configuration overwrites the global configuration, we need to restore or we can't delete the configuration directly
+        // One solution is that the 'refresh' method below return the action on each returned key, ADD/REPLACE,
+        // and then we keep the changed keys and corresponding actions for rollback.
+        // Since it's not a must-have feature at this stage, leave it to future when we really needs it.
         Set<String> changedKeys = ConfigurationManager.getInstance().refresh(config);
         if (changedKeys.isEmpty()) {
             return;
         }
 
+        // Copy a new one to iterate to avoid concurrent problem
         List<IConfigurationRefreshListener> listeners = new ArrayList<>(this.listeners);
         for (IConfigurationRefreshListener listener : listeners) {
             try {
@@ -142,10 +153,6 @@ public class DynamicConfigurationManager {
                 log.warn("Exception when refresh setting", e);
             }
         }
-
-        // TODO: Remove
-        Set<String> notExistConfigs = new HashSet<>(configSignatures.keySet());
-        notExistConfigs.removeAll(configurations.keySet());
 
         this.lastModifiedAt = System.currentTimeMillis();
     }

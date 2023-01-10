@@ -74,8 +74,8 @@ public class SentinelRuleManager {
 
     private SentinelRuleManager() {
         DynamicConfigurationManager manager = DynamicConfigurationManager.getInstance();
-        manager.register(new FlowRuleRefreshListener());
-        manager.register(new DegradingRuleRefreshListener());
+        manager.addRefreshListener(new FlowRuleRefreshListener());
+        manager.addRefreshListener(new DegradingRuleRefreshListener());
 
         refreshFlowRules();
         refreshDegradingRule();
