@@ -25,12 +25,6 @@
       "name": "poolName",
       "displayText": "Thread Pool Name",
       "required": true
-    },
-    {
-      "name": "poolId",
-      "displayText": "Thread Pool Id",
-      "required": true,
-      "visible": false
     }
   ],
   "metricsSpec": [
@@ -104,6 +98,12 @@
       "type": "longLast",
       "name": "queuedTaskCount",
       "displayText": "queuedTaskCount",
+      "unit": ""
+    },
+    {
+      "type": "longLast",
+      "name": "poolCount",
+      "displayText": "poolCount",
       "unit": ""
     }
   ],

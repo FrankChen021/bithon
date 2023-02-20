@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.Supplier;
 
 /**
  * @author frank.chen021@outlook.com
@@ -35,7 +36,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 public class ThreadPoolMetricRegistry extends MetricRegistry<ThreadPoolMetrics> {
     private static final String[] POOL_CLASS_EXCLUDE_PREFIX_LIST = {
-        // a lamda class in the following class. it's a helper class which has no meaning to monitor it
+        // A lambda class in the following class. it's a helper class which has no meaning to monitor it
         "org.springframework.cloud.commons.util.InetUtils"
     };
     static volatile ThreadPoolMetricRegistry INSTANCE;
@@ -43,7 +44,7 @@ public class ThreadPoolMetricRegistry extends MetricRegistry<ThreadPoolMetrics> 
 
     public ThreadPoolMetricRegistry() {
         super("thread-pool-metrics",
-              Arrays.asList("executorClass", "poolName", "poolId"),
+              Arrays.asList("executorClass", "poolName"),
               ThreadPoolMetrics.class,
               null,
               false);
@@ -61,16 +62,16 @@ public class ThreadPoolMetricRegistry extends MetricRegistry<ThreadPoolMetrics> 
         return INSTANCE;
     }
 
-    public void addThreadPool(AbstractExecutorService pool, String executorClassName, String poolName, ThreadPoolMetrics metrics) {
+    public void addThreadPool(AbstractExecutorService pool, String executorClassName, String poolName, Supplier<ThreadPoolMetrics> metricsSupplier) {
         for (String excludePrefix : POOL_CLASS_EXCLUDE_PREFIX_LIST) {
             if (executorClassName.startsWith(excludePrefix)) {
                 return;
             }
         }
 
-        List<String> dimensions = Arrays.asList(executorClassName, poolName, String.valueOf(System.identityHashCode(pool)));
+        List<String> dimensions = Arrays.asList(executorClassName, poolName);
+        this.getOrCreateMetrics(dimensions, metricsSupplier).add(pool);
         executors.put(pool, dimensions);
-        this.createMetrics(dimensions, metrics);
     }
 
     public void deleteThreadPool(AbstractExecutorService executor) {
@@ -78,7 +79,10 @@ public class ThreadPoolMetricRegistry extends MetricRegistry<ThreadPoolMetrics> 
         if (dimensions == null) {
             return;
         }
-        this.removeMetrics(dimensions);
+        ThreadPoolMetrics metrics = this.getMetrics(dimensions);
+        if (metrics.remove(executor)) {
+            this.removeMetrics(dimensions);
+        }
     }
 
     private Optional<ThreadPoolMetrics> getMetrics(AbstractExecutorService executor) {
