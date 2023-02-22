@@ -3,8 +3,24 @@
   "charts": [
     {
       "dataSource": "thread-pool-metrics",
+      "title": "Thread Pool Count",
+      "width": 2,
+      "type": "line",
+      "columns": [
+        "poolCount"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "thread-pool-metrics",
+        "fields": [
+          "poolCount"
+        ]
+      }
+    },
+    {
+      "dataSource": "thread-pool-metrics",
       "title": "Thread Pool",
-      "width": 4,
+      "width": 2,
       "type": "line",
       "columns": [
         "activeThreads",

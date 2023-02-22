@@ -38,7 +38,7 @@ public class ForkJoinPool$Ctor extends AbstractInterceptor {
             registry.addThreadPool(pool,
                                    pool.getClass().getName(),
                                    ThreadPoolUtils.stripSuffix((String) ReflectionUtils.getFieldValue(pool, "workerNamePrefix"), "-"),
-                                   new ForkJoinPoolMetrics(pool));
+                                   ForkJoinPoolMetrics::new);
         }
     }
 }
