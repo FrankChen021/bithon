@@ -40,7 +40,7 @@ public interface IAgentCommandApi {
     Map<String, List<Map<String, String>>> getClients();
 
     @PostMapping("/api/command/jvm/dumpThread")
-    void dumpThread(@RequestBody CommandArgs<Void> args, HttpServletResponse response) throws IOException;
+    String dumpThread(@RequestBody CommandArgs<Void> args) throws IOException;
 
     /**
      * @param args A string pattern which comply with database's like expression.

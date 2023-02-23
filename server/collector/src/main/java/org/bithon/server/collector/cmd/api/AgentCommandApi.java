@@ -30,10 +30,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -73,13 +71,10 @@ public class AgentCommandApi implements IAgentCommandApi {
     }
 
     @Override
-    public void dumpThread(@Valid @RequestBody CommandArgs<Void> args, HttpServletResponse response) throws IOException {
+    public String dumpThread(@Valid @RequestBody CommandArgs<Void> args) {
         IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
         if (command == null) {
-            response.setContentType("application/text");
-            response.getWriter().write(StringUtils.format("client by id [%s] not found", args.getAppId()));
-            response.setStatus(HttpStatus.BAD_REQUEST.value());
-            return;
+            throw new RuntimeException(StringUtils.format("client by id [%s] not found", args.getAppId()));
         }
         try {
             // Get
@@ -89,9 +84,7 @@ public class AgentCommandApi implements IAgentCommandApi {
             threads.sort(Comparator.comparing(IJvmCommand.ThreadInfo::getName));
 
             // Output as stream
-            response.setContentType("application/text");
-            response.setStatus(HttpStatus.OK.value());
-            PrintWriter pw = response.getWriter();
+            StringWriter pw = new StringWriter();
 
             // Output header
             pw.write(StringUtils.format("---Total Threads: %d---\n", threads.size()));
@@ -104,12 +97,11 @@ public class AgentCommandApi implements IAgentCommandApi {
                     pw.write('\n');
                 }
                 pw.write('\n');
-                pw.flush();
             }
+
+            return pw.toString();
         } catch (ServiceInvocationException e) {
-            response.setContentType("application/text");
-            response.getWriter().write(e.getMessage());
-            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            return e.getMessage();
         }
     }
 
