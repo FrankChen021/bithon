@@ -16,13 +16,18 @@
 
 package org.bithon.server.discovery.client;
 
+import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 /**
  * @author Frank Chen
  * @date 23/2/23 9:12 pm
  */
+@EnableFeignClients
+@Import(FeignClientsConfiguration.class)
 @Configuration(proxyBeanMethods = false)
 public class DiscoveryClientAutoConfiguration {
     @Bean

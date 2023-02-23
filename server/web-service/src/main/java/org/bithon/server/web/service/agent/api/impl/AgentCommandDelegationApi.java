@@ -17,15 +17,20 @@
 package org.bithon.server.web.service.agent.api.impl;
 
 import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
+import org.bithon.server.discovery.declaration.cmd.CommandArgs;
+import org.bithon.server.discovery.declaration.cmd.CommandResponse;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Frank Chen
@@ -42,9 +47,15 @@ public class AgentCommandDelegationApi {
         this.serviceBroadcastInvoker = serviceBroadcastInvoker;
     }
 
-    @GetMapping("/api/agent/command/clients")
-    public Map<String, List<Map<String, String>>> getClient() {
+    @GetMapping("/api/agent/command/getClients")
+    public Map<String, List<Map<String, String>>> getClients() {
         IAgentCommandApi impl = serviceBroadcastInvoker.create(IAgentCommandApi.class);
         return impl.getClients();
+    }
+
+    @PostMapping("/api/agent/command/dumpClazz")
+    public CommandResponse<Set<String>> dumpClazz(@RequestBody CommandArgs<String> args) {
+        IAgentCommandApi impl = serviceBroadcastInvoker.create(IAgentCommandApi.class);
+        return impl.dumpClazz(args);
     }
 }

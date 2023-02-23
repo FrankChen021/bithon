@@ -37,10 +37,15 @@
       <artifactId>lombok</artifactId>
     </dependency>
 
-
     <dependency>
       <groupId>org.bithon</groupId>
       <artifactId>service-discovery-declaration</artifactId>
+    </dependency>
+
+    <!-- Feign, use feign to call remote service -->
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-openfeign</artifactId>
     </dependency>
   </dependencies>
 
