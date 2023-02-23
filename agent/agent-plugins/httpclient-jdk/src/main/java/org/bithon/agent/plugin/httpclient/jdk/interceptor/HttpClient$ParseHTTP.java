@@ -50,6 +50,9 @@ public class HttpClient$ParseHTTP extends AbstractInterceptor {
         return true;
     }
 
+    /**
+     * {@link HttpClientContext} accessed in this method is injected in {@link HttpClient$New} or {@link HttpsClient$New}
+     */
     @Override
     public void onMethodLeave(AopContext aopContext) {
         MessageHeader responseHeader = (MessageHeader) aopContext.getArgs()[0];
