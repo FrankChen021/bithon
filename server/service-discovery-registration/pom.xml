@@ -32,6 +32,10 @@
       <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>service-discovery-declaration</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

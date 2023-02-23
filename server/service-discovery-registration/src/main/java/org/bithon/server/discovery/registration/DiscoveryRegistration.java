@@ -17,9 +17,12 @@
 package org.bithon.server.discovery.registration;
 
 import com.alibaba.cloud.nacos.registry.NacosRegistrationCustomizer;
+import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -31,8 +34,17 @@ public class DiscoveryRegistration {
     //    @ConditionalOnBean(NacosServiceRegistry.class)
     @Bean
     public NacosRegistrationCustomizer nacosRegistrationCustomizer(ApplicationContext applicationContext) {
+        // Register these services as metadata of bithon-service,
+        // So that discovery clients can find these registered services
         return registration -> {
-            registration.getMetadata().put("bithon.service.collector", "true");
+            Map<String, String> registrationServices = registration.getMetadata();
+
+            // Find declared services
+            Map<String, Object> services = applicationContext.getBeansWithAnnotation(DiscoverableService.class);
+            for (Map.Entry<String, Object> entry : services.entrySet()) {
+                DiscoverableService serviceDeclaration = entry.getValue().getClass().getAnnotation(DiscoverableService.class);
+                registrationServices.put("bithon.service." + serviceDeclaration.name(), "true");
+            }
         };
     }
 }

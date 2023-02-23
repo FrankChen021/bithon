@@ -16,22 +16,23 @@
 
 package org.bithon.server.discovery.client;
 
-import org.bithon.server.discovery.declaration.DiscoveredService;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
  * @date 23/2/23 12:47 am
  */
 @Service
-public class ServiceInvoker {
+public class ServiceClientInvoker {
     private final IDiscoveryClient client;
 
-    public ServiceInvoker(IDiscoveryClient client) {
-        this.client = client;
+    public ServiceClientInvoker(ApplicationContext applicationContext) {
+        this.client = createDiscoveryClient(applicationContext);
+    }
+
+    private IDiscoveryClient createDiscoveryClient(ApplicationContext applicationContext) {
+        return null;
     }
 
     public <T> T create(Class<T> clazz) {
@@ -40,6 +41,8 @@ public class ServiceInvoker {
 //
 //        }
 //        List<IDiscoveryClient.HostAndPort> instanceList = client.getInstanceList(annotation.name());
-        return createProxy(serviceName, clazz);
+        //return createProxy(serviceName, clazz);
+        return null;
     }
+
 }
