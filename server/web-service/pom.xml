@@ -42,6 +42,12 @@
       <artifactId>server-collector</artifactId>
     </dependency>
 
+    <!-- Discoverable Service client -->
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>service-discovery-client</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

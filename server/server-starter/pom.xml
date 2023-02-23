@@ -100,6 +100,11 @@
       <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
     </dependency>
 
+    <!-- Register discoverable services in different modules -->
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>service-discovery-registration</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

@@ -24,7 +24,7 @@ import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.bithon.component.brpc.channel.ServerChannel;
-import org.bithon.server.collector.cmd.service.CommandService;
+import org.bithon.server.collector.cmd.service.AgentCommandService;
 import org.bithon.server.collector.config.AgentConfigurationService;
 import org.bithon.server.collector.config.BrpcSettingFetcher;
 import org.bithon.server.sink.common.service.UriNormalizer;
@@ -107,7 +107,7 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
         serviceGroups.forEach((port, serviceGroup) -> {
             ServerChannel channel = new ServerChannel();
             if (serviceGroup.isCtrl) {
-                applicationContext.getBean(CommandService.class).setServerChannel(channel);
+                applicationContext.getBean(AgentCommandService.class).setServerChannel(channel);
             }
             serviceGroup.channel = channel;
             serviceGroup.start(port);

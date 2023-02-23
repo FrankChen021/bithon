@@ -485,9 +485,9 @@
       </activation>
       <modules>
         <module>server/server-commons</module>
-        <module>server/service-discovery-declaration</module>
-        <module>server/service-discovery-registration</module>
-        <module>server/service-discovery-client</module>
+        <module>server/service-discovery/declaration</module>
+        <module>server/service-discovery/client</module>
+        <module>server/service-discovery/registration</module>
         <module>server/sink</module>
         <module>server/storage</module>
         <module>server/storage-jdbc</module>
