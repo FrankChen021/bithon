@@ -21,11 +21,13 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import sun.net.www.protocol.http.HttpURLConnection;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSocketFactory;
 import java.net.Proxy;
 import java.net.URL;
 
 /**
- * {@link {@link sun.net.www.protocol.https.HttpsClient#New(URL, Proxy, int, boolean, HttpURLConnection)}
+ * {@link {@link sun.net.www.protocol.https.HttpsClient#New(SSLSocketFactory sf, URL url, HostnameVerifier hv, Proxy p, boolean useCache, int connectTimeout, HttpURLConnection httpuc)}
  *
  * @author frank.chen021@outlook.com
  * @date 2021/3/14 11:13 下午
@@ -44,7 +46,7 @@ public class HttpsClient$New extends AbstractInterceptor {
             return;
         }
 
-        java.net.HttpURLConnection urlConnection = aopContext.getArgAs(4);
+        java.net.HttpURLConnection urlConnection = aopContext.getArgAs(6);
         if (bithonObject.getInjectedObject() == null) {
             bithonObject.setInjectedObject(new HttpClientContext());
         }
