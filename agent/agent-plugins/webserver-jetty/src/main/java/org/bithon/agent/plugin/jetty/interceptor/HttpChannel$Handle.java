@@ -99,11 +99,15 @@ public class HttpChannel$Handle extends AbstractInterceptor {
             ((IBithonObject) request).setInjectedObject(new RequestContext(System.nanoTime(), traceContext));
         }
 
-        RequestContext requestContext = (RequestContext) ((IBithonObject) request).getInjectedObject();
         InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
+
+        RequestContext requestContext = (RequestContext) ((IBithonObject) request).getInjectedObject();
         if (requestContext != null) {
-            TraceContextHolder.set(requestContext.getTraceContext());
-            InterceptorContext.set(InterceptorContext.KEY_TRACEID, requestContext.getTraceContext().traceId());
+            ITraceContext traceContext = requestContext.getTraceContext();
+            if (traceContext != null) {
+                TraceContextHolder.set(traceContext);
+                InterceptorContext.set(InterceptorContext.KEY_TRACEID, traceContext.traceId());
+            }
         }
 
         return InterceptionDecision.CONTINUE;
