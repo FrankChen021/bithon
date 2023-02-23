@@ -2,6 +2,10 @@ spring:
   application:
     name: bithon-server
   cloud:
+    service-registry:
+      auto-registration:
+        # Set service auto-registration to false because we configure the service registration manually by different implementations
+#        enabled: false
     nacos:
       config:
         enabled: false
@@ -10,3 +14,7 @@ spring:
         namespace: ffffffff-d350-4755-ab1a-28721fc79cfa
         refresh-enabled: true
         group: DEFAULT_GROUP
+      discovery:
+        watch:
+          enabled: false
+        server-addr: nacos.server:80
