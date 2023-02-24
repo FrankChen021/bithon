@@ -18,27 +18,24 @@ package org.bithon.server.collector.cmd.api;
 
 import org.bithon.agent.rpc.brpc.cmd.IConfigCommand;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
-import org.bithon.component.brpc.channel.ServerChannel;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.collector.cmd.service.AgentCommandService;
 import org.bithon.server.discovery.declaration.cmd.CommandArgs;
-import org.bithon.server.discovery.declaration.cmd.CommandResponse;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.io.StringWriter;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
@@ -53,25 +50,25 @@ public class AgentCommandApi implements IAgentCommandApi {
     }
 
     @Override
-    public Map<String, List<Map<String, String>>> getClients() {
-        Map<String, List<Map<String, String>>> clients = new HashMap<>(17);
-        List<ServerChannel.Session> sessions = commandService.getServerChannel()
-                                                             .getSessions();
-        for (ServerChannel.Session session : sessions) {
-            Map<String, String> properties = new HashMap<>();
-            if (StringUtils.hasText(session.getAppId())) {
-                properties.put("appId", session.getAppId());
-            }
-            properties.put("endpoint", session.getEndpoint().toString());
-
-            clients.computeIfAbsent(session.getAppName(), v -> new ArrayList<>())
-                   .add(properties);
-        }
-        return clients;
+    public List<Map<String, String>> getClients() {
+        return commandService.getServerChannel()
+                             .getSessions()
+                             .stream()
+                             .map((session) -> {
+                                 Map<String, String> client = new HashMap<>();
+                                 client.put("appName", session.getAppName());
+                                 if (StringUtils.hasText(session.getAppId())) {
+                                     client.put("appId", session.getAppId());
+                                 }
+                                 client.put("endpoint", session.getEndpoint().toString());
+                                 return client;
+                             })
+                             .sorted(Comparator.comparing(o -> o.get("appName")))
+                             .collect(Collectors.toList());
     }
 
     @Override
-    public String dumpThread(@Valid @RequestBody CommandArgs<Void> args) {
+    public List<String> dumpThread(@Valid @RequestBody CommandArgs<Void> args) {
         IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
         if (command == null) {
             throw new RuntimeException(StringUtils.format("client by id [%s] not found", args.getAppId()));
@@ -99,9 +96,9 @@ public class AgentCommandApi implements IAgentCommandApi {
                 pw.write('\n');
             }
 
-            return pw.toString();
+            return Collections.singletonList(pw.toString());
         } catch (ServiceInvocationException e) {
-            return e.getMessage();
+            throw new RuntimeException(e.getMessage());
         }
     }
 
@@ -113,10 +110,10 @@ public class AgentCommandApi implements IAgentCommandApi {
      *             "%bithon% matches all qualified classes whose name contains bithon
      */
     @Override
-    public CommandResponse<Set<String>> dumpClazz(@Valid @RequestBody CommandArgs<String> args) {
+    public Collection<String> dumpClazz(@Valid @RequestBody CommandArgs<String> args) {
         IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
         if (command == null) {
-            return CommandResponse.error(StringUtils.format("client by id [%s] not found", args.getAppId()));
+            throw new RuntimeException(StringUtils.format("client by id [%s] not found", args.getAppId()));
         }
         try {
             String pattern;
@@ -127,28 +124,24 @@ public class AgentCommandApi implements IAgentCommandApi {
                 pattern = pattern.replace(".", "\\.").replace("%", ".*");
             }
 
-            return CommandResponse.success(new TreeSet<>(command.dumpClazz(pattern)));
+            return new TreeSet<>(command.dumpClazz(pattern));
         } catch (ServiceInvocationException e) {
-            return CommandResponse.exception(e);
+            throw new RuntimeException(e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<String> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args) {
+    public Collection<String> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args) {
         IConfigCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IConfigCommand.class);
         if (command == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                 .header("Content-Type", "application/text")
-                                 .body(StringUtils.format("client by id [%s] not found", args.getAppId()));
+            throw new RuntimeException(StringUtils.format("client by id [%s] not found", args.getAppId()));
         }
         try {
-            return ResponseEntity.status(HttpStatus.OK)
-                                 .header("Content-Type", "application/text")
-                                 .body(command.getConfiguration(args.getArgs().getFormat(), args.getArgs().isPretty()));
+            GetConfigurationRequest request = args.getArgs();
+            return Collections.singletonList(command.getConfiguration(request == null ? "YAML" : request.getFormat(),
+                                                                      request == null ? true : request.isPretty()));
         } catch (ServiceInvocationException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .header("Content-Type", "application/text")
-                                 .body(e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
     }
 }

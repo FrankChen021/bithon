@@ -18,19 +18,22 @@ package org.bithon.server.web.service.agent.api.impl;
 
 import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
 import org.bithon.server.discovery.declaration.cmd.CommandArgs;
-import org.bithon.server.discovery.declaration.cmd.CommandResponse;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Frank Chen
@@ -41,21 +44,42 @@ import java.util.Set;
 @Conditional(WebServiceModuleEnabler.class)
 public class AgentCommandDelegationApi {
 
-    private final ServiceBroadcastInvoker serviceBroadcastInvoker;
+    private final IAgentCommandApi impl;
 
     public AgentCommandDelegationApi(ServiceBroadcastInvoker serviceBroadcastInvoker) {
-        this.serviceBroadcastInvoker = serviceBroadcastInvoker;
+        this.impl = serviceBroadcastInvoker.create(IAgentCommandApi.class);
     }
 
     @GetMapping("/api/agent/command/getClients")
-    public Map<String, List<Map<String, String>>> getClients() {
-        IAgentCommandApi impl = serviceBroadcastInvoker.create(IAgentCommandApi.class);
+    public Collection<Map<String, String>> getClients() {
         return impl.getClients();
     }
 
-    @PostMapping("/api/agent/command/dumpClazz")
-    public CommandResponse<Set<String>> dumpClazz(@RequestBody CommandArgs<String> args) {
-        IAgentCommandApi impl = serviceBroadcastInvoker.create(IAgentCommandApi.class);
-        return impl.dumpClazz(args);
+    @PostMapping(value = "/api/agent/command/dumpClazz", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public void dumpClazz(@Valid @RequestBody CommandArgs<String> args, HttpServletResponse response) throws IOException {
+        Collection<String> classList = impl.dumpClazz(args);
+
+        int i = 0;
+        PrintWriter pw = response.getWriter();
+        for (String clazz : classList) {
+            pw.write(clazz);
+            pw.write('\n');
+            if (++i % 100 == 0) {
+                pw.flush();
+            }
+        }
+    }
+
+    @PostMapping(value = "/api/agent/command/getConfig", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public void getConfiguration(@RequestBody CommandArgs<IAgentCommandApi.GetConfigurationRequest> args,
+                                 HttpServletResponse response) throws IOException {
+        Collection<String> configurations = impl.getConfiguration(args);
+
+        PrintWriter pw = response.getWriter();
+        for (String configuration : configurations) {
+            pw.write(configuration);
+            pw.write('\n');
+            pw.flush();
+        }
     }
 }

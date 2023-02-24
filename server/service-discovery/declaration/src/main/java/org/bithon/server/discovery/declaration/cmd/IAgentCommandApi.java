@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,10 +38,10 @@ import java.util.Set;
 public interface IAgentCommandApi {
 
     @GetMapping("/api/command/clients")
-    Map<String, List<Map<String, String>>> getClients();
+    Collection<Map<String, String>> getClients();
 
     @PostMapping("/api/command/jvm/dumpThread")
-    String dumpThread(@RequestBody CommandArgs<Void> args) throws IOException;
+    List<String> dumpThread(@RequestBody CommandArgs<Void> args) throws IOException;
 
     /**
      * @param args A string pattern which comply with database's like expression.
@@ -50,14 +51,17 @@ public interface IAgentCommandApi {
      *             "%bithon% matches all qualified classes whose name contains bithon
      */
     @PostMapping("/api/command/jvm/dumpClazz")
-    CommandResponse<Set<String>> dumpClazz(@RequestBody CommandArgs<String> args);
+    Collection<String> dumpClazz(@RequestBody CommandArgs<String> args);
 
     @Data
     class GetConfigurationRequest {
+        /**
+         * JSON | YAML
+         */
         private String format;
         private boolean pretty;
     }
 
     @PostMapping("/api/command/config/get")
-    ResponseEntity<String> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args);
+    Collection<String> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args);
 }
