@@ -57,7 +57,7 @@ public class AgentCommandDelegationApi {
 
     @PostMapping(value = "/api/agent/command/dumpClazz", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public void dumpClazz(@Valid @RequestBody CommandArgs<String> args, HttpServletResponse response) throws IOException {
-        Collection<String> classList = impl.dumpClazz(args);
+        Collection<String> classList = impl.getClassList(args);
 
         int i = 0;
         PrintWriter pw = response.getWriter();

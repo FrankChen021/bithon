@@ -14,17 +14,30 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource;
+package org.bithon.component.commons.exception;
 
-import org.bithon.component.commons.exception.HttpResponseMapping;
+import org.bithon.component.commons.utils.StringUtils;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 8/4/22 11:49 am
+ * @author Frank Chen
+ * @date 24/2/23 11:09 pm
  */
-@HttpResponseMapping(statusCode = HttpResponseMapping.StatusCode.BAD_REQ)
-public class DataSourceExistException extends RuntimeException {
-    public DataSourceExistException(String name) {
-        super("Schema for datasource " + name + " exists.");
+public class HttpMappableException extends RuntimeException {
+
+    private final int statusCode;
+
+
+    public HttpMappableException(int statusCode, String message) {
+        super(message);
+        this.statusCode = statusCode;
+    }
+
+    public HttpMappableException(int statusCode, String messageFormat, Object... args) {
+        super(StringUtils.format(messageFormat, args));
+        this.statusCode = statusCode;
+    }
+
+    public int getStatusCode() {
+        return statusCode;
     }
 }

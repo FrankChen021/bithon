@@ -16,6 +16,8 @@
 
 package org.bithon.component.commons.utils;
 
+import org.bithon.component.commons.exception.HttpResponseMapping;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 23/3/22 2:38 PM
@@ -54,6 +56,7 @@ public class Preconditions {
         }
     }
 
+    @HttpResponseMapping(statusCode = HttpResponseMapping.StatusCode.BAD_REQ)
     public static class InvalidValueException extends RuntimeException {
         public InvalidValueException(String message) {
             super(message);

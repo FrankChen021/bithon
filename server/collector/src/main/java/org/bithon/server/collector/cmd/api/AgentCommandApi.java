@@ -16,16 +16,22 @@
 
 package org.bithon.server.collector.cmd.api;
 
+import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.rpc.brpc.cmd.IConfigCommand;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
+import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.collector.cmd.service.AgentCommandService;
 import org.bithon.server.discovery.declaration.cmd.CommandArgs;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.io.StringWriter;
 import java.util.Collection;
@@ -43,6 +49,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 public class AgentCommandApi implements IAgentCommandApi {
+
     private final AgentCommandService commandService;
 
     public AgentCommandApi(AgentCommandService commandService) {
@@ -68,38 +75,33 @@ public class AgentCommandApi implements IAgentCommandApi {
     }
 
     @Override
-    public List<String> dumpThread(@Valid @RequestBody CommandArgs<Void> args) {
+    public List<String> getThreadStackTrace(@Valid @RequestBody CommandArgs<Void> args) {
         IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
-        if (command == null) {
-            throw new RuntimeException(StringUtils.format("client by id [%s] not found", args.getAppId()));
-        }
-        try {
-            // Get
-            List<IJvmCommand.ThreadInfo> threads = command.dumpThreads();
 
-            // Sort by thread name for better analysis
-            threads.sort(Comparator.comparing(IJvmCommand.ThreadInfo::getName));
+        // Get
+        List<IJvmCommand.ThreadInfo> threads = command.dumpThreads();
 
-            // Output as stream
-            StringWriter pw = new StringWriter();
+        // Sort by thread name for better analysis
+        threads.sort(Comparator.comparing(IJvmCommand.ThreadInfo::getName));
 
-            // Output header
-            pw.write(StringUtils.format("---Total Threads: %d---\n", threads.size()));
-            for (IJvmCommand.ThreadInfo thread : threads) {
-                pw.write(StringUtils.format("Id: %d, Name: %s, State: %s \n", thread.getThreadId(), thread.getName(), thread.getState()));
-                String[] stackElements = thread.getStacks().split("\n");
-                for (String stackElement : stackElements) {
-                    pw.write('\t');
-                    pw.write(stackElement);
-                    pw.write('\n');
-                }
+        // Output as stream
+        StringWriter pw = new StringWriter();
+
+        // Output header
+        pw.write(StringUtils.format("---Total Threads: %d---\n", threads.size()));
+        for (IJvmCommand.ThreadInfo thread : threads) {
+            pw.write(StringUtils.format("Id: %d, Name: %s, State: %s \n", thread.getThreadId(), thread.getName(), thread.getState()));
+            String[] stackElements = thread.getStacks().split("\n");
+            for (String stackElement : stackElements) {
+                pw.write('\t');
+                pw.write(stackElement);
                 pw.write('\n');
             }
-
-            return Collections.singletonList(pw.toString());
-        } catch (ServiceInvocationException e) {
-            throw new RuntimeException(e.getMessage());
+            pw.write('\n');
         }
+
+        return Collections.singletonList(pw.toString());
+
     }
 
     /**
@@ -110,38 +112,38 @@ public class AgentCommandApi implements IAgentCommandApi {
      *             "%bithon% matches all qualified classes whose name contains bithon
      */
     @Override
-    public Collection<String> dumpClazz(@Valid @RequestBody CommandArgs<String> args) {
+    public Collection<String> getClassList(@Valid @RequestBody CommandArgs<String> args) {
         IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
-        if (command == null) {
-            throw new RuntimeException(StringUtils.format("client by id [%s] not found", args.getAppId()));
-        }
-        try {
-            String pattern;
-            if (StringUtils.isEmpty(args.getArgs())) {
-                pattern = ".*";
-            } else {
-                pattern = args.getArgs();
-                pattern = pattern.replace(".", "\\.").replace("%", ".*");
-            }
 
-            return new TreeSet<>(command.dumpClazz(pattern));
-        } catch (ServiceInvocationException e) {
-            throw new RuntimeException(e.getMessage());
+        String pattern;
+        if (StringUtils.isEmpty(args.getArgs())) {
+            pattern = ".*";
+        } else {
+            pattern = args.getArgs();
+            pattern = pattern.replace(".", "\\.").replace("%", ".*");
         }
+
+        return new TreeSet<>(command.dumpClazz(pattern));
     }
 
     @Override
     public Collection<String> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args) {
         IConfigCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IConfigCommand.class);
-        if (command == null) {
-            throw new RuntimeException(StringUtils.format("client by id [%s] not found", args.getAppId()));
-        }
-        try {
-            GetConfigurationRequest request = args.getArgs();
-            return Collections.singletonList(command.getConfiguration(request == null ? "YAML" : request.getFormat(),
-                                                                      request == null ? true : request.isPretty()));
-        } catch (ServiceInvocationException e) {
-            throw new RuntimeException(e.getMessage());
-        }
+
+        GetConfigurationRequest request = args.getArgs();
+        return Collections.singletonList(command.getConfiguration(request == null ? "YAML" : request.getFormat(),
+                                                                  request == null ? true : request.isPretty()));
+    }
+
+    /**
+     * Handle exception thrown by AgentCommandService used above
+     */
+    @ExceptionHandler(ServiceInvocationException.class)
+    public ResponseEntity<Map> handleException(HttpServletRequest request, ServiceInvocationException exception) {
+        int statusCode = exception instanceof SessionNotFoundException ? HttpStatus.NOT_FOUND.value() : HttpStatus.INTERNAL_SERVER_ERROR.value();
+
+        return ResponseEntity.status(statusCode)
+                             .body(ImmutableMap.of("path", request.getRequestURI(),
+                                                   "message", exception.getMessage()));
     }
 }

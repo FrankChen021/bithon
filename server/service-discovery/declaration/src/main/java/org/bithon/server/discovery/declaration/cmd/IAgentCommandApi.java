@@ -18,17 +18,14 @@ package org.bithon.server.discovery.declaration.cmd;
 
 import lombok.Data;
 import org.bithon.server.discovery.declaration.DiscoverableService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Frank Chen
@@ -41,7 +38,7 @@ public interface IAgentCommandApi {
     Collection<Map<String, String>> getClients();
 
     @PostMapping("/api/command/jvm/dumpThread")
-    List<String> dumpThread(@RequestBody CommandArgs<Void> args) throws IOException;
+    List<String> getThreadStackTrace(@RequestBody CommandArgs<Void> args) throws IOException;
 
     /**
      * @param args A string pattern which comply with database's like expression.
@@ -51,7 +48,7 @@ public interface IAgentCommandApi {
      *             "%bithon% matches all qualified classes whose name contains bithon
      */
     @PostMapping("/api/command/jvm/dumpClazz")
-    Collection<String> dumpClazz(@RequestBody CommandArgs<String> args);
+    Collection<String> getClassList(@RequestBody CommandArgs<String> args);
 
     @Data
     class GetConfigurationRequest {

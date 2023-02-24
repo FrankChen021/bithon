@@ -20,9 +20,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.exception.BadRequestException;
-import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.storage.datasource.DataSourceExistException;
-import org.bithon.server.storage.datasource.DataSourceNotFoundException;
+import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.component.commons.exception.HttpResponseMapping;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -39,7 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler({BadRequestException.class, Preconditions.InvalidValueException.class, HttpMessageNotReadableException.class})
+    @ExceptionHandler({BadRequestException.class, HttpMessageNotReadableException.class})
     public ResponseEntity<ErrorResponse> handleException(HttpServletRequest request, RuntimeException exception) {
         return ResponseEntity.badRequest().body(ErrorResponse.builder()
                                                              .path(request.getRequestURI())
@@ -47,29 +46,28 @@ public class GlobalExceptionHandler {
                                                              .build());
     }
 
-    @ExceptionHandler({DataSourceNotFoundException.class})
-    public ResponseEntity<ErrorResponse> handleException(HttpServletRequest request, DataSourceNotFoundException exception) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorResponse.builder()
-                                                                             .path(request.getRequestURI())
-                                                                             .message(exception.getMessage())
-                                                                             .build());
-    }
-
-    @ExceptionHandler({DataSourceExistException.class})
-    public ResponseEntity<ErrorResponse> handleException(HttpServletRequest request, DataSourceExistException exception) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponse.builder()
-                                                                               .path(request.getRequestURI())
-                                                                               .message(exception.getMessage())
-                                                                               .build());
-    }
-
     @ExceptionHandler({Exception.class})
     public ResponseEntity<ErrorResponse> handleException(HttpServletRequest request, Exception exception) {
-        log.error("Unexpected error", exception);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorResponse.builder()
-                                                                                         .path(request.getRequestURI())
-                                                                                         .message(exception.getMessage())
-                                                                                         .build());
+        int statusCode;
+        HttpResponseMapping mapping = exception.getClass().getDeclaredAnnotation(HttpResponseMapping.class);
+        if (mapping == null) {
+            if (exception instanceof HttpMappableException) {
+                statusCode = ((HttpMappableException) exception).getStatusCode();
+            } else {
+                statusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+
+                // Logging unknown exception
+                log.error("Unexpected error", exception);
+            }
+        } else {
+            statusCode = mapping.statusCode().value();
+        }
+
+        return ResponseEntity.status(statusCode)
+                             .body(ErrorResponse.builder()
+                                                .path(request.getRequestURI())
+                                                .message(exception.getMessage())
+                                                .build());
     }
 
     @Data

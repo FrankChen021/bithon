@@ -14,17 +14,34 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource;
+package org.bithon.component.commons.exception;
 
-import org.bithon.component.commons.exception.HttpResponseMapping;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 8/4/22 11:49 am
+ * @author Frank Chen
+ * @date 24/2/23 10:57 pm
  */
-@HttpResponseMapping(statusCode = HttpResponseMapping.StatusCode.BAD_REQ)
-public class DataSourceExistException extends RuntimeException {
-    public DataSourceExistException(String name) {
-        super("Schema for datasource " + name + " exists.");
+@Target(value = ElementType.TYPE)
+@Retention(value = RetentionPolicy.RUNTIME)
+public @interface HttpResponseMapping {
+    StatusCode statusCode();
+
+    enum StatusCode {
+        OK(200),
+        BAD_REQ(400);
+
+        int value;
+
+        StatusCode(int value) {
+            this.value = value;
+        }
+
+        public int value() {
+            return value;
+        }
     }
 }

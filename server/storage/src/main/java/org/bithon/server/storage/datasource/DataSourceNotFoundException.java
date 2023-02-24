@@ -16,10 +16,13 @@
 
 package org.bithon.server.storage.datasource;
 
+import org.bithon.component.commons.exception.HttpResponseMapping;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 7/10/21 11:49 am
  */
+@HttpResponseMapping(statusCode = HttpResponseMapping.StatusCode.BAD_REQ)
 public class DataSourceNotFoundException extends RuntimeException {
     public DataSourceNotFoundException(String name) {
         super("Can't find schema for datasource " + name);

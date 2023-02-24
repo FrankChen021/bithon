@@ -21,6 +21,7 @@ import com.alibaba.cloud.nacos.discovery.NacosServiceDiscovery;
 import com.alibaba.cloud.nacos.registry.NacosAutoServiceRegistration;
 import feign.Contract;
 import feign.Feign;
+import feign.FeignException;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
@@ -36,6 +37,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -98,13 +100,17 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
 
             List<Future<Collection>> futures = new ArrayList<>(4);
 
+            //
             // Invoke remote service on each instance
+            //
             List<IDiscoveryClient.HostAndPort> hostAndPortList = serviceDiscoveryClient.getInstanceList(serviceName);
             for (IDiscoveryClient.HostAndPort hostAndPort : hostAndPortList) {
                 futures.add(executorService.submit(new RemoteServiceCaller<>(type, hostAndPort, method, args)));
             }
 
+            //
             // Wait and merge the result together
+            //
             List results = new ArrayList();
             for (Future<Collection> future : futures) {
                 try {
@@ -147,6 +153,10 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
             try {
                 // The remote service must return type of Collection
                 return (Collection) handler.invoke(proxyObject, method, args);
+            } catch (FeignException.NotFound e) {
+                // Ignore the exception that the target service does not have data of given args
+                // This might also ignore the HTTP layer 404 problem
+                return Collections.emptyList();
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
