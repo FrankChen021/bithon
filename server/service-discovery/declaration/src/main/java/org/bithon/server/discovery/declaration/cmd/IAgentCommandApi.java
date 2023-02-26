@@ -32,11 +32,30 @@ import java.io.IOException;
 @DiscoverableService(name = "agentCommand")
 public interface IAgentCommandApi {
 
+    @Data
+    class Client {
+        private String appName;
+        private String appId;
+        private String endpoint;
+    }
+
     @GetMapping("/api/command/clients")
-    ServiceResponse getClients();
+    ServiceResponse<Client> getClients();
+
+    @Data
+    class StackTrace {
+        private String name;
+        private long threadId;
+        private boolean isDaemon;
+        private int priority;
+        private String state;
+        private long cpuTime;
+        private long userTime;
+        private String stack;
+    }
 
     @PostMapping("/api/command/jvm/dumpThread")
-    ServiceResponse getStackTrace(@RequestBody CommandArgs<Void> args) throws IOException;
+    ServiceResponse<StackTrace> getStackTrace(@RequestBody CommandArgs<Void> args) throws IOException;
 
     /**
      * @param args A string pattern which comply with database's like expression.
@@ -46,7 +65,7 @@ public interface IAgentCommandApi {
      *             "%bithon% matches all qualified classes whose name contains bithon
      */
     @PostMapping("/api/command/jvm/dumpClazz")
-    ServiceResponse getClassList(@RequestBody CommandArgs<String> args);
+    ServiceResponse<String> getClassList(@RequestBody CommandArgs<String> args);
 
     @Data
     class GetConfigurationRequest {
@@ -58,5 +77,5 @@ public interface IAgentCommandApi {
     }
 
     @PostMapping("/api/command/config/get")
-    ServiceResponse getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args);
+    ServiceResponse<String> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args);
 }

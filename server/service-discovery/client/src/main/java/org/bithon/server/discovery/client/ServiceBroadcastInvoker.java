@@ -103,7 +103,7 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
             //
             // Invoke remote service on each instance
             //
-            List<Future<ServiceResponse>> futures = new ArrayList<>(instanceList.size());
+            List<Future<ServiceResponse<?>>> futures = new ArrayList<>(instanceList.size());
             for (IDiscoveryClient.HostAndPort hostAndPort : instanceList) {
                 futures.add(executorService.submit(new RemoteServiceCaller<>(type, hostAndPort, method, args)));
             }
@@ -111,37 +111,31 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
             //
             // Wait and merge the result together
             //
-            List<String> columns = null;
-            List<Object[]> data = null;
-            for (Future<ServiceResponse> future : futures) {
+            List mergedRows = null;
+            for (Future<ServiceResponse<?>> future : futures) {
 
                 try {
-                    ServiceResponse response = future.get();
+                    ServiceResponse<?> response = future.get();
                     if (response.getError() != null) {
                         return response;
                     }
 
                     // Merge response
-                    if (columns == null) {
-                        columns = response.getColumns();
-                    }
-                    if (data == null) {
-                        data = response.getData();
+                    if (mergedRows == null) {
+                        mergedRows = response.getRows();
                     } else {
-                        data.addAll(response.getData());
+                        mergedRows.addAll(response.getRows());
                     }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
+                } catch (InterruptedException | ExecutionException e) {
                     throw new RuntimeException(e);
                 }
             }
 
-            return ServiceResponse.success(columns, data);
+            return ServiceResponse.success(mergedRows);
         }
     }
 
-    private class RemoteServiceCaller<T> implements Callable<ServiceResponse> {
+    private class RemoteServiceCaller<T> implements Callable<ServiceResponse<?>> {
 
         private final Class<T> type;
 
@@ -157,7 +151,7 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
         }
 
         @Override
-        public ServiceResponse call() {
+        public ServiceResponse<?> call() {
             Object proxyObject = Feign.builder()
                                       .contract(applicationContext.getBean(Contract.class))
                                       .encoder(applicationContext.getBean(Encoder.class))
@@ -167,7 +161,7 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
             InvocationHandler handler = Proxy.getInvocationHandler(proxyObject);
             try {
                 // The remote service must return type of Collection
-                return (ServiceResponse) handler.invoke(proxyObject, method, args);
+                return (ServiceResponse<?>) handler.invoke(proxyObject, method, args);
             } catch (FeignException.NotFound e) {
                 // Ignore the exception that the target service does not have data of given args
                 // This might also ignore the HTTP layer 404 problem

@@ -25,35 +25,30 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Response in compacted JSON format.
+ * Row-based Response.
  *
  * @author Frank Chen
  * @date 2022/8/7 21:29
  */
-public class ServiceResponse {
-    public final static ServiceResponse EMPTY = new ServiceResponse(Collections.emptyList(), Collections.emptyList());
+public class ServiceResponse<T> {
+    public final static ServiceResponse EMPTY = new ServiceResponse(Collections.emptyList());
 
     /**
      * column names
      */
     @Getter
-    private final List<String> columns;
-
-    @Getter
-    private final List<Object[]> data;
+    private final List<T> rows;
 
     @Getter
     private final Map<String, String> error;
 
-    public ServiceResponse(List<String> columns, List<Object[]> data) {
-        this.columns = columns;
-        this.data = data;
+    public ServiceResponse(List<T> rows) {
+        this.rows = rows;
         this.error = null;
     }
 
     public ServiceResponse(Map<String, String> error) {
-        this.data = null;
-        this.columns = null;
+        this.rows = null;
         this.error = error;
     }
 
@@ -61,16 +56,14 @@ public class ServiceResponse {
      * A ctor for JSON deserialization by Jackson
      */
     @JsonCreator
-    public ServiceResponse(@JsonProperty("columns") List<String> columns,
-                           @JsonProperty("data") List<Object[]> data,
+    public ServiceResponse(@JsonProperty("rows") List<T> rows,
                            @JsonProperty("error") Map<String, String> error) {
-        this.columns = columns;
-        this.data = data;
+        this.rows = rows;
         this.error = error;
     }
 
-    public static ServiceResponse success(List<String> columns, List<Object[]> data) {
-        return new ServiceResponse(columns, data);
+    public static <T> ServiceResponse<T> success(List<T> rows) {
+        return new ServiceResponse<>(rows);
     }
 
     public static <T> ServiceResponse error(Map<String, String> error) {
