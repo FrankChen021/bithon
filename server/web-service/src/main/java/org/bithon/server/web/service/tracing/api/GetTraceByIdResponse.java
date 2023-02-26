@@ -21,6 +21,7 @@ import lombok.Data;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -31,4 +32,6 @@ import java.util.List;
 public class GetTraceByIdResponse {
     private List<TraceSpan> spans;
     private TraceTopo topo;
+
+    private Map<String, Long> profileEvents;
 }

@@ -17,6 +17,7 @@
 package org.bithon.server.web.service.tracing.api;
 
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.component.commons.utils.Watch;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
@@ -37,7 +38,9 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -58,14 +61,22 @@ public class TraceApi {
 
     @PostMapping("/api/trace/getTraceById")
     public GetTraceByIdResponse getTraceById(@Valid @RequestBody GetTraceByIdRequest request) {
-        List<TraceSpan> spanList = traceService.getTraceByTraceId(request.getId(),
-                                                                  request.getType(),
-                                                                  request.getStartTimeISO8601(),
-                                                                  request.getEndTimeISO8601(),
-                                                                  request.isAsTree());
+        Watch<List<TraceSpan>> getSpanList = new Watch(() -> traceService.getTraceByTraceId(request.getId(),
+                                                                                            request.getType(),
+                                                                                            request.getStartTimeISO8601(),
+                                                                                            request.getEndTimeISO8601()));
 
-        return new GetTraceByIdResponse(spanList,
-                                        new TraceTopoBuilder().build(request.isAsTree() ? spanList : traceService.asTree(spanList)));
+        Watch<List<TraceSpan>> buildTree = new Watch<>(() -> traceService.asTree(getSpanList.getResult()));
+        Watch<TraceTopo> buildTopo = new Watch<>(() -> new TraceTopoBuilder().build(buildTree.getResult()));
+
+        Map<String, Long> profileEvents = new HashMap<>();
+        profileEvents.put("getSpanList", getSpanList.getDuration());
+        profileEvents.put("buildTree", buildTree.getDuration());
+        profileEvents.put("buildTopo", buildTopo.getDuration());
+
+        return new GetTraceByIdResponse(request.isAsTree() ? buildTree.getResult() : getSpanList.getResult(),
+                                        buildTopo.getResult(),
+                                        profileEvents);
     }
 
     @Deprecated

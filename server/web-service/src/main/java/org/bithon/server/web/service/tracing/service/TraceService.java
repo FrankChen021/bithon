@@ -87,8 +87,7 @@ public class TraceService {
     public List<TraceSpan> getTraceByTraceId(String txId,
                                              String type,
                                              String startTimeISO8601,
-                                             String endTimeISO8601,
-                                             boolean asTree) {
+                                             String endTimeISO8601) {
         TimeSpan start = StringUtils.hasText(startTimeISO8601) ? TimeSpan.fromISO8601(startTimeISO8601) : null;
         TimeSpan end = StringUtils.hasText(endTimeISO8601) ? TimeSpan.fromISO8601(endTimeISO8601) : null;
 
@@ -109,9 +108,7 @@ public class TraceService {
             // if there's no mapping, try to search this id as trace id
         }
 
-        List<TraceSpan> spans = traceReader.getTraceByTraceId(txId, start, end);
-
-        return asTree ? asTree(spans) : spans;
+        return traceReader.getTraceByTraceId(txId, start, end);
     }
 
     public List<TraceSpan> asTree(List<TraceSpan> spans) {
