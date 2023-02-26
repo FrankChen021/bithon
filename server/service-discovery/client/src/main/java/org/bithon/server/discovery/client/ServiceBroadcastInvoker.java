@@ -25,6 +25,8 @@ import feign.FeignException;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.nacos.NacosDiscoveryClient;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
@@ -32,6 +34,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.http.HttpStatus;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -68,21 +71,28 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
                                             applicationContext.getBean(NacosDiscoveryProperties.class));
         } catch (NoSuchBeanDefinitionException ignored) {
         }
+
+        // Service Discovery is not enabled
         return null;
     }
 
-    public <T> T create(Class<T> serviceDefinitionClazz) {
-        DiscoverableService serviceDeclaration = serviceDefinitionClazz.getAnnotation(DiscoverableService.class);
-        if (serviceDeclaration == null) {
+    /**
+     * Create invoker for given interface.
+     * @param serviceDeclaration An interface which MUST be annotated by {@link DiscoverableService}
+     */
+    public <T> T create(Class<T> serviceDeclaration) {
+        DiscoverableService metadata = serviceDeclaration.getAnnotation(DiscoverableService.class);
+        if (metadata == null) {
+            throw new RuntimeException(StringUtils.format("Given class [%s] is not marked by annotation [%s].",
+                                                          serviceDeclaration.getName(),
+                                                          DiscoverableService.class.getSimpleName()));
         }
 
-        // TODO: CHECK all methods must return type of Collection
-
         //noinspection unchecked
-        return (T) Proxy.newProxyInstance(serviceDefinitionClazz.getClassLoader(),
-                                          new Class<?>[]{serviceDefinitionClazz},
-                                          new ServiceBroadcastInvocationHandler<>(serviceDefinitionClazz,
-                                                                                  serviceDeclaration.name()));
+        return (T) Proxy.newProxyInstance(serviceDeclaration.getClassLoader(),
+                                          new Class<?>[]{serviceDeclaration},
+                                          new ServiceBroadcastInvocationHandler<>(serviceDeclaration,
+                                                                                  metadata.name()));
     }
 
     private class ServiceBroadcastInvocationHandler<T> implements InvocationHandler {
@@ -95,8 +105,14 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
             this.serviceName = name;
         }
 
+        @SuppressWarnings({"rawtypes", "unchecked"})
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
+            if (serviceDiscoveryClient == null) {
+                throw new HttpMappableException(HttpStatus.SERVICE_UNAVAILABLE.value(),
+                                                "This API is unavailable because Service Discovery is not configured.");
+            }
+
             // Get all instances first
             List<IDiscoveryClient.HostAndPort> instanceList = serviceDiscoveryClient.getInstanceList(serviceName);
 
