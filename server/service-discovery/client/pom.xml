@@ -21,15 +21,10 @@
   </properties>
 
   <dependencies>
+    <!--- Service Discovery Client by Alibaba Nacos -->
     <dependency>
       <groupId>com.alibaba.cloud</groupId>
       <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-    </dependency>
-
-    <!--- Service Discovery Client by Alibaba Nacos -->
-    <dependency>
-      <groupId>com.alibaba.nacos</groupId>
-      <artifactId>nacos-client</artifactId>
     </dependency>
 
     <dependency>
