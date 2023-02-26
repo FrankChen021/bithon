@@ -16,7 +16,6 @@
 
 package org.bithon.server.collector.cmd.api;
 
-import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.rpc.brpc.cmd.IConfigCommand;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.component.brpc.channel.ServerChannel;
@@ -143,8 +142,10 @@ public class AgentCommandApi implements IAgentCommandApi {
         int statusCode = exception instanceof SessionNotFoundException ? HttpStatus.NOT_FOUND.value() : HttpStatus.INTERNAL_SERVER_ERROR.value();
 
         return ResponseEntity.status(statusCode)
-                             .body(ServiceResponse.error(ImmutableMap.of("path", request.getRequestURI(),
-                                                                         "exception", exception.getClass().getName(),
-                                                                         "message", exception.getMessage())));
+                             .body(ServiceResponse.error(ServiceResponse.Error.builder()
+                                                                              .uri(request.getRequestURI())
+                                                                              .exception(exception.getClass().getName())
+                                                                              .message(exception.getMessage())
+                                                                              .build()));
     }
 }

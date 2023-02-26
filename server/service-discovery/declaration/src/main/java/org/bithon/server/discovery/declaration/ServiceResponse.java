@@ -18,11 +18,12 @@ package org.bithon.server.discovery.declaration;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Row-based Response.
@@ -31,7 +32,15 @@ import java.util.Map;
  * @date 2022/8/7 21:29
  */
 public class ServiceResponse<T> {
-    public final static ServiceResponse EMPTY = new ServiceResponse(Collections.emptyList());
+    public static final ServiceResponse EMPTY = new ServiceResponse(Collections.emptyList());
+
+    @Data
+    @Builder
+    public static class Error {
+        private String uri;
+        private String exception;
+        private String message;
+    }
 
     /**
      * column names
@@ -40,14 +49,14 @@ public class ServiceResponse<T> {
     private final List<T> rows;
 
     @Getter
-    private final Map<String, String> error;
+    private final Error error;
 
     public ServiceResponse(List<T> rows) {
         this.rows = rows;
         this.error = null;
     }
 
-    public ServiceResponse(Map<String, String> error) {
+    public ServiceResponse(Error error) {
         this.rows = null;
         this.error = error;
     }
@@ -57,7 +66,7 @@ public class ServiceResponse<T> {
      */
     @JsonCreator
     public ServiceResponse(@JsonProperty("rows") List<T> rows,
-                           @JsonProperty("error") Map<String, String> error) {
+                           @JsonProperty("error") Error error) {
         this.rows = rows;
         this.error = error;
     }
@@ -66,7 +75,7 @@ public class ServiceResponse<T> {
         return new ServiceResponse<>(rows);
     }
 
-    public static <T> ServiceResponse error(Map<String, String> error) {
+    public static <T> ServiceResponse error(Error error) {
         return new ServiceResponse(error);
     }
 }
