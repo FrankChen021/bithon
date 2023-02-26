@@ -108,12 +108,13 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
                 futures.add(executorService.submit(new RemoteServiceCaller<>(type, hostAndPort, method, args)));
             }
 
-            //
-            // Wait and merge the result together
-            //
-            List mergedRows = null;
-            for (Future<ServiceResponse<?>> future : futures) {
+            // Since the deserialized rows object might be unmodifiable, we always create a new array to hold the final result
+            List mergedRows = new ArrayList();
 
+            //
+            // Merge the result together
+            //
+            for (Future<ServiceResponse<?>> future : futures) {
                 try {
                     ServiceResponse<?> response = future.get();
                     if (response.getError() != null) {
@@ -121,11 +122,7 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
                     }
 
                     // Merge response
-                    if (mergedRows == null) {
-                        mergedRows = response.getRows();
-                    } else {
-                        mergedRows.addAll(response.getRows());
-                    }
+                    mergedRows.addAll(response.getRows());
                 } catch (InterruptedException | ExecutionException e) {
                     throw new RuntimeException(e);
                 }
