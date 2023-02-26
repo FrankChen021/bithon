@@ -24,7 +24,6 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -55,8 +54,8 @@ public class AgentCommandDelegationApi {
         return impl.getClients();
     }
 
-    @PostMapping(value = "/api/agent/command/dumpClazz", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public void dumpClazz(@Valid @RequestBody CommandArgs<String> args, HttpServletResponse response) throws IOException {
+    @GetMapping(value = "/api/agent/command/getClassList", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public void getClassList(@Valid @RequestBody CommandArgs<String> args, HttpServletResponse response) throws IOException {
         Collection<String> classList = impl.getClassList(args);
 
         int i = 0;
@@ -70,10 +69,23 @@ public class AgentCommandDelegationApi {
         }
     }
 
-    @PostMapping(value = "/api/agent/command/getConfig", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public void getConfiguration(@RequestBody CommandArgs<IAgentCommandApi.GetConfigurationRequest> args,
+    @GetMapping(value = "/api/agent/command/getConfig", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public void getConfiguration(@Valid @RequestBody CommandArgs<IAgentCommandApi.GetConfigurationRequest> args,
                                  HttpServletResponse response) throws IOException {
         Collection<String> configurations = impl.getConfiguration(args);
+
+        PrintWriter pw = response.getWriter();
+        for (String configuration : configurations) {
+            pw.write(configuration);
+            pw.write('\n');
+            pw.flush();
+        }
+    }
+
+    @GetMapping(value = "/api/agent/command/getStackTrace", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public void getStackTrace(@Valid @RequestBody CommandArgs<Void> args,
+                              HttpServletResponse response) throws IOException {
+        Collection<String> configurations = impl.getThreadStackTrace(args);
 
         PrintWriter pw = response.getWriter();
         for (String configuration : configurations) {

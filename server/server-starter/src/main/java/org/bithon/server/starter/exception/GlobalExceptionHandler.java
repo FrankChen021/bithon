@@ -25,6 +25,8 @@ import org.bithon.component.commons.exception.HttpResponseMapping;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -38,11 +40,17 @@ import javax.servlet.http.HttpServletRequest;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler({BadRequestException.class, HttpMessageNotReadableException.class})
+    @ExceptionHandler({
+        BadRequestException.class,
+        HttpMessageNotReadableException.class,
+        MethodArgumentNotValidException.class,
+        HttpRequestMethodNotSupportedException.class
+    })
     public ResponseEntity<ErrorResponse> handleException(HttpServletRequest request, RuntimeException exception) {
         return ResponseEntity.badRequest().body(ErrorResponse.builder()
                                                              .path(request.getRequestURI())
                                                              .message(exception.getMessage())
+                                                             .exception(exception.getClass().getName())
                                                              .build());
     }
 
@@ -66,6 +74,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(statusCode)
                              .body(ErrorResponse.builder()
                                                 .path(request.getRequestURI())
+                                                .exception(exception.getClass().getName())
                                                 .message(exception.getMessage())
                                                 .build());
     }
@@ -75,5 +84,6 @@ public class GlobalExceptionHandler {
     public static class ErrorResponse {
         private String path;
         private String message;
+        private String exception;
     }
 }

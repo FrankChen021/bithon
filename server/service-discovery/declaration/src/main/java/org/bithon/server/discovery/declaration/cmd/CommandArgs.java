@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotEmpty;
 
 /**
  * @author Frank Chen
@@ -30,7 +30,7 @@ public class CommandArgs<T> {
     /**
      * unique client app id
      */
-    @NotNull
+    @NotEmpty(message = "appId can not be empty.")
     @Getter
     private final String appId;
 
