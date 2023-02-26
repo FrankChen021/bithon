@@ -26,6 +26,7 @@ import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.io.netty.bootstrap.ServerBootstrap;
 import org.bithon.shaded.io.netty.buffer.PooledByteBufAllocator;
 import org.bithon.shaded.io.netty.channel.Channel;
@@ -235,7 +236,10 @@ public class ServerChannel implements Closeable {
                     session.appName = request.getAppName();
                 }
 
-                session.setAppId(request.getHeaders().get(Headers.HEADER_APP_ID));
+                String appId = request.getHeaders().get(Headers.HEADER_APP_ID);
+                if (!StringUtils.isEmpty(appId)) {
+                    session.setAppId(appId);
+                }
             }
 
             super.channelRead(ctx, msg);

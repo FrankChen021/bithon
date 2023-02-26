@@ -25,6 +25,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.collector.cmd.service.AgentCommandService;
 import org.bithon.server.discovery.declaration.cmd.CommandArgs;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -44,10 +45,17 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
+ * The management API for agents.
+ * Since the management API between agents and bithon is bored on brpc interface,
+ * the management REST API is only available when the brpc is enabled.
+ * <p>
+ * TODO: We can separate the deployment of agent management from current collector module into a independent module which can be deployed as a single application.
+ *
  * @author Frank Chen
  * @date 2022/8/7 20:46
  */
 @RestController
+@ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
 public class AgentCommandApi implements IAgentCommandApi {
 
     private final AgentCommandService commandService;
@@ -91,11 +99,13 @@ public class AgentCommandApi implements IAgentCommandApi {
         pw.write(StringUtils.format("---Total Threads: %d---\n", threads.size()));
         for (IJvmCommand.ThreadInfo thread : threads) {
             pw.write(StringUtils.format("Id: %d, Name: %s, State: %s \n", thread.getThreadId(), thread.getName(), thread.getState()));
-            String[] stackElements = thread.getStacks().split("\n");
-            for (String stackElement : stackElements) {
-                pw.write('\t');
-                pw.write(stackElement);
-                pw.write('\n');
+            if (!thread.getStacks().isEmpty()) {
+                String[] stackElements = thread.getStacks().split("\n");
+                for (String stackElement : stackElements) {
+                    pw.write('\t');
+                    pw.write(stackElement);
+                    pw.write('\n');
+                }
             }
             pw.write('\n');
         }
@@ -136,14 +146,15 @@ public class AgentCommandApi implements IAgentCommandApi {
     }
 
     /**
-     * Handle exception thrown by AgentCommandService used above
+     * Handle exception thrown in this REST controller
      */
     @ExceptionHandler(ServiceInvocationException.class)
-    public ResponseEntity<Map> handleException(HttpServletRequest request, ServiceInvocationException exception) {
+    public ResponseEntity<Map<String, String>> handleException(HttpServletRequest request, ServiceInvocationException exception) {
         int statusCode = exception instanceof SessionNotFoundException ? HttpStatus.NOT_FOUND.value() : HttpStatus.INTERNAL_SERVER_ERROR.value();
 
         return ResponseEntity.status(statusCode)
                              .body(ImmutableMap.of("path", request.getRequestURI(),
+                                                   "exception", exception.getClass().getName(),
                                                    "message", exception.getMessage()));
     }
 }

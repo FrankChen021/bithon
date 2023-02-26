@@ -35,8 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * Dynamic Setting Manager for Plugins
@@ -53,6 +51,8 @@ public class DynamicConfigurationManager {
     private final IAgentController controller;
     private final List<IConfigurationRefreshListener> listeners;
     private Long lastModifiedAt = 0L;
+    private volatile boolean running = true;
+    private Object locker = new Object();
 
     /**
      * key: configuration name in configuration storage. Has no meaning at agent side
@@ -66,6 +66,7 @@ public class DynamicConfigurationManager {
         this.controller = controller;
         this.listeners = Collections.synchronizedList(new ArrayList<>());
         this.controller.attachCommands(new ConfigCommandImpl());
+        this.controller.refreshListener(this::releaseLock);
     }
 
     public static void createInstance(String appName, String env, IAgentController controller) {
@@ -82,17 +83,37 @@ public class DynamicConfigurationManager {
     }
 
     private void startPeriodicallyFetch() {
-        if (controller != null) {
-            new Timer("bithon-cfg-fetcher").schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    try {
-                        retrieveConfigurations();
-                    } catch (Throwable e) {
-                        log.error("Failed to fetch plugin settings", e);
-                    }
+        Thread thread = new Thread(() -> {
+            while (running) {
+                try {
+                    retrieveConfigurations();
+                } catch (Throwable e) {
+                    log.error("Failed to fetch plugin settings", e);
                 }
-            }, 3000, 60 * 1000);
+
+                try {
+                    synchronized (locker) {
+                        locker.wait(60 * 1000);
+                    }
+                } catch (InterruptedException ignored) {
+                }
+            }
+        });
+        thread.setDaemon(true);
+        thread.setName("bithon-cfg-fetcher");
+        thread.start();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            log.info("Stopping bithon-cfg-fetcher...");
+
+            running = false;
+            releaseLock();
+        }));
+    }
+
+    private void releaseLock() {
+        synchronized (locker) {
+            locker.notify();
         }
     }
 
@@ -100,7 +121,7 @@ public class DynamicConfigurationManager {
         log.info("Fetch configuration for {}-{}", appName, env);
 
         // Get configuration from remote server
-        Map<String, String> configurations = controller.fetch(appName, env, lastModifiedAt);
+        Map<String, String> configurations = controller.getAgentConfiguration(appName, env, lastModifiedAt);
         if (CollectionUtils.isEmpty(configurations)) {
             return;
         }
@@ -133,7 +154,7 @@ public class DynamicConfigurationManager {
             return;
         }
 
-        // Update configuration
+        // Update saved configuration
         // TODO: incremental configuration deletion is not supported because of complexity.
         // if the incremental configuration overwrites the global configuration, we need to restore or we can't delete the configuration directly
         // One solution is that the 'refresh' method below return the action on each returned key, ADD/REPLACE,
@@ -144,6 +165,8 @@ public class DynamicConfigurationManager {
             return;
         }
 
+        //
+        // Notify listeners about changes
         // Copy a new one to iterate to avoid concurrent problem
         List<IConfigurationRefreshListener> listeners = new ArrayList<>(this.listeners);
         for (IConfigurationRefreshListener listener : listeners) {
