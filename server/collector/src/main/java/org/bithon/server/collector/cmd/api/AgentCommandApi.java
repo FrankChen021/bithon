@@ -135,10 +135,10 @@ public class AgentCommandApi implements IAgentCommandApi {
     }
 
     /**
-     * Handle exception thrown in this REST controller
+     * Handle exception thrown in this REST controller.
      */
     @ExceptionHandler(ServiceInvocationException.class)
-    public ResponseEntity<ServiceResponse> handleException(HttpServletRequest request, ServiceInvocationException exception) {
+    ResponseEntity<ServiceResponse> handleException(HttpServletRequest request, ServiceInvocationException exception) {
         int statusCode = exception instanceof SessionNotFoundException ? HttpStatus.NOT_FOUND.value() : HttpStatus.INTERNAL_SERVER_ERROR.value();
 
         return ResponseEntity.status(statusCode)
