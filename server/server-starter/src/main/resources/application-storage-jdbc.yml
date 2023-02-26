@@ -40,7 +40,7 @@ bithon:
         username: sa
 
 spring:
-  h2:`
+  h2:
     console:
       enabled: true
       path: /h2-ui
