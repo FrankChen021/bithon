@@ -17,6 +17,7 @@
 package org.bithon.server.web.service.agent.api.impl;
 
 import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
+import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.CommandArgs;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
@@ -30,9 +31,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Collection;
-import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -49,49 +47,84 @@ public class AgentCommandDelegationApi {
         this.impl = serviceBroadcastInvoker.create(IAgentCommandApi.class);
     }
 
-    @GetMapping("/api/agent/command/getClients")
-    public Collection<Map<String, String>> getClients() {
-        return impl.getClients();
+    @GetMapping(value = "/api/agent/command/getClients"/*, produces = MediaType.TEXT_EVENT_STREAM_VALUE*/)
+    public ServiceResponse getClients(HttpServletResponse httpResponse) {
+        ServiceResponse response = impl.getClients();
+
+        /*
+        PrintWriter pw = httpResponse.getWriter();
+        for (Object[] row : response.getData()) {
+            pw.write((String) row[0]);
+            pw.write('\n');
+            pw.flush();
+        }*/
+        return response;
     }
 
-    @GetMapping(value = "/api/agent/command/getClassList", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public void getClassList(@Valid @RequestBody CommandArgs<String> args, HttpServletResponse response) throws IOException {
-        Collection<String> classList = impl.getClassList(args);
+    @GetMapping(value = "/api/agent/command/getClassList"/*, produces = MediaType.TEXT_EVENT_STREAM_VALUE*/)
+    public ServiceResponse getClassList(@Valid @RequestBody CommandArgs<String> args, HttpServletResponse httpResponse) throws IOException {
+        ServiceResponse response = impl.getClassList(args);
 
+        /*
         int i = 0;
-        PrintWriter pw = response.getWriter();
-        for (String clazz : classList) {
-            pw.write(clazz);
+        PrintWriter pw = httpResponse.getWriter();
+        for (Object[] row : response.getData()) {
+            pw.write((String) row[0]);
             pw.write('\n');
             if (++i % 100 == 0) {
                 pw.flush();
             }
-        }
+        }*/
+        return response;
     }
 
-    @GetMapping(value = "/api/agent/command/getConfig", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public void getConfiguration(@Valid @RequestBody CommandArgs<IAgentCommandApi.GetConfigurationRequest> args,
-                                 HttpServletResponse response) throws IOException {
-        Collection<String> configurations = impl.getConfiguration(args);
+    @GetMapping(value = "/api/agent/command/getConfig"/*, produces = MediaType.TEXT_EVENT_STREAM_VALUE*/)
+    public ServiceResponse getConfiguration(@Valid @RequestBody CommandArgs<IAgentCommandApi.GetConfigurationRequest> args,
+                                            HttpServletResponse httpResponse) throws IOException {
+        ServiceResponse response = impl.getConfiguration(args);
+
+        /*
+        PrintWriter pw = httpResponse.getWriter();
+        for (Object[] row : response.getData()) {
+            pw.write((String) row[0]);
+            pw.write('\n');
+            pw.flush();
+        }*/
+        return response;
+    }
+
+    @GetMapping(value = "/api/agent/command/getStackTrace"/*, produces = MediaType.TEXT_EVENT_STREAM_VALUE*/)
+    public ServiceResponse getStackTrace(@Valid @RequestBody CommandArgs<Void> args,
+                                         HttpServletResponse httpResponse) throws IOException {
+        ServiceResponse response = impl.getStackTrace(args);
+
+        /*
+        // Output as stream
+        StringWriter pw = new StringWriter();
+
+        // Output header
+        pw.write(StringUtils.format("---Total Threads: %d---\n", threads.size()));
+        for (IJvmCommand.ThreadInfo thread : threads) {
+            pw.write(StringUtils.format("Id: %d, Name: %s, State: %s \n", thread.getThreadId(), thread.getName(), thread.getState()));
+            if (!thread.getStacks().isEmpty()) {
+                String[] stackElements = thread.getStacks().split("\n");
+                for (String stackElement : stackElements) {
+                    pw.write('\t');
+                    pw.write(stackElement);
+                    pw.write('\n');
+                }
+            }
+            pw.write('\n');
+        }
+
 
         PrintWriter pw = response.getWriter();
         for (String configuration : configurations) {
             pw.write(configuration);
             pw.write('\n');
             pw.flush();
-        }
-    }
+        }*/
 
-    @GetMapping(value = "/api/agent/command/getStackTrace", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public void getStackTrace(@Valid @RequestBody CommandArgs<Void> args,
-                              HttpServletResponse response) throws IOException {
-        Collection<String> configurations = impl.getThreadStackTrace(args);
-
-        PrintWriter pw = response.getWriter();
-        for (String configuration : configurations) {
-            pw.write(configuration);
-            pw.write('\n');
-            pw.flush();
-        }
+        return response;
     }
 }

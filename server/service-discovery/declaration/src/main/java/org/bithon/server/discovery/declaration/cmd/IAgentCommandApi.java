@@ -18,14 +18,12 @@ package org.bithon.server.discovery.declaration.cmd;
 
 import lombok.Data;
 import org.bithon.server.discovery.declaration.DiscoverableService;
+import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -35,10 +33,10 @@ import java.util.Map;
 public interface IAgentCommandApi {
 
     @GetMapping("/api/command/clients")
-    Collection<Map<String, String>> getClients();
+    ServiceResponse getClients();
 
     @PostMapping("/api/command/jvm/dumpThread")
-    List<String> getThreadStackTrace(@RequestBody CommandArgs<Void> args) throws IOException;
+    ServiceResponse getStackTrace(@RequestBody CommandArgs<Void> args) throws IOException;
 
     /**
      * @param args A string pattern which comply with database's like expression.
@@ -48,7 +46,7 @@ public interface IAgentCommandApi {
      *             "%bithon% matches all qualified classes whose name contains bithon
      */
     @PostMapping("/api/command/jvm/dumpClazz")
-    Collection<String> getClassList(@RequestBody CommandArgs<String> args);
+    ServiceResponse getClassList(@RequestBody CommandArgs<String> args);
 
     @Data
     class GetConfigurationRequest {
@@ -60,5 +58,5 @@ public interface IAgentCommandApi {
     }
 
     @PostMapping("/api/command/config/get")
-    Collection<String> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args);
+    ServiceResponse getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args);
 }

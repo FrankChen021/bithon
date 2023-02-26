@@ -22,6 +22,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * A service annotation that is used to declare a service is provided in multiple instances.
+ *
+ * Currently, is used only for the AgentCommandApi which is implemented in the controller module.
+ *
+ * For any methods in an interface which is annotated by this annotation, the return value MUST be type of {@link ServiceResponse}.
+ *
  * @author frank.chen
  */
 @Target({ElementType.TYPE})

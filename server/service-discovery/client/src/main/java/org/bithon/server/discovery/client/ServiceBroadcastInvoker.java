@@ -27,6 +27,7 @@ import feign.codec.Encoder;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.server.discovery.client.nacos.NacosDiscoveryClient;
 import org.bithon.server.discovery.declaration.DiscoverableService;
+import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
@@ -36,8 +37,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -63,6 +62,7 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
 
     private IDiscoveryClient createDiscoveryClient(ApplicationContext applicationContext) {
         try {
+            // Try to create a Nacos client first
             applicationContext.getBean(NacosAutoServiceRegistration.class);
             return new NacosDiscoveryClient(applicationContext.getBean(NacosServiceDiscovery.class),
                                             applicationContext.getBean(NacosDiscoveryProperties.class));
@@ -97,24 +97,39 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
-
-            List<Future<Collection>> futures = new ArrayList<>(4);
+            // Get all instances first
+            List<IDiscoveryClient.HostAndPort> instanceList = serviceDiscoveryClient.getInstanceList(serviceName);
 
             //
             // Invoke remote service on each instance
             //
-            List<IDiscoveryClient.HostAndPort> hostAndPortList = serviceDiscoveryClient.getInstanceList(serviceName);
-            for (IDiscoveryClient.HostAndPort hostAndPort : hostAndPortList) {
+            List<Future<ServiceResponse>> futures = new ArrayList<>(instanceList.size());
+            for (IDiscoveryClient.HostAndPort hostAndPort : instanceList) {
                 futures.add(executorService.submit(new RemoteServiceCaller<>(type, hostAndPort, method, args)));
             }
 
             //
             // Wait and merge the result together
             //
-            List results = new ArrayList();
-            for (Future<Collection> future : futures) {
+            List<String> columns = null;
+            List<Object[]> data = null;
+            for (Future<ServiceResponse> future : futures) {
+
                 try {
-                    results.addAll(future.get());
+                    ServiceResponse response = future.get();
+                    if (response.getError() != null) {
+                        return response;
+                    }
+
+                    // Merge response
+                    if (columns == null) {
+                        columns = response.getColumns();
+                    }
+                    if (data == null) {
+                        data = response.getData();
+                    } else {
+                        data.addAll(response.getData());
+                    }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 } catch (ExecutionException e) {
@@ -122,11 +137,11 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
                 }
             }
 
-            return results;
+            return ServiceResponse.success(columns, data);
         }
     }
 
-    private class RemoteServiceCaller<T> implements Callable<Collection> {
+    private class RemoteServiceCaller<T> implements Callable<ServiceResponse> {
 
         private final Class<T> type;
 
@@ -142,7 +157,7 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
         }
 
         @Override
-        public Collection call() {
+        public ServiceResponse call() {
             Object proxyObject = Feign.builder()
                                       .contract(applicationContext.getBean(Contract.class))
                                       .encoder(applicationContext.getBean(Encoder.class))
@@ -152,11 +167,11 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
             InvocationHandler handler = Proxy.getInvocationHandler(proxyObject);
             try {
                 // The remote service must return type of Collection
-                return (Collection) handler.invoke(proxyObject, method, args);
+                return (ServiceResponse) handler.invoke(proxyObject, method, args);
             } catch (FeignException.NotFound e) {
                 // Ignore the exception that the target service does not have data of given args
                 // This might also ignore the HTTP layer 404 problem
-                return Collections.emptyList();
+                return ServiceResponse.EMPTY;
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }

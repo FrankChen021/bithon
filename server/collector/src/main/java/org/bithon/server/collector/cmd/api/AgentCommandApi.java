@@ -23,6 +23,7 @@ import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.collector.cmd.service.AgentCommandService;
+import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.CommandArgs;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -34,14 +35,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.io.StringWriter;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -65,53 +62,53 @@ public class AgentCommandApi implements IAgentCommandApi {
     }
 
     @Override
-    public List<Map<String, String>> getClients() {
-        return commandService.getServerChannel()
-                             .getSessions()
-                             .stream()
-                             .map((session) -> {
-                                 Map<String, String> client = new HashMap<>();
-                                 client.put("appName", session.getAppName());
-                                 if (StringUtils.hasText(session.getAppId())) {
-                                     client.put("appId", session.getAppId());
-                                 }
-                                 client.put("endpoint", session.getEndpoint().toString());
-                                 return client;
-                             })
-                             .sorted(Comparator.comparing(o -> o.get("appName")))
-                             .collect(Collectors.toList());
+    public ServiceResponse getClients() {
+        List<Object[]> rows = commandService.getServerChannel()
+                                            .getSessions()
+                                            .stream()
+                                            .map((session) -> {
+                                                Object[] row = new Object[3];
+                                                row[0] = session.getAppName();
+                                                row[1] = session.getAppId();
+                                                row[2] = session.getEndpoint();
+                                                return row;
+                                            })
+                                            .sorted(Comparator.comparing(o -> (String) o[0]))
+                                            .collect(Collectors.toList());
+        return ServiceResponse.success(Arrays.asList("appName", "appId", "endpoint"),
+                                       rows);
     }
 
     @Override
-    public List<String> getThreadStackTrace(@Valid @RequestBody CommandArgs<Void> args) {
+    public ServiceResponse getStackTrace(@Valid @RequestBody CommandArgs<Void> args) {
         IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
 
-        // Get
-        List<IJvmCommand.ThreadInfo> threads = command.dumpThreads();
+        List<Object[]> rows = command.dumpThreads()
+                                     .stream()
+                                     // Sort by thread name for better analysis
+                                     .sorted(Comparator.comparing(IJvmCommand.ThreadInfo::getName))
+                                     .map((thread) -> {
+                                         Object[] o = new Object[8];
+                                         o[0] = thread.getName();
+                                         o[1] = thread.getThreadId();
+                                         o[2] = thread.getState();
+                                         o[3] = thread.getPriority();
+                                         o[4] = thread.getCpuTime();
+                                         o[5] = thread.getUserTime();
+                                         o[6] = thread.isDaemon();
+                                         o[7] = thread.getStacks();
+                                         return o;
+                                     })
+                                     .collect(Collectors.toList());
 
-        // Sort by thread name for better analysis
-        threads.sort(Comparator.comparing(IJvmCommand.ThreadInfo::getName));
-
-        // Output as stream
-        StringWriter pw = new StringWriter();
-
-        // Output header
-        pw.write(StringUtils.format("---Total Threads: %d---\n", threads.size()));
-        for (IJvmCommand.ThreadInfo thread : threads) {
-            pw.write(StringUtils.format("Id: %d, Name: %s, State: %s \n", thread.getThreadId(), thread.getName(), thread.getState()));
-            if (!thread.getStacks().isEmpty()) {
-                String[] stackElements = thread.getStacks().split("\n");
-                for (String stackElement : stackElements) {
-                    pw.write('\t');
-                    pw.write(stackElement);
-                    pw.write('\n');
-                }
-            }
-            pw.write('\n');
-        }
-
-        return Collections.singletonList(pw.toString());
-
+        return ServiceResponse.success(Arrays.asList("name",
+                                                     "threadId",
+                                                     "state",
+                                                     "priority",
+                                                     "cpuTime",
+                                                     "userTime",
+                                                     "isDaemon",
+                                                     "stack"), rows);
     }
 
     /**
@@ -122,9 +119,7 @@ public class AgentCommandApi implements IAgentCommandApi {
      *             "%bithon% matches all qualified classes whose name contains bithon
      */
     @Override
-    public Collection<String> getClassList(@Valid @RequestBody CommandArgs<String> args) {
-        IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
-
+    public ServiceResponse getClassList(@Valid @RequestBody CommandArgs<String> args) {
         String pattern;
         if (StringUtils.isEmpty(args.getArgs())) {
             pattern = ".*";
@@ -133,28 +128,40 @@ public class AgentCommandApi implements IAgentCommandApi {
             pattern = pattern.replace(".", "\\.").replace("%", ".*");
         }
 
-        return new TreeSet<>(command.dumpClazz(pattern));
+        IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
+
+        List<Object[]> rows = command.dumpClazz(pattern)
+                                     .stream()
+                                     .sorted()
+                                     .map((clazz) -> new Object[]{clazz})
+                                     .collect(Collectors.toList());
+
+        return ServiceResponse.success(Collections.singletonList("class"), rows);
     }
 
     @Override
-    public Collection<String> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args) {
+    public ServiceResponse getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args) {
+        GetConfigurationRequest request = args.getArgs();
+        String format = request == null ? "YAML" : request.getFormat();
+        boolean isPretty = request == null ? true : request.isPretty();
+
         IConfigCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IConfigCommand.class);
 
-        GetConfigurationRequest request = args.getArgs();
-        return Collections.singletonList(command.getConfiguration(request == null ? "YAML" : request.getFormat(),
-                                                                  request == null ? true : request.isPretty()));
+        return ServiceResponse.success(Collections.singletonList("cfg"),
+                                       Collections.singletonList(new Object[]{command.getConfiguration(format, isPretty)})
+        );
     }
 
     /**
      * Handle exception thrown in this REST controller
      */
     @ExceptionHandler(ServiceInvocationException.class)
-    public ResponseEntity<Map<String, String>> handleException(HttpServletRequest request, ServiceInvocationException exception) {
+    public ResponseEntity<ServiceResponse> handleException(HttpServletRequest request, ServiceInvocationException exception) {
         int statusCode = exception instanceof SessionNotFoundException ? HttpStatus.NOT_FOUND.value() : HttpStatus.INTERNAL_SERVER_ERROR.value();
 
         return ResponseEntity.status(statusCode)
-                             .body(ImmutableMap.of("path", request.getRequestURI(),
-                                                   "exception", exception.getClass().getName(),
-                                                   "message", exception.getMessage()));
+                             .body(ServiceResponse.error(ImmutableMap.of("path", request.getRequestURI(),
+                                                                         "exception", exception.getClass().getName(),
+                                                                         "message", exception.getMessage())));
     }
 }

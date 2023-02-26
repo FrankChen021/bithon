@@ -11,7 +11,7 @@ bithon:
 # Not mandatory
 #
 server:
-  port: 9897
+  port: 19897
   compression:
     enabled: true
     min-response-size: 4096
