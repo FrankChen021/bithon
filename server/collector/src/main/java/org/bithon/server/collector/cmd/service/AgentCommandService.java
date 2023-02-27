@@ -14,33 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.cmd.api;
+package org.bithon.server.collector.cmd.service;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
-import javax.validation.constraints.NotNull;
+import org.bithon.component.brpc.channel.ServerChannel;
+import org.springframework.stereotype.Service;
 
 /**
- * @author Frank Chen
- * @date 2022/8/7 21:20
+ * @author frank.chen021@outlook.com
+ * @date 2021/7/2 5:20 下午
  */
-public class CommandArgs<T> {
-    /**
-     * unique client app id
-     */
-    @NotNull
-    @Getter
-    private final String appId;
+@Service
+public class AgentCommandService {
 
-    @Getter
-    private final T args;
+    private ServerChannel serverChannel;
 
-    @JsonCreator
-    public CommandArgs(@JsonProperty("appId") String appId,
-                       @JsonProperty("args") T args) {
-        this.appId = appId;
-        this.args = args;
+    public ServerChannel getServerChannel() {
+        return serverChannel;
+    }
+
+    public void setServerChannel(ServerChannel serverChannel) {
+        this.serverChannel = serverChannel;
     }
 }

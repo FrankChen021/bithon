@@ -154,10 +154,13 @@ public class MetricMessageHandler {
             //
             // save endpoint metrics in batch
             //
-            try {
-                topoMetricWriter.write(endpointDataSource.getRows());
-            } catch (IOException e) {
-                log.error("save metrics", e);
+            if (topoMetricWriter != null) {
+                // If it's null, it has been closed in another thread
+                try {
+                    topoMetricWriter.write(endpointDataSource.getRows());
+                } catch (IOException e) {
+                    log.error("save metrics", e);
+                }
             }
 
             //

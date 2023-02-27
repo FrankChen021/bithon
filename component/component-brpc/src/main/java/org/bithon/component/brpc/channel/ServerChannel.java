@@ -19,12 +19,14 @@ package org.bithon.component.brpc.channel;
 import org.bithon.component.brpc.BrpcMethod;
 import org.bithon.component.brpc.ServiceRegistry;
 import org.bithon.component.brpc.endpoint.EndPoint;
+import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.brpc.invocation.ServiceStubFactory;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.io.netty.bootstrap.ServerBootstrap;
 import org.bithon.shaded.io.netty.buffer.PooledByteBufAllocator;
 import org.bithon.shaded.io.netty.channel.Channel;
@@ -138,6 +140,9 @@ public class ServerChannel implements Closeable {
                                         .findFirst()
                                         .map(value -> value.channel)
                                         .orElse(null);
+        if (channel == null) {
+            throw new SessionNotFoundException("Can't find any connected remote application [%s] on this server.", remoteAppId);
+        }
 
         return ServiceStubFactory.create(null,
                                          Headers.EMPTY,
@@ -231,7 +236,10 @@ public class ServerChannel implements Closeable {
                     session.appName = request.getAppName();
                 }
 
-                session.setAppId(request.getHeaders().get(Headers.HEADER_APP_ID));
+                String appId = request.getHeaders().get(Headers.HEADER_APP_ID);
+                if (!StringUtils.isEmpty(appId)) {
+                    session.setAppId(appId);
+                }
             }
 
             super.channelRead(ctx, msg);

@@ -2,6 +2,10 @@ spring:
   application:
     name: bithon-server
   cloud:
+    #service-registry:
+    #  auto-registration:
+    #   NOTE: if it's set to FALSE, the service discovery does not work, which means the management API(/api/agent/command/xxx) also does not work
+    #    enabled: true
     nacos:
       config:
         enabled: false
@@ -10,3 +14,8 @@ spring:
         namespace: ffffffff-d350-4755-ab1a-28721fc79cfa
         refresh-enabled: true
         group: DEFAULT_GROUP
+      discovery:
+        enabled: false
+        watch:
+          enabled: false
+        server-addr: nacos.server:80

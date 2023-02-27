@@ -14,25 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.cmd.service;
+package org.bithon.server.discovery.client;
 
-import org.bithon.component.brpc.channel.ServerChannel;
-import org.springframework.stereotype.Service;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+import java.util.List;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/7/2 5:20 下午
+ * @author frank.chen
  */
-@Service
-public class CommandService {
+public interface IDiscoveryClient {
 
-    private ServerChannel serverChannel;
-
-    public ServerChannel getServerChannel() {
-        return serverChannel;
+    @Data
+    @AllArgsConstructor
+    class HostAndPort
+    {
+        private String host;
+        private int port;
     }
 
-    public void setServerChannel(ServerChannel serverChannel) {
-        this.serverChannel = serverChannel;
-    }
+    List<HostAndPort> getInstanceList(String serviceName);
 }

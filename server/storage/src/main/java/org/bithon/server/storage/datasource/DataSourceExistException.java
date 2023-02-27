@@ -16,10 +16,13 @@
 
 package org.bithon.server.storage.datasource;
 
+import org.bithon.component.commons.exception.HttpResponseMapping;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 8/4/22 11:49 am
  */
+@HttpResponseMapping(statusCode = HttpResponseMapping.StatusCode.BAD_REQ)
 public class DataSourceExistException extends RuntimeException {
     public DataSourceExistException(String name) {
         super("Schema for datasource " + name + " exists.");

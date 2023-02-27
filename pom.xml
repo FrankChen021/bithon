@@ -143,6 +143,22 @@
       </dependency>
 
       <dependency>
+        <groupId>org.bithon</groupId>
+        <artifactId>service-discovery-declaration</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bithon</groupId>
+        <artifactId>service-discovery-registration</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bithon</groupId>
+        <artifactId>service-discovery-client</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>4.13.2</version>
@@ -166,6 +182,18 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+
+        <!--Alibaba Nacos
+          https://github.com/alibaba/spring-cloud-alibaba/wiki/%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E
+        -->
+        <dependency>
+          <groupId>com.alibaba.cloud</groupId>
+          <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+          <version>2.2.6.RELEASE</version>
+          <type>pom</type>
+          <scope>import</scope>
+        </dependency>
+
     </dependencies>
   </dependencyManagement>
 
@@ -457,6 +485,9 @@
       </activation>
       <modules>
         <module>server/server-commons</module>
+        <module>server/service-discovery/declaration</module>
+        <module>server/service-discovery/client</module>
+        <module>server/service-discovery/registration</module>
         <module>server/sink</module>
         <module>server/storage</module>
         <module>server/storage-jdbc</module>
