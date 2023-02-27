@@ -71,15 +71,25 @@ public class CachableMetadataStorage implements IMetaStorage {
         }
 
         String applicationName = instanceCache.getIfPresent(instanceName);
-        if (applicationName == null) {
-            applicationName = delegate.getApplicationByInstance(instanceName);
-            if (applicationName != null) {
-                instanceCache.put(instanceName, applicationName);
-            } else {
-                instanceNotExistCache.put(instanceName, true);
-            }
+        if (applicationName != null) {
             return applicationName;
         }
+
+        // Use lock to avoid frequent queries on underlying storage
+        synchronized (this) {
+            // double check first
+            applicationName = instanceCache.getIfPresent(instanceName);
+            if (applicationName == null) {
+                applicationName = delegate.getApplicationByInstance(instanceName);
+                if (applicationName != null) {
+                    instanceCache.put(instanceName, applicationName);
+                    instanceNotExistCache.invalidate(instanceName);
+                } else {
+                    instanceNotExistCache.put(instanceName, true);
+                }
+            }
+        }
+
         return applicationName;
     }
 
