@@ -40,7 +40,7 @@ public class CacheableMetadataStorage implements IMetaStorage {
 
     private final IMetaStorage delegate;
 
-    private PeriodicTask periodicLoadingTask;
+    private PeriodicTask loadInstanceTask;
     private Set<String> applicationCache = Collections.emptySet();
     private Map<String, String> instance2AppCache = new ConcurrentHashMap<>();
     private Set<Instance> instanceCache = new ConcurrentSkipListSet<>();
@@ -95,11 +95,7 @@ public class CacheableMetadataStorage implements IMetaStorage {
     public void initialize() {
         delegate.initialize();
 
-        this.periodicLoadingTask = new PeriodicTask("bithon-cache-loader",
-                                                    Duration.ofMinutes(1),
-                                                    false,
-                                                    this::loadAllInstances,
-                                                    (e) -> log.error("Failed to run periodic task", e));
+        this.loadInstanceTask = new LoadInstanceTask();
     }
 
     /**
@@ -108,27 +104,43 @@ public class CacheableMetadataStorage implements IMetaStorage {
      */
     @PreDestroy
     public void onDestroy() {
-        log.info("Shutting down instance loader...");
-        this.periodicLoadingTask.stop();
+        this.loadInstanceTask.stop();
     }
 
-    private void loadAllInstances() {
-        log.info("Loading all instances...");
-
-        long since = System.currentTimeMillis() - Duration.ofDays(1).toMillis();
-        Collection<Instance> instances = delegate.getApplicationInstances(since);
-
-        // do not use stream API to collect map because the instances may contain duplicated items of same instance ip
-        Set<String> applicationCache = new HashSet<>();
-        Map<String, String> instance2App = new ConcurrentHashMap<>();
-        for (Instance instance : instances) {
-            instance2App.put(instance.getInstanceName(), instance.getAppName());
-
-            applicationCache.add(instance.getAppName());
+    private class LoadInstanceTask extends PeriodicTask {
+        public LoadInstanceTask() {
+            super("bithon-cache-loader", Duration.ofMinutes(1), false);
         }
 
-        this.instance2AppCache = instance2App;
-        this.instanceCache = new ConcurrentSkipListSet<>(instances);
-        this.applicationCache = applicationCache;
+        @Override
+        protected void onRunning() {
+            log.info("Loading all instances...");
+
+            long since = System.currentTimeMillis() - Duration.ofDays(1).toMillis();
+            Collection<Instance> instances = delegate.getApplicationInstances(since);
+
+            // do not use stream API to collect map because the instances may contain duplicated items of same instance ip
+            Set<String> applicationCache = new HashSet<>();
+            Map<String, String> instance2App = new ConcurrentHashMap<>();
+            for (Instance instance : instances) {
+                instance2App.put(instance.getInstanceName(), instance.getAppName());
+
+                applicationCache.add(instance.getAppName());
+            }
+
+            CacheableMetadataStorage.this.instance2AppCache = instance2App;
+            CacheableMetadataStorage.this.instanceCache = new ConcurrentSkipListSet<>(instances);
+            CacheableMetadataStorage.this.applicationCache = applicationCache;
+        }
+
+        @Override
+        protected void onException(Exception e) {
+            log.error("Failed to load instances", e);
+        }
+
+        @Override
+        protected void onStopped() {
+            log.info("Task [{}] stopped.", getName());
+        }
     }
 }

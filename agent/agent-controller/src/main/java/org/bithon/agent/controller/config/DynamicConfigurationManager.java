@@ -27,7 +27,6 @@ import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.component.commons.utils.CollectionUtils;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -51,14 +50,8 @@ public class DynamicConfigurationManager {
     private final String appName;
     private final String env;
     private final IAgentController controller;
-    private final List<IConfigurationRefreshListener> listeners;
-    private Long lastModifiedAt = 0L;
+    private final List<IConfigurationChangedListener> listeners;
 
-    /**
-     * key: configuration name in configuration storage. Has no meaning at agent side
-     * val: configuration text
-     */
-    private final Map<String, String> configSignatures = new HashMap<>();
     private final PeriodicTask updateConfigTask;
 
     private DynamicConfigurationManager(String appName, String env, IAgentController controller) {
@@ -66,17 +59,13 @@ public class DynamicConfigurationManager {
         this.env = env;
         this.controller = controller;
         this.listeners = Collections.synchronizedList(new ArrayList<>());
-        this.updateConfigTask = new PeriodicTask("bithon-cfg-updater",
-                                                 Duration.ofMinutes(1),
-                                                 true,
-                                                 this::updateLocalConfiguration,
-                                                 (e)-> log.error("Failed to retrieve configuration", e));
+        this.updateConfigTask = new UpdateConfigurationTask();
 
         // Attach service on this channel
         this.controller.attachCommands(new ConfigCommandImpl());
 
         // Trigger re-retrieve on immediately once some changes happen
-        this.controller.refreshListener(updateConfigTask::notifyTimeout);
+        this.controller.refreshListener(updateConfigTask::runTask);
     }
 
     public static void createInstance(String appName, String env, IAgentController controller) {
@@ -87,70 +76,95 @@ public class DynamicConfigurationManager {
         return INSTANCE;
     }
 
-    public void addRefreshListener(IConfigurationRefreshListener listener) {
+    public void addConfigurationChangeListener(IConfigurationChangedListener listener) {
         listeners.add(listener);
     }
 
-    private void updateLocalConfiguration() throws IOException {
-        log.info("Fetch configuration for {}-{}", appName, env);
+    private class UpdateConfigurationTask extends PeriodicTask {
+        private Long lastModifiedAt = 0L;
 
-        // Get configuration from remote server
-        Map<String, String> configurations = controller.getAgentConfiguration(appName, env, lastModifiedAt);
-        if (CollectionUtils.isEmpty(configurations)) {
-            return;
+        /**
+         * key: configuration name in configuration storage. Has no meaning at agent side
+         * val: configuration text
+         */
+        private final Map<String, String> configSignatures = new HashMap<>();
+
+        public UpdateConfigurationTask() {
+            super("bithon-cfg-updater", Duration.ofMinutes(1), true);
         }
 
-        Configuration config = null;
-        for (Map.Entry<String, String> entry : configurations.entrySet()) {
-            String name = entry.getKey();
-            String text = entry.getValue();
+        @Override
+        protected void onRunning() throws Exception {
+            log.info("Fetch configuration for {}-{}", appName, env);
 
-            // Compare signature to determine if the configuration changes
-            String signature = HashGenerator.sha256Hex(text);
-            if (configSignatures.getOrDefault(name, "").equals(signature)) {
-                continue;
+            // Get configuration from remote server
+            Map<String, String> configurations = controller.getAgentConfiguration(appName, env, lastModifiedAt);
+            if (CollectionUtils.isEmpty(configurations)) {
+                return;
             }
 
-            log.info("Refresh configuration [{}]", name);
-            configSignatures.put(name, signature);
+            Configuration config = null;
+            for (Map.Entry<String, String> entry : configurations.entrySet()) {
+                String name = entry.getKey();
+                String text = entry.getValue();
 
-            try (InputStream is = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))) {
-                Configuration cfg = Configuration.from(".json", is);
+                // Compare signature to determine if the configuration changes
+                String signature = HashGenerator.sha256Hex(text);
+                if (configSignatures.getOrDefault(name, "").equals(signature)) {
+                    continue;
+                }
 
-                if (config == null) {
-                    config = cfg;
-                } else {
-                    config.merge(cfg);
+                log.info("Refresh configuration [{}]", name);
+                configSignatures.put(name, signature);
+
+                try (InputStream is = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))) {
+                    Configuration cfg = Configuration.from(".json", is);
+
+                    if (config == null) {
+                        config = cfg;
+                    } else {
+                        config.merge(cfg);
+                    }
                 }
             }
-        }
-        if (config == null) {
-            return;
-        }
-
-        // Update saved configuration
-        // TODO: incremental configuration deletion is not supported because of complexity.
-        // if the incremental configuration overwrites the global configuration, we need to restore or we can't delete the configuration directly
-        // One solution is that the 'refresh' method below return the action on each returned key, ADD/REPLACE,
-        // and then we keep the changed keys and corresponding actions for rollback.
-        // Since it's not a must-have feature at this stage, leave it to future when we really needs it.
-        Set<String> changedKeys = ConfigurationManager.getInstance().refresh(config);
-        if (changedKeys.isEmpty()) {
-            return;
-        }
-
-        //
-        // Notify listeners about changes
-        // Copy a new one to iterate to avoid concurrent problem
-        List<IConfigurationRefreshListener> listeners = new ArrayList<>(this.listeners);
-        for (IConfigurationRefreshListener listener : listeners) {
-            try {
-                listener.onRefresh(changedKeys);
-            } catch (Exception e) {
-                log.warn("Exception when refresh setting", e);
+            if (config == null) {
+                return;
             }
+
+            // Update saved configuration
+            // TODO: incremental configuration deletion is not supported because of complexity.
+            // if the incremental configuration overwrites the global configuration, we need to restore or we can't delete the configuration directly
+            // One solution is that the 'refresh' method below return the action on each returned key, ADD/REPLACE,
+            // and then we keep the changed keys and corresponding actions for rollback.
+            // Since it's not a must-have feature at this stage, leave it to future when we really needs it.
+            Set<String> changedKeys = ConfigurationManager.getInstance().refresh(config);
+            if (changedKeys.isEmpty()) {
+                return;
+            }
+
+            //
+            // Notify listeners about changes
+            // Copy a new one to iterate to avoid concurrent problem
+            List<IConfigurationChangedListener> ls = new ArrayList<>(listeners);
+            for (IConfigurationChangedListener listener : ls) {
+                try {
+                    listener.onChange(changedKeys);
+                } catch (Exception e) {
+                    log.warn("Exception when refresh setting", e);
+                }
+            }
+
+            lastModifiedAt = System.currentTimeMillis();
         }
 
-        this.lastModifiedAt = System.currentTimeMillis();
+        @Override
+        protected void onException(Exception e) {
+            log.error("Failed to update local configuration", e);
+        }
+
+        @Override
+        protected void onStopped() {
+            log.info("Task {} stopped.", getName());
+        }
     }
 }

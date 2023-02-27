@@ -17,31 +17,28 @@
 package org.bithon.component.commons.concurrency;
 
 import java.time.Duration;
-import java.util.function.Consumer;
 
 /**
  * @author Frank Chen
  * @date 27/2/23 4:40 pm
  */
-public class PeriodicTask {
+abstract public class PeriodicTask {
     private final Object locker = new Object();
-    private final Task task;
+
     /**
      * in milliseconds
      */
     private final long period;
+
+    private final String name;
+
     private volatile boolean running = true;
-    private final Consumer<Exception> exceptionConsumer;
 
-    @FunctionalInterface
-    public interface Task {
-        void run() throws Exception;
-    }
-
-    public PeriodicTask(String name, Duration period, boolean autoShutdown, Task task, Consumer<Exception> exceptionConsumer) {
-        this.task = task;
+    public PeriodicTask(String name,
+                        Duration period,
+                        boolean autoShutdown) {
         this.period = period.toMillis();
-        this.exceptionConsumer = exceptionConsumer;
+        this.name = name;
 
         Thread taskThread = new Thread(this::run);
         taskThread.setName(name);
@@ -53,24 +50,28 @@ public class PeriodicTask {
         }
     }
 
-    public void stop() {
+    public String getName() {
+        return name;
+    }
+
+    final public void stop() {
         running = false;
-        notifyTimeout();
+        runTask();
     }
 
     private void run() {
         while (running) {
 
             try {
-                this.task.run();
+                this.onRunning();
             } catch (Exception e) {
-                if (exceptionConsumer != null) {
-                    exceptionConsumer.accept(e);
-                }
+                onException(e);
             }
 
             waitTimeout();
         }
+
+        onStopped();
     }
 
     private void waitTimeout() {
@@ -82,9 +83,18 @@ public class PeriodicTask {
         }
     }
 
-    public void notifyTimeout() {
+    /**
+     * Run current task immediately.
+     */
+    final public void runTask() {
         synchronized (locker) {
             locker.notify();
         }
     }
+
+    abstract protected void onRunning() throws Exception;
+
+    abstract protected void onException(Exception e);
+
+    abstract protected void onStopped();
 }
