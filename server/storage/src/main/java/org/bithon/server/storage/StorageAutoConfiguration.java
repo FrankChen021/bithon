@@ -27,7 +27,7 @@ import org.bithon.server.storage.datasource.spec.CountMetricSpec;
 import org.bithon.server.storage.datasource.spec.sum.LongSumMetricSpec;
 import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.event.IEventStorage;
-import org.bithon.server.storage.meta.CachableMetadataStorage;
+import org.bithon.server.storage.meta.CacheableMetadataStorage;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.meta.ISchemaStorage;
 import org.bithon.server.storage.meta.MetaStorageConfig;
@@ -109,7 +109,7 @@ public class StorageAutoConfiguration {
                                               "type");
 
         String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", storageConfig.getType());
-        IMetaStorage storage = new CachableMetadataStorage(om.readValue(jsonType, IMetaStorage.class));
+        IMetaStorage storage = new CacheableMetadataStorage(om.readValue(jsonType, IMetaStorage.class));
         storage.initialize();
         return storage;
     }

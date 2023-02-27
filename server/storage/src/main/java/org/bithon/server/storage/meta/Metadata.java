@@ -26,4 +26,5 @@ import lombok.Data;
 public class Metadata {
     private final String applicationName;
     private final String applicationType;
+
 }

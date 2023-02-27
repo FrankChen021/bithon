@@ -19,6 +19,8 @@ package org.bithon.server.storage.meta;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -27,7 +29,7 @@ import java.util.Collection;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface IMetaStorage {
 
-    void saveApplicationInstance(String applicationName, String applicationType, String instance);
+    void saveApplicationInstance(List<Instance> instances);
 
     /**
      * @param instanceName host+port
@@ -37,6 +39,11 @@ public interface IMetaStorage {
     boolean isApplicationExist(String applicationName);
 
     void initialize();
+
+    /**
+     * Get ALL instance list
+     */
+    Collection<Instance> getApplicationInstances(long since);
 
     Collection<Metadata> getApplications(String appType, long since);
 }

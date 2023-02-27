@@ -26,7 +26,7 @@ CREATE TABLE `bithon_application_instance`
     `appType` varchar(64)  NOT NULL,
     `instanceName`    varchar(64)  NOT NULL,
     KEY `idx_app_instance_timestamp` (`timestamp`), # Use a unique index name because some db like H2 rejects duplicated name
-    KEY `idx_app_instance_name` (`appName`)
+    UNIQUE `uq_name_type_instance` (`appName`, `appType`, `instanceName`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
