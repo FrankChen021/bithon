@@ -20,6 +20,7 @@ package org.bithon.agent.controller.config;
 import org.bithon.agent.controller.IAgentController;
 import org.bithon.agent.core.config.Configuration;
 import org.bithon.agent.core.config.ConfigurationManager;
+import org.bithon.component.commons.concurrency.PeriodicTask;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.security.HashGenerator;
@@ -29,6 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,27 +53,34 @@ public class DynamicConfigurationManager {
     private final IAgentController controller;
     private final List<IConfigurationRefreshListener> listeners;
     private Long lastModifiedAt = 0L;
-    private volatile boolean running = true;
-    private Object locker = new Object();
 
     /**
      * key: configuration name in configuration storage. Has no meaning at agent side
      * val: configuration text
      */
     private final Map<String, String> configSignatures = new HashMap<>();
+    private final PeriodicTask updateConfigTask;
 
     private DynamicConfigurationManager(String appName, String env, IAgentController controller) {
         this.appName = appName;
         this.env = env;
         this.controller = controller;
         this.listeners = Collections.synchronizedList(new ArrayList<>());
+        this.updateConfigTask = new PeriodicTask("bithon-cfg-updater",
+                                                 Duration.ofMinutes(1),
+                                                 true,
+                                                 this::updateLocalConfiguration,
+                                                 (e)-> log.error("Failed to retrieve configuration", e));
+
+        // Attach service on this channel
         this.controller.attachCommands(new ConfigCommandImpl());
-        this.controller.refreshListener(this::releaseLock);
+
+        // Trigger re-retrieve on immediately once some changes happen
+        this.controller.refreshListener(updateConfigTask::notifyTimeout);
     }
 
     public static void createInstance(String appName, String env, IAgentController controller) {
         INSTANCE = new DynamicConfigurationManager(appName, env, controller);
-        INSTANCE.startPeriodicallyFetch();
     }
 
     public static DynamicConfigurationManager getInstance() {
@@ -82,42 +91,7 @@ public class DynamicConfigurationManager {
         listeners.add(listener);
     }
 
-    private void startPeriodicallyFetch() {
-        Thread thread = new Thread(() -> {
-            while (running) {
-                try {
-                    retrieveConfigurations();
-                } catch (Throwable e) {
-                    log.error("Failed to fetch plugin settings", e);
-                }
-
-                try {
-                    synchronized (locker) {
-                        locker.wait(60 * 1000);
-                    }
-                } catch (InterruptedException ignored) {
-                }
-            }
-        });
-        thread.setDaemon(true);
-        thread.setName("bithon-cfg-fetcher");
-        thread.start();
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            log.info("Stopping bithon-cfg-fetcher...");
-
-            running = false;
-            releaseLock();
-        }));
-    }
-
-    private void releaseLock() {
-        synchronized (locker) {
-            locker.notify();
-        }
-    }
-
-    private void retrieveConfigurations() throws IOException {
+    private void updateLocalConfiguration() throws IOException {
         log.info("Fetch configuration for {}-{}", appName, env);
 
         // Get configuration from remote server

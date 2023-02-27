@@ -25,14 +25,22 @@ import java.util.function.Consumer;
  */
 public class PeriodicTask {
     private final Object locker = new Object();
-    private final Runnable task;
-    private final Duration period;
-    private boolean running = true;
+    private final Task task;
+    /**
+     * in milliseconds
+     */
+    private final long period;
+    private volatile boolean running = true;
     private final Consumer<Exception> exceptionConsumer;
 
-    public PeriodicTask(String name, Duration period, boolean autoShutdown, Runnable task, Consumer<Exception> exceptionConsumer) {
+    @FunctionalInterface
+    public interface Task {
+        void run() throws Exception;
+    }
+
+    public PeriodicTask(String name, Duration period, boolean autoShutdown, Task task, Consumer<Exception> exceptionConsumer) {
         this.task = task;
-        this.period = period;
+        this.period = period.toMillis();
         this.exceptionConsumer = exceptionConsumer;
 
         Thread taskThread = new Thread(this::run);
@@ -68,13 +76,13 @@ public class PeriodicTask {
     private void waitTimeout() {
         synchronized (locker) {
             try {
-                locker.wait(period.toMillis());
+                locker.wait(period);
             } catch (InterruptedException ignored) {
             }
         }
     }
 
-    private void notifyTimeout() {
+    public void notifyTimeout() {
         synchronized (locker) {
             locker.notify();
         }
