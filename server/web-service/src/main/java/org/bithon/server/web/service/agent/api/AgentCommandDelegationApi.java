@@ -124,19 +124,13 @@ public class AgentCommandDelegationApi {
 
         @Override
         public Enumerable<Object[]> scan(final DataContext root) {
-            ServiceResponse<IAgentCommandApi.Client> clients = impl.getClients();
-            return Linq4j.asEnumerable(clients.getRows().stream().map((client -> {
-                Object[] row = new Object[3];
-                row[0] = client.getAppName();
-                row[1] = client.getAppId();
-                row[2] = client.getEndpoint();
-                return row;
-            })).collect(Collectors.toList()));
+            ServiceResponse<IAgentCommandApi.InstanceRecord> clients = impl.getClients();
+            return Linq4j.asEnumerable(clients.getRows().stream().map((IAgentCommandApi.InstanceRecord::toObjectArray)).collect(Collectors.toList()));
         }
 
         @Override
         protected java.lang.Class getRecordClazz() {
-            return IAgentCommandApi.Client.class;
+            return IAgentCommandApi.InstanceRecord.class;
         }
     }
 
@@ -151,26 +145,18 @@ public class AgentCommandDelegationApi {
         public Enumerable<Object[]> scan(final DataContext root) {
             QueryContext queryContext = (QueryContext) root;
 
-            ServiceResponse<String> classList = impl.getClassList((CommandArgs<String>) queryContext.commandArgs);
+            ServiceResponse<IAgentCommandApi.ClassRecord> classList = impl.getClass((CommandArgs<String>) queryContext.commandArgs);
             if (classList.getError() != null) {
                 throw new RuntimeException(classList.getError().toString());
             }
 
-            return Linq4j.asEnumerable(classList.getRows().stream().map((val -> {
-                Object[] row = new Object[1];
-                row[0] = val;
-                return row;
-            })).collect(Collectors.toList()));
+            return Linq4j.asEnumerable(classList.getRows().stream().map((IAgentCommandApi.ClassRecord::toObjectArray)).collect(Collectors.toList()));
         }
 
         @Override
         protected Class getRecordClazz() {
-            return JavaClass.class;
+            return IAgentCommandApi.ClassRecord.class;
         }
-    }
-
-    static class JavaClass {
-        public String name;
     }
 
     private static class StackTraceTable extends BaseTable {
@@ -184,20 +170,48 @@ public class AgentCommandDelegationApi {
         public Enumerable<Object[]> scan(final DataContext root) {
             QueryContext queryContext = (QueryContext) root;
 
-            ServiceResponse<IAgentCommandApi.StackTrace> stackTraceList = impl.getStackTrace((CommandArgs<Void>) queryContext.commandArgs);
+            ServiceResponse<IAgentCommandApi.StackTraceRecord> stackTraceList = impl.getStackTrace((CommandArgs<Void>) queryContext.commandArgs);
             if (stackTraceList.getError() != null) {
                 throw new RuntimeException(stackTraceList.getError().toString());
             }
 
             return Linq4j.asEnumerable(stackTraceList.getRows()
                                                      .stream()
-                                                     .map(IAgentCommandApi.StackTrace::toObjectArray)
+                                                     .map(IAgentCommandApi.StackTraceRecord::toObjectArray)
                                                      .collect(Collectors.toList()));
         }
 
         @Override
         protected Class getRecordClazz() {
-            return IAgentCommandApi.StackTrace.class;
+            return IAgentCommandApi.StackTraceRecord.class;
+        }
+    }
+
+    private static class ConfigurationTable extends BaseTable {
+        private final IAgentCommandApi impl;
+
+        ConfigurationTable(IAgentCommandApi impl) {
+            this.impl = impl;
+        }
+
+        @Override
+        public Enumerable<Object[]> scan(final DataContext root) {
+            QueryContext queryContext = (QueryContext) root;
+
+            ServiceResponse<IAgentCommandApi.ConfigurationRecord> stackTraceList = impl.getConfiguration((CommandArgs<IAgentCommandApi.GetConfigurationRequest>) queryContext.commandArgs);
+            if (stackTraceList.getError() != null) {
+                throw new RuntimeException(stackTraceList.getError().toString());
+            }
+
+            return Linq4j.asEnumerable(stackTraceList.getRows()
+                                                     .stream()
+                                                     .map(IAgentCommandApi.ConfigurationRecord::toObjectArray)
+                                                     .collect(Collectors.toList()));
+        }
+
+        @Override
+        protected Class getRecordClazz() {
+            return IAgentCommandApi.ConfigurationRecord.class;
         }
     }
 
@@ -208,8 +222,10 @@ public class AgentCommandDelegationApi {
                                            SqlParser.config().withQuotedCasing(Casing.UNCHANGED).withUnquotedCasing(Casing.UNCHANGED))
                                    .parseQuery();
 
-        // This is an always pushed down filter
+        //
+        // appId is an always pushed down filter
         // We remove it from SQL because this specific field does not exist on all tables
+        //
         GetAndRemoveAppIdFilter appIdFilter = new GetAndRemoveAppIdFilter();
         SqlNode whereNode;
         if (sqlNode.getKind() == SqlKind.ORDER_BY) {
@@ -223,16 +239,17 @@ public class AgentCommandDelegationApi {
             whereNode.accept(appIdFilter);
         }
 
+        CalciteSchema schema = CalciteSchema.createRootSchema(true);
+        schema.add("instance", new InstanceTable(impl));
+        schema.add("class", new ClassTable(impl));
+        schema.add("stack_trace", new StackTraceTable(impl));
+        schema.add("configuration", new ConfigurationTable(impl));
+
         Properties props = new Properties();
         props.setProperty(CalciteConnectionProperty.CASE_SENSITIVE.camelName(), "false");
         CalciteConnectionConfig config = new CalciteConnectionConfigImpl(props);
 
         JavaTypeFactory typeFactory = new JavaTypeFactoryImpl();
-        CalciteSchema schema = CalciteSchema.createRootSchema(true);
-        schema.add("instance", new InstanceTable(impl));
-        schema.add("class", new ClassTable(impl));
-        schema.add("stack_trace", new StackTraceTable(impl));
-
         CalciteCatalogReader catalogReader = new CalciteCatalogReader(schema, Collections.singletonList(""), typeFactory, config);
 
         SqlValidator validator = SqlValidatorUtil.newValidator(SqlStdOperatorTable.instance(), catalogReader, typeFactory, SqlValidator.Config.DEFAULT);
@@ -275,7 +292,7 @@ public class AgentCommandDelegationApi {
 //            }
 //            pw.write('\t');
 //        }
-        pw.write("\n----------------------\n");
+//        pw.write("\n----------------------\n");
 
         // Run the executable plan using a context simply providing access to the schema
         for (Object[] row : physicalPlan.bind(new QueryContext(schema,
@@ -342,77 +359,6 @@ public class AgentCommandDelegationApi {
         planner.addRule(CoreRules.FILTER_INTO_JOIN);
         RelOptUtil.registerDefaultRules(planner, false, true);
         return RelOptCluster.create(planner, new RexBuilder(factory));
-    }
-
-    @GetMapping(value = "/api/agent/command/getClients")
-    public ServiceResponse<IAgentCommandApi.Client> getClients() {
-        return impl.getClients();
-    }
-
-    @GetMapping(value = "/api/agent/command/getClassList", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public void getClassList(@Valid @RequestBody CommandArgs<String> args, HttpServletResponse httpResponse) throws IOException {
-        ServiceResponse<String> response = impl.getClassList(args);
-
-        if (response.getError() != null) {
-            printError(httpResponse, response.getError());
-            return;
-        }
-
-        int i = 0;
-        PrintWriter pw = httpResponse.getWriter();
-        for (String row : response.getRows()) {
-            pw.write(row);
-            pw.write('\n');
-            if (++i % 100 == 0) {
-                pw.flush();
-            }
-        }
-    }
-
-    @GetMapping(value = "/api/agent/command/getConfig", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public void getConfiguration(@Valid @RequestBody CommandArgs<IAgentCommandApi.GetConfigurationRequest> args, HttpServletResponse httpResponse)
-        throws IOException {
-        ServiceResponse<String> response = impl.getConfiguration(args);
-
-        if (response.getError() != null) {
-            printError(httpResponse, response.getError());
-            return;
-        }
-
-        PrintWriter pw = httpResponse.getWriter();
-        for (String row : response.getRows()) {
-            pw.write(row);
-            pw.write('\n');
-            pw.flush();
-        }
-    }
-
-    @GetMapping(value = "/api/agent/command/getStackTrace", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public void getStackTrace(@Valid @RequestBody CommandArgs<Void> args, HttpServletResponse httpResponse) throws IOException {
-        ServiceResponse<IAgentCommandApi.StackTrace> response = impl.getStackTrace(args);
-
-        if (response.getError() != null) {
-            printError(httpResponse, response.getError());
-            return;
-        }
-
-        // Output as stream
-        PrintWriter pw = httpResponse.getWriter();
-
-        // Output header
-        pw.write(StringUtils.format("---Total Threads: %d---\n", response.getRows().size()));
-        for (IAgentCommandApi.StackTrace stackTrace : response.getRows()) {
-            pw.write(StringUtils.format("Id: %d, Name: %s, State: %s \n", stackTrace.getThreadId(), stackTrace.getName(), stackTrace.getState()));
-            if (!stackTrace.getStack().isEmpty()) {
-                String[] stackElements = stackTrace.getStack().split("\n");
-                for (String stackElement : stackElements) {
-                    pw.write('\t');
-                    pw.write(stackElement);
-                    pw.write('\n');
-                }
-            }
-            pw.write('\n');
-        }
     }
 
     private void printError(HttpServletResponse httpResponse, ServiceResponse.Error error) throws IOException {

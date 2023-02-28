@@ -35,17 +35,21 @@ public interface IAgentCommandApi {
      * This simplifies Calcite related type construction.
      */
     @Data
-    class Client {
+    class InstanceRecord {
         public String appName;
         public String appId;
         public String endpoint;
+
+        public Object[] toObjectArray() {
+            return new Object[]{appName, appId, endpoint};
+        }
     }
 
     @GetMapping("/api/command/clients")
-    ServiceResponse<Client> getClients();
+    ServiceResponse<InstanceRecord> getClients();
 
     @Data
-    class StackTrace {
+    class StackTraceRecord {
         public String name;
         public long threadId;
         public boolean isDaemon;
@@ -61,7 +65,15 @@ public interface IAgentCommandApi {
     }
 
     @PostMapping("/api/command/jvm/dumpThread")
-    ServiceResponse<StackTrace> getStackTrace(@RequestBody CommandArgs<Void> args);
+    ServiceResponse<StackTraceRecord> getStackTrace(@RequestBody CommandArgs<Void> args);
+
+    class ClassRecord {
+        public String name;
+
+        public Object[] toObjectArray() {
+            return new Object[]{name};
+        }
+    }
 
     /**
      * @param args A string pattern which comply with database's like expression.
@@ -71,7 +83,7 @@ public interface IAgentCommandApi {
      *             "%bithon% matches all qualified classes whose name contains bithon
      */
     @PostMapping("/api/command/jvm/dumpClazz")
-    ServiceResponse<String> getClassList(@RequestBody CommandArgs<String> args);
+    ServiceResponse<ClassRecord> getClass(@RequestBody CommandArgs<String> args);
 
     @Data
     class GetConfigurationRequest {
@@ -82,6 +94,14 @@ public interface IAgentCommandApi {
         private boolean pretty;
     }
 
+    class ConfigurationRecord {
+        public String payload;
+
+        public Object[] toObjectArray() {
+            return new Object[]{payload};
+        }
+    }
+
     @PostMapping("/api/command/config/get")
-    ServiceResponse<String> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args);
+    ServiceResponse<ConfigurationRecord> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args);
 }

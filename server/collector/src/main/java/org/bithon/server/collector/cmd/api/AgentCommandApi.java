@@ -18,7 +18,6 @@ package org.bithon.server.collector.cmd.api;
 
 import org.bithon.agent.rpc.brpc.cmd.IConfigCommand;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
-import org.bithon.component.brpc.channel.ServerChannel;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.commons.utils.StringUtils;
@@ -36,7 +35,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.stream.Collectors;
 
 /**
@@ -60,31 +58,28 @@ public class AgentCommandApi implements IAgentCommandApi {
     }
 
     @Override
-    public ServiceResponse<Client> getClients() {
+    public ServiceResponse<InstanceRecord> getClients() {
         return ServiceResponse.success(commandService.getServerChannel()
                                                      .getSessions()
                                                      .stream()
-                                                     .sorted(Comparator.comparing(ServerChannel.Session::getAppName))
                                                      .map((session) -> {
-                                                         Client client = new Client();
-                                                         client.setAppName(session.getAppName());
-                                                         client.setAppId(session.getAppId());
-                                                         client.setEndpoint(session.getEndpoint().toString());
-                                                         return client;
+                                                         InstanceRecord instance = new InstanceRecord();
+                                                         instance.setAppName(session.getAppName());
+                                                         instance.setAppId(session.getAppId());
+                                                         instance.setEndpoint(session.getEndpoint().toString());
+                                                         return instance;
                                                      })
                                                      .collect(Collectors.toList()));
     }
 
     @Override
-    public ServiceResponse<StackTrace> getStackTrace(@Valid @RequestBody CommandArgs<Void> args) {
+    public ServiceResponse<StackTraceRecord> getStackTrace(@Valid @RequestBody CommandArgs<Void> args) {
         IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
 
         return ServiceResponse.success(command.dumpThreads()
                                               .stream()
-                                              // Sort by thread name for better analysis
-                                              .sorted(Comparator.comparing(IJvmCommand.ThreadInfo::getName))
                                               .map((thread) -> {
-                                                  StackTrace stackTrace = new StackTrace();
+                                                  StackTraceRecord stackTrace = new StackTraceRecord();
                                                   stackTrace.setName(thread.getName());
                                                   stackTrace.setThreadId(thread.getThreadId());
                                                   stackTrace.setState(thread.getState());
@@ -106,7 +101,7 @@ public class AgentCommandApi implements IAgentCommandApi {
      *             "%bithon% matches all qualified classes whose name contains bithon
      */
     @Override
-    public ServiceResponse<String> getClassList(@Valid @RequestBody CommandArgs<String> args) {
+    public ServiceResponse<ClassRecord> getClass(@Valid @RequestBody CommandArgs<String> args) {
         String pattern;
         if (StringUtils.isEmpty(args.getArgs())) {
             pattern = ".*";
@@ -119,19 +114,26 @@ public class AgentCommandApi implements IAgentCommandApi {
 
         return ServiceResponse.success(command.dumpClazz(pattern)
                                               .stream()
-                                              .sorted()
+                                              .map((name) -> {
+                                                  ClassRecord classRecord = new ClassRecord();
+                                                  classRecord.name = name;
+                                                  return classRecord;
+                                              })
                                               .collect(Collectors.toList()));
     }
 
     @Override
-    public ServiceResponse<String> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args) {
+    public ServiceResponse<ConfigurationRecord> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args) {
         GetConfigurationRequest request = args.getArgs();
         String format = request == null ? "YAML" : request.getFormat();
         boolean isPretty = request == null ? true : request.isPretty();
 
         IConfigCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IConfigCommand.class);
 
-        return ServiceResponse.success(Collections.singletonList(command.getConfiguration(format, isPretty)));
+        ConfigurationRecord record = new ConfigurationRecord();
+        record.payload = command.getConfiguration(format, isPretty);
+
+        return ServiceResponse.success(Collections.singletonList(record));
     }
 
     /**
