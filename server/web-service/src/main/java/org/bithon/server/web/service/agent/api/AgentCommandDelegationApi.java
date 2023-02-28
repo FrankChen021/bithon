@@ -16,6 +16,54 @@
 
 package org.bithon.server.web.service.agent.api;
 
+import lombok.Getter;
+import org.apache.calcite.DataContext;
+import org.apache.calcite.adapter.java.JavaTypeFactory;
+import org.apache.calcite.avatica.util.Casing;
+import org.apache.calcite.config.CalciteConnectionConfig;
+import org.apache.calcite.config.CalciteConnectionConfigImpl;
+import org.apache.calcite.config.CalciteConnectionProperty;
+import org.apache.calcite.interpreter.BindableConvention;
+import org.apache.calcite.interpreter.BindableRel;
+import org.apache.calcite.jdbc.CalciteSchema;
+import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
+import org.apache.calcite.linq4j.Enumerable;
+import org.apache.calcite.linq4j.Linq4j;
+import org.apache.calcite.linq4j.QueryProvider;
+import org.apache.calcite.plan.ConventionTraitDef;
+import org.apache.calcite.plan.RelOptCluster;
+import org.apache.calcite.plan.RelOptPlanner;
+import org.apache.calcite.plan.RelOptTable;
+import org.apache.calcite.plan.RelOptUtil;
+import org.apache.calcite.plan.volcano.VolcanoPlanner;
+import org.apache.calcite.prepare.CalciteCatalogReader;
+import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.rules.CoreRules;
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rel.type.RelDataTypeFactory;
+import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.schema.ScannableTable;
+import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.schema.impl.AbstractTable;
+import org.apache.calcite.sql.SqlBasicCall;
+import org.apache.calcite.sql.SqlCall;
+import org.apache.calcite.sql.SqlCharStringLiteral;
+import org.apache.calcite.sql.SqlIdentifier;
+import org.apache.calcite.sql.SqlKind;
+import org.apache.calcite.sql.SqlLiteral;
+import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.SqlOrderBy;
+import org.apache.calcite.sql.SqlSelect;
+import org.apache.calcite.sql.fun.SqlStdOperatorTable;
+import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.calcite.sql.parser.SqlParserPos;
+import org.apache.calcite.sql.util.SqlBasicVisitor;
+import org.apache.calcite.sql.validate.SqlValidator;
+import org.apache.calcite.sql.validate.SqlValidatorUtil;
+import org.apache.calcite.sql2rel.SqlToRelConverter;
+import org.apache.calcite.sql2rel.StandardConvertletTable;
+import org.apache.calcite.util.NlsString;
+import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
 import org.bithon.server.discovery.declaration.ServiceResponse;
@@ -23,6 +71,7 @@ import org.bithon.server.discovery.declaration.cmd.CommandArgs;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +82,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
@@ -47,6 +99,249 @@ public class AgentCommandDelegationApi {
 
     public AgentCommandDelegationApi(ServiceBroadcastInvoker serviceBroadcastInvoker) {
         this.impl = serviceBroadcastInvoker.create(IAgentCommandApi.class);
+    }
+
+    private static abstract class BaseTable extends AbstractTable implements ScannableTable {
+        private RelDataType rowType;
+
+        abstract protected java.lang.Class getRecordClazz();
+
+        @Override
+        public RelDataType getRowType(final RelDataTypeFactory typeFactory) {
+            if (rowType == null) {
+                rowType = typeFactory.createJavaType(getRecordClazz());
+            }
+            return rowType;
+        }
+    }
+
+    private static class InstanceTable extends BaseTable {
+        private final IAgentCommandApi impl;
+
+        InstanceTable(IAgentCommandApi impl) {
+            this.impl = impl;
+        }
+
+        @Override
+        public Enumerable<Object[]> scan(final DataContext root) {
+            ServiceResponse<IAgentCommandApi.Client> clients = impl.getClients();
+            return Linq4j.asEnumerable(clients.getRows().stream().map((client -> {
+                Object[] row = new Object[3];
+                row[0] = client.getAppName();
+                row[1] = client.getAppId();
+                row[2] = client.getEndpoint();
+                return row;
+            })).collect(Collectors.toList()));
+        }
+
+        @Override
+        protected java.lang.Class getRecordClazz() {
+            return IAgentCommandApi.Client.class;
+        }
+    }
+
+    private static class ClassTable extends BaseTable {
+        private final IAgentCommandApi impl;
+
+        ClassTable(IAgentCommandApi impl) {
+            this.impl = impl;
+        }
+
+        @Override
+        public Enumerable<Object[]> scan(final DataContext root) {
+            QueryContext queryContext = (QueryContext) root;
+
+            ServiceResponse<String> classList = impl.getClassList((CommandArgs<String>) queryContext.commandArgs);
+            if (classList.getError() != null) {
+                throw new RuntimeException(classList.getError().toString());
+            }
+
+            return Linq4j.asEnumerable(classList.getRows().stream().map((val -> {
+                Object[] row = new Object[1];
+                row[0] = val;
+                return row;
+            })).collect(Collectors.toList()));
+        }
+
+        @Override
+        protected Class getRecordClazz() {
+            return JavaClass.class;
+        }
+    }
+
+    static class JavaClass {
+        public String name;
+    }
+
+    private static class StackTraceTable extends BaseTable {
+        private final IAgentCommandApi impl;
+
+        StackTraceTable(IAgentCommandApi impl) {
+            this.impl = impl;
+        }
+
+        @Override
+        public Enumerable<Object[]> scan(final DataContext root) {
+            QueryContext queryContext = (QueryContext) root;
+
+            ServiceResponse<IAgentCommandApi.StackTrace> stackTraceList = impl.getStackTrace((CommandArgs<Void>) queryContext.commandArgs);
+            if (stackTraceList.getError() != null) {
+                throw new RuntimeException(stackTraceList.getError().toString());
+            }
+
+            return Linq4j.asEnumerable(stackTraceList.getRows()
+                                                     .stream()
+                                                     .map(IAgentCommandApi.StackTrace::toObjectArray)
+                                                     .collect(Collectors.toList()));
+        }
+
+        @Override
+        protected Class getRecordClazz() {
+            return IAgentCommandApi.StackTrace.class;
+        }
+    }
+
+    @GetMapping(value = "/api/agent/query", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public void query(@Valid @RequestBody String query, HttpServletResponse httpResponse) throws Exception {
+        // Create a SQL parser to parse the query into AST
+        SqlNode sqlNode = SqlParser.create(query,
+                                           SqlParser.config().withQuotedCasing(Casing.UNCHANGED).withUnquotedCasing(Casing.UNCHANGED))
+                                   .parseQuery();
+
+        // This is an always pushed down filter
+        // We remove it from SQL because this specific field does not exist on all tables
+        GetAndRemoveAppIdFilter appIdFilter = new GetAndRemoveAppIdFilter();
+        SqlNode whereNode;
+        if (sqlNode.getKind() == SqlKind.ORDER_BY) {
+            whereNode = ((SqlSelect) ((SqlOrderBy) sqlNode).query).getWhere();
+        } else if (sqlNode.getKind() == SqlKind.SELECT) {
+            whereNode = ((SqlSelect) (sqlNode)).getWhere();
+        } else {
+            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unsupported SQL Kind: %s", sqlNode.getKind());
+        }
+        if (whereNode != null) {
+            whereNode.accept(appIdFilter);
+        }
+
+        Properties props = new Properties();
+        props.setProperty(CalciteConnectionProperty.CASE_SENSITIVE.camelName(), "false");
+        CalciteConnectionConfig config = new CalciteConnectionConfigImpl(props);
+
+        JavaTypeFactory typeFactory = new JavaTypeFactoryImpl();
+        CalciteSchema schema = CalciteSchema.createRootSchema(true);
+        schema.add("instance", new InstanceTable(impl));
+        schema.add("class", new ClassTable(impl));
+        schema.add("stack_trace", new StackTraceTable(impl));
+
+        CalciteCatalogReader catalogReader = new CalciteCatalogReader(schema, Collections.singletonList(""), typeFactory, config);
+
+        SqlValidator validator = SqlValidatorUtil.newValidator(SqlStdOperatorTable.instance(), catalogReader, typeFactory, SqlValidator.Config.DEFAULT);
+
+        //
+        // Turn AST into logic plan
+        //
+        RelOptCluster cluster = newCluster(typeFactory);
+        SqlToRelConverter relConverter = new SqlToRelConverter(NOOP_EXPANDER,
+                                                               validator,
+                                                               catalogReader,
+                                                               cluster,
+                                                               StandardConvertletTable.INSTANCE,
+                                                               SqlToRelConverter.config());
+        RelNode logicPlan = relConverter.convertQuery(sqlNode, true, true).rel;
+
+        //
+        // Initialize optimizer/planner with the necessary rules
+        //
+        RelOptPlanner planner = cluster.getPlanner();
+        logicPlan = planner.changeTraits(logicPlan, cluster.traitSet().replace(BindableConvention.INSTANCE));
+        planner.setRoot(logicPlan);
+
+        //
+        // Start the optimization process to obtain the most efficient physical plan based on the provided rule set.
+        //
+        BindableRel physicalPlan = (BindableRel) planner.findBestExp();
+
+        PrintWriter pw = httpResponse.getWriter();
+//        for (SqlNode node : ((SqlSelect) sqlNode).getSelectList().getList()) {
+//            if (node.getKind() == SqlKind.AS) {
+//                // If the expression is an alias, print out the alias name
+//                SqlIdentifier alias = ((SqlCall) node).operand(1);
+//                pw.write(alias.getSimple());
+//            } else if (node.getKind() == SqlKind.IDENTIFIER) {
+//                // If the expression is a simple column reference, print out the column name
+//                pw.write(((SqlIdentifier) node).getSimple());
+//            } else {
+//                pw.write(node.toString());
+//            }
+//            pw.write('\t');
+//        }
+        pw.write("\n----------------------\n");
+
+        // Run the executable plan using a context simply providing access to the schema
+        for (Object[] row : physicalPlan.bind(new QueryContext(schema,
+                                                               typeFactory,
+                                                               new CommandArgs<Void>(appIdFilter.getAppId(), null)))) {
+            for (int i = 0; i < row.length; i++) {
+                Object cell = row[i];
+                if (cell == null) {
+                    pw.write("NULL");
+                } else {
+                    String c = cell.toString();
+                    if (c.indexOf('\n') > 0) {
+                        String indent = "\n";
+                        for (int j = 0; j < i; j++) {
+                            indent += '\t';
+                        }
+                        c = c.replaceAll("\n", indent);
+                    }
+                    pw.write(c);
+                }
+                pw.write('\t');
+            }
+            pw.write('\n');
+        }
+    }
+
+    private static final class QueryContext implements DataContext {
+        private final SchemaPlus schema;
+        private final JavaTypeFactory typeFactory;
+        private final CommandArgs<?> commandArgs;
+
+        QueryContext(CalciteSchema calciteSchema, JavaTypeFactory typeFactory, CommandArgs<?> commandArgs) {
+            this.schema = calciteSchema.plus();
+            this.typeFactory = typeFactory;
+            this.commandArgs = commandArgs;
+        }
+
+        @Override
+        public SchemaPlus getRootSchema() {
+            return schema;
+        }
+
+        @Override
+        public JavaTypeFactory getTypeFactory() {
+            return typeFactory;
+        }
+
+        @Override
+        public QueryProvider getQueryProvider() {
+            return null;
+        }
+
+        @Override
+        public Object get(final String name) {
+            return null;
+        }
+    }
+
+    private static final RelOptTable.ViewExpander NOOP_EXPANDER = (rowType, queryString, schemaPath, viewPath) -> null;
+
+    private static RelOptCluster newCluster(RelDataTypeFactory factory) {
+        RelOptPlanner planner = new VolcanoPlanner();
+        planner.addRelTraitDef(ConventionTraitDef.INSTANCE);
+        planner.addRule(CoreRules.FILTER_INTO_JOIN);
+        RelOptUtil.registerDefaultRules(planner, false, true);
+        return RelOptCluster.create(planner, new RexBuilder(factory));
     }
 
     @GetMapping(value = "/api/agent/command/getClients")
@@ -75,8 +370,8 @@ public class AgentCommandDelegationApi {
     }
 
     @GetMapping(value = "/api/agent/command/getConfig", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public void getConfiguration(@Valid @RequestBody CommandArgs<IAgentCommandApi.GetConfigurationRequest> args,
-                                 HttpServletResponse httpResponse) throws IOException {
+    public void getConfiguration(@Valid @RequestBody CommandArgs<IAgentCommandApi.GetConfigurationRequest> args, HttpServletResponse httpResponse)
+        throws IOException {
         ServiceResponse<String> response = impl.getConfiguration(args);
 
         if (response.getError() != null) {
@@ -93,8 +388,7 @@ public class AgentCommandDelegationApi {
     }
 
     @GetMapping(value = "/api/agent/command/getStackTrace", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public void getStackTrace(@Valid @RequestBody CommandArgs<Void> args,
-                              HttpServletResponse httpResponse) throws IOException {
+    public void getStackTrace(@Valid @RequestBody CommandArgs<Void> args, HttpServletResponse httpResponse) throws IOException {
         ServiceResponse<IAgentCommandApi.StackTrace> response = impl.getStackTrace(args);
 
         if (response.getError() != null) {
@@ -127,5 +421,47 @@ public class AgentCommandDelegationApi {
         pw.write(StringUtils.format("uri: %s\n", error.getUri()));
         pw.write(StringUtils.format("exception: %s\n", error.getException()));
         pw.write(StringUtils.format("message: %s\n", error.getMessage()));
+    }
+
+    private static class GetAndRemoveAppIdFilter extends SqlBasicVisitor<String> {
+        @Getter
+        private String appId;
+
+        @Override
+        public String visit(SqlCall call) {
+            if (!(call instanceof SqlBasicCall)) {
+                return super.visit(call);
+            }
+
+            if (!"=".equals(call.getOperator().getName())) {
+                return super.visit(call);
+            }
+
+            if (call.getOperandList().size() != 2) {
+                return super.visit(call);
+            }
+            SqlNode identifier = call.getOperandList().get(0);
+            SqlNode literal = call.getOperandList().get(1);
+            if (!(identifier instanceof SqlIdentifier)) {
+                SqlNode tmp = literal;
+                literal = identifier;
+                identifier = tmp;
+            }
+            if (!(identifier instanceof SqlIdentifier)) {
+                return super.visit(call);
+            }
+            if (!"appId".equalsIgnoreCase(((SqlIdentifier) identifier).getSimple())) {
+                return super.visit(call);
+            }
+
+            if (!(literal instanceof SqlCharStringLiteral)) {
+                throw new RuntimeException("xxx");
+            }
+
+            appId = ((SqlCharStringLiteral) literal).getValueAs(NlsString.class).getValue();
+            call.setOperand(0, SqlLiteral.createBoolean(true, new SqlParserPos(-1, -1)));
+            call.setOperand(1, SqlLiteral.createBoolean(true, new SqlParserPos(-1, -1)));
+            return null;
+        }
     }
 }

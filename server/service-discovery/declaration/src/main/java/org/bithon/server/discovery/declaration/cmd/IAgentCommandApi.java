@@ -23,8 +23,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.io.IOException;
-
 /**
  * @author Frank Chen
  * @date 2022/8/7 20:46
@@ -32,11 +30,15 @@ import java.io.IOException;
 @DiscoverableService(name = "agentCommand")
 public interface IAgentCommandApi {
 
+    /**
+     * Declare all fields as public to treat it as a record
+     * This simplifies Calcite related type construction.
+     */
     @Data
     class Client {
-        private String appName;
-        private String appId;
-        private String endpoint;
+        public String appName;
+        public String appId;
+        public String endpoint;
     }
 
     @GetMapping("/api/command/clients")
@@ -44,18 +46,22 @@ public interface IAgentCommandApi {
 
     @Data
     class StackTrace {
-        private String name;
-        private long threadId;
-        private boolean isDaemon;
-        private int priority;
-        private String state;
-        private long cpuTime;
-        private long userTime;
-        private String stack;
+        public String name;
+        public long threadId;
+        public boolean isDaemon;
+        public int priority;
+        public String state;
+        public long cpuTime;
+        public long userTime;
+        public String stack;
+
+        public Object[] toObjectArray() {
+            return new Object[]{name, threadId, isDaemon, priority, state, cpuTime, userTime, stack};
+        }
     }
 
     @PostMapping("/api/command/jvm/dumpThread")
-    ServiceResponse<StackTrace> getStackTrace(@RequestBody CommandArgs<Void> args) throws IOException;
+    ServiceResponse<StackTrace> getStackTrace(@RequestBody CommandArgs<Void> args);
 
     /**
      * @param args A string pattern which comply with database's like expression.
