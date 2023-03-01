@@ -83,6 +83,7 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -113,6 +114,15 @@ public class AgentCommandDelegationApi {
             }
             return rowType;
         }
+
+        @Override
+        public Enumerable<Object[]> scan(final DataContext root) {
+            return Linq4j.asEnumerable(getData((QueryContext) root).stream()
+                                                                   .map((IAgentCommandApi.IObjectArrayConvertable::toObjectArray))
+                                                                   .collect(Collectors.toList()));
+        }
+
+        protected abstract <T extends IAgentCommandApi.IObjectArrayConvertable> List<T> getData(QueryContext queryContext);
     }
 
     private static class InstanceTable extends BaseTable {
@@ -123,9 +133,12 @@ public class AgentCommandDelegationApi {
         }
 
         @Override
-        public Enumerable<Object[]> scan(final DataContext root) {
+        protected List<IAgentCommandApi.IObjectArrayConvertable> getData(QueryContext queryContext) {
             ServiceResponse<IAgentCommandApi.InstanceRecord> clients = impl.getClients();
-            return Linq4j.asEnumerable(clients.getRows().stream().map((IAgentCommandApi.InstanceRecord::toObjectArray)).collect(Collectors.toList()));
+            if (clients.getError() != null) {
+                throw new RuntimeException(clients.getError().toString());
+            }
+            return (List<IAgentCommandApi.IObjectArrayConvertable>)(List<?>)clients.getRows();
         }
 
         @Override
@@ -142,15 +155,14 @@ public class AgentCommandDelegationApi {
         }
 
         @Override
-        public Enumerable<Object[]> scan(final DataContext root) {
-            QueryContext queryContext = (QueryContext) root;
+        protected List<IAgentCommandApi.IObjectArrayConvertable> getData(QueryContext queryContext) {
 
             ServiceResponse<IAgentCommandApi.ClassRecord> classList = impl.getClass((CommandArgs<Void>) queryContext.commandArgs);
             if (classList.getError() != null) {
                 throw new RuntimeException(classList.getError().toString());
             }
 
-            return Linq4j.asEnumerable(classList.getRows().stream().map((IAgentCommandApi.ClassRecord::toObjectArray)).collect(Collectors.toList()));
+            return (List<IAgentCommandApi.IObjectArrayConvertable>)(List<?>)classList.getRows();
         }
 
         @Override
@@ -167,18 +179,13 @@ public class AgentCommandDelegationApi {
         }
 
         @Override
-        public Enumerable<Object[]> scan(final DataContext root) {
-            QueryContext queryContext = (QueryContext) root;
-
+        protected List<IAgentCommandApi.IObjectArrayConvertable> getData(QueryContext queryContext) {
             ServiceResponse<IAgentCommandApi.StackTraceRecord> stackTraceList = impl.getStackTrace((CommandArgs<Void>) queryContext.commandArgs);
             if (stackTraceList.getError() != null) {
                 throw new RuntimeException(stackTraceList.getError().toString());
             }
 
-            return Linq4j.asEnumerable(stackTraceList.getRows()
-                                                     .stream()
-                                                     .map(IAgentCommandApi.StackTraceRecord::toObjectArray)
-                                                     .collect(Collectors.toList()));
+            return (List<IAgentCommandApi.IObjectArrayConvertable>)(List<?>)stackTraceList.getRows();
         }
 
         @Override
@@ -195,18 +202,13 @@ public class AgentCommandDelegationApi {
         }
 
         @Override
-        public Enumerable<Object[]> scan(final DataContext root) {
-            QueryContext queryContext = (QueryContext) root;
-
-            ServiceResponse<IAgentCommandApi.ConfigurationRecord> stackTraceList = impl.getConfiguration((CommandArgs<IAgentCommandApi.GetConfigurationRequest>) queryContext.commandArgs);
-            if (stackTraceList.getError() != null) {
-                throw new RuntimeException(stackTraceList.getError().toString());
+        protected List<IAgentCommandApi.IObjectArrayConvertable> getData(QueryContext queryContext) {
+            ServiceResponse<IAgentCommandApi.ConfigurationRecord> configurations = impl.getConfiguration((CommandArgs<IAgentCommandApi.GetConfigurationRequest>) queryContext.commandArgs);
+            if (configurations.getError() != null) {
+                throw new RuntimeException(configurations.getError().toString());
             }
 
-            return Linq4j.asEnumerable(stackTraceList.getRows()
-                                                     .stream()
-                                                     .map(IAgentCommandApi.ConfigurationRecord::toObjectArray)
-                                                     .collect(Collectors.toList()));
+            return (List<IAgentCommandApi.IObjectArrayConvertable>)(List<?>) configurations.getRows();
         }
 
         @Override

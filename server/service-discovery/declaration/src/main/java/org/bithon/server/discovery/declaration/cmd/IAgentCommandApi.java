@@ -30,12 +30,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 @DiscoverableService(name = "agentCommand")
 public interface IAgentCommandApi {
 
+    interface IObjectArrayConvertable {
+        Object[] toObjectArray();
+    }
+
     /**
      * Declare all fields as public to treat it as a record
      * This simplifies Calcite related type construction.
      */
     @Data
-    class InstanceRecord {
+    class InstanceRecord implements IObjectArrayConvertable {
         public String appName;
         public String appId;
         public String endpoint;
@@ -49,7 +53,7 @@ public interface IAgentCommandApi {
     ServiceResponse<InstanceRecord> getClients();
 
     @Data
-    class StackTraceRecord {
+    class StackTraceRecord implements IObjectArrayConvertable {
         public String name;
         public long threadId;
         public boolean isDaemon;
@@ -67,7 +71,7 @@ public interface IAgentCommandApi {
     @PostMapping("/api/command/jvm/dumpThread")
     ServiceResponse<StackTraceRecord> getStackTrace(@RequestBody CommandArgs<Void> args);
 
-    class ClassRecord {
+    class ClassRecord implements IObjectArrayConvertable {
         public String name;
         public String classLoader;
         public int isSynthetic;
@@ -95,7 +99,7 @@ public interface IAgentCommandApi {
         private boolean pretty;
     }
 
-    class ConfigurationRecord {
+    class ConfigurationRecord implements IObjectArrayConvertable {
         public String payload;
 
         public Object[] toObjectArray() {
