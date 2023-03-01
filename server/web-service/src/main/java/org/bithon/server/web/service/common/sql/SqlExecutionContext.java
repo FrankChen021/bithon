@@ -29,7 +29,7 @@ import java.util.Map;
  * @author Frank Chen
  * @date 1/3/23 12:00 pm
  */
-public final class QueryContext implements DataContext {
+public final class SqlExecutionContext implements DataContext {
     private final SchemaPlus schema;
     private final JavaTypeFactory typeFactory;
 
@@ -38,7 +38,7 @@ public final class QueryContext implements DataContext {
      */
     private final Map<String, Object> parameters = new HashMap<>();
 
-    QueryContext(CalciteSchema calciteSchema, JavaTypeFactory typeFactory) {
+    SqlExecutionContext(CalciteSchema calciteSchema, JavaTypeFactory typeFactory) {
         this.schema = calciteSchema.plus();
         this.typeFactory = typeFactory;
     }

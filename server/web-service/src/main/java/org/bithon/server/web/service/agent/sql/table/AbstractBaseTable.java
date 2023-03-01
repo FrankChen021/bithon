@@ -24,7 +24,7 @@ import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.schema.ScannableTable;
 import org.apache.calcite.schema.impl.AbstractTable;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
-import org.bithon.server.web.service.common.sql.QueryContext;
+import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,10 +49,10 @@ abstract class AbstractBaseTable extends AbstractTable implements ScannableTable
 
     @Override
     public Enumerable<Object[]> scan(final DataContext root) {
-        return Linq4j.asEnumerable(getData((QueryContext) root).stream()
-                                                               .map((IAgentCommandApi.IObjectArrayConvertable::toObjectArray))
-                                                               .collect(Collectors.toList()));
+        return Linq4j.asEnumerable(getData((SqlExecutionContext) root).stream()
+                                                                      .map((IAgentCommandApi.IObjectArrayConvertable::toObjectArray))
+                                                                      .collect(Collectors.toList()));
     }
 
-    protected abstract <T extends IAgentCommandApi.IObjectArrayConvertable> List<T> getData(QueryContext queryContext);
+    protected abstract <T extends IAgentCommandApi.IObjectArrayConvertable> List<T> getData(SqlExecutionContext executionContext);
 }

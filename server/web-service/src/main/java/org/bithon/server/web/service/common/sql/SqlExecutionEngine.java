@@ -35,6 +35,7 @@ import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.rules.CoreRules;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
+import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.Table;
@@ -49,6 +50,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 import java.util.function.BiConsumer;
 
@@ -57,11 +59,21 @@ import java.util.function.BiConsumer;
  * @date 1/3/23 11:32 am
  */
 @Service
-public class QueryEngine {
+public class SqlExecutionEngine {
+
+    public static class QueryResult {
+        public final Enumerable<Object[]> rows;
+        public final List<RelDataTypeField> fields;
+
+        public QueryResult(Enumerable<Object[]> rows, List<RelDataTypeField> fields) {
+            this.rows = rows;
+            this.fields = fields;
+        }
+    }
 
     private final CalciteCatalogReader catalogReader;
 
-    public QueryEngine() {
+    public SqlExecutionEngine() {
         CalciteSchema rootSchema = CalciteSchema.createRootSchema(true);
         rootSchema.add("INFORMATION_SCHEMA", new InformationSchema(rootSchema.plus()));
 
@@ -82,9 +94,9 @@ public class QueryEngine {
         this.catalogReader.getRootSchema().add(name, schema);
     }
 
-    public Enumerable<Object[]> executeSql(String sql, @Nullable BiConsumer<SqlNode, QueryContext> onParsed) throws Exception {
-        QueryContext queryContext = new QueryContext(catalogReader.getRootSchema(),
-                                                     (JavaTypeFactory) catalogReader.getTypeFactory());
+    public QueryResult executeSql(String sql, @Nullable BiConsumer<SqlNode, SqlExecutionContext> onParsed) throws Exception {
+        SqlExecutionContext queryContext = new SqlExecutionContext(catalogReader.getRootSchema(),
+                                                                   (JavaTypeFactory) catalogReader.getTypeFactory());
 
         // Create a SQL parser to parse the query into AST
         SqlNode sqlNode = SqlParser.create(sql,
@@ -124,8 +136,11 @@ public class QueryEngine {
         //
         BindableRel physicalPlan = (BindableRel) planner.findBestExp();
 
+        //
         // Run the executable plan using a context simply providing access to the schema
-        return physicalPlan.bind(queryContext);
+        //
+        return new QueryResult(physicalPlan.bind(queryContext),
+                               physicalPlan.getRowType().getFieldList());
     }
 
     private static final RelOptTable.ViewExpander NOOP_EXPANDER = (rowType, queryString, schemaPath, viewPath) -> null;

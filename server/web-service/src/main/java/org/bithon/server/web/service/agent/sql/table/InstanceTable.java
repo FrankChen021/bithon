@@ -18,7 +18,7 @@ package org.bithon.server.web.service.agent.sql.table;
 
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
-import org.bithon.server.web.service.common.sql.QueryContext;
+import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ public class InstanceTable extends AbstractBaseTable {
     }
 
     @Override
-    protected List<IAgentCommandApi.IObjectArrayConvertable> getData(QueryContext queryContext) {
+    protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
         ServiceResponse<IAgentCommandApi.InstanceRecord> clients = impl.getClients();
         if (clients.getError() != null) {
             throw new RuntimeException(clients.getError().toString());

@@ -20,7 +20,7 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.CommandArgs;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
-import org.bithon.server.web.service.common.sql.QueryContext;
+import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
 
@@ -37,8 +37,8 @@ public class ConfigurationTable extends AbstractBaseTable {
     }
 
     @Override
-    protected List<IAgentCommandApi.IObjectArrayConvertable> getData(QueryContext queryContext) {
-        String appId = (String) queryContext.get("appId");
+    protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
+        String appId = (String) executionContext.get("appId");
         Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
 
         ServiceResponse<IAgentCommandApi.ConfigurationRecord> configurations = impl.getConfiguration(new CommandArgs<>(appId, null));

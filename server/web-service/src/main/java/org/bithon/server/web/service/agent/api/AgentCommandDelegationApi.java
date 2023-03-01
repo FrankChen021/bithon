@@ -18,6 +18,7 @@ package org.bithon.server.web.service.agent.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.calcite.linq4j.Enumerable;
+import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.sql.SqlBasicCall;
 import org.apache.calcite.sql.SqlCall;
 import org.apache.calcite.sql.SqlCharStringLiteral;
@@ -37,8 +38,8 @@ import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.agent.sql.AgentSchema;
-import org.bithon.server.web.service.common.sql.QueryContext;
-import org.bithon.server.web.service.common.sql.QueryEngine;
+import org.bithon.server.web.service.common.sql.SqlExecutionContext;
+import org.bithon.server.web.service.common.sql.SqlExecutionEngine;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -52,6 +53,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 
 /**
  * @author Frank Chen
@@ -62,15 +64,15 @@ import java.io.PrintWriter;
 @Conditional(WebServiceModuleEnabler.class)
 public class AgentCommandDelegationApi {
 
-    private final QueryEngine queryEngine;
+    private final SqlExecutionEngine sqlExecutionEngine;
     private final ObjectMapper objectMapper;
 
     public AgentCommandDelegationApi(ServiceBroadcastInvoker serviceBroadcastInvoker,
-                                     QueryEngine queryEngine,
+                                     SqlExecutionEngine sqlExecutionEngine,
                                      ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
-        this.queryEngine = queryEngine;
-        this.queryEngine.addSchema("agent", new AgentSchema(serviceBroadcastInvoker.create(IAgentCommandApi.class)));
+        this.sqlExecutionEngine = sqlExecutionEngine;
+        this.sqlExecutionEngine.addSchema("agent", new AgentSchema(serviceBroadcastInvoker.create(IAgentCommandApi.class)));
     }
 
     @PostMapping(value = "/api/agent/query")
@@ -85,7 +87,12 @@ public class AgentCommandDelegationApi {
             formatter = new TabSeparatedFormatter(httpResponse);
         }
 
-        Enumerable<Object[]> rows = this.queryEngine.executeSql(query, (sqlNode, queryContext) -> {
+        if ("application/x-www-form-urlencoded".equals(httpServletRequest.getHeader("Content-Type"))) {
+            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                            "Content-Type with application/x-www-form-urlencoded is not accepted. Please use text/plain instead.");
+        }
+
+        SqlExecutionEngine.QueryResult result = this.sqlExecutionEngine.executeSql(query, (sqlNode, queryContext) -> {
             //
             // appId is an always pushed down filter
             // We remove it from SQL because this specific field does not exist on all tables
@@ -104,11 +111,11 @@ public class AgentCommandDelegationApi {
             }
         });
 
-        formatter.format(rows);
+        formatter.format(result.fields, result.rows);
     }
 
-    public static interface IFormatter {
-        void format(Enumerable<Object[]> rows) throws IOException;
+    public interface IFormatter {
+        void format(List<RelDataTypeField> fields, Enumerable<Object[]> rows) throws IOException;
     }
 
     public static class JsonFormatter implements IFormatter {
@@ -121,11 +128,24 @@ public class AgentCommandDelegationApi {
         }
 
         @Override
-        public void format(Enumerable<Object[]> rows) throws IOException {
+        public void format(List<RelDataTypeField> fields, Enumerable<Object[]> rows) throws IOException {
             response.addHeader("Content-Type", "application/json");
 
             try (PrintWriter pw = response.getWriter()) {
-                pw.write(objectMapper.writeValueAsString(rows));
+                pw.write("[\n");
+                for (Object[] row : rows) {
+                    pw.write("{");
+                    for (int i = 0; i < fields.size(); i++) {
+                        pw.write(fields.get(i).getName());
+                        pw.write(" : ");
+                        pw.write(objectMapper.writeValueAsString(row[i]));
+                        if (i < fields.size() - 1) {
+                            pw.write(", ");
+                        }
+                    }
+                    pw.write("}");
+                }
+                pw.write("]\n");
             }
         }
     }
@@ -138,10 +158,17 @@ public class AgentCommandDelegationApi {
         }
 
         @Override
-        public void format(Enumerable<Object[]> rows) throws IOException {
+        public void format(List<RelDataTypeField> fields, Enumerable<Object[]> rows) throws IOException {
             response.addHeader("Content-Type", "text/plain");
 
             try (PrintWriter pw = response.getWriter()) {
+                if (rows.any()) {
+                    for (RelDataTypeField field : fields) {
+                        pw.write(field.getName());
+                        pw.write('\t');
+                    }
+                }
+                pw.write('\n');
                 for (Object[] row : rows) {
                     for (int i = 0; i < row.length; i++) {
                         Object cell = row[i];
@@ -167,9 +194,9 @@ public class AgentCommandDelegationApi {
     }
 
     private static class GetAndRemoveAppIdFilter extends SqlBasicVisitor<String> {
-        private final QueryContext queryContext;
+        private final SqlExecutionContext queryContext;
 
-        public GetAndRemoveAppIdFilter(QueryContext queryContext) {
+        public GetAndRemoveAppIdFilter(SqlExecutionContext queryContext) {
             this.queryContext = queryContext;
         }
 
