@@ -37,6 +37,7 @@ import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.rules.CoreRules;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
@@ -75,6 +76,10 @@ public class QueryEngine {
 
     public void addTable(String tableName, Table table) {
         this.catalogReader.getRootSchema().add(tableName, table);
+    }
+
+    public void addSchema(String name, Schema schema) {
+        this.catalogReader.getRootSchema().add(name, schema);
     }
 
     public Enumerable<Object[]> executeSql(String sql, @Nullable BiConsumer<SqlNode, QueryContext> onParsed) throws Exception {
@@ -126,7 +131,7 @@ public class QueryEngine {
     private static final RelOptTable.ViewExpander NOOP_EXPANDER = (rowType, queryString, schemaPath, viewPath) -> null;
 
     /**
-     * Should be instance per execution
+     * Should be instanced per execution
      */
     private static RelOptCluster newCluster(RelDataTypeFactory factory) {
         RelOptPlanner planner = new VolcanoPlanner();
