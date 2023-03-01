@@ -23,7 +23,7 @@ import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.agent.sql.table.ClassTable;
 import org.bithon.server.web.service.agent.sql.table.ConfigurationTable;
 import org.bithon.server.web.service.agent.sql.table.InstanceTable;
-import org.bithon.server.web.service.agent.sql.table.StackTraceTable;
+import org.bithon.server.web.service.agent.sql.table.ThreadTable;
 
 import java.util.Map;
 
@@ -37,7 +37,7 @@ public class AgentSchema extends AbstractSchema {
     public AgentSchema(IAgentCommandApi impl) {
         this.tableMap = ImmutableMap.of("instance", new InstanceTable(impl),
                                         "loaded_class", new ClassTable(impl),
-                                        "stack_trace", new StackTraceTable(impl),
+                                        "thread", new ThreadTable(impl),
                                         "configuration", new ConfigurationTable(impl));
     }
 

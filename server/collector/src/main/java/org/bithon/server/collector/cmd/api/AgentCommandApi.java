@@ -72,22 +72,31 @@ public class AgentCommandApi implements IAgentCommandApi {
     }
 
     @Override
-    public ServiceResponse<StackTraceRecord> getStackTrace(@Valid @RequestBody CommandArgs<Void> args) {
+    public ServiceResponse<ThreadRecord> getStackTrace(@Valid @RequestBody CommandArgs<Void> args) {
         IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
 
         return ServiceResponse.success(command.dumpThreads()
                                               .stream()
-                                              .map((thread) -> {
-                                                  StackTraceRecord stackTrace = new StackTraceRecord();
-                                                  stackTrace.setName(thread.getName());
-                                                  stackTrace.setThreadId(thread.getThreadId());
-                                                  stackTrace.setState(thread.getState());
-                                                  stackTrace.setPriority(thread.getPriority());
-                                                  stackTrace.setCpuTime(thread.getCpuTime());
-                                                  stackTrace.setUserTime(thread.getUserTime());
-                                                  stackTrace.setDaemon(thread.isDaemon());
-                                                  stackTrace.setStack(thread.getStacks());
-                                                  return stackTrace;
+                                              .map((threadInfo) -> {
+                                                  ThreadRecord thread = new ThreadRecord();
+                                                  thread.setName(threadInfo.getName());
+                                                  thread.setThreadId(threadInfo.getThreadId());
+                                                  thread.setState(threadInfo.getState());
+                                                  thread.setPriority(threadInfo.getPriority());
+                                                  thread.setCpuTime(threadInfo.getCpuTime());
+                                                  thread.setUserTime(threadInfo.getUserTime());
+                                                  thread.setDaemon(threadInfo.isDaemon() ? 1 : 0);
+                                                  thread.setWaitedCount(threadInfo.getWaitedCount());
+                                                  thread.setWaitedTime(threadInfo.getWaitedTime());
+                                                  thread.setBlockedCount(threadInfo.getBlockedCount());
+                                                  thread.setBlockedTime(threadInfo.getBlockedTime());
+                                                  thread.setLockName(threadInfo.getLockName());
+                                                  thread.setLockOwnerId(threadInfo.getLockOwnerId());
+                                                  thread.setLockOwnerName(threadInfo.getLockOwnerName());
+                                                  thread.setInNative(threadInfo.getInNative());
+                                                  thread.setSuspended(threadInfo.getSuspended());
+                                                  thread.setStack(threadInfo.getStacks());
+                                                  return thread;
                                               })
                                               .collect(Collectors.toList()));
     }

@@ -39,6 +39,31 @@ public interface IJvmCommand {
         private long userTime;
         private String stacks;
 
+        private long blockedTime;
+
+        /**
+         * The total number of times that the thread entered the BLOCKED state
+         */
+        private long blockedCount;
+
+        /**
+         * The approximate accumulated elapsed time in milliseconds that a thread has been in the WAITING or TIMED_WAITING state;
+         * -1 if thread contention monitoring is disabled.
+         */
+        private long waitedTime;
+
+        /**
+         * The total number of times that the thread was in the WAITING or TIMED_WAITING state.
+         */
+        private long waitedCount;
+
+        private String lockName;
+        private long lockOwnerId;
+        private String lockOwnerName;
+
+        private int inNative;
+        private int suspended;
+
         public String getName() {
             return name;
         }
@@ -101,6 +126,78 @@ public interface IJvmCommand {
 
         public void setStacks(String stacks) {
             this.stacks = stacks;
+        }
+
+        public long getBlockedTime() {
+            return blockedTime;
+        }
+
+        public void setBlockedTime(long blockedTime) {
+            this.blockedTime = blockedTime;
+        }
+
+        public long getBlockedCount() {
+            return blockedCount;
+        }
+
+        public void setBlockedCount(long blockedCount) {
+            this.blockedCount = blockedCount;
+        }
+
+        public long getWaitedTime() {
+            return waitedTime;
+        }
+
+        public void setWaitedTime(long waitedTime) {
+            this.waitedTime = waitedTime;
+        }
+
+        public long getWaitedCount() {
+            return waitedCount;
+        }
+
+        public void setWaitedCount(long waitedCount) {
+            this.waitedCount = waitedCount;
+        }
+
+        public String getLockName() {
+            return lockName;
+        }
+
+        public void setLockName(String lockName) {
+            this.lockName = lockName;
+        }
+
+        public long getLockOwnerId() {
+            return lockOwnerId;
+        }
+
+        public void setLockOwnerId(long lockOwnerId) {
+            this.lockOwnerId = lockOwnerId;
+        }
+
+        public String getLockOwnerName() {
+            return lockOwnerName;
+        }
+
+        public void setLockOwnerName(String lockOwnerName) {
+            this.lockOwnerName = lockOwnerName;
+        }
+
+        public int getInNative() {
+            return inNative;
+        }
+
+        public void setInNative(int inNative) {
+            this.inNative = inNative;
+        }
+
+        public int getSuspended() {
+            return suspended;
+        }
+
+        public void setSuspended(int suspended) {
+            this.suspended = suspended;
         }
     }
 

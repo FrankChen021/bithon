@@ -28,10 +28,10 @@ import java.util.List;
  * @date 1/3/23 8:18 pm
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class StackTraceTable extends AbstractBaseTable {
+public class ThreadTable extends AbstractBaseTable {
     private final IAgentCommandApi impl;
 
-    public StackTraceTable(IAgentCommandApi impl) {
+    public ThreadTable(IAgentCommandApi impl) {
         this.impl = impl;
     }
 
@@ -39,7 +39,7 @@ public class StackTraceTable extends AbstractBaseTable {
     protected List<IAgentCommandApi.IObjectArrayConvertable> getData(QueryContext queryContext) {
         String appId = (String) queryContext.get("appId");
 
-        ServiceResponse<IAgentCommandApi.StackTraceRecord> stackTraceList = impl.getStackTrace(new CommandArgs<>(appId, null));
+        ServiceResponse<IAgentCommandApi.ThreadRecord> stackTraceList = impl.getStackTrace(new CommandArgs<>(appId, null));
         if (stackTraceList.getError() != null) {
             throw new RuntimeException(stackTraceList.getError().toString());
         }
@@ -49,6 +49,6 @@ public class StackTraceTable extends AbstractBaseTable {
 
     @Override
     protected Class getRecordClazz() {
-        return IAgentCommandApi.StackTraceRecord.class;
+        return IAgentCommandApi.ThreadRecord.class;
     }
 }

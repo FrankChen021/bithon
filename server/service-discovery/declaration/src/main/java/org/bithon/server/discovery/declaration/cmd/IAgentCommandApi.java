@@ -53,23 +53,66 @@ public interface IAgentCommandApi {
     ServiceResponse<InstanceRecord> getClients();
 
     @Data
-    class StackTraceRecord implements IObjectArrayConvertable {
-        public String name;
+    class ThreadRecord implements IObjectArrayConvertable {
         public long threadId;
-        public boolean isDaemon;
+        public String name;
+        public int daemon;
         public int priority;
         public String state;
         public long cpuTime;
         public long userTime;
+
+        public long blockedTime;
+
+        /**
+         * The total number of times that the thread entered the BLOCKED state
+         */
+        public long blockedCount;
+
+        /**
+         * The approximate accumulated elapsed time in milliseconds that a thread has been in the WAITING or TIMED_WAITING state;
+         * -1 if thread contention monitoring is disabled.
+         */
+        public long waitedTime;
+
+        /**
+         * The total number of times that the thread was in the WAITING or TIMED_WAITING state.
+         */
+        public long waitedCount;
+
+        public String lockName;
+        public long lockOwnerId;
+        public String lockOwnerName;
+
+        public int inNative;
+        public int suspended;
         public String stack;
 
         public Object[] toObjectArray() {
-            return new Object[]{name, threadId, isDaemon, priority, state, cpuTime, userTime, stack};
+            return new Object[]{
+                threadId,
+                name,
+                daemon,
+                priority,
+                state,
+                cpuTime,
+                userTime,
+                blockedTime,
+                blockedCount,
+                waitedTime,
+                waitedCount,
+                lockName,
+                lockOwnerId,
+                lockOwnerName,
+                inNative,
+                suspended,
+                stack
+            };
         }
     }
 
     @PostMapping("/api/command/jvm/dumpThread")
-    ServiceResponse<StackTraceRecord> getStackTrace(@RequestBody CommandArgs<Void> args);
+    ServiceResponse<ThreadRecord> getStackTrace(@RequestBody CommandArgs<Void> args);
 
     class ClassRecord implements IObjectArrayConvertable {
         public String name;
