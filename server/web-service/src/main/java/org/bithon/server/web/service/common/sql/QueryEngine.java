@@ -18,7 +18,6 @@ package org.bithon.server.web.service.common.sql;
 
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.avatica.util.Casing;
-import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.config.CalciteConnectionConfigImpl;
 import org.apache.calcite.config.CalciteConnectionProperty;
 import org.apache.calcite.interpreter.BindableConvention;
@@ -63,15 +62,16 @@ public class QueryEngine {
     private final CalciteCatalogReader catalogReader;
 
     public QueryEngine() {
-        CalciteSchema schema = CalciteSchema.createRootSchema(true);
+        CalciteSchema rootSchema = CalciteSchema.createRootSchema(true);
+        rootSchema.add("INFORMATION_SCHEMA", new InformationSchema(rootSchema.plus()));
 
         Properties props = new Properties();
         props.setProperty(CalciteConnectionProperty.CASE_SENSITIVE.camelName(), "false");
-        CalciteConnectionConfig config = new CalciteConnectionConfigImpl(props);
 
-        JavaTypeFactory typeFactory = new JavaTypeFactoryImpl();
-        catalogReader = new CalciteCatalogReader(schema, Collections.singletonList(""), typeFactory, config);
-
+        catalogReader = new CalciteCatalogReader(rootSchema,
+                                                 Collections.singletonList(""),
+                                                 new JavaTypeFactoryImpl(),
+                                                 new CalciteConnectionConfigImpl(props));
     }
 
     public void addTable(String tableName, Table table) {
@@ -140,5 +140,4 @@ public class QueryEngine {
         RelOptUtil.registerDefaultRules(planner, false, true);
         return RelOptCluster.create(planner, new RexBuilder(factory));
     }
-
 }
