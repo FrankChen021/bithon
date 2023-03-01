@@ -69,21 +69,22 @@ public interface IAgentCommandApi {
 
     class ClassRecord {
         public String name;
+        public String classLoader;
+        public int isSynthetic;
+        public int isInterface;
+        public int isAnnotation;
+        public int isEnum;
 
         public Object[] toObjectArray() {
-            return new Object[]{name};
+            return new Object[]{name, classLoader, isSynthetic, isInterface, isAnnotation, isEnum};
         }
     }
 
     /**
-     * @param args A string pattern which comply with database's like expression.
-     *             For example:
-     *             "%CommandApi" will match all classes whose name ends with CommandApi
-     *             "CommandApi" matches only qualified class name that is the exact CommandApi
-     *             "%bithon% matches all qualified classes whose name contains bithon
+     * Get loaded class
      */
     @PostMapping("/api/command/jvm/dumpClazz")
-    ServiceResponse<ClassRecord> getClass(@RequestBody CommandArgs<String> args);
+    ServiceResponse<ClassRecord> getClass(@RequestBody CommandArgs<Void> args);
 
     @Data
     class GetConfigurationRequest {

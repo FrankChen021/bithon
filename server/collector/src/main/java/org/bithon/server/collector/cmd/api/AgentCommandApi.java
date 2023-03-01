@@ -20,7 +20,6 @@ import org.bithon.agent.rpc.brpc.cmd.IConfigCommand;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.collector.cmd.service.AgentCommandService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.CommandArgs;
@@ -101,22 +100,20 @@ public class AgentCommandApi implements IAgentCommandApi {
      *             "%bithon% matches all qualified classes whose name contains bithon
      */
     @Override
-    public ServiceResponse<ClassRecord> getClass(@Valid @RequestBody CommandArgs<String> args) {
-        String pattern;
-        if (StringUtils.isEmpty(args.getArgs())) {
-            pattern = ".*";
-        } else {
-            pattern = args.getArgs();
-            pattern = pattern.replace(".", "\\.").replace("%", ".*");
-        }
+    public ServiceResponse<ClassRecord> getClass(@Valid @RequestBody CommandArgs<Void> args) {
+        IJvmCommand command = commandService.getServerChannel()
+                                            .getRemoteService(args.getAppId(), IJvmCommand.class);
 
-        IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
-
-        return ServiceResponse.success(command.dumpClazz(pattern)
+        return ServiceResponse.success(command.getLoadedClassList()
                                               .stream()
-                                              .map((name) -> {
+                                              .map((clazzInfo) -> {
                                                   ClassRecord classRecord = new ClassRecord();
-                                                  classRecord.name = name;
+                                                  classRecord.name = clazzInfo.getName();
+                                                  classRecord.classLoader = clazzInfo.getClassLoader();
+                                                  classRecord.isAnnotation = clazzInfo.isAnnotation() ? 1 : 0;
+                                                  classRecord.isInterface = clazzInfo.isInterface() ? 1 : 0;
+                                                  classRecord.isEnum = clazzInfo.isEnum() ? 1 : 0;
+                                                  classRecord.isSynthetic = clazzInfo.isSynthetic() ? 1 : 0;
                                                   return classRecord;
                                               })
                                               .collect(Collectors.toList()));

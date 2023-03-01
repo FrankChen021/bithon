@@ -101,10 +101,10 @@ public class AgentCommandDelegationApi {
         this.impl = serviceBroadcastInvoker.create(IAgentCommandApi.class);
     }
 
-    private static abstract class BaseTable extends AbstractTable implements ScannableTable {
+    private abstract static class BaseTable extends AbstractTable implements ScannableTable {
         private RelDataType rowType;
 
-        abstract protected java.lang.Class getRecordClazz();
+        protected abstract java.lang.Class getRecordClazz();
 
         @Override
         public RelDataType getRowType(final RelDataTypeFactory typeFactory) {
@@ -145,7 +145,7 @@ public class AgentCommandDelegationApi {
         public Enumerable<Object[]> scan(final DataContext root) {
             QueryContext queryContext = (QueryContext) root;
 
-            ServiceResponse<IAgentCommandApi.ClassRecord> classList = impl.getClass((CommandArgs<String>) queryContext.commandArgs);
+            ServiceResponse<IAgentCommandApi.ClassRecord> classList = impl.getClass((CommandArgs<Void>) queryContext.commandArgs);
             if (classList.getError() != null) {
                 throw new RuntimeException(classList.getError().toString());
             }
@@ -279,20 +279,6 @@ public class AgentCommandDelegationApi {
         BindableRel physicalPlan = (BindableRel) planner.findBestExp();
 
         PrintWriter pw = httpResponse.getWriter();
-//        for (SqlNode node : ((SqlSelect) sqlNode).getSelectList().getList()) {
-//            if (node.getKind() == SqlKind.AS) {
-//                // If the expression is an alias, print out the alias name
-//                SqlIdentifier alias = ((SqlCall) node).operand(1);
-//                pw.write(alias.getSimple());
-//            } else if (node.getKind() == SqlKind.IDENTIFIER) {
-//                // If the expression is a simple column reference, print out the column name
-//                pw.write(((SqlIdentifier) node).getSimple());
-//            } else {
-//                pw.write(node.toString());
-//            }
-//            pw.write('\t');
-//        }
-//        pw.write("\n----------------------\n");
 
         // Run the executable plan using a context simply providing access to the schema
         for (Object[] row : physicalPlan.bind(new QueryContext(schema,

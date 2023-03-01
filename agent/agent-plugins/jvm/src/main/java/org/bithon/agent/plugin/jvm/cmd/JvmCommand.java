@@ -50,7 +50,7 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
     }
 
     @Override
-    public Collection<String> dumpClazz(String pattern) {
+    public Collection<String> dumpClass(String pattern) {
         Pattern p = Pattern.compile(pattern);
 
         return Arrays.stream(InstrumentationHelper.getInstance().getAllLoadedClasses())
@@ -60,6 +60,28 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
                      .map(Class::getName)
                      // There might be same classes loaded into different class loaders, use set to deduplicate them
                      .collect(Collectors.toSet());
+    }
+
+    @Override
+    public List<ClassInfo> getLoadedClassList() {
+
+        return Arrays.stream(InstrumentationHelper.getInstance().getAllLoadedClasses())
+                     .filter(clazz -> !clazz.isSynthetic() &&
+                                      // It does not make any sense to return anonymous class or lambda class
+                                      !isAnonymousClassOrLambda(clazz))
+                     .map((clazz) -> {
+                         ClassInfo classInfo = new ClassInfo();
+                         classInfo.setName(clazz.getName());
+                         classInfo.setClassLoader(clazz.getClassLoader() == null ? "bootstrap" : clazz.getClassLoader().getClass().getName());
+                         classInfo.setAnnotation(clazz.isAnnotation());
+                         classInfo.setInterface(clazz.isInterface());
+                         classInfo.setSynthetic(clazz.isSynthetic());
+                         classInfo.setEnum(clazz.isEnum());
+
+                         return classInfo;
+                     })
+                     // There might be same classes loaded into different class loaders, use set to deduplicate them
+                     .collect(Collectors.toList());
     }
 
     private boolean isAnonymousClassOrLambda(Class<?> clazz) {

@@ -106,5 +106,65 @@ public interface IJvmCommand {
 
     List<ThreadInfo> dumpThreads();
 
-    Collection<String> dumpClazz(String pattern);
+    @Deprecated
+    Collection<String> dumpClass(String pattern);
+
+    class ClassInfo {
+        private String name;
+        private String classLoader;
+        private boolean isSynthetic;
+        private boolean isInterface;
+        private boolean isAnnotation;
+        private boolean isEnum;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getClassLoader() {
+            return classLoader;
+        }
+
+        public void setClassLoader(String classLoader) {
+            this.classLoader = classLoader;
+        }
+
+        public boolean isSynthetic() {
+            return isSynthetic;
+        }
+
+        public void setSynthetic(boolean synthetic) {
+            isSynthetic = synthetic;
+        }
+
+        public boolean isInterface() {
+            return isInterface;
+        }
+
+        public void setInterface(boolean anInterface) {
+            isInterface = anInterface;
+        }
+
+        public boolean isAnnotation() {
+            return isAnnotation;
+        }
+
+        public void setAnnotation(boolean annotation) {
+            isAnnotation = annotation;
+        }
+
+        public boolean isEnum() {
+            return isEnum;
+        }
+
+        public void setEnum(boolean anEnum) {
+            isEnum = anEnum;
+        }
+    }
+
+    List<ClassInfo> getLoadedClassList();
 }
