@@ -33,7 +33,7 @@ import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
-import org.bithon.server.web.service.agent.service.AgentSchema;
+import org.bithon.server.web.service.agent.sql.AgentSchema;
 import org.bithon.server.web.service.common.sql.QueryContext;
 import org.bithon.server.web.service.common.sql.QueryEngine;
 import org.springframework.context.annotation.Conditional;
