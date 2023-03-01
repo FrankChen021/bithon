@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.agent.sql.table;
 
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.CommandArgs;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
@@ -38,6 +39,7 @@ public class ConfigurationTable extends AbstractBaseTable {
     @Override
     protected List<IAgentCommandApi.IObjectArrayConvertable> getData(QueryContext queryContext) {
         String appId = (String) queryContext.get("appId");
+        Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
 
         ServiceResponse<IAgentCommandApi.ConfigurationRecord> configurations = impl.getConfiguration(new CommandArgs<>(appId, null));
         if (configurations.getError() != null) {
