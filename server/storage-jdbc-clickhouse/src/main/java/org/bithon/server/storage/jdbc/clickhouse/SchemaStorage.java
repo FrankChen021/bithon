@@ -65,7 +65,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
                                        Tables.BITHON_META_SCHEMA.SIGNATURE)
                                .from(Tables.BITHON_META_SCHEMA)
                                .getSQL() + " FINAL WHERE ";
-        sql += dslContext.renderInlined(Tables.BITHON_META_SCHEMA.TIMESTAMP.ge(new Timestamp(afterTimestamp)));
+        sql += dslContext.renderInlined(Tables.BITHON_META_SCHEMA.TIMESTAMP.ge(new Timestamp(afterTimestamp).toLocalDateTime()));
 
         List<Record> records = dslContext.fetch(sql);
         if (records == null) {
@@ -124,7 +124,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
                   .set(Tables.BITHON_META_SCHEMA.NAME, name)
                   .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
                   .set(Tables.BITHON_META_SCHEMA.SIGNATURE, schema.getSignature())
-                  .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now)
+                  .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now.toLocalDateTime())
                   .execute();
     }
 
@@ -142,7 +142,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
                   .set(Tables.BITHON_META_SCHEMA.NAME, name)
                   .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
                   .set(Tables.BITHON_META_SCHEMA.SIGNATURE, schema.getSignature())
-                  .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now)
+                  .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now.toLocalDateTime())
                   .execute();
     }
 
@@ -157,7 +157,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
                   .set(Tables.BITHON_META_SCHEMA.NAME, name)
                   .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
                   .set(Tables.BITHON_META_SCHEMA.SIGNATURE, HashGenerator.sha256Hex(schemaText))
-                  .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now)
+                  .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now.toLocalDateTime())
                   .execute();
     }
 }

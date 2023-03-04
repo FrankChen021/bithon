@@ -21,9 +21,17 @@
 
     <!-- ClickHouse JDBC Driver -->
     <dependency>
-      <groupId>ru.yandex.clickhouse</groupId>
+      <groupId>com.clickhouse</groupId>
       <artifactId>clickhouse-jdbc</artifactId>
-      <version>0.3.1-patch</version>
+      <version>0.4.1</version>
+      <!-- use uber jar with all dependencies included, change classifier to http for smaller jar -->
+      <classifier>all</classifier>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

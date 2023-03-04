@@ -37,7 +37,7 @@ bithon:
         enabled: true
         # data source parameters
         url: jdbc:clickhouse://localhost:8123/bithon
-        driverClassName: ru.yandex.clickhouse.ClickHouseDriver
+        driverClassName: com.clickhouse.jdbc.ClickHouseDriver
         username: default
         password:
         # ------More parameters----
