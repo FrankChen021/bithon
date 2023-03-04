@@ -24,6 +24,7 @@ import org.apache.calcite.rel.type.RelDataTypeField;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
@@ -42,7 +43,7 @@ public class JsonCompactOutputFormatter implements IOutputFormatter {
         writer.write("{\n");
 
         String columns = fields.stream().map(field -> "\"" + field.getName() + "\"").collect(Collectors.joining(","));
-        writer.format("\"meta\": { \"columns\": [%s] },\n", columns);
+        writer.format(Locale.ENGLISH, "\"meta\": { \"columns\": [%s] },\n", columns);
 
         writer.write("\"rows\": [");
         {
