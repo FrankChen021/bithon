@@ -20,40 +20,45 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.calcite.linq4j.Enumerable;
 import org.apache.calcite.linq4j.Enumerator;
 import org.apache.calcite.rel.type.RelDataTypeField;
-import org.bithon.server.web.service.common.output.IOutputFormatter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
  * @date 4/3/23 3:48 pm
  */
-public class JsonOutputFormatter implements IOutputFormatter {
+public class JsonCompactOutputFormatter implements IOutputFormatter {
     private final ObjectMapper objectMapper;
 
-    public JsonOutputFormatter(ObjectMapper objectMapper) {
+    public JsonCompactOutputFormatter(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
     @Override
     public void format(PrintWriter writer, List<RelDataTypeField> fields, Enumerable<Object[]> rows) throws IOException {
-        writer.write("[\n");
+        writer.write("{\n");
 
-        for (Object[] row : rows) {
-            writer.write("{");
-            for (int i = 0; i < fields.size(); i++) {
-                writer.write(fields.get(i).getName());
-                writer.write(" : ");
-                writer.write(objectMapper.writeValueAsString(row[i]));
-                if (i < fields.size() - 1) {
-                    writer.write(", ");
-                }
+        String columns = fields.stream().map(field -> "\"" + field.getName() + "\"").collect(Collectors.joining(","));
+        writer.format("\"meta\": { \"columns\": [%s] },\n", columns);
+
+        writer.write("\"rows\": [");
+        {
+            Enumerator<Object[]> e = rows.enumerator();
+            if (e.moveNext()) {
+                boolean hasNext;
+                do {
+                    writer.write(objectMapper.writeValueAsString(e.current()));
+                    hasNext = e.moveNext();
+                    if (hasNext) {
+                        writer.write(',');
+                    }
+                } while (hasNext);
             }
-            writer.write("}");
         }
-        writer.write("]\n");
+        writer.write("]\n}");
     }
 
     @Override

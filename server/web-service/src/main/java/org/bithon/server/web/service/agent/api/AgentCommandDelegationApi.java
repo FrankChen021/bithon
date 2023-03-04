@@ -37,7 +37,7 @@ import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.agent.sql.AgentSchema;
 import org.bithon.server.web.service.common.output.IOutputFormatter;
-import org.bithon.server.web.service.common.output.JsonOutputFormatter;
+import org.bithon.server.web.service.common.output.JsonCompactOutputFormatter;
 import org.bithon.server.web.service.common.output.TabSeparatedOutputFormatter;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 import org.bithon.server.web.service.common.sql.SqlExecutionEngine;
@@ -105,7 +105,7 @@ public class AgentCommandDelegationApi {
         IOutputFormatter formatter;
         String acceptEncoding = httpServletRequest.getHeader("Accept");
         if (acceptEncoding != null && acceptEncoding.contains("application/json")) {
-            formatter = new JsonOutputFormatter(this.objectMapper);
+            formatter = new JsonCompactOutputFormatter(this.objectMapper);
         } else {
             formatter = new TabSeparatedOutputFormatter();
         }

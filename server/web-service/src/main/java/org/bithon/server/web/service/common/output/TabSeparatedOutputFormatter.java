@@ -18,7 +18,6 @@ package org.bithon.server.web.service.common.output;
 
 import org.apache.calcite.linq4j.Enumerable;
 import org.apache.calcite.rel.type.RelDataTypeField;
-import org.bithon.server.web.service.common.output.IOutputFormatter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
