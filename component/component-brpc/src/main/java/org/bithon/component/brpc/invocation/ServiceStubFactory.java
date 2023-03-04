@@ -20,6 +20,7 @@ import org.bithon.component.brpc.IServiceController;
 import org.bithon.component.brpc.channel.IChannelWriter;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.message.Headers;
+import org.bithon.component.commons.utils.Preconditions;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -50,17 +51,26 @@ public class ServiceStubFactory {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public static <T> T create(String clientAppName,
                                Headers headers,
                                IChannelWriter channelWriter,
                                Class<T> serviceInterface) {
+        return create(clientAppName, headers, channelWriter, serviceInterface, 5000);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T create(String clientAppName,
+                               Headers headers,
+                               IChannelWriter channelWriter,
+                               Class<T> serviceInterface,
+                               int timeout) {
         return (T) Proxy.newProxyInstance(serviceInterface.getClassLoader(),
                                           new Class[]{serviceInterface, IServiceController.class},
                                           new ServiceInvocationStub(clientAppName,
                                                                     headers,
                                                                     channelWriter,
-                                                                    ClientInvocationManager.getInstance()));
+                                                                    ClientInvocationManager.getInstance(),
+                                                                    timeout));
     }
 
     /**
@@ -72,16 +82,22 @@ public class ServiceStubFactory {
         private final String appName;
         private final Headers headers;
         private boolean debugEnabled;
-        private long timeout = 5000;
+        private long timeout;
+        private final long defaultTimeout;
 
         public ServiceInvocationStub(String appName,
                                      Headers headers,
                                      IChannelWriter channelWriter,
-                                     ClientInvocationManager clientInvocationManager) {
+                                     ClientInvocationManager clientInvocationManager,
+                                     int timeout) {
+            Preconditions.checkIfTrue(timeout > 0, "timeout must be greater than zero.");
+
             this.appName = appName;
             this.headers = headers;
             this.channelWriter = channelWriter;
             this.clientInvocationManager = clientInvocationManager;
+            this.timeout = timeout;
+            this.defaultTimeout = timeout;
         }
 
         @Override
@@ -98,7 +114,7 @@ public class ServiceStubFactory {
                 return null;
             }
             if (rstTimeoutMethod.equals(method)) {
-                this.timeout = 5000;
+                this.timeout = defaultTimeout;
                 return null;
             }
             if (getPeerMethod.equals(method)) {

@@ -134,6 +134,14 @@ public class ServerChannel implements Closeable {
     }
 
     public <T> T getRemoteService(String remoteAppId, Class<T> serviceClass) {
+        return getRemoteService(remoteAppId, serviceClass, 5000);
+    }
+
+    /**
+     * @param remoteAppId
+     * @param timeout     in milliseconds
+     */
+    public <T> T getRemoteService(String remoteAppId, Class<T> serviceClass, int timeout) {
         Channel channel = sessionManager.getSessions()
                                         .stream()
                                         .filter(s -> remoteAppId.equals(s.getAppId()))
@@ -147,7 +155,8 @@ public class ServerChannel implements Closeable {
         return ServiceStubFactory.create(null,
                                          Headers.EMPTY,
                                          new Server2ClientChannelWriter(channel),
-                                         serviceClass);
+                                         serviceClass,
+                                         timeout);
     }
 
     public <T> List<T> getRemoteServices(String appName, Class<T> serviceClass) {
@@ -157,7 +166,8 @@ public class ServerChannel implements Closeable {
                              .map(s -> ServiceStubFactory.create(null,
                                                                  Headers.EMPTY,
                                                                  new Server2ClientChannelWriter(s.channel),
-                                                                 serviceClass))
+                                                                 serviceClass,
+                                                                 5000))
                              .collect(Collectors.toList());
 
     }

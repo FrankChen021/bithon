@@ -73,7 +73,8 @@ public class AgentCommandApi implements IAgentCommandApi {
 
     @Override
     public ServiceResponse<ThreadRecord> getStackTrace(@Valid @RequestBody CommandArgs<Void> args) {
-        IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
+        IJvmCommand command = commandService.getServerChannel()
+                                            .getRemoteService(args.getAppId(), IJvmCommand.class, 30_000);
 
         return ServiceResponse.success(command.dumpThreads()
                                               .stream()
@@ -111,7 +112,7 @@ public class AgentCommandApi implements IAgentCommandApi {
     @Override
     public ServiceResponse<ClassRecord> getClass(@Valid @RequestBody CommandArgs<Void> args) {
         IJvmCommand command = commandService.getServerChannel()
-                                            .getRemoteService(args.getAppId(), IJvmCommand.class);
+                                            .getRemoteService(args.getAppId(), IJvmCommand.class, 30_000);
 
         return ServiceResponse.success(command.getLoadedClassList()
                                               .stream()
@@ -134,7 +135,7 @@ public class AgentCommandApi implements IAgentCommandApi {
         String format = request == null ? "YAML" : request.getFormat();
         boolean isPretty = request == null ? true : request.isPretty();
 
-        IConfigCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IConfigCommand.class);
+        IConfigCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IConfigCommand.class, 30_000);
 
         ConfigurationRecord record = new ConfigurationRecord();
         record.payload = command.getConfiguration(format, isPretty);
