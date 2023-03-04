@@ -112,7 +112,7 @@ public interface IAgentCommandApi {
     }
 
     @PostMapping("/api/command/jvm/dumpThread")
-    ServiceResponse<ThreadRecord> getStackTrace(@RequestBody CommandArgs<Void> args);
+    ServiceResponse<ThreadRecord> getThreads(@RequestBody CommandArgs<Void> args);
 
     class ClassRecord implements IObjectArrayConvertable {
         public String name;

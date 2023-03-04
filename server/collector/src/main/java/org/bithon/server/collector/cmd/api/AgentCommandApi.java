@@ -72,7 +72,7 @@ public class AgentCommandApi implements IAgentCommandApi {
     }
 
     @Override
-    public ServiceResponse<ThreadRecord> getStackTrace(@Valid @RequestBody CommandArgs<Void> args) {
+    public ServiceResponse<ThreadRecord> getThreads(@Valid @RequestBody CommandArgs<Void> args) {
         IJvmCommand command = commandService.getServerChannel()
                                             .getRemoteService(args.getAppId(), IJvmCommand.class, 30_000);
 
