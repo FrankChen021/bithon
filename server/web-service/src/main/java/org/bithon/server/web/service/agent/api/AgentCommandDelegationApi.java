@@ -17,8 +17,6 @@
 package org.bithon.server.web.service.agent.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.calcite.linq4j.Enumerable;
-import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.sql.SqlBasicCall;
 import org.apache.calcite.sql.SqlCall;
 import org.apache.calcite.sql.SqlCharStringLiteral;
@@ -38,6 +36,9 @@ import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.agent.sql.AgentSchema;
+import org.bithon.server.web.service.common.output.IOutputFormatter;
+import org.bithon.server.web.service.common.output.JsonOutputFormatter;
+import org.bithon.server.web.service.common.output.TabSeparatedOutputFormatter;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 import org.bithon.server.web.service.common.sql.SqlExecutionEngine;
 import org.springframework.context.annotation.Conditional;
@@ -52,8 +53,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.List;
 
 /**
  * @author Frank Chen
@@ -79,14 +78,6 @@ public class AgentCommandDelegationApi {
     public void query(@Valid @RequestBody String query,
                       HttpServletRequest httpServletRequest,
                       HttpServletResponse httpResponse) throws Exception {
-        IFormatter formatter;
-        String acceptEncoding = httpServletRequest.getHeader("Accept");
-        if (acceptEncoding != null && acceptEncoding.contains("application/json")) {
-            formatter = new JsonFormatter(httpResponse, this.objectMapper);
-        } else {
-            formatter = new TabSeparatedFormatter(httpResponse);
-        }
-
         if ("application/x-www-form-urlencoded".equals(httpServletRequest.getHeader("Content-Type"))) {
             throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
                                             "Content-Type with application/x-www-form-urlencoded is not accepted. Please use text/plain instead.");
@@ -111,86 +102,15 @@ public class AgentCommandDelegationApi {
             }
         });
 
-        formatter.format(result.fields, result.rows);
-    }
-
-    public interface IFormatter {
-        void format(List<RelDataTypeField> fields, Enumerable<Object[]> rows) throws IOException;
-    }
-
-    public static class JsonFormatter implements IFormatter {
-        private final HttpServletResponse response;
-        private final ObjectMapper objectMapper;
-
-        public JsonFormatter(HttpServletResponse writer, ObjectMapper objectMapper) {
-            this.response = writer;
-            this.objectMapper = objectMapper;
+        IOutputFormatter formatter;
+        String acceptEncoding = httpServletRequest.getHeader("Accept");
+        if (acceptEncoding != null && acceptEncoding.contains("application/json")) {
+            formatter = new JsonOutputFormatter(this.objectMapper);
+        } else {
+            formatter = new TabSeparatedOutputFormatter();
         }
-
-        @Override
-        public void format(List<RelDataTypeField> fields, Enumerable<Object[]> rows) throws IOException {
-            response.addHeader("Content-Type", "application/json");
-
-            try (PrintWriter pw = response.getWriter()) {
-                pw.write("[\n");
-                for (Object[] row : rows) {
-                    pw.write("{");
-                    for (int i = 0; i < fields.size(); i++) {
-                        pw.write(fields.get(i).getName());
-                        pw.write(" : ");
-                        pw.write(objectMapper.writeValueAsString(row[i]));
-                        if (i < fields.size() - 1) {
-                            pw.write(", ");
-                        }
-                    }
-                    pw.write("}");
-                }
-                pw.write("]\n");
-            }
-        }
-    }
-
-    public static class TabSeparatedFormatter implements IFormatter {
-        private final HttpServletResponse response;
-
-        public TabSeparatedFormatter(HttpServletResponse response) {
-            this.response = response;
-        }
-
-        @Override
-        public void format(List<RelDataTypeField> fields, Enumerable<Object[]> rows) throws IOException {
-            response.addHeader("Content-Type", "text/plain");
-
-            try (PrintWriter pw = response.getWriter()) {
-                if (rows.any()) {
-                    for (RelDataTypeField field : fields) {
-                        pw.write(field.getName());
-                        pw.write('\t');
-                    }
-                }
-                pw.write('\n');
-                for (Object[] row : rows) {
-                    for (int i = 0; i < row.length; i++) {
-                        Object cell = row[i];
-                        if (cell == null) {
-                            pw.write("NULL");
-                        } else {
-                            String c = cell.toString();
-                            if (c.indexOf('\n') > 0) {
-                                StringBuilder indent = new StringBuilder("\n");
-                                for (int j = 0; j < i; j++) {
-                                    indent.append('\t');
-                                }
-                                c = c.replaceAll("\n", indent.toString());
-                            }
-                            pw.write(c);
-                        }
-                        pw.write('\t');
-                    }
-                    pw.write('\n');
-                }
-            }
-        }
+        httpResponse.addHeader("Content-Type", formatter.getContentType());
+        formatter.format(httpResponse.getWriter(), result.fields, result.rows);
     }
 
     private static class GetAndRemoveAppIdFilter extends SqlBasicVisitor<String> {
@@ -232,6 +152,8 @@ public class AgentCommandDelegationApi {
             }
 
             this.queryContext.set("appId", ((SqlCharStringLiteral) literal).getValueAs(NlsString.class).getValue());
+
+            // Replace current filter expression by '1 = 1'
             call.setOperand(0, SqlLiteral.createBoolean(true, new SqlParserPos(-1, -1)));
             call.setOperand(1, SqlLiteral.createBoolean(true, new SqlParserPos(-1, -1)));
             return null;
