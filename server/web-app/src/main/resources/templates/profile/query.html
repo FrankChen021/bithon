@@ -1,0 +1,144 @@
+<!DOCTYPE HTML>
+<html lang="zh_CN"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{app/app-layout}" xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>Bithon Profiling - Query</title>
+
+    <script type="text/javascript" th:src="@{/js/app-card-component.js}"></script>
+
+    <script type="text/javascript">
+        function handleKeyDown(event) {
+          if (event.keyCode === 13) {
+            getData();
+          }
+        }
+
+        function getData() {
+            var sql = $('#sql').val();
+
+            $('#sql').prop('disabled', true);
+            $('button').prop('disabled', true);
+            $('#progress').show();
+
+            $.ajax({
+                type: 'POST',
+                url: apiHost + "/api/agent/query",
+                data: sql,
+                async: true,
+                dataType: "json",
+                contentType: "application/json",
+
+                success: (data) => {
+                    $('#errorMessage').hide();
+                    try {
+                        renderResult(data);
+                    } catch(e) {
+                        console.log(e);
+                    }
+                },
+                error: (data) => {
+                    $('#resultTable').hide();
+                    $('#errorMessage').show();
+                    if(data.responseJSON !== undefined) {
+                        $("#errorMessage")[0].innerHTML = JSON.stringify(data.responseJSON, null, 2);
+                    } else {
+                        $("#errorMessage")[0].innerHTML = data.responseText;
+                    }
+                },
+                complete: () => {
+                    $('#sql').prop('disabled', false);
+                    $('button').prop('disabled', false);
+                    $('#progress').hide();
+                }
+            });
+        }
+
+        var gColumnNameToIndex = {};
+
+        function renderResult(data) {
+            gColumnNameToIndex = {};
+
+            const vTable = $('#resultTable');
+
+            const tableColumns = [];
+            for(var i = 0; i < data.meta.columns.length; i++) {
+                const columnName = data.meta.columns[i];
+                tableColumns.push({
+                    field: columnName,
+                    title: columnName,
+                    sortable: true,
+                    formatter: createFormatterFunction(i)
+                });
+
+                gColumnNameToIndex[columnName] = i;
+            }
+
+            vTable.bootstrapTable('destroy')
+            .bootstrapTable({
+                showRefresh: false,
+
+                columns: tableColumns,
+
+                sidePagination: 'client',
+                pagination: true,
+                pageSize: 200,
+                pageList: [200, 500, 1000],
+
+                serverSort: false,
+                sortResetPage: true,
+                sortable: true,
+                customSort: (sortName, sortOrder, data) => {
+                    var order = sortOrder === 'desc' ? -1 : 1
+                    var index = gColumnNameToIndex[sortName];
+                    data.sort((a, b) => {
+                      var aa = a[index];
+                      var bb = b[index];
+                      if (aa < bb) {
+                        return order * -1
+                      }
+                      if (aa > bb) {
+                        return order
+                      }
+                      return 0
+                    })
+                },
+
+                stickyHeader: true,
+                stickyHeaderOffsetLeft: parseInt($('body').css('padding-left'), 10),
+                stickyHeaderOffsetRight: parseInt($('body').css('padding-right'), 10),
+                theadClasses: 'thead-light',
+
+                data: data.rows
+            }).show();
+        }
+
+        function createFormatterFunction(index) {
+            return (value, row) => {
+                return row[index];
+            }
+        }
+
+    </script>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="form-row">
+        <div class="col">
+            <input type="text" id="sql" class="form-control" onkeydown="handleKeyDown(event)"/>
+        </div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-primary mb-2" onclick="getData()">Query</button>
+        </div>
+    </div>
+    <div class="d-flex justify-content-center align-items-center">
+        <i id="progress" class="fas fa-spinner fa-spin" style="padding: 10px; display: none"></i>
+    </div>
+    <div id="resultContainer" style="background: rgba(0,0,0,.03)">
+        <table id="resultTable" />
+        <pre id="errorMessage" style="display: none"></pre>
+    </div>
+</div>
+</body>
+</html>
