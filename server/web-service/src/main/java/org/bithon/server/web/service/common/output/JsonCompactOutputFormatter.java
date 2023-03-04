@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.common.output;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.calcite.linq4j.Enumerable;
 import org.apache.calcite.linq4j.Enumerator;
@@ -40,26 +41,34 @@ public class JsonCompactOutputFormatter implements IOutputFormatter {
 
     @Override
     public void format(PrintWriter writer, List<RelDataTypeField> fields, Enumerable<Object[]> rows) throws IOException {
-        writer.write("{\n");
+        //
+        // Create a generator upon writer so that serialization would go into the writer directly.
+        // And note that this generator is created at the outermost,
+        // because close on this object will also close and flush the underlying writer
+        //
+        try (JsonGenerator generator = objectMapper.createGenerator(writer)) {
+            writer.write("{\n");
+            {
+                String columns = fields.stream().map(field -> "\"" + field.getName() + "\"").collect(Collectors.joining(","));
+                writer.format(Locale.ENGLISH, "\"meta\": { \"columns\": [%s] },%n", columns);
 
-        String columns = fields.stream().map(field -> "\"" + field.getName() + "\"").collect(Collectors.joining(","));
-        writer.format(Locale.ENGLISH, "\"meta\": { \"columns\": [%s] },%n", columns);
-
-        writer.write("\"rows\": [");
-        {
-            Enumerator<Object[]> e = rows.enumerator();
-            if (e.moveNext()) {
-                boolean hasNext;
-                do {
-                    writer.write(objectMapper.writeValueAsString(e.current()));
-                    hasNext = e.moveNext();
-                    if (hasNext) {
-                        writer.write(',');
+                writer.write("\"rows\": [");
+                {
+                    Enumerator<Object[]> e = rows.enumerator();
+                    if (e.moveNext()) {
+                        boolean hasNext;
+                        do {
+                            objectMapper.writeValue(generator, e.current());
+                            hasNext = e.moveNext();
+                            if (hasNext) {
+                                writer.write(',');
+                            }
+                        } while (hasNext);
                     }
-                } while (hasNext);
+                }
             }
+            writer.write("]\n}");
         }
-        writer.write("]\n}");
     }
 
     @Override
