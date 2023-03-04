@@ -142,7 +142,7 @@ CREATE TABLE `bithon_trace_span_tag_index`
     `f15`            VARCHAR(64) COMMENT 'tag value15',
     `f16`            VARCHAR(64) COMMENT 'tag value16',
     `traceId`        VARCHAR(64) DEFAULT '' NOT NULL COMMENT '',
-    KEY `idx_tsti_timestamp` (`timestamp`) COMMENT 'index name starts with underscore so that in the generated code, it is the first'
+    KEY `idx_tsti_timestamp` (`timestamp`) COMMENT ''
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 

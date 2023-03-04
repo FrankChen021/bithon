@@ -47,9 +47,10 @@ public class MiscUtils {
         if (!connectionString.startsWith("jdbc:")) {
             throw new RuntimeException(String.format(Locale.ENGLISH, "Unknown format of Connection String: [%s]", connectionString));
         }
+        connectionString = connectionString.substring(5);
 
         try {
-            URI uri = new URI(connectionString.substring(5));
+            URI uri = new URI(connectionString);
             switch (uri.getScheme()) {
                 case "h2":
                     return new ConnectionString("localhost", uri.getSchemeSpecificPart(), EndPointType.DB_H2);
@@ -57,7 +58,15 @@ public class MiscUtils {
                     return new ConnectionString(uri.getHost() + ":" + uri.getPort(),
                                                 uri.getPath().substring(1),
                                                 EndPointType.DB_MYSQL);
+                case "ch":
                 case "clickhouse":
+                    if (uri.getPath() == null) {
+                        //
+                        // ClickHouse JDBC Driver sometimes turn jdbc:clickhouse:// into jdbc:clickhouse:http://
+                        // So we need to drop the jdbc:clickhouse: if necessary
+                        //
+                        uri = new URI(connectionString.substring(uri.getScheme().length() + 1));
+                    }
                     return new ConnectionString(uri.getHost() + ":" + uri.getPort(),
                                                 uri.getPath().substring(1),
                                                 EndPointType.DB_CLICKHOUSE);

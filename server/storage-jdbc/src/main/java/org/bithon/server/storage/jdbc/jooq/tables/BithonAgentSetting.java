@@ -4,7 +4,7 @@
 package org.bithon.server.storage.jdbc.jooq.tables;
 
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
 
-    private static final long serialVersionUID = -917793942;
+    private static final long serialVersionUID = -1192336585;
 
     /**
      * The reference instance of <code>bithon_agent_setting</code>
@@ -50,7 +50,7 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
     /**
      * The column <code>bithon_agent_setting.timestamp</code>. Created Timestamp
      */
-    public final TableField<BithonAgentSettingRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "Created Timestamp");
+    public final TableField<BithonAgentSettingRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "Created Timestamp");
 
     /**
      * The column <code>bithon_agent_setting.appName</code>.
@@ -70,7 +70,7 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
     /**
      * The column <code>bithon_agent_setting.updatedAt</code>.
      */
-    public final TableField<BithonAgentSettingRecord, Timestamp> UPDATEDAT = createField(DSL.name("updatedAt"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false).defaultValue(org.jooq.impl.DSL.field("CURRENT_TIMESTAMP", org.jooq.impl.SQLDataType.TIMESTAMP)), this, "");
+    public final TableField<BithonAgentSettingRecord, LocalDateTime> UPDATEDAT = createField(DSL.name("updatedAt"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false).defaultValue(org.jooq.impl.DSL.field("CURRENT_TIMESTAMP", org.jooq.impl.SQLDataType.LOCALDATETIME)), this, "");
 
     /**
      * Create a <code>bithon_agent_setting</code> table reference
@@ -151,7 +151,7 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row5<Timestamp, String, String, String, Timestamp> fieldsRow() {
+    public Row5<LocalDateTime, String, String, String, LocalDateTime> fieldsRow() {
         return (Row5) super.fieldsRow();
     }
 }

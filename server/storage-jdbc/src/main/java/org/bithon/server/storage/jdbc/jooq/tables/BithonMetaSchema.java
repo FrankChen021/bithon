@@ -4,7 +4,7 @@
 package org.bithon.server.storage.jdbc.jooq.tables;
 
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonMetaSchema extends TableImpl<BithonMetaSchemaRecord> {
 
-    private static final long serialVersionUID = 162127983;
+    private static final long serialVersionUID = 1595842434;
 
     /**
      * The reference instance of <code>bithon_meta_schema</code>
@@ -50,7 +50,7 @@ public class BithonMetaSchema extends TableImpl<BithonMetaSchemaRecord> {
     /**
      * The column <code>bithon_meta_schema.timestamp</code>. Created Timestamp
      */
-    public final TableField<BithonMetaSchemaRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "Created Timestamp");
+    public final TableField<BithonMetaSchemaRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "Created Timestamp");
 
     /**
      * The column <code>bithon_meta_schema.name</code>. Schema Name
@@ -146,7 +146,7 @@ public class BithonMetaSchema extends TableImpl<BithonMetaSchemaRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row4<Timestamp, String, String, String> fieldsRow() {
+    public Row4<LocalDateTime, String, String, String> fieldsRow() {
         return (Row4) super.fieldsRow();
     }
 }

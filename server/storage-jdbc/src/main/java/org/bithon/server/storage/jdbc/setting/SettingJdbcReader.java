@@ -40,7 +40,7 @@ public class SettingJdbcReader implements ISettingReader {
         return dslContext.select(Tables.BITHON_AGENT_SETTING.SETTINGNAME, Tables.BITHON_AGENT_SETTING.SETTING)
                          .from(Tables.BITHON_AGENT_SETTING)
                          .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName))
-                         .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.gt(new Timestamp(since)))
+                         .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.gt(new Timestamp(since).toLocalDateTime()))
                          .fetchMap(Tables.BITHON_AGENT_SETTING.SETTINGNAME, Tables.BITHON_AGENT_SETTING.SETTING);
     }
 }

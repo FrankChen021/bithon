@@ -53,7 +53,7 @@ public class JdbcDashboardStorage implements IDashboardStorage {
     @Override
     public List<Dashboard> getDashboard(long afterTimestamp) {
         return dslContext.selectFrom(Tables.BITHON_WEB_DASHBOARD)
-                         .where(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.ge(new Timestamp(afterTimestamp)))
+                         .where(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.ge(new Timestamp(afterTimestamp).toLocalDateTime()))
                          .and(Tables.BITHON_WEB_DASHBOARD.DELETED.eq(0))
                          .fetch(this::toDashboard);
     }
@@ -69,7 +69,7 @@ public class JdbcDashboardStorage implements IDashboardStorage {
                       .set(Tables.BITHON_WEB_DASHBOARD.NAME, name)
                       .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                       .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
-                      .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
+                      .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                       .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
                       .execute();
         } catch (DuplicateKeyException ignored) {
@@ -77,7 +77,7 @@ public class JdbcDashboardStorage implements IDashboardStorage {
             dslContext.update(Tables.BITHON_WEB_DASHBOARD)
                       .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                       .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
-                      .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
+                      .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                       .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
                       .where(Tables.BITHON_WEB_DASHBOARD.NAME.eq(name))
                       .execute();
@@ -96,7 +96,7 @@ public class JdbcDashboardStorage implements IDashboardStorage {
                       .set(Tables.BITHON_WEB_DASHBOARD.NAME, name)
                       .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                       .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
-                      .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
+                      .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                       .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
                       .execute();
         } catch (DuplicateKeyException ignored) {
@@ -115,7 +115,7 @@ public class JdbcDashboardStorage implements IDashboardStorage {
         Dashboard dashboard = new Dashboard();
         dashboard.setName(record.get(Tables.BITHON_WEB_DASHBOARD.NAME));
         dashboard.setPayload(record.get(Tables.BITHON_WEB_DASHBOARD.PAYLOAD));
-        dashboard.setTimestamp(record.get(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP));
+        dashboard.setTimestamp(Timestamp.valueOf(record.get(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP)));
         dashboard.setSignature(record.get(Tables.BITHON_WEB_DASHBOARD.SIGNATURE));
         return dashboard;
     }

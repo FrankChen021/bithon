@@ -4,7 +4,7 @@
 package org.bithon.server.storage.jdbc.jooq.tables;
 
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpanTagIndex extends TableImpl<BithonTraceSpanTagIndexRecord> {
 
-    private static final long serialVersionUID = -947298154;
+    private static final long serialVersionUID = -18998685;
 
     /**
      * The reference instance of <code>bithon_trace_span_tag_index</code>
@@ -48,7 +48,7 @@ public class BithonTraceSpanTagIndex extends TableImpl<BithonTraceSpanTagIndexRe
     /**
      * The column <code>bithon_trace_span_tag_index.timestamp</code>. Milli Seconds
      */
-    public final TableField<BithonTraceSpanTagIndexRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "Milli Seconds");
+    public final TableField<BithonTraceSpanTagIndexRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "Milli Seconds");
 
     /**
      * The column <code>bithon_trace_span_tag_index.f1</code>. tag value1
@@ -209,7 +209,7 @@ public class BithonTraceSpanTagIndex extends TableImpl<BithonTraceSpanTagIndexRe
     // -------------------------------------------------------------------------
 
     @Override
-    public Row18<Timestamp, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String> fieldsRow() {
+    public Row18<LocalDateTime, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String> fieldsRow() {
         return (Row18) super.fieldsRow();
     }
 }

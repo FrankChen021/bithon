@@ -65,7 +65,7 @@ public class MetadataJdbcStorage implements IMetaStorage {
         SelectConditionStep<Record2<String, String>> sql = dslContext.select(Tables.BITHON_APPLICATION_INSTANCE.APPNAME,
                                                                              Tables.BITHON_APPLICATION_INSTANCE.APPTYPE)
                                                                      .from(Tables.BITHON_APPLICATION_INSTANCE)
-                                                                     .where(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.ge(new Timestamp(since)));
+                                                                     .where(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.ge(new Timestamp(since).toLocalDateTime()));
         if (appType != null) {
             sql = sql.and(Tables.BITHON_APPLICATION_INSTANCE.APPTYPE.eq(appType));
         }
@@ -82,11 +82,11 @@ public class MetadataJdbcStorage implements IMetaStorage {
                       .set(Tables.BITHON_APPLICATION_INSTANCE.APPNAME, applicationName)
                       .set(Tables.BITHON_APPLICATION_INSTANCE.APPTYPE, applicationType)
                       .set(Tables.BITHON_APPLICATION_INSTANCE.INSTANCENAME, instanceName)
-                      .set(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
+                      .set(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                       .execute();
         } catch (DuplicateKeyException e) {
             dslContext.update(Tables.BITHON_APPLICATION_INSTANCE)
-                      .set(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
+                      .set(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                       .where(Tables.BITHON_APPLICATION_INSTANCE.APPNAME.eq(applicationName)
                                                                        .and(Tables.BITHON_APPLICATION_INSTANCE.APPTYPE.eq(applicationType))
                                                                        .and(Tables.BITHON_APPLICATION_INSTANCE.INSTANCENAME.eq(instanceName)))

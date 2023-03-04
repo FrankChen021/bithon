@@ -4,7 +4,7 @@
 package org.bithon.server.storage.jdbc.jooq.tables;
 
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonApplicationInstance extends TableImpl<BithonApplicationInstanceRecord> {
 
-    private static final long serialVersionUID = 1250406644;
+    private static final long serialVersionUID = 1729414369;
 
     /**
      * The reference instance of <code>bithon_application_instance</code>
@@ -48,7 +48,7 @@ public class BithonApplicationInstance extends TableImpl<BithonApplicationInstan
     /**
      * The column <code>bithon_application_instance.timestamp</code>. update time
      */
-    public final TableField<BithonApplicationInstanceRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "update time");
+    public final TableField<BithonApplicationInstanceRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "update time");
 
     /**
      * The column <code>bithon_application_instance.appName</code>.
@@ -139,7 +139,7 @@ public class BithonApplicationInstance extends TableImpl<BithonApplicationInstan
     // -------------------------------------------------------------------------
 
     @Override
-    public Row4<Timestamp, String, String, String> fieldsRow() {
+    public Row4<LocalDateTime, String, String, String> fieldsRow() {
         return (Row4) super.fieldsRow();
     }
 }

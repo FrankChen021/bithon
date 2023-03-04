@@ -4,7 +4,7 @@
 package org.bithon.server.storage.jdbc.jooq.tables;
 
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
 
-    private static final long serialVersionUID = -1461391545;
+    private static final long serialVersionUID = -1209066864;
 
     /**
      * The reference instance of <code>bithon_trace_span</code>
@@ -48,7 +48,7 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     /**
      * The column <code>bithon_trace_span.timestamp</code>. Milli Seconds
      */
-    public final TableField<BithonTraceSpanRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "Milli Seconds");
+    public final TableField<BithonTraceSpanRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "Milli Seconds");
 
     /**
      * The column <code>bithon_trace_span.appName</code>.
@@ -165,7 +165,7 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_IDX_TS_1_TIMESTAMP, Indexes.BITHON_TRACE_SPAN_IDX_TS_APP_NAME, Indexes.BITHON_TRACE_SPAN_IDX_TS_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_IDX_TS_KEY);
+        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_IDX_TS_APP_NAME, Indexes.BITHON_TRACE_SPAN_IDX_TS_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_IDX_TS_KEY, Indexes.BITHON_TRACE_SPAN_IDX_TS_START_TIME);
     }
 
     @Override
@@ -199,7 +199,7 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row16<Timestamp, String, String, String, String, String, String, String, String, String, Long, Long, Long, String, String, String> fieldsRow() {
+    public Row16<LocalDateTime, String, String, String, String, String, String, String, String, String, Long, Long, Long, String, String, String> fieldsRow() {
         return (Row16) super.fieldsRow();
     }
 }

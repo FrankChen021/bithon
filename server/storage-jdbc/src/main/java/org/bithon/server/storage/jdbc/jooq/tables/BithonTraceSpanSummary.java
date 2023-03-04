@@ -4,7 +4,7 @@
 package org.bithon.server.storage.jdbc.jooq.tables;
 
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryRecord> {
 
-    private static final long serialVersionUID = -1936292484;
+    private static final long serialVersionUID = 1192836871;
 
     /**
      * The reference instance of <code>bithon_trace_span_summary</code>
@@ -48,7 +48,7 @@ public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryReco
     /**
      * The column <code>bithon_trace_span_summary.timestamp</code>. Milli Seconds
      */
-    public final TableField<BithonTraceSpanSummaryRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "Milli Seconds");
+    public final TableField<BithonTraceSpanSummaryRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "Milli Seconds");
 
     /**
      * The column <code>bithon_trace_span_summary.appName</code>.
@@ -165,7 +165,7 @@ public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryReco
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_1_TIMESTAMP, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_APP_NAME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_KEY);
+        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_APP_NAME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_KEY, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_START_TIME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_TIMESTAMP);
     }
 
     @Override
@@ -199,7 +199,7 @@ public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryReco
     // -------------------------------------------------------------------------
 
     @Override
-    public Row16<Timestamp, String, String, String, String, String, String, String, String, String, Long, Long, Long, String, String, String> fieldsRow() {
+    public Row16<LocalDateTime, String, String, String, String, String, String, String, String, String, Long, Long, Long, String, String, String> fieldsRow() {
         return (Row16) super.fieldsRow();
     }
 }

@@ -4,7 +4,7 @@
 package org.bithon.server.storage.jdbc.jooq.tables;
 
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonWebDashboard extends TableImpl<BithonWebDashboardRecord> {
 
-    private static final long serialVersionUID = -1889231373;
+    private static final long serialVersionUID = -1407809882;
 
     /**
      * The reference instance of <code>bithon_web_dashboard</code>
@@ -50,7 +50,7 @@ public class BithonWebDashboard extends TableImpl<BithonWebDashboardRecord> {
     /**
      * The column <code>bithon_web_dashboard.timestamp</code>. Created Timestamp
      */
-    public final TableField<BithonWebDashboardRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "Created Timestamp");
+    public final TableField<BithonWebDashboardRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "Created Timestamp");
 
     /**
      * The column <code>bithon_web_dashboard.name</code>. Name
@@ -151,7 +151,7 @@ public class BithonWebDashboard extends TableImpl<BithonWebDashboardRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row5<Timestamp, String, String, String, Integer> fieldsRow() {
+    public Row5<LocalDateTime, String, String, String, Integer> fieldsRow() {
         return (Row5) super.fieldsRow();
     }
 }

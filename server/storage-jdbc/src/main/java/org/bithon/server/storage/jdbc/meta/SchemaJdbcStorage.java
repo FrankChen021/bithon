@@ -70,7 +70,7 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     @Override
     public List<DataSourceSchema> getSchemas(long afterTimestamp) {
         return dslContext.selectFrom(Tables.BITHON_META_SCHEMA)
-                         .where(Tables.BITHON_META_SCHEMA.TIMESTAMP.ge(new Timestamp(afterTimestamp)))
+                         .where(Tables.BITHON_META_SCHEMA.TIMESTAMP.ge(new Timestamp(afterTimestamp).toLocalDateTime()))
                          .fetch((record) -> toSchema(record.getName(), record.getSchema(), record.getSignature()))
                          .stream()
                          .filter(Objects::nonNull)
@@ -124,12 +124,12 @@ public class SchemaJdbcStorage implements ISchemaStorage {
                       .set(Tables.BITHON_META_SCHEMA.NAME, name)
                       .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
                       .set(Tables.BITHON_META_SCHEMA.SIGNATURE, schema.getSignature())
-                      .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now)
+                      .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now.toLocalDateTime())
                       .execute();
         } catch (DuplicateKeyException e) {
             dslContext.update(Tables.BITHON_META_SCHEMA)
                       .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
-                      .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now)
+                      .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now.toLocalDateTime())
                       .set(Tables.BITHON_META_SCHEMA.SIGNATURE, schema.getSignature())
                       .where(Tables.BITHON_META_SCHEMA.NAME.eq(name))
                       .execute();
@@ -149,7 +149,7 @@ public class SchemaJdbcStorage implements ISchemaStorage {
                       .set(Tables.BITHON_META_SCHEMA.NAME, name)
                       .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
                       .set(Tables.BITHON_META_SCHEMA.SIGNATURE, schema.getSignature())
-                      .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
+                      .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                       .execute();
         } catch (DuplicateKeyException ignored) {
         }
@@ -164,7 +164,7 @@ public class SchemaJdbcStorage implements ISchemaStorage {
                       .set(Tables.BITHON_META_SCHEMA.NAME, name)
                       .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
                       .set(Tables.BITHON_META_SCHEMA.SIGNATURE, HashGenerator.sha256Hex(schemaText))
-                      .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
+                      .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                       .execute();
         } catch (DuplicateKeyException ignored) {
         }

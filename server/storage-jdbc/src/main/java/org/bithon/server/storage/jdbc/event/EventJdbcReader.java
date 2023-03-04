@@ -29,6 +29,7 @@ import org.jooq.DSLContext;
 import org.jooq.SelectConditionStep;
 import org.jooq.impl.DSL;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -52,8 +53,8 @@ public class EventJdbcReader implements IEventReader {
     @Override
     public List<Event> getEventList(List<IFilter> filters, TimeSpan start, TimeSpan end, int pageNumber, int pageSize) {
         SelectConditionStep<BithonEventRecord> step = dslContext.selectFrom(Tables.BITHON_EVENT)
-                                                                .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp()))
-                                                                .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp()));
+                                                                .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp().toLocalDateTime()))
+                                                                .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp().toLocalDateTime()));
 
         if (!CollectionUtils.isEmpty(filters)) {
             step = step.and(SQLFilterBuilder.build(eventTableSchema, filters));
@@ -68,7 +69,7 @@ public class EventJdbcReader implements IEventReader {
                        e.setArgs(r.getArguments());
                        e.setInstance(r.getInstancename());
                        e.setType(r.getType());
-                       e.setTimestamp(r.getTimestamp().getTime());
+                       e.setTimestamp(Timestamp.valueOf(r.getTimestamp()).getTime());
                        return e;
                    });
     }
@@ -77,8 +78,8 @@ public class EventJdbcReader implements IEventReader {
     public int getEventListSize(List<IFilter> filters, TimeSpan start, TimeSpan end) {
         SelectConditionStep<?> step = dslContext.select(DSL.count())
                                                 .from(Tables.BITHON_EVENT)
-                                                .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp()))
-                                                .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp()));
+                                                .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp().toLocalDateTime()))
+                                                .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp().toLocalDateTime()));
 
         if (!CollectionUtils.isEmpty(filters)) {
             step = step.and(SQLFilterBuilder.build(eventTableSchema, filters));
