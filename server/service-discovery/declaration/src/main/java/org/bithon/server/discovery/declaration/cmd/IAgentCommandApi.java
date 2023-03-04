@@ -23,8 +23,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.io.IOException;
-
 /**
  * @author Frank Chen
  * @date 2022/8/7 20:46
@@ -32,40 +30,108 @@ import java.io.IOException;
 @DiscoverableService(name = "agentCommand")
 public interface IAgentCommandApi {
 
+    interface IObjectArrayConvertable {
+        Object[] toObjectArray();
+    }
+
+    /**
+     * Declare all fields as public to treat it as a record
+     * This simplifies Calcite related type construction.
+     */
     @Data
-    class Client {
-        private String appName;
-        private String appId;
-        private String endpoint;
+    class InstanceRecord implements IObjectArrayConvertable {
+        public String appName;
+        public String appId;
+        public String endpoint;
+
+        public Object[] toObjectArray() {
+            return new Object[]{appName, appId, endpoint};
+        }
     }
 
     @GetMapping("/api/command/clients")
-    ServiceResponse<Client> getClients();
+    ServiceResponse<InstanceRecord> getClients();
 
     @Data
-    class StackTrace {
-        private String name;
-        private long threadId;
-        private boolean isDaemon;
-        private int priority;
-        private String state;
-        private long cpuTime;
-        private long userTime;
-        private String stack;
+    class ThreadRecord implements IObjectArrayConvertable {
+        public long threadId;
+        public String name;
+        public int daemon;
+        public int priority;
+        public String state;
+        public long cpuTime;
+        public long userTime;
+
+        public long blockedTime;
+
+        /**
+         * The total number of times that the thread entered the BLOCKED state
+         */
+        public long blockedCount;
+
+        /**
+         * The approximate accumulated elapsed time in milliseconds that a thread has been in the WAITING or TIMED_WAITING state;
+         * -1 if thread contention monitoring is disabled.
+         */
+        public long waitedTime;
+
+        /**
+         * The total number of times that the thread was in the WAITING or TIMED_WAITING state.
+         */
+        public long waitedCount;
+
+        public String lockName;
+        public long lockOwnerId;
+        public String lockOwnerName;
+
+        public int inNative;
+        public int suspended;
+        public String stack;
+
+        public Object[] toObjectArray() {
+            return new Object[]{
+                threadId,
+                name,
+                daemon,
+                priority,
+                state,
+                cpuTime,
+                userTime,
+                blockedTime,
+                blockedCount,
+                waitedTime,
+                waitedCount,
+                lockName,
+                lockOwnerId,
+                lockOwnerName,
+                inNative,
+                suspended,
+                stack
+            };
+        }
     }
 
     @PostMapping("/api/command/jvm/dumpThread")
-    ServiceResponse<StackTrace> getStackTrace(@RequestBody CommandArgs<Void> args) throws IOException;
+    ServiceResponse<ThreadRecord> getThreads(@RequestBody CommandArgs<Void> args);
+
+    class ClassRecord implements IObjectArrayConvertable {
+        public String name;
+        public String classLoader;
+        public int isSynthetic;
+        public int isInterface;
+        public int isAnnotation;
+        public int isEnum;
+
+        public Object[] toObjectArray() {
+            return new Object[]{name, classLoader, isSynthetic, isInterface, isAnnotation, isEnum};
+        }
+    }
 
     /**
-     * @param args A string pattern which comply with database's like expression.
-     *             For example:
-     *             "%CommandApi" will match all classes whose name ends with CommandApi
-     *             "CommandApi" matches only qualified class name that is the exact CommandApi
-     *             "%bithon% matches all qualified classes whose name contains bithon
+     * Get loaded class
      */
     @PostMapping("/api/command/jvm/dumpClazz")
-    ServiceResponse<String> getClassList(@RequestBody CommandArgs<String> args);
+    ServiceResponse<ClassRecord> getClass(@RequestBody CommandArgs<Void> args);
 
     @Data
     class GetConfigurationRequest {
@@ -76,6 +142,14 @@ public interface IAgentCommandApi {
         private boolean pretty;
     }
 
+    class ConfigurationRecord implements IObjectArrayConvertable {
+        public String payload;
+
+        public Object[] toObjectArray() {
+            return new Object[]{payload};
+        }
+    }
+
     @PostMapping("/api/command/config/get")
-    ServiceResponse<String> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args);
+    ServiceResponse<ConfigurationRecord> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args);
 }

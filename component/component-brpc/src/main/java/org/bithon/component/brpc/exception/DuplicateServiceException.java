@@ -28,12 +28,18 @@ public class DuplicateServiceException extends ServiceRegistrationException {
     private final String serviceName;
     private final String methodName;
 
-    public DuplicateServiceException(Class<?> interfaceClass, Method method, String serviceName, String methodName) {
-        super("Class[%s].[%s] is retrying to register as [%s#%s], but the name has been already registered",
+    public DuplicateServiceException(Class<?> interfaceClass,
+                                     Method method,
+                                     String serviceName,
+                                     String methodName,
+                                     Method existingMethod) {
+        super("Class[%s].[%s] is retrying to register as [%s#%s], but the name has already been registered by [%s].\n"
+              + "If you wish to declare the methods with the same name, you need to annotate one of them by BpcMethod to distinguish them.",
               interfaceClass.getTypeName(),
               method.toString(),
               serviceName,
-              methodName);
+              methodName,
+              existingMethod.toString());
         this.interfaceClass = interfaceClass;
         this.method = method;
         this.serviceName = serviceName;

@@ -16,23 +16,43 @@
 
 package org.bithon.server.web.service.agent.api;
 
-import org.bithon.component.commons.utils.StringUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.calcite.sql.SqlBasicCall;
+import org.apache.calcite.sql.SqlCall;
+import org.apache.calcite.sql.SqlCharStringLiteral;
+import org.apache.calcite.sql.SqlIdentifier;
+import org.apache.calcite.sql.SqlKind;
+import org.apache.calcite.sql.SqlLiteral;
+import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.SqlOrderBy;
+import org.apache.calcite.sql.SqlSelect;
+import org.apache.calcite.sql.parser.SqlParseException;
+import org.apache.calcite.sql.parser.SqlParserPos;
+import org.apache.calcite.sql.util.SqlBasicVisitor;
+import org.apache.calcite.sql.validate.SqlValidatorException;
+import org.apache.calcite.util.NlsString;
+import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
-import org.bithon.server.discovery.declaration.ServiceResponse;
-import org.bithon.server.discovery.declaration.cmd.CommandArgs;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.bithon.server.web.service.agent.sql.AgentSchema;
+import org.bithon.server.web.service.common.output.IOutputFormatter;
+import org.bithon.server.web.service.common.output.JsonCompactOutputFormatter;
+import org.bithon.server.web.service.common.output.TabSeparatedOutputFormatter;
+import org.bithon.server.web.service.common.sql.SqlExecutionContext;
+import org.bithon.server.web.service.common.sql.SqlExecutionEngine;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 /**
  * @author Frank Chen
@@ -43,89 +63,107 @@ import java.io.PrintWriter;
 @Conditional(WebServiceModuleEnabler.class)
 public class AgentCommandDelegationApi {
 
-    private final IAgentCommandApi impl;
+    private final SqlExecutionEngine sqlExecutionEngine;
+    private final ObjectMapper objectMapper;
 
-    public AgentCommandDelegationApi(ServiceBroadcastInvoker serviceBroadcastInvoker) {
-        this.impl = serviceBroadcastInvoker.create(IAgentCommandApi.class);
+    public AgentCommandDelegationApi(ServiceBroadcastInvoker serviceBroadcastInvoker,
+                                     SqlExecutionEngine sqlExecutionEngine,
+                                     ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+        this.sqlExecutionEngine = sqlExecutionEngine;
+        this.sqlExecutionEngine.addSchema("agent", new AgentSchema(serviceBroadcastInvoker.create(IAgentCommandApi.class)));
     }
 
-    @GetMapping(value = "/api/agent/command/getClients")
-    public ServiceResponse<IAgentCommandApi.Client> getClients() {
-        return impl.getClients();
-    }
-
-    @GetMapping(value = "/api/agent/command/getClassList", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public void getClassList(@Valid @RequestBody CommandArgs<String> args, HttpServletResponse httpResponse) throws IOException {
-        ServiceResponse<String> response = impl.getClassList(args);
-
-        if (response.getError() != null) {
-            printError(httpResponse, response.getError());
-            return;
+    @PostMapping(value = "/api/agent/query")
+    public void query(@Valid @RequestBody String query,
+                      HttpServletRequest httpServletRequest,
+                      HttpServletResponse httpResponse) throws Exception {
+        if ("application/x-www-form-urlencoded".equals(httpServletRequest.getHeader("Content-Type"))) {
+            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                            "Content-Type with application/x-www-form-urlencoded is not accepted. Please use text/plain instead.");
         }
 
-        int i = 0;
-        PrintWriter pw = httpResponse.getWriter();
-        for (String row : response.getRows()) {
-            pw.write(row);
-            pw.write('\n');
-            if (++i % 100 == 0) {
-                pw.flush();
+        SqlExecutionEngine.QueryResult result = this.sqlExecutionEngine.executeSql(query, (sqlNode, queryContext) -> {
+            //
+            // appId is an always pushed down filter
+            // We remove it from SQL because this specific field does not exist on all tables
+            //
+            GetAndRemoveAppIdFilter appIdFilter = new GetAndRemoveAppIdFilter(queryContext);
+            SqlNode whereNode;
+            if (sqlNode.getKind() == SqlKind.ORDER_BY) {
+                whereNode = ((SqlSelect) ((SqlOrderBy) sqlNode).query).getWhere();
+            } else if (sqlNode.getKind() == SqlKind.SELECT) {
+                whereNode = ((SqlSelect) (sqlNode)).getWhere();
+            } else {
+                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unsupported SQL Kind: %s", sqlNode.getKind());
             }
-        }
-    }
-
-    @GetMapping(value = "/api/agent/command/getConfig", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public void getConfiguration(@Valid @RequestBody CommandArgs<IAgentCommandApi.GetConfigurationRequest> args,
-                                 HttpServletResponse httpResponse) throws IOException {
-        ServiceResponse<String> response = impl.getConfiguration(args);
-
-        if (response.getError() != null) {
-            printError(httpResponse, response.getError());
-            return;
-        }
-
-        PrintWriter pw = httpResponse.getWriter();
-        for (String row : response.getRows()) {
-            pw.write(row);
-            pw.write('\n');
-            pw.flush();
-        }
-    }
-
-    @GetMapping(value = "/api/agent/command/getStackTrace", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public void getStackTrace(@Valid @RequestBody CommandArgs<Void> args,
-                              HttpServletResponse httpResponse) throws IOException {
-        ServiceResponse<IAgentCommandApi.StackTrace> response = impl.getStackTrace(args);
-
-        if (response.getError() != null) {
-            printError(httpResponse, response.getError());
-            return;
-        }
-
-        // Output as stream
-        PrintWriter pw = httpResponse.getWriter();
-
-        // Output header
-        pw.write(StringUtils.format("---Total Threads: %d---\n", response.getRows().size()));
-        for (IAgentCommandApi.StackTrace stackTrace : response.getRows()) {
-            pw.write(StringUtils.format("Id: %d, Name: %s, State: %s \n", stackTrace.getThreadId(), stackTrace.getName(), stackTrace.getState()));
-            if (!stackTrace.getStack().isEmpty()) {
-                String[] stackElements = stackTrace.getStack().split("\n");
-                for (String stackElement : stackElements) {
-                    pw.write('\t');
-                    pw.write(stackElement);
-                    pw.write('\n');
-                }
+            if (whereNode != null) {
+                whereNode.accept(appIdFilter);
             }
-            pw.write('\n');
+        });
+
+        IOutputFormatter formatter;
+        String acceptEncoding = httpServletRequest.getHeader("Accept");
+        if (acceptEncoding != null && acceptEncoding.contains("application/json")) {
+            formatter = new JsonCompactOutputFormatter(this.objectMapper);
+        } else {
+            formatter = new TabSeparatedOutputFormatter();
+        }
+        httpResponse.addHeader("Content-Type", formatter.getContentType());
+        formatter.format(httpResponse.getWriter(), result.fields, result.rows);
+    }
+
+    private static class GetAndRemoveAppIdFilter extends SqlBasicVisitor<String> {
+        private final SqlExecutionContext queryContext;
+
+        public GetAndRemoveAppIdFilter(SqlExecutionContext queryContext) {
+            this.queryContext = queryContext;
+        }
+
+        @Override
+        public String visit(SqlCall call) {
+            if (!(call instanceof SqlBasicCall)) {
+                return super.visit(call);
+            }
+
+            if (!"=".equals(call.getOperator().getName())) {
+                return super.visit(call);
+            }
+
+            if (call.getOperandList().size() != 2) {
+                return super.visit(call);
+            }
+            SqlNode identifier = call.getOperandList().get(0);
+            SqlNode literal = call.getOperandList().get(1);
+            if (!(identifier instanceof SqlIdentifier)) {
+                SqlNode tmp = literal;
+                literal = identifier;
+                identifier = tmp;
+            }
+            if (!(identifier instanceof SqlIdentifier)) {
+                return super.visit(call);
+            }
+            if (!"appId".equalsIgnoreCase(((SqlIdentifier) identifier).getSimple())) {
+                return super.visit(call);
+            }
+
+            if (!(literal instanceof SqlCharStringLiteral)) {
+                throw new RuntimeException("xxx");
+            }
+
+            this.queryContext.set("appId", ((SqlCharStringLiteral) literal).getValueAs(NlsString.class).getValue());
+
+            // Replace current filter expression by '1 = 1'
+            call.setOperand(0, SqlLiteral.createBoolean(true, new SqlParserPos(-1, -1)));
+            call.setOperand(1, SqlLiteral.createBoolean(true, new SqlParserPos(-1, -1)));
+            return null;
         }
     }
 
-    private void printError(HttpServletResponse httpResponse, ServiceResponse.Error error) throws IOException {
-        PrintWriter pw = httpResponse.getWriter();
-
-        pw.write(StringUtils.format("uri: %s\n", error.getUri()));
-        pw.write(StringUtils.format("exception: %s\n", error.getException()));
-        pw.write(StringUtils.format("message: %s\n", error.getMessage()));
+    @ExceptionHandler({SqlValidatorException.class, SqlParseException.class})
+    void suppressSqlException(HttpServletResponse response, Exception e) throws IOException {
+        response.setContentType("text/plain");
+        response.setStatus(HttpStatus.BAD_REQUEST.value());
+        response.getWriter().write(e.getMessage());
     }
 }

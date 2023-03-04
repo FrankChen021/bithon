@@ -18,10 +18,8 @@ package org.bithon.server.collector.cmd.api;
 
 import org.bithon.agent.rpc.brpc.cmd.IConfigCommand;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
-import org.bithon.component.brpc.channel.ServerChannel;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.collector.cmd.service.AgentCommandService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.CommandArgs;
@@ -36,7 +34,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.stream.Collectors;
 
 /**
@@ -60,40 +57,47 @@ public class AgentCommandApi implements IAgentCommandApi {
     }
 
     @Override
-    public ServiceResponse<Client> getClients() {
+    public ServiceResponse<InstanceRecord> getClients() {
         return ServiceResponse.success(commandService.getServerChannel()
                                                      .getSessions()
                                                      .stream()
-                                                     .sorted(Comparator.comparing(ServerChannel.Session::getAppName))
                                                      .map((session) -> {
-                                                         Client client = new Client();
-                                                         client.setAppName(session.getAppName());
-                                                         client.setAppId(session.getAppId());
-                                                         client.setEndpoint(session.getEndpoint().toString());
-                                                         return client;
+                                                         InstanceRecord instance = new InstanceRecord();
+                                                         instance.setAppName(session.getAppName());
+                                                         instance.setAppId(session.getAppId());
+                                                         instance.setEndpoint(session.getEndpoint().toString());
+                                                         return instance;
                                                      })
                                                      .collect(Collectors.toList()));
     }
 
     @Override
-    public ServiceResponse<StackTrace> getStackTrace(@Valid @RequestBody CommandArgs<Void> args) {
-        IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
+    public ServiceResponse<ThreadRecord> getThreads(@Valid @RequestBody CommandArgs<Void> args) {
+        IJvmCommand command = commandService.getServerChannel()
+                                            .getRemoteService(args.getAppId(), IJvmCommand.class, 30_000);
 
         return ServiceResponse.success(command.dumpThreads()
                                               .stream()
-                                              // Sort by thread name for better analysis
-                                              .sorted(Comparator.comparing(IJvmCommand.ThreadInfo::getName))
-                                              .map((thread) -> {
-                                                  StackTrace stackTrace = new StackTrace();
-                                                  stackTrace.setName(thread.getName());
-                                                  stackTrace.setThreadId(thread.getThreadId());
-                                                  stackTrace.setState(thread.getState());
-                                                  stackTrace.setPriority(thread.getPriority());
-                                                  stackTrace.setCpuTime(thread.getCpuTime());
-                                                  stackTrace.setUserTime(thread.getUserTime());
-                                                  stackTrace.setDaemon(thread.isDaemon());
-                                                  stackTrace.setStack(thread.getStacks());
-                                                  return stackTrace;
+                                              .map((threadInfo) -> {
+                                                  ThreadRecord thread = new ThreadRecord();
+                                                  thread.setName(threadInfo.getName());
+                                                  thread.setThreadId(threadInfo.getThreadId());
+                                                  thread.setState(threadInfo.getState());
+                                                  thread.setPriority(threadInfo.getPriority());
+                                                  thread.setCpuTime(threadInfo.getCpuTime());
+                                                  thread.setUserTime(threadInfo.getUserTime());
+                                                  thread.setDaemon(threadInfo.isDaemon() ? 1 : 0);
+                                                  thread.setWaitedCount(threadInfo.getWaitedCount());
+                                                  thread.setWaitedTime(threadInfo.getWaitedTime());
+                                                  thread.setBlockedCount(threadInfo.getBlockedCount());
+                                                  thread.setBlockedTime(threadInfo.getBlockedTime());
+                                                  thread.setLockName(threadInfo.getLockName());
+                                                  thread.setLockOwnerId(threadInfo.getLockOwnerId());
+                                                  thread.setLockOwnerName(threadInfo.getLockOwnerName());
+                                                  thread.setInNative(threadInfo.getInNative());
+                                                  thread.setSuspended(threadInfo.getSuspended());
+                                                  thread.setStack(threadInfo.getStacks());
+                                                  return thread;
                                               })
                                               .collect(Collectors.toList()));
     }
@@ -106,32 +110,37 @@ public class AgentCommandApi implements IAgentCommandApi {
      *             "%bithon% matches all qualified classes whose name contains bithon
      */
     @Override
-    public ServiceResponse<String> getClassList(@Valid @RequestBody CommandArgs<String> args) {
-        String pattern;
-        if (StringUtils.isEmpty(args.getArgs())) {
-            pattern = ".*";
-        } else {
-            pattern = args.getArgs();
-            pattern = pattern.replace(".", "\\.").replace("%", ".*");
-        }
+    public ServiceResponse<ClassRecord> getClass(@Valid @RequestBody CommandArgs<Void> args) {
+        IJvmCommand command = commandService.getServerChannel()
+                                            .getRemoteService(args.getAppId(), IJvmCommand.class, 30_000);
 
-        IJvmCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IJvmCommand.class);
-
-        return ServiceResponse.success(command.dumpClazz(pattern)
+        return ServiceResponse.success(command.getLoadedClassList()
                                               .stream()
-                                              .sorted()
+                                              .map((clazzInfo) -> {
+                                                  ClassRecord classRecord = new ClassRecord();
+                                                  classRecord.name = clazzInfo.getName();
+                                                  classRecord.classLoader = clazzInfo.getClassLoader();
+                                                  classRecord.isAnnotation = clazzInfo.isAnnotation() ? 1 : 0;
+                                                  classRecord.isInterface = clazzInfo.isInterface() ? 1 : 0;
+                                                  classRecord.isEnum = clazzInfo.isEnum() ? 1 : 0;
+                                                  classRecord.isSynthetic = clazzInfo.isSynthetic() ? 1 : 0;
+                                                  return classRecord;
+                                              })
                                               .collect(Collectors.toList()));
     }
 
     @Override
-    public ServiceResponse<String> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args) {
+    public ServiceResponse<ConfigurationRecord> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args) {
         GetConfigurationRequest request = args.getArgs();
         String format = request == null ? "YAML" : request.getFormat();
         boolean isPretty = request == null ? true : request.isPretty();
 
-        IConfigCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IConfigCommand.class);
+        IConfigCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IConfigCommand.class, 30_000);
 
-        return ServiceResponse.success(Collections.singletonList(command.getConfiguration(format, isPretty)));
+        ConfigurationRecord record = new ConfigurationRecord();
+        record.payload = command.getConfiguration(format, isPretty);
+
+        return ServiceResponse.success(Collections.singletonList(record));
     }
 
     /**

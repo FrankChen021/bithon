@@ -151,33 +151,47 @@
                             <span class="menu-text">Event</span>
                         </a>
                     </li>
-
-                    <li class="sidebar-dropdown">
-                        <a href="#">
-                            <i class="far fa-gem"></i>
-                            <span class="menu-text">Alert</span>
-                        </a>
-                        <div class="sidebar-submenu">
-                            <ul>
-                                <li>
-                                    <a href="#">General</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
                     <li class="sidebar-dropdown">
                         <a href="#">
                             <i class="fa fa-chart-line"></i>
-                            <span class="menu-text">Log</span>
+                            <span class="menu-text">Profiling</span>
                         </a>
                         <div class="sidebar-submenu">
                             <ul>
                                 <li>
-                                    <a href="#">Pie chart</a>
+                                    <a onclick="redirect('/web/profiling/query')">Query</a>
                                 </li>
                             </ul>
                         </div>
                     </li>
+
+
+<!--                    <li class="sidebar-dropdown">-->
+<!--                        <a href="#">-->
+<!--                            <i class="far fa-gem"></i>-->
+<!--                            <span class="menu-text">Alert</span>-->
+<!--                        </a>-->
+<!--                        <div class="sidebar-submenu">-->
+<!--                            <ul>-->
+<!--                                <li>-->
+<!--                                    <a href="#">General</a>-->
+<!--                                </li>-->
+<!--                            </ul>-->
+<!--                        </div>-->
+<!--                    </li>-->
+<!--                    <li class="sidebar-dropdown">-->
+<!--                        <a href="#">-->
+<!--                            <i class="fa fa-chart-line"></i>-->
+<!--                            <span class="menu-text">Log</span>-->
+<!--                        </a>-->
+<!--                        <div class="sidebar-submenu">-->
+<!--                            <ul>-->
+<!--                                <li>-->
+<!--                                    <a href="#">Pie chart</a>-->
+<!--                                </li>-->
+<!--                            </ul>-->
+<!--                        </div>-->
+<!--                    </li>-->
                 </ul>
             </div>
             <!-- sidebar-menu  -->
@@ -353,13 +367,16 @@
         <div style="padding-top: 10px; padding-left: 5px; padding-right: 5px" layout:fragment="content"></div>
     </main>
     <!-- page-content" -->
-    <script>
-        new SearchBar(true);
-    </script>
 </div>
 </body>
 <script th:inline="javascript">
+    let gIsLoaded = false;
     $(document).ready(() => {
+        // Some jQuery API would trigger the document to enter this event again
+        // We need to prevent it
+        if (gIsLoaded)
+            return;
+
         if (window.location.href.indexOf('/web/metrics/') > 0) {
             $('.metrics-anchor').click();
         } else if (window.location.href.indexOf('/web/trace/') > 0) {
@@ -377,6 +394,10 @@
             }, 300);
         })
         new MetricSidebar("metricSidebar", g_SelectedApp).load();
+
+        new SearchBar(true);
+
+        gIsLoaded = true;
     });
 </script>
 </html>

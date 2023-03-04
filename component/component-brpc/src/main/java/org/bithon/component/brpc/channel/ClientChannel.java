@@ -194,7 +194,10 @@ public class ClientChannel implements IChannelWriter, Closeable {
 
     public <T> T getRemoteService(Class<T> serviceType) {
         // check service exist at first
-        IServiceRegistry serviceRegistry = ServiceStubFactory.create(this.appName, Headers.EMPTY, this, IServiceRegistry.class);
+        IServiceRegistry serviceRegistry = ServiceStubFactory.create(this.appName,
+                                                                     Headers.EMPTY,
+                                                                     this,
+                                                                     IServiceRegistry.class);
         String serviceName = ServiceRegistryItem.getServiceName(serviceType);
         if (!serviceRegistry.contains(serviceName)) {
             throw new ServiceNotFoundException(serviceName);
