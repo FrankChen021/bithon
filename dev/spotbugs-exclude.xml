@@ -70,7 +70,11 @@
         <Class name="org.bithon.agent.plugin.tomcat.interceptor.StandardWrapperValve$Exception"/>
         <Bug pattern="NM_CLASS_NOT_EXCEPTION" />
     </Match>
-
+    <Match>
+        <Class name="org.bithon.server.discovery.declaration.cmd.IAgentCommandApi$ConfigurationRecord"/>
+        <!--This module is interface only, so no access-->
+        <Bug pattern="UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD" />
+    </Match>
     <Bug pattern="AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION"/>
     <Bug pattern="BC_UNCONFIRMED_CAST"/>
     <Bug pattern="BIT_SIGNED_CHECK_HIGH_BIT"/>
