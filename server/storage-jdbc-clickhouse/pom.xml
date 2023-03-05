@@ -42,5 +42,17 @@
 
   <build>
     <finalName>${project.artifactId}</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <configuration>
+          <ignoredUnusedDeclaredDependencies>
+            <!--The driver is loaded by JDBC reflection, its classes are not directly referenced in our project-->
+            <dependency>com.clickhouse:clickhouse-jdbc</dependency>
+          </ignoredUnusedDeclaredDependencies>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 </project>
