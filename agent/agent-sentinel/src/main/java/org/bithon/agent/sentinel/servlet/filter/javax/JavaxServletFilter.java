@@ -16,8 +16,10 @@
 
 package org.bithon.agent.sentinel.servlet.filter.javax;
 
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.sentinel.ISentinelListener;
 import org.bithon.agent.sentinel.SentinelRuleManager;
+import org.bithon.agent.sentinel.config.SentinelConfig;
 import org.bithon.shaded.com.alibaba.csp.sentinel.Entry;
 import org.bithon.shaded.com.alibaba.csp.sentinel.EntryType;
 import org.bithon.shaded.com.alibaba.csp.sentinel.ResourceTypeConstants;
@@ -41,11 +43,15 @@ import java.io.IOException;
  */
 class JavaxServletFilter implements Filter {
 
-    ISentinelListener listener;
+    private final SentinelConfig config;
+    private final ISentinelListener listener;
 
     public JavaxServletFilter(ISentinelListener listener) {
         SentinelRuleManager.getInstance().setListener(listener);
         this.listener = listener;
+        this.config = ConfigurationManager.getInstance()
+                                          .getConfig(SentinelConfig.class);
+
     }
 
     @Override
@@ -54,8 +60,13 @@ class JavaxServletFilter implements Filter {
     }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-        throws IOException, ServletException {
+    public void doFilter(ServletRequest request,
+                         ServletResponse response,
+                         FilterChain chain) throws IOException, ServletException {
+        if (!config.isEnabled()) {
+            chain.doFilter(request, response);
+        }
+
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         SentinelRuleManager.CompositeRule rule = SentinelRuleManager.getInstance()
                                                                     .matches(httpServletRequest.getRequestURI());
