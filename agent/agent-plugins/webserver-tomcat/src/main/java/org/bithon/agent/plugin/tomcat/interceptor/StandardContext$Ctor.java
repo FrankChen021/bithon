@@ -19,87 +19,60 @@ package org.bithon.agent.plugin.tomcat.interceptor;
 import org.apache.catalina.core.StandardContext;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
-import org.bithon.agent.core.tracing.propagation.ITracePropagator;
-import org.bithon.agent.sentinel.ISentinelListener;
-import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
-import org.bithon.agent.sentinel.flow.FlowRuleDto;
-import org.bithon.agent.sentinel.servlet.SentinelFilter;
-import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.agent.bootstrap.loader.AgentClassLoader;
 import org.bithon.component.commons.logging.LoggerFactory;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.http.HttpServletRequest;
-import java.util.Collection;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.EnumSet;
+import java.util.Optional;
+import java.util.Set;
 
 /**
+ * Hook on {@link StandardContext#StandardContext()} to register sentinel filter
+ *
  * @author frankchen
  */
 public class StandardContext$Ctor extends AbstractInterceptor {
-    static ILogAdaptor log = LoggerFactory.getLogger(StandardContext$Ctor.class);
 
     /**
-     * {@link StandardContext#StandardContext()}
+     * Call {@link StandardContext#addServletContainerInitializer(javax.servlet.ServletContainerInitializer, Set)} to hook the sentinel filter
      */
     @Override
     public void onConstruct(AopContext aopContext) {
-        StandardContext servletContext = aopContext.getTargetAs();
+        StandardContext standardContext = aopContext.getTargetAs();
 
         //
-        // register sentinel filter
+        // This plugin is shared for tomcat 8 ~ 10
+        // For tomcat 10 which is used by SpringBoot3, it uses jakarta servlet instead of javax servlet which is used by tomcat 8 and 9.
+        // To share the code base, we can't invoke the method directly because this plugin is complied by tomcat 8 signature.
+        // So we need reflection to detect which method should be invoked.
         //
-        servletContext.addServletContainerInitializer((c, ctx) -> {
-            try {
-                SentinelListener listener = new SentinelListener();
-                ctx.addFilter("org.bithon.agent.sentinel", new SentinelFilter(listener))
-                   .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
-                log.info("Sentinel for tomcat installed");
-            } catch (Exception e) {
-                log.error("Exception occurred when initialize servlet context. sentinel may not be installed", e);
-            }
-        }, Collections.emptySet());
-    }
+        String sentinelFilterClass;
 
-    static class SentinelListener implements ISentinelListener {
-
-        final HttpIncomingMetricsRegistry registry = HttpIncomingMetricsRegistry.get();
-
-        @Override
-        public void onDegraded(HttpServletRequest request) {
-            registry.getOrCreateMetrics(request.getHeader(ITracePropagator.TRACE_HEADER_SRC_APPLICATION),
-                                        request.getMethod(),
-                                        request.getRequestURI(),
-                                        429)
-                    .getDegradedCount()
-                    .incr();
+        Optional<Method> addServletContainerInitializer = Arrays.stream(standardContext.getClass()
+                                                                                       .getMethods())
+                                                                .filter(m -> "addServletContainerInitializer".equals(m.getName()))
+                                                                .findFirst();
+        if (!addServletContainerInitializer.isPresent()) {
+            return;
         }
 
-        @Override
-        public void onFlowControlled(HttpServletRequest request) {
-            registry.getOrCreateMetrics(request.getHeader(ITracePropagator.TRACE_HEADER_SRC_APPLICATION),
-                                        request.getMethod(),
-                                        request.getRequestURI(),
-                                        429)
-                    .getFlowedCount()
-                    .incr();
+        String initializerType = addServletContainerInitializer.get().getParameterTypes()[0].getName();
+        if (initializerType.startsWith("jakarta.")) {
+            sentinelFilterClass = "org.bithon.agent.sentinel.servlet.filter.jakarta.SentinelInitializer";
+        } else if (initializerType.startsWith("javax.")) {
+            sentinelFilterClass = "org.bithon.agent.sentinel.servlet.filter.javax.SentinelInitializer";
+        } else {
+            return;
         }
+        try {
+            Class sentinelClazz = Class.forName(sentinelFilterClass, true, AgentClassLoader.getClassLoader());
+            Object initializer = sentinelClazz.getConstructor().newInstance();
 
-        @Override
-        public void onFlowRuleLoaded(String source, Collection<FlowRuleDto> rules) {
-        }
-
-        @Override
-        public void onDegradeRuleLoaded(String source, Collection<DegradingRuleDto> rules) {
-        }
-
-        @Override
-        public void onFlowRuleUnloaded(String source, Collection<FlowRuleDto> rules) {
-        }
-
-        @Override
-        public void onDegradeRuleUnloaded(String source, Collection<DegradingRuleDto> rules) {
+            addServletContainerInitializer.get().invoke(standardContext, initializer, Collections.emptySet());
+        } catch (Exception e) {
+            LoggerFactory.getLogger(StandardContext$Ctor.class).error("Failed to set up sentinel filter to current tomcat webserver", e);
         }
     }
 }

@@ -14,8 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sentinel.servlet;
+package org.bithon.agent.sentinel.servlet.filter.jakarta;
 
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.bithon.agent.sentinel.ISentinelListener;
 import org.bithon.agent.sentinel.SentinelRuleManager;
 import org.bithon.shaded.com.alibaba.csp.sentinel.Entry;
@@ -26,30 +33,19 @@ import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.BlockException;
 import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
 import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.flow.FlowException;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2023/3/5 23:33
  */
-public class SentinelFilter implements Filter {
+class JakartaServletFilter implements Filter {
 
     ISentinelListener listener;
 
-    public SentinelFilter(ISentinelListener listener) {
+    JakartaServletFilter(ISentinelListener listener) {
         SentinelRuleManager.getInstance().setListener(listener);
         this.listener = listener;
-    }
-
-    @Override
-    public void init(FilterConfig filterConfig) {
     }
 
     @Override
@@ -75,7 +71,9 @@ public class SentinelFilter implements Filter {
             );
             if (this.listener != null) {
                 try {
-                    this.listener.onFlowControlled(httpServletRequest);
+                    this.listener.onFlowControlled(httpServletRequest.getRequestURI(),
+                                                   httpServletRequest.getMethod(),
+                                                   httpServletRequest::getHeader);
                 } catch (Throwable ignored) {
                 }
             }
@@ -86,7 +84,9 @@ public class SentinelFilter implements Filter {
             );
             if (this.listener != null) {
                 try {
-                    this.listener.onDegraded(httpServletRequest);
+                    this.listener.onDegraded(httpServletRequest.getRequestURI(),
+                                             httpServletRequest.getMethod(),
+                                             httpServletRequest::getHeader);
                 } catch (Throwable ignored) {
                 }
             }
@@ -105,9 +105,5 @@ public class SentinelFilter implements Filter {
                 entry.exit();
             }
         }
-    }
-
-    @Override
-    public void destroy() {
     }
 }

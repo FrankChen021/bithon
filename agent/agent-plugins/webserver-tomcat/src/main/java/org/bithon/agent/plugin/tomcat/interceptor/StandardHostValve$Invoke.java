@@ -91,7 +91,7 @@ public class StandardHostValve$Invoke extends AbstractInterceptor {
 
         // Put the trace id in the header so that the applications have chance to know whether this request is being sampled
         if (traceContext.traceMode().equals(TraceMode.TRACE)) {
-            request.getRequest().setAttribute("X-Bithon-TraceId", traceContext.traceId());
+            //request.getRequest().setAttribute("X-Bithon-TraceId", traceContext.traceId());
 
             String traceIdHeader = traceConfig.getTraceIdInResponse();
             if (StringUtils.hasText(traceIdHeader)) {
