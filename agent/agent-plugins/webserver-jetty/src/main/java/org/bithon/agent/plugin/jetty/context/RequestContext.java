@@ -35,6 +35,9 @@ public class RequestContext {
         return startNanoTime;
     }
 
+    /**
+     * @return the tracing context that attached to one HTTP request. Can be NULL
+     */
     public ITraceContext getTraceContext() {
         return traceContext;
     }

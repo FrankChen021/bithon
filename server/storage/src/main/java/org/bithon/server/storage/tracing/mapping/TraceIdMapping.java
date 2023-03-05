@@ -20,7 +20,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 /**
+ * Mapping a user specified id in spans to the traceId of that span
+ *
  * @author frank.chen021@outlook.com
  * @date 10/12/21 3:27 PM
  */
@@ -28,7 +32,28 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TraceIdMapping {
-    private long timestamp;
+    /**
+     * key
+     */
     private String userId;
+
+    private long timestamp;
     private String traceId;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        TraceIdMapping that = (TraceIdMapping) o;
+        return Objects.equals(userId, that.userId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(userId);
+    }
 }

@@ -50,6 +50,7 @@ public class BrpcAgentController implements IAgentController {
 
     private final ClientChannel channel;
     private ISettingFetcher fetcher;
+    private Runnable refreshListener;
 
     public BrpcAgentController(AgentControllerConfig config) {
         List<EndPoint> endpoints = Stream.of(config.getServers().split(",")).map(hostAndPort -> {
@@ -66,12 +67,27 @@ public class BrpcAgentController implements IAgentController {
                                       .retryInterval(Duration.ofSeconds(2))
                                       .build();
 
-        // Update appId once the port is configured
-        appInstance.addListener((port) -> channel.setAppId(AgentContext.getInstance().getAppInstance().getHostAndPort()));
+        if (appInstance.getPort() > 0) {
+            // Set the default the appId
+            channel.setAppId(appInstance.getHostAndPort());
+        }
+
+        // Update appId once the port is configured,
+        // so that the management API in the server side can find this agent by appId correctly
+        appInstance.addListener((port) -> {
+            channel.setAppId(AgentContext.getInstance().getAppInstance().getHostAndPort());
+            if (refreshListener != null) {
+                try {
+                    refreshListener.run();
+                } catch (Exception e) {
+                    LOG.error("Failed to call refresh listener.", e);
+                }
+            }
+        });
     }
 
     @Override
-    public Map<String, String> fetch(String appName, String env, long lastModifiedSince) {
+    public Map<String, String> getAgentConfiguration(String appName, String env, long lastModifiedSince) {
         if (fetcher == null) {
             try {
                 fetcher = channel.getRemoteService(ISettingFetcher.class);
@@ -101,6 +117,11 @@ public class BrpcAgentController implements IAgentController {
             LOG.error("Failed to fetch settings due to server side exception:\n {}", e.getMessage());
             return null;
         }
+    }
+
+    @Override
+    public void refreshListener(Runnable callback) {
+        this.refreshListener = callback;
     }
 
     @Override

@@ -86,10 +86,10 @@ CREATE TABLE `bithon_trace_span`
     `tags`          TEXT COMMENT '',
     `normalizedUrl` VARCHAR(255) DEFAULT '' NOT NULL COMMENT '',
     `status`        VARCHAR(32)  DEFAULT '' NOT NULL COMMENT '',
+    KEY `idx_ts_1_timestamp` (`timestamp`),
     KEY `idx_ts_app_name` (`appName`),
     KEY `idx_ts_instanceName` (`instanceName`),
-    KEY `idx_ts_key` (`traceId`), -- must be before idx_start_time
-    KEY `idx_ts_start_time` (`startTimeUs`)
+    KEY `idx_ts_key` (`traceId`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
@@ -113,11 +113,10 @@ CREATE TABLE `bithon_trace_span_summary`
     `tags`          TEXT COMMENT '',
     `normalizedUrl` VARCHAR(255) DEFAULT '' NOT NULL COMMENT '',
     `status`        VARCHAR(32)  DEFAULT '' NOT NULL COMMENT '',
-    KEY `idx_tss_timestamp` (`timestamp`),
+    KEY `idx_tss_1_timestamp` (`timestamp`),
     KEY `idx_tss_app_name` (`appName`),
     KEY `idx_tss_instanceName` (`instanceName`),
-    KEY `idx_tss_key` (`traceId`), --  must be before start_time
-    KEY `idx_tss_start_time` (`startTimeUs`)
+    KEY `idx_tss_key` (`traceId`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
@@ -165,7 +164,7 @@ CREATE TABLE `bithon_event`
     `instanceName` VARCHAR(64)  NOT NULL COMMENT '',
     `type`          VARCHAR(64)  NOT NULL COMMENT 'type of event',
     `arguments`     TEXT COMMENT 'JSON formatted Map<String, String>',
-    KEY `idx_event_timestamp` (`timestamp`),
+    KEY `idx_event_1_timestamp` (`timestamp`),
     KEY `idx_event_appName` (`appName`),
     KEY `idx_event_instanceName` (`instanceName`),
     KEY `idx_event_type` (`type`)

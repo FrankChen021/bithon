@@ -50,7 +50,7 @@ public class AbstractAutowireCapableBeanFactory$CreateInstance extends AbstractI
             return;
         }
 
-        BeanWrapper result = aopContext.castReturningAs();
+        BeanWrapper result = aopContext.getReturningAs();
         Object beanInstance = result.getWrappedInstance();
         if (beanInstance == null) {
             return;

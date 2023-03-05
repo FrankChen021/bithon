@@ -20,11 +20,10 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.plugin.PluginConfigurationManager;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
-import org.bithon.agent.plugin.spring.webflux.SpringWebFluxPlugin;
 import org.bithon.agent.plugin.spring.webflux.config.GatewayFilterConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.springframework.http.server.reactive.AbstractServerHttpRequest;
@@ -46,7 +45,7 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
     private final GatewayFilterConfigs configs;
 
     public AroundGatewayFilter$Filter() {
-        configs = PluginConfigurationManager.load(SpringWebFluxPlugin.class).getConfig(GatewayFilterConfigs.class);
+        configs = ConfigurationManager.getInstance().getConfig(GatewayFilterConfigs.class);
     }
 
     @Override
@@ -95,7 +94,7 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         TraceContextHolder.remove();
 
-        ITraceSpan span = aopContext.castUserContextAs();
+        ITraceSpan span = aopContext.getUserContextAs();
         if (span == null) {
             // in case of exception in the Enter interceptor
             return;
@@ -110,7 +109,7 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
             // For the 2nd case, the span is closed before entering the filter chain. It's safe to call the finish method once more
             span.tag(aopContext.getException()).finish();
         } else {
-            Mono<Void> originalReturning = aopContext.castReturningAs();
+            Mono<Void> originalReturning = aopContext.getReturningAs();
             Mono<Void> replacedReturning = originalReturning.doOnError(span::tag)
                                                             .doFinally((s) -> span.finish());
             aopContext.setReturning(replacedReturning);

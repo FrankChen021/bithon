@@ -21,7 +21,6 @@ import org.bithon.agent.core.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
 import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 import org.bithon.agent.core.tracing.reporter.ITraceReporter;
-import org.bithon.agent.core.tracing.sampler.SamplingMode;
 import org.bithon.component.commons.time.Clock;
 
 import java.util.Stack;
@@ -33,7 +32,7 @@ import java.util.Stack;
  * @author frank.chen021@outlook.com
  * @date 2021/7/17 15:38
  */
-class PropagationTraceContext implements ITraceContext {
+public class PropagationTraceContext implements ITraceContext {
 
     private final ITraceReporter noopTraceReporter = spans -> {
     };
@@ -96,11 +95,6 @@ class PropagationTraceContext implements ITraceContext {
             // TODO: error
             spanStack.clear();
         }
-    }
-
-    @Override
-    public ITraceContext samplingMode(SamplingMode mode) {
-        return null;
     }
 
     @Override

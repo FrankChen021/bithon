@@ -70,13 +70,17 @@ public class ServiceRegistry implements IServiceRegistry {
         for (Method method : interfaceType.getDeclaredMethods()) {
             ServiceRegistryItem registryItem = ServiceRegistryItem.create(method);
 
-            if (null != registry.computeIfAbsent(registryItem.getServiceName(), v -> new ConcurrentHashMap<>(7))
-                                .putIfAbsent(registryItem.getMethodName(), new ServiceInvoker(serviceImpl, method, registryItem.isOneway()))) {
-
+            Map<String, ServiceInvoker> registryPerService = registry.computeIfAbsent(registryItem.getServiceName(),
+                                                                                      v -> new ConcurrentHashMap<>(7));
+            ServiceInvoker existingRegistry = registryPerService.putIfAbsent(registryItem.getMethodName(),
+                                                                             new ServiceInvoker(serviceImpl, method, registryItem.isOneway()));
+            if (existingRegistry != null) {
                 throw new DuplicateServiceException(interfaceType,
                                                     method,
                                                     registryItem.getServiceName(),
-                                                    registryItem.getMethodName());
+                                                    registryItem.getMethodName(),
+                                                    existingRegistry.getMethod());
+
             }
         }
     }
@@ -113,6 +117,10 @@ public class ServiceRegistry implements IServiceRegistry {
 
         public Type[] getParameterTypes() {
             return parameterTypes;
+        }
+
+        public Method getMethod() {
+            return method;
         }
     }
 }

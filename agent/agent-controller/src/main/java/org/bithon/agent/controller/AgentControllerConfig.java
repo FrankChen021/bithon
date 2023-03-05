@@ -22,7 +22,7 @@ import org.bithon.agent.core.config.ConfigurationProperties;
  * @author frank.chen021@outlook.com
  * @date 2021/1/16 2:48 下午
  */
-@ConfigurationProperties(prefix = "controller")
+@ConfigurationProperties(prefix = "controller", dynamic = false)
 public class AgentControllerConfig {
     private String client;
     private String servers;

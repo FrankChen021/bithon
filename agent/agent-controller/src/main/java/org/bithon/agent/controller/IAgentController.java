@@ -24,9 +24,14 @@ import java.util.Map;
  */
 public interface IAgentController {
 
-    Map<String, String> fetch(String appName,
-                              String env,
-                              long lastModifiedSince);
+    Map<String, String> getAgentConfiguration(String appName,
+                                              String env,
+                                              long lastModifiedSince);
+
+    /**
+     * Register a callback that once the underlying implementation changes, the getAgentConfiguration should be called immediately.
+     */
+    void refreshListener(Runnable runnable);
 
     void attachCommands(Object... commands);
 }

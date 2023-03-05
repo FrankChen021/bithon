@@ -48,7 +48,7 @@ public class CoyoteAdapterService extends AbstractInterceptor {
 
         update(request,
                (Response) aopContext.getArgs()[1],
-               aopContext.getCostTime());
+               aopContext.getExecutionTime());
     }
 
     private void update(Request request, Response response, long responseTime) {

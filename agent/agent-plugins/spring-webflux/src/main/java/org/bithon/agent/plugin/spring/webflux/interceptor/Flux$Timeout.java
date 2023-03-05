@@ -34,7 +34,7 @@ public class Flux$Timeout extends AbstractInterceptor {
      */
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        Runnable timeoutCallback = aopContext.castInjectedOnTargetAs();
+        Runnable timeoutCallback = aopContext.getInjectedOnTargetAs();
         if (timeoutCallback == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

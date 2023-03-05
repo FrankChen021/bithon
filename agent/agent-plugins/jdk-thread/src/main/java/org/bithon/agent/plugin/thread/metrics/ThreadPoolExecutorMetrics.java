@@ -24,13 +24,13 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 10:48 下午
  */
-public class ThreadPoolExecutorMetrics extends ThreadPoolMetrics {
+public class ThreadPoolExecutorMetrics extends ThreadPoolMetrics<ThreadPoolExecutor> {
 
-    public ThreadPoolExecutorMetrics(ThreadPoolExecutor executor) {
-        super(executor::getActiveCount,
-              executor::getPoolSize,
-              executor::getMaximumPoolSize,
-              executor::getLargestPoolSize,
-              () -> executor.getQueue().size());
+    public ThreadPoolExecutorMetrics() {
+        super(ThreadPoolExecutor::getActiveCount,
+              ThreadPoolExecutor::getPoolSize,
+              ThreadPoolExecutor::getMaximumPoolSize,
+              ThreadPoolExecutor::getLargestPoolSize,
+              (e) -> e.getQueue().size());
     }
 }

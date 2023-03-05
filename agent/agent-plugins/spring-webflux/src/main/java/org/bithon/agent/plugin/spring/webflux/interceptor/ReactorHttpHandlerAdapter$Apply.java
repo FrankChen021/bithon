@@ -21,17 +21,15 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
-import org.bithon.agent.core.plugin.PluginConfigurationManager;
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
-import org.bithon.agent.plugin.spring.webflux.SpringWebFluxPlugin;
 import org.bithon.agent.plugin.spring.webflux.config.ResponseConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.bithon.component.commons.logging.ILogAdaptor;
@@ -71,12 +69,8 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
     public boolean initialize() {
         requestFilter = new HttpIncomingFilter();
 
-        traceConfig = AgentContext.getInstance()
-                                  .getAgentConfiguration()
-                                  .getConfig(TraceConfig.class);
-
-        responseConfigs = PluginConfigurationManager.load(SpringWebFluxPlugin.class)
-                                                    .getConfig(ResponseConfigs.class);
+        traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
+        responseConfigs = ConfigurationManager.getInstance().getConfig(ResponseConfigs.class);
 
         // remove the special header for fast processing later
         xforwardTagName = responseConfigs.getHeaders().remove(X_FORWARDED_FOR);
@@ -106,34 +100,37 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
             if (injected instanceof HttpServerContext) {
                 final ITraceContext traceContext = Tracer.get()
                                                          .propagator()
-                                                         .extract(request,
-                                                                  (req, key) -> req.requestHeaders().get(key));
+                                                         .extract(request, (req, key) -> req.requestHeaders().get(key));
 
-                traceContext.currentSpan()
-                            .component("webflux")
-                            .tag(Tags.HTTP_URI, request.uri())
-                            .tag(Tags.HTTP_METHOD, request.method().name())
-                            .tag(Tags.HTTP_VERSION, request.version().text())
-                            .tag((span) -> traceConfig.getHeaders()
-                                                      .getRequest()
-                                                      .forEach((header) -> span.tag("http.header." + header, request.requestHeaders().get(header))))
-                            .method(aopContext.getMethod())
-                            .kind(SpanKind.SERVER)
-                            .start();
+                if (traceContext != null) {
 
-                // put the trace id in the header so that the applications have chance to know whether this request is being sampled
-                if (traceContext.traceMode().equals(TraceMode.TRACE)) {
-                    request.requestHeaders().set("X-Bithon-TraceId", traceContext.traceId());
+                    traceContext.currentSpan()
+                                .component("webflux")
+                                .tag(Tags.REMOTE_ADDR, request.remoteAddress())
+                                .tag(Tags.HTTP_URI, request.uri())
+                                .tag(Tags.HTTP_METHOD, request.method().name())
+                                .tag(Tags.HTTP_VERSION, request.version().text())
+                                .tag((span) -> traceConfig.getHeaders()
+                                                          .getRequest()
+                                                          .forEach((header) -> span.tag("http.header." + header, request.requestHeaders().get(header))))
+                                .method(aopContext.getMethod())
+                                .kind(SpanKind.SERVER)
+                                .start();
 
-                    // Add trace id to response
-                    String traceIdHeader = traceConfig.getTraceIdInResponse();
-                    if (StringUtils.hasText(traceIdHeader)) {
-                        final HttpServerResponse response = aopContext.getArgAs(1);
-                        response.addHeader(traceIdHeader, traceContext.traceId());
+                    // put the trace id in the header so that the applications have chance to know whether this request is being sampled
+                    if (traceContext.traceMode().equals(TraceMode.TRACE)) {
+                        request.requestHeaders().set("X-Bithon-TraceId", traceContext.traceId());
+
+                        // Add trace id to response
+                        String traceIdHeader = traceConfig.getTraceIdInResponse();
+                        if (StringUtils.hasText(traceIdHeader)) {
+                            final HttpServerResponse response = aopContext.getArgAs(1);
+                            response.addHeader(traceIdHeader, traceContext.traceId());
+                        }
                     }
-                }
 
-                ((HttpServerContext) injected).setTraceContext(traceContext);
+                    ((HttpServerContext) injected).setTraceContext(traceContext);
+                }
             }
         }
 
@@ -145,9 +142,9 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
         final HttpServerRequest request = (HttpServerRequest) aopContext.getArgs()[0];
         final HttpServerResponse response = (HttpServerResponse) aopContext.getArgs()[1];
 
-        Mono<Void> mono = aopContext.castReturningAs();
+        Mono<Void> mono = aopContext.getReturningAs();
         if (aopContext.hasException() || mono.equals(Mono.empty())) {
-            update(request, response, aopContext.getCostTime());
+            update(request, response, aopContext.getExecutionTime());
             finishTrace(request, response, null);
 
             return;
@@ -165,7 +162,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
         };
 
         // replace the returned Mono so that we can do sth when this request completes
-        aopContext.setReturning(mono.doOnSuccess((Void) -> onSuccessOrError.accept(null, null))
+        aopContext.setReturning(mono.doOnSuccess((v) -> onSuccessOrError.accept(null, null))
                                     .doOnError((error) -> onSuccessOrError.accept(null, error)));
     }
 

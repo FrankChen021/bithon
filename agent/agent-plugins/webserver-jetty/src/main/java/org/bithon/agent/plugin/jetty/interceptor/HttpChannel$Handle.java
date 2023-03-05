@@ -20,7 +20,7 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.core.tracing.Tracer;
@@ -48,7 +48,7 @@ public class HttpChannel$Handle extends AbstractInterceptor {
     @Override
     public boolean initialize() {
         requestFilter = new HttpIncomingFilter();
-        traceConfig = AgentContext.getInstance().getAgentConfiguration().getConfig(TraceConfig.class);
+        traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
         return true;
     }
 
@@ -57,7 +57,7 @@ public class HttpChannel$Handle extends AbstractInterceptor {
         TraceContextHolder.remove();
         InterceptorContext.remove(InterceptorContext.KEY_TRACEID);
 
-        HttpChannel httpChannel = aopContext.castTargetAs();
+        HttpChannel httpChannel = aopContext.getTargetAs();
 
         Request request = httpChannel.getRequest();
 
@@ -67,13 +67,14 @@ public class HttpChannel$Handle extends AbstractInterceptor {
                 return InterceptionDecision.SKIP_LEAVE;
             }
 
-            ITraceContext traceContext = Tracer.get().propagator().extract(request, (carrier, key) -> carrier.getHeader(key));
+            ITraceContext traceContext = Tracer.get().propagator().extract(request, Request::getHeader);
             if (traceContext != null) {
                 TraceContextHolder.set(traceContext);
                 InterceptorContext.set(InterceptorContext.KEY_TRACEID, traceContext.traceId());
 
                 traceContext.currentSpan()
                             .component("jetty")
+                            .tag("remote.address", request.getRemoteAddr())
                             .tag(Tags.HTTP_URI, request.getRequestURI())
                             .tag(Tags.HTTP_METHOD, request.getMethod())
                             .tag(Tags.HTTP_VERSION, request.getHttpVersion().toString())
@@ -98,12 +99,15 @@ public class HttpChannel$Handle extends AbstractInterceptor {
             ((IBithonObject) request).setInjectedObject(new RequestContext(System.nanoTime(), traceContext));
         }
 
+        InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
 
         RequestContext requestContext = (RequestContext) ((IBithonObject) request).getInjectedObject();
-        InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
         if (requestContext != null) {
-            TraceContextHolder.set(requestContext.getTraceContext());
-            InterceptorContext.set(InterceptorContext.KEY_TRACEID, requestContext.getTraceContext().traceId());
+            ITraceContext traceContext = requestContext.getTraceContext();
+            if (traceContext != null) {
+                TraceContextHolder.set(traceContext);
+                InterceptorContext.set(InterceptorContext.KEY_TRACEID, traceContext.traceId());
+            }
         }
 
         return InterceptionDecision.CONTINUE;

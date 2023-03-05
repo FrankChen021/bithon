@@ -27,11 +27,17 @@ public class NamedThreadFactory implements ThreadFactory {
     private final ThreadGroup group;
     private final AtomicInteger threadNumber = new AtomicInteger(1);
     private final String namePrefix;
+    private final boolean isDaemon;
 
     public NamedThreadFactory(String namePrefix) {
+        this(namePrefix, false);
+    }
+
+    public NamedThreadFactory(String namePrefix, boolean isDeamon) {
         final SecurityManager s = System.getSecurityManager();
         this.group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
         this.namePrefix = namePrefix + "-thread-";
+        this.isDaemon = isDeamon;
     }
 
     @Override
@@ -40,6 +46,7 @@ public class NamedThreadFactory implements ThreadFactory {
         if (t.getPriority() != Thread.NORM_PRIORITY) {
             t.setPriority(Thread.NORM_PRIORITY);
         }
+        t.setDaemon(isDaemon);
         return t;
     }
 

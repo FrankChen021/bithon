@@ -70,6 +70,7 @@
           <descriptors>
             <descriptor>distribution.xml</descriptor>
           </descriptors>
+          <tarLongFileMode>posix</tarLongFileMode>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
         <executions>

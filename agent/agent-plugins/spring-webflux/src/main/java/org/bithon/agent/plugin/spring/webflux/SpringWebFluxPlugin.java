@@ -18,8 +18,8 @@ package org.bithon.agent.plugin.spring.webflux;
 
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.plugin.IPlugin;
-import org.bithon.agent.core.plugin.PluginConfigurationManager;
 import org.bithon.agent.plugin.spring.webflux.config.GatewayFilterConfigs;
 
 import java.util.ArrayList;
@@ -108,7 +108,7 @@ public class SpringWebFluxPlugin implements IPlugin {
     List<InterceptorDescriptor> getGatewayInterceptors() {
         List<InterceptorDescriptor> filterInterceptors = new ArrayList<>();
 
-        GatewayFilterConfigs configs = PluginConfigurationManager.load(SpringWebFluxPlugin.class).getConfig(GatewayFilterConfigs.class);
+        GatewayFilterConfigs configs = ConfigurationManager.getInstance().getConfig(GatewayFilterConfigs.class);
         for (Map.Entry<String, GatewayFilterConfigs.Filter> entry : configs.entrySet()) {
             String clazz = entry.getKey();
             GatewayFilterConfigs.Filter filter = entry.getValue();

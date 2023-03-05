@@ -17,7 +17,7 @@
 package org.bithon.agent.bootstrap.aop.advice;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.AopContextImpl;
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
 import org.bithon.agent.bootstrap.aop.IAopLogger;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
@@ -50,7 +50,7 @@ public class MethodDecoratorAdvice {
             return false;
         }
 
-        AopContext aopContext = new AopContext(method, target, args);
+        AopContextImpl aopContext = new AopContextImpl(method, target, args);
 
         boolean skipLeaveMethod = true;
         try {
@@ -93,7 +93,7 @@ public class MethodDecoratorAdvice {
             return;
         }
 
-        AopContext aopContext = (AopContext) context;
+        AopContextImpl aopContext = (AopContextImpl) context;
         aopContext.onAfterTargetMethodInvocation();
         aopContext.setException(exception);
         aopContext.setReturning(returning);

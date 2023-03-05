@@ -19,7 +19,8 @@ package org.bithon.agent.controller;
 import org.bithon.agent.bootstrap.loader.AgentClassLoader;
 import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.controller.cmd.IAgentCommand;
-import org.bithon.agent.controller.setting.AgentSettingManager;
+import org.bithon.agent.controller.config.DynamicConfigurationManager;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.starter.IAgentLifeCycle;
 import org.bithon.component.commons.logging.ILogAdaptor;
@@ -33,15 +34,15 @@ import java.util.ServiceLoader;
  * @date 2021/7/1 5:55 下午
  */
 public class AgentControllerLifeCycle implements IAgentLifeCycle {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(AgentControllerLifeCycle.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(AgentControllerLifeCycle.class);
 
     @Override
     public void start(AgentContext context) throws Exception {
-        log.info("Initializing agent controller");
+        LOG.info("Initializing agent controller");
 
-        AgentControllerConfig ctrlConfig = context.getAgentConfiguration().getConfig(AgentControllerConfig.class);
+        AgentControllerConfig ctrlConfig = ConfigurationManager.getInstance().getConfig(AgentControllerConfig.class);
         if (ctrlConfig == null || StringUtils.isEmpty(ctrlConfig.getClient())) {
-            log.warn("Agent Controller has not configured.");
+            LOG.warn("Agent Controller has not configured.");
             return;
         }
 
@@ -54,7 +55,7 @@ public class AgentControllerLifeCycle implements IAgentLifeCycle {
                                                                              .getDeclaredConstructor().newInstance();
             controller = factory.createController(ctrlConfig);
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            log.error("Can't create instanceof fetcher {}", ctrlConfig.getClient());
+            LOG.error("Can't create instanceof fetcher {}", ctrlConfig.getClient());
             throw e;
         }
 
@@ -64,9 +65,9 @@ public class AgentControllerLifeCycle implements IAgentLifeCycle {
         //
         // start fetcher
         //
-        AgentSettingManager.createInstance(context.getAppInstance().getAppName(),
-                                           context.getAppInstance().getEnv(),
-                                           controller);
+        DynamicConfigurationManager.createInstance(context.getAppInstance().getAppName(),
+                                                   context.getAppInstance().getEnv(),
+                                                   controller);
     }
 
     @Override
@@ -78,7 +79,7 @@ public class AgentControllerLifeCycle implements IAgentLifeCycle {
         for (IAgentCommand agentCommand : ServiceLoader.load(IAgentCommand.class,
                                                              classLoader)) {
 
-            log.info("Binding agent commands provided by {}", agentCommand.getClass().getSimpleName());
+            LOG.info("Binding agent commands provided by {}", agentCommand.getClass().getSimpleName());
 
             controller.attachCommands(agentCommand);
         }

@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.alibaba.druid.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
@@ -54,7 +54,7 @@ public abstract class DruidStatementAbstractExecute extends AbstractInterceptor 
 
     @Override
     public boolean initialize() {
-        DruidPluginConfig config = AgentContext.getInstance().getAgentConfiguration().getConfig(DruidPluginConfig.class);
+        DruidPluginConfig config = ConfigurationManager.getInstance().getConfig(DruidPluginConfig.class);
         isSQLMetricEnabled = config.isSQLMetricEnabled();
         if (isSQLMetricEnabled) {
             metricRegistry = SqlMetricRegistry.get();
@@ -64,7 +64,7 @@ public abstract class DruidStatementAbstractExecute extends AbstractInterceptor 
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
-        Statement statement = aopContext.castTargetAs();
+        Statement statement = aopContext.getTargetAs();
 
         // TODO: cache the cleaned-up connection string in IBithonObject after connection object instantiation
         // to improve performance
@@ -90,7 +90,7 @@ public abstract class DruidStatementAbstractExecute extends AbstractInterceptor 
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        UserContext context = aopContext.castUserContextAs();
+        UserContext context = aopContext.getUserContextAs();
         if (context.span != null) {
             try {
                 context.span.tag(Tags.SQL, getExecutingSql(aopContext))
@@ -119,7 +119,7 @@ public abstract class DruidStatementAbstractExecute extends AbstractInterceptor 
                 /*
                  * execute method return true if the first result is a ResultSet
                  */
-                isQuery = aopContext.getReturning() == null ? null : (boolean) aopContext.castReturningAs();
+                isQuery = aopContext.getReturning() == null ? null : (boolean) aopContext.getReturningAs();
             } else if (DruidPlugin.METHOD_EXECUTE_QUERY.equals(methodName)) {
                 isQuery = true;
             } else {
@@ -127,7 +127,7 @@ public abstract class DruidStatementAbstractExecute extends AbstractInterceptor 
                 log.warn("unknown method intercepted by druid-sql-counter : {}", methodName);
             }
 
-            metricRegistry.getOrCreateMetrics(context.uri).update(isQuery, aopContext.hasException(), aopContext.getCostTime());
+            metricRegistry.getOrCreateMetrics(context.uri).update(isQuery, aopContext.hasException(), aopContext.getExecutionTime());
         }
     }
 

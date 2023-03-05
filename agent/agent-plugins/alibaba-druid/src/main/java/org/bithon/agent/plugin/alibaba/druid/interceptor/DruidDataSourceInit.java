@@ -29,7 +29,7 @@ public class DruidDataSourceInit extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        IBithonObject obj = aopContext.castTargetAs();
+        IBithonObject obj = aopContext.getTargetAs();
         Boolean initialized = (Boolean) obj.getInjectedObject();
         if (initialized != null && initialized) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -44,8 +44,8 @@ public class DruidDataSourceInit extends AbstractInterceptor {
             return;
         }
 
-        IBithonObject obj = aopContext.castTargetAs();
-        boolean initialized = MonitoredSourceManager.getInstance().addDataSource(aopContext.castTargetAs());
+        IBithonObject obj = aopContext.getTargetAs();
+        boolean initialized = MonitoredSourceManager.getInstance().addDataSource(aopContext.getTargetAs());
         obj.setInjectedObject(initialized);
     }
 }

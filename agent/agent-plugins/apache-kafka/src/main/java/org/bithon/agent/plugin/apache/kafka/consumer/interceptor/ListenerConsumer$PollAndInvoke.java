@@ -21,9 +21,9 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.tracing.Tracer;
-import org.bithon.agent.core.tracing.config.TraceConfig;
+import org.bithon.agent.core.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextFactory;
@@ -49,22 +49,9 @@ import java.util.stream.Stream;
  */
 public class ListenerConsumer$PollAndInvoke extends AbstractInterceptor {
 
-    private ISampler sampler;
-
-    @Override
-    public boolean initialize() {
-        TraceConfig traceConfig = AgentContext.getInstance()
-                                              .getAgentConfiguration()
-                                              .getConfig(TraceConfig.class);
-        TraceConfig.SamplingConfig samplingConfig = traceConfig.getSamplingConfigs().get("kafka-consumer");
-        if (samplingConfig == null || samplingConfig.isDisabled() || samplingConfig.getSamplingRate() == 0) {
-            return false;
-        }
-
-        sampler = SamplerFactory.createSampler(samplingConfig);
-
-        return true;
-    }
+    private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
+                                                                                      .getDynamicConfig("tracing.samplingConfigs.kafka-consumer",
+                                                                                                        TraceSamplingConfig.class));
 
     /**
      * Keep topic information on injected fields for further use
@@ -96,7 +83,7 @@ public class ListenerConsumer$PollAndInvoke extends AbstractInterceptor {
         }
 
         // Keep the uri for further use
-        IBithonObject bithonObject = aopContext.castTargetAs();
+        IBithonObject bithonObject = aopContext.getTargetAs();
         bithonObject.setInjectedObject(url);
     }
 
@@ -124,7 +111,7 @@ public class ListenerConsumer$PollAndInvoke extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        ITraceSpan span = aopContext.castUserContextAs();
+        ITraceSpan span = aopContext.getUserContextAs();
 
         span.tag(aopContext.getException())
             .tag("status", aopContext.hasException() ? "500" : "200")

@@ -24,9 +24,9 @@ import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.bithon.component.brpc.channel.ServerChannel;
-import org.bithon.server.collector.cmd.service.CommandService;
-import org.bithon.server.collector.setting.AgentSettingService;
-import org.bithon.server.collector.setting.BrpcSettingFetcher;
+import org.bithon.server.collector.cmd.service.AgentCommandService;
+import org.bithon.server.collector.config.AgentConfigurationService;
+import org.bithon.server.collector.config.BrpcSettingFetcher;
 import org.bithon.server.sink.common.service.UriNormalizer;
 import org.bithon.server.sink.event.IEventMessageSink;
 import org.bithon.server.sink.metrics.IMetricMessageSink;
@@ -65,49 +65,49 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
         // group services by their listening ports
         //
         for (Map.Entry<String, Integer> entry : config.getPort().entrySet()) {
-            String service = entry.getKey();
+            String type = entry.getKey();
             Integer port = entry.getValue();
 
             boolean isCtrl = false;
-            Class<?> clazz = null;
-            Object serviceProvider = null;
-            switch (service) {
+            Class<?> serviceDefinition = null;
+            Object serviceImplementation = null;
+            switch (type) {
                 case "metric":
-                    clazz = IMetricCollector.class;
-                    serviceProvider = new BrpcMetricCollector(applicationContext.getBean(IMetricMessageSink.class));
+                    serviceDefinition = IMetricCollector.class;
+                    serviceImplementation = new BrpcMetricCollector(applicationContext.getBean(IMetricMessageSink.class));
                     break;
 
                 case "event":
-                    clazz = IEventCollector.class;
-                    serviceProvider = new BrpcEventCollector(applicationContext.getBean(IEventMessageSink.class));
+                    serviceDefinition = IEventCollector.class;
+                    serviceImplementation = new BrpcEventCollector(applicationContext.getBean(IEventMessageSink.class));
                     break;
 
                 case "tracing":
-                    clazz = ITraceCollector.class;
-                    serviceProvider = new BrpcTraceCollector(applicationContext.getBean("trace-sink-collector", ITraceMessageSink.class),
-                                                             applicationContext.getBean(UriNormalizer.class));
+                    serviceDefinition = ITraceCollector.class;
+                    serviceImplementation = new BrpcTraceCollector(applicationContext.getBean("trace-sink-collector", ITraceMessageSink.class),
+                                                                   applicationContext.getBean(UriNormalizer.class));
                     break;
 
                 case "ctrl":
                     isCtrl = true;
-                    clazz = ISettingFetcher.class;
-                    serviceProvider = new BrpcSettingFetcher(applicationContext.getBean(AgentSettingService.class));
+                    serviceDefinition = ISettingFetcher.class;
+                    serviceImplementation = new BrpcSettingFetcher(applicationContext.getBean(AgentConfigurationService.class));
                     break;
 
                 default:
                     break;
             }
-            if (serviceProvider != null) {
+            if (serviceImplementation != null) {
                 ServiceGroup serviceGroup = serviceGroups.computeIfAbsent(port, key -> new ServiceGroup());
                 serviceGroup.isCtrl = isCtrl;
-                serviceGroup.getServices().add(new ServiceProvider(service, clazz, serviceProvider));
+                serviceGroup.addService(type, serviceDefinition, serviceImplementation);
             }
         }
 
         serviceGroups.forEach((port, serviceGroup) -> {
             ServerChannel channel = new ServerChannel();
             if (serviceGroup.isCtrl) {
-                applicationContext.getBean(CommandService.class).setServerChannel(channel);
+                applicationContext.getBean(AgentCommandService.class).setServerChannel(channel);
             }
             serviceGroup.channel = channel;
             serviceGroup.start(port);
@@ -162,6 +162,10 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
             }
             channel.start(port);
             this.port = port;
+        }
+
+        public void addService(String type, Class<?> serviceDefinition, Object serviceImplementation) {
+            this.services.add(new ServiceProvider(type, serviceDefinition, serviceImplementation));
         }
 
         public void close() {

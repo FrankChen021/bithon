@@ -22,11 +22,11 @@ import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -37,20 +37,39 @@ import java.util.stream.Collectors;
 public class JvmCommand implements IJvmCommand, IAgentCommand {
     @Override
     public List<ThreadInfo> dumpThreads() {
-
-        List<ThreadInfo> threadsInfo = new ArrayList<>();
-
         ThreadMXBean threadMxBean = ManagementFactory.getThreadMXBean();
         boolean cpuTimeEnabled = threadMxBean.isThreadCpuTimeSupported() && threadMxBean.isThreadCpuTimeEnabled();
 
-        Map<Thread, StackTraceElement[]> stackTraces = java.lang.Thread.getAllStackTraces();
-        stackTraces.forEach((thread, stacks) -> threadsInfo.add(toThreadInfo(threadMxBean, cpuTimeEnabled, thread, stacks)));
+        // It's not efficient enough since the stack trace are retrieved twice,
+        // One is here, the other one is the getThreadInfo below.
+        // The reason is that under JDK 8, the ThreadInfo does not include priority/daemon properties which can only be found on Thread object.
+        Map<Long, Thread> threads = Thread.getAllStackTraces()
+                                          .keySet()
+                                          .stream()
+                                          .collect(Collectors.toMap(Thread::getId, v -> v));
+        long[] threadIds = threads.keySet().stream().mapToLong(Long::longValue).toArray();
 
-        return threadsInfo;
+        java.lang.management.ThreadInfo[] threadInfos;
+        if (threadIds == null) {
+            threadInfos = ManagementFactory.getThreadMXBean().dumpAllThreads(true, true);
+        } else {
+            threadInfos = ManagementFactory.getThreadMXBean().getThreadInfo(threadIds, true, true);
+        }
+
+        return Arrays.stream(threadInfos)
+                     .map((threadInfo) -> {
+                         Thread thread = threads.get(threadInfo.getThreadId());
+                         if (thread == null) {
+                             return null;
+                         }
+                         return toThreadInfo(threadMxBean, cpuTimeEnabled, thread, threadInfo);
+                     })
+                     .filter(Objects::nonNull)
+                     .collect(Collectors.toList());
     }
 
     @Override
-    public Collection<String> dumpClazz(String pattern) {
+    public Collection<String> dumpClass(String pattern) {
         Pattern p = Pattern.compile(pattern);
 
         return Arrays.stream(InstrumentationHelper.getInstance().getAllLoadedClasses())
@@ -62,18 +81,33 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
                      .collect(Collectors.toSet());
     }
 
-    private boolean isAnonymousClassOrLambda(Class<?> clazz) {
-        try {
-            return clazz.getName().indexOf('/') > 0 || clazz.isAnonymousClass();
-        } catch (Throwable e) {
-            // Sometime is throws IllegalAccessError internally, need to catch and ignore it
-            return false;
-        }
+    @Override
+    public List<ClassInfo> getLoadedClassList() {
+
+        return Arrays.stream(InstrumentationHelper.getInstance().getAllLoadedClasses())
+                     // It does not make any sense to return anonymous class or lambda class
+                     .filter(clazz -> !isAnonymousClassOrLambda(clazz))
+                     .map((clazz) -> {
+                         ClassInfo classInfo = new ClassInfo();
+                         classInfo.setName(clazz.getName());
+                         classInfo.setClassLoader(clazz.getClassLoader() == null ? "bootstrap" : clazz.getClassLoader().getClass().getName());
+                         classInfo.setAnnotation(clazz.isAnnotation());
+                         classInfo.setInterface(clazz.isInterface());
+                         classInfo.setSynthetic(clazz.isSynthetic());
+                         classInfo.setEnum(clazz.isEnum());
+
+                         return classInfo;
+                     })
+                     // There might be same classes loaded into different class loaders, use set to deduplicate them
+                     .collect(Collectors.toList());
     }
 
-    private static ThreadInfo toThreadInfo(ThreadMXBean threadMxBean, boolean cpuTimeEnabled, Thread thread, StackTraceElement[] stacks) {
+    private static ThreadInfo toThreadInfo(ThreadMXBean threadMxBean,
+                                           boolean cpuTimeEnabled,
+                                           Thread thread,
+                                           java.lang.management.ThreadInfo info) {
         StringBuilder sb = new StringBuilder(512);
-        for (StackTraceElement stack : stacks) {
+        for (StackTraceElement stack : info.getStackTrace()) {
             sb.append(stack.getClassName());
             sb.append('#');
             sb.append(stack.getMethodName());
@@ -95,7 +129,30 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
         threadInfo.setState(thread.getState().toString());
         threadInfo.setCpuTime(cpuTimeEnabled ? threadMxBean.getThreadCpuTime(thread.getId()) : -1);
         threadInfo.setUserTime(cpuTimeEnabled ? threadMxBean.getThreadUserTime(thread.getId()) : -1);
+
+        threadInfo.setBlockedCount(info.getBlockedCount());
+        threadInfo.setBlockedTime(info.getBlockedTime());
+
+        threadInfo.setWaitedCount(info.getWaitedCount());
+        threadInfo.setWaitedTime(info.getWaitedTime());
+
+        threadInfo.setInNative(info.isInNative() ? 1 : 0);
+        threadInfo.setSuspended(info.isSuspended() ? 1 : 0);
+
+        threadInfo.setLockName(info.getLockName());
+        threadInfo.setLockOwnerId(info.getLockOwnerId());
+        threadInfo.setLockOwnerName(info.getLockOwnerName());
+
         threadInfo.setStacks(sb.toString());
         return threadInfo;
+    }
+
+    private boolean isAnonymousClassOrLambda(Class<?> clazz) {
+        try {
+            return clazz.getName().indexOf('/') > 0 || clazz.isAnonymousClass();
+        } catch (Throwable e) {
+            // Sometime is throws IllegalAccessError internally, need to catch and ignore it
+            return false;
+        }
     }
 }

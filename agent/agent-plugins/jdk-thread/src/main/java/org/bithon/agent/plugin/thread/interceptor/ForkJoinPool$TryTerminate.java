@@ -32,7 +32,7 @@ public class ForkJoinPool$TryTerminate extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
         if (registry != null) {
-            registry.deleteThreadPool(aopContext.castTargetAs());
+            registry.deleteThreadPool(aopContext.getTargetAs());
         }
     }
 }

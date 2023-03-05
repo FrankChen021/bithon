@@ -20,7 +20,6 @@ import org.bithon.agent.core.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
 import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 import org.bithon.agent.core.tracing.reporter.ITraceReporter;
-import org.bithon.agent.core.tracing.sampler.SamplingMode;
 import org.bithon.component.commons.time.Clock;
 
 /**
@@ -50,8 +49,6 @@ public interface ITraceContext {
     ITraceSpan newSpan(String parentSpanId, String spanId);
 
     void finish();
-
-    ITraceContext samplingMode(SamplingMode mode);
 
     <T> void propagate(T injectedTo, PropagationSetter<T> setter);
 }

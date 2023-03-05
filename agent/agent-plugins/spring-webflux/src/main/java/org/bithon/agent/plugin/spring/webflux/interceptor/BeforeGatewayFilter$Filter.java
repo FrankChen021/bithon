@@ -20,10 +20,9 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.plugin.PluginConfigurationManager;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.plugin.spring.webflux.SpringWebFluxPlugin;
 import org.bithon.agent.plugin.spring.webflux.config.GatewayFilterConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -41,7 +40,7 @@ public class BeforeGatewayFilter$Filter extends AbstractInterceptor {
     private final GatewayFilterConfigs configs;
 
     public BeforeGatewayFilter$Filter() {
-        configs = PluginConfigurationManager.load(SpringWebFluxPlugin.class).getConfig(GatewayFilterConfigs.class);
+        configs = ConfigurationManager.getInstance().getConfig(GatewayFilterConfigs.class);
     }
 
     @Override
@@ -90,7 +89,7 @@ public class BeforeGatewayFilter$Filter extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext aopContext) {
         final ServerWebExchange exchange = aopContext.getArgAs(0);
-        ITraceSpan span = aopContext.castUserContextAs();
+        ITraceSpan span = aopContext.getUserContextAs();
         if (span == null) {
             return;
         }

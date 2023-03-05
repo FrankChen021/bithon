@@ -21,13 +21,12 @@ import org.apache.catalina.connector.Response;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
-import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -47,9 +46,8 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
     @Override
     public boolean initialize() {
         requestFilter = new HttpIncomingFilter();
-        traceConfig = AgentContext.getInstance()
-                                  .getAgentConfiguration()
-                                  .getConfig(TraceConfig.class);
+        traceConfig = ConfigurationManager.getInstance()
+                                          .getConfig(TraceConfig.class);
 
         return true;
     }
@@ -69,14 +67,16 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
-
         ITraceContext traceContext = Tracer.get()
                                            .propagator()
                                            .extract(request, Request::getHeader);
+        if (traceContext == null) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
 
         traceContext.currentSpan()
                     .component("tomcat")
+                    .tag(Tags.REMOTE_ADDR, request.getRemoteAddr())
                     .tag(Tags.HTTP_URI, request.getRequestURI())
                     .tag(Tags.HTTP_METHOD, request.getMethod())
                     .tag(Tags.HTTP_VERSION, request.getProtocol())
@@ -101,6 +101,8 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
 
         aopContext.setUserContext(traceContext);
 
+        InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
+
         return InterceptionDecision.CONTINUE;
     }
 
@@ -108,23 +110,13 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         InterceptorContext.remove(InterceptorContext.KEY_URI);
 
-        ITraceContext traceContext = aopContext.castUserContextAs();
-        if (traceContext == null) {
-            //exception occurs in 'Enter'
-            return;
-        }
-
+        ITraceContext traceContext = aopContext.getUserContextAs();
         try {
-            ITraceSpan span = traceContext.currentSpan();
-            if (span == null) {
-                // TODO: ERROR
-                return;
-            }
-
             Response response = (Response) aopContext.getArgs()[1];
-            span.tag(Tags.HTTP_STATUS, Integer.toString(response.getStatus()))
-                .tag(aopContext.getException())
-                .finish();
+            traceContext.currentSpan()
+                        .tag(Tags.HTTP_STATUS, Integer.toString(response.getStatus()))
+                        .tag(aopContext.getException())
+                        .finish();
         } finally {
             traceContext.finish();
             try {

@@ -22,6 +22,7 @@
     -->
     <format>dir</format>
     <format>zip</format>
+    <format>tar</format>
   </formats>
   <includeBaseDirectory>true</includeBaseDirectory>
 

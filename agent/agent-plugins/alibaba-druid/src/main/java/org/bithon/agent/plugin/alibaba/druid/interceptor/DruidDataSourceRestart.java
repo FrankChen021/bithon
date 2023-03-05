@@ -27,6 +27,6 @@ public class DruidDataSourceRestart extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        MonitoredSourceManager.getInstance().addDataSource(aopContext.castTargetAs());
+        MonitoredSourceManager.getInstance().addDataSource(aopContext.getTargetAs());
     }
 }

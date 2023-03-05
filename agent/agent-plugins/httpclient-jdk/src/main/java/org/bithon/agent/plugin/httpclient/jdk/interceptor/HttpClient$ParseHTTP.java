@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
@@ -46,17 +46,20 @@ public class HttpClient$ParseHTTP extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        traceConfig = AgentContext.getInstance().getAgentConfiguration().getConfig(TraceConfig.class);
+        traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
         return true;
     }
 
+    /**
+     * {@link HttpClientContext} accessed in this method is injected in {@link HttpClient$New} or {@link HttpsClient$New}
+     */
     @Override
     public void onMethodLeave(AopContext aopContext) {
         MessageHeader responseHeader = (MessageHeader) aopContext.getArgs()[0];
         String statusLine = responseHeader.getValue(0);
         Integer statusCode = parseStatusCode(statusLine);
 
-        IBithonObject bithonObject = aopContext.castTargetAs();
+        IBithonObject bithonObject = aopContext.getTargetAs();
         HttpClientContext clientContext = (HttpClientContext) bithonObject.getInjectedObject();
         String httpMethod = clientContext.getMethod();
         String requestUri = clientContext.getUrl();

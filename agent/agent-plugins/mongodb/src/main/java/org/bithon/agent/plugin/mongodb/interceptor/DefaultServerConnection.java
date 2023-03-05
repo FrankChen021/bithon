@@ -70,7 +70,7 @@ public class DefaultServerConnection {
 
         @Override
         public void onMethodLeave(AopContext aopContext) {
-            Connection connection = aopContext.castTargetAs();
+            Connection connection = aopContext.getTargetAs();
             String hostAndPort = connection.getDescription().getServerAddress().toString();
 
             MongoCommand command = null;
@@ -86,7 +86,7 @@ public class DefaultServerConnection {
             //
             // trace
             //
-            ((ITraceSpan) aopContext.castUserContextAs())
+            ((ITraceSpan) aopContext.getUserContextAs())
                 .tag(aopContext.getException())
                 .tag("server", hostAndPort)
                 .tag("database", command == null ? null : command.getDatabase())
@@ -102,7 +102,7 @@ public class DefaultServerConnection {
                                                  command.getDatabase(),
                                                  command.getCollection(),
                                                  command.getCommand())
-                              .add(aopContext.getCostTime(), exceptionCount);
+                              .add(aopContext.getExecutionTime(), exceptionCount);
             }
         }
     }

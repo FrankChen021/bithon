@@ -26,7 +26,7 @@ import org.apache.http.protocol.HttpContext;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
@@ -44,7 +44,7 @@ public class HttpRequestExecutor$Execute extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        traceConfig = AgentContext.getInstance().getAgentConfiguration().getConfig(TraceConfig.class);
+        traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
         return true;
     }
 
@@ -82,13 +82,13 @@ public class HttpRequestExecutor$Execute extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext context) {
-        ITraceSpan thisSpan = context.castUserContextAs();
+        ITraceSpan thisSpan = context.getUserContextAs();
         if (thisSpan == null) {
             // in case of exception in above
             return;
         }
 
-        HttpResponse response = context.castReturningAs();
+        HttpResponse response = context.getReturningAs();
         String status = response == null ? "-1" : (response.getStatusLine() == null ? "-1" : Integer.toString(response.getStatusLine().getStatusCode()));
         thisSpan.tag(Tags.HTTP_STATUS, status)
                 .tag(context.getException());

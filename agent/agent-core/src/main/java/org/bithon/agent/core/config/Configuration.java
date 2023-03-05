@@ -19,9 +19,11 @@ package org.bithon.agent.core.config;
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.config.validation.Validator;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 import org.bithon.shaded.com.fasterxml.jackson.databind.DeserializationFeature;
 import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.shaded.com.fasterxml.jackson.databind.SerializationFeature;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.ObjectNode;
@@ -31,10 +33,15 @@ import org.bithon.shaded.com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -43,89 +50,102 @@ import java.util.function.Supplier;
  */
 public class Configuration {
 
-    public static final Configuration EMPTY = new Configuration(null);
-
     private final JsonNode configurationNode;
+
+    public static Configuration from(String configFileFormat, InputStream configStream) {
+        return new Configuration(readStaticConfiguration(configFileFormat, configStream));
+    }
 
     public Configuration(JsonNode configurationNode) {
         this.configurationNode = configurationNode;
     }
 
-    public static Configuration create(String location,
+    /**
+     * @return NotNull object
+     */
+    public static Configuration create(String configFileFormat,
                                        InputStream staticConfig,
                                        String dynamicPropertyPrefix,
                                        String... environmentVariables) {
-        JsonNode staticConfiguration = readStaticConfiguration(location, staticConfig);
+        JsonNode staticConfiguration = readStaticConfiguration(configFileFormat, staticConfig);
         JsonNode dynamicConfiguration = readDynamicConfiguration(dynamicPropertyPrefix, environmentVariables);
-        return new Configuration(mergeConfiguration(staticConfiguration, dynamicConfiguration));
+        return new Configuration(mergeNodes(staticConfiguration, dynamicConfiguration, false));
     }
 
-    private static JsonNode mergeConfiguration(JsonNode target, JsonNode source) {
-        if (source == null) {
-            return target;
+    /**
+     * Merge two configuration nodes into one recursively
+     */
+    private static JsonNode mergeNodes(JsonNode to, JsonNode from, boolean isReplace) {
+        if (from == null) {
+            return to;
         }
 
-        Iterator<String> names = source.fieldNames();
+        Iterator<String> names = from.fieldNames();
         while (names.hasNext()) {
 
             String fieldName = names.next();
-            JsonNode targetNode = target.get(fieldName);
-            JsonNode sourceNode = source.get(fieldName);
+            JsonNode targetNode = to.get(fieldName);
+            JsonNode sourceNode = from.get(fieldName);
 
             if (targetNode == null) {
-                ((ObjectNode) target).set(fieldName, sourceNode);
+                ((ObjectNode) to).set(fieldName, sourceNode);
                 continue;
             }
 
             if (targetNode.isObject()) {
-                // target json node exists, and it's an object, recursively merge
-                mergeConfiguration(targetNode, sourceNode);
+                // to json node exists, and it's an object, recursively merge
+                mergeNodes(targetNode, sourceNode, isReplace);
             } else if (targetNode.isArray()) {
                 if (sourceNode.isArray()) {
                     // merge arrays
                     ArrayNode sourceArray = (ArrayNode) sourceNode;
 
-                    // insert source nodes at the beginning of the target node
-                    // this makes the source nodes higher priority
-                    for (int i = 0; i < sourceArray.size(); i++) {
-                        ((ArrayNode) targetNode).insert(i, sourceArray.get(i));
+                    // Insert source nodes at the beginning of the target node.
+                    // This makes the source nodes higher priority
+                    if (isReplace) {
+                        ((ArrayNode) targetNode).removeAll();
+                        ((ArrayNode) targetNode).addAll(sourceArray);
+                    } else {
+                        for (int i = 0; i < sourceArray.size(); i++) {
+                            ((ArrayNode) targetNode).insert(i, sourceArray.get(i));
+                        }
                     }
                 } else {
-                    // use the source node to replace the target node
-                    ((ObjectNode) target).set(fieldName, sourceNode);
+                    // use the source node to replace the to node
+                    ((ObjectNode) to).set(fieldName, sourceNode);
                 }
             } else {
-                // use the source node to replace the target node
-                ((ObjectNode) target).set(fieldName, sourceNode);
+                // use the source node to replace the to node
+                ((ObjectNode) to).set(fieldName, sourceNode);
             }
         }
 
-        return target;
+        return to;
     }
 
-    private static JsonNode readStaticConfiguration(String location, InputStream configFile) {
-        if (configFile == null) {
+    private static JsonNode readStaticConfiguration(String configFileFormat, InputStream configStream) {
+        if (configStream == null) {
             return new ObjectNode(new JsonNodeFactory(true));
         }
 
         ObjectMapper mapper;
-        if (location.endsWith(".yaml") || location.endsWith(".yml")) {
+        if (configFileFormat.endsWith(".yaml") || configFileFormat.endsWith(".yml")) {
             mapper = new ObjectMapper(new YAMLFactory());
-        } else if (location.endsWith(".properties")) {
+        } else if (configFileFormat.endsWith(".properties")) {
             mapper = new JavaPropsMapper();
-        } else if (location.endsWith(".json")) {
+        } else if (configFileFormat.endsWith(".json")) {
             mapper = new ObjectMapper();
         } else {
-            throw new AgentException("Unknown property file type: %s", location);
+            throw new AgentException("Unknown property file type: %s", configFileFormat);
         }
 
         try {
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-            return mapper.readTree(configFile);
+            return mapper.readTree(configStream);
         } catch (IOException e) {
             throw new AgentException("Failed to read property from static file[%s]:%s",
-                                     location,
+                                     configFileFormat,
                                      e.getMessage());
         }
     }
@@ -138,7 +158,7 @@ public class Configuration {
         // read properties from environment variables.
         // environment variables have the lowest priority
         //
-        if (environmentVariables != null && environmentVariables.length > 0) {
+        if (environmentVariables != null) {
             for (String envName : environmentVariables) {
                 String envValue = System.getenv(envName);
                 if (!StringUtils.isEmpty(envValue)) {
@@ -190,6 +210,61 @@ public class Configuration {
         }
     }
 
+    public void merge(Configuration configuration) {
+        mergeNodes(this.configurationNode, configuration.configurationNode, false);
+    }
+
+    public void replace(Configuration configuration) {
+        mergeNodes(this.configurationNode, configuration.configurationNode, true);
+    }
+
+    public boolean isEmpty() {
+        return this.configurationNode.isEmpty();
+    }
+
+    /**
+     * check if the configuration contains only the properties specified by given {@param pathPrefix}.
+     */
+    public boolean validate(String pathPrefix) {
+        String[] paths = pathPrefix.split("\\.");
+        JsonNode node = this.configurationNode;
+        for (String path : paths) {
+            if (node.size() > 1) {
+                return false;
+            }
+            node = node.get(path);
+            if (node == null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public Set<String> getKeys() {
+        Set<String> result = new HashSet<>();
+        getKeys(result, new ArrayList<>(), this.configurationNode);
+        return result;
+    }
+
+    private void getKeys(Set<String> result, List<String> path, JsonNode node) {
+        Iterator<String> names = node.fieldNames();
+        while (names.hasNext()) {
+            String fieldName = names.next();
+            JsonNode targetNode = node.get(fieldName);
+
+            int addIndex = path.size();
+            path.add(fieldName);
+
+            if (targetNode.isObject()) {
+                getKeys(result, path, targetNode);
+            } else {
+                // use the source node to replace the to node
+                result.add(String.join(".", path));
+            }
+            path.remove(addIndex);
+        }
+    }
+
     public <T> T getConfig(Class<T> clazz) {
         ConfigurationProperties cfg = clazz.getAnnotation(ConfigurationProperties.class);
         if (cfg != null && !StringUtils.isEmpty(cfg.prefix())) {
@@ -201,21 +276,27 @@ public class Configuration {
 
     @SuppressWarnings("unchecked")
     public <T> T getConfig(String prefixes, Class<T> clazz) {
-        return getConfig(prefixes, clazz, () -> {
-            try {
-                if (clazz == Boolean.class) {
-                    //noinspection unchecked
-                    return (T) Boolean.FALSE;
-                }
-                return clazz.getDeclaredConstructor().newInstance();
-            } catch (IllegalAccessException e) {
-                throw new AgentException("Unable create instance for [%s]: %s", clazz.getName(), e.getMessage());
-            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException e) {
-                throw new AgentException("Unable create instance for [%s]: %s",
-                                         clazz.getName(),
-                                         e.getCause().getMessage());
-            }
-        });
+        return getConfig(prefixes,
+                         clazz,
+                         () -> {
+                             // default value provider
+                             try {
+                                 if (clazz == Boolean.class) {
+                                     //noinspection unchecked
+                                     return (T) Boolean.FALSE;
+                                 }
+                                 if (clazz.isArray()) {
+                                     return (T) Array.newInstance(clazz.getComponentType(), 0);
+                                 }
+                                 return clazz.getDeclaredConstructor().newInstance();
+                             } catch (IllegalAccessException e) {
+                                 throw new AgentException("Unable create instance for [%s]: %s", clazz.getName(), e.getMessage());
+                             } catch (NoSuchMethodException | InvocationTargetException | InstantiationException e) {
+                                 throw new AgentException("Unable create instance for [%s]: %s",
+                                                          clazz.getName(),
+                                                          e.getCause() == null ? e.getMessage() : e.getCause().getMessage());
+                             }
+                         });
     }
 
     public <T> T getConfig(String prefixes, Class<T> clazz, Supplier<T> defaultSupplier) {
@@ -259,5 +340,28 @@ public class Configuration {
         }
 
         return value;
+    }
+
+    public String format(String format, boolean prettyFormat) {
+        ObjectMapper mapper;
+        if ("yaml".equals(format) || "yml".equals(format)) {
+            mapper = new ObjectMapper(new YAMLFactory());
+        } else if ("properties".equals(format)) {
+            mapper = new JavaPropsMapper();
+        } else if ("json".equals(format)) {
+            mapper = new ObjectMapper();
+        } else {
+            throw new AgentException("Unknown format: %s", format);
+        }
+
+        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        if (prettyFormat) {
+            mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+        }
+        try {
+            return mapper.writeValueAsString(this.configurationNode);
+        } catch (JsonProcessingException e) {
+            throw new AgentException(e);
+        }
     }
 }

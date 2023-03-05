@@ -21,7 +21,10 @@ import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.loader.AgentClassLoader;
 import org.bithon.agent.core.aop.InstrumentationHelper;
 import org.bithon.agent.core.aop.installer.InterceptorInstaller;
+import org.bithon.agent.core.config.AppConfiguration;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
 import org.bithon.agent.core.plugin.PluginManager;
@@ -32,7 +35,6 @@ import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.ServiceLoader;
 
@@ -40,7 +42,7 @@ import java.util.ServiceLoader;
  * @author frankchen
  */
 public class AgentStarter {
-    private static ILogAdaptor log = LoggerFactory.getLogger(AgentStarter.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(AgentStarter.class);
 
     /**
      * The banner is generated at https://manytools.org/hacker-tools/ascii-banner/ with font = 3D-ASCII
@@ -73,8 +75,10 @@ public class AgentStarter {
                         .map(jar -> new File(jar.getName()).getName())
                         .sorted()
                         .forEach(name -> log.info("Found lib {}", name));
-
         AgentContext agentContext = AgentContext.createInstance(agentPath);
+
+        ConfigurationManager.create(agentPath);
+        agentContext.setAppInstance(new AppInstance(ConfigurationManager.getInstance().getConfig(AppConfiguration.class)));
 
         final PluginManager pluginManager = new PluginManager(agentContext);
 
@@ -90,7 +94,7 @@ public class AgentStarter {
             lifeCycles.add(lifecycle);
         }
         // sort the lifecycles in their priority
-        Collections.sort(lifeCycles, (o1, o2) -> o2.getOrder() - o1.getOrder());
+        lifeCycles.sort((o1, o2) -> o2.getOrder() - o1.getOrder());
 
         //
         for (IAgentLifeCycle lifeCycle : lifeCycles) {

@@ -20,6 +20,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.bithon.server.web.service.tracing.api.TraceTopo;
@@ -142,12 +143,18 @@ public class TraceTopoBuilder {
         TraceSpanBo user = new TraceSpanBo();
         user.setAppName("user");
 
+        // parent node of consumer
         TraceSpanBo producer = new TraceSpanBo();
         producer.setAppName("producer");
+
         for (TraceSpan root : spans) {
             if ("SERVER".equals(root.kind)) {
-                // TODO: we can detect the root.tags['http.header.User-Agent'] to decide the name of user
-                // For example, if the user-agent is like 'chrome', the name could be chrome and icon could also be chrome style
+                String userAgent = root.getTag("http.header.User-Agent");
+                if (StringUtils.hasText(userAgent)) {
+                    // Use the user agent as the name of the USER node
+                    user.setAppName(userAgent);
+                }
+
                 this.addLink(user, root).incrCount();
             } else if (SpanKind.CONSUMER.name().equals(root.kind)) {
                 this.addLink(producer, root).incrCount();
@@ -170,16 +177,21 @@ public class TraceTopoBuilder {
         //noinspection unchecked
         for (TraceSpanBo childSpan : (List<TraceSpanBo>) childSpans) {
 
-            if (!parentSpan.getAppName().equals(childSpan.getAppName())
-                || !Objects.equals(parentSpan.getInstanceName(), childSpan.getInstanceName())) {
-
+            if (parentSpan.getAppName().equals(childSpan.getAppName())
+                && Objects.equals(parentSpan.getInstanceName(), childSpan.getInstanceName())
+                && !SpanKind.SERVER.name().equals(childSpan.getKind())
+                && !SpanKind.CONSUMER.name().equals(childSpan.getKind())) {
+                // The instance of childSpan is the same as the parentSpan,
+                // no need to create a link, but just recursively search next level
+                //
+                // But if the childSpan is a SERVER/CONSUMER, it means the application itself sends a request/message to itself,
+                // in that case, we need to go to the 'else' case
+                //
+                buildLink(parentSpan, childSpan.children);
+            } else {
                 this.addLink(parentSpan, childSpan).incrCount();
 
                 buildLink(childSpan, childSpan.children);
-            } else {
-                // the instance of childSpan is the same as the parentSpan
-                // no need to create a link, but just recursively search next level
-                buildLink(parentSpan, childSpan.children);
             }
 
             // this childSpan is a CLIENT termination,

@@ -57,7 +57,7 @@ public class QueryLifecycle$Initialize extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         ITraceContext ctx = TraceContextHolder.current();
         if (ctx != null) {
-            QueryLifecycle lifecycle = aopContext.castTargetAs();
+            QueryLifecycle lifecycle = aopContext.getTargetAs();
             if (!ctx.currentSpan().tags().containsKey("query")) {
                 try {
                     ctx.currentSpan()

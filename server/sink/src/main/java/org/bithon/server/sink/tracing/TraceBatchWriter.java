@@ -26,7 +26,9 @@ import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author frank.chen021@outlook.com
@@ -35,7 +37,11 @@ import java.util.List;
 @Slf4j
 public class TraceBatchWriter implements ITraceWriter {
     private final List<TraceSpan> traceSpans = new ArrayList<>();
-    private final List<TraceIdMapping> traceIdMappings = new ArrayList<>();
+
+    /**
+     * Use set to deduplication for different batches
+     */
+    private final Set<TraceIdMapping> traceIdMappings = new HashSet<>();
     private final List<TagIndex> tagIndexes = new ArrayList<>();
 
     private final ITraceWriter writer;

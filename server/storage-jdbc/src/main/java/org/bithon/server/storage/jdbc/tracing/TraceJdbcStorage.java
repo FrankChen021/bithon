@@ -103,7 +103,6 @@ public class TraceJdbcStorage implements ITraceStorage {
                                    this.objectMapper,
                                    this.traceSpanSchema,
                                    this.traceTagIndexSchema,
-                                   this.traceSinkConfig,
                                    this.traceStorageConfig);
     }
 

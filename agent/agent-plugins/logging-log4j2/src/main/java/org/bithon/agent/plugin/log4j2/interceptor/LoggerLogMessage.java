@@ -21,15 +21,7 @@ import org.apache.logging.log4j.spi.StandardLevel;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.dispatcher.Dispatcher;
-import org.bithon.agent.core.dispatcher.Dispatchers;
-import org.bithon.agent.core.event.EventMessage;
-import org.bithon.agent.core.tracing.context.ITraceContext;
-import org.bithon.agent.core.tracing.context.TraceContextHolder;
-import org.bithon.agent.core.tracing.propagation.TraceMode;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.bithon.agent.core.event.ExceptionCollector;
 
 /**
  * @author frankchen
@@ -44,18 +36,7 @@ public class LoggerLogMessage extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        Map<String, Object> exceptionArgs = new HashMap<>();
-        exceptionArgs.put("exceptionClass", exception.getClass().getName());
-        exceptionArgs.put("message", exception.getMessage() == null ? "" : exception.getMessage());
-        exceptionArgs.put("stack", exception.toString());
-        exceptionArgs.put("thread", Thread.currentThread().getName());
-        ITraceContext traceContext = TraceContextHolder.current();
-        if (traceContext != null && traceContext.traceMode().equals(TraceMode.TRACE)) {
-            exceptionArgs.put("traceId", traceContext.traceId());
-        }
-        EventMessage exceptionEvent = new EventMessage("exception", exceptionArgs);
-        Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
-        dispatcher.sendMessage(dispatcher.getMessageConverter().from(exceptionEvent));
+        ExceptionCollector.collect(exception);
 
         return InterceptionDecision.SKIP_LEAVE;
     }

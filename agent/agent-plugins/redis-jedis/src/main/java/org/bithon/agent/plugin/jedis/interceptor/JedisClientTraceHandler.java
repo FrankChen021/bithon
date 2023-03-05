@@ -56,7 +56,7 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        Client redisClient = aopContext.castTargetAs();
+        Client redisClient = aopContext.getTargetAs();
         String uri = "redis://" + redisClient.getHost() + ":" + redisClient.getPort();
 
         aopContext.setUserContext(span.method(command)
@@ -69,7 +69,7 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        ITraceSpan span = aopContext.castUserContextAs();
+        ITraceSpan span = aopContext.getUserContextAs();
         span.finish();
     }
 

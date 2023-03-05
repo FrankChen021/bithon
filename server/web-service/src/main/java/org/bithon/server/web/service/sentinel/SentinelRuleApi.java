@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.sentinel.degrade.IDegradingRuleManager;
 import org.bithon.agent.sentinel.flow.IFlowRuleManager;
 import org.bithon.component.brpc.IServiceController;
-import org.bithon.server.collector.cmd.service.CommandService;
+import org.bithon.server.collector.cmd.service.AgentCommandService;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -40,9 +40,9 @@ import javax.validation.Valid;
 @Conditional(WebServiceModuleEnabler.class)
 public class SentinelRuleApi {
 
-    private final CommandService commandService;
+    private final AgentCommandService commandService;
 
-    public SentinelRuleApi(CommandService commandService) {
+    public SentinelRuleApi(AgentCommandService commandService) {
         this.commandService = commandService;
     }
 

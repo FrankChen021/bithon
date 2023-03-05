@@ -20,7 +20,7 @@ import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.core.plugin.IPlugin;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
@@ -33,12 +33,19 @@ public class SpringSchedulingPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
-        return Collections.singletonList(
+        return Arrays.asList(
             forClass("org.springframework.scheduling.support.ScheduledMethodRunnable")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("run")
                                                    .to("org.bithon.agent.plugin.spring.scheduling.ScheduledMethodRunnable$Run")
+                ),
+
+            forClass("org.springframework.scheduling.support.DelegatingErrorHandlingRunnable")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndNoArgs("run")
+                                                   .to("org.bithon.agent.plugin.spring.scheduling.DelegatingErrorHandlingRunnable$Run")
                 )
         );
     }

@@ -49,11 +49,11 @@ public class AbstractBlockingStub$NewStub extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        String targetAopClassName = AbstractBlockingStub$NewStub.class.getPackage().getName() + ".StubAop";
+        String targetAopClassName = AbstractBlockingStub$NewStub.class.getPackage().getName() + ".BlockingStubAop";
 
         grpcStubAopClass = AopClassHelper.generateAopClass(IAdviceAopTemplate.class,
                                                            targetAopClassName,
-                                                           GrpcStubInterceptor.class.getName(),
+                                                           AbstractGrpcStubInterceptor.BlockingStubInterceptor.class.getName(),
                                                            true);
         AopClassHelper.inject(grpcStubAopClass);
 
@@ -74,7 +74,7 @@ public class AbstractBlockingStub$NewStub extends AbstractInterceptor {
 
         // Enhance the stub class
         DynamicInterceptorInstaller.getInstance().installOne(new DynamicInterceptorInstaller.AopDescriptor(clientStubClass.getName(),
-                                                                                                           GrpcStubInterceptor.class.getName(),
+                                                                                                           AbstractGrpcStubInterceptor.BlockingStubInterceptor.class.getName(),
                                                                                                            Advice.to(grpcStubAopClass.getTypeDescription(), ClassFileLocator.Simple.of(grpcStubAopClass.getAllTypes())),
                                                                                                            Matchers.visibility(Visibility.PUBLIC)));
 

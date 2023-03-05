@@ -26,7 +26,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 31/12/21 11:25 PM
  */
-@ConfigurationProperties(prefix = "agent.plugin.spring.webflux.gateway")
+@ConfigurationProperties(prefix = "agent.plugin.spring.webflux.gateway", dynamic = false)
 public class GatewayFilterConfigs extends HashMap<String, GatewayFilterConfigs.Filter> {
     public static class Filter {
         private String mode;

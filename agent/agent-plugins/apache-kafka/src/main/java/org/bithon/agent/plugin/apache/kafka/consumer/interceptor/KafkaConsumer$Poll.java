@@ -49,17 +49,17 @@ public class KafkaConsumer$Poll extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        KafkaPluginContext kafkaPluginContext = aopContext.castInjectedOnTargetAs();
+        KafkaPluginContext kafkaPluginContext = aopContext.getInjectedOnTargetAs();
 
-        KafkaConsumer<?, ?> consumer = aopContext.castTargetAs();
+        KafkaConsumer<?, ?> consumer = aopContext.getTargetAs();
         String topics = null;
         try {
             topics = String.join(",", consumer.subscription());
         } catch (Exception ignored) {
         }
 
-        ConsumerRecords<?, ?> records = aopContext.castReturningAs();
-        ITraceSpan span = aopContext.castUserContextAs();
+        ConsumerRecords<?, ?> records = aopContext.getReturningAs();
+        ITraceSpan span = aopContext.getUserContextAs();
         span.tag(aopContext.getException())
             .tag("kafka.groupId", kafkaPluginContext.groupId)
             .tag("kafka.topics", topics)

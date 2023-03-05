@@ -16,6 +16,7 @@
 
 package org.bithon.agent.core.context;
 
+import org.bithon.agent.core.config.AppConfiguration;
 import org.bithon.agent.core.utils.NetworkUtils;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
@@ -38,11 +39,11 @@ public class AppInstance {
     private int port;
     private String hostAndPort;
 
-    AppInstance(AgentContext.AppConfiguration appConfiguration) {
+    public AppInstance(AppConfiguration appConfiguration) {
         this.appName = appConfiguration.getName();
         this.qualifiedAppName = appName + "-" + appConfiguration.getEnv();
         this.env = appConfiguration.getEnv();
-        this.port = 0;
+        this.port = appConfiguration.getPort();
 
         if (StringUtils.isEmpty(appConfiguration.getInstance())) {
             NetworkUtils.IpAddress ipAddress = NetworkUtils.getIpAddress();
@@ -54,7 +55,7 @@ public class AppInstance {
             this.hostIp = appConfiguration.getInstance();
         }
 
-        this.hostAndPort = hostIp;
+        this.hostAndPort = this.port > 0 ? hostIp + ":" + this.port : hostIp;
     }
 
     public String getQualifiedAppName() {

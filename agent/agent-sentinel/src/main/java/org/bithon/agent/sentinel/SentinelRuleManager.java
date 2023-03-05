@@ -16,8 +16,9 @@
 
 package org.bithon.agent.sentinel;
 
-import org.bithon.agent.controller.setting.AgentSettingManager;
-import org.bithon.agent.controller.setting.IAgentSettingRefreshListener;
+import org.bithon.agent.controller.config.DynamicConfigurationManager;
+import org.bithon.agent.controller.config.IConfigurationRefreshListener;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
 import org.bithon.agent.sentinel.expt.SentinelCommandException;
 import org.bithon.agent.sentinel.flow.FlowRuleDto;
@@ -25,8 +26,6 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager;
 import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
-import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
-import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,22 +73,12 @@ public class SentinelRuleManager {
     }
 
     private SentinelRuleManager() {
-        AgentSettingManager manager = AgentSettingManager.getInstance();
-        FlowRuleRefreshListener flowRuleListener = new FlowRuleRefreshListener();
-        manager.register("flowRules", flowRuleListener);
+        DynamicConfigurationManager manager = DynamicConfigurationManager.getInstance();
+        manager.addRefreshListener(new FlowRuleRefreshListener());
+        manager.addRefreshListener(new DegradingRuleRefreshListener());
 
-        DegradingRuleRefreshListener degradeRuleListener = new DegradingRuleRefreshListener();
-        manager.register("degradingRules", degradeRuleListener);
-
-        Map<String, JsonNode> latestSettings = AgentSettingManager.getInstance().getLatestSettings();
-        JsonNode flowRuleNodes = latestSettings.get("flowRules");
-        if (flowRuleNodes != null) {
-            flowRuleListener.onRefresh(manager.getObjectMapper(), flowRuleNodes);
-        }
-        JsonNode degradingRuleNodes = latestSettings.get("degradingRules");
-        if (degradingRuleNodes != null) {
-            degradeRuleListener.onRefresh(manager.getObjectMapper(), degradingRuleNodes);
-        }
+        refreshFlowRules();
+        refreshDegradingRule();
     }
 
     public static SentinelRuleManager getInstance() {
@@ -125,7 +114,12 @@ public class SentinelRuleManager {
                                  .collect(Collectors.toSet());
     }
 
-    public void checkFlowRule(Map<String, FlowRuleDto> configRules) {
+    public void refreshFlowRules() {
+        FlowRuleDto[] flowRules = ConfigurationManager.getInstance().getConfig("flowRules", FlowRuleDto[].class);
+
+        Map<String, FlowRuleDto> configRules = Arrays.stream(flowRules)
+                                                     .collect(Collectors.toMap(FlowRuleDto::getRuleId, val -> val));
+
         List<String> deleteRules = new ArrayList<>();
         List<FlowRuleDto> updateRules = new ArrayList<>();
 
@@ -194,7 +188,12 @@ public class SentinelRuleManager {
         }
     }
 
-    public void checkDegradingRule(Map<String, DegradingRuleDto> configRules) {
+    public void refreshDegradingRule() {
+        DegradingRuleDto[] degradingRules = ConfigurationManager.getInstance().getConfig("degradingRules", DegradingRuleDto[].class);
+
+        Map<String, DegradingRuleDto> configRules = Arrays.stream(degradingRules)
+                                                          .collect(Collectors.toMap(DegradingRuleDto::getRuleId, val -> val));
+
         List<String> deleted = new ArrayList<>();
         List<DegradingRuleDto> updated = new ArrayList<>();
 
@@ -484,25 +483,20 @@ public class SentinelRuleManager {
         }
     }
 
-    class FlowRuleRefreshListener implements IAgentSettingRefreshListener {
+    class FlowRuleRefreshListener implements IConfigurationRefreshListener {
         @Override
-        public void onRefresh(ObjectMapper om, JsonNode configNode) {
-            FlowRuleDto[] flowRules = om.convertValue(configNode, FlowRuleDto[].class);
-            if (flowRules != null) {
-                checkFlowRule(Arrays.stream(flowRules)
-                                    .collect(Collectors.toMap(FlowRuleDto::getRuleId, val -> val)));
+        public void onRefresh(Set<String> keys) {
+            if (keys.contains("flowRules")) {
+                refreshFlowRules();
             }
         }
     }
 
-    class DegradingRuleRefreshListener implements IAgentSettingRefreshListener {
+    class DegradingRuleRefreshListener implements IConfigurationRefreshListener {
         @Override
-        public void onRefresh(ObjectMapper om, JsonNode configNode) {
-            // check degrade rules
-            DegradingRuleDto[] degradingRules = om.convertValue(configNode, DegradingRuleDto[].class);
-            if (degradingRules != null) {
-                checkDegradingRule(Arrays.stream(degradingRules)
-                                         .collect(Collectors.toMap(DegradingRuleDto::getRuleId, val -> val)));
+        public void onRefresh(Set<String> keys) {
+            if (keys.contains("degradingRules")) {
+                refreshDegradingRule();
             }
         }
     }

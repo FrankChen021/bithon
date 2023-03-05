@@ -19,13 +19,10 @@ package org.bithon.agent.plugin.spring.bean.interceptor;
 import org.bithon.agent.bootstrap.aop.advice.IAdviceInterceptor;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,8 +36,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class BeanMethod$Invoke implements IAdviceInterceptor {
 
-    private final Map<Class<?>, String> componentNames = new ConcurrentHashMap<>();
-
     @Override
     public Object onMethodEnter(
         final Method method,
@@ -52,23 +47,7 @@ public class BeanMethod$Invoke implements IAdviceInterceptor {
             return null;
         }
 
-        String component = componentNames.computeIfAbsent(method.getDeclaringClass(), beanClass -> {
-            if (beanClass.isAnnotationPresent(RestController.class)) {
-                return "restController";
-            } else if (beanClass.isAnnotationPresent(Controller.class)) {
-                return "controller";
-            } else if (beanClass.isAnnotationPresent(Service.class)) {
-                return "springService";
-            } else if (beanClass.isAnnotationPresent(Repository.class)) {
-                return "springRepository";
-            } else if (beanClass.isAnnotationPresent(Component.class)) {
-                return "springComponent";
-            } else {
-                return "springBean";
-            }
-        });
-
-        return span.component(component)
+        return span.component(AnnotationHelper.getComponentName(method.getDeclaringClass()))
                    .method(method)
                    .start();
     }
@@ -84,19 +63,34 @@ public class BeanMethod$Invoke implements IAdviceInterceptor {
         return returning;
     }
 
-    public static boolean isInterceptable(Class<?> beanClass) {
-        if (beanClass.isAnnotationPresent(RestController.class)) {
-            return true;
-        } else if (beanClass.isAnnotationPresent(Controller.class)) {
-            return true;
-        } else if (beanClass.isAnnotationPresent(Service.class)) {
-            return true;
-        } else if (beanClass.isAnnotationPresent(Repository.class)) {
-            return true;
-        } else if (beanClass.isAnnotationPresent(Component.class)) {
-            return true;
-        } else {
-            return false;
+    public static class AnnotationHelper {
+        private static final Map<String, String> ANNOTATION2_NAME = new HashMap<>();
+        private static final Map<Class<?>, String> COMPONENT_NAMES = new ConcurrentHashMap<>();
+
+        // Use string format class name instead of using Class to avoid ClassNotFound problem
+        // when target application does not ship with spring-web
+        static {
+            ANNOTATION2_NAME.put("org.springframework.stereotype.Component", "spring-component");
+            ANNOTATION2_NAME.put("org.springframework.stereotype.Controller", "spring-controller");
+            ANNOTATION2_NAME.put("org.springframework.stereotype.Repository", "spring-repository");
+            ANNOTATION2_NAME.put("org.springframework.stereotype.Service", "spring-service");
+            ANNOTATION2_NAME.put("org.springframework.web.bind.annotation.RestController", "spring-controller");
+        }
+
+        public static String getOrCreateComponentName(Class<?> beanClass) {
+            Annotation[] annotations = beanClass.getAnnotations();
+            for (Annotation annotation : annotations) {
+                String name = ANNOTATION2_NAME.get(annotation.annotationType().getName());
+                if (name != null) {
+                    COMPONENT_NAMES.put(beanClass, name);
+                    return name;
+                }
+            }
+            return null;
+        }
+
+        public static String getComponentName(Class<?> clazz) {
+            return COMPONENT_NAMES.get(clazz);
         }
     }
 }
