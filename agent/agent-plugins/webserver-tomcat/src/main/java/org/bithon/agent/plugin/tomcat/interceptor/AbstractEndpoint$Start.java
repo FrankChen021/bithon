@@ -32,11 +32,14 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
+ * {@link org.apache.tomcat.util.net.AbstractEndpoint#start()}
+ *
  * @author frankchen
  */
-public class AbstractEndpointStart extends AbstractInterceptor {
+@SuppressWarnings("rawtypes")
+public class AbstractEndpoint$Start extends AbstractInterceptor {
 
-    private AbstractEndpoint<?> endpoint;
+    private AbstractEndpoint endpoint;
 
     @Override
     public void onMethodLeave(AopContext context) {
@@ -44,7 +47,7 @@ public class AbstractEndpointStart extends AbstractInterceptor {
             return;
         }
 
-        endpoint = (AbstractEndpoint<?>) context.getTarget();
+        endpoint = (AbstractEndpoint) context.getTarget();
 
         AgentContext.getInstance().getAppInstance().setPort(endpoint.getPort());
 

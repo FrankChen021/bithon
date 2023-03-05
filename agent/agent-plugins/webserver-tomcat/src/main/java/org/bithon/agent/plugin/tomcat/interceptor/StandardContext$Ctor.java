@@ -37,8 +37,8 @@ import java.util.EnumSet;
 /**
  * @author frankchen
  */
-public class StandardContextCtor extends AbstractInterceptor {
-    static ILogAdaptor log = LoggerFactory.getLogger(StandardContextCtor.class);
+public class StandardContext$Ctor extends AbstractInterceptor {
+    static ILogAdaptor log = LoggerFactory.getLogger(StandardContext$Ctor.class);
 
     /**
      * {@link StandardContext#StandardContext()}

@@ -38,7 +38,7 @@ import org.bithon.component.commons.utils.StringUtils;
  *
  * @author frankchen
  */
-public class StandardHostValveInvoke extends AbstractInterceptor {
+public class StandardHostValve$Invoke extends AbstractInterceptor {
 
     private HttpIncomingFilter requestFilter;
     private TraceConfig traceConfig;
@@ -89,7 +89,7 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
 
         TraceContextHolder.set(traceContext);
 
-        // put the trace id in the header so that the applications have chance to know whether this request is being sampled
+        // Put the trace id in the header so that the applications have chance to know whether this request is being sampled
         if (traceContext.traceMode().equals(TraceMode.TRACE)) {
             request.getRequest().setAttribute("X-Bithon-TraceId", traceContext.traceId());
 

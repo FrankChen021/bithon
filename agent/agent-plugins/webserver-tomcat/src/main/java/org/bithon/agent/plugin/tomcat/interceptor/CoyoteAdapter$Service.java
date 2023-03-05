@@ -26,16 +26,19 @@ import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 
 /**
+ * Interceptor for {@link org.apache.catalina.connector.CoyoteAdapter#service(Request, Response)}
+ *
  * @author frankchen
  */
-public class CoyoteAdapterService extends AbstractInterceptor {
+public class CoyoteAdapter$Service extends AbstractInterceptor {
     private final HttpIncomingMetricsRegistry metricRegistry = HttpIncomingMetricsRegistry.get();
     private final HttpIncomingFilter requestFilter = new HttpIncomingFilter();
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
         Request request = (Request) aopContext.getArgs()[0];
-        if (requestFilter.shouldBeExcluded(request.requestURI().toString(), request.getHeader("User-Agent"))) {
+        if (requestFilter.shouldBeExcluded(request.requestURI().toString(),
+                                           request.getHeader("User-Agent"))) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
