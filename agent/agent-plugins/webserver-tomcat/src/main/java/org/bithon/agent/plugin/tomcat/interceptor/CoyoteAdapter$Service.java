@@ -20,7 +20,6 @@ import org.apache.coyote.Request;
 import org.apache.coyote.Response;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
@@ -35,30 +34,21 @@ public class CoyoteAdapter$Service extends AbstractInterceptor {
     private final HttpIncomingFilter requestFilter = new HttpIncomingFilter();
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
-        Request request = (Request) aopContext.getArgs()[0];
-        if (requestFilter.shouldBeExcluded(request.requestURI().toString(),
-                                           request.getHeader("User-Agent"))) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-
-        return super.onMethodEnter(aopContext);
-    }
-
-    @Override
     public void onMethodLeave(AopContext aopContext) {
         Request request = (Request) aopContext.getArgs()[0];
-
-        update(request,
-               (Response) aopContext.getArgs()[1],
-               aopContext.getExecutionTime());
-    }
-
-    private void update(Request request, Response response, long responseTime) {
         String uri = request.requestURI().toString();
-        if (uri == null) {
+
+        //
+        // Originally, this check is implemented in the Enter interceptor
+        // However, on SpringBoot3 which uses tomcat 10.x, this causes application request failures
+        // Still don't know why, but putting this check here as a post check helps resolve the problem.
+        //
+        if (requestFilter.shouldBeExcluded(request.requestURI().toString(),
+                                           request.getHeader("User-Agent"))) {
             return;
         }
+
+        Response response = aopContext.getArgAs(1);
 
         String srcApplication = request.getHeader(ITracePropagator.TRACE_HEADER_SRC_APPLICATION);
 
@@ -69,7 +59,7 @@ public class CoyoteAdapter$Service extends AbstractInterceptor {
         long responseByteSize = response.getBytesWritten(false);
 
         this.metricRegistry.getOrCreateMetrics(srcApplication, request.method().toString(), uri, httpStatus)
-                           .updateRequest(responseTime, count4xx, count5xx)
+                           .updateRequest(aopContext.getExecutionTime(), count4xx, count5xx)
                            .updateBytes(requestByteSize, responseByteSize);
     }
 }

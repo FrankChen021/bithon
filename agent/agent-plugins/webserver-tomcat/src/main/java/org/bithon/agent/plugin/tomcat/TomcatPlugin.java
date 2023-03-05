@@ -44,7 +44,7 @@ public class TomcatPlugin implements IPlugin {
 
             // statistics
             // differ from Trace below since it depends on different response object
-            forClass("org.apache.catalina.connector.CoyoteAdapter2")
+            forClass("org.apache.catalina.connector.CoyoteAdapter")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("service")
