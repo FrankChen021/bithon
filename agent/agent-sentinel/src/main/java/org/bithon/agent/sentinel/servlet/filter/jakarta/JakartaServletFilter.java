@@ -59,6 +59,7 @@ class JakartaServletFilter implements Filter {
                          FilterChain chain) throws IOException, ServletException {
         if (!config.isEnabled()) {
             chain.doFilter(request, response);
+            return;
         }
 
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
