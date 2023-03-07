@@ -43,7 +43,7 @@ public class CoyoteAdapter$Service extends AbstractInterceptor {
         // However, on SpringBoot3 which uses tomcat 10.x, this causes application request failures
         // Still don't know why, but putting this check here as a post check helps resolve the problem.
         //
-        if (requestFilter.shouldBeExcluded(request.requestURI().toString(),
+        if (requestFilter.shouldBeExcluded(uri,
                                            request.getHeader("User-Agent"))) {
             return;
         }
