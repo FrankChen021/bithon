@@ -32,11 +32,14 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
+ * {@link org.apache.tomcat.util.net.AbstractEndpoint#start()}
+ *
  * @author frankchen
  */
-public class AbstractEndpointStart extends AbstractInterceptor {
+@SuppressWarnings("rawtypes")
+public class AbstractEndpoint$Start extends AbstractInterceptor {
 
-    private AbstractEndpoint<?> endpoint;
+    private AbstractEndpoint endpoint;
 
     @Override
     public void onMethodLeave(AopContext context) {
@@ -44,7 +47,7 @@ public class AbstractEndpointStart extends AbstractInterceptor {
             return;
         }
 
-        endpoint = (AbstractEndpoint<?>) context.getTarget();
+        endpoint = (AbstractEndpoint) context.getTarget();
 
         AgentContext.getInstance().getAppInstance().setPort(endpoint.getPort());
 
@@ -58,7 +61,9 @@ public class AbstractEndpointStart extends AbstractInterceptor {
         metrics.maxThreads.setProvider(endpoint::getMaxThreads);
         metrics.queueSize.setProvider(() -> {
             Executor e = endpoint.getExecutor();
-            if (e instanceof ThreadPoolExecutor) {
+            if (e instanceof org.apache.tomcat.util.threads.ThreadPoolExecutor) {
+                return ((org.apache.tomcat.util.threads.ThreadPoolExecutor) e).getQueue().size();
+            } else if (e instanceof ThreadPoolExecutor) {
                 return ((ThreadPoolExecutor) e).getQueue().size();
             } else if (e instanceof ResizableExecutor) {
                 org.apache.tomcat.util.threads.ThreadPoolExecutor t = (org.apache.tomcat.util.threads.ThreadPoolExecutor) ReflectionUtils.getFieldValue(e,

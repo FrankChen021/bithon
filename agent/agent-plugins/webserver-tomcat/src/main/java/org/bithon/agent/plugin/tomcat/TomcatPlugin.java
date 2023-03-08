@@ -39,7 +39,7 @@ public class TomcatPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("start")
-                                                   .to("org.bithon.agent.plugin.tomcat.interceptor.AbstractEndpointStart")
+                                                   .to("org.bithon.agent.plugin.tomcat.interceptor.AbstractEndpoint$Start")
                 ),
 
             // statistics
@@ -49,7 +49,7 @@ public class TomcatPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("service")
                                                    .onArgs("org.apache.coyote.Request", "org.apache.coyote.Response")
-                                                   .to("org.bithon.agent.plugin.tomcat.interceptor.CoyoteAdapterService")
+                                                   .to("org.bithon.agent.plugin.tomcat.interceptor.CoyoteAdapter$Service")
                 ),
 
             //exception
@@ -70,14 +70,14 @@ public class TomcatPlugin implements IPlugin {
                                                    .onAllMethods("invoke")
                                                    .onArgs("org.apache.catalina.connector.Request",
                                                            "org.apache.catalina.connector.Response")
-                                                   .to("org.bithon.agent.plugin.tomcat.interceptor.StandardHostValveInvoke")
+                                                   .to("org.bithon.agent.plugin.tomcat.interceptor.StandardHostValve$Invoke")
                 ),
 
             forClass("org.apache.catalina.core.StandardContext")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onDefaultConstructor()
-                                                   .to("org.bithon.agent.plugin.tomcat.interceptor.StandardContextCtor")
+                                                   .to("org.bithon.agent.plugin.tomcat.interceptor.StandardContext$Ctor")
                 )
         );
     }
