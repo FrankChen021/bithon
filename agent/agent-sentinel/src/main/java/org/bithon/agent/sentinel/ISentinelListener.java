@@ -19,21 +19,21 @@ package org.bithon.agent.sentinel;
 import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
 import org.bithon.agent.sentinel.flow.FlowRuleDto;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
+import java.util.function.Function;
 
 /**
  * @author frankchen
  */
 public interface ISentinelListener {
 
-    void onFlowControlled(HttpServletRequest request);
+    void onFlowControlled(String uri, String method, Function<String, String> headerSupplier);
 
     void onFlowRuleLoaded(String source, Collection<FlowRuleDto> rule);
 
     void onFlowRuleUnloaded(String source, Collection<FlowRuleDto> rule);
 
-    void onDegraded(HttpServletRequest request);
+    void onDegraded(String uri, String method, Function<String, String> headerSupplier);
 
     void onDegradeRuleLoaded(String source, Collection<DegradingRuleDto> rule);
 
