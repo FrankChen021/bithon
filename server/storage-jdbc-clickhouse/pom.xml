@@ -20,18 +20,11 @@
     </dependency>
 
     <!-- ClickHouse JDBC Driver -->
+    <!-- https://mvnrepository.com/artifact/com.clickhouse/clickhouse-jdbc -->
     <dependency>
       <groupId>com.clickhouse</groupId>
       <artifactId>clickhouse-jdbc</artifactId>
-      <version>0.4.1</version>
-      <!-- use uber jar with all dependencies included, change classifier to http for smaller jar -->
-      <classifier>all</classifier>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
+      <version>0.3.2-patch11</version>
     </dependency>
 
     <dependency>
