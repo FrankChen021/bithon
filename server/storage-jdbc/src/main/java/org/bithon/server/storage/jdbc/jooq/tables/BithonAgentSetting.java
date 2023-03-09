@@ -32,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
 
-    private static final long serialVersionUID = -1192336585;
+    private static final long serialVersionUID = 923667874;
 
     /**
      * The reference instance of <code>bithon_agent_setting</code>
@@ -55,12 +55,12 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
     /**
      * The column <code>bithon_agent_setting.appName</code>.
      */
-    public final TableField<BithonAgentSettingRecord, String> APPNAME = createField(DSL.name("appName"), org.jooq.impl.SQLDataType.VARCHAR(128).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<BithonAgentSettingRecord, String> APPNAME = createField(DSL.name("appName"), org.jooq.impl.SQLDataType.VARCHAR(128).nullable(false), this, "");
 
     /**
      * The column <code>bithon_agent_setting.settingName</code>.
      */
-    public final TableField<BithonAgentSettingRecord, String> SETTINGNAME = createField(DSL.name("settingName"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<BithonAgentSettingRecord, String> SETTINGNAME = createField(DSL.name("settingName"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
      * The column <code>bithon_agent_setting.setting</code>. 设置
@@ -70,7 +70,7 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
     /**
      * The column <code>bithon_agent_setting.updatedAt</code>.
      */
-    public final TableField<BithonAgentSettingRecord, LocalDateTime> UPDATEDAT = createField(DSL.name("updatedAt"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false).defaultValue(org.jooq.impl.DSL.field("CURRENT_TIMESTAMP", org.jooq.impl.SQLDataType.LOCALDATETIME)), this, "");
+    public final TableField<BithonAgentSettingRecord, LocalDateTime> UPDATEDAT = createField(DSL.name("updatedAt"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "");
 
     /**
      * Create a <code>bithon_agent_setting</code> table reference
