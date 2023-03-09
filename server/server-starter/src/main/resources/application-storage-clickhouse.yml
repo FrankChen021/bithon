@@ -35,18 +35,18 @@ bithon:
     providers:
       clickhouse:
         enabled: true
-        # data source parameters
-        url: jdbc:clickhouse://localhost:8123/bithon?decompress=1&compress=1
+        #
+        # Data source parameters
+        #   nullAsDefault = 1, disabled null checking at the ClickHouse JDBC side,
+        #   See: https://clickhouse.com/docs/en/integrations/language-clients/java/jdbc/#configuration
+        #
+        url: jdbc:clickhouse://localhost:8123/bithon?decompress=1&compress=1&nullAsDefault=1
         driverClassName: com.clickhouse.jdbc.ClickHouseDriver
         username: default
         password:
-        # ------More parameters----
+        #
+        # More parameters about ClickHouse cluster, see ClickHouseConfig for more information.
+        # eg:
+        #
         # cluster: test_cluster_two_shards_localhost
         # engine: MergeTree
-
-#
-# Suppress useless and boring error logging
-#
-logging:
-  level:
-    org.springframework.boot.autoconfigure.jooq.JooqExceptionTranslator: OFF
