@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.clickhouse;
+package org.bithon.server.storage.jdbc.clickhouse.exception;
 
 import lombok.Getter;
 

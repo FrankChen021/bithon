@@ -24,7 +24,7 @@ import org.bithon.server.storage.jdbc.metric.ISqlDialect;
  * @author frank.chen021@outlook.com
  * @date 1/11/21 5:21 pm
  */
-class ClickHouseSqlDialect implements ISqlDialect {
+public class ClickHouseSqlDialect implements ISqlDialect {
 
     @Override
     public String timeFloor(String field, long interval) {

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.clickhouse.web;
+package org.bithon.server.storage.jdbc.clickhouse.storage.web;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
-import org.bithon.server.storage.jdbc.clickhouse.TableCreator;
+import org.bithon.server.storage.jdbc.clickhouse.storage.TableCreator;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.web.JdbcDashboardStorage;
 import org.bithon.server.storage.web.Dashboard;

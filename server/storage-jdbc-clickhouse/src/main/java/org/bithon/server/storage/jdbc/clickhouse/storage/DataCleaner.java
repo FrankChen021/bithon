@@ -14,10 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.clickhouse;
+package org.bithon.server.storage.jdbc.clickhouse.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.jooq.DSLContext;
 import org.jooq.Table;
 
