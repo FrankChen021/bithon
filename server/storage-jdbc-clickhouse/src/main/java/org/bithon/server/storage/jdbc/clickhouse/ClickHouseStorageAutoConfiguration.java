@@ -20,10 +20,8 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import org.bithon.server.storage.jdbc.clickhouse.web.DashboardStorage;
-import org.jooq.ExecuteContext;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
-import org.jooq.impl.DefaultExecuteListener;
 import org.jooq.impl.DefaultExecuteListenerProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -34,7 +32,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
-import java.sql.SQLException;
 
 /**
  * @author frank.chen021@outlook.com
@@ -67,17 +64,6 @@ public class ClickHouseStorageAutoConfiguration {
         return new ClickHouseJooqContextHolder(DSL.using(new DefaultConfiguration().set(autoConfiguration.dataSourceConnectionProvider(dataSource))
                                                                                    .set(new JooqProperties().determineSqlDialect(dataSource))
                                                                                    .set(new DefaultExecuteListenerProvider(new ClickHouseExceptionTranslator()))));
-    }
-
-    static class ClickHouseExceptionTranslator extends DefaultExecuteListener {
-        @Override
-        public void exception(ExecuteContext ctx) {
-            SQLException exception = ctx.sqlException();
-            if (exception == null) {
-                return;
-            }
-            ctx.exception(new ClickHouseAccessException(exception.getMessage(), exception));
-        }
     }
 
     @Bean

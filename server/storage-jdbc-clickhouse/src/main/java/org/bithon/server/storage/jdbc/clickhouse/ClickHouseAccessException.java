@@ -16,12 +16,18 @@
 
 package org.bithon.server.storage.jdbc.clickhouse;
 
+import lombok.Getter;
+
 /**
  * @author Frank Chen
  * @date 9/3/23 5:32 pm
  */
-class ClickHouseAccessException extends RuntimeException {
-    ClickHouseAccessException(String msg, Throwable t) {
+public class ClickHouseAccessException extends RuntimeException {
+    @Getter
+    private final int errorCode;
+
+    public ClickHouseAccessException(int errorCode, String msg, Throwable t) {
         super(msg, t);
+        this.errorCode = errorCode;
     }
 }
