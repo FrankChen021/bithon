@@ -76,7 +76,7 @@ public class ClickHouseStorageAutoConfiguration {
             if (exception == null) {
                 return;
             }
-            ctx.exception(new ClickHouseAccessException(exception.getMessage(), exception.getCause()));
+            ctx.exception(new ClickHouseAccessException(exception.getMessage(), exception));
         }
     }
 
