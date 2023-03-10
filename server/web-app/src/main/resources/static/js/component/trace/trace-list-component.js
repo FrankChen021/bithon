@@ -86,7 +86,7 @@ class TraceListComponent {
             }],
 
             rowStyle: (row, index) => {
-                if (row.status !== "200") {
+                if (row.status >= "400") {
                     return {
                         classes: 'alert-warning'
                     }

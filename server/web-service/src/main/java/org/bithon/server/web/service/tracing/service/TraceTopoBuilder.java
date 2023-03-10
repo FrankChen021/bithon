@@ -142,11 +142,6 @@ public class TraceTopoBuilder {
         //
         TraceSpanBo user = new TraceSpanBo();
         user.setAppName("user");
-
-        // parent node of consumer
-        TraceSpanBo producer = new TraceSpanBo();
-        producer.setAppName("producer");
-
         for (TraceSpan root : spans) {
             if ("SERVER".equals(root.kind)) {
                 String userAgent = root.getTag("http.header.User-Agent");
@@ -157,7 +152,24 @@ public class TraceTopoBuilder {
 
                 this.addLink(user, root).incrCount();
             } else if (SpanKind.CONSUMER.name().equals(root.kind)) {
-                this.addLink(producer, root).incrCount();
+
+                if ("kafka".equals(root.name)) {
+                    String topicUri = root.getTag("uri");
+                    if (StringUtils.hasText(topicUri)) {
+                        try {
+                            user.setAppName("kafka");
+
+                            URI uri = new URI(topicUri);
+                            user.setInstanceName(uri.getHost() + ":" + uri.getPort());
+                        } catch (URISyntaxException ignored) {
+                        }
+                    }
+                } else {
+                    user.setAppName("producer");
+                    user.setInstanceName(null);
+                }
+
+                this.addLink(user, root).incrCount();
             }
         }
 
@@ -197,19 +209,23 @@ public class TraceTopoBuilder {
             // this childSpan is a CLIENT termination,
             // when there's no children, it means the next hop might be another system.
             // So, we need to create a link for this situation
-            if (childSpan.children.size() == 0
-                && "CLIENT".equals(childSpan.getKind())
-                && childSpan.containsTag(Tags.HTTP_URI)) {
+            if (childSpan.children.size() == 0) {
+                String uriText = null;
+                if (SpanKind.CLIENT.name().equals(childSpan.getKind())) {
+                    uriText = childSpan.getTag(Tags.HTTP_URI);
+                } else if (SpanKind.PRODUCER.name().equals(childSpan.getKind())) {
+                    uriText = childSpan.getTag("uri");
+                }
 
-                String uriText = childSpan.getTag(Tags.HTTP_URI);
-                try {
-                    URI uri = new URI(uriText);
-                    TraceSpan next = new TraceSpan();
-                    next.setAppName(uri.getScheme());
-                    next.setInstanceName(uri.getHost() + ":" + uri.getPort());
-                    this.addLink(childSpan, next).incrCount();
-                } catch (URISyntaxException e) {
-                    log.error("Malformed uri detected in span: {}", childSpan);
+                if (uriText != null) {
+                    try {
+                        URI uri = new URI(uriText);
+                        TraceSpan next = new TraceSpan();
+                        next.setAppName(uri.getScheme());
+                        next.setInstanceName(uri.getHost() + ":" + uri.getPort());
+                        this.addLink(childSpan, next).incrCount();
+                    } catch (URISyntaxException ignored) {
+                    }
                 }
             }
         }
