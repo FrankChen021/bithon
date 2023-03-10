@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.LazySupplier;
 import org.bithon.server.sink.metrics.topo.ITopoTransformer;
 import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -49,7 +50,7 @@ import java.util.stream.Collectors;
 public class MetricMessageHandler {
     private static volatile IMetricWriter topoMetricWriter;
 
-    private final ThreadPoolExecutor executor;
+    private final LazySupplier<ThreadPoolExecutor> executorSupplier;
     private final DataSourceSchema schema;
     private final DataSourceSchema endpointSchema;
     private final IMetaStorage metaStorage;
@@ -85,13 +86,13 @@ public class MetricMessageHandler {
 
         this.transformSpec = transformSpec;
 
-        this.executor = new ThreadPoolExecutor(1,
-                                               4,
-                                               1,
-                                               TimeUnit.MINUTES,
-                                               new LinkedBlockingQueue<>(1024),
-                                               NamedThreadFactory.of(dataSourceName + "-handler"),
-                                               new ThreadPoolExecutor.DiscardOldestPolicy());
+        this.executorSupplier = LazySupplier.of(() -> new ThreadPoolExecutor(1,
+                                                                             4,
+                                                                             1,
+                                                                             TimeUnit.MINUTES,
+                                                                             new LinkedBlockingQueue<>(1024),
+                                                                             NamedThreadFactory.of(dataSourceName + "-handler"),
+                                                                             new ThreadPoolExecutor.DiscardOldestPolicy()));
     }
 
     public String getType() {
@@ -102,7 +103,7 @@ public class MetricMessageHandler {
         if (CollectionUtils.isEmpty(metricMessages)) {
             return;
         }
-        executor.execute(new MetricSinkRunnable(metricMessages));
+        executorSupplier.get().execute(new MetricSinkRunnable(metricMessages));
     }
 
     class MetricSinkRunnable implements Runnable {
@@ -198,6 +199,7 @@ public class MetricMessageHandler {
     }
 
     public void close() {
+        ThreadPoolExecutor executor = executorSupplier.get();
         if (executor.isShutdown() || executor.isTerminated() || executor.isTerminating()) {
             return;
         }
