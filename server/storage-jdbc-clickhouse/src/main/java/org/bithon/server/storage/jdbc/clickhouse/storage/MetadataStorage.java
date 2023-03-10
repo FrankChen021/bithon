@@ -20,11 +20,14 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.server.storage.common.IStorageCleaner;
+import org.bithon.server.storage.common.TTLConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 import org.bithon.server.storage.meta.Instance;
+import org.bithon.server.storage.meta.MetaStorageConfig;
 import org.jooq.InsertSetStep;
 import org.jooq.InsertValuesStepN;
 import org.jooq.Record;
@@ -46,8 +49,9 @@ public class MetadataStorage extends MetadataJdbcStorage {
 
     @JsonCreator
     public MetadataStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseJooqContextHolder dslContextHolder,
+                           @JacksonInject(useInput = OptBoolean.FALSE) MetaStorageConfig storageConfig,
                            @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
-        super(dslContextHolder.getDslContext());
+        super(dslContextHolder.getDslContext(), storageConfig);
         this.config = config;
     }
 
@@ -104,5 +108,20 @@ public class MetadataStorage extends MetadataJdbcStorage {
         // No need to ignore or update because we use ReplacingMergeTree for this table
         // The duplication will be handled by the underlying storage
         valueStep.execute();
+    }
+
+    @Override
+    public IStorageCleaner getCleaner() {
+        return new IStorageCleaner() {
+            @Override
+            public TTLConfig getTTLConfig() {
+                return storageConfig.getTtl();
+            }
+
+            @Override
+            public void expire(Timestamp before) {
+                new DataCleaner(config, dslContext).deleteFrom(Tables.BITHON_APPLICATION_INSTANCE, before);
+            }
+        };
     }
 }

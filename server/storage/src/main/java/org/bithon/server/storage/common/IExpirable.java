@@ -16,18 +16,12 @@
 
 package org.bithon.server.storage.common;
 
-import java.sql.Timestamp;
-
 /**
- * @author frank.chen021@outlook.com
- * @date 27/10/21 10:26 pm
+ * @author frank chen
  */
-public interface IStorageCleaner {
-
-    TTLConfig getTTLConfig();
-
+public interface IExpirable {
     /**
-     * Delete data whose timestamp is less than or equal to the given timestamp
+     * Expire data before the given timestamp (exclusive)
      */
-    void expire(Timestamp before);
+    IStorageCleaner getCleaner();
 }

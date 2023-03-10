@@ -20,11 +20,14 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.server.storage.common.IStorageCleaner;
+import org.bithon.server.storage.common.TTLConfig;
 import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonApplicationInstanceRecord;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.meta.Instance;
+import org.bithon.server.storage.meta.MetaStorageConfig;
 import org.bithon.server.storage.meta.Metadata;
 import org.jooq.DSLContext;
 import org.jooq.InsertSetStep;
@@ -44,14 +47,18 @@ import java.util.List;
 public class MetadataJdbcStorage implements IMetaStorage {
 
     protected final DSLContext dslContext;
+    protected final MetaStorageConfig storageConfig;
 
     @JsonCreator
-    public MetadataJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder) {
-        this(dslContextHolder.getDslContext());
+    public MetadataJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder,
+                               @JacksonInject(useInput = OptBoolean.FALSE) MetaStorageConfig metaStorageConfig
+    ) {
+        this(dslContextHolder.getDslContext(), metaStorageConfig);
     }
 
-    public MetadataJdbcStorage(DSLContext dslContext) {
+    public MetadataJdbcStorage(DSLContext dslContext, MetaStorageConfig metaStorageConfig) {
         this.dslContext = dslContext;
+        this.storageConfig = metaStorageConfig;
     }
 
     @Override
@@ -133,5 +140,22 @@ public class MetadataJdbcStorage implements IMetaStorage {
                                                              .limit(1)
                                                              .fetchOne();
         return instance != null;
+    }
+
+    @Override
+    public IStorageCleaner getCleaner() {
+        return new IStorageCleaner() {
+            @Override
+            public TTLConfig getTTLConfig() {
+                return storageConfig.getTtl();
+            }
+
+            @Override
+            public void expire(Timestamp before) {
+                dslContext.deleteFrom(Tables.BITHON_APPLICATION_INSTANCE)
+                          .where(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.lt(before.toLocalDateTime()))
+                          .execute();
+            }
+        };
     }
 }

@@ -18,6 +18,7 @@ package org.bithon.server.storage.meta;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.PeriodicTask;
+import org.bithon.server.storage.common.IStorageCleaner;
 
 import javax.annotation.PreDestroy;
 import java.time.Duration;
@@ -105,6 +106,11 @@ public class CacheableMetadataStorage implements IMetaStorage {
     @PreDestroy
     public void onDestroy() {
         this.loadInstanceTask.stop();
+    }
+
+    @Override
+    public IStorageCleaner getCleaner() {
+        return delegate.getCleaner();
     }
 
     private class LoadInstanceTask extends PeriodicTask {

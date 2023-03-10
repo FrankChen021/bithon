@@ -17,6 +17,8 @@
 package org.bithon.server.storage.meta;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.storage.common.IExpirable;
+import org.bithon.server.storage.common.IStorage;
 
 import java.util.Collection;
 import java.util.List;
@@ -26,7 +28,11 @@ import java.util.List;
  * @date 2021/1/31 9:49 上午
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IMetaStorage {
+public interface IMetaStorage extends IStorage, IExpirable {
+
+    default String getName() {
+        return "meta";
+    }
 
     void saveApplicationInstance(List<Instance> instances);
 

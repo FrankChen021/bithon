@@ -23,13 +23,17 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.storage.common.IStorageCleaner;
+import org.bithon.server.storage.common.TTLConfig;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.event.IEventReader;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.event.IEventWriter;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.jooq.DSLContext;
+
+import java.sql.Timestamp;
 
 /**
  * @author frank.chen021@outlook.com
@@ -41,13 +45,16 @@ public class EventJdbcStorage implements IEventStorage {
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
     protected final DataSourceSchema eventTableSchema;
+    protected final EventStorageConfig storageConfig;
 
     @JsonCreator
     public EventJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
+                            @JacksonInject(useInput = OptBoolean.FALSE) EventStorageConfig storageConfig,
                             @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
+        this.storageConfig = storageConfig;
         this.eventTableSchema = schemaManager.getDataSourceSchema("event");
     }
 
@@ -67,9 +74,19 @@ public class EventJdbcStorage implements IEventStorage {
     }
 
     @Override
-    public IStorageCleaner createCleaner() {
-        return timestamp -> dslContext.deleteFrom(Tables.BITHON_EVENT)
-                                      .where(Tables.BITHON_EVENT.TIMESTAMP.le(timestamp.toLocalDateTime()))
-                                      .execute();
+    public IStorageCleaner getCleaner() {
+        return new IStorageCleaner() {
+            @Override
+            public TTLConfig getTTLConfig() {
+                return storageConfig.getTtl();
+            }
+
+            @Override
+            public void expire(Timestamp before) {
+                dslContext.deleteFrom(Tables.BITHON_EVENT)
+                          .where(Tables.BITHON_EVENT.TIMESTAMP.lt(before.toLocalDateTime()))
+                          .execute();
+            }
+        };
     }
 }

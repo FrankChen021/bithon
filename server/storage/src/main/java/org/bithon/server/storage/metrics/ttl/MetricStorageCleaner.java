@@ -21,17 +21,8 @@ import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.IStorageCleaner;
-import org.bithon.server.storage.common.StorageCleanScheduler;
-import org.bithon.server.storage.common.TTLConfig;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.metrics.IMetricStorage;
-import org.bithon.server.storage.metrics.MetricStorageConfig;
-import org.springframework.beans.BeansException;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.concurrent.TimeUnit;
@@ -41,21 +32,18 @@ import java.util.concurrent.TimeUnit;
  * @date 2021/4/11 17:15
  */
 @Slf4j
-@Service
-@ConditionalOnExpression(value = "${bithon.storage.metric.enabled: false} and ${bithon.storage.metric.ttl.enabled: false}")
-public class MetricStorageCleaner implements ApplicationContextAware {
+public abstract class MetricStorageCleaner implements IStorageCleaner {
 
-    private final DataSourceSchemaManager schemaManager;
-    private final IMetricStorage metricStorage;
-    private final TTLConfig ttlConfig;
+    protected abstract DataSourceSchemaManager getSchemaManager();
 
-    public MetricStorageCleaner(DataSourceSchemaManager schemaManager, IMetricStorage metricStorage, MetricStorageConfig storageConfig) {
-        this.schemaManager = schemaManager;
-        this.metricStorage = metricStorage;
-        this.ttlConfig = storageConfig.getTtl();
+    @Override
+    public void expire(Timestamp before) {
+        for (DataSourceSchema schema : getSchemaManager().getDataSources().values()) {
+            expire(schema, before);
+        }
     }
 
-    private void cleanDataSource(DataSourceSchema schema, Timestamp before) {
+    private void expire(DataSourceSchema schema, Timestamp before) {
         if (schema.isVirtual()) {
             return;
         }
@@ -69,22 +57,12 @@ public class MetricStorageCleaner implements ApplicationContextAware {
         }
 
         log.info("\tClean up [{}] before {}", schema.getName(), DateTime.toYYYYMMDDhhmmss(before));
-        try (IStorageCleaner cleaner = metricStorage.createMetricCleaner(schema)) {
-            cleaner.clean(before);
+        try {
+            expireImpl(schema, before);
         } catch (Exception e) {
             log.error("Failed to clean " + schema.getName(), e);
         }
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        StorageCleanScheduler scheduler = applicationContext.getBean(StorageCleanScheduler.class);
-        scheduler.addCleaner("metrics",
-                             ttlConfig,
-                             (before) -> {
-                                 for (DataSourceSchema schema : schemaManager.getDataSources().values()) {
-                                     cleanDataSource(schema, before);
-                                 }
-                             });
-    }
+    protected abstract void expireImpl(DataSourceSchema schema, Timestamp before);
 }

@@ -17,11 +17,13 @@
 package org.bithon.server.storage.jdbc.clickhouse.storage;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.jooq.DSLContext;
 import org.jooq.Table;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -65,15 +67,15 @@ public class DataCleaner {
     }
 
     /**
-     * obsoleted old implementation due to heavy operation
+     * Obsoleted old implementation due to heavy operation
      */
-    private void delete(Table<?> table, String timestamp) {
+    public void deleteFrom(Table<?> table, Timestamp before) {
         try {
             dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
                                            config.getDatabase(),
                                            config.getLocalTableName(table.getName()),
                                            config.getOnClusterExpression(),
-                                           timestamp));
+                                           DateTime.toYYYYMMDDhhmmss(before.getTime())));
         } catch (Throwable e) {
             log.error(StringUtils.format("Exception occurred when clean table[%s]:%s", table.getName(), e.getMessage()), e);
         }
