@@ -106,6 +106,10 @@ public class MetricMessageHandler {
         executorSupplier.get().execute(new MetricSinkRunnable(metricMessages));
     }
 
+    /**
+     * The class is defined as inner class instead of anonymous class or lambda expression,
+     * it's because it will be more clear in the tracing log that the class name of 'Runnable' implementation is displayed.
+     */
     class MetricSinkRunnable implements Runnable {
         private List<IInputRow> metricMessages;
 
@@ -199,6 +203,13 @@ public class MetricMessageHandler {
     }
 
     public void close() {
+        //
+        // Since the 'close' might be called in some threads that might be different from the thread that call 'process' above,
+        // if we check the executorSupplier is initialized first and then shutdown the executor if it's initialized,
+        // there might be edge case that the executorSupplier initializes the object after the 'close'.
+        //
+        // To avoid this, we always call 'get' to initialize the thread pool even though it will be destroyed immediately.
+        //
         ThreadPoolExecutor executor = executorSupplier.get();
         if (executor.isShutdown() || executor.isTerminated() || executor.isTerminating()) {
             return;
