@@ -22,14 +22,13 @@ import org.bithon.agent.core.metric.model.Sum;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.AbstractExecutorService;
 import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 10:48 下午
  */
-public class ThreadPoolMetrics<T extends AbstractExecutorService> implements IMetricSet {
+public class ThreadPoolMetrics<T> implements IMetricSet {
 
     public final Sum callerRunTaskCount = new Sum();
     public final Sum abortedTaskCount = new Sum();
@@ -51,8 +50,7 @@ public class ThreadPoolMetrics<T extends AbstractExecutorService> implements IMe
 
     protected IMetricValueProvider[] metrics;
 
-
-    private List<T> executors = new ArrayList<>();
+    private final List<T> executors = new ArrayList<>();
 
     protected long sum(Function<T, Number> valueSupplier) {
         long value = 0;
@@ -65,13 +63,13 @@ public class ThreadPoolMetrics<T extends AbstractExecutorService> implements IMe
     }
 
     public void add(T executor) {
-        synchronized (executors) {
+        synchronized (this.executors) {
             this.executors.add(executor);
         }
     }
 
     public boolean remove(T executor) {
-        synchronized (executor) {
+        synchronized (this.executors) {
             this.executors.remove(executor);
             return executors.isEmpty();
         }
@@ -87,7 +85,7 @@ public class ThreadPoolMetrics<T extends AbstractExecutorService> implements IMe
         this.maxPoolSize = () -> sum(maxPoolSizePerInstance);
         this.largestPoolSize = () -> sum(largestPoolSizePerInstance);
         this.queuedTaskCount = () -> sum(queuedTaskCountPerInstance);
-        this.poolCount = () -> executors.size();
+        this.poolCount = executors::size;
 
         this.metrics = new IMetricValueProvider[]{
             callerRunTaskCount,

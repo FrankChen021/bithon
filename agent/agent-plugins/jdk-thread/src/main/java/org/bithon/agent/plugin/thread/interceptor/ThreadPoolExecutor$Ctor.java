@@ -21,7 +21,7 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolExecutorMetrics;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
-import org.bithon.agent.plugin.thread.utils.ThreadPoolUtils;
+import org.bithon.agent.plugin.thread.utils.ThreadPoolNameHelper;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -49,8 +49,11 @@ public class ThreadPoolExecutor$Ctor extends AbstractInterceptor {
 
         ThreadPoolExecutor executor = aopContext.getTargetAs();
         try {
-            String poolName = ThreadPoolUtils.detectThreadPoolName(executor);
-            registry.addThreadPool(executor, executor.getClass().getName(), poolName, ThreadPoolExecutorMetrics::new);
+            String poolName = ThreadPoolNameHelper.INSTANCE.getThreadPoolName(executor);
+            registry.addThreadPool(executor,
+                                   executor.getClass().getName(),
+                                   poolName,
+                                   ThreadPoolExecutorMetrics::new);
         } catch (AgentException e) {
             LOG.warn(e.getMessage());
         }

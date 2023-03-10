@@ -20,7 +20,7 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.plugin.thread.metrics.ForkJoinPoolMetrics;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
-import org.bithon.agent.plugin.thread.utils.ThreadPoolUtils;
+import org.bithon.agent.plugin.thread.utils.ThreadPoolNameHelper;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.util.concurrent.ForkJoinPool;
@@ -37,7 +37,7 @@ public class ForkJoinPool$Ctor extends AbstractInterceptor {
             ForkJoinPool pool = aopContext.getTargetAs();
             registry.addThreadPool(pool,
                                    pool.getClass().getName(),
-                                   ThreadPoolUtils.stripSuffix((String) ReflectionUtils.getFieldValue(pool, "workerNamePrefix"), "-"),
+                                   ThreadPoolNameHelper.stripSuffix((String) ReflectionUtils.getFieldValue(pool, "workerNamePrefix"), "-"),
                                    ForkJoinPoolMetrics::new);
         }
     }
