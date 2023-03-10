@@ -54,6 +54,8 @@ public class MetadataStorage extends MetadataJdbcStorage {
     @Override
     public void initialize() {
         new TableCreator(config, this.dslContext).useReplacingMergeTree(true)
+                                                 // No partition for this table
+                                                 .partitionByExpression(null)
                                                  .createIfNotExist(Tables.BITHON_APPLICATION_INSTANCE);
     }
 
@@ -65,7 +67,7 @@ public class MetadataStorage extends MetadataJdbcStorage {
                                .from(Tables.BITHON_APPLICATION_INSTANCE)
                                .getSQL() + " FINAL WHERE ";
 
-        sql += dslContext.renderInlined(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.ge(new Timestamp(since)));
+        sql += dslContext.renderInlined(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.ge(new Timestamp(since).toLocalDateTime()));
         sql += " ORDER BY " + Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.getName();
 
         List<Record> records = dslContext.fetch(sql);
@@ -78,7 +80,7 @@ public class MetadataStorage extends MetadataJdbcStorage {
             String type = mapper.get(1, String.class);
             String instance = mapper.get(2, String.class);
             return new Instance(name, type, instance);
-        }).collect(Collectors.toList());
+        }).collect(Collectors.toSet());
     }
 
     @Override
@@ -88,7 +90,7 @@ public class MetadataStorage extends MetadataJdbcStorage {
         InsertValuesStepN valueStep = null;
         for (Instance inputRow : instanceList) {
             Object[] values = new Object[4];
-            values[0] = new Timestamp(System.currentTimeMillis());
+            values[0] = new Timestamp(System.currentTimeMillis()).toLocalDateTime();
             values[1] = inputRow.getAppName();
             values[2] = inputRow.getAppType();
             values[3] = inputRow.getInstanceName();

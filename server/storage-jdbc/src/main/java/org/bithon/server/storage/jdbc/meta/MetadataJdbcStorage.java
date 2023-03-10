@@ -68,7 +68,7 @@ public class MetadataJdbcStorage implements IMetaStorage {
                                  Tables.BITHON_APPLICATION_INSTANCE.APPTYPE,
                                  Tables.BITHON_APPLICATION_INSTANCE.INSTANCENAME)
                          .from(Tables.BITHON_APPLICATION_INSTANCE)
-                         .where(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.ge(new Timestamp(since)))
+                         .where(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.ge(new Timestamp(since).toLocalDateTime()))
                          .orderBy(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP)
                          .fetchInto(Instance.class);
     }
