@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com

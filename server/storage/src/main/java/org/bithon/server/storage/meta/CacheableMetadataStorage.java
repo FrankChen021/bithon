@@ -50,7 +50,7 @@ public class CacheableMetadataStorage implements IMetaStorage {
     }
 
     @Override
-    synchronized public void saveApplicationInstance(List<Instance> instanceList) {
+    public synchronized void saveApplicationInstance(List<Instance> instanceList) {
         // Filter out those not in the cache
         instanceList = instanceList.stream()
                                    .filter(instance -> !instanceCache.contains(instance))

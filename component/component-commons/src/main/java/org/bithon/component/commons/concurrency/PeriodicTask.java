@@ -22,7 +22,7 @@ import java.time.Duration;
  * @author Frank Chen
  * @date 27/2/23 4:40 pm
  */
-abstract public class PeriodicTask {
+public abstract class PeriodicTask {
     private final Object locker = new Object();
 
     /**
@@ -54,7 +54,7 @@ abstract public class PeriodicTask {
         return name;
     }
 
-    final public void stop() {
+    public final void stop() {
         running = false;
         runTask();
     }
@@ -86,15 +86,15 @@ abstract public class PeriodicTask {
     /**
      * Run current task immediately.
      */
-    final public void runTask() {
+    public final void runTask() {
         synchronized (locker) {
             locker.notify();
         }
     }
 
-    abstract protected void onRunning() throws Exception;
+    protected abstract void onRunning() throws Exception;
 
-    abstract protected void onException(Exception e);
+    protected abstract void onException(Exception e);
 
-    abstract protected void onStopped();
+    protected abstract void onStopped();
 }
