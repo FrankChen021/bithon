@@ -89,11 +89,13 @@
             treeColumn: 3,
             headerStyle: 'thead-light',
             rowStyle: (rows, rowIndex) => {
-                if (rowIndex === 0
-                    || rows[rowIndex].appName !== rows[rowIndex - 1].appName
-                    || rows[rowIndex].instanceName !== rows[rowIndex - 1].instanceName
-                ) {
-                    return 'table-active';
+                const row = rows[rowIndex];
+                if (row.tags !== undefined && (row.tags.exception !== undefined || row.tags["http.status"] >= "400")) {
+                    return 'table-danger';
+                }
+                if (row.kind === 'SERVER' || row.kind === 'CONSUMER') {
+                    // This row is a start entry span in one application, highlight it
+                    return 'table-info';
                 }
                 return null;
             },
