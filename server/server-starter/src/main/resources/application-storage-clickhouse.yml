@@ -37,13 +37,13 @@ bithon:
         enabled: true
         #
         # Data source parameters
-        #   nullAsDefault = 1, disabled null checking at the ClickHouse JDBC side,
+        #   NOTE: nullAsDefault = 2, this tells the JDBC to assign default values to all non-nullable columns if corresponding values are null
         #   See: https://clickhouse.com/docs/en/integrations/language-clients/java/jdbc/#configuration
         #
-        url: jdbc:clickhouse://localhost:8123/bithon?decompress=1&compress=1&nullAsDefault=1
+        url: jdbc:clickhouse://localhost:8123/bithon?decompress=1&compress=1&nullAsDefault=2
         driverClassName: com.clickhouse.jdbc.ClickHouseDriver
-        username: default
-        password:
+        username: olap
+        password: olap123
         #
         # More parameters about ClickHouse cluster, see ClickHouseConfig for more information.
         # eg:
