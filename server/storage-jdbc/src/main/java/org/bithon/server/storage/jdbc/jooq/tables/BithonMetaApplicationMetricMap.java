@@ -4,7 +4,7 @@
 package org.bithon.server.storage.jdbc.jooq.tables;
 
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonMetaApplicationMetricMap extends TableImpl<BithonMetaApplicationMetricMapRecord> {
 
-    private static final long serialVersionUID = 1394327046;
+    private static final long serialVersionUID = 561106419;
 
     /**
      * The reference instance of <code>bithon_meta_application_metric_map</code>
@@ -48,7 +48,7 @@ public class BithonMetaApplicationMetricMap extends TableImpl<BithonMetaApplicat
     /**
      * The column <code>bithon_meta_application_metric_map.timestamp</code>. update time
      */
-    public final TableField<BithonMetaApplicationMetricMapRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "update time");
+    public final TableField<BithonMetaApplicationMetricMapRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "update time");
 
     /**
      * The column <code>bithon_meta_application_metric_map.application</code>.
@@ -134,7 +134,7 @@ public class BithonMetaApplicationMetricMap extends TableImpl<BithonMetaApplicat
     // -------------------------------------------------------------------------
 
     @Override
-    public Row3<Timestamp, String, String> fieldsRow() {
+    public Row3<LocalDateTime, String, String> fieldsRow() {
         return (Row3) super.fieldsRow();
     }
 }

@@ -34,6 +34,7 @@ import org.springframework.dao.DuplicateKeyException;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -87,7 +88,7 @@ public class TraceJdbcWriter implements ITraceWriter {
                                                                     Tables.BITHON_TRACE_SPAN.TAGS,
                                                                     Tables.BITHON_TRACE_SPAN.NORMALIZEDURL,
                                                                     Tables.BITHON_TRACE_SPAN.STATUS)
-                                                        .values((Timestamp) null,
+                                                        .values((LocalDateTime) null,
                                                                 null, //app name
                                                                 null, // instance
                                                                 null, //trace id
@@ -201,7 +202,7 @@ public class TraceJdbcWriter implements ITraceWriter {
                                                                    Tables.BITHON_TRACE_SPAN_TAG_INDEX.F15,
                                                                    Tables.BITHON_TRACE_SPAN_TAG_INDEX.F16,
                                                                    Tables.BITHON_TRACE_SPAN_TAG_INDEX.TRACEID)
-                                                       .values((Timestamp) null,
+                                                       .values((LocalDateTime) null,
                                                                null,
                                                                null,
                                                                null,

@@ -14,36 +14,35 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.clickhouse;
+package org.bithon.server.storage.jdbc.clickhouse.storage;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
+import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
-import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
+import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 4/11/21 3:34 pm
+ * @date 2021/10/27 9:56 下午
  */
 @JsonTypeName("clickhouse")
-public class SettingStorage extends SettingJdbcStorage {
+public class MetadataStorage extends MetadataJdbcStorage {
 
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public SettingStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseJooqContextHolder dslContextHolder,
-                          @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
+    public MetadataStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseJooqContextHolder dslContextHolder,
+                           @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
         super(dslContextHolder.getDslContext());
         this.config = config;
     }
 
     @Override
     public void initialize() {
-        // Apply ReplacingMergeTree to this table
-        new TableCreator(config, this.dslContext).useReplacingMergeTree(true)
-                                                 .partitionByExpression(null)
-                                                 .createIfNotExist(Tables.BITHON_AGENT_SETTING);
+        new TableCreator(config, this.dslContext).createIfNotExist(Tables.BITHON_APPLICATION_INSTANCE);
     }
 }

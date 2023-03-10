@@ -4,7 +4,7 @@
 package org.bithon.server.storage.jdbc.jooq.tables;
 
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceMapping extends TableImpl<BithonTraceMappingRecord> {
 
-    private static final long serialVersionUID = -1639692347;
+    private static final long serialVersionUID = 980965426;
 
     /**
      * The reference instance of <code>bithon_trace_mapping</code>
@@ -48,7 +48,7 @@ public class BithonTraceMapping extends TableImpl<BithonTraceMappingRecord> {
     /**
      * The column <code>bithon_trace_mapping.timestamp</code>. Milli Seconds
      */
-    public final TableField<BithonTraceMappingRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "Milli Seconds");
+    public final TableField<BithonTraceMappingRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "Milli Seconds");
 
     /**
      * The column <code>bithon_trace_mapping.user_tx_id</code>. user side transaction id
@@ -134,7 +134,7 @@ public class BithonTraceMapping extends TableImpl<BithonTraceMappingRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row3<Timestamp, String, String> fieldsRow() {
+    public Row3<LocalDateTime, String, String> fieldsRow() {
         return (Row3) super.fieldsRow();
     }
 }

@@ -33,7 +33,6 @@ import java.util.List;
 public class GetEventListRequest {
 
     @Deprecated
-    @NotBlank
     private String application;
 
     @NotBlank

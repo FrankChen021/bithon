@@ -25,6 +25,7 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.ThreadLocalTransactionProvider;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -51,7 +52,7 @@ public class EventJdbcWriter implements IEventWriter {
                                                                     Tables.BITHON_EVENT.INSTANCENAME,
                                                                     Tables.BITHON_EVENT.TYPE,
                                                                     Tables.BITHON_EVENT.ARGUMENTS)
-                                                        .values((Timestamp) null,
+                                                        .values((LocalDateTime) null,
                                                                 null,
                                                                 null,
                                                                 null,

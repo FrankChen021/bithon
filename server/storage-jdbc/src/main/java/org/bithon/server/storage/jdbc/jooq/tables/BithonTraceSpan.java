@@ -4,7 +4,7 @@
 package org.bithon.server.storage.jdbc.jooq.tables;
 
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
 
-    private static final long serialVersionUID = -1461391545;
+    private static final long serialVersionUID = 660096867;
 
     /**
      * The reference instance of <code>bithon_trace_span</code>
@@ -48,7 +48,7 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     /**
      * The column <code>bithon_trace_span.timestamp</code>. Milli Seconds
      */
-    public final TableField<BithonTraceSpanRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "Milli Seconds");
+    public final TableField<BithonTraceSpanRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "Milli Seconds");
 
     /**
      * The column <code>bithon_trace_span.appName</code>.
@@ -78,37 +78,37 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     /**
      * The column <code>bithon_trace_span.traceId</code>.
      */
-    public final TableField<BithonTraceSpanRecord, String> TRACEID = createField(DSL.name("traceId"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<BithonTraceSpanRecord, String> TRACEID = createField(DSL.name("traceId"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
      * The column <code>bithon_trace_span.spanId</code>.
      */
-    public final TableField<BithonTraceSpanRecord, String> SPANID = createField(DSL.name("spanId"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<BithonTraceSpanRecord, String> SPANID = createField(DSL.name("spanId"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
      * The column <code>bithon_trace_span.parentSpanId</code>.
      */
-    public final TableField<BithonTraceSpanRecord, String> PARENTSPANID = createField(DSL.name("parentSpanId"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<BithonTraceSpanRecord, String> PARENTSPANID = createField(DSL.name("parentSpanId"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
      * The column <code>bithon_trace_span.kind</code>.
      */
-    public final TableField<BithonTraceSpanRecord, String> KIND = createField(DSL.name("kind"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<BithonTraceSpanRecord, String> KIND = createField(DSL.name("kind"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
      * The column <code>bithon_trace_span.costTimeMs</code>. Micro Second, suffix is wrong
      */
-    public final TableField<BithonTraceSpanRecord, Long> COSTTIMEMS = createField(DSL.name("costTimeMs"), org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.inline("0", org.jooq.impl.SQLDataType.BIGINT)), this, "Micro Second, suffix is wrong");
+    public final TableField<BithonTraceSpanRecord, Long> COSTTIMEMS = createField(DSL.name("costTimeMs"), org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "Micro Second, suffix is wrong");
 
     /**
      * The column <code>bithon_trace_span.startTimeUs</code>. Micro Second
      */
-    public final TableField<BithonTraceSpanRecord, Long> STARTTIMEUS = createField(DSL.name("startTimeUs"), org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.inline("0", org.jooq.impl.SQLDataType.BIGINT)), this, "Micro Second");
+    public final TableField<BithonTraceSpanRecord, Long> STARTTIMEUS = createField(DSL.name("startTimeUs"), org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "Micro Second");
 
     /**
      * The column <code>bithon_trace_span.endTimeUs</code>. Micro Second
      */
-    public final TableField<BithonTraceSpanRecord, Long> ENDTIMEUS = createField(DSL.name("endTimeUs"), org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.inline("0", org.jooq.impl.SQLDataType.BIGINT)), this, "Micro Second");
+    public final TableField<BithonTraceSpanRecord, Long> ENDTIMEUS = createField(DSL.name("endTimeUs"), org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "Micro Second");
 
     /**
      * The column <code>bithon_trace_span.tags</code>.
@@ -118,12 +118,12 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     /**
      * The column <code>bithon_trace_span.normalizedUrl</code>.
      */
-    public final TableField<BithonTraceSpanRecord, String> NORMALIZEDURL = createField(DSL.name("normalizedUrl"), org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<BithonTraceSpanRecord, String> NORMALIZEDURL = createField(DSL.name("normalizedUrl"), org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false), this, "");
 
     /**
      * The column <code>bithon_trace_span.status</code>.
      */
-    public final TableField<BithonTraceSpanRecord, String> STATUS = createField(DSL.name("status"), org.jooq.impl.SQLDataType.VARCHAR(32).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<BithonTraceSpanRecord, String> STATUS = createField(DSL.name("status"), org.jooq.impl.SQLDataType.VARCHAR(32).nullable(false), this, "");
 
     /**
      * Create a <code>bithon_trace_span</code> table reference
@@ -199,7 +199,7 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row16<Timestamp, String, String, String, String, String, String, String, String, String, Long, Long, Long, String, String, String> fieldsRow() {
+    public Row16<LocalDateTime, String, String, String, String, String, String, String, String, String, Long, Long, Long, String, String, String> fieldsRow() {
         return (Row16) super.fieldsRow();
     }
 }

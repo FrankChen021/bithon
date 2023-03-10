@@ -46,7 +46,7 @@ public class GlobalExceptionHandler {
         MethodArgumentNotValidException.class,
         HttpRequestMethodNotSupportedException.class
     })
-    public ResponseEntity<ErrorResponse> handleException(HttpServletRequest request, RuntimeException exception) {
+    public ResponseEntity<ErrorResponse> handleKnownExceptions(HttpServletRequest request, Exception exception) {
         return ResponseEntity.badRequest().body(ErrorResponse.builder()
                                                              .path(request.getRequestURI())
                                                              .message(exception.getMessage())

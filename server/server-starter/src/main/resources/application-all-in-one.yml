@@ -6,5 +6,5 @@ spring:
   profiles:
     include:
       - collector-to-local
-      - storage-jdbc
+      - storage-clickhouse
       - webapp

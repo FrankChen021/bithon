@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.clickhouse.web;
+package org.bithon.server.storage.jdbc.clickhouse.storage.web;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
-import org.bithon.server.storage.jdbc.clickhouse.TableCreator;
+import org.bithon.server.storage.jdbc.clickhouse.storage.TableCreator;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.web.JdbcDashboardStorage;
 import org.bithon.server.storage.web.Dashboard;
@@ -60,7 +60,7 @@ public class DashboardStorage extends JdbcDashboardStorage {
     public List<Dashboard> getDashboard(long afterTimestamp) {
         String sql = dslContext.selectFrom(Tables.BITHON_WEB_DASHBOARD)
                                .getSQL() + " FINAL WHERE ";
-        sql += dslContext.renderInlined(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.ge(new Timestamp(afterTimestamp)));
+        sql += dslContext.renderInlined(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.ge(new Timestamp(afterTimestamp).toLocalDateTime()));
 
         List<Record> records = dslContext.fetch(sql);
         if (records == null) {
@@ -79,7 +79,7 @@ public class DashboardStorage extends JdbcDashboardStorage {
                   .set(Tables.BITHON_WEB_DASHBOARD.NAME, name)
                   .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                   .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
-                  .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, now)
+                  .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, now.toLocalDateTime())
                   .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
                   .execute();
 
@@ -100,7 +100,7 @@ public class DashboardStorage extends JdbcDashboardStorage {
                   .set(Tables.BITHON_WEB_DASHBOARD.NAME, name)
                   .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                   .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
-                  .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, now)
+                  .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, now.toLocalDateTime())
                   .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
                   .execute();
     }

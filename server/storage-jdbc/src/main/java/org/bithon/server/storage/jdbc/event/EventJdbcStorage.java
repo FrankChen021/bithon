@@ -69,7 +69,7 @@ public class EventJdbcStorage implements IEventStorage {
     @Override
     public IStorageCleaner createCleaner() {
         return timestamp -> dslContext.deleteFrom(Tables.BITHON_EVENT)
-                                      .where(Tables.BITHON_EVENT.TIMESTAMP.le(timestamp))
+                                      .where(Tables.BITHON_EVENT.TIMESTAMP.le(timestamp.toLocalDateTime()))
                                       .execute();
     }
 }

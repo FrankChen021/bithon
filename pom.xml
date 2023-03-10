@@ -439,7 +439,6 @@
             <dependency>com.alibaba:druid-spring-boot-starter</dependency>
             <dependency>com.h2database:h2</dependency>
             <dependency>org.jooq:jooq</dependency>
-            <dependency>ru.yandex.clickhouse:clickhouse-jdbc</dependency>
 
             <!-- starter -->
             <dependency>com.alibaba.cloud:spring-cloud-starter-alibaba-nacos-config</dependency>

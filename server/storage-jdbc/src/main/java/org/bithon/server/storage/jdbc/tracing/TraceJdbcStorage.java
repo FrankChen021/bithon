@@ -110,19 +110,19 @@ public class TraceJdbcStorage implements ITraceStorage {
     public IStorageCleaner createCleaner() {
         return before -> {
             dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN)
-                      .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.le(before))
+                      .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.le(before.toLocalDateTime()))
                       .execute();
 
             dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN_SUMMARY)
-                      .where(Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.le(before))
+                      .where(Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.le(before.toLocalDateTime()))
                       .execute();
 
             dslContext.deleteFrom(Tables.BITHON_TRACE_MAPPING)
-                      .where(Tables.BITHON_TRACE_MAPPING.TIMESTAMP.le(before))
+                      .where(Tables.BITHON_TRACE_MAPPING.TIMESTAMP.le(before.toLocalDateTime()))
                       .execute();
 
             dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN_TAG_INDEX)
-                      .where(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.le(before))
+                      .where(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.le(before.toLocalDateTime()))
                       .execute();
         };
     }

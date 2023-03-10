@@ -106,6 +106,16 @@
               <pojos>false</pojos>
               <indexes>true</indexes>
               <generatedAnnotation>false</generatedAnnotation>
+              <!--
+              Use LocalDateTime for timestamp SQL type.
+              This is because CK driver treats DateTime as LocalDateTime in its JDBC driver.
+
+              Since the code/schema are all based on original Timestamp, to keep compatibility,
+              we tell jOOQ to treat Timestamp as LocalDateTime at code generation stage.
+
+              See: https://www.jooq.org/doc/latest/manual/code-generation/codegen-advanced/codegen-config-generate/codegen-generate-java-time-types/
+              -->
+              <javaTimeTypes>true</javaTimeTypes>
             </generate>
             <target>
               <packageName>org.bithon.server.storage.jdbc.jooq</packageName>

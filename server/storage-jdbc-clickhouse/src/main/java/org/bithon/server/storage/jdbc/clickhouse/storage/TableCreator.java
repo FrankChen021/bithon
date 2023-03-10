@@ -14,11 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.clickhouse;
+package org.bithon.server.storage.jdbc.clickhouse.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.jooq.DSLContext;
+import org.jooq.DataType;
 import org.jooq.Field;
 import org.jooq.Index;
 import org.jooq.SortField;
@@ -190,21 +192,25 @@ public class TableCreator {
     private String getFieldText(Table<?> table) {
         StringBuilder sb = new StringBuilder(128);
         for (Field<?> f : table.fields()) {
-            if (f.getDataType().equals(SQLDataType.TIMESTAMP)) {
-                sb.append(StringUtils.format("`%s` %s(3,0) ,%n",
-                                             f.getName(),
-                                             f.getDataType().getTypeName()));
-                continue;
-            }
-            if (f.getDataType().hasPrecision()) {
-                sb.append(StringUtils.format("`%s` %s(%d, %d) ,%n",
-                                             f.getName(),
-                                             f.getDataType().getTypeName(),
-                                             f.getDataType().precision(),
-                                             f.getDataType().scale()));
+            DataType<?> dataType = f.getDataType();
+
+            String typeName = dataType.getTypeName();
+            if (dataType.equals(SQLDataType.TIMESTAMP) || dataType.equals(SQLDataType.LOCALDATETIME)) {
+                typeName = "timestamp(3,0)";
             } else {
-                sb.append(StringUtils.format("`%s` %s ,%n", f.getName(), f.getDataType().getTypeName()));
+                if (dataType.hasPrecision()) {
+                    typeName = dataType.getTypeName() + "(" + dataType.precision() + ", " + dataType.scale() + ")";
+                }
             }
+
+            sb.append(StringUtils.format("`%s` %s ", f.getName(), typeName));
+
+            Field<?> defaultValue = dataType.defaultValue();
+            if (defaultValue != null) {
+                sb.append(StringUtils.format("DEFAULT %s", defaultValue.toString()));
+            }
+
+            sb.append(",\n");
         }
         sb.delete(sb.length() - 2, sb.length());
         return sb.toString();

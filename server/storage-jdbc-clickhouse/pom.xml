@@ -20,10 +20,11 @@
     </dependency>
 
     <!-- ClickHouse JDBC Driver -->
+    <!-- https://mvnrepository.com/artifact/com.clickhouse/clickhouse-jdbc -->
     <dependency>
-      <groupId>ru.yandex.clickhouse</groupId>
+      <groupId>com.clickhouse</groupId>
       <artifactId>clickhouse-jdbc</artifactId>
-      <version>0.3.1-patch</version>
+      <version>0.3.2-patch11</version>
     </dependency>
 
     <dependency>
@@ -34,5 +35,17 @@
 
   <build>
     <finalName>${project.artifactId}</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <configuration>
+          <ignoredUnusedDeclaredDependencies>
+            <!--The driver is loaded by JDBC reflection, its classes are not directly referenced in our project-->
+            <dependency>com.clickhouse:clickhouse-jdbc</dependency>
+          </ignoredUnusedDeclaredDependencies>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 </project>
