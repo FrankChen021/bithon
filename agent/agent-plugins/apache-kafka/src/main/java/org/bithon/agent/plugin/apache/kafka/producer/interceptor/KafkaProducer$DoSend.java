@@ -20,10 +20,12 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Header;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
+import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.agent.plugin.apache.kafka.producer.KafkaProducerTracingConfig;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.ReflectionUtils;
@@ -72,8 +74,11 @@ public class KafkaProducer$DoSend extends AbstractInterceptor {
             size = ((ByteBuffer) record.value()).remaining();
         }
 
+        String cluster = ((KafkaPluginContext) ((IBithonObject) aopContext.getTarget()).getInjectedObject()).clusterSupplier.get();
+
         aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .kind(SpanKind.PRODUCER)
+                                      .tag("uri", "kafka://" + cluster)
                                       .tag("kafka.topic", record.topic())
                                       .tag("kafka.partition", record.partition())
                                       .tag("kafka.messageSize", size)

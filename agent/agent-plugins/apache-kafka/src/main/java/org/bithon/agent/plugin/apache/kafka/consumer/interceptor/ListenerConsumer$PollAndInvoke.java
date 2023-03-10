@@ -69,22 +69,22 @@ public class ListenerConsumer$PollAndInvoke extends AbstractInterceptor {
             return;
         }
 
-        String url = "kafka://" + cluster;
+        String uri = "kafka://" + cluster;
         String[] topics = properties.getTopics();
         if (topics != null) {
-            url += "?topic=" + String.join(",", topics);
+            uri += "?topic=" + String.join(",", topics);
         } else if (properties.getTopicPattern() != null) {
-            url += "?topic=" + properties.getTopicPattern().pattern();
+            uri += "?topic=" + properties.getTopicPattern().pattern();
         } else {
             TopicPartitionOffset[] partitions = properties.getTopicPartitions();
             if (partitions != null) {
-                url += "?topic=" + Stream.of(partitions).map(TopicPartitionOffset::getTopic).collect(Collectors.joining(","));
+                uri += "?topic=" + Stream.of(partitions).map(TopicPartitionOffset::getTopic).collect(Collectors.joining(","));
             }
         }
 
         // Keep the uri for further use
         IBithonObject bithonObject = aopContext.getTargetAs();
-        bithonObject.setInjectedObject(url);
+        bithonObject.setInjectedObject(uri);
     }
 
     @Override
