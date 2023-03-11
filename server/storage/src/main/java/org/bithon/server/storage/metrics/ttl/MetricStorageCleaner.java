@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.common.IStorageCleaner;
+import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 
@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2021/4/11 17:15
  */
 @Slf4j
-public abstract class MetricStorageCleaner implements IStorageCleaner {
+public abstract class MetricStorageCleaner implements IExpirationRunnable {
 
     protected abstract DataSourceSchemaManager getSchemaManager();
 

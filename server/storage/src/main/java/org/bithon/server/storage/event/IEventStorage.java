@@ -19,7 +19,7 @@ package org.bithon.server.storage.event;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.common.IExpirable;
 import org.bithon.server.storage.common.IStorage;
-import org.bithon.server.storage.common.IStorageCleaner;
+import org.bithon.server.storage.common.IExpirationRunnable;
 
 /**
  * @author frank.chen021@outlook.com
@@ -39,5 +39,5 @@ public interface IEventStorage extends IStorage, IExpirable {
 
     IEventReader createReader();
 
-    IStorageCleaner getCleaner();
+    IExpirationRunnable getExpirationRunnable();
 }

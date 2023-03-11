@@ -20,8 +20,5 @@ package org.bithon.server.storage.common;
  * @author frank chen
  */
 public interface IExpirable {
-    /**
-     * Expire data before the given timestamp (exclusive)
-     */
-    IStorageCleaner getCleaner();
+    IExpirationRunnable getExpirationRunnable();
 }

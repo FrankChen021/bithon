@@ -25,8 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.sink.tracing.TraceSinkConfig;
-import org.bithon.server.storage.common.IStorageCleaner;
-import org.bithon.server.storage.common.TTLConfig;
+import org.bithon.server.storage.common.IExpirationRunnable;
+import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
@@ -78,22 +78,20 @@ public class TraceStorage extends TraceJdbcStorage {
     }
 
     @Override
-    public IStorageCleaner getCleaner() {
-        return new IStorageCleaner() {
+    public IExpirationRunnable getExpirationRunnable() {
+        return new IExpirationRunnable() {
             @Override
-            public TTLConfig getTTLConfig() {
+            public ExpirationConfig getRule() {
                 return traceStorageConfig.getTtl();
             }
 
             @Override
             public void expire(Timestamp before) {
-                String timestamp = DateTime.toYYYYMMDD(before.getTime());
-
                 DataCleaner cleaner = new DataCleaner(config, dslContext);
-                cleaner.clean(Tables.BITHON_TRACE_SPAN.getName(), timestamp);
-                cleaner.clean(Tables.BITHON_TRACE_SPAN_SUMMARY.getName(), timestamp);
-                cleaner.clean(Tables.BITHON_TRACE_MAPPING.getName(), timestamp);
-                cleaner.clean(Tables.BITHON_TRACE_SPAN_TAG_INDEX.getName(), timestamp);
+                cleaner.deleteFromPartition(Tables.BITHON_TRACE_SPAN.getName(), before);
+                cleaner.deleteFromPartition(Tables.BITHON_TRACE_SPAN_SUMMARY.getName(), before);
+                cleaner.deleteFromPartition(Tables.BITHON_TRACE_MAPPING.getName(), before);
+                cleaner.deleteFromPartition(Tables.BITHON_TRACE_SPAN_TAG_INDEX.getName(), before);
             }
         };
     }

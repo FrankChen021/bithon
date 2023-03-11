@@ -41,7 +41,11 @@ public class DataCleaner {
         this.dsl = dsl;
     }
 
-    public void clean(String table, String timestamp) {
+    /**
+     * DELETE PARTITION is a very lightweight operation
+     */
+    @SuppressWarnings("unchecked")
+    public void deleteFromPartition(String table, Timestamp before) {
         String fromTable;
         if (StringUtils.isEmpty(config.getCluster())) {
             fromTable = "system.parts";
@@ -50,26 +54,30 @@ public class DataCleaner {
         }
 
         String localTable = config.getLocalTableName(table);
+        String selectPartitionSQL = StringUtils.format(
+            "SELECT distinct partition FROM %s WHERE database = '%s' AND table = '%s' AND partition < '%s'",
+            fromTable,
+            config.getDatabase(),
+            localTable,
+            DateTime.toYYYYMMDD(before.getTime()));
 
-        //noinspection unchecked
-        List<String> partitions = (List<String>) dsl.fetch(StringUtils.format(
-                                                        "SELECT distinct partition FROM %s WHERE database = '%s' AND table = '%s' AND partition < '%s'",
-                                                        fromTable,
-                                                        config.getDatabase(),
-                                                        localTable,
-                                                        timestamp))
+        List<String> partitions = (List<String>) dsl.fetch(selectPartitionSQL)
                                                     .getValues(0);
 
         for (String partition : partitions) {
             log.info("\tDrop [{}] on [{}]", table, partition);
-            dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DROP PARTITION %s;", config.getDatabase(), localTable, config.getOnClusterExpression(), partition));
+            dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DROP PARTITION %s;",
+                                           config.getDatabase(),
+                                           localTable,
+                                           config.getOnClusterExpression(),
+                                           partition));
         }
     }
 
     /**
-     * Obsoleted old implementation due to heavy operation
+     * Delete data from table is a heavy operation in ClickHouse
      */
-    public void deleteFrom(Table<?> table, Timestamp before) {
+    public void deleteFromTable(Table<?> table, Timestamp before) {
         try {
             dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
                                            config.getDatabase(),

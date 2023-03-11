@@ -20,8 +20,8 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.server.storage.common.IStorageCleaner;
-import org.bithon.server.storage.common.TTLConfig;
+import org.bithon.server.storage.common.IExpirationRunnable;
+import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonApplicationInstanceRecord;
@@ -143,10 +143,10 @@ public class MetadataJdbcStorage implements IMetaStorage {
     }
 
     @Override
-    public IStorageCleaner getCleaner() {
-        return new IStorageCleaner() {
+    public IExpirationRunnable getExpirationRunnable() {
+        return new IExpirationRunnable() {
             @Override
-            public TTLConfig getTTLConfig() {
+            public ExpirationConfig getRule() {
                 return storageConfig.getTtl();
             }
 

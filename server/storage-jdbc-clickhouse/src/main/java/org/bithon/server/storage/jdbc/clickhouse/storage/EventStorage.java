@@ -22,9 +22,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.component.commons.time.DateTime;
-import org.bithon.server.storage.common.IStorageCleaner;
-import org.bithon.server.storage.common.TTLConfig;
+import org.bithon.server.storage.common.IExpirationRunnable;
+import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
@@ -63,16 +62,16 @@ public class EventStorage extends EventJdbcStorage {
      * The data is partitioned by days, so we only clear the data before the day of given timestamp
      */
     @Override
-    public IStorageCleaner getCleaner() {
-        return new IStorageCleaner() {
+    public IExpirationRunnable getExpirationRunnable() {
+        return new IExpirationRunnable() {
             @Override
-            public TTLConfig getTTLConfig() {
+            public ExpirationConfig getRule() {
                 return storageConfig.getTtl();
             }
 
             @Override
             public void expire(Timestamp before) {
-                new DataCleaner(config, dslContext).clean(Tables.BITHON_EVENT.getName(), DateTime.toYYYYMMDD(before.getTime()));
+                new DataCleaner(config, dslContext).deleteFromPartition(Tables.BITHON_EVENT.getName(), before);
             }
         };
     }

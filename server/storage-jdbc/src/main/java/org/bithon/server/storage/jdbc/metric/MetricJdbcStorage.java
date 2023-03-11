@@ -20,8 +20,8 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.server.storage.common.IStorageCleaner;
-import org.bithon.server.storage.common.TTLConfig;
+import org.bithon.server.storage.common.IExpirationRunnable;
+import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
@@ -93,10 +93,10 @@ public class MetricJdbcStorage implements IMetricStorage {
     }
 
     @Override
-    public IStorageCleaner getCleaner() {
+    public IExpirationRunnable getExpirationRunnable() {
         return new MetricStorageCleaner() {
             @Override
-            public TTLConfig getTTLConfig() {
+            public ExpirationConfig getRule() {
                 return storageConfig.getTtl();
             }
 

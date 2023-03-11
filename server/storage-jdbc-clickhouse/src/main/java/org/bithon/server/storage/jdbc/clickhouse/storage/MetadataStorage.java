@@ -20,8 +20,8 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.server.storage.common.IStorageCleaner;
-import org.bithon.server.storage.common.TTLConfig;
+import org.bithon.server.storage.common.IExpirationRunnable;
+import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
@@ -113,16 +113,16 @@ public class MetadataStorage extends MetadataJdbcStorage {
     }
 
     @Override
-    public IStorageCleaner getCleaner() {
-        return new IStorageCleaner() {
+    public IExpirationRunnable getExpirationRunnable() {
+        return new IExpirationRunnable() {
             @Override
-            public TTLConfig getTTLConfig() {
+            public ExpirationConfig getRule() {
                 return storageConfig.getTtl();
             }
 
             @Override
             public void expire(Timestamp before) {
-                new DataCleaner(config, dslContext).deleteFrom(Tables.BITHON_APPLICATION_INSTANCE, before);
+                new DataCleaner(config, dslContext).deleteFromTable(Tables.BITHON_APPLICATION_INSTANCE, before);
             }
         };
     }
