@@ -25,7 +25,7 @@ CREATE TABLE `bithon_application_instance`
     `appName` varchar(128) NOT NULL,
     `appType` varchar(64)  NOT NULL,
     `instanceName`    varchar(64)  NOT NULL,
-    KEY `idx_app_instance_timestamp` (`timestamp`), # Use a unique index name because some db like H2 rejects duplicated name
+    KEY `idx_app_instance_timestamp` (`timestamp`) COMMENT 'clickouse: minmax',
     UNIQUE `uq_name_type_instance` (`appName`, `appType`, `instanceName`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -50,7 +50,7 @@ CREATE TABLE `bithon_meta_schema`
     `schema`       TEXT NOT NULL COMMENT 'Schema in JSON',
     `signature`    VARCHAR(250) NOT NULL COMMENT 'Signature of schema field, currently SHA256 is applied',
     UNIQUE `idx_meta_schema_name` (`name`),
-    KEY `idx_meta_schema_timestamp` (`timestamp`)
+    KEY `idx_meta_schema_timestamp` (`timestamp`) COMMENT 'clickhouse: minmax'
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='';
 

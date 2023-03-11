@@ -57,6 +57,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
     public void initialize() {
         new TableCreator(config, dslContext).useReplacingMergeTree(true)
                                             .partitionByExpression(null)
+                                            .secondaryIndex(Tables.BITHON_META_SCHEMA.TIMESTAMP.getName(), "INDEX ts timestamp TYPE minmax GRANULARITY 4096")
                                             .createIfNotExist(Tables.BITHON_META_SCHEMA);
     }
 

@@ -27,6 +27,9 @@ import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.impl.SQLDataType;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 1/11/21 6:48 pm
@@ -51,6 +54,8 @@ public class TableCreator {
 
     private String partitionByExpression = "toYYYYMMDD(timestamp)";
 
+    private final Map<String, String> secondaryIndexes = new HashMap<>();
+
     public TableCreator useReplacingMergeTree(boolean useReplacingMergeTree) {
         this.useReplacingMergeTree = useReplacingMergeTree;
         return this;
@@ -63,6 +68,11 @@ public class TableCreator {
 
     public TableCreator partitionByExpression(String partitionByExpression) {
         this.partitionByExpression = partitionByExpression;
+        return this;
+    }
+
+    public TableCreator secondaryIndex(String column, String expression) {
+        secondaryIndexes.put(column, expression);
         return this;
     }
 
@@ -92,11 +102,12 @@ public class TableCreator {
             StringBuilder createTableStatement = new StringBuilder();
 
             String tableName = config.getLocalTableName(table.getName());
-            createTableStatement.append(StringUtils.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n%s)",
+            createTableStatement.append(StringUtils.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n%s %s)",
                                                            config.getDatabase(),
                                                            tableName,
                                                            config.getOnClusterExpression(),
-                                                           getFieldText(table)));
+                                                           getFieldText(table),
+                                                           getIndexText()));
 
             // replace macro in the template to suit for ReplicatedMergeTree
             fullEngine = fullEngine.replaceAll("\\{database}", config.getDatabase())
@@ -137,9 +148,15 @@ public class TableCreator {
             {
                 createTableStatement.append("\nORDER BY(");
                 for (Index idx : table.getIndexes()) {
+                    if (idx.getFields().size() == 1 && this.secondaryIndexes.containsKey(idx.getFields().get(0).getName())) {
+                        // index on single column, and is marked as secondary index, no need to put this column in the ORDER-BY expression as primary key
+                        continue;
+                    }
+
                     if (useReplacingMergeTree) {
                         if (!idx.getUnique()) {
-                            // for replacing merge tree, use unique key as order key only
+                            // For replacing merge tree, use unique key as order key only,
+                            // So if it's not the unique key, skip it
                             continue;
                         }
                     }
@@ -213,6 +230,17 @@ public class TableCreator {
             sb.append(",\n");
         }
         sb.delete(sb.length() - 2, sb.length());
+        return sb.toString();
+    }
+
+    private String getIndexText() {
+        StringBuilder sb = new StringBuilder(128);
+        for (Map.Entry<String, String> entry : this.secondaryIndexes.entrySet()) {
+            String expression = entry.getValue();
+
+            sb.append(StringUtils.format(",%n%s", expression));
+
+        }
         return sb.toString();
     }
 }

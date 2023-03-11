@@ -58,8 +58,12 @@ public class MetadataStorage extends MetadataJdbcStorage {
     @Override
     public void initialize() {
         new TableCreator(config, this.dslContext).useReplacingMergeTree(true)
+                                                 .replacingMergeTreeVersion(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.getName())
                                                  // No partition for this table
                                                  .partitionByExpression(null)
+                                                 // Add minmax index to timestamp column
+                                                 .secondaryIndex(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.getName(),
+                                                                 "INDEX ts timestamp TYPE minmax GRANULARITY 4096")
                                                  .createIfNotExist(Tables.BITHON_APPLICATION_INSTANCE);
     }
 
