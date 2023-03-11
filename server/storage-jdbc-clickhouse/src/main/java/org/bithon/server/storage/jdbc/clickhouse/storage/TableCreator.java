@@ -41,7 +41,7 @@ public class TableCreator {
 
     @Getter
     @AllArgsConstructor
-    static class SecondaryIndex {
+    public static class SecondaryIndex {
         private String type;
         private int granularity;
     }

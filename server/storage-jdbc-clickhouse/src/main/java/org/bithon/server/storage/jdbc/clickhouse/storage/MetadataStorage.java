@@ -20,8 +20,8 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.common.ExpirationConfig;
+import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
@@ -59,6 +59,7 @@ public class MetadataStorage extends MetadataJdbcStorage {
     public void initialize() {
         new TableCreator(config, this.dslContext).useReplacingMergeTree(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.getName())
                                                  // No partition for this table
+                                                 // This is a tradeoff for the data expiration.
                                                  .partitionByExpression(null)
                                                  // Add minmax index to timestamp column
                                                  .secondaryIndex(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.getName(), new TableCreator.SecondaryIndex("minmax", 4096))
@@ -89,6 +90,7 @@ public class MetadataStorage extends MetadataJdbcStorage {
         }).collect(Collectors.toSet());
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public void saveApplicationInstance(List<Instance> instanceList) {
         InsertSetStep step = dslContext.insertInto(Tables.BITHON_APPLICATION_INSTANCE);
@@ -120,9 +122,16 @@ public class MetadataStorage extends MetadataJdbcStorage {
                 return storageConfig.getTtl();
             }
 
+            /**
+             * Now we use ALTER DELETE to delete data, but it's a heavy operation.
+             * To save resources, we check the rows to be deleted first, if the row number is small enough, we skip the expiration.
+             * <p>
+             * Note, even ClickHouse provides lightweight delete, it's still resource consuming.
+             */
             @Override
             public void expire(Timestamp before) {
-                new DataCleaner(config, dslContext).deleteFromTable(Tables.BITHON_APPLICATION_INSTANCE, before);
+                new DataCleaner(config, dslContext)
+                    .deleteFromTable(Tables.BITHON_APPLICATION_INSTANCE, before, 2000);
             }
         };
     }
