@@ -94,7 +94,7 @@ public class DynamicConfigurationManager {
         }
 
         @Override
-        protected void onRunning() throws Exception {
+        protected void onRun() throws Exception {
             log.info("Fetch configuration for {}-{}", appName, env);
 
             // Get configuration from remote server

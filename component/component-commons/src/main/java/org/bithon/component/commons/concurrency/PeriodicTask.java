@@ -40,7 +40,7 @@ public abstract class PeriodicTask {
         this.period = period.toMillis();
         this.name = name;
 
-        Thread taskThread = new Thread(this::run);
+        Thread taskThread = new Thread(this::schedule);
         taskThread.setName(name);
         taskThread.setDaemon(true);
         taskThread.start();
@@ -59,11 +59,11 @@ public abstract class PeriodicTask {
         runTask();
     }
 
-    private void run() {
+    private void schedule() {
         while (running) {
 
             try {
-                this.onRunning();
+                this.onRun();
             } catch (Exception e) {
                 onException(e);
             }
@@ -92,7 +92,7 @@ public abstract class PeriodicTask {
         }
     }
 
-    protected abstract void onRunning() throws Exception;
+    protected abstract void onRun() throws Exception;
 
     protected abstract void onException(Exception e);
 

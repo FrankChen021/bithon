@@ -119,8 +119,8 @@ public class CacheableMetadataStorage implements IMetaStorage {
         }
 
         @Override
-        protected void onRunning() {
-            log.info("Loading all instances...");
+        protected void onRun() {
+            log.info("Loading all application instances...");
 
             long since = System.currentTimeMillis() - Duration.ofDays(1).toMillis();
             Collection<Instance> instances = delegate.getApplicationInstances(since);
