@@ -28,6 +28,10 @@ bithon:
     meta:
       type: jdbc
       enabled: true
+      ttl:
+        enabled: true
+        ttl: PT5M
+        cleanPeriod: PT3M
     setting:
       type: jdbc
       enabled: true

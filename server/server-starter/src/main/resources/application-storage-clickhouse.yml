@@ -27,6 +27,10 @@ bithon:
     meta:
       type: clickhouse
       enabled: true
+      ttl:
+        enabled: true
+        ttl: P7D
+        cleanPeriod: PT30M
     setting:
       type: clickhouse
       enabled: true
@@ -42,8 +46,8 @@ bithon:
         #
         url: jdbc:clickhouse://localhost:8123/bithon?decompress=1&compress=1&nullAsDefault=2
         driverClassName: com.clickhouse.jdbc.ClickHouseDriver
-        username: olap
-        password: olap123
+        username: default
+        password:
         #
         # More parameters about ClickHouse cluster, see ClickHouseConfig for more information.
         # eg:
