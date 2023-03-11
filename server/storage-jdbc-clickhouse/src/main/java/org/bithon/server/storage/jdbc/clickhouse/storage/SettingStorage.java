@@ -44,7 +44,7 @@ public class SettingStorage extends SettingJdbcStorage {
     @Override
     public void initialize() {
         // Apply ReplacingMergeTree to this table
-        new TableCreator(config, this.dslContext).useReplacingMergeTree(true)
+        new TableCreator(config, this.dslContext).useReplacingMergeTree(Tables.BITHON_META_SCHEMA.TIMESTAMP.getName())
                                                  .partitionByExpression(null)
                                                  .createIfNotExist(Tables.BITHON_AGENT_SETTING);
     }

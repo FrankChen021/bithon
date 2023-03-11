@@ -16,6 +16,8 @@
 
 package org.bithon.server.storage.jdbc.clickhouse.storage;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
@@ -37,6 +39,13 @@ import java.util.Map;
 @Slf4j
 public class TableCreator {
 
+    @Getter
+    @AllArgsConstructor
+    static class SecondaryIndex {
+        private String type;
+        private int granularity;
+    }
+
     private final ClickHouseConfig config;
     private final DSLContext dslContext;
 
@@ -45,24 +54,17 @@ public class TableCreator {
         this.dslContext = dslContext;
     }
 
-    private boolean useReplacingMergeTree = false;
-
     /**
-     * the version field of a ReplacingMergeTree
+     * The version field of a ReplacingMergeTree
      */
-    private String replacingMergeTreeVersion = "timestamp";
+    private String replacingMergeTreeVersion;
 
     private String partitionByExpression = "toYYYYMMDD(timestamp)";
 
-    private final Map<String, String> secondaryIndexes = new HashMap<>();
+    private final Map<String, SecondaryIndex> secondaryIndexes = new HashMap<>();
 
-    public TableCreator useReplacingMergeTree(boolean useReplacingMergeTree) {
-        this.useReplacingMergeTree = useReplacingMergeTree;
-        return this;
-    }
-
-    public TableCreator replacingMergeTreeVersion(String replacingMergeTreeVersion) {
-        this.replacingMergeTreeVersion = replacingMergeTreeVersion;
+    public TableCreator useReplacingMergeTree(String versionField) {
+        this.replacingMergeTreeVersion = versionField;
         return this;
     }
 
@@ -71,8 +73,8 @@ public class TableCreator {
         return this;
     }
 
-    public TableCreator secondaryIndex(String column, String expression) {
-        secondaryIndexes.put(column, expression);
+    public TableCreator secondaryIndex(String field, SecondaryIndex index) {
+        secondaryIndexes.put(field, index);
         return this;
     }
 
@@ -86,7 +88,7 @@ public class TableCreator {
             // that means the last record will be kept
             //
             String fullEngine = config.getEngine();
-            if (useReplacingMergeTree && !config.getTableEngine().contains("Replacing")) {
+            if (replacingMergeTreeVersion != null && !config.getTableEngine().contains("Replacing")) {
                 // turn the engine name into xxxReplacingMergeTree
                 String enginePrefix = config.getTableEngine().substring(0, config.getTableEngine().length() - "MergeTree".length());
                 String tableEngine = enginePrefix + "ReplacingMergeTree";
@@ -113,7 +115,7 @@ public class TableCreator {
             fullEngine = fullEngine.replaceAll("\\{database}", config.getDatabase())
                                    .replaceAll("\\{table}", tableName);
 
-            if (useReplacingMergeTree) {
+            if (replacingMergeTreeVersion != null) {
                 // Insert the version field for ReplacingMergeTree
                 int openParentheses = fullEngine.indexOf('(');
                 int closeParentheses = fullEngine.lastIndexOf(')');
@@ -153,7 +155,7 @@ public class TableCreator {
                         continue;
                     }
 
-                    if (useReplacingMergeTree) {
+                    if (replacingMergeTreeVersion != null) {
                         if (!idx.getUnique()) {
                             // For replacing merge tree, use unique key as order key only,
                             // So if it's not the unique key, skip it
@@ -235,11 +237,11 @@ public class TableCreator {
 
     private String getIndexText() {
         StringBuilder sb = new StringBuilder(128);
-        for (Map.Entry<String, String> entry : this.secondaryIndexes.entrySet()) {
-            String expression = entry.getValue();
+        for (Map.Entry<String, SecondaryIndex> entry : this.secondaryIndexes.entrySet()) {
+            String field = entry.getKey();
+            SecondaryIndex idx = entry.getValue();
 
-            sb.append(StringUtils.format(",%n%s", expression));
-
+            sb.append(StringUtils.format(",%nINDEX idx_%s %s TYPE %s GRANULARITY %d", field, field, idx.getType(), idx.getGranularity()));
         }
         return sb.toString();
     }
