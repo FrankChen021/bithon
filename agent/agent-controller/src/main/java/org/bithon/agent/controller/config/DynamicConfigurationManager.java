@@ -70,6 +70,7 @@ public class DynamicConfigurationManager {
 
     public static void createInstance(String appName, String env, IAgentController controller) {
         INSTANCE = new DynamicConfigurationManager(appName, env, controller);
+        INSTANCE.updateConfigTask.start();
     }
 
     public static DynamicConfigurationManager getInstance() {

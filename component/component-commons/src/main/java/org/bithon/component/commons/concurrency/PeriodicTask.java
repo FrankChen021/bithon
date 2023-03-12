@@ -33,13 +33,21 @@ public abstract class PeriodicTask {
     private final String name;
 
     private volatile boolean running = true;
+    private final boolean autoShutdown;
 
     public PeriodicTask(String name,
                         Duration period,
                         boolean autoShutdown) {
         this.period = period.toMillis();
         this.name = name;
+        this.autoShutdown = autoShutdown;
+    }
 
+    public String getName() {
+        return name;
+    }
+
+    public final void start() {
         Thread taskThread = new Thread(this::schedule);
         taskThread.setName(name);
         taskThread.setDaemon(true);
@@ -48,10 +56,6 @@ public abstract class PeriodicTask {
         if (autoShutdown) {
             Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
         }
-    }
-
-    public String getName() {
-        return name;
     }
 
     public final void stop() {

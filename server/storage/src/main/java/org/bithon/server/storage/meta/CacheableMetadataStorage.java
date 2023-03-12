@@ -97,6 +97,7 @@ public class CacheableMetadataStorage implements IMetaStorage {
         delegate.initialize();
 
         this.loadInstanceTask = new LoadInstanceTask();
+        this.loadInstanceTask.start();
     }
 
     /**
