@@ -27,5 +27,5 @@ import org.bithon.server.commons.time.Period;
 public class ExpirationConfig {
     private Period ttl;
     private Period cleanPeriod;
-    private boolean enabled = true;
+    private boolean enabled = false;
 }
