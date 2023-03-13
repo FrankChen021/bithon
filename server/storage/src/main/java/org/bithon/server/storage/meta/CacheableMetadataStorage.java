@@ -22,6 +22,7 @@ import org.bithon.server.storage.common.IExpirationRunnable;
 
 import javax.annotation.PreDestroy;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -42,6 +43,8 @@ public class CacheableMetadataStorage implements IMetaStorage {
     private final IMetaStorage delegate;
 
     private PeriodicTask loadInstanceTask;
+    private SaveInstanceTask saveInstanceTask;
+
     private Set<String> applicationCache = Collections.emptySet();
     private Map<String, String> instance2AppCache = new ConcurrentHashMap<>();
     private Set<Instance> instanceCache = new ConcurrentSkipListSet<>();
@@ -51,7 +54,7 @@ public class CacheableMetadataStorage implements IMetaStorage {
     }
 
     @Override
-    public synchronized void saveApplicationInstance(List<Instance> instanceList) {
+    public void saveApplicationInstance(List<Instance> instanceList) {
         // Filter out those not in the cache
         instanceList = instanceList.stream()
                                    .filter(instance -> !instanceCache.contains(instance))
@@ -61,8 +64,7 @@ public class CacheableMetadataStorage implements IMetaStorage {
             return;
         }
 
-        // Save to underlying storage
-        delegate.saveApplicationInstance(instanceList);
+        this.saveInstanceTask.add(instanceList);
 
         //
         // Update cache in current running instance
@@ -96,8 +98,11 @@ public class CacheableMetadataStorage implements IMetaStorage {
     public void initialize() {
         delegate.initialize();
 
-        this.loadInstanceTask = new LoadInstanceTask();
+        this.loadInstanceTask = new LoadInstanceTask(Duration.ofMinutes(1));
         this.loadInstanceTask.start();
+
+        this.saveInstanceTask = new SaveInstanceTask(100, Duration.ofSeconds(10));
+        this.saveInstanceTask.start();
     }
 
     /**
@@ -107,6 +112,7 @@ public class CacheableMetadataStorage implements IMetaStorage {
     @PreDestroy
     public void onDestroy() {
         this.loadInstanceTask.stop();
+        this.saveInstanceTask.stop();
     }
 
     @Override
@@ -114,17 +120,63 @@ public class CacheableMetadataStorage implements IMetaStorage {
         return delegate.getExpirationRunnable();
     }
 
+    private class SaveInstanceTask extends PeriodicTask {
+        private List<Instance> instanceList;
+        private List<Instance> savedInstanceList;
+        private final int batchSize;
+
+        public SaveInstanceTask(int batchSize, Duration period) {
+            super("bi-meta-saver", period, false);
+            this.batchSize = batchSize;
+            this.instanceList = Collections.synchronizedList(new ArrayList<>());
+        }
+
+        public void add(List<Instance> instanceList) {
+            this.instanceList.addAll(instanceList);
+            if (this.instanceList.size() >= batchSize) {
+                this.runImmediately();
+            }
+        }
+
+        @Override
+        protected void onRun() {
+            if (instanceList.isEmpty()) {
+                return;
+            }
+
+            this.savedInstanceList = this.instanceList;
+            this.instanceList = Collections.synchronizedList(new ArrayList<>());
+
+            delegate.saveApplicationInstance(savedInstanceList);
+        }
+
+        @Override
+        protected void onException(Exception e) {
+            log.error("Failed to save instances", e);
+
+            // add the saved back to instanceList for next round to save
+            this.instanceList.addAll(this.savedInstanceList);
+        }
+
+        @Override
+        protected void onStopped() {
+            log.info("Task [{}] stopped.", getName());
+
+            // Make sure data in the list has been flushed
+            this.onRun();
+        }
+    }
+
     private class LoadInstanceTask extends PeriodicTask {
-        public LoadInstanceTask() {
-            super("bithon-cache-loader", Duration.ofMinutes(1), false);
+        public LoadInstanceTask(Duration period) {
+            super("bi-meta-loader", period, false);
         }
 
         @Override
         protected void onRun() {
             log.info("Loading all application instances...");
 
-            long since = System.currentTimeMillis() - Duration.ofDays(1).toMillis();
-            Collection<Instance> instances = delegate.getApplicationInstances(since);
+            Collection<Instance> instances = delegate.getApplicationInstances(0);
 
             // do not use stream API to collect map because the instances may contain duplicated items of same instance ip
             Set<String> applicationCache = new HashSet<>();

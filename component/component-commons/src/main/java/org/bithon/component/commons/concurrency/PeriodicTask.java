@@ -60,7 +60,7 @@ public abstract class PeriodicTask {
 
     public final void stop() {
         running = false;
-        runTask();
+        runImmediately();
     }
 
     private void schedule() {
@@ -90,7 +90,7 @@ public abstract class PeriodicTask {
     /**
      * Run current task immediately.
      */
-    public final void runTask() {
+    public final void runImmediately() {
         synchronized (locker) {
             locker.notify();
         }

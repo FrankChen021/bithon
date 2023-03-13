@@ -65,7 +65,7 @@ public class DynamicConfigurationManager {
         this.controller.attachCommands(new ConfigCommandImpl());
 
         // Trigger re-retrieve on immediately once some changes happen
-        this.controller.refreshListener(updateConfigTask::runTask);
+        this.controller.refreshListener(updateConfigTask::runImmediately);
     }
 
     public static void createInstance(String appName, String env, IAgentController controller) {
