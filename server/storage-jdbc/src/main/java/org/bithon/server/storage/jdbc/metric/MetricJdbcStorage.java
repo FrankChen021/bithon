@@ -20,16 +20,21 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.server.storage.common.IStorageCleaner;
+import org.bithon.server.storage.common.ExpirationConfig;
+import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
+import org.bithon.server.storage.metrics.MetricStorageConfig;
+import org.bithon.server.storage.metrics.ttl.MetricStorageCleaner;
 import org.jooq.CreateTableIndexStep;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 
+import java.sql.Timestamp;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -42,14 +47,22 @@ public class MetricJdbcStorage implements IMetricStorage {
 
     protected final DSLContext dslContext;
     private final Map<String, Boolean> initializedSchemas = new ConcurrentHashMap<>();
+    protected final MetricStorageConfig storageConfig;
+    protected final DataSourceSchemaManager schemaManager;
 
     @JsonCreator
-    public MetricJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder) {
-        this(dslContextHolder.getDslContext());
+    public MetricJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder,
+                             @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
+                             @JacksonInject(useInput = OptBoolean.FALSE) MetricStorageConfig storageConfig) {
+        this(dslContextHolder.getDslContext(), schemaManager, storageConfig);
     }
 
-    public MetricJdbcStorage(DSLContext dslContext) {
+    public MetricJdbcStorage(DSLContext dslContext,
+                             DataSourceSchemaManager schemaManager,
+                             MetricStorageConfig storageConfig) {
         this.dslContext = dslContext;
+        this.schemaManager = schemaManager;
+        this.storageConfig = storageConfig;
     }
 
     @Override
@@ -62,21 +75,6 @@ public class MetricJdbcStorage implements IMetricStorage {
     @Override
     public IMetricReader createMetricReader(DataSourceSchema schema) {
         return new MetricJdbcReader(dslContext, getSqlDialect());
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public IStorageCleaner createMetricCleaner(DataSourceSchema schema) {
-        return timestamp -> {
-            if (!initializedSchemas.containsKey(schema.getName())) {
-                return;
-            }
-            
-            final MetricTable table = new MetricTable(schema);
-            dslContext.deleteFrom(table)
-                      .where(table.getTimestampField().le(timestamp))
-                      .execute();
-        };
     }
 
     protected ISqlDialect getSqlDialect() {
@@ -92,5 +90,28 @@ public class MetricJdbcStorage implements IMetricStorage {
                                            .columns(table.fields())
                                            .indexes(table.getIndexes());
         s.execute();
+    }
+
+    @Override
+    public IExpirationRunnable getExpirationRunnable() {
+        return new MetricStorageCleaner() {
+            @Override
+            public ExpirationConfig getRule() {
+                return storageConfig.getTtl();
+            }
+
+            @Override
+            protected DataSourceSchemaManager getSchemaManager() {
+                return schemaManager;
+            }
+
+            @Override
+            protected void expireImpl(DataSourceSchema schema, Timestamp before) {
+                final MetricTable table = new MetricTable(schema);
+                dslContext.deleteFrom(table)
+                          .where(table.getTimestampField().le(before))
+                          .execute();
+            }
+        };
     }
 }

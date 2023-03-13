@@ -17,7 +17,8 @@
 package org.bithon.server.storage.metrics;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.common.IStorageCleaner;
+import org.bithon.server.storage.common.IExpirable;
+import org.bithon.server.storage.common.IStorage;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 
 import java.io.IOException;
@@ -29,15 +30,16 @@ import java.io.IOException;
  * use ObjectMapper.registerSubTypes to register type of sub-class for deserialization
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IMetricStorage {
+public interface IMetricStorage extends IStorage, IExpirable {
+
+    default String getName() {
+        return "metrics";
+    }
 
     IMetricWriter createMetricWriter(DataSourceSchema schema) throws IOException;
 
     IMetricReader createMetricReader(DataSourceSchema schema);
 
-    IStorageCleaner createMetricCleaner(DataSourceSchema schema);
-
     default void initialize() {
-
     }
 }

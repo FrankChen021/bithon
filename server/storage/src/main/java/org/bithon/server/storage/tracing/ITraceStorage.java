@@ -17,7 +17,8 @@
 package org.bithon.server.storage.tracing;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.common.IStorageCleaner;
+import org.bithon.server.storage.common.IExpirable;
+import org.bithon.server.storage.common.IStorage;
 
 /**
  * @author frank.chen021@outlook.com
@@ -25,14 +26,17 @@ import org.bithon.server.storage.common.IStorageCleaner;
  */
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface ITraceStorage {
-    default void initialize() {
+public interface ITraceStorage extends IStorage, IExpirable {
 
+    default String getName() {
+        return "trace";
+    }
+
+    default void initialize() {
     }
 
     ITraceWriter createWriter();
 
     ITraceReader createReader();
 
-    IStorageCleaner createCleaner();
 }

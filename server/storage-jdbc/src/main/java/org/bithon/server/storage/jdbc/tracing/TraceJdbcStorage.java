@@ -23,7 +23,8 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.tracing.TraceSinkConfig;
-import org.bithon.server.storage.common.IStorageCleaner;
+import org.bithon.server.storage.common.ExpirationConfig;
+import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
@@ -33,6 +34,8 @@ import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.jooq.DSLContext;
+
+import java.sql.Timestamp;
 
 /**
  * @author frank.chen021@outlook.com
@@ -107,23 +110,31 @@ public class TraceJdbcStorage implements ITraceStorage {
     }
 
     @Override
-    public IStorageCleaner createCleaner() {
-        return before -> {
-            dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN)
-                      .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.le(before.toLocalDateTime()))
-                      .execute();
+    public IExpirationRunnable getExpirationRunnable() {
+        return new IExpirationRunnable() {
+            @Override
+            public ExpirationConfig getRule() {
+                return traceStorageConfig.getTtl();
+            }
 
-            dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN_SUMMARY)
-                      .where(Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.le(before.toLocalDateTime()))
-                      .execute();
+            @Override
+            public void expire(Timestamp before) {
+                dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN)
+                          .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.le(before.toLocalDateTime()))
+                          .execute();
 
-            dslContext.deleteFrom(Tables.BITHON_TRACE_MAPPING)
-                      .where(Tables.BITHON_TRACE_MAPPING.TIMESTAMP.le(before.toLocalDateTime()))
-                      .execute();
+                dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN_SUMMARY)
+                          .where(Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.le(before.toLocalDateTime()))
+                          .execute();
 
-            dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN_TAG_INDEX)
-                      .where(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.le(before.toLocalDateTime()))
-                      .execute();
+                dslContext.deleteFrom(Tables.BITHON_TRACE_MAPPING)
+                          .where(Tables.BITHON_TRACE_MAPPING.TIMESTAMP.le(before.toLocalDateTime()))
+                          .execute();
+
+                dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN_TAG_INDEX)
+                          .where(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.le(before.toLocalDateTime()))
+                          .execute();
+            }
         };
     }
 

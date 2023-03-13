@@ -20,18 +20,24 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.server.storage.common.ExpirationConfig;
+import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonApplicationInstanceRecord;
 import org.bithon.server.storage.meta.IMetaStorage;
+import org.bithon.server.storage.meta.Instance;
+import org.bithon.server.storage.meta.MetaStorageConfig;
 import org.bithon.server.storage.meta.Metadata;
 import org.jooq.DSLContext;
+import org.jooq.InsertSetStep;
+import org.jooq.InsertValuesStepN;
 import org.jooq.Record2;
 import org.jooq.SelectConditionStep;
-import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -41,14 +47,18 @@ import java.util.Collection;
 public class MetadataJdbcStorage implements IMetaStorage {
 
     protected final DSLContext dslContext;
+    protected final MetaStorageConfig storageConfig;
 
     @JsonCreator
-    public MetadataJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder) {
-        this(dslContextHolder.getDslContext());
+    public MetadataJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder,
+                               @JacksonInject(useInput = OptBoolean.FALSE) MetaStorageConfig metaStorageConfig
+    ) {
+        this(dslContextHolder.getDslContext(), metaStorageConfig);
     }
 
-    public MetadataJdbcStorage(DSLContext dslContext) {
+    public MetadataJdbcStorage(DSLContext dslContext, MetaStorageConfig metaStorageConfig) {
         this.dslContext = dslContext;
+        this.storageConfig = metaStorageConfig;
     }
 
     @Override
@@ -57,6 +67,17 @@ public class MetadataJdbcStorage implements IMetaStorage {
                        .columns(Tables.BITHON_APPLICATION_INSTANCE.fields())
                        .indexes(Tables.BITHON_APPLICATION_INSTANCE.getIndexes())
                        .execute();
+    }
+
+    @Override
+    public Collection<Instance> getApplicationInstances(long since) {
+        return dslContext.select(Tables.BITHON_APPLICATION_INSTANCE.APPNAME,
+                                 Tables.BITHON_APPLICATION_INSTANCE.APPTYPE,
+                                 Tables.BITHON_APPLICATION_INSTANCE.INSTANCENAME)
+                         .from(Tables.BITHON_APPLICATION_INSTANCE)
+                         .where(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.ge(new Timestamp(since).toLocalDateTime()))
+                         .orderBy(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP)
+                         .fetchInto(Instance.class);
     }
 
     @Override
@@ -70,32 +91,38 @@ public class MetadataJdbcStorage implements IMetaStorage {
             sql = sql.and(Tables.BITHON_APPLICATION_INSTANCE.APPTYPE.eq(appType));
         }
 
+        // Use group by to de-duplicate
         return sql.groupBy(Tables.BITHON_APPLICATION_INSTANCE.APPNAME, Tables.BITHON_APPLICATION_INSTANCE.APPTYPE)
                   .orderBy(Tables.BITHON_APPLICATION_INSTANCE.APPNAME)
                   .fetchInto(Metadata.class);
     }
 
     @Override
-    public void saveApplicationInstance(String applicationName, String applicationType, String instanceName) {
-        try {
-            dslContext.insertInto(Tables.BITHON_APPLICATION_INSTANCE)
-                      .set(Tables.BITHON_APPLICATION_INSTANCE.APPNAME, applicationName)
-                      .set(Tables.BITHON_APPLICATION_INSTANCE.APPTYPE, applicationType)
-                      .set(Tables.BITHON_APPLICATION_INSTANCE.INSTANCENAME, instanceName)
-                      .set(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                      .execute();
-        } catch (DuplicateKeyException e) {
-            dslContext.update(Tables.BITHON_APPLICATION_INSTANCE)
-                      .set(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                      .where(Tables.BITHON_APPLICATION_INSTANCE.APPNAME.eq(applicationName)
-                                                                       .and(Tables.BITHON_APPLICATION_INSTANCE.APPTYPE.eq(applicationType))
-                                                                       .and(Tables.BITHON_APPLICATION_INSTANCE.INSTANCENAME.eq(instanceName)))
-                      .execute();
+    public void saveApplicationInstance(List<Instance> instanceList) {
+        InsertSetStep step = dslContext.insertInto(Tables.BITHON_APPLICATION_INSTANCE);
+
+        InsertValuesStepN valueStep = null;
+        for (Instance inputRow : instanceList) {
+            Object[] values = new Object[4];
+            values[0] = new Timestamp(System.currentTimeMillis()).toLocalDateTime();
+            values[1] = inputRow.getAppName();
+            values[2] = inputRow.getAppType();
+            values[3] = inputRow.getInstanceName();
+            if (valueStep == null) {
+                valueStep = step.values(values);
+            } else {
+                valueStep = valueStep.values(values);
+            }
         }
+
+        valueStep.onDuplicateKeyUpdate()
+                 .set(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
+                 .execute();
     }
 
     @Override
     public String getApplicationByInstance(String instanceName) {
+        // Use ORDER-BY and LIMIT to de-duplicate
         BithonApplicationInstanceRecord instance = dslContext.selectFrom(Tables.BITHON_APPLICATION_INSTANCE)
                                                              .where(Tables.BITHON_APPLICATION_INSTANCE.INSTANCENAME.eq(instanceName))
                                                              .orderBy(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.desc())
@@ -106,11 +133,29 @@ public class MetadataJdbcStorage implements IMetaStorage {
 
     @Override
     public boolean isApplicationExist(String applicationName) {
+        // Use ORDER-BY and LIMIT to de-duplicate
         BithonApplicationInstanceRecord instance = dslContext.selectFrom(Tables.BITHON_APPLICATION_INSTANCE)
                                                              .where(Tables.BITHON_APPLICATION_INSTANCE.APPNAME.eq(applicationName))
                                                              .orderBy(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.desc())
                                                              .limit(1)
                                                              .fetchOne();
         return instance != null;
+    }
+
+    @Override
+    public IExpirationRunnable getExpirationRunnable() {
+        return new IExpirationRunnable() {
+            @Override
+            public ExpirationConfig getRule() {
+                return storageConfig.getTtl();
+            }
+
+            @Override
+            public void expire(Timestamp before) {
+                dslContext.deleteFrom(Tables.BITHON_APPLICATION_INSTANCE)
+                          .where(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.lt(before.toLocalDateTime()))
+                          .execute();
+            }
+        };
     }
 }

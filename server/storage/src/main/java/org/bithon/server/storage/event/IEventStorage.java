@@ -17,14 +17,20 @@
 package org.bithon.server.storage.event;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.common.IStorageCleaner;
+import org.bithon.server.storage.common.IExpirable;
+import org.bithon.server.storage.common.IExpirationRunnable;
+import org.bithon.server.storage.common.IStorage;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 4:17 下午
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IEventStorage {
+public interface IEventStorage extends IStorage, IExpirable {
+
+    default String getName() {
+        return "event";
+    }
 
     default void initialize() {
     }
@@ -33,5 +39,5 @@ public interface IEventStorage {
 
     IEventReader createReader();
 
-    IStorageCleaner createCleaner();
+    IExpirationRunnable getExpirationRunnable();
 }

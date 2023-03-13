@@ -17,11 +17,13 @@
 package org.bithon.server.storage.jdbc.clickhouse.storage;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.jooq.DSLContext;
 import org.jooq.Table;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -39,7 +41,11 @@ public class DataCleaner {
         this.dsl = dsl;
     }
 
-    public void clean(String table, String timestamp) {
+    /**
+     * DELETE PARTITION is a very lightweight operation
+     */
+    @SuppressWarnings("unchecked")
+    public void deleteFromPartition(String table, Timestamp before) {
         String fromTable;
         if (StringUtils.isEmpty(config.getCluster())) {
             fromTable = "system.parts";
@@ -48,32 +54,52 @@ public class DataCleaner {
         }
 
         String localTable = config.getLocalTableName(table);
+        String selectPartitionSQL = StringUtils.format(
+            "SELECT distinct partition FROM %s WHERE database = '%s' AND table = '%s' AND partition < '%s'",
+            fromTable,
+            config.getDatabase(),
+            localTable,
+            DateTime.toYYYYMMDD(before.getTime()));
 
-        //noinspection unchecked
-        List<String> partitions = (List<String>) dsl.fetch(StringUtils.format(
-                                                        "SELECT distinct partition FROM %s WHERE database = '%s' AND table = '%s' AND partition < '%s'",
-                                                        fromTable,
-                                                        config.getDatabase(),
-                                                        localTable,
-                                                        timestamp))
+        List<String> partitions = (List<String>) dsl.fetch(selectPartitionSQL)
                                                     .getValues(0);
 
         for (String partition : partitions) {
             log.info("\tDrop [{}] on [{}]", table, partition);
-            dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DROP PARTITION %s;", config.getDatabase(), localTable, config.getOnClusterExpression(), partition));
+            dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DROP PARTITION %s;",
+                                           config.getDatabase(),
+                                           localTable,
+                                           config.getOnClusterExpression(),
+                                           partition));
         }
     }
 
     /**
-     * obsoleted old implementation due to heavy operation
+     * Delete data from table is a heavy operation in ClickHouse
      */
-    private void delete(Table<?> table, String timestamp) {
+    public void deleteFromTable(Table<?> table,
+                                Timestamp before,
+                                long deleteRowThreshold) {
+        String beforeTimeText = DateTime.toYYYYMMDDhhmmss(before.getTime());
         try {
+            long rowCount = dsl.fetchOne(StringUtils.format("SELECT count(1) FROM %s.%s WHERE timestamp < '%s'",
+                                                            config.getDatabase(),
+                                                            table.getName(),
+                                                            beforeTimeText))
+                               .getValue(0, Long.class);
+            if (rowCount < deleteRowThreshold) {
+                log.info("Expiration on table [{}] is skipped because only [{}] rows matches which is lower than the given threshold [{}].",
+                         table.getName(),
+                         rowCount,
+                         deleteRowThreshold);
+                return;
+            }
+
             dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
                                            config.getDatabase(),
                                            config.getLocalTableName(table.getName()),
                                            config.getOnClusterExpression(),
-                                           timestamp));
+                                           beforeTimeText));
         } catch (Throwable e) {
             log.error(StringUtils.format("Exception occurred when clean table[%s]:%s", table.getName(), e.getMessage()), e);
         }

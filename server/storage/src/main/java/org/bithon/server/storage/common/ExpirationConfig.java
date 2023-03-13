@@ -14,19 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.tracing;
+package org.bithon.server.storage.common;
+
+import lombok.Data;
+import org.bithon.server.commons.time.Period;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 27/10/21 10:31 pm
+ * @date 9/12/21 5:03 PM
  */
-public interface ITraceCleaner extends AutoCloseable {
-
-    default void close() {
-    }
-
-    /**
-     * clean records whose timestamp is less than or equal to the given timestamp
-     */
-    void clean(long beforeTimestamp);
+@Data
+public class ExpirationConfig {
+    private Period ttl;
+    private Period cleanPeriod;
+    private boolean enabled = false;
 }

@@ -14,21 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.event;
+package org.bithon.server.storage.common;
 
-import lombok.Data;
-import org.bithon.server.storage.common.ExpirationConfig;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import java.sql.Timestamp;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 16/10/21 11:44 pm
+ * @date 27/10/21 10:26 pm
  */
-@Data
-@Configuration
-@ConfigurationProperties(prefix = "bithon.storage.event")
-public class EventStorageConfig {
-    private String type;
-    private ExpirationConfig ttl;
+public interface IExpirationRunnable {
+
+    ExpirationConfig getRule();
+
+    /**
+     * Delete data whose timestamp is less than or equal to the given timestamp
+     */
+    void expire(Timestamp before);
 }

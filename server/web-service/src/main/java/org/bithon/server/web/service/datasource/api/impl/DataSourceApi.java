@@ -19,7 +19,7 @@ package org.bithon.server.web.service.datasource.api.impl;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.common.TTLConfig;
+import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.datasource.DataSourceExistException;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
@@ -221,7 +221,7 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public void updateSpecifiedDataSourceTTL(@RequestBody UpdateTTLRequest request) {
-        TTLConfig ttlConfig = this.storageConfig.getTtl();
-        ttlConfig.setTtl(request.getTtl());
+        ExpirationConfig expirationConfig = this.storageConfig.getTtl();
+        expirationConfig.setTtl(request.getTtl());
     }
 }

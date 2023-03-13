@@ -20,15 +20,20 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.component.commons.time.DateTime;
-import org.bithon.server.storage.common.IStorageCleaner;
+import org.bithon.server.storage.common.ExpirationConfig;
+import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseSqlDialect;
 import org.bithon.server.storage.jdbc.metric.ISqlDialect;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
+import org.bithon.server.storage.metrics.MetricStorageConfig;
+import org.bithon.server.storage.metrics.ttl.MetricStorageCleaner;
+
+import java.sql.Timestamp;
 
 /**
  * @author frank.chen021@outlook.com
@@ -43,8 +48,10 @@ public class MetricStorage extends MetricJdbcStorage {
     @JsonCreator
     public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseJooqContextHolder dslContextHolder,
                          @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseSqlDialect sqlDialect,
+                         @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
+                         @JacksonInject(useInput = OptBoolean.FALSE) MetricStorageConfig storageConfig,
                          @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
-        super(dslContextHolder.getDslContext());
+        super(dslContextHolder.getDslContext(), schemaManager, storageConfig);
         this.sqlDialect = sqlDialect;
         this.config = config;
     }
@@ -60,8 +67,23 @@ public class MetricStorage extends MetricJdbcStorage {
     }
 
     @Override
-    public IStorageCleaner createMetricCleaner(DataSourceSchema schema) {
-        String table = "bithon_" + schema.getName().replace('-', '_');
-        return beforeTimestamp -> new DataCleaner(config, dslContext).clean(table, DateTime.toYYYYMMDD(beforeTimestamp.getTime()));
+    public IExpirationRunnable getExpirationRunnable() {
+        return new MetricStorageCleaner() {
+            @Override
+            public ExpirationConfig getRule() {
+                return storageConfig.getTtl();
+            }
+
+            @Override
+            protected DataSourceSchemaManager getSchemaManager() {
+                return schemaManager;
+            }
+
+            @Override
+            protected void expireImpl(DataSourceSchema schema, Timestamp before) {
+                String table = "bithon_" + schema.getName().replace('-', '_');
+                new DataCleaner(config, dslContext).deleteFromPartition(table, before);
+            }
+        };
     }
 }

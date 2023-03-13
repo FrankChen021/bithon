@@ -17,7 +17,7 @@
 package org.bithon.agent.sentinel;
 
 import org.bithon.agent.controller.config.DynamicConfigurationManager;
-import org.bithon.agent.controller.config.IConfigurationRefreshListener;
+import org.bithon.agent.controller.config.IConfigurationChangedListener;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
 import org.bithon.agent.sentinel.expt.SentinelCommandException;
@@ -74,8 +74,8 @@ public class SentinelRuleManager {
 
     private SentinelRuleManager() {
         DynamicConfigurationManager manager = DynamicConfigurationManager.getInstance();
-        manager.addRefreshListener(new FlowRuleRefreshListener());
-        manager.addRefreshListener(new DegradingRuleRefreshListener());
+        manager.addConfigurationChangeListener(new FlowRuleChangedListener());
+        manager.addConfigurationChangeListener(new DegradingRuleChangedListener());
 
         refreshFlowRules();
         refreshDegradingRule();
@@ -483,18 +483,18 @@ public class SentinelRuleManager {
         }
     }
 
-    class FlowRuleRefreshListener implements IConfigurationRefreshListener {
+    class FlowRuleChangedListener implements IConfigurationChangedListener {
         @Override
-        public void onRefresh(Set<String> keys) {
+        public void onChange(Set<String> keys) {
             if (keys.contains("flowRules")) {
                 refreshFlowRules();
             }
         }
     }
 
-    class DegradingRuleRefreshListener implements IConfigurationRefreshListener {
+    class DegradingRuleChangedListener implements IConfigurationChangedListener {
         @Override
-        public void onRefresh(Set<String> keys) {
+        public void onChange(Set<String> keys) {
             if (keys.contains("degradingRules")) {
                 refreshDegradingRule();
             }

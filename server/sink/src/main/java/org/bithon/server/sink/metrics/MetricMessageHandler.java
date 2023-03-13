@@ -28,6 +28,7 @@ import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.TransformSpec;
 import org.bithon.server.storage.meta.IMetaStorage;
+import org.bithon.server.storage.meta.Instance;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
 
@@ -133,6 +134,7 @@ public class MetricMessageHandler {
 
             ITopoTransformer topoTransformer = topoTransformers.getTopoTransformer(getType());
             MetricsAggregator endpointDataSource = new MetricsAggregator(endpointSchema, 60);
+            ApplicationInstanceWriter instanceWriter = new ApplicationInstanceWriter();
 
             //
             // convert
@@ -145,7 +147,7 @@ public class MetricMessageHandler {
                         endpointDataSource.aggregate(topoTransformer.transform(metricMessage));
                     }
 
-                    processMeta(metricMessage);
+                    instanceWriter.add(metricMessage);
 
                     inputRowList.add(metricMessage);
                 } catch (Exception e) {
@@ -168,6 +170,8 @@ public class MetricMessageHandler {
                 }
             }
 
+            instanceWriter.write();
+
             //
             // save metrics in batch
             //
@@ -181,24 +185,37 @@ public class MetricMessageHandler {
         }
     }
 
-    private void processMeta(IInputRow metric) {
-        Object appType = metric.getCol("appType");
-        if (appType == null) {
-            log.warn("Saving meta for [{}] ignored due to lack of appType", this.schema.getName());
-            return;
+    class ApplicationInstanceWriter {
+        private final List<Instance> instanceList = new ArrayList<>();
+
+        public void add(IInputRow metric) {
+            Instance instance = toApplicationInstance(metric);
+            if (instance != null) {
+                instanceList.add(instance);
+            }
         }
 
-        String appName = metric.getColAsString("appName");
-        String instanceName = metric.getColAsString("instanceName");
-        try {
-            metaStorage.saveApplicationInstance(appName,
-                                                appType.toString(),
-                                                instanceName);
-        } catch (Exception e) {
-            log.error("Failed to save app info[appName={}, instance={}] due to: {}",
-                      appName,
-                      instanceName,
-                      e);
+        public void write() {
+            if (instanceList.isEmpty()) {
+                return;
+            }
+
+            try {
+                metaStorage.saveApplicationInstance(instanceList);
+            } catch (Exception e) {
+                log.error("Failed to save app info", e);
+            }
+        }
+
+        private Instance toApplicationInstance(IInputRow metric) {
+            Object appType = metric.getCol("appType");
+            if (appType == null) {
+                return null;
+            }
+
+            String appName = metric.getColAsString("appName");
+            String instanceName = metric.getColAsString("instanceName");
+            return new Instance(appName, appType.toString(), instanceName);
         }
     }
 

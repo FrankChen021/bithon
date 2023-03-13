@@ -22,9 +22,9 @@ import java.util.Set;
  * @author frankchen
  * @date 2020-05-27 14:41:22
  */
-public interface IConfigurationRefreshListener {
+public interface IConfigurationChangedListener {
     /**
      * @param keys changes keys
      */
-    void onRefresh(Set<String> keys);
+    void onChange(Set<String> keys);
 }

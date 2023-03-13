@@ -25,7 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.sink.tracing.TraceSinkConfig;
-import org.bithon.server.storage.common.IStorageCleaner;
+import org.bithon.server.storage.common.ExpirationConfig;
+import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
@@ -77,15 +78,21 @@ public class TraceStorage extends TraceJdbcStorage {
     }
 
     @Override
-    public IStorageCleaner createCleaner() {
-        return beforeTimestamp -> {
-            String timestamp = DateTime.toYYYYMMDD(beforeTimestamp.getTime());
+    public IExpirationRunnable getExpirationRunnable() {
+        return new IExpirationRunnable() {
+            @Override
+            public ExpirationConfig getRule() {
+                return traceStorageConfig.getTtl();
+            }
 
-            DataCleaner cleaner = new DataCleaner(config, dslContext);
-            cleaner.clean(Tables.BITHON_TRACE_SPAN.getName(), timestamp);
-            cleaner.clean(Tables.BITHON_TRACE_SPAN_SUMMARY.getName(), timestamp);
-            cleaner.clean(Tables.BITHON_TRACE_MAPPING.getName(), timestamp);
-            cleaner.clean(Tables.BITHON_TRACE_SPAN_TAG_INDEX.getName(), timestamp);
+            @Override
+            public void expire(Timestamp before) {
+                DataCleaner cleaner = new DataCleaner(config, dslContext);
+                cleaner.deleteFromPartition(Tables.BITHON_TRACE_SPAN.getName(), before);
+                cleaner.deleteFromPartition(Tables.BITHON_TRACE_SPAN_SUMMARY.getName(), before);
+                cleaner.deleteFromPartition(Tables.BITHON_TRACE_MAPPING.getName(), before);
+                cleaner.deleteFromPartition(Tables.BITHON_TRACE_SPAN_TAG_INDEX.getName(), before);
+            }
         };
     }
 

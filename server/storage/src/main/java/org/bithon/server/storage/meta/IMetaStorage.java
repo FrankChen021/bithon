@@ -17,17 +17,24 @@
 package org.bithon.server.storage.meta;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.storage.common.IExpirable;
+import org.bithon.server.storage.common.IStorage;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/31 9:49 上午
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IMetaStorage {
+public interface IMetaStorage extends IStorage, IExpirable {
 
-    void saveApplicationInstance(String applicationName, String applicationType, String instance);
+    default String getName() {
+        return "meta";
+    }
+
+    void saveApplicationInstance(List<Instance> instances);
 
     /**
      * @param instanceName host+port
@@ -37,6 +44,11 @@ public interface IMetaStorage {
     boolean isApplicationExist(String applicationName);
 
     void initialize();
+
+    /**
+     * Get ALL instance list
+     */
+    Collection<Instance> getApplicationInstances(long since);
 
     Collection<Metadata> getApplications(String appType, long since);
 }

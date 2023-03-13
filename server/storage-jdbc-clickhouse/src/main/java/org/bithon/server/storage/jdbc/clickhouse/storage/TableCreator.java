@@ -16,6 +16,8 @@
 
 package org.bithon.server.storage.jdbc.clickhouse.storage;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
@@ -27,12 +29,22 @@ import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.impl.SQLDataType;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 1/11/21 6:48 pm
  */
 @Slf4j
 public class TableCreator {
+
+    @Getter
+    @AllArgsConstructor
+    public static class SecondaryIndex {
+        private String type;
+        private int granularity;
+    }
 
     private final ClickHouseConfig config;
     private final DSLContext dslContext;
@@ -42,27 +54,27 @@ public class TableCreator {
         this.dslContext = dslContext;
     }
 
-    private boolean useReplacingMergeTree = false;
-
     /**
-     * the version field of a ReplacingMergeTree
+     * The version field of a ReplacingMergeTree
      */
-    private String replacingMergeTreeVersion = "timestamp";
+    private String replacingMergeTreeVersion;
 
     private String partitionByExpression = "toYYYYMMDD(timestamp)";
 
-    public TableCreator useReplacingMergeTree(boolean useReplacingMergeTree) {
-        this.useReplacingMergeTree = useReplacingMergeTree;
-        return this;
-    }
+    private final Map<String, SecondaryIndex> secondaryIndexes = new HashMap<>();
 
-    public TableCreator replacingMergeTreeVersion(String replacingMergeTreeVersion) {
-        this.replacingMergeTreeVersion = replacingMergeTreeVersion;
+    public TableCreator useReplacingMergeTree(String versionField) {
+        this.replacingMergeTreeVersion = versionField;
         return this;
     }
 
     public TableCreator partitionByExpression(String partitionByExpression) {
         this.partitionByExpression = partitionByExpression;
+        return this;
+    }
+
+    public TableCreator secondaryIndex(String field, SecondaryIndex index) {
+        secondaryIndexes.put(field, index);
         return this;
     }
 
@@ -76,7 +88,7 @@ public class TableCreator {
             // that means the last record will be kept
             //
             String fullEngine = config.getEngine();
-            if (useReplacingMergeTree && !config.getTableEngine().contains("Replacing")) {
+            if (replacingMergeTreeVersion != null && !config.getTableEngine().contains("Replacing")) {
                 // turn the engine name into xxxReplacingMergeTree
                 String enginePrefix = config.getTableEngine().substring(0, config.getTableEngine().length() - "MergeTree".length());
                 String tableEngine = enginePrefix + "ReplacingMergeTree";
@@ -92,17 +104,18 @@ public class TableCreator {
             StringBuilder createTableStatement = new StringBuilder();
 
             String tableName = config.getLocalTableName(table.getName());
-            createTableStatement.append(StringUtils.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n%s)",
+            createTableStatement.append(StringUtils.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n%s %s)",
                                                            config.getDatabase(),
                                                            tableName,
                                                            config.getOnClusterExpression(),
-                                                           getFieldText(table)));
+                                                           getFieldText(table),
+                                                           getIndexText()));
 
             // replace macro in the template to suit for ReplicatedMergeTree
             fullEngine = fullEngine.replaceAll("\\{database}", config.getDatabase())
                                    .replaceAll("\\{table}", tableName);
 
-            if (useReplacingMergeTree) {
+            if (replacingMergeTreeVersion != null) {
                 // Insert the version field for ReplacingMergeTree
                 int openParentheses = fullEngine.indexOf('(');
                 int closeParentheses = fullEngine.lastIndexOf(')');
@@ -137,9 +150,15 @@ public class TableCreator {
             {
                 createTableStatement.append("\nORDER BY(");
                 for (Index idx : table.getIndexes()) {
-                    if (useReplacingMergeTree) {
+                    if (idx.getFields().size() == 1 && this.secondaryIndexes.containsKey(idx.getFields().get(0).getName())) {
+                        // index on single column, and is marked as secondary index, no need to put this column in the ORDER-BY expression as primary key
+                        continue;
+                    }
+
+                    if (replacingMergeTreeVersion != null) {
                         if (!idx.getUnique()) {
-                            // for replacing merge tree, use unique key as order key only
+                            // For replacing merge tree, use unique key as order key only,
+                            // So if it's not the unique key, skip it
                             continue;
                         }
                     }
@@ -213,6 +232,17 @@ public class TableCreator {
             sb.append(",\n");
         }
         sb.delete(sb.length() - 2, sb.length());
+        return sb.toString();
+    }
+
+    private String getIndexText() {
+        StringBuilder sb = new StringBuilder(128);
+        for (Map.Entry<String, SecondaryIndex> entry : this.secondaryIndexes.entrySet()) {
+            String field = entry.getKey();
+            SecondaryIndex idx = entry.getValue();
+
+            sb.append(StringUtils.format(",%nINDEX idx_%s %s TYPE %s GRANULARITY %d", field, field, idx.getType(), idx.getGranularity()));
+        }
         return sb.toString();
     }
 }
