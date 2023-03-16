@@ -54,7 +54,6 @@ public class BeanMethodAopInstallerHelper {
 
     public static void install(Class<?> targetClass) {
         BeanMethodAopInstaller.install(targetClass,
-                                       GuiceBeanMethod$Invoke.class.getName(),
                                        Advice.to(targetAopClass.getTypeDescription(), ClassFileLocator.Simple.of(targetAopClass.getAllTypes())),
                                        transformationConfig);
     }
