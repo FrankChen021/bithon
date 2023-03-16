@@ -98,16 +98,13 @@ public class DynamicInterceptorInstaller {
 
     public static class AopDescriptor {
         private final String targetClass;
-        private final String interceptorClass;
         private final Advice advice;
         private final ElementMatcher.Junction<MethodDescription> methodMatcher;
 
         public AopDescriptor(String targetClass,
-                             String interceptor,
                              Advice advice,
                              ElementMatcher.Junction<MethodDescription> methodMatcher) {
             this.targetClass = targetClass;
-            this.interceptorClass = interceptor;
             this.advice = advice;
             this.methodMatcher = methodMatcher;
         }

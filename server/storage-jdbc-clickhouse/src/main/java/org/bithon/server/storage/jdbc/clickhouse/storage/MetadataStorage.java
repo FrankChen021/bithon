@@ -92,7 +92,7 @@ public class MetadataStorage extends MetadataJdbcStorage {
 
     @SuppressWarnings("rawtypes")
     @Override
-    public void saveApplicationInstance(List<Instance> instanceList) {
+    public void saveApplicationInstance(Collection<Instance> instanceList) {
         InsertSetStep step = dslContext.insertInto(Tables.BITHON_APPLICATION_INSTANCE);
 
         InsertValuesStepN valueStep = null;

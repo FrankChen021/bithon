@@ -74,7 +74,6 @@ public class AbstractBlockingStub$NewStub extends AbstractInterceptor {
 
         // Enhance the stub class
         DynamicInterceptorInstaller.getInstance().installOne(new DynamicInterceptorInstaller.AopDescriptor(clientStubClass.getName(),
-                                                                                                           AbstractGrpcStubInterceptor.BlockingStubInterceptor.class.getName(),
                                                                                                            Advice.to(grpcStubAopClass.getTypeDescription(), ClassFileLocator.Simple.of(grpcStubAopClass.getAllTypes())),
                                                                                                            Matchers.visibility(Visibility.PUBLIC)));
 

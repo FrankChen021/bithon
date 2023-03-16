@@ -21,7 +21,6 @@ import org.bithon.server.storage.common.IExpirable;
 import org.bithon.server.storage.common.IStorage;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -34,7 +33,7 @@ public interface IMetaStorage extends IStorage, IExpirable {
         return "meta";
     }
 
-    void saveApplicationInstance(List<Instance> instances);
+    void saveApplicationInstance(Collection<Instance> instances);
 
     /**
      * @param instanceName host+port

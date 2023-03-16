@@ -22,11 +22,9 @@ import org.bithon.server.storage.common.IExpirationRunnable;
 
 import javax.annotation.PreDestroy;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,7 +52,7 @@ public class CacheableMetadataStorage implements IMetaStorage {
     }
 
     @Override
-    public void saveApplicationInstance(List<Instance> instanceList) {
+    public void saveApplicationInstance(Collection<Instance> instanceList) {
         // Filter out those not in the cache
         instanceList = instanceList.stream()
                                    .filter(instance -> !instanceCache.contains(instance))
@@ -121,17 +119,17 @@ public class CacheableMetadataStorage implements IMetaStorage {
     }
 
     private class SaveInstanceTask extends PeriodicTask {
-        private List<Instance> instanceList;
-        private List<Instance> savedInstanceList;
+        private Set<Instance> instanceList;
+        private Set<Instance> savedInstanceList;
         private final int batchSize;
 
         public SaveInstanceTask(int batchSize, Duration period) {
             super("bi-meta-saver", period, false);
             this.batchSize = batchSize;
-            this.instanceList = Collections.synchronizedList(new ArrayList<>());
+            this.instanceList = Collections.synchronizedSet(new HashSet<>());
         }
 
-        public void add(List<Instance> instanceList) {
+        public void add(Collection<Instance> instanceList) {
             this.instanceList.addAll(instanceList);
             if (this.instanceList.size() >= batchSize) {
                 this.runImmediately();
@@ -145,7 +143,7 @@ public class CacheableMetadataStorage implements IMetaStorage {
             }
 
             this.savedInstanceList = this.instanceList;
-            this.instanceList = Collections.synchronizedList(new ArrayList<>());
+            this.instanceList = Collections.synchronizedSet(new HashSet<>());
 
             delegate.saveApplicationInstance(savedInstanceList);
         }

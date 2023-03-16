@@ -55,7 +55,6 @@ public class BeanMethodAopInstallerHelper {
     public static void install(Class<?> targetClass) {
         if (BeanMethod$Invoke.AnnotationHelper.getOrCreateComponentName(targetClass) != null) {
             BeanMethodAopInstaller.install(targetClass,
-                                           BeanMethod$Invoke.class.getName(),
                                            Advice.to(targetAopClass.getTypeDescription(), ClassFileLocator.Simple.of(targetAopClass.getAllTypes())),
                                            transformationConfig);
         }

@@ -55,7 +55,7 @@ public class BeanMethodAopInstaller {
         });
     }
 
-    public static void install(Class<?> targetClass, String interceptor, Advice advice, BeanTransformationConfig transformationConfig) {
+    public static void install(Class<?> targetClass, Advice advice, BeanTransformationConfig transformationConfig) {
         if (targetClass.isSynthetic()) {
             /*
              * eg: org.springframework.boot.actuate.autoconfigure.metrics.KafkaMetricsAutoConfiguration$$Lambda$709/829537923
@@ -118,7 +118,6 @@ public class BeanMethodAopInstaller {
         }
 
         DynamicInterceptorInstaller.AopDescriptor descriptor = new DynamicInterceptorInstaller.AopDescriptor(targetClass.getName(),
-                                                                                                             interceptor,
                                                                                                              advice,
                                                                                                              new BeanMethodMatcher(propertyMethods,
                                                                                                                                    excludedMethods));
