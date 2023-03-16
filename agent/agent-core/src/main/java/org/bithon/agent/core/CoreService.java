@@ -21,13 +21,13 @@ import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
 import org.bithon.agent.core.metric.collector.jvm.JvmEventMessageBuilder;
 import org.bithon.agent.core.metric.collector.jvm.JvmMetricCollector;
-import org.bithon.agent.core.starter.IAgentLifeCycle;
+import org.bithon.agent.core.starter.IAgentService;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/3/16 23:26
  */
-public class CoreService implements IAgentLifeCycle {
+public class CoreService implements IAgentService {
     @Override
     public int getOrder() {
         return Integer.MIN_VALUE;

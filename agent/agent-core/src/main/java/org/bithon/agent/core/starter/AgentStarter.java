@@ -84,27 +84,27 @@ public class AgentStarter {
         new InterceptorInstaller(new PluginResolver(agentContext).resolveInterceptorDescriptors())
             .installOn(createAgentBuilder(inst), inst);
 
-        // initialize other agent libs
-        final List<IAgentLifeCycle> lifeCycles = new ArrayList<>();
-        for (IAgentLifeCycle lifecycle : ServiceLoader.load(IAgentLifeCycle.class,
-                                                            AgentClassLoader.getClassLoader())) {
-            lifeCycles.add(lifecycle);
+        // Initialize other agent libs
+        final List<IAgentService> services = new ArrayList<>();
+        for (IAgentService lifecycle : ServiceLoader.load(IAgentService.class,
+                                                          AgentClassLoader.getClassLoader())) {
+            services.add(lifecycle);
         }
-        // sort the lifecycles in their priority
-        lifeCycles.sort((o1, o2) -> o2.getOrder() - o1.getOrder());
+        // Sort the services in their priority
+        services.sort((o1, o2) -> o2.getOrder() - o1.getOrder());
 
         //
-        for (IAgentLifeCycle lifeCycle : lifeCycles) {
-            lifeCycle.start(agentContext);
+        for (IAgentService service : services) {
+            service.start(agentContext);
         }
 
         // register shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             // stop each life cycle object
             // the last started life cycle object will be stopped in first
-            for (int i = lifeCycles.size() - 1; i >= 0; i--) {
+            for (int i = services.size() - 1; i >= 0; i--) {
                 try {
-                    lifeCycles.get(i).stop();
+                    services.get(i).stop();
                 } catch (Exception ignored) {
                 }
             }

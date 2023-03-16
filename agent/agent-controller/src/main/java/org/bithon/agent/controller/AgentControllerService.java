@@ -23,7 +23,7 @@ import org.bithon.agent.controller.cmd.JvmCommand;
 import org.bithon.agent.controller.config.DynamicConfigurationManager;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.context.AgentContext;
-import org.bithon.agent.core.starter.IAgentLifeCycle;
+import org.bithon.agent.core.starter.IAgentService;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
@@ -34,8 +34,8 @@ import java.util.ServiceLoader;
  * @author frank.chen021@outlook.com
  * @date 2021/7/1 5:55 下午
  */
-public class AgentControllerLifeCycle implements IAgentLifeCycle {
-    private static final ILogAdaptor LOG = LoggerFactory.getLogger(AgentControllerLifeCycle.class);
+public class AgentControllerService implements IAgentService {
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(AgentControllerService.class);
 
     @Override
     public void start(AgentContext context) throws Exception {
