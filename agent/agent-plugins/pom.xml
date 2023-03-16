@@ -24,7 +24,6 @@
     <module>glassfish</module>
     <module>grpc</module>
     <module>guice</module>
-    <module>jvm</module>
     <module>mysql-5.x-6.x</module>
     <module>mysql-8.x</module>
     <module>quartz2</module>
@@ -134,11 +133,6 @@
     </dependency>
 
     <!-- JDK -->
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-jvm</artifactId>
-      <version>${project.version}</version>
-    </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-jdk-thread</artifactId>

@@ -27,7 +27,7 @@ import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
-import org.bithon.agent.core.plugin.PluginManager;
+import org.bithon.agent.core.plugin.PluginResolver;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
@@ -42,13 +42,13 @@ import java.util.ServiceLoader;
  * @author frankchen
  */
 public class AgentStarter {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(AgentStarter.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(AgentStarter.class);
 
     /**
      * The banner is generated at https://manytools.org/hacker-tools/ascii-banner/ with font = 3D-ASCII
      */
     private static void showBanner() {
-        log.info("\n ________  ___  _________  ___  ___  ________  ________      \n"
+        LOG.info("\n ________  ___  _________  ___  ___  ________  ________      \n"
                  + "|\\   __  \\|\\  \\|\\___   ___\\\\  \\|\\  \\|\\   __  \\|\\   ___  \\    \n"
                  + "\\ \\  \\|\\ /\\ \\  \\|___ \\  \\_\\ \\  \\\\\\  \\ \\  \\|\\  \\ \\  \\\\ \\  \\   \n"
                  + " \\ \\   __  \\ \\  \\   \\ \\  \\ \\ \\   __  \\ \\  \\\\\\  \\ \\  \\\\ \\  \\  \n"
@@ -74,18 +74,15 @@ public class AgentStarter {
                         .stream()
                         .map(jar -> new File(jar.getName()).getName())
                         .sorted()
-                        .forEach(name -> log.info("Found lib {}", name));
+                        .forEach(name -> LOG.info("Found lib {}", name));
         AgentContext agentContext = AgentContext.createInstance(agentPath);
 
         ConfigurationManager.create(agentPath);
         agentContext.setAppInstance(new AppInstance(ConfigurationManager.getInstance().getConfig(AppConfiguration.class)));
 
-        final PluginManager pluginManager = new PluginManager(agentContext);
-
         // install interceptors for plugins
-        new InterceptorInstaller(pluginManager.getInterceptorDescriptors()).installOn(createAgentBuilder(inst), inst);
-
-        pluginManager.start();
+        new InterceptorInstaller(new PluginResolver(agentContext).resolveInterceptorDescriptors())
+            .installOn(createAgentBuilder(inst), inst);
 
         // initialize other agent libs
         final List<IAgentLifeCycle> lifeCycles = new ArrayList<>();
@@ -103,9 +100,6 @@ public class AgentStarter {
 
         // register shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            // stop all plugins
-            pluginManager.stop();
-
             // stop each life cycle object
             // the last started life cycle object will be stopped in first
             for (int i = lifeCycles.size() - 1; i >= 0; i--) {

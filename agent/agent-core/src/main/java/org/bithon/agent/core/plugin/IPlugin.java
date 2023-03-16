@@ -49,10 +49,4 @@ public interface IPlugin {
     default List<InterceptorDescriptor> getInterceptors() {
         return Collections.emptyList();
     }
-
-    default void start() {
-    }
-
-    default void stop() {
-    }
 }

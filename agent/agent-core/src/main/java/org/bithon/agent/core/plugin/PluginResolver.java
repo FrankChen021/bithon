@@ -36,21 +36,21 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2021/3/18-20:36
  */
-public class PluginManager {
+public class PluginResolver {
 
-    private static final ILogAdaptor LOG = LoggerFactory.getLogger(PluginManager.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(PluginResolver.class);
 
     private final List<IPlugin> plugins;
 
-    public PluginManager(AgentContext agentContext) {
+    public PluginResolver(AgentContext agentContext) {
         // create plugin class loader first
         PluginClassLoaderManager.createDefault(agentContext.getAgentDirectory());
 
         // load plugins
-        plugins = loadPlugins();
+        plugins = resolvePlugins();
     }
 
-    public Descriptors getInterceptorDescriptors() {
+    public Descriptors resolveInterceptorDescriptors() {
         Descriptors descriptors = new Descriptors();
         for (IPlugin plugin : plugins) {
             String pluginName = plugin.getClass().getSimpleName();
@@ -62,15 +62,7 @@ public class PluginManager {
         return descriptors;
     }
 
-    public void start() {
-        plugins.forEach(IPlugin::start);
-    }
-
-    public void stop() {
-        plugins.forEach(IPlugin::stop);
-    }
-
-    private List<IPlugin> loadPlugins() {
+    private List<IPlugin> resolvePlugins() {
         JarClassLoader pluginClassLoader = PluginClassLoaderManager.getDefaultLoader();
         return pluginClassLoader.getJars()
                                 .stream()

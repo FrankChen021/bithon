@@ -29,6 +29,11 @@ import org.bithon.agent.core.starter.IAgentLifeCycle;
  */
 public class CoreService implements IAgentLifeCycle {
     @Override
+    public int getOrder() {
+        return Integer.MIN_VALUE;
+    }
+
+    @Override
     public void start(AgentContext context) throws Exception {
         new JvmMetricCollector().start();
 
