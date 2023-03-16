@@ -33,7 +33,7 @@ import java.util.Map;
  */
 public class Dispatchers {
     /**
-     * the name MUST corresponds to the name of methods such as {@link IMessageChannelFactory#createMetricChannel(DispatcherConfig)}
+     * the name MUST correspond to the name of methods such as {@link IMessageChannelFactory#createMetricChannel(DispatcherConfig)}
      */
     public static final String DISPATCHER_NAME_METRIC = "metric";
     public static final String DISPATCHER_NAME_TRACING = "tracing";

@@ -25,8 +25,6 @@ import org.bithon.agent.core.config.AppConfiguration;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.context.AppInstance;
-import org.bithon.agent.core.dispatcher.Dispatcher;
-import org.bithon.agent.core.dispatcher.Dispatchers;
 import org.bithon.agent.core.plugin.PluginResolver;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -109,10 +107,7 @@ public class AgentStarter {
                 }
             }
 
-            // destroy the dispatchers at last
-            for (Dispatcher dispatcher : Dispatchers.getAllDispatcher()) {
-                dispatcher.shutdown();
-            }
+            notifyShutdown();
         }, "agentShutdown"));
     }
 
@@ -122,5 +117,23 @@ public class AgentStarter {
         builder = builder.assureReadEdgeFromAndTo(inst, IBithonObject.class);
 
         return builder;
+    }
+
+    private void notifyShutdown() {
+        final List<IAgentShutdownListener> listeners = new ArrayList<>();
+        for (IAgentShutdownListener listener : ServiceLoader.load(IAgentShutdownListener.class,
+                                                                  AgentClassLoader.getClassLoader())) {
+            listeners.add(listener);
+        }
+
+        // Sort the services in their priority
+        listeners.sort((o1, o2) -> o2.getOrder() - o1.getOrder());
+
+        for (IAgentShutdownListener listener : listeners) {
+            try {
+                listener.shutdown();
+            } catch (Exception ignored) {
+            }
+        }
     }
 }
