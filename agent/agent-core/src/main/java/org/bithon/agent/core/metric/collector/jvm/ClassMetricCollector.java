@@ -14,21 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jvm;
+package org.bithon.agent.core.metric.collector.jvm;
 
-import com.sun.management.OperatingSystemMXBean;
+import org.bithon.agent.core.metric.domain.jvm.ClassMetrics;
 
+import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
-import java.lang.management.RuntimeMXBean;
 
 /**
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2021/2/14 8:29 下午
  */
-public class JmxBeans {
+public class ClassMetricCollector {
+    public static ClassMetrics collect() {
+        final ClassLoadingMXBean classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
+        return new ClassMetrics(classLoadingMXBean.getTotalLoadedClassCount(),
+                                classLoadingMXBean.getLoadedClassCount(),
+                                classLoadingMXBean.getUnloadedClassCount());
 
-    public static final RuntimeMXBean RUNTIME_BEAN = ManagementFactory.getRuntimeMXBean();
-    public static final OperatingSystemMXBean OS_BEAN = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
-    public static final MemoryMXBean MEM_BEAN = ManagementFactory.getMemoryMXBean();
-
+    }
 }

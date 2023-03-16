@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jvm;
+package org.bithon.agent.core.metric.collector.jvm;
 
 import com.sun.management.UnixOperatingSystemMXBean;
 import org.bithon.agent.AgentBuildVersion;

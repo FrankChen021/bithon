@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jvm.gc;
+package org.bithon.agent.core.metric.collector.jvm;
 
 import org.bithon.agent.core.metric.collector.MetricRegistry;
 import org.bithon.agent.core.metric.domain.jvm.GcMetrics;

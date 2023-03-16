@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jvm;
+package org.bithon.agent.core.metric.collector.jvm;
 
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector;
@@ -22,9 +22,6 @@ import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
-import org.bithon.agent.plugin.jvm.gc.GcMetricRegistry;
-import org.bithon.agent.plugin.jvm.mem.ClassMetricCollector;
-import org.bithon.agent.plugin.jvm.mem.MemoryMetricCollector;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;

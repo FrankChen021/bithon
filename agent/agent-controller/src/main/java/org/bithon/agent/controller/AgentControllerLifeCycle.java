@@ -19,6 +19,7 @@ package org.bithon.agent.controller;
 import org.bithon.agent.bootstrap.loader.AgentClassLoader;
 import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.controller.cmd.IAgentCommand;
+import org.bithon.agent.controller.cmd.JvmCommand;
 import org.bithon.agent.controller.config.DynamicConfigurationManager;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.context.AgentContext;
@@ -59,6 +60,7 @@ public class AgentControllerLifeCycle implements IAgentLifeCycle {
             throw e;
         }
 
+        attachCommand(controller, new JvmCommand());
         loadAgentCommands(controller, AgentClassLoader.getClassLoader());
         loadAgentCommands(controller, PluginClassLoaderManager.getDefaultLoader());
 
@@ -72,16 +74,19 @@ public class AgentControllerLifeCycle implements IAgentLifeCycle {
 
     @Override
     public void stop() {
-        
+
     }
 
     private void loadAgentCommands(IAgentController controller, ClassLoader classLoader) {
         for (IAgentCommand agentCommand : ServiceLoader.load(IAgentCommand.class,
                                                              classLoader)) {
-
-            LOG.info("Binding agent commands provided by {}", agentCommand.getClass().getSimpleName());
-
-            controller.attachCommands(agentCommand);
+            attachCommand(controller, agentCommand);
         }
+    }
+
+    private void attachCommand(IAgentController controller, IAgentCommand agentCommand) {
+        LOG.info("Binding agent commands provided by {}", agentCommand.getClass().getSimpleName());
+
+        controller.attachCommands(agentCommand);
     }
 }

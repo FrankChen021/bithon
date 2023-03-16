@@ -14,19 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jvm;
+package org.bithon.agent.core;
 
+import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
-import org.bithon.agent.core.plugin.IPlugin;
+import org.bithon.agent.core.metric.collector.jvm.JvmEventMessageBuilder;
+import org.bithon.agent.core.metric.collector.jvm.JvmMetricCollector;
+import org.bithon.agent.core.starter.IAgentLifeCycle;
 
 /**
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2023/3/16 23:26
  */
-public class JvmPlugin implements IPlugin {
-
+public class CoreService implements IAgentLifeCycle {
     @Override
-    public void start() {
+    public void start(AgentContext context) throws Exception {
         new JvmMetricCollector().start();
 
         //

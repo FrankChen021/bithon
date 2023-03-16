@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jvm;
+package org.bithon.agent.core.metric.collector.jvm;
 
 import org.bithon.agent.core.metric.domain.jvm.CpuMetrics;
 import org.bithon.agent.core.metric.model.Delta;
