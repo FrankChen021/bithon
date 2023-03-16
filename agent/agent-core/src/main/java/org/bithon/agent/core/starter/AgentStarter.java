@@ -61,7 +61,7 @@ public class AgentStarter {
                  AgentBuildVersion.TIMESTAMP);
     }
 
-    public void start(String agentPath, Instrumentation inst) throws Exception {
+    public void start(Instrumentation inst) throws Exception {
         showBanner();
 
         InstrumentationHelper.setInstance(inst);
@@ -75,13 +75,13 @@ public class AgentStarter {
                         .map(jar -> new File(jar.getName()).getName())
                         .sorted()
                         .forEach(name -> LOG.info("Found lib {}", name));
-        AgentContext agentContext = AgentContext.createInstance(agentPath);
+        AgentContext agentContext = AgentContext.createInstance();
 
-        ConfigurationManager.create(agentPath);
+        ConfigurationManager.create();
         agentContext.setAppInstance(new AppInstance(ConfigurationManager.getInstance().getConfig(AppConfiguration.class)));
 
         // install interceptors for plugins
-        new InterceptorInstaller(new PluginResolver(agentContext).resolveInterceptorDescriptors())
+        new InterceptorInstaller(new PluginResolver().resolveInterceptorDescriptors())
             .installOn(createAgentBuilder(inst), inst);
 
         // Initialize other agent libs

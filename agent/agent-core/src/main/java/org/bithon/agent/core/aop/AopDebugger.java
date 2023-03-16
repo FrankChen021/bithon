@@ -17,6 +17,7 @@
 package org.bithon.agent.core.aop;
 
 
+import org.bithon.agent.bootstrap.utils.AgentDirectory;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
@@ -49,13 +50,11 @@ public class AopDebugger extends AopTransformationListener {
         if (!IS_DEBUG_ENABLED) {
             CLASS_FILE_DIR = null;
         } else {
-            CLASS_FILE_DIR = new File(AgentContext.getInstance().getAgentDirectory()
-                                      + separator
-                                      + AgentContext.TMP_DIR
-                                      + separator
-                                      + AgentContext.getInstance().getAppInstance().getQualifiedAppName()
-                                      + separator
-                                      + "classes");
+            CLASS_FILE_DIR = AgentDirectory.getSubDirectory(AgentDirectory.TMP_DIR
+                                                            + separator
+                                                            + AgentContext.getInstance().getAppInstance().getQualifiedAppName()
+                                                            + separator
+                                                            + "classes");
 
             // clean up directories before startup
             // this is convenient for debugging

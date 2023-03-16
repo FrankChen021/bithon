@@ -20,7 +20,6 @@ import org.bithon.agent.bootstrap.loader.JarClassLoader;
 import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.core.aop.descriptor.Descriptors;
 import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.context.AgentContext;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -42,9 +41,9 @@ public class PluginResolver {
 
     private final List<IPlugin> plugins;
 
-    public PluginResolver(AgentContext agentContext) {
+    public PluginResolver() {
         // create plugin class loader first
-        PluginClassLoaderManager.createDefault(agentContext.getAgentDirectory());
+        PluginClassLoaderManager.createDefault();
 
         // load plugins
         plugins = resolvePlugins();

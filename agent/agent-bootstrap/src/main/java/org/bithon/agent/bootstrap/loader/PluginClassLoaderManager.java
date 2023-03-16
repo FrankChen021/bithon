@@ -17,6 +17,7 @@
 package org.bithon.agent.bootstrap.loader;
 
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
+import org.bithon.agent.bootstrap.utils.AgentDirectory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,9 +48,9 @@ public final class PluginClassLoaderManager {
         return defaultLoader;
     }
 
-    public static void createDefault(String agentPath) {
+    public static void createDefault() {
         defaultLoader = new JarClassLoader("plugin",
-                                           agentPath + "/plugins",
+                                           AgentDirectory.getSubDirectory("plugins"),
                                            AgentClassLoader.getClassLoader());
 
         //

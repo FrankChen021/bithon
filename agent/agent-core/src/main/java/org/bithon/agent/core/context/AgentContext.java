@@ -25,15 +25,11 @@ public class AgentContext {
     public static final String BITHON_APPLICATION_ENV = "bithon.application.env";
     public static final String BITHON_APPLICATION_NAME = "bithon.application.name";
 
-    public static final String CONF_DIR = "conf";
-    public static final String TMP_DIR = "tmp";
     private static AgentContext INSTANCE;
-    private String agentDirectory;
     private AppInstance appInstance;
 
-    public static AgentContext createInstance(String agentPath) {
+    public static AgentContext createInstance() {
         INSTANCE = new AgentContext();
-        INSTANCE.agentDirectory = agentPath;
         return INSTANCE;
     }
 
@@ -43,10 +39,6 @@ public class AgentContext {
 
     public void setAppInstance(AppInstance appInstance) {
         this.appInstance = appInstance;
-    }
-
-    public String getAgentDirectory() {
-        return agentDirectory;
     }
 
     public AppInstance getAppInstance() {
