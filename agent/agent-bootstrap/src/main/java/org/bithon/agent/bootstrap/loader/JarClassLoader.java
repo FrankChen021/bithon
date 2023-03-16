@@ -16,6 +16,7 @@
 
 package org.bithon.agent.bootstrap.loader;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
@@ -54,8 +55,10 @@ public class JarClassLoader extends ClassLoader {
         }
     }
 
-    public JarClassLoader(String name, List<JarFile> jars, ClassLoader... parents) {
-        this(name, jars, Arrays.stream(parents).map(ClassLoaderProvider::new).toArray(IClassLoaderProvider[]::new));
+    public JarClassLoader(String name, String directory, ClassLoader... parents) {
+        this(name,
+             directory,
+             Arrays.stream(parents).map(ClassLoaderProvider::new).toArray(IClassLoaderProvider[]::new));
     }
 
     public List<JarFile> getJars() {
@@ -65,12 +68,12 @@ public class JarClassLoader extends ClassLoader {
     /**
      * @param name used for logging
      */
-    public JarClassLoader(String name, List<JarFile> jars, IClassLoaderProvider... parents) {
+    public JarClassLoader(String name, String directory, IClassLoaderProvider... parents) {
         // NOTE:  parent is assigned to parent class loader
         // This is the key to implement agent lib isolation from app libs
         super(null);
         this.name = name;
-        this.jars = jars;
+        this.jars = JarResolver.resolve(new File(directory));
         this.parents = parents;
     }
 
