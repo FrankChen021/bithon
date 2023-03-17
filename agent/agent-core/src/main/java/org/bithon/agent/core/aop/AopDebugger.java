@@ -19,7 +19,7 @@ package org.bithon.agent.core.aop;
 
 import org.bithon.agent.bootstrap.utils.AgentDirectory;
 import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.context.AppInstance;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
 import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
@@ -52,7 +52,7 @@ public class AopDebugger extends AopTransformationListener {
         } else {
             CLASS_FILE_DIR = AgentDirectory.getSubDirectory(AgentDirectory.TMP_DIR
                                                             + separator
-                                                            + AgentContext.getInstance().getAppInstance().getQualifiedAppName()
+                                                            + AppInstance.getInstance().getQualifiedAppName()
                                                             + separator
                                                             + "classes");
 

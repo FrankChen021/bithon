@@ -22,7 +22,7 @@ import org.bithon.agent.controller.cmd.IAgentCommand;
 import org.bithon.agent.controller.cmd.JvmCommand;
 import org.bithon.agent.controller.config.DynamicConfigurationManager;
 import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.starter.IAgentService;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -38,7 +38,7 @@ public class AgentControllerService implements IAgentService {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(AgentControllerService.class);
 
     @Override
-    public void start(AgentContext context) throws Exception {
+    public void start() throws Exception {
         LOG.info("Initializing agent controller");
 
         AgentControllerConfig ctrlConfig = ConfigurationManager.getInstance().getConfig(AgentControllerConfig.class);
@@ -67,8 +67,8 @@ public class AgentControllerService implements IAgentService {
         //
         // start fetcher
         //
-        DynamicConfigurationManager.createInstance(context.getAppInstance().getAppName(),
-                                                   context.getAppInstance().getEnv(),
+        DynamicConfigurationManager.createInstance(AppInstance.getInstance().getAppName(),
+                                                   AppInstance.getInstance().getEnv(),
                                                    controller);
     }
 

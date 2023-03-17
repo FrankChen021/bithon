@@ -21,10 +21,7 @@ import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.loader.AgentClassLoader;
 import org.bithon.agent.core.aop.InstrumentationHelper;
 import org.bithon.agent.core.aop.installer.InterceptorInstaller;
-import org.bithon.agent.core.config.AppConfiguration;
 import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.context.AgentContext;
-import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.plugin.PluginResolver;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -73,10 +70,8 @@ public class AgentStarter {
                         .map(jar -> new File(jar.getName()).getName())
                         .sorted()
                         .forEach(name -> LOG.info("Found lib {}", name));
-        AgentContext agentContext = AgentContext.createInstance();
 
         ConfigurationManager.create();
-        agentContext.setAppInstance(new AppInstance(ConfigurationManager.getInstance().getConfig(AppConfiguration.class)));
 
         // install interceptors for plugins
         new InterceptorInstaller(new PluginResolver().resolveInterceptorDescriptors())
@@ -93,7 +88,7 @@ public class AgentStarter {
 
         //
         for (IAgentService service : services) {
-            service.start(agentContext);
+            service.start();
         }
 
         // register shutdown hook

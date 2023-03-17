@@ -16,7 +16,6 @@
 
 package org.bithon.agent.dispatcher.brpc;
 
-import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.dispatcher.channel.IMessageChannel;
 import org.bithon.agent.core.dispatcher.config.DispatcherConfig;
@@ -65,7 +64,7 @@ public class BrpcEventMessageChannel implements IMessageChannel {
 
         this.dispatcherConfig = dispatcherConfig;
 
-        AppInstance appInstance = AgentContext.getInstance().getAppInstance();
+        AppInstance appInstance = AppInstance.getInstance();
         this.header = BrpcMessageHeader.newBuilder()
                                        .setAppName(appInstance.getQualifiedAppName())
                                        .setEnv(appInstance.getEnv())

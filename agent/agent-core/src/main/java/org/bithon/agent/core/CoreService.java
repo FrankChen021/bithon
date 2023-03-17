@@ -16,7 +16,6 @@
 
 package org.bithon.agent.core;
 
-import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
 import org.bithon.agent.core.metric.collector.jvm.JvmEventMessageBuilder;
@@ -34,7 +33,7 @@ public class CoreService implements IAgentService {
     }
 
     @Override
-    public void start(AgentContext context) throws Exception {
+    public void start() throws Exception {
         new JvmMetricCollector().start();
 
         //

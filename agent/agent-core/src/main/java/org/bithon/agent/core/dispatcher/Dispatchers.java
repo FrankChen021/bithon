@@ -17,7 +17,7 @@
 package org.bithon.agent.core.dispatcher;
 
 import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.dispatcher.channel.IMessageChannelFactory;
 import org.bithon.agent.core.dispatcher.config.DispatcherConfig;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -68,7 +68,7 @@ public class Dispatchers {
             return DISPATCHERS.computeIfAbsent(dispatcherName, key -> {
                 try {
                     return new Dispatcher(dispatcherName,
-                                          AgentContext.getInstance().getAppInstance(),
+                                          AppInstance.getInstance(),
                                           config);
                 } catch (Exception e) {
                     LoggerFactory.getLogger(Dispatchers.class)

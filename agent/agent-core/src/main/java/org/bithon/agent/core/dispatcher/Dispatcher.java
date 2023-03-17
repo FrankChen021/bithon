@@ -17,7 +17,6 @@
 package org.bithon.agent.core.dispatcher;
 
 
-import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.dispatcher.channel.IMessageChannel;
 import org.bithon.agent.core.dispatcher.channel.IMessageChannelFactory;
@@ -71,7 +70,7 @@ public class Dispatcher {
     }
 
     public void onReady(Consumer<Dispatcher> listener) {
-        AgentContext.getInstance().getAppInstance().addListener(port -> listener.accept(this));
+        AppInstance.getInstance().addListener(port -> listener.accept(this));
     }
 
     public IMessageConverter getMessageConverter() {

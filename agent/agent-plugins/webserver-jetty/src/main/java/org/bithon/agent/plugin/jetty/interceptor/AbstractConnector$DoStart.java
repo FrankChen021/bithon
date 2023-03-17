@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.jetty.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.core.metric.domain.web.WebServerMetricRegistry;
 import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
@@ -39,7 +39,7 @@ public class AbstractConnector$DoStart extends AbstractInterceptor {
         AbstractNetworkConnector connector = (AbstractNetworkConnector) context.getTarget();
 
         // notify to start emit the metrics
-        AgentContext.getInstance().getAppInstance().setPort(connector.getPort());
+        AppInstance.getInstance().setPort(connector.getPort());
 
         WebServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(WebServerMetricRegistry.NAME, WebServerMetricRegistry::new)
                                                         .getOrCreateMetrics(Collections.singletonList(WebServerType.JETTY.type()),

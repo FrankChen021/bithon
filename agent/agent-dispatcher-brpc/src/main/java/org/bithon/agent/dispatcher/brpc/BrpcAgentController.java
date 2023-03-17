@@ -18,7 +18,6 @@ package org.bithon.agent.dispatcher.brpc;
 
 import org.bithon.agent.controller.AgentControllerConfig;
 import org.bithon.agent.controller.IAgentController;
-import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.rpc.brpc.ApplicationType;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
@@ -58,7 +57,7 @@ public class BrpcAgentController implements IAgentController {
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
 
-        AppInstance appInstance = AgentContext.getInstance().getAppInstance();
+        AppInstance appInstance = AppInstance.getInstance();
         channel = ClientChannelBuilder.builder()
                                       .endpointProvider(new RoundRobinEndPointProvider(endpoints))
                                       .workerThreads(2)
@@ -75,7 +74,7 @@ public class BrpcAgentController implements IAgentController {
         // Update appId once the port is configured,
         // so that the management API in the server side can find this agent by appId correctly
         appInstance.addListener((port) -> {
-            channel.setAppId(AgentContext.getInstance().getAppInstance().getHostAndPort());
+            channel.setAppId(AppInstance.getInstance().getHostAndPort());
             if (refreshListener != null) {
                 try {
                     refreshListener.run();
@@ -97,7 +96,7 @@ public class BrpcAgentController implements IAgentController {
             }
         }
 
-        AppInstance appInstance = AgentContext.getInstance().getAppInstance();
+        AppInstance appInstance = AppInstance.getInstance();
         BrpcMessageHeader header = BrpcMessageHeader.newBuilder()
                                                     .setAppName(appInstance.getAppName())
                                                     .setEnv(appInstance.getEnv())

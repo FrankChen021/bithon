@@ -17,6 +17,7 @@
 package org.bithon.agent.core.context;
 
 import org.bithon.agent.core.config.AppConfiguration;
+import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.utils.NetworkUtils;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
@@ -31,6 +32,12 @@ import java.util.List;
  * @date 2021/1/21 9:58 下午
  */
 public class AppInstance {
+
+    public static final String BITHON_APPLICATION_ENV = "bithon.application.env";
+    public static final String BITHON_APPLICATION_NAME = "bithon.application.name";
+
+    private static final AppInstance INSTANCE = new AppInstance(ConfigurationManager.getInstance().getConfig(AppConfiguration.class));
+
     private final String appName;
     private final String qualifiedAppName;
     private final String hostIp;
@@ -39,7 +46,7 @@ public class AppInstance {
     private int port;
     private String hostAndPort;
 
-    public AppInstance(AppConfiguration appConfiguration) {
+    private AppInstance(AppConfiguration appConfiguration) {
         this.appName = appConfiguration.getName();
         this.qualifiedAppName = appName + "-" + appConfiguration.getEnv();
         this.env = appConfiguration.getEnv();
@@ -56,6 +63,10 @@ public class AppInstance {
         }
 
         this.hostAndPort = this.port > 0 ? hostIp + ":" + this.port : hostIp;
+    }
+
+    public static AppInstance getInstance() {
+        return INSTANCE;
     }
 
     public String getQualifiedAppName() {

@@ -20,7 +20,7 @@ import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.bootstrap.utils.AgentDirectory;
 import org.bithon.agent.core.bytecode.ClassDelegation;
 import org.bithon.agent.core.bytecode.IDelegation;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.context.AppInstance;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.File;
@@ -54,8 +54,8 @@ public class ConfigurationManager {
             INSTANCE = new ConfigurationManager(Configuration.create(staticConfig.getAbsolutePath(),
                                                                      is,
                                                                      "bithon.",
-                                                                     AgentContext.BITHON_APPLICATION_NAME,
-                                                                     AgentContext.BITHON_APPLICATION_ENV));
+                                                                     AppInstance.BITHON_APPLICATION_NAME,
+                                                                     AppInstance.BITHON_APPLICATION_ENV));
             return INSTANCE;
         } catch (FileNotFoundException e) {
             throw new AgentException("Unable to find static config at [%s]", staticConfig.getAbsolutePath());

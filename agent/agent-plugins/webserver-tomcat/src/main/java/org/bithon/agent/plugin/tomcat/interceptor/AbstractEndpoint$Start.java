@@ -20,7 +20,7 @@ import org.apache.tomcat.util.net.AbstractEndpoint;
 import org.apache.tomcat.util.threads.ResizableExecutor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.core.metric.domain.web.WebServerMetricRegistry;
 import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
@@ -49,7 +49,7 @@ public class AbstractEndpoint$Start extends AbstractInterceptor {
 
         endpoint = (AbstractEndpoint) context.getTarget();
 
-        AgentContext.getInstance().getAppInstance().setPort(endpoint.getPort());
+        AppInstance.getInstance().setPort(endpoint.getPort());
 
         WebServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(WebServerMetricRegistry.NAME, WebServerMetricRegistry::new)
                                                         .getOrCreateMetrics(Collections.singletonList(WebServerType.UNDERTOW.type()),

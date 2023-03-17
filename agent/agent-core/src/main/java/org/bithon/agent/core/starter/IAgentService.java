@@ -16,8 +16,6 @@
 
 package org.bithon.agent.core.starter;
 
-import org.bithon.agent.core.context.AgentContext;
-
 /**
  * This initializer should not be used in plugins
  *
@@ -32,7 +30,7 @@ public interface IAgentService {
         return 0;
     }
 
-    void start(AgentContext context) throws Exception;
+    void start() throws Exception;
 
     /**
      * Called when the agent is being shutdown
