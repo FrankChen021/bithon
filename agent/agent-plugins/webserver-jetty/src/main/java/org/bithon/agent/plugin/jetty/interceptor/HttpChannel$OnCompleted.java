@@ -25,7 +25,7 @@ import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
-import org.bithon.agent.core.tracing.propagation.ITracePropagator;
+import org.bithon.agent.core.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.plugin.jetty.context.RequestContext;
 import org.bithon.component.commons.tracing.Tags;
 import org.eclipse.jetty.server.HttpChannel;

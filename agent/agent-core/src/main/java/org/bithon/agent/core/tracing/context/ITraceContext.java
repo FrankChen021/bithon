@@ -16,9 +16,9 @@
 
 package org.bithon.agent.core.tracing.context;
 
+import org.bithon.agent.core.tracing.context.propagation.PropagationSetter;
+import org.bithon.agent.core.tracing.context.propagation.TraceMode;
 import org.bithon.agent.core.tracing.id.ISpanIdGenerator;
-import org.bithon.agent.core.tracing.propagation.TraceMode;
-import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 import org.bithon.agent.core.tracing.reporter.ITraceReporter;
 import org.bithon.component.commons.time.Clock;
 

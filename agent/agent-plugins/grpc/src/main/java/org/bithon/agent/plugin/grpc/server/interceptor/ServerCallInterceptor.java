@@ -29,7 +29,7 @@ import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
-import org.bithon.agent.core.tracing.propagation.extractor.ITraceContextExtractor;
+import org.bithon.agent.core.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.component.commons.tracing.SpanKind;
 
 /**

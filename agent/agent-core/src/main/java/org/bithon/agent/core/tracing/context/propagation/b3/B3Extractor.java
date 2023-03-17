@@ -14,11 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.propagation.extractor;
+package org.bithon.agent.core.tracing.context.propagation.b3;
 
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.TraceContextFactory;
-import org.bithon.agent.core.tracing.propagation.TraceMode;
+import org.bithon.agent.core.tracing.context.propagation.ITraceContextExtractor;
+import org.bithon.agent.core.tracing.context.propagation.PropagationGetter;
+import org.bithon.agent.core.tracing.context.propagation.TraceMode;
 
 /**
  * Transplanted from brave to support trace propagation from systems such as zipkin
@@ -26,7 +28,7 @@ import org.bithon.agent.core.tracing.propagation.TraceMode;
  * @author frank.chen021@outlook.com
  * @date 2021/2/6 9:38 上午
  */
-class B3Extractor implements ITraceContextExtractor {
+public class B3Extractor implements ITraceContextExtractor {
     static final String SAMPLED = "X-B3-Sampled";
     /**
      * 128 or 64-bit trace ID lower-hex encoded into 32 or 16 characters (required)
