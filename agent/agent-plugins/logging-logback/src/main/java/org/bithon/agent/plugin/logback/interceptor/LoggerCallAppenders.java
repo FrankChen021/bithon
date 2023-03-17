@@ -28,7 +28,7 @@ import org.bithon.agent.core.dispatcher.Dispatchers;
 import org.bithon.agent.core.event.EventMessage;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
-import org.bithon.agent.core.tracing.propagation.TraceMode;
+import org.bithon.agent.core.tracing.context.propagation.TraceMode;
 
 import java.util.HashMap;
 import java.util.Map;

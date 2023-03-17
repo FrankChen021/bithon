@@ -18,7 +18,7 @@ package org.bithon.agent.core.tracing.context;
 
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.tracing.Tracer;
-import org.bithon.agent.core.tracing.propagation.TraceMode;
+import org.bithon.agent.core.tracing.context.propagation.TraceMode;
 
 import java.util.regex.Pattern;
 

@@ -14,10 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.propagation;
+package org.bithon.agent.core.tracing.context.propagation;
 
 import org.bithon.agent.core.tracing.context.ITraceContext;
-import org.bithon.agent.core.tracing.propagation.w3c.W3CTraceContextInjector;
+import org.bithon.agent.core.tracing.context.propagation.w3c.W3CTraceContextInjector;
 import org.bithon.agent.core.tracing.sampler.ISampler;
 
 /**

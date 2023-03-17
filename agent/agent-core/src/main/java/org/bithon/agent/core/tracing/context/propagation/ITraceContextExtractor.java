@@ -14,22 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.propagation;
+package org.bithon.agent.core.tracing.context.propagation;
 
 import org.bithon.agent.core.tracing.context.ITraceContext;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/5 9:36 下午
+ * @date 2021/2/5 9:39 下午
  */
-public interface ITracePropagator {
-
-    String TRACE_HEADER_SRC_APPLICATION = "X-BITHON-SRC-APP";
-
-    <R> void inject(ITraceContext context, R request, PropagationSetter<R> setter);
-
+public interface ITraceContextExtractor {
     /**
-     * Extract OpenTelemetry | Zipkin tracing context from given request object
+     * Extract tracing context from given request object
      * @param request the object that might contain incoming tracing context
      * @param getter the functional object that extract value from the given request object
      * @return tracing context. can be null

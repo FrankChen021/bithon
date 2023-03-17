@@ -22,7 +22,7 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
-import org.bithon.agent.core.tracing.propagation.ITracePropagator;
+import org.bithon.agent.core.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.bithon.agent.plugin.spring.webflux.metric.HttpBodySizeCollector;
 import org.bithon.agent.plugin.spring.webflux.metric.HttpIOMetrics;

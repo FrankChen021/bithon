@@ -14,14 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.propagation.w3c;
+package org.bithon.agent.core.tracing.context.propagation.w3c;
 
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.TraceContextFactory;
-import org.bithon.agent.core.tracing.propagation.ITraceContextExtractor;
-import org.bithon.agent.core.tracing.propagation.ITracePropagator;
-import org.bithon.agent.core.tracing.propagation.PropagationGetter;
-import org.bithon.agent.core.tracing.propagation.TraceMode;
+import org.bithon.agent.core.tracing.context.propagation.ITraceContextExtractor;
+import org.bithon.agent.core.tracing.context.propagation.ITracePropagator;
+import org.bithon.agent.core.tracing.context.propagation.PropagationGetter;
+import org.bithon.agent.core.tracing.context.propagation.TraceMode;
 
 /**
  * @author frank.chen021@outlook.com

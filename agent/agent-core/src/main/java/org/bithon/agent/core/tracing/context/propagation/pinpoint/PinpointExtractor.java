@@ -14,54 +14,46 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.propagation.b3;
+package org.bithon.agent.core.tracing.context.propagation.pinpoint;
 
+import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.TraceContextFactory;
-import org.bithon.agent.core.tracing.propagation.ITraceContextExtractor;
-import org.bithon.agent.core.tracing.propagation.PropagationGetter;
-import org.bithon.agent.core.tracing.propagation.TraceMode;
+import org.bithon.agent.core.tracing.context.propagation.ITraceContextExtractor;
+import org.bithon.agent.core.tracing.context.propagation.PropagationGetter;
+import org.bithon.agent.core.tracing.context.propagation.TraceMode;
+import org.bithon.component.commons.utils.StringUtils;
 
 /**
- * Transplanted from brave to support trace propagation from systems such as zipkin
- *
  * @author frank.chen021@outlook.com
- * @date 2021/2/6 9:38 上午
+ * @date 2021/2/6 9:39 上午
  */
-public class B3Extractor implements ITraceContextExtractor {
-    static final String SAMPLED = "X-B3-Sampled";
+public class PinpointExtractor implements ITraceContextExtractor {
+
     /**
-     * 128 or 64-bit trace ID lower-hex encoded into 32 or 16 characters (required)
+     * src/main/java/com/navercorp/pinpoint/bootstrap/context/Header.java
      */
-    static final String TRACE_ID = "X-B3-TraceId";
-    /**
-     * 64-bit span ID lower-hex encoded into 16 characters (required)
-     */
-    static final String SPAN_ID = "X-B3-SpanId";
-    /**
-     * 64-bit parent span ID lower-hex encoded into 16 characters (absent on root span)
-     */
-    static final String PARENT_SPAN_ID = "X-B3-ParentSpanId";
+    public static final String TRACE_ID = "Pinpoint-TraceID";
+    public static final String SPAN_ID = "Pinpoint-SpanID";
+    public static final String PARENT_SPAN_ID = "Pinpoint-pSpanID";
+    public static final String SAMPLED = "Pinpoint-Sampled";
+    public static final String APP_NAME = "Pinpoint-pAppName";
 
     @Override
     public <R> ITraceContext extract(R request, PropagationGetter<R> getter) {
-        if (request == null) {
-            return null;
-        }
-
         String traceId = getter.get(request, TRACE_ID);
-        if (traceId == null) {
-            return null;
-        }
-
-        String spanId = getter.get(request, SPAN_ID);
-        if (spanId == null) {
+        if (StringUtils.isEmpty(traceId)) {
             return null;
         }
 
         String parentSpanId = getter.get(request, PARENT_SPAN_ID);
-        if (parentSpanId == null) {
+        if (StringUtils.isEmpty(parentSpanId)) {
             return null;
+        }
+
+        String spanId = getter.get(request, SPAN_ID);
+        if (StringUtils.isEmpty(spanId)) {
+            spanId = Tracer.get().spanIdGenerator().newSpanId();
         }
 
         return TraceContextFactory.create(TraceMode.TRACE,

@@ -14,14 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.propagation;
+package org.bithon.agent.core.tracing.context.propagation;
 
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.TraceContextFactory;
-import org.bithon.agent.core.tracing.propagation.b3.B3Extractor;
-import org.bithon.agent.core.tracing.propagation.pinpoint.PinpointExtractor;
-import org.bithon.agent.core.tracing.propagation.w3c.W3CTraceContextExtractor;
+import org.bithon.agent.core.tracing.context.propagation.b3.B3Extractor;
+import org.bithon.agent.core.tracing.context.propagation.pinpoint.PinpointExtractor;
+import org.bithon.agent.core.tracing.context.propagation.w3c.W3CTraceContextExtractor;
 import org.bithon.agent.core.tracing.sampler.ISampler;
 import org.bithon.agent.core.tracing.sampler.SamplingMode;
 

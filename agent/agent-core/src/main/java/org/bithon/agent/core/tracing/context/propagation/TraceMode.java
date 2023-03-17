@@ -14,20 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.propagation;
-
-import org.bithon.agent.core.tracing.context.ITraceContext;
+package org.bithon.agent.core.tracing.context.propagation;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/5 9:39 下午
+ * @date 2021/7/17 17:13
  */
-public interface ITraceContextExtractor {
+public enum TraceMode {
+    TRACE,
+
     /**
-     * Extract tracing context from given request object
-     * @param request the object that might contain incoming tracing context
-     * @param getter the functional object that extract value from the given request object
-     * @return tracing context. can be null
+     * Propagation the application information only
      */
-    <R> ITraceContext extract(R request, PropagationGetter<R> getter);
+    PROPAGATION
 }
