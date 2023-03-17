@@ -19,10 +19,11 @@ package org.bithon.agent.controller;
 import org.bithon.agent.bootstrap.loader.AgentClassLoader;
 import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.controller.cmd.IAgentCommand;
+import org.bithon.agent.controller.cmd.JvmCommand;
 import org.bithon.agent.controller.config.DynamicConfigurationManager;
 import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.context.AgentContext;
-import org.bithon.agent.core.starter.IAgentLifeCycle;
+import org.bithon.agent.core.context.AppInstance;
+import org.bithon.agent.core.starter.IAgentService;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
@@ -33,11 +34,11 @@ import java.util.ServiceLoader;
  * @author frank.chen021@outlook.com
  * @date 2021/7/1 5:55 下午
  */
-public class AgentControllerLifeCycle implements IAgentLifeCycle {
-    private static final ILogAdaptor LOG = LoggerFactory.getLogger(AgentControllerLifeCycle.class);
+public class AgentControllerService implements IAgentService {
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(AgentControllerService.class);
 
     @Override
-    public void start(AgentContext context) throws Exception {
+    public void start() throws Exception {
         LOG.info("Initializing agent controller");
 
         AgentControllerConfig ctrlConfig = ConfigurationManager.getInstance().getConfig(AgentControllerConfig.class);
@@ -59,29 +60,33 @@ public class AgentControllerLifeCycle implements IAgentLifeCycle {
             throw e;
         }
 
+        attachCommand(controller, new JvmCommand());
         loadAgentCommands(controller, AgentClassLoader.getClassLoader());
         loadAgentCommands(controller, PluginClassLoaderManager.getDefaultLoader());
 
         //
         // start fetcher
         //
-        DynamicConfigurationManager.createInstance(context.getAppInstance().getAppName(),
-                                                   context.getAppInstance().getEnv(),
+        DynamicConfigurationManager.createInstance(AppInstance.getInstance().getAppName(),
+                                                   AppInstance.getInstance().getEnv(),
                                                    controller);
     }
 
     @Override
     public void stop() {
-        
+
     }
 
     private void loadAgentCommands(IAgentController controller, ClassLoader classLoader) {
         for (IAgentCommand agentCommand : ServiceLoader.load(IAgentCommand.class,
                                                              classLoader)) {
-
-            LOG.info("Binding agent commands provided by {}", agentCommand.getClass().getSimpleName());
-
-            controller.attachCommands(agentCommand);
+            attachCommand(controller, agentCommand);
         }
+    }
+
+    private void attachCommand(IAgentController controller, IAgentCommand agentCommand) {
+        LOG.info("Binding agent commands provided by {}", agentCommand.getClass().getSimpleName());
+
+        controller.attachCommands(agentCommand);
     }
 }

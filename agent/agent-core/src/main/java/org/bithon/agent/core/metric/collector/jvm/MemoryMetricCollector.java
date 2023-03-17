@@ -14,11 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jvm.mem;
+package org.bithon.agent.core.metric.collector.jvm;
 
 import org.bithon.agent.core.metric.domain.jvm.MemoryMetrics;
 import org.bithon.agent.core.metric.domain.jvm.MemoryRegionMetrics;
-import org.bithon.agent.plugin.jvm.JmxBeans;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;

@@ -17,7 +17,7 @@
 package org.bithon.agent.core.aop.installer;
 
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.utils.filter.IMatcher;
 import org.bithon.agent.core.utils.filter.InCollectionMatcher;
 import org.bithon.agent.core.utils.filter.StringEqualMatcher;
@@ -47,7 +47,7 @@ public class BeanMethodAopInstaller {
     private static Map<String, DynamicInterceptorInstaller.AopDescriptor> PENDING_DESCRIPTORS = new ConcurrentHashMap<>();
 
     static {
-        AgentContext.getInstance().getAppInstance().addListener(port -> {
+        AppInstance.getInstance().addListener(port -> {
             DynamicInterceptorInstaller.getInstance().install(PENDING_DESCRIPTORS);
 
             // clear the reference
@@ -122,10 +122,10 @@ public class BeanMethodAopInstaller {
                                                                                                              new BeanMethodMatcher(propertyMethods,
                                                                                                                                    excludedMethods));
 
-        if (AgentContext.getInstance().getAppInstance().getPort() == 0) {
+        if (AppInstance.getInstance().getPort() == 0) {
             //
             // For any target class's public method, if any parameter's type is being instrumented,
-            // the instrumentation will not take effect. This might be a bug of bytebuddy or wrong use of bytebuddy's API
+            // the instrumentation will not take effect. This might be a bug of bytebuddy or wrong use of byte-buddy's API
             //
             // Since I don't have enough time to take a look at this problem,
             // I use a workaround that by deferring the installation until the application's web service is working

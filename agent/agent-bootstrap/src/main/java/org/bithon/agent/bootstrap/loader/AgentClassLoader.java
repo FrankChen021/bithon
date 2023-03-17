@@ -16,7 +16,7 @@
 
 package org.bithon.agent.bootstrap.loader;
 
-import java.io.File;
+import org.bithon.agent.bootstrap.utils.AgentDirectory;
 
 /**
  * @author frank.chen021@outlook.com
@@ -34,10 +34,10 @@ public class AgentClassLoader {
      * initialize class loader as a cascaded class loader
      * it's parent is context class loader of thread so that any classes used by jars in libs could be found by application's class loader
      */
-    public static ClassLoader initialize(File agentDirectory) {
+    public static ClassLoader initialize() {
         final Thread mainThread = Thread.currentThread();
         instance = new JarClassLoader("agent-library",
-                                      JarResolver.resolve(new File(agentDirectory, "lib")),
+                                      AgentDirectory.getSubDirectory("lib"),
                                       mainThread::getContextClassLoader);
         return instance;
     }

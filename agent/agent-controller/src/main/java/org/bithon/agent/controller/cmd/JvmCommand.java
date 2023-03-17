@@ -14,9 +14,8 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jvm.cmd;
+package org.bithon.agent.controller.cmd;
 
-import org.bithon.agent.controller.cmd.IAgentCommand;
 import org.bithon.agent.core.aop.InstrumentationHelper;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 

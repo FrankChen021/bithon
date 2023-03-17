@@ -17,9 +17,10 @@
 package org.bithon.agent.core.config;
 
 import org.bithon.agent.bootstrap.expt.AgentException;
+import org.bithon.agent.bootstrap.utils.AgentDirectory;
 import org.bithon.agent.core.bytecode.ClassDelegation;
 import org.bithon.agent.core.bytecode.IDelegation;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.context.AppInstance;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.File;
@@ -47,14 +48,14 @@ public class ConfigurationManager {
         return INSTANCE;
     }
 
-    public static ConfigurationManager create(String agentDirectory) {
-        File staticConfig = new File(agentDirectory + separator + AgentContext.CONF_DIR + separator + "agent.yml");
+    public static ConfigurationManager create() {
+        File staticConfig = AgentDirectory.getSubDirectory(AgentDirectory.CONF_DIR + separator + "agent.yml");
         try (FileInputStream is = new FileInputStream(staticConfig)) {
             INSTANCE = new ConfigurationManager(Configuration.create(staticConfig.getAbsolutePath(),
                                                                      is,
                                                                      "bithon.",
-                                                                     AgentContext.BITHON_APPLICATION_NAME,
-                                                                     AgentContext.BITHON_APPLICATION_ENV));
+                                                                     AppInstance.BITHON_APPLICATION_NAME,
+                                                                     AppInstance.BITHON_APPLICATION_ENV));
             return INSTANCE;
         } catch (FileNotFoundException e) {
             throw new AgentException("Unable to find static config at [%s]", staticConfig.getAbsolutePath());
@@ -161,12 +162,14 @@ public class ConfigurationManager {
         return getConfig(prefixes, clazz, false);
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T getConfig(String prefixes, Class<T> clazz, boolean isDynamic) {
         if (clazz.isPrimitive() || !isDynamic) {
             return configuration.getConfig(prefixes, clazz);
         }
 
-        //noinspection unchecked
+        // If this configuration clazz is defined as dynamic(it means configuration changes will dynamically reflect on its corresponding configuration clazz object),
+        // a delegation class is created
         return (T) delegatedBeans.computeIfAbsent(prefixes, (k) -> {
             Class<?> proxyClass = ClassDelegation.create(clazz);
 

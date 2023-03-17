@@ -20,7 +20,7 @@ import io.undertow.Undertow;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.expt.AgentException;
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.core.metric.domain.web.WebServerMetricRegistry;
 import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
@@ -40,7 +40,7 @@ public class UndertowStart extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        if (AgentContext.getInstance().getAppInstance().getPort() != 0 || aopContext.hasException()) {
+        if (AppInstance.getInstance().getPort() != 0 || aopContext.hasException()) {
             return;
         }
 
@@ -48,7 +48,7 @@ public class UndertowStart extends AbstractInterceptor {
 
         List<?> listeners = (List<?>) ReflectionUtils.getFieldValue(server, "listeners");
         int port = Integer.parseInt(ReflectionUtils.getFieldValue(listeners.iterator().next(), "port").toString());
-        AgentContext.getInstance().getAppInstance().setPort(port);
+        AppInstance.getInstance().setPort(port);
 
         XnioWorker worker = (XnioWorker) ReflectionUtils.getFieldValue(server, "worker");
         TaskPoolAccessor accessor = new TaskPoolAccessor(ReflectionUtils.getFieldValue(worker, "taskPool"));

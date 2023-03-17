@@ -17,6 +17,8 @@
 package org.bithon.agent.main;
 
 import org.bithon.agent.bootstrap.loader.AgentClassLoader;
+import org.bithon.agent.bootstrap.utils.AgentDirectory;
+import org.bithon.agent.bootstrap.utils.JarLocator;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
@@ -53,16 +55,17 @@ public class Main {
             }
         }
 
-        File agentDirectory = new BootstrapJarLocator().locate(Main.class.getName()).getParentFile();
+        // agent-main.jar is located under agent directory,
+        // So its parent is the right directory of the agent
+        AgentDirectory.setRoot(JarLocator.locate(Main.class.getName()).getParentFile());
 
-        ClassLoader classLoader = AgentClassLoader.initialize(agentDirectory);
+        ClassLoader classLoader = AgentClassLoader.initialize();
         Class<?> starterClass = classLoader.loadClass("org.bithon.agent.core.starter.AgentStarter");
         Object starterObject = starterClass.getDeclaredConstructor().newInstance();
         Method startMethod = starterClass.getDeclaredMethod("start",
-                                                            String.class,
                                                             Instrumentation.class);
         try {
-            startMethod.invoke(starterObject, agentDirectory.getAbsolutePath(), inst);
+            startMethod.invoke(starterObject, inst);
         } catch (InvocationTargetException e) {
             throw e.getCause();
         }

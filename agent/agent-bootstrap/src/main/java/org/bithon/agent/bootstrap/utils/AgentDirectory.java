@@ -14,23 +14,30 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.netty.interceptor;
+package org.bithon.agent.bootstrap.utils;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.context.AppInstance;
-import org.springframework.boot.web.embedded.netty.NettyWebServer;
+import java.io.File;
 
 /**
- * @author frankchen
- * @date 2021-09-22 23:36
+ * @author frank.chen021@outlook.com
+ * @date 2023/3/17 00:26
  */
-public class NettyWebServerStart extends AbstractInterceptor {
+public class AgentDirectory {
 
-    @Override
-    public void onMethodLeave(AopContext aopContext) {
-        NettyWebServer webServer = (NettyWebServer) aopContext.getTarget();
+    public static final String CONF_DIR = "conf";
+    public static final String TMP_DIR = "tmp";
 
-        AppInstance.getInstance().setPort(webServer.getPort());
+    private static File root;
+
+    public static void setRoot(File root) {
+        AgentDirectory.root = root;
+    }
+
+    public static File getRoot() {
+        return AgentDirectory.root;
+    }
+
+    public static File getSubDirectory(String child) {
+        return new File(root, child);
     }
 }

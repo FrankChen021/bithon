@@ -58,19 +58,18 @@ import java.util.Set;
  * @date 2021/1/24 9:24 下午
  */
 public class InterceptorInstaller {
-    // No need to define it as static since this class has very short lifecycle
-    private final ILogAdaptor log = LoggerFactory.getLogger(InterceptorInstaller.class);
-
     private final Descriptors descriptors;
 
     public InterceptorInstaller(Descriptors descriptors) {
         this.descriptors = descriptors;
     }
 
-    public void installOn(AgentBuilder agentBuilder, Instrumentation inst) {
+    public void installOn(Instrumentation inst) {
         Set<String> types = new HashSet<>(descriptors.getTypes());
 
-        agentBuilder
+        new AgentBuilder
+            .Default()
+            .assureReadEdgeFromAndTo(inst, IBithonObject.class)
             .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(ElementMatchers.nameStartsWith("org.bithon.shaded.").or(ElementMatchers.isSynthetic())))
             .type(new NameMatcher<>(new StringSetMatcher(types)))
             .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule, ProtectionDomain protectionDomain) -> {
@@ -81,7 +80,7 @@ public class InterceptorInstaller {
                 Descriptors.Descriptor descriptor = descriptors.get(type);
                 if (descriptor == null) {
                     // this must be something wrong
-                    log.error("Error to transform [{}] for the descriptor is not found", type);
+                    LoggerFactory.getLogger(InterceptorInstaller.class).error("Error to transform [{}] for the descriptor is not found", type);
                     return builder;
                 }
 

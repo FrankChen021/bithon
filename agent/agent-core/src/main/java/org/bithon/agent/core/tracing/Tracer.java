@@ -17,7 +17,6 @@
 package org.bithon.agent.core.tracing;
 
 import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
@@ -64,7 +63,7 @@ public class Tracer {
         if (INSTANCE == null) {
             synchronized (Tracer.class) {
                 if (INSTANCE == null) {
-                    AppInstance appInstance = AgentContext.getInstance().getAppInstance();
+                    AppInstance appInstance = AppInstance.getInstance();
                     try {
                         ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
                                                                                             .getDynamicConfig("tracing.samplingConfigs.default",

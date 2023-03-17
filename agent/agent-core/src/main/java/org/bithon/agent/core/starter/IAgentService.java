@@ -14,21 +14,26 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jvm;
-
-import com.sun.management.OperatingSystemMXBean;
-
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
-import java.lang.management.RuntimeMXBean;
+package org.bithon.agent.core.starter;
 
 /**
- * @author frankchen
+ * This initializer should not be used in plugins
+ *
+ * @author frank.chen021@outlook.com
+ * @date 2021/7/1 5:56 下午
  */
-public class JmxBeans {
+public interface IAgentService {
+    /**
+     * The smaller the value, the lower priority this service object is
+     */
+    default int getOrder() {
+        return 0;
+    }
 
-    public static final RuntimeMXBean RUNTIME_BEAN = ManagementFactory.getRuntimeMXBean();
-    public static final OperatingSystemMXBean OS_BEAN = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
-    public static final MemoryMXBean MEM_BEAN = ManagementFactory.getMemoryMXBean();
+    void start() throws Exception;
 
+    /**
+     * Called when the agent is being shutdown
+     */
+    void stop() throws Exception;
 }

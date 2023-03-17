@@ -14,28 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.starter;
+package org.bithon.agent.core.metric.collector.jvm;
 
-import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.metric.domain.jvm.ClassMetrics;
+
+import java.lang.management.ClassLoadingMXBean;
+import java.lang.management.ManagementFactory;
 
 /**
- * This initializer should not be used in plugins
- *
  * @author frank.chen021@outlook.com
- * @date 2021/7/1 5:56 下午
+ * @date 2021/2/14 8:29 下午
  */
-public interface IAgentLifeCycle {
-    /**
-     * the smaller the value, the lower priority this life cycle object is
-     */
-    default int getOrder() {
-        return 0;
+public class ClassMetricCollector {
+    public static ClassMetrics collect() {
+        final ClassLoadingMXBean classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
+        return new ClassMetrics(classLoadingMXBean.getTotalLoadedClassCount(),
+                                classLoadingMXBean.getLoadedClassCount(),
+                                classLoadingMXBean.getUnloadedClassCount());
+
     }
-
-    void start(AgentContext context) throws Exception;
-
-    /**
-     * called when the agent is being shutdown
-     */
-    void stop() throws Exception;
 }

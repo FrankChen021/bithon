@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.main;
+package org.bithon.agent.bootstrap.utils;
 
 import org.bithon.agent.bootstrap.expt.AgentException;
 
@@ -25,11 +25,11 @@ import java.net.URL;
  * @author frank.chen021@outlook.com
  * @date 2021/4/3 00:22
  */
-class BootstrapJarLocator {
+public class JarLocator {
     /**
-     * @return which jar the given class is in
+     * @return The jar file location that contains the specified class
      */
-    public File locate(String className) {
+    public static File locate(String className) {
         final String internalClassName = className.replace('.', '/') + ".class";
         final URL classURL = ClassLoader.getSystemResource(internalClassName);
         if (classURL == null) {

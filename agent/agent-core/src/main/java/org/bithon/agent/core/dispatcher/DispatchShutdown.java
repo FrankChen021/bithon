@@ -14,23 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jvm.mem;
+package org.bithon.agent.core.dispatcher;
 
-import org.bithon.agent.core.metric.domain.jvm.ClassMetrics;
-
-import java.lang.management.ClassLoadingMXBean;
-import java.lang.management.ManagementFactory;
+import org.bithon.agent.core.starter.IAgentShutdownListener;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/14 8:29 下午
+ * @date 2023/3/17 00:43
  */
-public class ClassMetricCollector {
-    public static ClassMetrics collect() {
-        final ClassLoadingMXBean classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
-        return new ClassMetrics(classLoadingMXBean.getTotalLoadedClassCount(),
-                                classLoadingMXBean.getLoadedClassCount(),
-                                classLoadingMXBean.getUnloadedClassCount());
+public class DispatchShutdown implements IAgentShutdownListener {
 
+    @Override
+    public int getOrder() {
+        return Integer.MIN_VALUE;
+    }
+
+    @Override
+    public void shutdown() {
+        for (Dispatcher dispatcher : Dispatchers.getAllDispatcher()) {
+            dispatcher.shutdown();
+        }
     }
 }

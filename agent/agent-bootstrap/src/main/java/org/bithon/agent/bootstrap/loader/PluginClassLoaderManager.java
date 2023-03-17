@@ -17,12 +17,10 @@
 package org.bithon.agent.bootstrap.loader;
 
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
+import org.bithon.agent.bootstrap.utils.AgentDirectory;
 
-import java.io.File;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.jar.JarFile;
 
 /**
  * mapping original classloader to AgentClassLoader
@@ -50,10 +48,10 @@ public final class PluginClassLoaderManager {
         return defaultLoader;
     }
 
-    public static void createDefault(String agentPath) {
-        List<JarFile> pluginJars = JarResolver.resolve(new File(agentPath + "/plugins"));
-
-        defaultLoader = new JarClassLoader("plugin", pluginJars, AgentClassLoader.getClassLoader());
+    public static void createDefault() {
+        defaultLoader = new JarClassLoader("plugin",
+                                           AgentDirectory.getSubDirectory("plugins"),
+                                           AgentClassLoader.getClassLoader());
 
         //
         // set the default plugin class loader to a class which could be access from classes loaded by bootstrap class loader

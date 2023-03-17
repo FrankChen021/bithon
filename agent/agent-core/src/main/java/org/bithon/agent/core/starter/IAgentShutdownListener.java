@@ -14,23 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.netty.interceptor;
-
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.context.AppInstance;
-import org.springframework.boot.web.embedded.netty.NettyWebServer;
+package org.bithon.agent.core.starter;
 
 /**
- * @author frankchen
- * @date 2021-09-22 23:36
+ * @author frank.chen021@outlook.com
+ * @date 2023/3/17 00:39
  */
-public class NettyWebServerStart extends AbstractInterceptor {
-
-    @Override
-    public void onMethodLeave(AopContext aopContext) {
-        NettyWebServer webServer = (NettyWebServer) aopContext.getTarget();
-
-        AppInstance.getInstance().setPort(webServer.getPort());
+public interface IAgentShutdownListener {
+    /**
+     * The lower the value, the lower priority that the listener will be invoked
+     */
+    default int getOrder() {
+        return 0;
     }
+
+    void shutdown();
 }

@@ -14,25 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jvm;
+package org.bithon.agent.core.metric.collector.jvm;
 
-import org.bithon.agent.core.metric.domain.jvm.ThreadMetrics;
+import com.sun.management.OperatingSystemMXBean;
 
 import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadMXBean;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.RuntimeMXBean;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/2/14 8:27 下午
+ * @author frankchen
  */
-public class ThreadMetricCollector {
+public class JmxBeans {
 
-    public static ThreadMetrics collect() {
-        final ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
-        return new ThreadMetrics(threadBean.getPeakThreadCount(),
-                                 threadBean.getDaemonThreadCount(),
-                                 threadBean.getTotalStartedThreadCount(),
-                                 threadBean.getThreadCount());
+    public static final RuntimeMXBean RUNTIME_BEAN = ManagementFactory.getRuntimeMXBean();
+    public static final OperatingSystemMXBean OS_BEAN = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+    public static final MemoryMXBean MEM_BEAN = ManagementFactory.getMemoryMXBean();
 
-    }
 }

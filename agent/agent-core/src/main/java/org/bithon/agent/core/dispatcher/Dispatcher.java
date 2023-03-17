@@ -17,7 +17,6 @@
 package org.bithon.agent.core.dispatcher;
 
 
-import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.dispatcher.channel.IMessageChannel;
 import org.bithon.agent.core.dispatcher.channel.IMessageChannelFactory;
@@ -36,7 +35,7 @@ import java.util.function.Consumer;
  * @author frankchen
  */
 public class Dispatcher {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(Dispatcher.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(Dispatcher.class);
 
     private final String dispatcherName;
     private final IMessageConverter messageConverter;
@@ -71,7 +70,7 @@ public class Dispatcher {
     }
 
     public void onReady(Consumer<Dispatcher> listener) {
-        AgentContext.getInstance().getAppInstance().addListener(port -> listener.accept(this));
+        AppInstance.getInstance().addListener(port -> listener.accept(this));
     }
 
     public IMessageConverter getMessageConverter() {
@@ -113,7 +112,7 @@ public class Dispatcher {
         }
         this.appPort = port;
 
-        log.info("Application port updated to {}, {} will soon be at work",
+        LOG.info("Application port updated to {}, {} will soon be at work",
                  port,
                  this.dispatcherName);
 
@@ -128,13 +127,13 @@ public class Dispatcher {
     }
 
     public void shutdown() {
-        log.info("Shutting down dispatcher task [{}]...", dispatcherName);
+        LOG.info("Shutting down dispatcher task [{}]...", dispatcherName);
         if (task != null) {
             task.stop();
         }
 
         // stop underlying message channel
-        log.info("Closing message channel [{}]...", dispatcherName);
+        LOG.info("Closing message channel [{}]...", dispatcherName);
         try {
             messageChannel.close();
         } catch (Exception ignored) {
