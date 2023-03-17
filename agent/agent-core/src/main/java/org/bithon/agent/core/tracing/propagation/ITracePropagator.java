@@ -17,8 +17,6 @@
 package org.bithon.agent.core.tracing.propagation;
 
 import org.bithon.agent.core.tracing.context.ITraceContext;
-import org.bithon.agent.core.tracing.propagation.extractor.PropagationGetter;
-import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 
 /**
  * @author frank.chen021@outlook.com
@@ -27,8 +25,6 @@ import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 public interface ITracePropagator {
 
     String TRACE_HEADER_SRC_APPLICATION = "X-BITHON-SRC-APP";
-
-    String TRACE_HEADER_PARENT = "traceparent";
 
     <R> void inject(ITraceContext context, R request, PropagationSetter<R> setter);
 

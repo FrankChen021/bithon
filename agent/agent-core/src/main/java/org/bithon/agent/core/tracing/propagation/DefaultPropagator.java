@@ -17,12 +17,7 @@
 package org.bithon.agent.core.tracing.propagation;
 
 import org.bithon.agent.core.tracing.context.ITraceContext;
-import org.bithon.agent.core.tracing.propagation.extractor.ChainedTraceContextExtractor;
-import org.bithon.agent.core.tracing.propagation.extractor.ITraceContextExtractor;
-import org.bithon.agent.core.tracing.propagation.extractor.PropagationGetter;
-import org.bithon.agent.core.tracing.propagation.injector.ITraceContextInjector;
-import org.bithon.agent.core.tracing.propagation.injector.OpenTelemetryInjector;
-import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
+import org.bithon.agent.core.tracing.propagation.w3c.W3CTraceContextInjector;
 import org.bithon.agent.core.tracing.sampler.ISampler;
 
 /**
@@ -31,7 +26,10 @@ import org.bithon.agent.core.tracing.sampler.ISampler;
  */
 public class DefaultPropagator implements ITracePropagator {
 
-    private final ITraceContextInjector injector = new OpenTelemetryInjector();
+    /**
+     * Always propagate W3C trace context for outgoing requests
+     */
+    private final ITraceContextInjector injector = new W3CTraceContextInjector();
     private final ITraceContextExtractor extractor;
 
     public DefaultPropagator(ISampler sampler) {

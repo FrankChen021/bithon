@@ -14,11 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.propagation.injector;
+package org.bithon.agent.core.tracing.propagation.w3c;
 
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.context.ITraceContext;
+import org.bithon.agent.core.tracing.propagation.ITraceContextInjector;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
+import org.bithon.agent.core.tracing.propagation.PropagationSetter;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -26,20 +28,20 @@ import org.bithon.component.commons.logging.LoggerFactory;
  * @author frank.chen021@outlook.com
  * @date 2021/2/6 12:27 上午
  */
-public class OpenTelemetryInjector implements ITraceContextInjector {
+public class W3CTraceContextInjector implements ITraceContextInjector {
 
     @Override
     public <R> void inject(ITraceContext context, R request, PropagationSetter<R> setter) {
         try {
             setter.put(request,
-                       ITracePropagator.TRACE_HEADER_PARENT,
+                       W3CTraceContextHeader.TRACE_HEADER_PARENT,
                        formatTraceParent(context.traceMode(), context.traceId(), context.currentSpan().spanId()));
 
             setter.put(request,
                        ITracePropagator.TRACE_HEADER_SRC_APPLICATION,
                        Tracer.get().appName());
         } catch (Exception e) {
-            LoggerFactory.getLogger(OpenTelemetryInjector.class).error("Exception when propagating trace", e);
+            LoggerFactory.getLogger(W3CTraceContextInjector.class).error("Exception when propagating trace", e);
         }
     }
 

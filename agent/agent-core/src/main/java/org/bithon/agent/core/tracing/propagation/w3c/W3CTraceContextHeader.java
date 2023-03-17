@@ -14,12 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.propagation.injector;
+package org.bithon.agent.core.tracing.propagation.w3c;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/5 9:38 下午
+ * @date 2023/3/17 18:16
  */
-public interface PropagationSetter<REQUEST_TYPE> {
-    void put(REQUEST_TYPE request, String key, String value);
+class W3CTraceContextHeader {
+    public static final String TRACE_HEADER_PARENT = "traceparent";
 }
