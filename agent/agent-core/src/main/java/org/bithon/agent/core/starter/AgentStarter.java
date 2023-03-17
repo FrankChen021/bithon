@@ -17,7 +17,6 @@
 package org.bithon.agent.core.starter;
 
 import org.bithon.agent.AgentBuildVersion;
-import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.loader.AgentClassLoader;
 import org.bithon.agent.core.aop.InstrumentationHelper;
 import org.bithon.agent.core.aop.installer.InterceptorInstaller;
@@ -25,7 +24,6 @@ import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.plugin.PluginResolver;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
@@ -75,7 +73,7 @@ public class AgentStarter {
 
         // install interceptors for plugins
         new InterceptorInstaller(new PluginResolver().resolveInterceptorDescriptors())
-            .installOn(createAgentBuilder(inst), inst);
+            .installOn(inst);
 
         // Initialize other agent libs
         final List<IAgentService> services = new ArrayList<>();
@@ -104,14 +102,6 @@ public class AgentStarter {
 
             notifyShutdown();
         }, "agentShutdown"));
-    }
-
-    private static AgentBuilder createAgentBuilder(Instrumentation inst) {
-        AgentBuilder builder = new AgentBuilder.Default();
-
-        builder = builder.assureReadEdgeFromAndTo(inst, IBithonObject.class);
-
-        return builder;
     }
 
     private void notifyShutdown() {

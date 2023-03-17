@@ -101,7 +101,7 @@ public class ServiceInvocationRunnable implements Runnable {
             }
         } catch (ServiceInvocationException e) {
             Throwable cause = e.getCause() != null ? e.getCause() : e;
-            LoggerFactory.getLogger(ServiceInvocationRunnable.class).warn("[Client={}] Service Invocation on {}.{}",
+            LoggerFactory.getLogger(ServiceInvocationRunnable.class).warn("[Client={}] Service Invocation on {}#{}",
                                                                           channel.remoteAddress().toString(),
                                                                           serviceRequest.getServiceName(),
                                                                           serviceRequest.getMethodName(),
