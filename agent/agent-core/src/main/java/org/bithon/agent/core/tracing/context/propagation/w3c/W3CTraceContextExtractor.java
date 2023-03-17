@@ -14,18 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.propagation.extractor;
+package org.bithon.agent.core.tracing.context.propagation.w3c;
 
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.TraceContextFactory;
-import org.bithon.agent.core.tracing.propagation.ITracePropagator;
-import org.bithon.agent.core.tracing.propagation.TraceMode;
+import org.bithon.agent.core.tracing.context.propagation.ITraceContextExtractor;
+import org.bithon.agent.core.tracing.context.propagation.ITracePropagator;
+import org.bithon.agent.core.tracing.context.propagation.PropagationGetter;
+import org.bithon.agent.core.tracing.context.propagation.TraceMode;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/6 10:00 上午
  */
-public class OpenTelemetryExtractor implements ITraceContextExtractor {
+public class W3CTraceContextExtractor implements ITraceContextExtractor {
 
     private static final int SAMPLED_FLAG = 0x1;
 
@@ -35,7 +37,7 @@ public class OpenTelemetryExtractor implements ITraceContextExtractor {
             return null;
         }
 
-        String traceParent = getter.get(request, ITracePropagator.TRACE_HEADER_PARENT);
+        String traceParent = getter.get(request, W3CTraceContextHeader.TRACE_HEADER_PARENT);
         if (traceParent == null) {
             return null;
         }

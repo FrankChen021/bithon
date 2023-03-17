@@ -14,11 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.propagation.extractor;
+package org.bithon.agent.core.tracing.context.propagation;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/6 9:39 上午
+ * @date 2021/2/5 9:38 下午
  */
-public class PinpointExtractor {
+public interface PropagationSetter<REQUEST_TYPE> {
+    void put(REQUEST_TYPE request, String key, String value);
 }

@@ -14,13 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.propagation.extractor;
+package org.bithon.agent.core.tracing.context.propagation;
 
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.TraceContextFactory;
-import org.bithon.agent.core.tracing.propagation.ITracePropagator;
-import org.bithon.agent.core.tracing.propagation.TraceMode;
+import org.bithon.agent.core.tracing.context.propagation.b3.B3Extractor;
+import org.bithon.agent.core.tracing.context.propagation.pinpoint.PinpointExtractor;
+import org.bithon.agent.core.tracing.context.propagation.w3c.W3CTraceContextExtractor;
 import org.bithon.agent.core.tracing.sampler.ISampler;
 import org.bithon.agent.core.tracing.sampler.SamplingMode;
 
@@ -32,7 +33,8 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
 
     private final ITraceContextExtractor[] extractors = new ITraceContextExtractor[]{
         new B3Extractor(),
-        new OpenTelemetryExtractor(),
+        new PinpointExtractor(),
+        new W3CTraceContextExtractor(),
         };
 
     private final ISampler sampler;

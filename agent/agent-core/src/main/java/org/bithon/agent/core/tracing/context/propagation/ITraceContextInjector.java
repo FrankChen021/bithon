@@ -14,12 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.propagation.injector;
+package org.bithon.agent.core.tracing.context.propagation;
+
+import org.bithon.agent.core.tracing.context.ITraceContext;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/5 9:38 下午
+ * @date 2021/2/5 9:39 下午
  */
-public interface PropagationSetter<REQUEST_TYPE> {
-    void put(REQUEST_TYPE request, String key, String value);
+public interface ITraceContextInjector {
+    <R> void inject(ITraceContext context, R request, PropagationSetter<R> setter);
 }

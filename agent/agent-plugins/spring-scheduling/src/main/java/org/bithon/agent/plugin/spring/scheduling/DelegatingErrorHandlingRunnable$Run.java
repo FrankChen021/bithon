@@ -24,7 +24,7 @@ import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.core.tracing.context.TraceContextFactory;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
-import org.bithon.agent.core.tracing.propagation.TraceMode;
+import org.bithon.agent.core.tracing.context.propagation.TraceMode;
 import org.bithon.agent.core.tracing.sampler.ISampler;
 import org.bithon.agent.core.tracing.sampler.SamplerFactory;
 import org.bithon.agent.core.tracing.sampler.SamplingMode;

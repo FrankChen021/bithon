@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.propagation.extractor;
+package org.bithon.agent.core.tracing.context.propagation;
 
 /**
  * @author frank.chen021@outlook.com
