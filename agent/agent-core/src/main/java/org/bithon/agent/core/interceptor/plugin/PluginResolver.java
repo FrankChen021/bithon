@@ -18,7 +18,6 @@ package org.bithon.agent.core.interceptor.plugin;
 
 import org.bithon.agent.bootstrap.loader.JarClassLoader;
 import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
-import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.interceptor.descriptor.Descriptors;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -85,7 +84,7 @@ public class PluginResolver {
                 return null;
             }
 
-            if (!ConfigurationManager.getInstance().addPluginConfiguration(pluginClass)) {
+            if (!PluginConfiguration.load(pluginClass)) {
                 LOG.info("Found plugin {}, but it's DISABLED by configuration", pluginClass.getSimpleName());
                 return null;
             }
@@ -105,6 +104,6 @@ public class PluginResolver {
             }
         }
         Class<?> parentClass = possiblePluginClass.getSuperclass();
-        return parentClass == null ? false : isPluginClass(parentClass);
+        return parentClass != null && isPluginClass(parentClass);
     }
 }

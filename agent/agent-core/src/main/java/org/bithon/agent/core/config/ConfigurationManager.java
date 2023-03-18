@@ -85,26 +85,6 @@ public class ConfigurationManager {
     }
 
     /**
-     * @return false is the plugin is disabled by configuration
-     */
-    public boolean addPluginConfiguration(Class<?> pluginClass) {
-        Configuration pluginConfiguration = PluginConfiguration.load(pluginClass);
-        if (!pluginConfiguration.isEmpty()) {
-            String pluginConfigurationPrefix = PluginConfiguration.getPluginConfigurationPrefixName(pluginClass.getName());
-
-            Boolean isPluginDisabled = pluginConfiguration.getConfig(pluginConfigurationPrefix + ".disabled", Boolean.class);
-            if (isPluginDisabled != null && isPluginDisabled) {
-                return false;
-            }
-        }
-
-        // Merge the plugin configuration into agent configuration first so that the plugin initialization can obtain its configuration
-        configuration.merge(pluginConfiguration);
-
-        return true;
-    }
-
-    /**
      * Refresh configuration and reflect configuration changes to binding beans that support dynamic.
      *
      * @param newConfiguration incremental new configuration
@@ -184,6 +164,10 @@ public class ConfigurationManager {
                 throw new RuntimeException(e.getCause());
             }
         });
+    }
+
+    public void merge(Configuration configuration) {
+        this.configuration.merge(configuration);
     }
 
     public String format(String format, boolean prettyFormat) {

@@ -14,9 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.config;
+package org.bithon.agent.core.interceptor.plugin;
 
 import org.bithon.agent.bootstrap.expt.AgentException;
+import org.bithon.agent.core.config.Configuration;
+import org.bithon.agent.core.config.ConfigurationManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -33,12 +35,32 @@ import java.util.stream.Collectors;
 class PluginConfiguration {
 
     /**
+     * @return false is the plugin is disabled by configuration
+     */
+    static boolean load(Class<?> pluginClass) {
+        String pluginConfigurationPrefix = getConfigurationPrefix(pluginClass.getName());
+
+        Configuration pluginConfiguration = load(pluginClass, pluginConfigurationPrefix);
+        if (!pluginConfiguration.isEmpty()) {
+
+            Boolean isPluginDisabled = pluginConfiguration.getConfig(pluginConfigurationPrefix + ".disabled", Boolean.class);
+            if (isPluginDisabled != null && isPluginDisabled) {
+                return false;
+            }
+        }
+
+        // Merge the plugin configuration into agent configuration first so that the plugin initialization can obtain its configuration
+        ConfigurationManager.getInstance().merge(pluginConfiguration);
+
+        return true;
+    }
+
+    /**
      * Load plugin configuration from static plugin.yml and dynamic configuration from environment variable and command line arguments
      */
-    static Configuration load(Class<?> pluginClass) {
+    private static Configuration load(Class<?> pluginClass, String configurationPrefix) {
         String configFormat = pluginClass.getPackage().getName() + ".yml";
-        String pluginConfigurationPrefix = getPluginConfigurationPrefixName(pluginClass.getName());
-        String dynamicPrefix = "bithon." + pluginConfigurationPrefix + ".";
+        String dynamicPrefix = "bithon." + configurationPrefix + ".";
 
         Configuration pluginConfiguration;
         try (InputStream staticConfigurationStream = pluginClass.getClassLoader().getResourceAsStream(configFormat)) {
@@ -49,7 +71,7 @@ class PluginConfiguration {
             pluginConfiguration = Configuration.create(configFormat, null, dynamicPrefix);
         }
 
-        if (!pluginConfiguration.isEmpty() && !pluginConfiguration.validate(pluginConfigurationPrefix)) {
+        if (!pluginConfiguration.isEmpty() && !pluginConfiguration.validate(configurationPrefix)) {
             // Dump file content if it's invalid
             StringBuilder config = new StringBuilder(128);
             try {
@@ -67,14 +89,17 @@ class PluginConfiguration {
             }
             throw new AgentException("Plugin [%s] has a configuration that does not comply with the configuration prefix [%s]:\n%s",
                                      pluginClass.getName(),
-                                     pluginConfigurationPrefix,
+                                     configurationPrefix,
                                      config.toString()
             );
         }
         return pluginConfiguration;
     }
 
-    static String getPluginConfigurationPrefixName(String pluginClassName) {
+    /**
+     * Get the configuration prefix for given plugin
+     */
+    private static String getConfigurationPrefix(String pluginClassName) {
         String prefix = "org.bithon.agent.plugin.";
         if (!pluginClassName.startsWith(prefix)) {
             throw new AgentException("Plugin class name[%s] does not under 'org.bithon.agent.plugin.' package.");
