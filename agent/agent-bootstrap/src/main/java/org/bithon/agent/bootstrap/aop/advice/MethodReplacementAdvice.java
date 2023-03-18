@@ -33,7 +33,7 @@ public class MethodReplacementAdvice {
                                  final @Advice.AllArguments Object[] args,
                                  @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning) {
         if (interceptor != null) {
-            returning = interceptor.onExecute(args);
+            returning = interceptor.execute(args);
         }
     }
 }

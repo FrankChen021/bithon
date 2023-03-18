@@ -54,7 +54,7 @@ public abstract class AbstractInterceptor {
      * Replacement of a target method.
      * Will be executed only when the interceptor is defined as replacement
      */
-    public Object onExecute(Object[] args) {
+    public Object execute(Object[] args) {
         return null;
     }
 }
