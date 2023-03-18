@@ -19,10 +19,10 @@ package org.bithon.agent.plugin.thread.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.tracing.context.ITraceContext;
-import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.TraceContextHolder;
-import org.bithon.agent.core.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.agent.plugin.thread.tracing.TracedRunnable;
 
 import java.util.concurrent.ThreadPoolExecutor;

@@ -16,8 +16,8 @@
 
 package org.bithon.agent.sentinel.servlet.filter;
 
-import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
-import org.bithon.agent.core.tracing.context.propagation.ITracePropagator;
+import org.bithon.agent.observability.metric.domain.web.HttpIncomingMetricsRegistry;
+import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.sentinel.ISentinelListener;
 import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
 import org.bithon.agent.sentinel.flow.FlowRuleDto;

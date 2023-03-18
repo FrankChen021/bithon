@@ -19,8 +19,8 @@ package org.bithon.agent.plugin.spring.mvc;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.tracing.Tags;
 
 import java.net.URI;

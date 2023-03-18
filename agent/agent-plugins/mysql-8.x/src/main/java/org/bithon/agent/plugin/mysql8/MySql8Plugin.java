@@ -16,15 +16,15 @@
 
 package org.bithon.agent.plugin.mysql8;
 
-import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
-import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
-import org.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
-import org.bithon.agent.core.plugin.IPlugin;
+import org.bithon.agent.core.interceptor.descriptor.InterceptorDescriptor;
+import org.bithon.agent.core.interceptor.descriptor.MethodPointCutDescriptorBuilder;
+import org.bithon.agent.core.interceptor.plugin.IPlugin;
+import org.bithon.agent.core.interceptor.precondition.IInterceptorPrecondition;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
+import static org.bithon.agent.core.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
 
 /**
  * @author frankchen

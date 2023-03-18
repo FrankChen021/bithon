@@ -18,10 +18,10 @@ package org.bithon.agent.core.starter;
 
 import org.bithon.agent.AgentBuildVersion;
 import org.bithon.agent.bootstrap.loader.AgentClassLoader;
-import org.bithon.agent.core.aop.InstrumentationHelper;
-import org.bithon.agent.core.aop.installer.InterceptorInstaller;
 import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.plugin.PluginResolver;
+import org.bithon.agent.core.interceptor.InstrumentationHelper;
+import org.bithon.agent.core.interceptor.installer.InterceptorInstaller;
+import org.bithon.agent.core.interceptor.plugin.PluginResolver;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 

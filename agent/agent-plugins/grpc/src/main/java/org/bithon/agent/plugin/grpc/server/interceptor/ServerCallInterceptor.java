@@ -25,11 +25,11 @@ import io.grpc.ServerCall;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 import io.grpc.Status;
-import org.bithon.agent.core.tracing.Tracer;
-import org.bithon.agent.core.tracing.context.ITraceContext;
-import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.TraceContextHolder;
-import org.bithon.agent.core.tracing.context.propagation.ITraceContextExtractor;
+import org.bithon.agent.observability.tracing.Tracer;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.component.commons.tracing.SpanKind;
 
 /**

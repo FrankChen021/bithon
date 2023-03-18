@@ -16,10 +16,10 @@
 
 package org.bithon.agent.plugin.thread.metrics;
 
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.collector.MetricRegistry;
-import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
-import org.bithon.agent.core.metric.domain.thread.ThreadPoolMetrics;
+import org.bithon.agent.observability.metric.collector.MetricCollectorManager;
+import org.bithon.agent.observability.metric.collector.MetricRegistry;
+import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
+import org.bithon.agent.observability.metric.domain.thread.ThreadPoolMetrics;
 
 import java.util.Arrays;
 import java.util.List;

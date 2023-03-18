@@ -17,7 +17,7 @@
   <dependencies>
     <dependency>
       <groupId>${project.parent.groupId}</groupId>
-      <artifactId>agent-core</artifactId>
+      <artifactId>agent-observability</artifactId>
     </dependency>
     <dependency>
       <groupId>io.lettuce</groupId>

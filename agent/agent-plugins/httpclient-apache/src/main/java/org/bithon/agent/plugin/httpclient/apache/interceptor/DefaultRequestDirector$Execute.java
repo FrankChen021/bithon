@@ -27,9 +27,9 @@ import org.apache.http.protocol.HttpContext;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetrics;
-import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
+import org.bithon.agent.observability.context.InterceptorContext;
+import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetrics;
+import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 
 /**
  * Old http client 4.0.1~4.2.5

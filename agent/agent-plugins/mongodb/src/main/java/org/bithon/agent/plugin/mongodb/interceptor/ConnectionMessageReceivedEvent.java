@@ -19,9 +19,9 @@ package org.bithon.agent.plugin.mongodb.interceptor;
 import com.mongodb.connection.ConnectionId;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.domain.mongo.MongoCommand;
-import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
+import org.bithon.agent.observability.context.InterceptorContext;
+import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
+import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 

@@ -20,7 +20,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceStatValue;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetrics;
+import org.bithon.agent.observability.metric.domain.jdbc.JdbcPoolMetrics;
 import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSource;
 import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSourceManager;
 

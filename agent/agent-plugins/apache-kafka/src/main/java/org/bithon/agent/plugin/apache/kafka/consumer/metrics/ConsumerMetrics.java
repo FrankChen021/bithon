@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.apache.kafka.consumer.metrics;
 
-import org.bithon.agent.core.metric.model.IMetricSet;
-import org.bithon.agent.core.metric.model.IMetricValueProvider;
-import org.bithon.agent.core.metric.model.Sum;
+import org.bithon.agent.observability.metric.model.IMetricSet;
+import org.bithon.agent.observability.metric.model.IMetricValueProvider;
+import org.bithon.agent.observability.metric.model.Sum;
 
 /**
  * @author frank.chen021@outlook.com

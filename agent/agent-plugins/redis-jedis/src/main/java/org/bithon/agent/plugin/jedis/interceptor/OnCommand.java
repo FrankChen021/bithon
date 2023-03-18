@@ -19,8 +19,8 @@ package org.bithon.agent.plugin.jedis.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.domain.redis.RedisMetricRegistry;
+import org.bithon.agent.observability.context.InterceptorContext;
+import org.bithon.agent.observability.metric.domain.redis.RedisMetricRegistry;
 import redis.clients.jedis.Jedis;
 
 import java.util.Locale;

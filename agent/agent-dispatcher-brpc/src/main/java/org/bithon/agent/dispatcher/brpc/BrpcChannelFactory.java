@@ -17,10 +17,10 @@
 package org.bithon.agent.dispatcher.brpc;
 
 
-import org.bithon.agent.core.dispatcher.IMessageConverter;
-import org.bithon.agent.core.dispatcher.channel.IMessageChannel;
-import org.bithon.agent.core.dispatcher.channel.IMessageChannelFactory;
-import org.bithon.agent.core.dispatcher.config.DispatcherConfig;
+import org.bithon.agent.observability.dispatcher.IMessageConverter;
+import org.bithon.agent.observability.dispatcher.channel.IMessageChannel;
+import org.bithon.agent.observability.dispatcher.channel.IMessageChannelFactory;
+import org.bithon.agent.observability.dispatcher.config.DispatcherConfig;
 
 /**
  * @author frank.chen021@outlook.com

@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.netty.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.context.AppInstance;
+import org.bithon.agent.observability.context.AppInstance;
 import org.springframework.boot.web.embedded.netty.NettyWebServer;
 
 /**

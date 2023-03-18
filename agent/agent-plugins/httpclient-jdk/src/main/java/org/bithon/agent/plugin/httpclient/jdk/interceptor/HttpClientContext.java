@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 
-import org.bithon.agent.core.metric.model.Sum;
+import org.bithon.agent.observability.metric.model.Sum;
 
 /**
  * @author frank.chen021@outlook.com

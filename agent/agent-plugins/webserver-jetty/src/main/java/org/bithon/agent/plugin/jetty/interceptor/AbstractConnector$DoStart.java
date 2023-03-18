@@ -18,11 +18,11 @@ package org.bithon.agent.plugin.jetty.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.context.AppInstance;
-import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
-import org.bithon.agent.core.metric.domain.web.WebServerMetricRegistry;
-import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
-import org.bithon.agent.core.metric.domain.web.WebServerType;
+import org.bithon.agent.observability.context.AppInstance;
+import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
+import org.bithon.agent.observability.metric.domain.web.WebServerMetricRegistry;
+import org.bithon.agent.observability.metric.domain.web.WebServerMetrics;
+import org.bithon.agent.observability.metric.domain.web.WebServerType;
 import org.eclipse.jetty.server.AbstractNetworkConnector;
 
 import java.util.Collections;

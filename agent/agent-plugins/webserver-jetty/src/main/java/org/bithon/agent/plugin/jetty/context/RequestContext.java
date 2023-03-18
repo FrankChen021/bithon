@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.jetty.context;
 
-import org.bithon.agent.core.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
 
 /**
  * @author frank.chen021@outlook.com

@@ -16,8 +16,8 @@
 
 package org.bithon.agent.core.bytecode;
 
-import org.bithon.agent.core.aop.AopDebugger;
-import org.bithon.agent.core.aop.InstrumentationHelper;
+import org.bithon.agent.core.interceptor.AopDebugger;
+import org.bithon.agent.core.interceptor.InstrumentationHelper;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.dynamic.loading.ClassInjector;
 import org.bithon.shaded.net.bytebuddy.jar.asm.ClassReader;

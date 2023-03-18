@@ -24,7 +24,7 @@ import com.mongodb.session.SessionContext;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
+import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
 
 /**
  * @author frankchen

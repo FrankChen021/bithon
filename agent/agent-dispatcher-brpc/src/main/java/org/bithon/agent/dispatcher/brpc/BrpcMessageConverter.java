@@ -16,16 +16,16 @@
 
 package org.bithon.agent.dispatcher.brpc;
 
-import org.bithon.agent.core.dispatcher.IMessageConverter;
-import org.bithon.agent.core.event.EventMessage;
-import org.bithon.agent.core.metric.collector.IMeasurement;
-import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
-import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
-import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
-import org.bithon.agent.core.metric.model.schema.Schema;
-import org.bithon.agent.core.metric.model.schema.Schema2;
-import org.bithon.agent.core.metric.model.schema.Schema3;
-import org.bithon.agent.core.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.dispatcher.IMessageConverter;
+import org.bithon.agent.observability.event.EventMessage;
+import org.bithon.agent.observability.metric.collector.IMeasurement;
+import org.bithon.agent.observability.metric.domain.jvm.JvmMetrics;
+import org.bithon.agent.observability.metric.domain.sql.SQLMetrics;
+import org.bithon.agent.observability.metric.domain.sql.SQLStatementMetrics;
+import org.bithon.agent.observability.metric.model.schema.Schema;
+import org.bithon.agent.observability.metric.model.schema.Schema2;
+import org.bithon.agent.observability.metric.model.schema.Schema3;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericDimensionSpec;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMeasurement;

@@ -23,12 +23,12 @@ import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.dispatcher.Dispatcher;
-import org.bithon.agent.core.dispatcher.Dispatchers;
-import org.bithon.agent.core.event.EventMessage;
-import org.bithon.agent.core.tracing.context.ITraceContext;
-import org.bithon.agent.core.tracing.context.TraceContextHolder;
-import org.bithon.agent.core.tracing.context.propagation.TraceMode;
+import org.bithon.agent.observability.dispatcher.Dispatcher;
+import org.bithon.agent.observability.dispatcher.Dispatchers;
+import org.bithon.agent.observability.event.EventMessage;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
 
 import java.util.HashMap;
 import java.util.Map;

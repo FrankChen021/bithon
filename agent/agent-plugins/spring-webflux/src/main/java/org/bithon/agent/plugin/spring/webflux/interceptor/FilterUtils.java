@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.spring.webflux.interceptor;
 
-import org.bithon.agent.core.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.plugin.spring.webflux.config.GatewayFilterConfigs;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.springframework.web.server.ServerWebExchange;

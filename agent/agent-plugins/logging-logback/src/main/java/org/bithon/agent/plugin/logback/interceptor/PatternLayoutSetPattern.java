@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.logback.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.logging.LogPatternInjector;
+import org.bithon.agent.observability.logging.LogPatternInjector;
 
 /**
  * {@link ch.qos.logback.core.pattern.PatternLayoutBase#setPattern(String)}

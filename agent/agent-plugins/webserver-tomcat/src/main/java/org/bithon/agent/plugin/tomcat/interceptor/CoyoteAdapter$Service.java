@@ -20,9 +20,9 @@ import org.apache.coyote.Request;
 import org.apache.coyote.Response;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
-import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
-import org.bithon.agent.core.tracing.context.propagation.ITracePropagator;
+import org.bithon.agent.observability.metric.domain.web.HttpIncomingFilter;
+import org.bithon.agent.observability.metric.domain.web.HttpIncomingMetricsRegistry;
+import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 
 /**
  * Interceptor for {@link org.apache.catalina.connector.CoyoteAdapter#service(Request, Response)}

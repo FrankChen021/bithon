@@ -19,9 +19,9 @@ package org.bithon.agent.plugin.mysql8;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
-import org.bithon.agent.core.metric.domain.sql.SqlMetricRegistry;
-import org.bithon.agent.core.utils.MiscUtils;
+import org.bithon.agent.observability.metric.domain.sql.SQLMetrics;
+import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
+import org.bithon.agent.observability.utils.MiscUtils;
 
 import java.sql.Statement;
 

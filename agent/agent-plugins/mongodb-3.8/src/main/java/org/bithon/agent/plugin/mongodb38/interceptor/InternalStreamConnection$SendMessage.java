@@ -20,9 +20,9 @@ import com.mongodb.connection.ConnectionId;
 import com.mongodb.internal.connection.InternalStreamConnection;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.domain.mongo.MongoCommand;
-import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
+import org.bithon.agent.observability.context.InterceptorContext;
+import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
+import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
 import org.bithon.agent.plugin.mongodb38.MetricHelper;
 import org.bson.ByteBuf;
 

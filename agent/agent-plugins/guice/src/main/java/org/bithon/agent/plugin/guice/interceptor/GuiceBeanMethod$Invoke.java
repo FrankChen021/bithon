@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.guice.interceptor;
 
 import org.bithon.agent.bootstrap.aop.advice.IAdviceInterceptor;
-import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 
 import java.lang.reflect.Method;
 

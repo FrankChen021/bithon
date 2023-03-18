@@ -12,7 +12,7 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>agent-core</artifactId>
+      <artifactId>agent-observability</artifactId>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>

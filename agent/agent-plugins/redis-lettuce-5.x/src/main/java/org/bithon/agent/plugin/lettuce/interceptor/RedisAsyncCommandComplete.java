@@ -20,7 +20,7 @@ import io.lettuce.core.protocol.AsyncCommand;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.core.metric.domain.redis.RedisMetricRegistry;
+import org.bithon.agent.observability.metric.domain.redis.RedisMetricRegistry;
 import org.bithon.agent.plugin.lettuce.LettuceAsyncContext;
 
 /**

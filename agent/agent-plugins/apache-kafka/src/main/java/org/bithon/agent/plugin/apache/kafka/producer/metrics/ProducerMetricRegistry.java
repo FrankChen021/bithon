@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.apache.kafka.producer.metrics;
 
-import org.bithon.agent.core.metric.collector.MetricRegistry;
+import org.bithon.agent.observability.metric.collector.MetricRegistry;
 
 import java.util.Arrays;
 

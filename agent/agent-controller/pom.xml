@@ -23,7 +23,7 @@
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-core</artifactId>
+      <artifactId>agent-observability</artifactId>
     </dependency>
   </dependencies>
 </project>

@@ -21,9 +21,9 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.domain.mongo.MongoCommand;
-import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
+import org.bithon.agent.observability.context.InterceptorContext;
+import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
+import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
 
 import java.lang.reflect.Method;
 import java.util.Map;

@@ -16,11 +16,11 @@
 
 package org.bithon.agent.plugin.apache.kafka.producer.metrics;
 
-import org.bithon.agent.core.metric.model.IMetricSet;
-import org.bithon.agent.core.metric.model.IMetricValueProvider;
-import org.bithon.agent.core.metric.model.Max;
-import org.bithon.agent.core.metric.model.Min;
-import org.bithon.agent.core.metric.model.Sum;
+import org.bithon.agent.observability.metric.model.IMetricSet;
+import org.bithon.agent.observability.metric.model.IMetricValueProvider;
+import org.bithon.agent.observability.metric.model.Max;
+import org.bithon.agent.observability.metric.model.Min;
+import org.bithon.agent.observability.metric.model.Sum;
 
 /**
  * @author frank.chen021@outlook.com

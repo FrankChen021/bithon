@@ -26,7 +26,7 @@ import okio.BufferedSource;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
+import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.ReflectionUtils;

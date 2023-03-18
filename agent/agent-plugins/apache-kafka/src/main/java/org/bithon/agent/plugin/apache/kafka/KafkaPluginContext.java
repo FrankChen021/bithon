@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.apache.kafka;
 
-import org.bithon.agent.core.context.InterceptorContext;
+import org.bithon.agent.observability.context.InterceptorContext;
 
 import java.util.function.Supplier;
 

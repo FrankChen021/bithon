@@ -21,7 +21,7 @@ import io.netty.channel.ChannelHandlerContext;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
+import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.plugin.spring.webflux.metric.HttpBodySizeCollector;
 import org.bithon.agent.plugin.spring.webflux.metric.HttpIOMetrics;
 import reactor.netty.NettyPipeline;

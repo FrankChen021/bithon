@@ -20,7 +20,7 @@ import io.undertow.server.HttpServerExchange;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.event.ExceptionCollector;
+import org.bithon.agent.observability.event.ExceptionCollector;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;

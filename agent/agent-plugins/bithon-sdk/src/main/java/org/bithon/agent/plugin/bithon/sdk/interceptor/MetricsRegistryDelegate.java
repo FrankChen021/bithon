@@ -16,17 +16,17 @@
 
 package org.bithon.agent.plugin.bithon.sdk.interceptor;
 
-import org.bithon.agent.core.dispatcher.IMessageConverter;
-import org.bithon.agent.core.metric.collector.IMeasurement;
-import org.bithon.agent.core.metric.collector.IMetricCollector2;
-import org.bithon.agent.core.metric.model.schema.IDimensionSpec;
-import org.bithon.agent.core.metric.model.schema.IMetricSpec;
-import org.bithon.agent.core.metric.model.schema.LongLastMetricSpec;
-import org.bithon.agent.core.metric.model.schema.LongMaxMetricSpec;
-import org.bithon.agent.core.metric.model.schema.LongMinMetricSpec;
-import org.bithon.agent.core.metric.model.schema.LongSumMetricSpec;
-import org.bithon.agent.core.metric.model.schema.Schema;
-import org.bithon.agent.core.metric.model.schema.StringDimensionSpec;
+import org.bithon.agent.observability.dispatcher.IMessageConverter;
+import org.bithon.agent.observability.metric.collector.IMeasurement;
+import org.bithon.agent.observability.metric.collector.IMetricCollector2;
+import org.bithon.agent.observability.metric.model.schema.IDimensionSpec;
+import org.bithon.agent.observability.metric.model.schema.IMetricSpec;
+import org.bithon.agent.observability.metric.model.schema.LongLastMetricSpec;
+import org.bithon.agent.observability.metric.model.schema.LongMaxMetricSpec;
+import org.bithon.agent.observability.metric.model.schema.LongMinMetricSpec;
+import org.bithon.agent.observability.metric.model.schema.LongSumMetricSpec;
+import org.bithon.agent.observability.metric.model.schema.Schema;
+import org.bithon.agent.observability.metric.model.schema.StringDimensionSpec;
 import org.bithon.agent.sdk.expt.SdkException;
 import org.bithon.agent.sdk.metric.IMetricValueProvider;
 import org.bithon.agent.sdk.metric.aggregator.LongMax;

@@ -16,9 +16,9 @@
 
 package org.bithon.agent.dispatcher.brpc;
 
-import org.bithon.agent.core.context.AppInstance;
-import org.bithon.agent.core.dispatcher.channel.IMessageChannel;
-import org.bithon.agent.core.dispatcher.config.DispatcherConfig;
+import org.bithon.agent.observability.context.AppInstance;
+import org.bithon.agent.observability.dispatcher.channel.IMessageChannel;
+import org.bithon.agent.observability.dispatcher.config.DispatcherConfig;
 import org.bithon.agent.rpc.brpc.ApplicationType;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
