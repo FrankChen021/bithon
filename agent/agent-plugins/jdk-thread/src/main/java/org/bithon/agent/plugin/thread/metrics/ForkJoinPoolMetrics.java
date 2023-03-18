@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.thread.metrics;
 
-import org.bithon.agent.core.metric.domain.thread.ThreadPoolMetrics;
+import org.bithon.agent.observability.metric.domain.thread.ThreadPoolMetrics;
 
 import java.util.concurrent.ForkJoinPool;
 

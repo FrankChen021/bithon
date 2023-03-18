@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.spring.webflux.context;
 
-import org.bithon.agent.core.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
 
 /**
  * @author frank.chen021@outlook.com

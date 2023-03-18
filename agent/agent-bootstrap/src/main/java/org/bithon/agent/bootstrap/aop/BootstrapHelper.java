@@ -33,7 +33,7 @@ public class BootstrapHelper {
     private static ClassLoader classLoader;
 
     public static IAopLogger createAopLogger(Class<?> logClass) {
-        String loggerName = "org.bithon.agent.core.aop.AopLogger";
+        String loggerName = "org.bithon.agent.core.interceptor.AopLogger";
         try {
             Class<?> loggerClass = Class.forName(loggerName,
                                                  true,

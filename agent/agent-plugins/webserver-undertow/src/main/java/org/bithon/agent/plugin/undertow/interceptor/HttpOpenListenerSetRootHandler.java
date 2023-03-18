@@ -21,10 +21,10 @@ import io.undertow.server.ConnectorStatistics;
 import io.undertow.server.protocol.http.HttpOpenListener;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
-import org.bithon.agent.core.metric.domain.web.WebServerMetricRegistry;
-import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
-import org.bithon.agent.core.metric.domain.web.WebServerType;
+import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
+import org.bithon.agent.observability.metric.domain.web.WebServerMetricRegistry;
+import org.bithon.agent.observability.metric.domain.web.WebServerMetrics;
+import org.bithon.agent.observability.metric.domain.web.WebServerType;
 import org.xnio.OptionMap;
 
 import java.util.Collections;

@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.alibaba.druid.metric;
 
-import org.bithon.agent.core.metric.collector.MetricRegistry;
-import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
-import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetrics;
+import org.bithon.agent.observability.metric.collector.MetricRegistry;
+import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
+import org.bithon.agent.observability.metric.domain.jdbc.JdbcPoolMetrics;
 
 import java.util.Arrays;
 import java.util.Collection;

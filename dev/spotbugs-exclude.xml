@@ -27,41 +27,45 @@
         <Bug pattern="UWF_UNWRITTEN_FIELD" />
     </Match>
     <Match>
-        <Class name="~org\.bithon\.agent\.core\.metric\.domain.*"/>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate"/>
+        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+    </Match>
+    <Match>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate"/>
+        <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
+    </Match>
+    <Match>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodDecoratorAdvice"/>
+        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+    </Match>
+    <Match>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodDecoratorAdvice"/>
+        <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
+    </Match>
+    <Match>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodReplacementAdvice"/>
+        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+    </Match>
+    <Match>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodReplacementAdvice"/>
+        <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
+    </Match>
+
+    <!-- agent-observability -->
+    <Match>
+        <Class name="~org\.bithon\.agent\.observability\.metric\.domain.*"/>
         <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
     <Match>
-        <Class name="~org\.bithon\.agent\.core\.metric\.domain.*"/>
+        <Class name="~org\.bithon\.agent\.observability\.metric\.domain.*"/>
         <Bug pattern="UUF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
     <Match>
-        <Class name="~org\.bithon\.agent\.core\.metric\.domain.*"/>
+        <Class name="~org\.bithon\.agent\.observability\.metric\.domain.*"/>
         <Bug pattern="UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
-    <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate"/>
-        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate"/>
-        <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodDecoratorAdvice"/>
-        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodDecoratorAdvice"/>
-        <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodReplacementAdvice"/>
-        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodReplacementAdvice"/>
-        <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
-    </Match>
+
+    <!-- agent-plugin -->
     <Match>
         <Class name="org.bithon.agent.plugin.jetty.interceptor.HttpChannel$HandleException"/>
         <Bug pattern="NM_CLASS_NOT_EXCEPTION" />

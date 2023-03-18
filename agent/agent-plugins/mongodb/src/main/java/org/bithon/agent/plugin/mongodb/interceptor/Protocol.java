@@ -21,7 +21,7 @@ import com.mongodb.WriteConcern;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.core.metric.domain.mongo.MongoCommand;
+import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 import org.bson.BsonDocument;
 import org.bson.FieldNameValidator;
 import org.bson.codecs.Decoder;

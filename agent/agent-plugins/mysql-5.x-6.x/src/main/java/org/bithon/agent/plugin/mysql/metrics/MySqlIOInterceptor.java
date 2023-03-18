@@ -22,9 +22,9 @@ import com.mysql.jdbc.MysqlIO;
 import com.mysql.jdbc.ResultSetImpl;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
-import org.bithon.agent.core.metric.domain.sql.SqlMetricRegistry;
-import org.bithon.agent.core.utils.MiscUtils;
+import org.bithon.agent.observability.metric.domain.sql.SQLMetrics;
+import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
+import org.bithon.agent.observability.utils.MiscUtils;
 import org.bithon.agent.plugin.mysql.MySqlPlugin;
 import org.bithon.component.commons.utils.ReflectionUtils;
 

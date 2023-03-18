@@ -16,7 +16,7 @@
 
 package org.bithon.agent.controller.cmd;
 
-import org.bithon.agent.core.aop.InstrumentationHelper;
+import org.bithon.agent.core.interceptor.InstrumentationHelper;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 
 import java.lang.management.ManagementFactory;

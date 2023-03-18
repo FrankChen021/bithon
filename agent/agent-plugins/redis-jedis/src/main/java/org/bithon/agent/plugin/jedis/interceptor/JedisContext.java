@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.jedis.interceptor;
 
-import org.bithon.agent.core.metric.domain.redis.RedisClientMetrics;
+import org.bithon.agent.observability.metric.domain.redis.RedisClientMetrics;
 
 /**
  * @author frank.chen021@outlook.com

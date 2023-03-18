@@ -18,7 +18,7 @@ package org.bithon.agent.dispatcher.brpc;
 
 import org.bithon.agent.controller.AgentControllerConfig;
 import org.bithon.agent.controller.IAgentController;
-import org.bithon.agent.core.context.AppInstance;
+import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.rpc.brpc.ApplicationType;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;

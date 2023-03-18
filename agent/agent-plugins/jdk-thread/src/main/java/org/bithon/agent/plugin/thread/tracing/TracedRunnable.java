@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.thread.tracing;
 
-import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.TraceContextHolder;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 
 /**
  * @author frank.chen021@outlook.com

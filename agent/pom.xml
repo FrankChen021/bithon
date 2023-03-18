@@ -27,6 +27,7 @@
         <module>agent-sdk</module>
         <module>agent-bootstrap</module>
         <module>agent-core</module>
+        <module>agent-observability</module>
         <module>agent-controller</module>
         <module>agent-dispatcher-brpc</module>
         <module>agent-plugins</module>
@@ -40,17 +41,29 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- Core -->
+            <!-- Main -->
             <dependency>
                 <groupId>org.bithon.agent</groupId>
                 <artifactId>agent-main</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- Core -->
+            <dependency>
+                <groupId>org.bithon.agent</groupId>
+                <artifactId>agent-bootstrap</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.bithon.agent</groupId>
                 <artifactId>agent-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Observability -->
+            <dependency>
+                <groupId>org.bithon.agent</groupId>
+                <artifactId>agent-observability</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -58,12 +71,6 @@
             <dependency>
                 <groupId>org.bithon.agent</groupId>
                 <artifactId>agent-dispatcher-brpc</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.bithon.agent</groupId>
-                <artifactId>agent-bootstrap</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

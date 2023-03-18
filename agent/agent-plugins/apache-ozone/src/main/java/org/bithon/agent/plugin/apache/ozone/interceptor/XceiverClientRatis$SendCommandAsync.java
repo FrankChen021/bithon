@@ -22,8 +22,8 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 
 /**
  * {@link org.apache.hadoop.hdds.scm.XceiverClientRatis#sendCommandAsync(ContainerProtos.ContainerCommandRequestProto)}

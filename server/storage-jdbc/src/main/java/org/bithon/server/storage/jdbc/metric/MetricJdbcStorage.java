@@ -35,8 +35,6 @@ import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 
 import java.sql.Timestamp;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author frank.chen021@outlook.com
@@ -46,7 +44,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MetricJdbcStorage implements IMetricStorage {
 
     protected final DSLContext dslContext;
-    private final Map<String, Boolean> initializedSchemas = new ConcurrentHashMap<>();
     protected final MetricStorageConfig storageConfig;
     protected final DataSourceSchemaManager schemaManager;
 

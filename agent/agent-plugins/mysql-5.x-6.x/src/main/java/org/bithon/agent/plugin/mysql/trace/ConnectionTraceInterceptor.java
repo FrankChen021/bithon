@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.mysql.trace;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.InterceptorContext;
+import org.bithon.agent.observability.context.InterceptorContext;
 
 /**
  * @author frankchen

@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.jetty.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.event.ExceptionCollector;
+import org.bithon.agent.observability.event.ExceptionCollector;
 
 /**
  * @author Frank Chen

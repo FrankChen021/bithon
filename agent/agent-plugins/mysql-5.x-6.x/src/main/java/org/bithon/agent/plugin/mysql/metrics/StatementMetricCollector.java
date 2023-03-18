@@ -17,11 +17,11 @@
 package org.bithon.agent.plugin.mysql.metrics;
 
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.dispatcher.IMessageConverter;
-import org.bithon.agent.core.metric.collector.IMetricCollector;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
+import org.bithon.agent.observability.context.InterceptorContext;
+import org.bithon.agent.observability.dispatcher.IMessageConverter;
+import org.bithon.agent.observability.metric.collector.IMetricCollector;
+import org.bithon.agent.observability.metric.collector.MetricCollectorManager;
+import org.bithon.agent.observability.metric.domain.sql.SQLStatementMetrics;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.shaded.com.alibaba.druid.sql.visitor.ParameterizedOutputVisitorUtils;

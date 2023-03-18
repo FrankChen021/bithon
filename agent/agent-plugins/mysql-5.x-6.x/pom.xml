@@ -13,7 +13,7 @@
   <dependencies>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-core</artifactId>
+      <artifactId>agent-observability</artifactId>
     </dependency>
     <dependency>
       <groupId>org.bithon.shaded</groupId>

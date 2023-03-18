@@ -20,7 +20,7 @@ import io.lettuce.core.RedisURI;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.core.utils.HostAndPort;
+import org.bithon.agent.observability.utils.HostAndPort;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 

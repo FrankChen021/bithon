@@ -17,7 +17,7 @@
 package org.bithon.agent.plugin.alibaba.druid.metric;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import org.bithon.agent.core.utils.MiscUtils;
+import org.bithon.agent.observability.utils.MiscUtils;
 
 import java.util.Collection;
 import java.util.Map;

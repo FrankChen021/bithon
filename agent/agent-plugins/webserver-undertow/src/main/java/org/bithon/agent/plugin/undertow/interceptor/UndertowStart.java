@@ -20,11 +20,11 @@ import io.undertow.Undertow;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.expt.AgentException;
-import org.bithon.agent.core.context.AppInstance;
-import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
-import org.bithon.agent.core.metric.domain.web.WebServerMetricRegistry;
-import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
-import org.bithon.agent.core.metric.domain.web.WebServerType;
+import org.bithon.agent.observability.context.AppInstance;
+import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
+import org.bithon.agent.observability.metric.domain.web.WebServerMetricRegistry;
+import org.bithon.agent.observability.metric.domain.web.WebServerMetrics;
+import org.bithon.agent.observability.metric.domain.web.WebServerType;
 import org.bithon.component.commons.utils.ReflectionUtils;
 import org.xnio.XnioWorker;
 

@@ -21,7 +21,7 @@ import org.apache.logging.log4j.spi.StandardLevel;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.event.ExceptionCollector;
+import org.bithon.agent.observability.event.ExceptionCollector;
 
 /**
  * @author frankchen

@@ -20,9 +20,9 @@ package org.bithon.agent.plugin.mysql8;
 import com.mysql.cj.conf.HostInfo;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
-import org.bithon.agent.core.metric.domain.sql.SqlMetricRegistry;
-import org.bithon.agent.core.utils.MiscUtils;
+import org.bithon.agent.observability.metric.domain.sql.SQLMetrics;
+import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
+import org.bithon.agent.observability.utils.MiscUtils;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.lang.reflect.Method;

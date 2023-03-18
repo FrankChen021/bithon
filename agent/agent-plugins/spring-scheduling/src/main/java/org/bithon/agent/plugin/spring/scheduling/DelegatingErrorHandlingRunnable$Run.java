@@ -20,14 +20,14 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.tracing.Tracer;
-import org.bithon.agent.core.tracing.config.TraceSamplingConfig;
-import org.bithon.agent.core.tracing.context.TraceContextFactory;
-import org.bithon.agent.core.tracing.context.TraceContextHolder;
-import org.bithon.agent.core.tracing.context.propagation.TraceMode;
-import org.bithon.agent.core.tracing.sampler.ISampler;
-import org.bithon.agent.core.tracing.sampler.SamplerFactory;
-import org.bithon.agent.core.tracing.sampler.SamplingMode;
+import org.bithon.agent.observability.tracing.Tracer;
+import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
+import org.bithon.agent.observability.tracing.sampler.ISampler;
+import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
+import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 
 /**
  * {@link org.springframework.scheduling.support.DelegatingErrorHandlingRunnable#run()}

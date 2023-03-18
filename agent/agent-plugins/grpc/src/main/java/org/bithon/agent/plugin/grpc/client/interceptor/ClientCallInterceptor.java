@@ -25,9 +25,9 @@ import io.grpc.ForwardingClientCallListener;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
-import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.PropagationTraceContext;
-import org.bithon.agent.core.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.PropagationTraceContext;
+import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 
 /**

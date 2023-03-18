@@ -16,16 +16,16 @@
 
 package org.bithon.agent.plugin.httpclient.jdk;
 
-import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
-import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
-import org.bithon.agent.core.aop.matcher.Matchers;
-import org.bithon.agent.core.plugin.IPlugin;
+import org.bithon.agent.core.interceptor.descriptor.InterceptorDescriptor;
+import org.bithon.agent.core.interceptor.descriptor.MethodPointCutDescriptorBuilder;
+import org.bithon.agent.core.interceptor.matcher.Matchers;
+import org.bithon.agent.core.interceptor.plugin.IPlugin;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
+import static org.bithon.agent.core.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
 
 /**
  * jdk http-connection plugin
