@@ -40,7 +40,7 @@ public class AbstractAutowireCapableBeanFactory$CreateInstance extends AbstractI
      * Re-transform the class of the bean
      */
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (aopContext.getReturning() == null || aopContext.hasException()) {
             return;
         }

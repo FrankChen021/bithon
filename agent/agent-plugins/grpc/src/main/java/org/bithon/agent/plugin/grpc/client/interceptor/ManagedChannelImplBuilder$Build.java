@@ -46,7 +46,7 @@ public class ManagedChannelImplBuilder$Build extends AbstractInterceptor {
     private final List<String> shadedGrpcList = ConfigurationManager.getInstance().getConfig(ShadedGrpcList.class);
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         String targetClazzName = aopContext.getTargetClass().getName();
         if (shadedGrpcList.isEmpty() || targetClazzName.startsWith("io.grpc.")) {
             // No shaded gRPC or current target is not a shaded one, then create a default interceptor

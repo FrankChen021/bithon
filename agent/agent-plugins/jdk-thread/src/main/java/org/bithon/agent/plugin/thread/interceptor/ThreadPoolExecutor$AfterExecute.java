@@ -29,7 +29,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class ThreadPoolExecutor$AfterExecute extends AbstractInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext joinPoint) {
+    public void after(AopContext joinPoint) {
         ThreadPoolExecutor executor = (ThreadPoolExecutor) joinPoint.getTarget();
         Throwable exception = (Throwable) joinPoint.getArgs()[1];
         ThreadPoolMetricRegistry.getInstance().addRunCount(executor, exception != null);

@@ -32,7 +32,7 @@ public class AbstractAutowireCapableBeanFactory$ApplyBeanPostProcessor extends A
      * Re-transform
      */
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (aopContext.getReturning() == null || aopContext.hasException()) {
             return;
         }

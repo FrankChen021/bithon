@@ -34,7 +34,7 @@ import org.bithon.component.commons.tracing.SpanKind;
 public class SynchronousMethodHandler$Invoke extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         if (!(aopContext.getTarget() instanceof IBithonObject)) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -59,7 +59,7 @@ public class SynchronousMethodHandler$Invoke extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getUserContextAs();
 
         span.tag(aopContext.getException())

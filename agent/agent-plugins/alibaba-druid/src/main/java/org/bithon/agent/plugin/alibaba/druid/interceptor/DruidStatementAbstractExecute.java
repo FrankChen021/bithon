@@ -63,7 +63,7 @@ public abstract class DruidStatementAbstractExecute extends AbstractInterceptor 
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
         Statement statement = aopContext.getTargetAs();
 
         // TODO: cache the cleaned-up connection string in IBithonObject after connection object instantiation
@@ -89,7 +89,7 @@ public abstract class DruidStatementAbstractExecute extends AbstractInterceptor 
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         UserContext context = aopContext.getUserContextAs();
         if (context.span != null) {
             try {

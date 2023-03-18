@@ -41,7 +41,7 @@ import java.util.function.BiFunction;
 public class HttpClientFinalizer$Send extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         HttpClient httpClient = aopContext.getTargetAs();
         IBithonObject bithonObject = aopContext.getTargetAs();
 
@@ -87,7 +87,7 @@ public class HttpClientFinalizer$Send extends AbstractInterceptor {
      * target method returns a new copy, so we have to pass the trace span to the new copy for further processing(such as ResponseConnection)
      */
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         IBithonObject currObj = aopContext.getTargetAs();
         IBithonObject newCopy = aopContext.getReturningAs();
         newCopy.setInjectedObject(currObj.getInjectedObject());

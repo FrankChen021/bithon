@@ -29,7 +29,7 @@ import java.util.concurrent.ForkJoinPool;
 public class ForkJoinPool$ExternalPush extends AbstractInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ForkJoinPool pool = aopContext.getTargetAs();
 
         //TODO: record task exception of ForkJoinPool

@@ -43,7 +43,7 @@ public class BrpcMethodInterceptor extends AbstractInterceptor {
                                                                                                         TraceSamplingConfig.class));
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceContext context;
         SamplingMode mode = sampler.decideSamplingMode(null);
         if (mode == SamplingMode.NONE) {
@@ -66,7 +66,7 @@ public class BrpcMethodInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getUserContextAs();
         span.tag(aopContext.getException())
             .tag("status", aopContext.hasException() ? "500" : "200")

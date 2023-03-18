@@ -38,7 +38,7 @@ public class AbstractRejectedExecutionInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceSpan span = TraceSpanFactory.newSpan("threadPool");
         if (span != null) {
             aopContext.setUserContext(span.method(aopContext.getMethod()).start());
@@ -47,7 +47,7 @@ public class AbstractRejectedExecutionInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceSpan span = (ITraceSpan) aopContext.getUserContext();
         if (span != null) {
             span.tag(aopContext.getException()).finish();

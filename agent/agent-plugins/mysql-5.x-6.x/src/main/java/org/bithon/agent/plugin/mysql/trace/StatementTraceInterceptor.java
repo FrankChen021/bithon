@@ -33,7 +33,7 @@ public class StatementTraceInterceptor extends AbstractInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(StatementTraceInterceptor.class);
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
 
         // TODO: filter "select @@session.tx_read_only"
 
@@ -51,7 +51,7 @@ public class StatementTraceInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getUserContextAs();
         try {
             /*

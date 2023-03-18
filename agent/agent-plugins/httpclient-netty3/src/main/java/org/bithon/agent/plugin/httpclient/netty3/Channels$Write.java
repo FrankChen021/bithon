@@ -40,7 +40,7 @@ public class Channels$Write extends AbstractInterceptor {
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
         if (!(aopContext.getArgs()[1] instanceof HttpRequest)) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -65,11 +65,11 @@ public class Channels$Write extends AbstractInterceptor {
 
         aopContext.setUserContext(span);
 
-        return super.onMethodEnter(aopContext);
+        return super.before(aopContext);
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (aopContext.hasException()) {
             return;
         }

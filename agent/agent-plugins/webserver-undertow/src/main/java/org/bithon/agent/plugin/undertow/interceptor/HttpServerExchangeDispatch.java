@@ -45,7 +45,7 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
     private final TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         final HttpServerExchange exchange = aopContext.getTargetAs();
 
         if (this.requestFilter.shouldBeExcluded(exchange.getRequestPath(), exchange.getRequestHeaders().getFirst("User-Agent"))) {

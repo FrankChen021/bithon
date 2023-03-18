@@ -26,7 +26,7 @@ import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSourceManager;
 public class DruidDataSourceRestart extends AbstractInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         MonitoredSourceManager.getInstance().addDataSource(aopContext.getTargetAs());
     }
 }

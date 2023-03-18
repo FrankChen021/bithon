@@ -44,7 +44,7 @@ public class DefaultRequestDirector$ReleaseConnection extends AbstractIntercepto
     private Field managedConnectionField;
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
         HttpRequest httpRequest = InterceptorContext.getAs("apache-http-client.httpRequest");
         if (httpRequest == null) {
             return InterceptionDecision.SKIP_LEAVE;

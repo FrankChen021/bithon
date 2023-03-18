@@ -45,7 +45,7 @@ public class HttpChannel$OnCompleted extends AbstractInterceptor {
     private final HttpIncomingMetricsRegistry metricRegistry = HttpIncomingMetricsRegistry.get();
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         HttpChannel httpChannel = aopContext.getTargetAs();
         Request request = httpChannel.getRequest();
 
@@ -78,7 +78,7 @@ public class HttpChannel$OnCompleted extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         InterceptorContext.remove(InterceptorContext.KEY_URI);
         InterceptorContext.remove(InterceptorContext.KEY_TRACEID);
         TraceContextHolder.remove();

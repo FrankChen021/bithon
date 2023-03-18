@@ -30,10 +30,10 @@ public class Flux$Timeout extends AbstractInterceptor {
     /**
      * replace the timeout callback so that we have the opportunity to do sth when timeout
      *
-     * {@link HttpClientFinalizer$ResponseConnection#onMethodLeave(AopContext)} will inject a timeout callback
+     * {@link HttpClientFinalizer$ResponseConnection#after(AopContext)} will inject a timeout callback
      */
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         Runnable timeoutCallback = aopContext.getInjectedOnTargetAs();
         if (timeoutCallback == null) {
             return InterceptionDecision.SKIP_LEAVE;

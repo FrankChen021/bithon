@@ -45,7 +45,7 @@ public class DefaultServerConnection {
         private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
         @Override
-        public InterceptionDecision onMethodEnter(AopContext aopContext) {
+        public InterceptionDecision before(AopContext aopContext) {
             //
             // set command to thread context so that the size of sent/received could be associated with the command
             //
@@ -69,7 +69,7 @@ public class DefaultServerConnection {
         }
 
         @Override
-        public void onMethodLeave(AopContext aopContext) {
+        public void after(AopContext aopContext) {
             Connection connection = aopContext.getTargetAs();
             String hostAndPort = connection.getDescription().getServerAddress().toString();
 
@@ -117,7 +117,7 @@ public class DefaultServerConnection {
          * {@link com.mongodb.connection.DefaultServerConnection#executeProtocolAsync(com.mongodb.connection.Protocol, com.mongodb.async.SingleResultCallback)}
          */
         @Override
-        public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+        public InterceptionDecision before(AopContext aopContext) throws Exception {
             Object protocol = aopContext.getArgs()[0];
             if (!(protocol instanceof IBithonObject)) {
                 log.warn("Unknown Command", new RuntimeException());
@@ -131,7 +131,7 @@ public class DefaultServerConnection {
              * SingleResultCallback callback = (SingleResultCallback) aopContext.getArgs()[1];
              */
 
-            return super.onMethodEnter(aopContext);
+            return super.before(aopContext);
         }
     }
 }

@@ -33,7 +33,7 @@ import java.util.Map;
 public class Sender$HandleProduceResponse extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ClientResponse clientResponse = aopContext.getArgAs(0);
         KafkaPluginContext.setCurrentDestination(clientResponse.destination());
 
@@ -41,7 +41,7 @@ public class Sender$HandleProduceResponse extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         KafkaPluginContext.resetCurrentDestination();
     }
 }

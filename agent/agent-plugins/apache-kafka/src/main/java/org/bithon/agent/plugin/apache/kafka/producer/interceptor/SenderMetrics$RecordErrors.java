@@ -38,7 +38,7 @@ public class SenderMetrics$RecordErrors extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
 
         String topic = aopContext.getArgAs(0);
         int count = aopContext.getArgAs(1);

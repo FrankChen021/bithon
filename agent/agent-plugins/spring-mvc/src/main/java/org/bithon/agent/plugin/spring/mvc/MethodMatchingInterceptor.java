@@ -32,7 +32,7 @@ public class MethodMatchingInterceptor extends AbstractInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(MethodMatchingInterceptor.class);
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         Object mapping = aopContext.getArgs()[2];
         if (!(mapping instanceof RequestMappingInfo)) {
             log.warn("spring mvc registering mapping pattern with unrecognized class");

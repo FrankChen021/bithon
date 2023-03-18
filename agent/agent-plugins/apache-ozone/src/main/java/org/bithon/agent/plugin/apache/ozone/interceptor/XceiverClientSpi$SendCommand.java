@@ -38,7 +38,7 @@ import java.util.List;
 public class XceiverClientSpi$SendCommand extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceSpan span = TraceSpanFactory.newSpan("ozone-hdds");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -54,7 +54,7 @@ public class XceiverClientSpi$SendCommand extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getUserContextAs();
         span.tag(aopContext.getException()).finish();
     }

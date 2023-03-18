@@ -61,7 +61,7 @@ public class AbstractAsyncStub$NewStub extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         Object stubFactory = aopContext.getArgs()[0];
 
         // StubFactory is defined to accept one generic argument

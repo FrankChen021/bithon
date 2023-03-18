@@ -53,7 +53,7 @@ public class StandardHostValve$Invoke extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         TraceContextHolder.remove();
         InterceptorContext.remove(InterceptorContext.KEY_TRACEID);
 
@@ -113,7 +113,7 @@ public class StandardHostValve$Invoke extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         InterceptorContext.remove(InterceptorContext.KEY_URI);
 
         ITraceContext traceContext = aopContext.getUserContextAs();

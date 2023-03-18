@@ -54,7 +54,7 @@ public class QueryLifecycle$Initialize extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceContext ctx = TraceContextHolder.current();
         if (ctx != null) {
             QueryLifecycle lifecycle = aopContext.getTargetAs();

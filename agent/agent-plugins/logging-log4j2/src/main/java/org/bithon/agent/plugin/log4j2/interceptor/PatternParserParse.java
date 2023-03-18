@@ -34,7 +34,7 @@ import java.util.List;
 public class PatternParserParse extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
 
         aopContext.getArgs()[0] = LogPatternInjector.injectTracePattern(aopContext.getArgAs(0));
 

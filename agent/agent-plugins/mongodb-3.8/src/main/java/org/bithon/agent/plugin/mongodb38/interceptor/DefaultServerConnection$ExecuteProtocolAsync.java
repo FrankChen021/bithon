@@ -37,8 +37,8 @@ public class DefaultServerConnection$ExecuteProtocolAsync extends AbstractInterc
      * {@link DefaultServerConnection#executeProtocolAsync(CommandProtocol, SessionContext, SingleResultCallback)}
      */
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
         // TODO: WRAP callback
-        return super.onMethodEnter(aopContext);
+        return super.before(aopContext);
     }
 }

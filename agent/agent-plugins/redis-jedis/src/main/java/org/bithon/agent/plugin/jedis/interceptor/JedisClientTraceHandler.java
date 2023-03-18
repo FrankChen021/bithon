@@ -45,7 +45,7 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         String command = aopContext.getArgs()[0].toString();
         if (ignoreCommand(command)) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -68,7 +68,7 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getUserContextAs();
         span.finish();
     }

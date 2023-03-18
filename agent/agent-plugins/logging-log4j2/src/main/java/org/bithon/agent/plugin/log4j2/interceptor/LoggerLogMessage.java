@@ -29,7 +29,7 @@ import org.bithon.agent.observability.event.ExceptionCollector;
 public class LoggerLogMessage extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         Level logLevel = (Level) aopContext.getArgs()[1];
         Throwable exception = (Throwable) aopContext.getArgs()[4];
         if (exception == null || !StandardLevel.ERROR.equals(logLevel.getStandardLevel())) {

@@ -29,7 +29,7 @@ public class ConnectionTraceInterceptor extends AbstractInterceptor {
     public static final String KEY = "sql";
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext context) {
+    public InterceptionDecision before(AopContext context) {
         if (context.getArgs() != null && context.getArgs().length > 0) {
             InterceptorContext.set(KEY, context.getArgs()[0].toString());
             return InterceptionDecision.CONTINUE;
@@ -39,7 +39,7 @@ public class ConnectionTraceInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         //InterceptorContext.remove(KEY);
     }
 }

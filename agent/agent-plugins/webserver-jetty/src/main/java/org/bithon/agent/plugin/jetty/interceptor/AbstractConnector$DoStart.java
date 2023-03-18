@@ -35,7 +35,7 @@ import java.util.Collections;
 public class AbstractConnector$DoStart extends AbstractInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext context) {
+    public void after(AopContext context) {
         AbstractNetworkConnector connector = (AbstractNetworkConnector) context.getTarget();
 
         // notify to start emit the metrics

@@ -39,15 +39,15 @@ public abstract class AbstractInterceptor {
     public void onConstruct(AopContext aopContext) throws Exception {
     }
 
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
         return InterceptionDecision.CONTINUE;
     }
 
     /**
      * Called after execution of target intercepted method
-     * If {@link #onMethodEnter} returns {@link InterceptionDecision#SKIP_LEAVE}, call of this method will be skipped
+     * If {@link #before} returns {@link InterceptionDecision#SKIP_LEAVE}, call of this method will be skipped
      */
-    public void onMethodLeave(AopContext aopContext) throws Exception {
+    public void after(AopContext aopContext) throws Exception {
     }
 
     /**

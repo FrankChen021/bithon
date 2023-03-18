@@ -34,7 +34,7 @@ import org.bithon.agent.observability.logging.LogPatternInjector;
 public class PatternLayoutSetPattern extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
 
         aopContext.getArgs()[0] = LogPatternInjector.injectTracePattern(aopContext.getArgAs(0));
 

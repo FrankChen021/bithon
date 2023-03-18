@@ -34,9 +34,9 @@ public class InternalStreamConnection$ReceiveMessageAsync extends AbstractInterc
      * interceptor of {@link InternalStreamConnection#receiveMessageAsync(int, SingleResultCallback)}
      */
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
 
         //TODO: install wrapper for callback
-        return super.onMethodEnter(aopContext);
+        return super.before(aopContext);
     }
 }

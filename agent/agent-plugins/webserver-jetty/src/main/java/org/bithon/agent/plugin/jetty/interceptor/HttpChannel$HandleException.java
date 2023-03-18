@@ -28,7 +28,7 @@ import org.bithon.agent.observability.event.ExceptionCollector;
 public class HttpChannel$HandleException extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext context) {
+    public InterceptionDecision before(AopContext context) {
         Throwable exception = context.getArgAs(0);
         if (exception == null) {
             return InterceptionDecision.SKIP_LEAVE;

@@ -79,7 +79,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         final HttpServerRequest request = (HttpServerRequest) aopContext.getArgs()[0];
 
         boolean shouldExclude = requestFilter.shouldBeExcluded(request.uri(),
@@ -138,7 +138,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         final HttpServerRequest request = (HttpServerRequest) aopContext.getArgs()[0];
         final HttpServerResponse response = (HttpServerResponse) aopContext.getArgs()[1];
 

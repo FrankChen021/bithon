@@ -39,7 +39,7 @@ import java.util.List;
 public class UndertowStart extends AbstractInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (AppInstance.getInstance().getPort() != 0 || aopContext.hasException()) {
             return;
         }

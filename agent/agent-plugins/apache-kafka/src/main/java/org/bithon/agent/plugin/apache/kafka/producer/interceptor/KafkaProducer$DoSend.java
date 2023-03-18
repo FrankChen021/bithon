@@ -48,7 +48,7 @@ public class KafkaProducer$DoSend extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceSpan span = TraceSpanFactory.newSpan("kafka");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -88,7 +88,7 @@ public class KafkaProducer$DoSend extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getUserContextAs();
         if (aopContext.hasException()) {
             span.tag(aopContext.getException());

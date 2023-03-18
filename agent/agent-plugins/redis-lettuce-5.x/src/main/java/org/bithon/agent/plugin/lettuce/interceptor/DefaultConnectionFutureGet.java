@@ -27,7 +27,7 @@ import org.bithon.agent.bootstrap.aop.IBithonObject;
 public class DefaultConnectionFutureGet extends AbstractInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         Object result = aopContext.getReturning();
         if (result instanceof IBithonObject && aopContext.getTarget() instanceof IBithonObject) {
             ((IBithonObject) result).setInjectedObject(((IBithonObject) aopContext.getTarget()).getInjectedObject());

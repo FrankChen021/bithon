@@ -44,7 +44,7 @@ public class DelegatingErrorHandlingRunnable$Run extends AbstractInterceptor {
                                                                                                         TraceSamplingConfig.class));
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         SamplingMode mode = sampler.decideSamplingMode(null);
         if (mode == SamplingMode.NONE) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -58,7 +58,7 @@ public class DelegatingErrorHandlingRunnable$Run extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         TraceContextHolder.remove();
     }
 }

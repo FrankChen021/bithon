@@ -49,7 +49,7 @@ public class HttpRequestExecutor$Execute extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[0];
 
         //
@@ -81,7 +81,7 @@ public class HttpRequestExecutor$Execute extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext context) {
+    public void after(AopContext context) {
         ITraceSpan thisSpan = context.getUserContextAs();
         if (thisSpan == null) {
             // in case of exception in above

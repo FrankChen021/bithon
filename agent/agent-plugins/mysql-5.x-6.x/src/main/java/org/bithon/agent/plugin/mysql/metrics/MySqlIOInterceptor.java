@@ -40,7 +40,7 @@ public class MySqlIOInterceptor extends AbstractInterceptor {
     private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
 
     @Override
-    public void onMethodLeave(AopContext aopContext) throws SQLException {
+    public void after(AopContext aopContext) throws SQLException {
         String methodName = aopContext.getMethod().getName();
 
         MysqlIO mysqlIO = aopContext.getTargetAs();

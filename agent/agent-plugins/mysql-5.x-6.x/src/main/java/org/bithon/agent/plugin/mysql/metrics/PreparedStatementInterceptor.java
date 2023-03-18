@@ -40,7 +40,7 @@ public class PreparedStatementInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         try {
             Statement statement = (Statement) aopContext.getTarget();
             String connectionString = statement.getConnection().getMetaData().getURL();
@@ -53,7 +53,7 @@ public class PreparedStatementInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         String connectionString = aopContext.getUserContextAs();
         if (connectionString == null) {
             return;

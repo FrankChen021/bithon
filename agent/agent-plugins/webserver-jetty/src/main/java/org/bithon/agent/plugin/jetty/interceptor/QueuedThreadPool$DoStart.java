@@ -32,7 +32,7 @@ import java.util.Collections;
 public class QueuedThreadPool$DoStart extends AbstractInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext context) {
+    public void after(AopContext context) {
         QueuedThreadPool threadPool = context.getTargetAs();
 
         WebServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(WebServerMetricRegistry.NAME, WebServerMetricRegistry::new)

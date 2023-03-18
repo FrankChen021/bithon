@@ -32,7 +32,7 @@ import java.util.Collections;
 public class StandardWrapperValve$Exception extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext context) {
+    public InterceptionDecision before(AopContext context) {
         String uri = (String) InterceptorContext.get(InterceptorContext.KEY_URI);
         if (uri == null) {
             ExceptionCollector.collect((Throwable) context.getArgs()[2]);

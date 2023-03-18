@@ -38,7 +38,7 @@ public class ScheduledMethodRunnable$Run extends AbstractInterceptor {
      * And the interceptor for the latter one is responsible for setting up the tracing context.
      */
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceContext context = TraceContextHolder.current();
         if (context == null) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -61,7 +61,7 @@ public class ScheduledMethodRunnable$Run extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getUserContextAs();
 
         span.tag(aopContext.getException())

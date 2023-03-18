@@ -38,7 +38,7 @@ public class BindingBuilder$ToInstance extends AbstractInterceptor {
      * Re-transform the class of the bean
      */
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         Object obj = aopContext.getArgAs(0);
         if (obj instanceof Class) {
             BeanMethodAopInstallerHelper.install((Class) obj);

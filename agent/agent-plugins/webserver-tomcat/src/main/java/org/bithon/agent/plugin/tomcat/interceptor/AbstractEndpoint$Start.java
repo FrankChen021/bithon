@@ -42,7 +42,7 @@ public class AbstractEndpoint$Start extends AbstractInterceptor {
     private AbstractEndpoint endpoint;
 
     @Override
-    public void onMethodLeave(AopContext context) {
+    public void after(AopContext context) {
         if (endpoint != null) {
             return;
         }

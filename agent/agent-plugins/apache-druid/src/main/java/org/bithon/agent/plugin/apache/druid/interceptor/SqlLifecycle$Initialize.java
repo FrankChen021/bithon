@@ -34,7 +34,7 @@ import java.util.Map;
 public class SqlLifecycle$Initialize extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceContext ctx = TraceContextHolder.current();
         if (ctx != null) {
             Object query = aopContext.getArgs()[0];

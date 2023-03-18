@@ -38,7 +38,7 @@ public class SynchronousMethodHandlerFactory$Create extends AbstractInterceptor 
      * see {@link SynchronousMethodHandler$Invoke}
      */
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (aopContext.hasException()) {
             return;
         }

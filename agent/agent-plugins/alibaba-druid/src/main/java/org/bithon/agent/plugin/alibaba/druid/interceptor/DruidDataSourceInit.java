@@ -28,7 +28,7 @@ import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSourceManager;
 public class DruidDataSourceInit extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         IBithonObject obj = aopContext.getTargetAs();
         Boolean initialized = (Boolean) obj.getInjectedObject();
         if (initialized != null && initialized) {
@@ -39,7 +39,7 @@ public class DruidDataSourceInit extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (aopContext.hasException()) {
             return;
         }

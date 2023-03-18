@@ -48,7 +48,7 @@ public class HttpServerChannelInitializer$OnChannelInit extends AbstractIntercep
      * Hook a handler to the channel
      */
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (aopContext.hasException()) {
             return;
         }

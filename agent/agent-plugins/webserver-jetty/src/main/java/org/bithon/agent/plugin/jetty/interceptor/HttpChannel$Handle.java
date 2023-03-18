@@ -53,7 +53,7 @@ public class HttpChannel$Handle extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         TraceContextHolder.remove();
         InterceptorContext.remove(InterceptorContext.KEY_TRACEID);
 
@@ -114,7 +114,7 @@ public class HttpChannel$Handle extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         InterceptorContext.remove(InterceptorContext.KEY_URI);
         InterceptorContext.remove(InterceptorContext.KEY_TRACEID);
         TraceContextHolder.remove();

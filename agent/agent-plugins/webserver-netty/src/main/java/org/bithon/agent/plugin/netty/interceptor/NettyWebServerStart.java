@@ -28,7 +28,7 @@ import org.springframework.boot.web.embedded.netty.NettyWebServer;
 public class NettyWebServerStart extends AbstractInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         NettyWebServer webServer = (NettyWebServer) aopContext.getTarget();
 
         AppInstance.getInstance().setPort(webServer.getPort());

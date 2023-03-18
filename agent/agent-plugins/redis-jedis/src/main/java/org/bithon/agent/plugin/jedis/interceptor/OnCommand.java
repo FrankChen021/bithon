@@ -34,7 +34,7 @@ public class OnCommand extends AbstractInterceptor {
     private final RedisMetricRegistry metricRegistry = RedisMetricRegistry.get();
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
         Jedis jedis = aopContext.getTargetAs();
         String hostAndPort = jedis.getClient().getHost() + ":" + jedis.getClient().getPort();
         //String db = jedis.getDB();
@@ -43,11 +43,11 @@ public class OnCommand extends AbstractInterceptor {
 
         InterceptorContext.set("redis-command", new JedisContext(metricRegistry.getOrCreateMetrics(hostAndPort, command)));
 
-        return super.onMethodEnter(aopContext);
+        return super.before(aopContext);
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) throws Exception {
+    public void after(AopContext aopContext) throws Exception {
         JedisContext ctx = (JedisContext) InterceptorContext.get("redis-command");
         if (ctx == null) {
             return;

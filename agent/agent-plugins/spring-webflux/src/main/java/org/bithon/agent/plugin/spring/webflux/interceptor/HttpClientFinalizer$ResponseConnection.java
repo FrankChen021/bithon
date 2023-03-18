@@ -44,7 +44,7 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         HttpClient httpClient = aopContext.getTargetAs();
         String uri = httpClient.configuration().uri();
         String method = httpClient.configuration().method().name();
@@ -89,7 +89,7 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         HttpClient httpClient = aopContext.getTargetAs();
         String uri = httpClient.configuration().uri();
         String method = httpClient.configuration().method().name();

@@ -43,7 +43,7 @@ public class DefaultRequestDirector$Execute extends AbstractInterceptor {
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
         String requestUri = httpRequest.getRequestLine().getUri();
         if (InternalHttpClient$DoExecute.shouldExclude(requestUri)) {
@@ -55,7 +55,7 @@ public class DefaultRequestDirector$Execute extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         InterceptorContext.remove("apache-http-client.httpRequest");
 
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];

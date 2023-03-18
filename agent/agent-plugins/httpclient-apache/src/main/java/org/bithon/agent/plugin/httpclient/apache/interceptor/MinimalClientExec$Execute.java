@@ -37,14 +37,14 @@ public class MinimalClientExec$Execute extends AbstractInterceptor {
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         HttpRequestWrapper httpRequest = aopContext.getArgAs(1);
         String requestUri = httpRequest.getRequestLine().getUri();
         return InternalHttpClient$DoExecute.shouldExclude(requestUri) ? InterceptionDecision.SKIP_LEAVE : InterceptionDecision.CONTINUE;
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         HttpOutgoingMetrics metrics;
 
         HttpRequestWrapper httpRequest = aopContext.getArgAs(1);

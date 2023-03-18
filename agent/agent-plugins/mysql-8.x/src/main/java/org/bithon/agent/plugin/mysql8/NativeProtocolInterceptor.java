@@ -35,7 +35,7 @@ public class NativeProtocolInterceptor extends AbstractInterceptor {
     private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
 
     @Override
-    public void onMethodLeave(AopContext aopContext) throws Exception {
+    public void after(AopContext aopContext) throws Exception {
 
         String methodName = aopContext.getMethod().getName();
         Object nativeProtocol = aopContext.getTarget();

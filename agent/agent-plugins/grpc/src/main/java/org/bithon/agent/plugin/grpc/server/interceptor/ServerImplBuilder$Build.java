@@ -59,7 +59,7 @@ public class ServerImplBuilder$Build extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         String targetClazzName = aopContext.getTargetClass().getName();
         if (shadedGrpcList.isEmpty() || targetClazzName.startsWith("io.grpc.")) {
             // No shaded gRPC or current target is not a shaded one, then create a default interceptor

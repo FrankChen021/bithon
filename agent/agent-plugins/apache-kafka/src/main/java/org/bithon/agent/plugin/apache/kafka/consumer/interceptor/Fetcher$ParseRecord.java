@@ -43,7 +43,7 @@ public class Fetcher$ParseRecord extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         TopicPartition topicPartition = aopContext.getArgAs(0);
         Record record = aopContext.getArgAs(2);
 

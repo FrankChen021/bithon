@@ -33,7 +33,7 @@ public class StatementInterceptor extends AbstractInterceptor {
     private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         try {
             Statement statement = (Statement) aopContext.getTarget();
             String connectionString = MiscUtils.cleanupConnectionString(statement.getConnection()
@@ -47,7 +47,7 @@ public class StatementInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         String connectionString = aopContext.getUserContextAs();
         if (connectionString == null) {
             return;

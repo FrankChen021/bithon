@@ -37,11 +37,11 @@ public class CommandProtocolImpl$Execute extends AbstractInterceptor {
      * {@link InternalStreamConnection$ReceiveMessage} know which command is being executed
      */
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
         IBithonObject bithonObject = aopContext.getTargetAs();
 
         InterceptorContext.set("mongo-3.8-command", bithonObject.getInjectedObject());
 
-        return super.onMethodEnter(aopContext);
+        return super.before(aopContext);
     }
 }

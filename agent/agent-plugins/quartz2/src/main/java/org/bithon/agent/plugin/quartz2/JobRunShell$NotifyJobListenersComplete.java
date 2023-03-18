@@ -45,7 +45,7 @@ public class JobRunShell$NotifyJobListenersComplete extends AbstractInterceptor 
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         JobExecutionContext jec = aopContext.getArgAs(0);
         JobExecutionException exception = aopContext.getArgAs(1);
 

@@ -39,7 +39,7 @@ public class PreparedStatementInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
         Statement statement = (Statement) aopContext.getTarget();
 
         // get the connection info before execution since the connection might be closed during execution
@@ -50,7 +50,7 @@ public class PreparedStatementInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         String methodName = aopContext.getMethod().getName();
         String connectionString = aopContext.getUserContextAs();
 

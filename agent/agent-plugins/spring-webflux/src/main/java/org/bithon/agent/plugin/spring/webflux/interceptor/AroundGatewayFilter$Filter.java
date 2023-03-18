@@ -49,7 +49,7 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ServerWebExchange exchange = aopContext.getArgAs(0);
 
         ServerHttpRequest request = exchange.getRequest();
@@ -91,7 +91,7 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         TraceContextHolder.remove();
 
         ITraceSpan span = aopContext.getUserContextAs();

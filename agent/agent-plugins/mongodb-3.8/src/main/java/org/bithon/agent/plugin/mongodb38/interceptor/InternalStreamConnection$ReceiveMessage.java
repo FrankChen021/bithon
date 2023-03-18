@@ -35,7 +35,7 @@ public class InternalStreamConnection$ReceiveMessage extends AbstractInterceptor
     private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (aopContext.hasException()) {
             return;
         }

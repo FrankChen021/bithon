@@ -30,7 +30,7 @@ import org.bithon.component.commons.utils.ReflectionUtils;
 public class RedisClientConnect extends AbstractInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (aopContext.hasException()) {
             return;
         }

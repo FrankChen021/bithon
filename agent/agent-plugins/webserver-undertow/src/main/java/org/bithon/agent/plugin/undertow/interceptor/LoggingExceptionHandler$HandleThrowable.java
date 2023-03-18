@@ -32,7 +32,7 @@ import javax.servlet.ServletResponse;
  */
 public class LoggingExceptionHandler$HandleThrowable extends AbstractInterceptor {
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ExceptionCollector.collect((Throwable) aopContext.getArgs()[3]);
         return InterceptionDecision.SKIP_LEAVE;
     }

@@ -31,7 +31,7 @@ public class RedisAsyncCommandComplete extends AbstractInterceptor {
     private final RedisMetricRegistry metricRegistry = RedisMetricRegistry.get();
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (!(aopContext.getTarget() instanceof IBithonObject)) {
             return;
         }

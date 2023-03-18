@@ -51,7 +51,7 @@ public class JobRunShell$Run extends AbstractInterceptor {
                                                                                                         TraceSamplingConfig.class));
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceContext context;
         SamplingMode mode = sampler.decideSamplingMode(null);
         if (mode == SamplingMode.NONE) {
@@ -74,7 +74,7 @@ public class JobRunShell$Run extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         JobExecutionContextImpl jobExecutionContext = null;
         try {
             JobRunShell jobRunShell = aopContext.getTargetAs();

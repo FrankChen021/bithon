@@ -39,7 +39,7 @@ public class HttpsClient$New extends AbstractInterceptor {
      * @param aopContext
      */
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         IBithonObject bithonObject = aopContext.getReturningAs();
         if (bithonObject == null) {
             // usually there's exception thrown when establish connection

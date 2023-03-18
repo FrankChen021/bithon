@@ -37,7 +37,7 @@ public class InternalStreamConnection$SendMessageAsync extends AbstractIntercept
 
     @SuppressWarnings("unchecked")
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         MongoCommand command = InterceptorContext.getAs("mongo-3.8-command");
 
         InternalStreamConnection target = (InternalStreamConnection) aopContext.getTarget();

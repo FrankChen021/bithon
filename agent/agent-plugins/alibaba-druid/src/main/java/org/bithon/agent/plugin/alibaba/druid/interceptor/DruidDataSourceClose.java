@@ -27,7 +27,7 @@ import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSourceManager;
 public class DruidDataSourceClose extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext context) {
+    public InterceptionDecision before(AopContext context) {
         MonitoredSourceManager.getInstance().rmvDataSource(context.getTargetAs());
 
         return InterceptionDecision.SKIP_LEAVE;

@@ -31,7 +31,7 @@ import java.net.URI;
  */
 public class RestTemplateExecuteInterceptor extends AbstractInterceptor {
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceSpan span = TraceSpanFactory.newSpan("restTemplate");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -54,7 +54,7 @@ public class RestTemplateExecuteInterceptor extends AbstractInterceptor {
 
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getUserContextAs();
         span.finish();
     }

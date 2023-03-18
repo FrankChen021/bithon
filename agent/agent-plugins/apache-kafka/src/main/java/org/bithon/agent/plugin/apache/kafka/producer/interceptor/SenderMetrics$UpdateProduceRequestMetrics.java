@@ -70,7 +70,7 @@ public class SenderMetrics$UpdateProduceRequestMetrics extends AbstractIntercept
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         Map<Integer, List<ProducerBatch>> batches = aopContext.getArgAs(0);
         if (batches.isEmpty()) {
             return;

@@ -30,7 +30,7 @@ import java.io.InputStream;
 public class Socket$GetInputStream extends AbstractInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (aopContext.hasException()) {
             return;
         }

@@ -39,7 +39,7 @@ import java.util.Map;
 public class LoggerCallAppenders extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ILoggingEvent iLoggingEvent = (ILoggingEvent) aopContext.getArgs()[0];
         if (iLoggingEvent.getLevel().toInt() != Level.ERROR.toInt()) {
             return InterceptionDecision.SKIP_LEAVE;

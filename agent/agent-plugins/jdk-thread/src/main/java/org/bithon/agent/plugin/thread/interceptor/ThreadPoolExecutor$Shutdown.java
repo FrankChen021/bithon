@@ -29,7 +29,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class ThreadPoolExecutor$Shutdown extends AbstractInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
         if (registry != null) {
             registry.deleteThreadPool((ThreadPoolExecutor) aopContext.getTarget());

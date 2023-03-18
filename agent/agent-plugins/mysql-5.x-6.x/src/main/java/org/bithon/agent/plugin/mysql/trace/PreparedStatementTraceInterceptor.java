@@ -33,7 +33,7 @@ public class PreparedStatementTraceInterceptor extends AbstractInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(PreparedStatementTraceInterceptor.class);
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceSpan span = TraceSpanFactory.newSpan("mysql");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -48,7 +48,7 @@ public class PreparedStatementTraceInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceSpan mysqlSpan = aopContext.getUserContextAs();
         try {
             String sql;

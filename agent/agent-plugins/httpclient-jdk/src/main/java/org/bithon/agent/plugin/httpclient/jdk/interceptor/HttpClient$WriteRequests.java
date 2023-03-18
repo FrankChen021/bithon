@@ -35,7 +35,7 @@ import sun.net.www.MessageHeader;
 public class HttpClient$WriteRequests extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         IBithonObject injectedObject = aopContext.getTargetAs();
         HttpClientContext clientContext = (HttpClientContext) injectedObject.getInjectedObject();
 

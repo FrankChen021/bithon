@@ -41,7 +41,7 @@ public class DefaultServerConnection$ExecuteProtocol extends AbstractInterceptor
     private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         // create a span and save it in user-context
         ITraceSpan span = TraceSpanFactory.newSpan("mongodb");
         if (span != null) {
@@ -58,7 +58,7 @@ public class DefaultServerConnection$ExecuteProtocol extends AbstractInterceptor
      * {@link DefaultServerConnection#executeProtocol(CommandProtocol, SessionContext)}
      */
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         DefaultServerConnection connection = aopContext.getTargetAs();
         String hostAndPort = connection.getDescription().getServerAddress().toString();
 

@@ -34,7 +34,7 @@ public class CoyoteAdapter$Service extends AbstractInterceptor {
     private final HttpIncomingFilter requestFilter = new HttpIncomingFilter();
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         Request request = (Request) aopContext.getArgs()[0];
         String uri = request.requestURI().toString();
 

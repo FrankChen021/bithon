@@ -29,7 +29,7 @@ import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
 public class ForkJoinPool$TryTerminate extends AbstractInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
         if (registry != null) {
             registry.deleteThreadPool(aopContext.getTargetAs());

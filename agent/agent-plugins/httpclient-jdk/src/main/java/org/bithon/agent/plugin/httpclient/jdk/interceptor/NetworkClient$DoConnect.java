@@ -29,7 +29,7 @@ import org.bithon.agent.bootstrap.aop.IBithonObject;
 public class NetworkClient$DoConnect extends AbstractInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (aopContext.hasException()) {
             return;
         }

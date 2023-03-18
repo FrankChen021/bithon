@@ -54,7 +54,7 @@ public class HttpRequest$Send extends AbstractInterceptor {
      * {@link org.eclipse.jetty.client.HttpRequest#send(Response.CompleteListener)}
      */
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
         HttpRequest httpRequest = aopContext.getTargetAs();
 
         final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpClient-jetty")
@@ -165,7 +165,7 @@ public class HttpRequest$Send extends AbstractInterceptor {
             }
         };
 
-        return super.onMethodEnter(aopContext);
+        return super.before(aopContext);
     }
 
 }

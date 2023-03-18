@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class XceiverClientRatis$Connect extends AbstractInterceptor {
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
         AtomicReference<RaftClient> client = (AtomicReference<RaftClient>) ReflectionUtils.getFieldValue(aopContext.getTarget(), "client");
 
         if (client != null && client.get() == null) {

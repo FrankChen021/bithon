@@ -44,7 +44,7 @@ public class CommandHelper$ExecuteCommand extends AbstractInterceptor {
     private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
         int lastIndex = aopContext.getArgs().length - 1;
         if (lastIndex == -1) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -66,11 +66,11 @@ public class CommandHelper$ExecuteCommand extends AbstractInterceptor {
         InterceptorContext.set("mongo-3.8-command", command);
         aopContext.setUserContext(command);
 
-        return super.onMethodEnter(aopContext);
+        return super.before(aopContext);
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) throws Exception {
+    public void after(AopContext aopContext) throws Exception {
         int lastIndex = aopContext.getArgs().length - 1;
         InternalConnection connection = aopContext.getArgAs(lastIndex);
         String server = connection.getDescription().getServerAddress().toString();
@@ -81,6 +81,6 @@ public class CommandHelper$ExecuteCommand extends AbstractInterceptor {
                                          command.getCollection(),
                                          command.getCommand())
                       .add(aopContext.getExecutionTime(), aopContext.hasException() ? 1 : 0);
-        super.onMethodLeave(aopContext);
+        super.after(aopContext);
     }
 }

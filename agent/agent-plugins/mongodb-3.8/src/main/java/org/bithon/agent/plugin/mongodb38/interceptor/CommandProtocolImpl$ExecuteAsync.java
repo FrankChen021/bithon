@@ -27,7 +27,7 @@ import org.bithon.agent.bootstrap.aop.AopContext;
  */
 public class CommandProtocolImpl$ExecuteAsync extends AbstractInterceptor {
     @Override
-    public void onMethodLeave(AopContext aopContext) throws Exception {
-        super.onMethodLeave(aopContext);
+    public void after(AopContext aopContext) throws Exception {
+        super.after(aopContext);
     }
 }

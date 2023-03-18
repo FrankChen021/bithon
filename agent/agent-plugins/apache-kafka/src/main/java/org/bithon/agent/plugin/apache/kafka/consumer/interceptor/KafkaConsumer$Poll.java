@@ -36,7 +36,7 @@ import java.time.Duration;
 public class KafkaConsumer$Poll extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceSpan span = TraceSpanFactory.newSpan("kafka");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -48,7 +48,7 @@ public class KafkaConsumer$Poll extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         KafkaPluginContext kafkaPluginContext = aopContext.getInjectedOnTargetAs();
 
         KafkaConsumer<?, ?> consumer = aopContext.getTargetAs();

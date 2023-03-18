@@ -50,7 +50,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AbstractIntercepto
                                                       .collect(Collectors.toSet());
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         Call realCall = (Call) aopContext.getTarget();
         Request request = realCall.request();
         String uri = request.url().uri().toString().split("\\?")[0];
@@ -59,7 +59,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AbstractIntercepto
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         Call realCall = (Call) aopContext.getTarget();
         Request request = realCall.request();
 
