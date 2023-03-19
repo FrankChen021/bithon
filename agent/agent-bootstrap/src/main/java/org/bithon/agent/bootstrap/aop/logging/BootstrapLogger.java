@@ -14,31 +14,30 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.bootstrap.aop;
+package org.bithon.agent.bootstrap.aop.logging;
 
-import org.bithon.agent.bootstrap.aop.logging.IAopLogger;
 import org.bithon.agent.bootstrap.expt.AgentException;
+import org.bithon.agent.bootstrap.loader.AgentClassLoader;
 
 import java.lang.reflect.Method;
 import java.util.Locale;
 
 /**
- * ALL methods in this class will be executed in classes which are loaded by bootstrap class loader
- * So, there must be as LESS dependencies as possible for this class
+ * Logger used for classes in the agent-bootstrap
  *
  * @author frank.chen021@outlook.com
  * @date 2021/2/19 8:26 下午
  */
-public class BootstrapHelper {
+public class BootstrapLogger {
 
-    private static ClassLoader classLoader;
-
-    public static IAopLogger createAopLogger(Class<?> logClass) {
+    public static IAopLogger createLogger(Class<?> logClass) {
+        // The logger is provided in the agent-core, use reflection to instantiate a class
         String loggerName = "org.bithon.agent.core.interceptor.AopLogger";
+
         try {
             Class<?> loggerClass = Class.forName(loggerName,
                                                  true,
-                                                 classLoader);
+                                                 AgentClassLoader.getClassLoader());
             Method getLoggerMethod = loggerClass.getDeclaredMethod("getLogger", Class.class);
             return (IAopLogger) getLoggerMethod.invoke(null, logClass);
         } catch (ClassNotFoundException e) {
@@ -62,13 +61,5 @@ public class BootstrapHelper {
         } catch (Exception e) {
             throw new AgentException(e);
         }
-    }
-
-    public static ClassLoader getPluginClassLoader() {
-        return classLoader;
-    }
-
-    public static void setPluginClassLoader(ClassLoader classLoader) {
-        BootstrapHelper.classLoader = classLoader;
     }
 }

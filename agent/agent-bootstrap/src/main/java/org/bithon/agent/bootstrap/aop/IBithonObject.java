@@ -17,6 +17,8 @@
 package org.bithon.agent.bootstrap.aop;
 
 /**
+ * ALL transformed classes will be turned into as an instance of this interface
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/2/21 9:37 下午
  */

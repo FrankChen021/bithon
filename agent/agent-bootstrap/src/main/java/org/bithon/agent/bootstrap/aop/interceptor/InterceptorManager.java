@@ -17,7 +17,7 @@
 package org.bithon.agent.bootstrap.aop.interceptor;
 
 
-import org.bithon.agent.bootstrap.aop.BootstrapHelper;
+import org.bithon.agent.bootstrap.aop.logging.BootstrapLogger;
 import org.bithon.agent.bootstrap.aop.logging.IAopLogger;
 import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 
@@ -32,7 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author frankchen
  */
 public class InterceptorManager {
-    private static final IAopLogger log = BootstrapHelper.createAopLogger(InterceptorManager.class);
+    private static final IAopLogger log = BootstrapLogger.createLogger(InterceptorManager.class);
 
     private static final Map<String, IInterceptor> INTERCEPTORS = new ConcurrentHashMap<>();
 

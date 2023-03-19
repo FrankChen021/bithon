@@ -16,7 +16,6 @@
 
 package org.bithon.agent.bootstrap.loader;
 
-import org.bithon.agent.bootstrap.aop.BootstrapHelper;
 import org.bithon.agent.bootstrap.utils.AgentDirectory;
 
 import java.util.Map;
@@ -53,11 +52,6 @@ public final class PluginClassLoaderManager {
             defaultLoader = new JarClassLoader("plugin",
                                                AgentDirectory.getSubDirectory("plugins"),
                                                AgentClassLoader.getClassLoader());
-
-            //
-            // set the default plugin class loader to a class which could be access from classes loaded by bootstrap class loader
-            //
-            BootstrapHelper.setPluginClassLoader(defaultLoader);
         }
     }
 }

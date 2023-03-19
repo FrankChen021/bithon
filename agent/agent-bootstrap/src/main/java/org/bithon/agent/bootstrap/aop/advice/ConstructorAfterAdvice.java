@@ -17,10 +17,10 @@
 package org.bithon.agent.bootstrap.aop.advice;
 
 
-import org.bithon.agent.bootstrap.aop.BootstrapHelper;
 import org.bithon.agent.bootstrap.aop.context.AopContextImpl;
 import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.bootstrap.aop.interceptor.IInterceptor;
+import org.bithon.agent.bootstrap.aop.logging.BootstrapLogger;
 import org.bithon.agent.bootstrap.aop.logging.IAopLogger;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 
@@ -33,7 +33,7 @@ import java.util.Locale;
  * @date 2021-02-18 18:03
  */
 public class ConstructorAfterAdvice {
-    public static final IAopLogger LOG = BootstrapHelper.createAopLogger(ConstructorAfterAdvice.class);
+    public static final IAopLogger LOG = BootstrapLogger.createLogger(ConstructorAfterAdvice.class);
 
     @Advice.OnMethodExit
     public static void onExit(@AdviceAnnotation.Interceptor IInterceptor interceptor,
