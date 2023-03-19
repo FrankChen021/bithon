@@ -17,6 +17,7 @@
 package org.bithon.agent.core.interceptor;
 
 
+import org.bithon.agent.bootstrap.aop.advice.AroundAdvice;
 import org.bithon.shaded.net.bytebuddy.ByteBuddy;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
 import org.bithon.shaded.net.bytebuddy.dynamic.loading.ClassInjector;
@@ -30,7 +31,7 @@ import java.util.Map;
  * Such template can be one of following:
  * {@link org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate}
  * {@link org.bithon.agent.bootstrap.aop.advice.ConstructorDecoratorAdvice}
- * {@link org.bithon.agent.bootstrap.aop.advice.MethodDecoratorAdvice}
+ * {@link AroundAdvice}
  * {@link org.bithon.agent.bootstrap.aop.advice.MethodReplacementAdvice}
  *
  * @author frankchen

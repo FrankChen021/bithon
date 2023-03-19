@@ -35,11 +35,11 @@
         <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodDecoratorAdvice"/>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.AroundAdvice"/>
         <Bug pattern="DLS_DEAD_LOCAL_STORE" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodDecoratorAdvice"/>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.AroundAdvice"/>
         <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
     </Match>
     <Match>

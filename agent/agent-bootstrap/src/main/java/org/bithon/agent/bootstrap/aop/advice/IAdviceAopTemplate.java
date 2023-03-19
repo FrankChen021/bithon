@@ -18,6 +18,7 @@ package org.bithon.agent.bootstrap.aop.advice;
 
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
 import org.bithon.agent.bootstrap.aop.IAopLogger;
+import org.bithon.agent.bootstrap.aop.interceptor.IDynamicInterceptor;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -43,9 +44,9 @@ public class IAdviceAopTemplate {
      */
     private static String INTERCEPTOR_CLASS_NAME;
 
-    private static volatile IAdviceInterceptor interceptorInstance;
+    private static volatile IDynamicInterceptor interceptorInstance;
 
-    public static IAdviceInterceptor getOrCreateInterceptor() {
+    public static IDynamicInterceptor getOrCreateInterceptor() {
         if (interceptorInstance != null) {
             return interceptorInstance;
         }
@@ -61,7 +62,7 @@ public class IAdviceAopTemplate {
                     return interceptorInstance;
                 }
 
-                interceptorInstance = (IAdviceInterceptor) interceptorClass.getDeclaredConstructor().newInstance();
+                interceptorInstance = (IDynamicInterceptor) interceptorClass.getDeclaredConstructor().newInstance();
             }
 
         } catch (Exception e) {
@@ -80,7 +81,7 @@ public class IAdviceAopTemplate {
         @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
         @Advice.Local("context") Object context
     ) {
-        IAdviceInterceptor interceptor = getOrCreateInterceptor();
+        IDynamicInterceptor interceptor = getOrCreateInterceptor();
         if (interceptor != null) {
             Object[] newArgs = args;
 
@@ -111,7 +112,7 @@ public class IAdviceAopTemplate {
             return;
         }
 
-        IAdviceInterceptor interceptor = getOrCreateInterceptor();
+        IDynamicInterceptor interceptor = getOrCreateInterceptor();
         if (interceptor == null) {
             return;
         }

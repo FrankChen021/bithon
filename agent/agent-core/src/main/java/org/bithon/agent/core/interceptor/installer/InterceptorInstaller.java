@@ -18,10 +18,10 @@ package org.bithon.agent.core.interceptor.installer;
 
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptorManager;
+import org.bithon.agent.bootstrap.aop.advice.AroundAdvice;
 import org.bithon.agent.bootstrap.aop.advice.ConstructorDecoratorAdvice;
 import org.bithon.agent.bootstrap.aop.advice.Interceptor;
 import org.bithon.agent.bootstrap.aop.advice.InterceptorResolver;
-import org.bithon.agent.bootstrap.aop.advice.MethodDecoratorAdvice;
 import org.bithon.agent.bootstrap.aop.advice.MethodReplacementAdvice;
 import org.bithon.agent.bootstrap.aop.advice.TargetMethod;
 import org.bithon.agent.bootstrap.aop.advice.TargetMethodResolver;
@@ -187,7 +187,7 @@ public class InterceptorInstaller {
                     builder = builder.visit(Advice.withCustomMapping()
                                                   .bind(Interceptor.class, new InterceptorResolver(typeDescription, fieldName))
                                                   .bind(TargetMethod.class, new TargetMethodResolver())
-                                                  .to(MethodDecoratorAdvice.class)
+                                                  .to(AroundAdvice.class)
                                                   .on(pointCutDescriptor.getMethodMatcher()));
                     break;
                 case CONSTRUCTOR:

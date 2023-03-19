@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.bootstrap.aop.advice;
+package org.bithon.agent.bootstrap.aop.interceptor;
 
 import java.lang.reflect.Method;
 
@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
  * @author frank.chen021@outlook.com
  * @date 2021/7/11 11:27
  */
-public interface IAdviceInterceptor {
+public interface IDynamicInterceptor {
 
     /**
      * @return context

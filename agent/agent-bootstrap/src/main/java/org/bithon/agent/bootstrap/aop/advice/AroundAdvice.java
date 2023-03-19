@@ -33,8 +33,8 @@ import java.util.Locale;
  * @author frankchen
  * @date 2021-02-18 20:20
  */
-public class MethodDecoratorAdvice {
-    public static final IAopLogger LOG = BootstrapHelper.createAopLogger(MethodDecoratorAdvice.class);
+public class AroundAdvice {
+    public static final IAopLogger LOG = BootstrapHelper.createAopLogger(AroundAdvice.class);
 
     /**
      * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
