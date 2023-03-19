@@ -28,7 +28,7 @@ import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
  */
 public class MethodPointCutDescriptorBuilder {
 
-    private MethodType methodType;
+    private InterceptorType interceptorType;
     private ElementMatcher.Junction<MethodDescription> method;
     private ElementMatcher<MethodDescription> argsMatcher;
     private boolean debug;
@@ -48,61 +48,61 @@ public class MethodPointCutDescriptorBuilder {
         }
         return new MethodPointCutDescriptor(debug,
                                             methodMatcher,
-                                            methodType,
+                                            interceptorType,
                                             interceptorQualifiedClassName);
     }
 
     public MethodPointCutDescriptor replaceBy(String interceptorQualifiedClassName) {
-        if (methodType == MethodType.CONSTRUCTOR) {
+        if (interceptorType == InterceptorType.CONSTRUCTOR) {
             throw new AgentException("Can't replace a constructor by [%s]", interceptorQualifiedClassName);
         }
 
-        methodType = MethodType.REPLACEMENT;
+        interceptorType = InterceptorType.REPLACEMENT;
         return to(interceptorQualifiedClassName);
     }
 
     public MethodPointCutDescriptorBuilder onAllMethods(String method) {
         this.method = Matchers.withName(method);
-        this.methodType = MethodType.NON_CONSTRUCTOR;
+        this.interceptorType = InterceptorType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethodAndArgs(String method, String... args) {
         this.method = Matchers.withName(method);
         this.argsMatcher = Matchers.createArgumentsMatcher(debug, args);
-        this.methodType = MethodType.NON_CONSTRUCTOR;
+        this.interceptorType = InterceptorType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethodAndRawArgs(String method, String... args) {
         this.method = Matchers.withName(method);
         this.argsMatcher = Matchers.createArgumentsMatcher(debug, true, args);
-        this.methodType = MethodType.NON_CONSTRUCTOR;
+        this.interceptorType = InterceptorType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethodAndNoArgs(String method) {
         this.method = Matchers.withName(method);
         this.argsMatcher = ElementMatchers.takesNoArguments();
-        this.methodType = MethodType.NON_CONSTRUCTOR;
+        this.interceptorType = InterceptorType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethod(ElementMatcher.Junction<MethodDescription> method) {
         this.method = method;
-        this.methodType = MethodType.NON_CONSTRUCTOR;
+        this.interceptorType = InterceptorType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onAllConstructor() {
         this.method = ElementMatchers.isConstructor();
-        this.methodType = MethodType.CONSTRUCTOR;
+        this.interceptorType = InterceptorType.CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onConstructor(ElementMatcher.Junction<MethodDescription> matcher) {
         this.method = ElementMatchers.isConstructor().and(matcher);
-        this.methodType = MethodType.CONSTRUCTOR;
+        this.interceptorType = InterceptorType.CONSTRUCTOR;
         return this;
     }
 
@@ -112,13 +112,13 @@ public class MethodPointCutDescriptorBuilder {
         }
         this.method = ElementMatchers.isConstructor();
         this.argsMatcher = Matchers.createArgumentsMatcher(debug, args);
-        this.methodType = MethodType.CONSTRUCTOR;
+        this.interceptorType = InterceptorType.CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onDefaultConstructor() {
         this.method = ElementMatchers.isDefaultConstructor();
-        this.methodType = MethodType.CONSTRUCTOR;
+        this.interceptorType = InterceptorType.CONSTRUCTOR;
         return this;
     }
 

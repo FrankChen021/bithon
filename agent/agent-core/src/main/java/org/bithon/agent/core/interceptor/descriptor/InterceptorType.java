@@ -21,7 +21,7 @@ package org.bithon.agent.core.interceptor.descriptor;
  * @author frank.chen021@outlook.com
  * @date 2021/2/20 9:42 下午
  */
-public enum MethodType {
+public enum InterceptorType {
 
     CONSTRUCTOR,
 
@@ -29,6 +29,10 @@ public enum MethodType {
      * for those which are not constructors
      */
     NON_CONSTRUCTOR,
+
+    BEFORE,
+    AFTER,
+    AROUND,
 
     /**
      * replace the original method implementation
