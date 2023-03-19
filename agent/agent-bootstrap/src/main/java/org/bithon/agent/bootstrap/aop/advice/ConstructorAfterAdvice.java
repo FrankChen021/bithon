@@ -32,8 +32,8 @@ import java.util.Locale;
  * @author frankchen
  * @date 2021-02-18 18:03
  */
-public class ConstructorDecoratorAdvice {
-    public static final IAopLogger LOG = BootstrapHelper.createAopLogger(ConstructorDecoratorAdvice.class);
+public class ConstructorAfterAdvice {
+    public static final IAopLogger LOG = BootstrapHelper.createAopLogger(ConstructorAfterAdvice.class);
 
     @Advice.OnMethodExit
     public static void onExit(final @Interceptor IInterceptor interceptor,

@@ -72,7 +72,7 @@ public class AgentStarter {
         ConfigurationManager.create();
 
         // install interceptors for plugins
-        new InterceptorInstaller(new PluginResolver().resolveInterceptorDescriptors())
+        new InterceptorInstaller(new PluginResolver().resolveInterceptors())
             .installOn(inst);
 
         // Initialize other agent libs

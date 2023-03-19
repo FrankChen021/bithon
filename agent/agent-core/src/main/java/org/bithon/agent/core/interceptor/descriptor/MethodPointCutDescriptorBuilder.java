@@ -28,7 +28,7 @@ import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
  */
 public class MethodPointCutDescriptorBuilder {
 
-    private InterceptorType interceptorType;
+    private MethodType methodType;
     private ElementMatcher.Junction<MethodDescription> method;
     private ElementMatcher<MethodDescription> argsMatcher;
     private boolean debug;
@@ -48,61 +48,60 @@ public class MethodPointCutDescriptorBuilder {
         }
         return new MethodPointCutDescriptor(debug,
                                             methodMatcher,
-                                            interceptorType,
+                                            methodType,
                                             interceptorQualifiedClassName);
     }
 
     public MethodPointCutDescriptor replaceBy(String interceptorQualifiedClassName) {
-        if (interceptorType == InterceptorType.CONSTRUCTOR) {
+        if (methodType == MethodType.CONSTRUCTOR) {
             throw new AgentException("Can't replace a constructor by [%s]", interceptorQualifiedClassName);
         }
 
-        interceptorType = InterceptorType.REPLACEMENT;
         return to(interceptorQualifiedClassName);
     }
 
     public MethodPointCutDescriptorBuilder onAllMethods(String method) {
         this.method = Matchers.withName(method);
-        this.interceptorType = InterceptorType.NON_CONSTRUCTOR;
+        this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethodAndArgs(String method, String... args) {
         this.method = Matchers.withName(method);
         this.argsMatcher = Matchers.createArgumentsMatcher(debug, args);
-        this.interceptorType = InterceptorType.NON_CONSTRUCTOR;
+        this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethodAndRawArgs(String method, String... args) {
         this.method = Matchers.withName(method);
         this.argsMatcher = Matchers.createArgumentsMatcher(debug, true, args);
-        this.interceptorType = InterceptorType.NON_CONSTRUCTOR;
+        this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethodAndNoArgs(String method) {
         this.method = Matchers.withName(method);
         this.argsMatcher = ElementMatchers.takesNoArguments();
-        this.interceptorType = InterceptorType.NON_CONSTRUCTOR;
+        this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethod(ElementMatcher.Junction<MethodDescription> method) {
         this.method = method;
-        this.interceptorType = InterceptorType.NON_CONSTRUCTOR;
+        this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onAllConstructor() {
         this.method = ElementMatchers.isConstructor();
-        this.interceptorType = InterceptorType.CONSTRUCTOR;
+        this.methodType = MethodType.CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onConstructor(ElementMatcher.Junction<MethodDescription> matcher) {
         this.method = ElementMatchers.isConstructor().and(matcher);
-        this.interceptorType = InterceptorType.CONSTRUCTOR;
+        this.methodType = MethodType.CONSTRUCTOR;
         return this;
     }
 
@@ -112,13 +111,13 @@ public class MethodPointCutDescriptorBuilder {
         }
         this.method = ElementMatchers.isConstructor();
         this.argsMatcher = Matchers.createArgumentsMatcher(debug, args);
-        this.interceptorType = InterceptorType.CONSTRUCTOR;
+        this.methodType = MethodType.CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onDefaultConstructor() {
         this.method = ElementMatchers.isDefaultConstructor();
-        this.interceptorType = InterceptorType.CONSTRUCTOR;
+        this.methodType = MethodType.CONSTRUCTOR;
         return this;
     }
 

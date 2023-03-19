@@ -48,14 +48,16 @@ public final class PluginClassLoaderManager {
         return defaultLoader;
     }
 
-    public static void createDefault() {
-        defaultLoader = new JarClassLoader("plugin",
-                                           AgentDirectory.getSubDirectory("plugins"),
-                                           AgentClassLoader.getClassLoader());
+    public synchronized static void createDefault() {
+        if (defaultLoader == null) {
+            defaultLoader = new JarClassLoader("plugin",
+                                               AgentDirectory.getSubDirectory("plugins"),
+                                               AgentClassLoader.getClassLoader());
 
-        //
-        // set the default plugin class loader to a class which could be access from classes loaded by bootstrap class loader
-        //
-        BootstrapHelper.setPluginClassLoader(defaultLoader);
+            //
+            // set the default plugin class loader to a class which could be access from classes loaded by bootstrap class loader
+            //
+            BootstrapHelper.setPluginClassLoader(defaultLoader);
+        }
     }
 }

@@ -41,7 +41,7 @@ public class DruidPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("init")
-                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSourceInit"),
+                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Init"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("close")

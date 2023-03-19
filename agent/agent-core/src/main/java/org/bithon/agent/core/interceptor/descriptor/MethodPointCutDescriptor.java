@@ -16,6 +16,7 @@
 
 package org.bithon.agent.core.interceptor.descriptor;
 
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptorType;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 
@@ -27,16 +28,17 @@ public class MethodPointCutDescriptor {
 
     private boolean debug;
     private final ElementMatcher.Junction<? super MethodDescription> methodMatcher;
-    private final InterceptorType interceptorType;
+    private InterceptorType interceptorType;
+    private final MethodType methodType;
     private final String interceptorClassName;
 
     public MethodPointCutDescriptor(boolean debug,
                                     ElementMatcher.Junction<? super MethodDescription> methodMatcher,
-                                    InterceptorType interceptorType,
+                                    MethodType methodType,
                                     String interceptorClassName) {
         this.debug = debug;
         this.methodMatcher = methodMatcher;
-        this.interceptorType = interceptorType;
+        this.methodType = methodType;
         this.interceptorClassName = interceptorClassName;
     }
 
@@ -44,8 +46,16 @@ public class MethodPointCutDescriptor {
         return methodMatcher;
     }
 
-    public InterceptorType getTargetMethodType() {
+    public MethodType getMethodType() {
+        return methodType;
+    }
+
+    public InterceptorType getInterceptorType() {
         return interceptorType;
+    }
+
+    public void setInterceptorType(InterceptorType interceptorType) {
+        this.interceptorType = interceptorType;
     }
 
     public boolean isDebug() {
