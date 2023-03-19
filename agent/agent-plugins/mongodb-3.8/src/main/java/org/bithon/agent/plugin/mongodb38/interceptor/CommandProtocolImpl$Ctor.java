@@ -17,9 +17,9 @@
 package org.bithon.agent.plugin.mongodb38.interceptor;
 
 import com.mongodb.MongoNamespace;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 
 /**
@@ -32,9 +32,9 @@ import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
  * @author frank.chen021@outlook.com
  * @date 2021/3/29 1:53 下午
  */
-public class CommandProtocolImpl$Ctor extends AbstractInterceptor {
+public class CommandProtocolImpl$Ctor extends AfterInterceptor {
     @Override
-    public void onConstruct(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         IBithonObject obj = aopContext.getTargetAs();
         obj.setInjectedObject(new MongoCommand(aopContext.getArgAs(0),
                                                MongoNamespace.COMMAND_COLLECTION_NAME,

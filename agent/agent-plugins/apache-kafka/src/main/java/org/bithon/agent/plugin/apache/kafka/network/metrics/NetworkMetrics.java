@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.apache.kafka.network.interceptor.metrics;
+package org.bithon.agent.plugin.apache.kafka.network.metrics;
 
 import org.bithon.agent.observability.metric.model.IMetricSet;
 import org.bithon.agent.observability.metric.model.IMetricValueProvider;

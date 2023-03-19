@@ -16,11 +16,12 @@
 
 package org.bithon.agent.bootstrap.aop.advice;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContextImpl;
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
 import org.bithon.agent.bootstrap.aop.IAopLogger;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.IInterceptor;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -40,7 +41,7 @@ public class MethodDecoratorAdvice {
      */
     @Advice.OnMethodEnter
     public static boolean onEnter(
-        final @Interceptor AbstractInterceptor interceptor,
+        final @Interceptor IInterceptor interceptor,
         final @TargetMethod Method method,
         final @Advice.This(optional = true) Object target,
         @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
@@ -54,7 +55,7 @@ public class MethodDecoratorAdvice {
 
         boolean skipAfterMethod = true;
         try {
-            skipAfterMethod = interceptor.before(aopContext) == InterceptionDecision.SKIP_LEAVE;
+            skipAfterMethod = ((AroundInterceptor) interceptor).before(aopContext) == InterceptionDecision.SKIP_LEAVE;
         } catch (Throwable e) {
             LOG.error(String.format(Locale.ENGLISH, "Exception occurred when executing onEnter of [%s] for [%s]: %s",
                                     interceptor.getClass().getSimpleName(),
@@ -84,7 +85,7 @@ public class MethodDecoratorAdvice {
      * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit(onThrowable = Throwable.class)
-    public static void onExit(final @Interceptor AbstractInterceptor interceptor,
+    public static void onExit(final @Interceptor IInterceptor interceptor,
                               final @Advice.Enter boolean shouldExecute,
                               @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning,
                               final @Advice.Thrown Throwable exception,
@@ -103,7 +104,7 @@ public class MethodDecoratorAdvice {
         }
 
         try {
-            interceptor.after(aopContext);
+            ((AroundInterceptor) interceptor).after(aopContext);
         } catch (Throwable e) {
             LOG.error(String.format(Locale.ENGLISH, "Exception occurred when executing onExit of [%s] for [%s]: %s",
                                     interceptor.getClass().getSimpleName(),

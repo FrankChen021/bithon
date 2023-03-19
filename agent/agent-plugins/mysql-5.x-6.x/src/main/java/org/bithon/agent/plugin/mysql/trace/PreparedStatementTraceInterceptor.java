@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.mysql.trace;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
@@ -29,7 +29,7 @@ import org.bithon.component.commons.tracing.SpanKind;
 /**
  * @author frankchen
  */
-public class PreparedStatementTraceInterceptor extends AbstractInterceptor {
+public class PreparedStatementTraceInterceptor extends AroundInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(PreparedStatementTraceInterceptor.class);
 
     @Override

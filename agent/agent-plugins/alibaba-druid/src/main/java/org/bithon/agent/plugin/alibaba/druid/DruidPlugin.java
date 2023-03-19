@@ -45,15 +45,15 @@ public class DruidPlugin implements IPlugin {
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("close")
-                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSourceClose"),
+                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Close"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("restart")
-                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSourceRestart"),
+                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Restart"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("getStatValueAndReset")
-                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSourceGetValueAndReset")
+                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$GetValueAndReset")
                 ),
 
             forClass("com.alibaba.druid.pool.DruidPooledPreparedStatement")

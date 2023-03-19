@@ -17,9 +17,9 @@
 package org.bithon.agent.plugin.mongodb38.interceptor.protocol;
 
 import com.mongodb.MongoNamespace;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 import org.bson.BsonDocument;
 import org.bson.FieldNameValidator;
@@ -28,9 +28,9 @@ import org.bson.codecs.Decoder;
 /**
  * {@link com.mongodb.connection.CommandProtocol#CommandProtocol(String database, BsonDocument, FieldNameValidator, Decoder)}
  */
-public class CommandProtocol$Ctor extends AbstractInterceptor {
+public class CommandProtocol$Ctor extends AfterInterceptor {
     @Override
-    public void onConstruct(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         IBithonObject obj = aopContext.getTargetAs();
         obj.setInjectedObject(new MongoCommand(aopContext.getArgAs(0),
                                                MongoNamespace.COMMAND_COLLECTION_NAME,

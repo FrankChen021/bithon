@@ -16,10 +16,10 @@
 
 package org.bithon.agent.plugin.spring.webflux.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
@@ -35,7 +35,7 @@ import org.springframework.web.server.ServerWebExchange;
  * @author frank.chen021@outlook.com
  * @date 28/12/21 12:08 PM
  */
-public class BeforeGatewayFilter$Filter extends AbstractInterceptor {
+public class BeforeGatewayFilter$Filter extends AroundInterceptor {
 
     private final GatewayFilterConfigs configs;
 

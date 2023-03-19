@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.tomcat.interceptor;
 
 import org.apache.catalina.core.StandardContext;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.bootstrap.loader.AgentClassLoader;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -33,13 +33,13 @@ import java.util.Set;
  *
  * @author frankchen
  */
-public class StandardContext$Ctor extends AbstractInterceptor {
+public class StandardContext$Ctor extends AfterInterceptor {
 
     /**
      * Call {@link StandardContext#addServletContainerInitializer(javax.servlet.ServletContainerInitializer, Set)} to hook the sentinel filter
      */
     @Override
-    public void onConstruct(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         StandardContext standardContext = aopContext.getTargetAs();
 
         //

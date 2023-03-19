@@ -16,10 +16,10 @@
 
 package org.bithon.agent.plugin.spring.webflux.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.plugin.spring.webflux.context.HttpClientContext;
@@ -38,7 +38,7 @@ import java.util.function.BiFunction;
  * @author frank.chen021@outlook.com
  * @date 27/11/21 1:57 pm
  */
-public class HttpClientFinalizer$Send extends AbstractInterceptor {
+public class HttpClientFinalizer$Send extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {

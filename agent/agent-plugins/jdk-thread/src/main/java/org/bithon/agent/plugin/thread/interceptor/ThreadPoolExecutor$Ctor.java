@@ -16,13 +16,12 @@
 
 package org.bithon.agent.plugin.thread.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolExecutorMetrics;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
 import org.bithon.agent.plugin.thread.utils.ThreadPoolNameHelper;
-import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.util.concurrent.BlockingQueue;
@@ -37,11 +36,10 @@ import java.util.concurrent.TimeUnit;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 9:10 下午
  */
-public class ThreadPoolExecutor$Ctor extends AbstractInterceptor {
-    private static final ILogAdaptor LOG = LoggerFactory.getLogger(ThreadPoolExecutor$Ctor.class);
+public class ThreadPoolExecutor$Ctor extends AfterInterceptor {
 
     @Override
-    public void onConstruct(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
         if (registry == null) {
             return;
@@ -55,7 +53,7 @@ public class ThreadPoolExecutor$Ctor extends AbstractInterceptor {
                                    poolName,
                                    ThreadPoolExecutorMetrics::new);
         } catch (AgentException e) {
-            LOG.warn(e.getMessage());
+            LoggerFactory.getLogger(ThreadPoolExecutor$Ctor.class).warn(e.getMessage());
         }
     }
 }

@@ -16,10 +16,9 @@
 
 package org.bithon.agent.plugin.jedis.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
-import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
@@ -32,11 +31,10 @@ import java.lang.reflect.Field;
  * @author frankchen
  * @date Dec 26, 2020 12:11:14 PM
  */
-public class RedisInputStream$Ctor extends AbstractInterceptor {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(RedisInputStream$Ctor.class);
+public class RedisInputStream$Ctor extends AfterInterceptor {
 
     @Override
-    public void onConstruct(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         InputStream is = aopContext.getArgAs(0);
 
         try {
@@ -44,7 +42,7 @@ public class RedisInputStream$Ctor extends AbstractInterceptor {
             inputStreamField.setAccessible(true);
             inputStreamField.set(aopContext.getTarget(), new InputStreamDecorator(is));
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            log.error("Unable to set InputStream for RedisInputStream: {}", e.getMessage());
+            LoggerFactory.getLogger(RedisInputStream$Ctor.class).error("Unable to set InputStream for RedisInputStream: {}", e.getMessage());
         }
     }
 

@@ -17,17 +17,14 @@
 package org.bithon.agent.plugin.mongodb.interceptor;
 
 import com.mongodb.MongoNamespace;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
-
-import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author frank.chen021@outlook.com
@@ -38,9 +35,7 @@ public class CommandHelper {
     /**
      * see com.mongodb.connection.CommandHelper#executeCommand(String, org.bson.BsonDocument, com.mongodb.connection.InternalConnection)
      */
-    public static class ExecuteCommand extends AbstractInterceptor {
-
-        private final Map<String, Method> methods = new ConcurrentHashMap<>();
+    public static class ExecuteCommand extends AroundInterceptor {
 
         private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
@@ -86,7 +81,7 @@ public class CommandHelper {
     /**
      * {@link com.mongodb.connection.CommandHelper#executeCommandAsync(String, BsonDocument, com.mongodb.connection.InternalConnection)}
      */
-    public static class ExecuteCommandAsync extends AbstractInterceptor {
+    public static class ExecuteCommandAsync extends AfterInterceptor {
         @Override
         public void after(AopContext aopContext) throws Exception {
             super.after(aopContext);

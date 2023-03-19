@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.jedis.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.redis.RedisMetricRegistry;
 import redis.clients.jedis.Jedis;
@@ -29,7 +29,7 @@ import java.util.Locale;
  * @author frank.chen021@outlook.com
  * @date 22/1/22 5:52 PM
  */
-public class OnCommand extends AbstractInterceptor {
+public class OnCommand extends AroundInterceptor {
 
     private final RedisMetricRegistry metricRegistry = RedisMetricRegistry.get();
 

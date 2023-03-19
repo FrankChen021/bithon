@@ -14,19 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.alibaba.druid.interceptor;
-
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSourceManager;
+package org.bithon.agent.bootstrap.aop.interceptor;
 
 /**
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2023/3/18 23:26
  */
-public class DruidDataSourceRestart extends AbstractInterceptor {
-
-    @Override
-    public void after(AopContext aopContext) {
-        MonitoredSourceManager.getInstance().addDataSource(aopContext.getTargetAs());
+public abstract class ReplaceInterceptor implements IInterceptor {
+    /**
+     * Replacement of a target method.
+     * Will be executed only when the interceptor is defined as replacement
+     */
+    public Object execute(Object[] args) {
+        return null;
     }
 }

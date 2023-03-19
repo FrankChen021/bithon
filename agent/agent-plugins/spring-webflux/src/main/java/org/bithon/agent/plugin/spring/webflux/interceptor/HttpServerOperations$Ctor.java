@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.spring.webflux.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 
 /**
@@ -27,10 +27,10 @@ import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
  * @author frank.chen021@outlook.com
  * @date 6/11/21 9:05 pm
  */
-public class HttpServerOperations$Ctor extends AbstractInterceptor {
+public class HttpServerOperations$Ctor extends AfterInterceptor {
 
     @Override
-    public void onConstruct(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         IBithonObject obj = (IBithonObject) aopContext.getTarget();
 
         // Since this interceptor hooks on all ctors, check if the injected object is assigned first

@@ -16,28 +16,25 @@
 
 package org.bithon.agent.plugin.log4j2.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.spi.StandardLevel;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.observability.logging.LogPatternInjector;
-
-import java.util.List;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
+import org.bithon.agent.observability.event.ExceptionCollector;
 
 /**
- * {@link org.apache.logging.log4j.core.pattern.PatternParser#parse(String, List, List, boolean, boolean, boolean)}
- * <p>
- * automatically inject trace id into user's log pattern
- *
- * @author frank.chen021@outlook.com
- * @date 2021/7/23 5:00 下午
+ * @author frankchen
  */
-public class PatternParserParse extends AbstractInterceptor {
+public class Logger$LogMessage extends BeforeInterceptor {
 
     @Override
-    public InterceptionDecision before(AopContext aopContext) {
+    public void before(AopContext aopContext) {
+        Level logLevel = (Level) aopContext.getArgs()[1];
+        Throwable exception = (Throwable) aopContext.getArgs()[4];
+        if (exception == null || !StandardLevel.ERROR.equals(logLevel.getStandardLevel())) {
+            return;
+        }
 
-        aopContext.getArgs()[0] = LogPatternInjector.injectTracePattern(aopContext.getArgAs(0));
-
-        return InterceptionDecision.SKIP_LEAVE;
+        ExceptionCollector.collect(exception);
     }
 }

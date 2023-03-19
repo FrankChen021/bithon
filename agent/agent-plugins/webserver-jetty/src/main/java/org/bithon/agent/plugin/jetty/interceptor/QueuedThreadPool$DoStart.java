@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.jetty.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.observability.metric.domain.web.WebServerMetricRegistry;
 import org.bithon.agent.observability.metric.domain.web.WebServerMetrics;
@@ -29,7 +29,7 @@ import java.util.Collections;
 /**
  * @author frankchen
  */
-public class QueuedThreadPool$DoStart extends AbstractInterceptor {
+public class QueuedThreadPool$DoStart extends AfterInterceptor {
 
     @Override
     public void after(AopContext context) {

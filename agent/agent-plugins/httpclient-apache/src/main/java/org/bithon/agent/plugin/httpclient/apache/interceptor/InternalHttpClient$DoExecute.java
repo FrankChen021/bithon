@@ -23,9 +23,9 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.impl.conn.ConnectionShutdownException;
 import org.apache.http.protocol.HttpContext;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetrics;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 
@@ -39,7 +39,7 @@ import java.util.Set;
  *
  * @author frankchen
  */
-public class InternalHttpClient$DoExecute extends AbstractInterceptor {
+public class InternalHttpClient$DoExecute extends AroundInterceptor {
     /**
      * TODO: changed to configuration
      */

@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.spring.scheduling;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
@@ -38,7 +38,7 @@ import org.bithon.agent.observability.tracing.sampler.SamplingMode;
  * @author Frank Chen
  * @date 28/12/22 11:08 am
  */
-public class DelegatingErrorHandlingRunnable$Run extends AbstractInterceptor {
+public class DelegatingErrorHandlingRunnable$Run extends AroundInterceptor {
     private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
                                                                                       .getDynamicConfig("tracing.samplingConfigs.spring-scheduler",
                                                                                                         TraceSamplingConfig.class));

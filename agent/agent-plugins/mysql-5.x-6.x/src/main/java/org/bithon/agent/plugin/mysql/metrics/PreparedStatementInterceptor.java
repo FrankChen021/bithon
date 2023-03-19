@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.mysql.metrics;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.observability.utils.MiscUtils;
 import org.bithon.agent.plugin.mysql.MySqlPlugin;
@@ -29,15 +29,9 @@ import java.sql.Statement;
 /**
  * @author frankchen
  */
-public class PreparedStatementInterceptor extends AbstractInterceptor {
+public class PreparedStatementInterceptor extends AroundInterceptor {
     private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
-    private StatementMetricCollector statementMetricCollector;
-
-    @Override
-    public boolean initialize() {
-        statementMetricCollector = StatementMetricCollector.getInstance();
-        return true;
-    }
+    private final StatementMetricCollector statementMetricCollector = StatementMetricCollector.getInstance();
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {

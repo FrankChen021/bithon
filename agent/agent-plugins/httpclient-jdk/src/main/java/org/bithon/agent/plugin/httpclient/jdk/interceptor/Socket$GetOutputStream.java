@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
@@ -27,7 +27,7 @@ import java.io.OutputStream;
  * @author frank.chen021@outlook.com
  * @date 2022/8/21 16:57
  */
-public class Socket$GetOutputStream extends AbstractInterceptor {
+public class Socket$GetOutputStream extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {

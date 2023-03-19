@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.apache.ozone.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 
@@ -28,7 +28,7 @@ import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
  * @author Frank Chen
  * @date 14/12/22 10:37 pm
  */
-public class RpcClient$All extends AbstractInterceptor {
+public class RpcClient$All extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {

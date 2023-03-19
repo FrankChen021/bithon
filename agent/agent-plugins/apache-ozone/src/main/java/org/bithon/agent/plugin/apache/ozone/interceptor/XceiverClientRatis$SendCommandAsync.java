@@ -18,10 +18,10 @@ package org.bithon.agent.plugin.apache.ozone.interceptor;
 
 import org.apache.hadoop.hdds.protocol.DatanodeDetails;
 import org.apache.hadoop.hdds.protocol.datanode.proto.ContainerProtos;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 
@@ -31,7 +31,7 @@ import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
  * @author Frank Chen
  * @date 21/12/22 5:08 pm
  */
-public class XceiverClientRatis$SendCommandAsync extends AbstractInterceptor {
+public class XceiverClientRatis$SendCommandAsync extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {

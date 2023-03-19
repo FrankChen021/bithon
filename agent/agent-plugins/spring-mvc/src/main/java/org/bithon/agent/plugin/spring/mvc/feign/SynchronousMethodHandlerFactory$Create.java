@@ -22,14 +22,14 @@ import feign.RequestTemplate;
 import feign.Target;
 import feign.codec.Decoder;
 import feign.codec.ErrorDecoder;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 
 /**
  * {@link feign.SynchronousMethodHandler.Factory#create(Target, MethodMetadata, RequestTemplate.Factory, Request.Options, Decoder, ErrorDecoder)}
  */
-public class SynchronousMethodHandlerFactory$Create extends AbstractInterceptor {
+public class SynchronousMethodHandlerFactory$Create extends AfterInterceptor {
 
     /**
      * MethodMeta object in {@link feign.SynchronousMethodHandler} is defined private,

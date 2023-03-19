@@ -21,7 +21,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Custom annotation used on Advice classes to reference the {@link org.bithon.agent.bootstrap.aop.AbstractInterceptor} object
+ * Custom annotation used on Advice classes to reference the {@link org.bithon.agent.bootstrap.aop.interceptor.IInterceptor} object
  *
  * @author frank.chen021@outlook.com
  * @date 18/2/22 8:01 PM

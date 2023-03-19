@@ -16,7 +16,7 @@
 
 package org.bithon.agent.bootstrap.aop.advice;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.IInterceptor;
 import org.bithon.shaded.net.bytebuddy.description.annotation.AnnotationList;
 import org.bithon.shaded.net.bytebuddy.description.field.FieldDescription;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
@@ -29,7 +29,7 @@ import javax.annotation.Nonnull;
  * @date 19/2/22 3:47 PM
  */
 public class InterceptorResolver extends FieldDescription.InDefinedShape.AbstractBase {
-    private static final TypeDescription.Generic INTERCEPTOR_TYPE = new TypeDescription.ForLoadedType(AbstractInterceptor.class).asGenericType();
+    private static final TypeDescription.Generic INTERCEPTOR_TYPE = new TypeDescription.ForLoadedType(IInterceptor.class).asGenericType();
 
     private final TypeDescription declaringType;
     private final String fieldName;

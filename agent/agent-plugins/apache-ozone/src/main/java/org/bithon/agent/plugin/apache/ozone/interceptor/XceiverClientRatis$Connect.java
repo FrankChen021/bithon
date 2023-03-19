@@ -18,10 +18,9 @@ package org.bithon.agent.plugin.apache.ozone.interceptor;
 
 import org.apache.hadoop.hdds.scm.XceiverClientRatis;
 import org.apache.ratis.client.RaftClient;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -32,9 +31,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author Frank Chen
  * @date 21/12/22 5:13 pm
  */
-public class XceiverClientRatis$Connect extends AbstractInterceptor {
+public class XceiverClientRatis$Connect extends BeforeInterceptor {
     @Override
-    public InterceptionDecision before(AopContext aopContext) throws Exception {
+    public void before(AopContext aopContext) throws Exception {
         AtomicReference<RaftClient> client = (AtomicReference<RaftClient>) ReflectionUtils.getFieldValue(aopContext.getTarget(), "client");
 
         if (client != null && client.get() == null) {
@@ -43,7 +42,5 @@ public class XceiverClientRatis$Connect extends AbstractInterceptor {
             // save the node info
             ((IBithonObject) aopContext.getTarget()).setInjectedObject(ratisClient.getPipeline().getLeaderNode());
         }
-
-        return InterceptionDecision.SKIP_LEAVE;
     }
 }

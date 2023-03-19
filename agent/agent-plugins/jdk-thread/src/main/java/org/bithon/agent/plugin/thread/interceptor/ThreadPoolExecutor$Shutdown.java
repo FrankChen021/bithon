@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.thread.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
 
 import java.util.concurrent.ThreadPoolExecutor;
@@ -26,7 +26,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 9:12 下午
  */
-public class ThreadPoolExecutor$Shutdown extends AbstractInterceptor {
+public class ThreadPoolExecutor$Shutdown extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {

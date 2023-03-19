@@ -18,8 +18,8 @@ package org.bithon.agent.plugin.tomcat.interceptor;
 
 import org.apache.coyote.Request;
 import org.apache.coyote.Response;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
@@ -29,7 +29,7 @@ import org.bithon.agent.observability.tracing.context.propagation.ITracePropagat
  *
  * @author frankchen
  */
-public class CoyoteAdapter$Service extends AbstractInterceptor {
+public class CoyoteAdapter$Service extends AfterInterceptor {
     private final HttpIncomingMetricsRegistry metricRegistry = HttpIncomingMetricsRegistry.get();
     private final HttpIncomingFilter requestFilter = new HttpIncomingFilter();
 

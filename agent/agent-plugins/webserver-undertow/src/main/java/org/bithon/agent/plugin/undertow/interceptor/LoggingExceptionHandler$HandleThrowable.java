@@ -17,9 +17,8 @@
 package org.bithon.agent.plugin.undertow.interceptor;
 
 import io.undertow.server.HttpServerExchange;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.event.ExceptionCollector;
 
 import javax.servlet.ServletRequest;
@@ -30,10 +29,9 @@ import javax.servlet.ServletResponse;
  *
  * @author frankchen
  */
-public class LoggingExceptionHandler$HandleThrowable extends AbstractInterceptor {
+public class LoggingExceptionHandler$HandleThrowable extends BeforeInterceptor {
     @Override
-    public InterceptionDecision before(AopContext aopContext) {
+    public void before(AopContext aopContext) {
         ExceptionCollector.collect((Throwable) aopContext.getArgs()[3]);
-        return InterceptionDecision.SKIP_LEAVE;
     }
 }

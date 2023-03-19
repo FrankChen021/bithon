@@ -16,7 +16,8 @@
 
 package org.bithon.agent.bootstrap.aop.advice;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.IInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.ReplaceInterceptor;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -29,11 +30,11 @@ public class MethodReplacementAdvice {
      * This method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit
-    public static void onExecute(final @Interceptor AbstractInterceptor interceptor,
+    public static void onExecute(final @Interceptor IInterceptor interceptor,
                                  final @Advice.AllArguments Object[] args,
                                  @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning) {
         if (interceptor != null) {
-            returning = interceptor.execute(args);
+            returning = ((ReplaceInterceptor) interceptor).execute(args);
         }
     }
 }

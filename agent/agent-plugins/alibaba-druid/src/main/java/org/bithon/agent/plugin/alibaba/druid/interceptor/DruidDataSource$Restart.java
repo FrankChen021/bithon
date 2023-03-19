@@ -16,36 +16,17 @@
 
 package org.bithon.agent.plugin.alibaba.druid.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSourceManager;
 
 /**
  * @author frankchen
  */
-public class DruidDataSourceInit extends AbstractInterceptor {
-
-    @Override
-    public InterceptionDecision before(AopContext aopContext) {
-        IBithonObject obj = aopContext.getTargetAs();
-        Boolean initialized = (Boolean) obj.getInjectedObject();
-        if (initialized != null && initialized) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-
-        return InterceptionDecision.CONTINUE;
-    }
+public class DruidDataSource$Restart extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        if (aopContext.hasException()) {
-            return;
-        }
-
-        IBithonObject obj = aopContext.getTargetAs();
-        boolean initialized = MonitoredSourceManager.getInstance().addDataSource(aopContext.getTargetAs());
-        obj.setInjectedObject(initialized);
+        MonitoredSourceManager.getInstance().addDataSource(aopContext.getTargetAs());
     }
 }

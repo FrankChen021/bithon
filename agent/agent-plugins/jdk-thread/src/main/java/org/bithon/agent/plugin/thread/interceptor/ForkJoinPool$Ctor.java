@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.thread.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.plugin.thread.metrics.ForkJoinPoolMetrics;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
 import org.bithon.agent.plugin.thread.utils.ThreadPoolNameHelper;
@@ -29,9 +29,9 @@ import java.util.concurrent.ForkJoinPool;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 11:15 下午
  */
-public class ForkJoinPool$Ctor extends AbstractInterceptor {
+public class ForkJoinPool$Ctor extends AfterInterceptor {
     @Override
-    public void onConstruct(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
         if (registry != null) {
             ForkJoinPool pool = aopContext.getTargetAs();

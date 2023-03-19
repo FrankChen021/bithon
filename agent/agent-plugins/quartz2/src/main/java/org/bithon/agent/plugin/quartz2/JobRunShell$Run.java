@@ -16,10 +16,10 @@
 
 package org.bithon.agent.plugin.quartz2;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
@@ -43,7 +43,7 @@ import java.lang.reflect.Field;
 /**
  * @author frankchen
  */
-public class JobRunShell$Run extends AbstractInterceptor {
+public class JobRunShell$Run extends AroundInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(JobRunShell$Run.class);
 
     private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()

@@ -17,11 +17,10 @@
 package org.bithon.agent.plugin.apache.druid.interceptor;
 
 import org.apache.druid.server.QueryLifecycle;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,9 +31,7 @@ import org.bithon.shaded.com.fasterxml.jackson.datatype.joda.JodaModule;
  * @author frank.chen021@outlook.com
  * @date 4/1/22 6:38 PM
  */
-public class QueryLifecycle$Initialize extends AbstractInterceptor {
-
-    private static final ILogAdaptor log = LoggerFactory.getLogger(QueryLifecycle$Initialize.class);
+public class QueryLifecycle$Initialize extends AfterInterceptor {
 
     private final ObjectMapper om;
 
@@ -64,7 +61,7 @@ public class QueryLifecycle$Initialize extends AbstractInterceptor {
                        .tag("query_id", lifecycle.getQuery().getId())
                        .tag("query", om.writeValueAsString(lifecycle.getQuery()));
                 } catch (JsonProcessingException e) {
-                    log.error("Unable to serialize query object: {}", e.getMessage());
+                    LoggerFactory.getLogger(QueryLifecycle$Initialize.class).error("Unable to serialize query object: {}", e.getMessage());
                 }
             }
         }

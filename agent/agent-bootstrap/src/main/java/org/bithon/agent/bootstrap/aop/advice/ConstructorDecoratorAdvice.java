@@ -17,10 +17,11 @@
 package org.bithon.agent.bootstrap.aop.advice;
 
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContextImpl;
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
 import org.bithon.agent.bootstrap.aop.IAopLogger;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.IInterceptor;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 
 import java.lang.reflect.Constructor;
@@ -35,7 +36,7 @@ public class ConstructorDecoratorAdvice {
     public static final IAopLogger LOG = BootstrapHelper.createAopLogger(ConstructorDecoratorAdvice.class);
 
     @Advice.OnMethodExit
-    public static void onExit(final @Interceptor AbstractInterceptor interceptor,
+    public static void onExit(final @Interceptor IInterceptor interceptor,
                               final @TargetMethod Constructor<?> method,
                               final @Advice.This Object target,
                               final @Advice.AllArguments Object[] args) {
@@ -43,7 +44,7 @@ public class ConstructorDecoratorAdvice {
             return;
         }
         try {
-            interceptor.onConstruct(new AopContextImpl(method, target, args));
+            ((AfterInterceptor) interceptor).after(new AopContextImpl(method, target, args));
         } catch (Throwable e) {
             LOG.error(String.format(Locale.ENGLISH,
                                     "Exception occurs when executing onConstruct on interceptor [%s]: %s",

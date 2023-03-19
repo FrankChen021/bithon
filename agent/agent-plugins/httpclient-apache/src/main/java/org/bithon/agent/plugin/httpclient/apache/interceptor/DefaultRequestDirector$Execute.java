@@ -24,9 +24,9 @@ import org.apache.http.HttpResponse;
 import org.apache.http.impl.conn.ConnectionShutdownException;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetrics;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
@@ -38,7 +38,7 @@ import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegi
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
-public class DefaultRequestDirector$Execute extends AbstractInterceptor {
+public class DefaultRequestDirector$Execute extends AroundInterceptor {
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 

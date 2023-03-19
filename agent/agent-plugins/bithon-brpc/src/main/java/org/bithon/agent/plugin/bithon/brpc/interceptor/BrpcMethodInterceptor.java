@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.bithon.brpc.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
@@ -36,7 +36,7 @@ import org.bithon.component.commons.tracing.SpanKind;
  * @author frank.chen021@outlook.com
  * @date 12/5/22 10:25 PM
  */
-public class BrpcMethodInterceptor extends AbstractInterceptor {
+public class BrpcMethodInterceptor extends AroundInterceptor {
 
     private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
                                                                                       .getDynamicConfig("tracing.samplingConfigs.brpc",

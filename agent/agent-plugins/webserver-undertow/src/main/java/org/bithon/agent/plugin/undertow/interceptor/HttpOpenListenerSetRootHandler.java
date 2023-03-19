@@ -19,8 +19,8 @@ package org.bithon.agent.plugin.undertow.interceptor;
 import io.undertow.UndertowOptions;
 import io.undertow.server.ConnectorStatistics;
 import io.undertow.server.protocol.http.HttpOpenListener;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.observability.metric.domain.web.WebServerMetricRegistry;
 import org.bithon.agent.observability.metric.domain.web.WebServerMetrics;
@@ -32,7 +32,7 @@ import java.util.Collections;
 /**
  * @author frankchen
  */
-public class HttpOpenListenerSetRootHandler extends AbstractInterceptor {
+public class HttpOpenListenerSetRootHandler extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {

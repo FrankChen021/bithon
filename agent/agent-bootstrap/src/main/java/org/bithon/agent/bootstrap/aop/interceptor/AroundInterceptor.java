@@ -14,30 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.logback.interceptor;
+package org.bithon.agent.bootstrap.aop.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.observability.logging.LogPatternInjector;
 
 /**
- * {@link ch.qos.logback.core.pattern.PatternLayoutBase#setPattern(String)}
- * <p>
- * add txId:spanId pattern to the user's pattern
- * <p>
- * [bTxId:xxx, bSpanId:xxx]
- *
  * @author frank.chen021@outlook.com
- * @date 2021/7/23 3:25 下午
+ * @date 2023/3/18 23:25
  */
-public class PatternLayoutSetPattern extends AbstractInterceptor {
+public abstract class AroundInterceptor implements IInterceptor {
 
-    @Override
     public InterceptionDecision before(AopContext aopContext) throws Exception {
+        return InterceptionDecision.CONTINUE;
+    }
 
-        aopContext.getArgs()[0] = LogPatternInjector.injectTracePattern(aopContext.getArgAs(0));
-
-        return InterceptionDecision.SKIP_LEAVE;
+    /**
+     * Called after execution of target intercepted method
+     * If {@link #before(AopContext)} returns {@link InterceptionDecision#SKIP_LEAVE}, call of this method will be skipped
+     */
+    public void after(AopContext aopContext) throws Exception {
     }
 }

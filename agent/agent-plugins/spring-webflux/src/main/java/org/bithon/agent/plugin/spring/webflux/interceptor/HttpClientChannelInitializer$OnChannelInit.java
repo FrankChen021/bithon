@@ -18,9 +18,9 @@ package org.bithon.agent.plugin.spring.webflux.interceptor;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.plugin.spring.webflux.metric.HttpBodySizeCollector;
 import org.bithon.agent.plugin.spring.webflux.metric.HttpIOMetrics;
@@ -37,7 +37,7 @@ import reactor.netty.http.client.HttpClientRequest;
  * @author frank.chen021@outlook.com
  * @date 7/10/21 4:15 pm
  */
-public class HttpClientChannelInitializer$OnChannelInit extends AbstractInterceptor {
+public class HttpClientChannelInitializer$OnChannelInit extends AfterInterceptor {
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 

@@ -24,7 +24,7 @@ public enum InterceptionDecision {
     CONTINUE,
 
     /**
-     * Whether SKIP call of {@link AbstractInterceptor#after}
+     * Whether SKIP call of {@link org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor#after}
      * It's very useful when implement interceptors for tracing
      */
     SKIP_LEAVE

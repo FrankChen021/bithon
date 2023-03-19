@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.logback.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextListener;
 import org.slf4j.MDC;
@@ -32,12 +32,12 @@ import org.slf4j.MDC;
  * @author frank.chen021@outlook.com
  * @date 2021/8/7 9:51 下午
  */
-public class PatternLayoutCtor extends AbstractInterceptor {
+public class PatternLayout$Ctor extends AfterInterceptor {
 
     private volatile TraceContextListener.IListener mdcUpdater = null;
 
     @Override
-    public void onConstruct(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (mdcUpdater == null) {
             synchronized (this) {
                 // double check

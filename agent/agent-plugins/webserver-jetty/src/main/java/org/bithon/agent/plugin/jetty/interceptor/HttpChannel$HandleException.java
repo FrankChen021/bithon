@@ -16,26 +16,23 @@
 
 package org.bithon.agent.plugin.jetty.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.event.ExceptionCollector;
 
 /**
  * @author Frank Chen
  * @date 27/12/22 2:11 pm
  */
-public class HttpChannel$HandleException extends AbstractInterceptor {
+public class HttpChannel$HandleException extends BeforeInterceptor {
 
     @Override
-    public InterceptionDecision before(AopContext context) {
+    public void before(AopContext context) {
         Throwable exception = context.getArgAs(0);
         if (exception == null) {
-            return InterceptionDecision.SKIP_LEAVE;
+            return;
         }
 
         ExceptionCollector.collect(exception);
-
-        return InterceptionDecision.SKIP_LEAVE;
     }
 }

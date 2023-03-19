@@ -19,9 +19,9 @@ package org.bithon.agent.plugin.mongodb38.interceptor;
 import com.mongodb.MongoNamespace;
 import com.mongodb.internal.connection.ClusterClock;
 import com.mongodb.internal.connection.InternalConnection;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
@@ -39,7 +39,7 @@ import org.bson.BsonDocument;
  * @author frank.chen021@outlook.com
  * @date 2021/3/29 1:53 下午
  */
-public class CommandHelper$ExecuteCommand extends AbstractInterceptor {
+public class CommandHelper$ExecuteCommand extends AroundInterceptor {
 
     private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 

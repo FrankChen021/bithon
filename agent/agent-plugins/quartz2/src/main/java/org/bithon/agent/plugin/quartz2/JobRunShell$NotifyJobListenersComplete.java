@@ -16,10 +16,9 @@
 
 package org.bithon.agent.plugin.quartz2;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.dispatcher.Dispatcher;
 import org.bithon.agent.observability.dispatcher.Dispatchers;
 import org.bithon.agent.observability.event.EventMessage;
@@ -34,18 +33,12 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2022/8/6 21:56
  */
-public class JobRunShell$NotifyJobListenersComplete extends AbstractInterceptor {
+public class JobRunShell$NotifyJobListenersComplete extends BeforeInterceptor {
 
-    private Dispatcher dispatcher;
-
-    @Override
-    public boolean initialize() {
-        dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
-        return true;
-    }
+    private Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
 
     @Override
-    public InterceptionDecision before(AopContext aopContext) {
+    public void before(AopContext aopContext) {
         JobExecutionContext jec = aopContext.getArgAs(0);
         JobExecutionException exception = aopContext.getArgAs(1);
 
@@ -70,7 +63,5 @@ public class JobRunShell$NotifyJobListenersComplete extends AbstractInterceptor 
         // so that JobRunShell$Run can get the exception
         IBithonObject bithonObject = aopContext.getTargetAs();
         bithonObject.setInjectedObject(exception);
-
-        return InterceptionDecision.SKIP_LEAVE;
     }
 }

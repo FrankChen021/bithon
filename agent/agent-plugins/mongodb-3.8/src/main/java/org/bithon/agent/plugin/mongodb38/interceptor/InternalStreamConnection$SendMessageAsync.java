@@ -18,8 +18,8 @@ package org.bithon.agent.plugin.mongodb38.interceptor;
 
 import com.mongodb.connection.ConnectionId;
 import com.mongodb.internal.connection.InternalStreamConnection;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * @author frankchen
  */
-public class InternalStreamConnection$SendMessageAsync extends AbstractInterceptor {
+public class InternalStreamConnection$SendMessageAsync extends AfterInterceptor {
 
     private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 

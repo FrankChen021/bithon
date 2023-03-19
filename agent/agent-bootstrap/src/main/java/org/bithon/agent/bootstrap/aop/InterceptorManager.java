@@ -17,6 +17,7 @@
 package org.bithon.agent.bootstrap.aop;
 
 
+import org.bithon.agent.bootstrap.aop.interceptor.IInterceptor;
 import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 
 import java.util.Locale;
@@ -32,7 +33,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class InterceptorManager {
     private static final IAopLogger log = BootstrapHelper.createAopLogger(InterceptorManager.class);
 
-    private static final Map<String, AbstractInterceptor> INTERCEPTORS = new ConcurrentHashMap<>();
+    private static final Map<String, IInterceptor> INTERCEPTORS = new ConcurrentHashMap<>();
 
     private static final ReentrantLock INTERCEPTOR_INSTANTIATION_LOCK = new ReentrantLock();
 
@@ -40,16 +41,16 @@ public class InterceptorManager {
      * Called by injected code in static initializer for target classes
      * see org.bithon.agent.core.aop.interceptor.InterceptorInstall for more detail
      */
-    public static AbstractInterceptor getInterceptor(String interceptorClassName, Class<?> fromClass) {
+    public static IInterceptor getInterceptor(String interceptorClassName, Class<?> fromClass) {
         // get interceptor from cache first
         String interceptorId = generateInterceptorId(interceptorClassName, fromClass.getClassLoader());
-        AbstractInterceptor interceptor = INTERCEPTORS.get(interceptorId);
+        IInterceptor interceptor = INTERCEPTORS.get(interceptorId);
         if (interceptor != null) {
             return interceptor;
         }
 
         try {
-            // load class out of lock in case of dead lock
+            // Load class out of lock in case of deadlock
             ClassLoader interceptorClassLoader = PluginClassLoaderManager.getClassLoader(fromClass.getClassLoader());
             Class<?> interceptorClass = Class.forName(interceptorClassName, true, interceptorClassLoader);
 
@@ -61,11 +62,7 @@ public class InterceptorManager {
                     return interceptor;
                 }
 
-                interceptor = (AbstractInterceptor) interceptorClass.newInstance();
-                if (!interceptor.initialize()) {
-                    log.warn(String.format(Locale.ENGLISH, "Interceptor not loaded for failure of initialization: [%s]", interceptorClassName));
-                    return null;
-                }
+                interceptor = (IInterceptor) interceptorClass.getConstructor().newInstance();
 
                 INTERCEPTORS.put(interceptorId, interceptor);
                 return interceptor;

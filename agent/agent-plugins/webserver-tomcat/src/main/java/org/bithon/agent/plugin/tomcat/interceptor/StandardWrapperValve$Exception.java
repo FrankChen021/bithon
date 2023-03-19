@@ -16,9 +16,8 @@
 
 package org.bithon.agent.plugin.tomcat.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.event.ExceptionCollector;
 
@@ -29,10 +28,10 @@ import java.util.Collections;
  *
  * @author frankchen
  */
-public class StandardWrapperValve$Exception extends AbstractInterceptor {
+public class StandardWrapperValve$Exception extends BeforeInterceptor {
 
     @Override
-    public InterceptionDecision before(AopContext context) {
+    public void before(AopContext context) {
         String uri = (String) InterceptorContext.get(InterceptorContext.KEY_URI);
         if (uri == null) {
             ExceptionCollector.collect((Throwable) context.getArgs()[2]);
@@ -40,7 +39,5 @@ public class StandardWrapperValve$Exception extends AbstractInterceptor {
             ExceptionCollector.collect((Throwable) context.getArgs()[2],
                                        Collections.singletonMap("uri", uri));
         }
-
-        return InterceptionDecision.SKIP_LEAVE;
     }
 }

@@ -17,10 +17,10 @@
 package org.bithon.agent.plugin.spring.mvc.feign;
 
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -31,7 +31,7 @@ import org.bithon.component.commons.tracing.SpanKind;
  * @author frankchen
  * @date 2021-02-16 14:41
  */
-public class SynchronousMethodHandler$Invoke extends AbstractInterceptor {
+public class SynchronousMethodHandler$Invoke extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {

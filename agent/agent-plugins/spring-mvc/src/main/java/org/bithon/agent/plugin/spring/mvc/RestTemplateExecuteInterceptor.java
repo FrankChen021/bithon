@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.spring.mvc;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.tracing.Tags;
@@ -29,7 +29,7 @@ import java.net.URI;
  * @author frankchen
  * @date 2021-02-16 14:36
  */
-public class RestTemplateExecuteInterceptor extends AbstractInterceptor {
+public class RestTemplateExecuteInterceptor extends AroundInterceptor {
     @Override
     public InterceptionDecision before(AopContext aopContext) {
         ITraceSpan span = TraceSpanFactory.newSpan("restTemplate");

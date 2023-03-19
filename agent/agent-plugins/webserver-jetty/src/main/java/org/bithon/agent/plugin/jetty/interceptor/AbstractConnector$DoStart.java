@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.jetty.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.observability.metric.domain.web.WebServerMetricRegistry;
@@ -32,7 +32,7 @@ import java.util.Collections;
  *
  * @author frankchen
  */
-public class AbstractConnector$DoStart extends AbstractInterceptor {
+public class AbstractConnector$DoStart extends AfterInterceptor {
 
     @Override
     public void after(AopContext context) {

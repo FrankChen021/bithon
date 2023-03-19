@@ -18,8 +18,8 @@ package org.bithon.agent.plugin.tomcat.interceptor;
 
 import org.apache.tomcat.util.net.AbstractEndpoint;
 import org.apache.tomcat.util.threads.ResizableExecutor;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.observability.metric.domain.web.WebServerMetricRegistry;
@@ -37,7 +37,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author frankchen
  */
 @SuppressWarnings("rawtypes")
-public class AbstractEndpoint$Start extends AbstractInterceptor {
+public class AbstractEndpoint$Start extends AfterInterceptor {
 
     private AbstractEndpoint endpoint;
 

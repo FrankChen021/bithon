@@ -18,8 +18,8 @@ package org.bithon.agent.plugin.mysql8;
 
 
 import com.mysql.cj.conf.HostInfo;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.observability.utils.MiscUtils;
@@ -30,7 +30,7 @@ import java.lang.reflect.Method;
 /**
  * @author frankchen
  */
-public class NativeProtocolInterceptor extends AbstractInterceptor {
+public class NativeProtocolInterceptor extends AfterInterceptor {
 
     private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
 

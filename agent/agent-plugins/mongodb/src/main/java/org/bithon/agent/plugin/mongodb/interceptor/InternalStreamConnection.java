@@ -19,9 +19,9 @@ package org.bithon.agent.plugin.mongodb.interceptor;
 import com.mongodb.connection.ServerId;
 import com.mongodb.connection.StreamFactory;
 import com.mongodb.event.ConnectionListener;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 
 /**
  * @author frank.chen021@outlook.com
@@ -32,9 +32,9 @@ public class InternalStreamConnection {
     /**
      * {@link com.mongodb.connection.InternalStreamConnection#InternalStreamConnection(ServerId, StreamFactory, com.mongodb.connection.InternalConnectionInitializer, ConnectionListener)}
      */
-    public static class Constructor extends AbstractInterceptor {
+    public static class Constructor extends AfterInterceptor {
         @Override
-        public void onConstruct(AopContext aopContext) {
+        public void after(AopContext aopContext) {
             IBithonObject bithonObject = aopContext.getTargetAs();
             bithonObject.setInjectedObject(((ServerId) aopContext.getArgAs(0)).getAddress().toString());
         }

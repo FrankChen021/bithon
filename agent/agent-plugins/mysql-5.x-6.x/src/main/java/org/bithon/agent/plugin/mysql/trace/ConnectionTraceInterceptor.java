@@ -16,15 +16,15 @@
 
 package org.bithon.agent.plugin.mysql.trace;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 
 /**
  * @author frankchen
  */
-public class ConnectionTraceInterceptor extends AbstractInterceptor {
+public class ConnectionTraceInterceptor extends AroundInterceptor {
 
     public static final String KEY = "sql";
 

@@ -14,22 +14,26 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.alibaba.druid.interceptor;
+package org.bithon.agent.plugin.logback.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSourceManager;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
+import org.bithon.agent.observability.logging.LogPatternInjector;
 
 /**
- * @author frankchen
+ * {@link ch.qos.logback.core.pattern.PatternLayoutBase#setPattern(String)}
+ * <p>
+ * add txId:spanId pattern to the user's pattern
+ * <p>
+ * [bTxId:xxx, bSpanId:xxx]
+ *
+ * @author frank.chen021@outlook.com
+ * @date 2021/7/23 3:25 下午
  */
-public class DruidDataSourceClose extends AbstractInterceptor {
+public class PatternLayout$SetPattern extends BeforeInterceptor {
 
     @Override
-    public InterceptionDecision before(AopContext context) {
-        MonitoredSourceManager.getInstance().rmvDataSource(context.getTargetAs());
-
-        return InterceptionDecision.SKIP_LEAVE;
+    public void before(AopContext aopContext) {
+        aopContext.getArgs()[0] = LogPatternInjector.injectTracePattern(aopContext.getArgAs(0));
     }
 }

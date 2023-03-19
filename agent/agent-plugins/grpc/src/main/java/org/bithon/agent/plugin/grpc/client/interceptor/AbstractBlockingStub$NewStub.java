@@ -19,10 +19,9 @@ package org.bithon.agent.plugin.grpc.client.interceptor;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.stub.AbstractStub;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.core.interceptor.AopClassHelper;
 import org.bithon.agent.core.interceptor.installer.DynamicInterceptorInstaller;
 import org.bithon.agent.core.interceptor.matcher.Matchers;
@@ -41,14 +40,13 @@ import java.util.concurrent.ConcurrentSkipListSet;
  * @author Frank Chen
  * @date 13/12/22 5:36 pm
  */
-public class AbstractBlockingStub$NewStub extends AbstractInterceptor {
+public class AbstractBlockingStub$NewStub extends BeforeInterceptor {
 
     private static final Set<String> INSTRUMENTED = new ConcurrentSkipListSet<>();
 
     private DynamicType.Unloaded<?> grpcStubAopClass;
 
-    @Override
-    public boolean initialize() {
+    public AbstractBlockingStub$NewStub() {
         String targetAopClassName = AbstractBlockingStub$NewStub.class.getPackage().getName() + ".BlockingStubAop";
 
         grpcStubAopClass = AopClassHelper.generateAopClass(IAdviceAopTemplate.class,
@@ -56,12 +54,10 @@ public class AbstractBlockingStub$NewStub extends AbstractInterceptor {
                                                            AbstractGrpcStubInterceptor.BlockingStubInterceptor.class.getName(),
                                                            true);
         AopClassHelper.inject(grpcStubAopClass);
-
-        return true;
     }
 
     @Override
-    public InterceptionDecision before(AopContext aopContext) {
+    public void before(AopContext aopContext) {
         Object stubFactory = aopContext.getArgs()[0];
 
         // StubFactory is defined to accept one generic argument
@@ -69,14 +65,13 @@ public class AbstractBlockingStub$NewStub extends AbstractInterceptor {
         Class<?> clientStubClass = (Class<?>) genericArgumentType.getActualTypeArguments()[0];
 
         if (!INSTRUMENTED.add(clientStubClass.getName())) {
-            return InterceptionDecision.SKIP_LEAVE;
+            return;
         }
 
         // Enhance the stub class
         DynamicInterceptorInstaller.getInstance().installOne(new DynamicInterceptorInstaller.AopDescriptor(clientStubClass.getName(),
-                                                                                                           Advice.to(grpcStubAopClass.getTypeDescription(), ClassFileLocator.Simple.of(grpcStubAopClass.getAllTypes())),
+                                                                                                           Advice.to(grpcStubAopClass.getTypeDescription(),
+                                                                                                                     ClassFileLocator.Simple.of(grpcStubAopClass.getAllTypes())),
                                                                                                            Matchers.visibility(Visibility.PUBLIC)));
-
-        return InterceptionDecision.SKIP_LEAVE;
     }
 }

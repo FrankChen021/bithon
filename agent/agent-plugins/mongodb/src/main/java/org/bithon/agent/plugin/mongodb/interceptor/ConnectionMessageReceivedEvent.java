@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.mongodb.interceptor;
 
 import com.mongodb.connection.ConnectionId;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
@@ -35,11 +35,11 @@ public class ConnectionMessageReceivedEvent {
     /**
      * {@link com.mongodb.event.ConnectionMessagesSentEvent#ConnectionMessagesSentEvent(ConnectionId, int, int size)}
      */
-    public static class Constructor extends AbstractInterceptor {
+    public static class Constructor extends AfterInterceptor {
         private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
         @Override
-        public void onConstruct(AopContext aopContext) {
+        public void after(AopContext aopContext) {
             MongoCommand mongoCommand = InterceptorContext.getAs("mongo-3.x-command");
             if (mongoCommand == null) {
                 log.warn("Don' worry, the stack is dumped to help analyze the problem. No real exception happened.",

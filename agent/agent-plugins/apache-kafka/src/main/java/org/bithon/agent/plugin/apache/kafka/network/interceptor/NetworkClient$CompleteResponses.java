@@ -17,12 +17,12 @@
 package org.bithon.agent.plugin.apache.kafka.network.interceptor;
 
 import org.apache.kafka.clients.ClientResponse;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
-import org.bithon.agent.plugin.apache.kafka.network.interceptor.metrics.NetworkMetricRegistry;
-import org.bithon.agent.plugin.apache.kafka.network.interceptor.metrics.NetworkMetrics;
+import org.bithon.agent.plugin.apache.kafka.network.metrics.NetworkMetricRegistry;
+import org.bithon.agent.plugin.apache.kafka.network.metrics.NetworkMetrics;
 
 import java.util.List;
 
@@ -30,7 +30,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2022/12/4 17:13
  */
-public class NetworkClient$CompleteResponses extends AbstractInterceptor {
+public class NetworkClient$CompleteResponses extends AfterInterceptor {
 
     private final NetworkMetricRegistry metricRegistry;
 

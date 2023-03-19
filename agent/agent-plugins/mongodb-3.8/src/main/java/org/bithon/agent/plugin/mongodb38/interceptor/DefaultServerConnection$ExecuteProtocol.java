@@ -20,10 +20,10 @@ import com.mongodb.internal.connection.CommandProtocol;
 import com.mongodb.internal.connection.DefaultServerConnection;
 import com.mongodb.internal.connection.LegacyProtocol;
 import com.mongodb.session.SessionContext;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
@@ -35,7 +35,7 @@ import org.bithon.component.commons.tracing.SpanKind;
 /**
  * @author frankchen
  */
-public class DefaultServerConnection$ExecuteProtocol extends AbstractInterceptor {
+public class DefaultServerConnection$ExecuteProtocol extends AroundInterceptor {
     static ILogAdaptor log = LoggerFactory.getLogger(DefaultServerConnection$ExecuteProtocol.class);
 
     private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();

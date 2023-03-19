@@ -14,30 +14,38 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.log4j2.interceptor;
+package org.bithon.agent.plugin.alibaba.druid.interceptor;
 
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.spi.StandardLevel;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.observability.event.ExceptionCollector;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSourceManager;
 
 /**
  * @author frankchen
  */
-public class LoggerLogMessage extends AbstractInterceptor {
+public class DruidDataSource$Init extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        Level logLevel = (Level) aopContext.getArgs()[1];
-        Throwable exception = (Throwable) aopContext.getArgs()[4];
-        if (exception == null || !StandardLevel.ERROR.equals(logLevel.getStandardLevel())) {
+        IBithonObject obj = aopContext.getTargetAs();
+        Boolean initialized = (Boolean) obj.getInjectedObject();
+        if (initialized != null && initialized) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ExceptionCollector.collect(exception);
+        return InterceptionDecision.CONTINUE;
+    }
 
-        return InterceptionDecision.SKIP_LEAVE;
+    @Override
+    public void after(AopContext aopContext) {
+        if (aopContext.hasException()) {
+            return;
+        }
+
+        IBithonObject obj = aopContext.getTargetAs();
+        boolean initialized = MonitoredSourceManager.getInstance().addDataSource(aopContext.getTargetAs());
+        obj.setInjectedObject(initialized);
     }
 }

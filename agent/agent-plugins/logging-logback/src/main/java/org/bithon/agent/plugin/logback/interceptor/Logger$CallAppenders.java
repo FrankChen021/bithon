@@ -20,9 +20,8 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.StackTraceElementProxy;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.dispatcher.Dispatcher;
 import org.bithon.agent.observability.dispatcher.Dispatchers;
 import org.bithon.agent.observability.event.EventMessage;
@@ -36,17 +35,17 @@ import java.util.Map;
 /**
  * @author frankchen
  */
-public class LoggerCallAppenders extends AbstractInterceptor {
+public class Logger$CallAppenders extends BeforeInterceptor {
 
     @Override
-    public InterceptionDecision before(AopContext aopContext) {
+    public void before(AopContext aopContext) {
         ILoggingEvent iLoggingEvent = (ILoggingEvent) aopContext.getArgs()[0];
         if (iLoggingEvent.getLevel().toInt() != Level.ERROR.toInt()) {
-            return InterceptionDecision.SKIP_LEAVE;
+            return;
         }
         IThrowableProxy exception = iLoggingEvent.getThrowableProxy();
         if (null == exception) {
-            return InterceptionDecision.SKIP_LEAVE;
+            return;
         }
 
         Map<String, Object> exceptionArgs = new HashMap<>();
@@ -62,8 +61,6 @@ public class LoggerCallAppenders extends AbstractInterceptor {
         EventMessage exceptionEvent = new EventMessage("exception", exceptionArgs);
         Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
         dispatcher.sendMessage(dispatcher.getMessageConverter().from(exceptionEvent));
-
-        return InterceptionDecision.SKIP_LEAVE;
     }
 
     static class StackTraceBuilder {

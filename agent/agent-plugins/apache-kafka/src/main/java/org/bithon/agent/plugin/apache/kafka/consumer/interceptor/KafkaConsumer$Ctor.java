@@ -19,9 +19,9 @@ package org.bithon.agent.plugin.apache.kafka.consumer.interceptor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.internals.ConsumerNetworkClient;
 import org.apache.kafka.clients.consumer.internals.Fetcher;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
@@ -33,9 +33,10 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2022/11/16 11:32
  */
-public class KafkaConsumer$Ctor extends AbstractInterceptor {
+public class KafkaConsumer$Ctor extends AfterInterceptor {
+
     @Override
-    public void onConstruct(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ConsumerConfig consumerConfig = aopContext.getArgAs(0);
         String groupId = consumerConfig.getString(ConsumerConfig.GROUP_ID_CONFIG);
         String clientId = (String) ReflectionUtils.getFieldValue(aopContext.getTarget(), "clientId");

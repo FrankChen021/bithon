@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.bithon.sdk.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.ReplaceInterceptor;
 import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.observability.dispatcher.IMessageConverter;
 import org.bithon.agent.observability.metric.collector.IMetricCollector2;
@@ -41,7 +41,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021-10-01
  */
-public class MetricRegistryFactory$Create extends AbstractInterceptor {
+public class MetricRegistryFactory$Create extends ReplaceInterceptor {
 
     private static final ILogAdaptor log = LoggerFactory.getLogger(MetricRegistryFactory$Create.class);
 

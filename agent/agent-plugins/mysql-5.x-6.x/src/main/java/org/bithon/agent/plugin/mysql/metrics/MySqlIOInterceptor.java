@@ -20,8 +20,8 @@ import com.mysql.jdbc.Buffer;
 import com.mysql.jdbc.MySQLConnection;
 import com.mysql.jdbc.MysqlIO;
 import com.mysql.jdbc.ResultSetImpl;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.observability.utils.MiscUtils;
@@ -35,7 +35,7 @@ import java.sql.SQLException;
  *
  * @author frankchen
  */
-public class MySqlIOInterceptor extends AbstractInterceptor {
+public class MySqlIOInterceptor extends AfterInterceptor {
 
     private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
 

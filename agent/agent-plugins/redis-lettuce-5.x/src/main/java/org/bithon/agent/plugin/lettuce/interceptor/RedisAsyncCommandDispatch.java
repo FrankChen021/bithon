@@ -16,25 +16,23 @@
 
 package org.bithon.agent.plugin.lettuce.interceptor;
 
-import io.lettuce.core.RedisAsyncCommandsImpl;
 import io.lettuce.core.api.StatefulConnection;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.plugin.lettuce.LettuceAsyncContext;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 /**
  * @author frankchen
  */
-public class RedisAsyncCommandDispatch extends AbstractInterceptor {
+public class RedisAsyncCommandDispatch extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
         if (!(aopContext.getReturning() instanceof IBithonObject)) {
             return;
         }
-        RedisAsyncCommandsImpl s;
         IBithonObject result = (IBithonObject) aopContext.getReturning();
 
         LettuceAsyncContext asyncContext = new LettuceAsyncContext();

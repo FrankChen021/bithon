@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.spring.scheduling;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
@@ -31,7 +31,7 @@ import org.springframework.scheduling.support.ScheduledMethodRunnable;
  * @author frankchen
  * @date 13/03/2022 13:45
  */
-public class ScheduledMethodRunnable$Run extends AbstractInterceptor {
+public class ScheduledMethodRunnable$Run extends AroundInterceptor {
 
     /**
      * The {@link org.springframework.scheduling.support.ScheduledMethodRunnable} is delegated to {@link org.springframework.scheduling.support.DelegatingErrorHandlingRunnable}.

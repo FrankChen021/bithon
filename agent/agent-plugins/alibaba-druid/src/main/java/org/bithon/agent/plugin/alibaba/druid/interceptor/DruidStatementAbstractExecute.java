@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.alibaba.druid.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
@@ -36,7 +36,7 @@ import java.sql.Statement;
 /**
  * @author frankchen
  */
-public abstract class DruidStatementAbstractExecute extends AbstractInterceptor {
+public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
     static class UserContext {
         String uri;
         ITraceSpan span;
@@ -49,17 +49,17 @@ public abstract class DruidStatementAbstractExecute extends AbstractInterceptor 
 
     private static final ILogAdaptor log = LoggerFactory.getLogger(DruidStatementAbstractExecute.class);
 
-    private SqlMetricRegistry metricRegistry;
-    private boolean isSQLMetricEnabled;
+    private final SqlMetricRegistry metricRegistry;
+    private final boolean isSQLMetricEnabled;
 
-    @Override
-    public boolean initialize() {
+    public DruidStatementAbstractExecute() {
         DruidPluginConfig config = ConfigurationManager.getInstance().getConfig(DruidPluginConfig.class);
         isSQLMetricEnabled = config.isSQLMetricEnabled();
         if (isSQLMetricEnabled) {
             metricRegistry = SqlMetricRegistry.get();
+        } else {
+            metricRegistry = null;
         }
-        return true;
     }
 
     @Override

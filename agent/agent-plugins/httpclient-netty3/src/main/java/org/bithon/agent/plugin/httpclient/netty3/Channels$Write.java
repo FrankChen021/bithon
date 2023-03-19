@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.httpclient.netty3;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
@@ -35,7 +35,7 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
  * @author frank.chen021@outlook.com
  * @date 2021/5/13 5:32 下午
  */
-public class Channels$Write extends AbstractInterceptor {
+public class Channels$Write extends AroundInterceptor {
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 

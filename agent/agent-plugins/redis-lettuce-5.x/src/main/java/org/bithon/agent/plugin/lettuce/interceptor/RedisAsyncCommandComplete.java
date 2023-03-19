@@ -17,16 +17,16 @@
 package org.bithon.agent.plugin.lettuce.interceptor;
 
 import io.lettuce.core.protocol.AsyncCommand;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.redis.RedisMetricRegistry;
 import org.bithon.agent.plugin.lettuce.LettuceAsyncContext;
 
 /**
  * @author frankchen
  */
-public class RedisAsyncCommandComplete extends AbstractInterceptor {
+public class RedisAsyncCommandComplete extends AfterInterceptor {
 
     private final RedisMetricRegistry metricRegistry = RedisMetricRegistry.get();
 

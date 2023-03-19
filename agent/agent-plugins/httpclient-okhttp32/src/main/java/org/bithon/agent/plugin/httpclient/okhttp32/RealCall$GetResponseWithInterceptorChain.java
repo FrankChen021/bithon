@@ -23,9 +23,9 @@ import okhttp3.internal.Internal;
 import okhttp3.internal.http.StreamAllocation;
 import okhttp3.internal.io.RealConnection;
 import okio.BufferedSource;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  *
  * @author frankchen
  */
-public class RealCall$GetResponseWithInterceptorChain extends AbstractInterceptor {
+public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(RealCall$GetResponseWithInterceptorChain.class);
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();

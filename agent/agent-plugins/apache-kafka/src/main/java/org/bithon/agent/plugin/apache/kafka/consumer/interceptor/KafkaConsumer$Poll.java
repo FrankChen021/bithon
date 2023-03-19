@@ -18,9 +18,9 @@ package org.bithon.agent.plugin.apache.kafka.consumer.interceptor;
 
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
@@ -33,7 +33,7 @@ import java.time.Duration;
  * @author Frank Chen
  * @date 28/11/22 8:39 pm
  */
-public class KafkaConsumer$Poll extends AbstractInterceptor {
+public class KafkaConsumer$Poll extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {

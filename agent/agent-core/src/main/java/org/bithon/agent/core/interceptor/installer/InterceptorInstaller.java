@@ -16,7 +16,6 @@
 
 package org.bithon.agent.core.interceptor.installer;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptorManager;
 import org.bithon.agent.bootstrap.aop.advice.ConstructorDecoratorAdvice;
@@ -26,6 +25,7 @@ import org.bithon.agent.bootstrap.aop.advice.MethodDecoratorAdvice;
 import org.bithon.agent.bootstrap.aop.advice.MethodReplacementAdvice;
 import org.bithon.agent.bootstrap.aop.advice.TargetMethod;
 import org.bithon.agent.bootstrap.aop.advice.TargetMethodResolver;
+import org.bithon.agent.bootstrap.aop.interceptor.IInterceptor;
 import org.bithon.agent.core.interceptor.AopDebugger;
 import org.bithon.agent.core.interceptor.descriptor.Descriptors;
 import org.bithon.agent.core.interceptor.descriptor.MethodPointCutDescriptor;
@@ -124,7 +124,7 @@ public class InterceptorInstaller {
         private DynamicType.Builder<?> builder;
         private Implementation.Composable interceptorInitializers;
 
-        private final TypeDescription interceptorTypeDescription = new TypeDescription.ForLoadedType(AbstractInterceptor.class);
+        private final TypeDescription interceptorTypeDescription = new TypeDescription.ForLoadedType(IInterceptor.class);
         private final ILogAdaptor log = LoggerFactory.getLogger(InterceptorInstaller.class);
 
         /**

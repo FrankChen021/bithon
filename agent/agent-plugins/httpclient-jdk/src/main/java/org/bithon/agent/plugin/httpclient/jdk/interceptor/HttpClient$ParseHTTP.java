@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
@@ -38,17 +38,11 @@ import java.util.Map;
  *
  * @author frankchen
  */
-public class HttpClient$ParseHTTP extends AbstractInterceptor {
+public class HttpClient$ParseHTTP extends AfterInterceptor {
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
-    private TraceConfig traceConfig;
-
-    @Override
-    public boolean initialize() {
-        traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
-        return true;
-    }
+    private final TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
 
     /**
      * {@link HttpClientContext} accessed in this method is injected in {@link HttpClient$New} or {@link HttpsClient$New}

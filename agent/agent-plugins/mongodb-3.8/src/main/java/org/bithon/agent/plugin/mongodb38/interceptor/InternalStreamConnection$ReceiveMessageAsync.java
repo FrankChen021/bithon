@@ -18,15 +18,14 @@ package org.bithon.agent.plugin.mongodb38.interceptor;
 
 import com.mongodb.async.SingleResultCallback;
 import com.mongodb.internal.connection.InternalStreamConnection;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
 
 /**
  * @author frankchen
  */
-public class InternalStreamConnection$ReceiveMessageAsync extends AbstractInterceptor {
+public class InternalStreamConnection$ReceiveMessageAsync extends BeforeInterceptor {
 
     private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
@@ -34,9 +33,8 @@ public class InternalStreamConnection$ReceiveMessageAsync extends AbstractInterc
      * interceptor of {@link InternalStreamConnection#receiveMessageAsync(int, SingleResultCallback)}
      */
     @Override
-    public InterceptionDecision before(AopContext aopContext) throws Exception {
+    public void before(AopContext aopContext) throws Exception {
 
         //TODO: install wrapper for callback
-        return super.before(aopContext);
     }
 }

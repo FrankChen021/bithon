@@ -16,10 +16,10 @@
 
 package org.bithon.agent.plugin.jetty.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingFilter;
@@ -41,16 +41,9 @@ import org.eclipse.jetty.server.Request;
  *
  * @author frankchen
  */
-public class HttpChannel$Handle extends AbstractInterceptor {
-    private HttpIncomingFilter requestFilter;
-    private TraceConfig traceConfig;
-
-    @Override
-    public boolean initialize() {
-        requestFilter = new HttpIncomingFilter();
-        traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
-        return true;
-    }
+public class HttpChannel$Handle extends AroundInterceptor {
+    private final HttpIncomingFilter requestFilter = new HttpIncomingFilter();
+    private final TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {

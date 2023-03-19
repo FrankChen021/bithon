@@ -18,16 +18,18 @@ package org.bithon.agent.plugin.alibaba.druid.interceptor;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceStatValue;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.jdbc.JdbcPoolMetrics;
 import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSource;
 import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSourceManager;
 
 /**
+ * {@link com.alibaba.druid.pool.DruidDataSource#getStatValueAndReset()}
+ *
  * @author frankchen
  */
-public class DruidDataSourceGetValueAndReset extends AbstractInterceptor {
+public class DruidDataSource$GetValueAndReset extends AfterInterceptor {
     @Override
     public void after(AopContext aopContext) {
         updateMetrics(aopContext.getTargetAs(),

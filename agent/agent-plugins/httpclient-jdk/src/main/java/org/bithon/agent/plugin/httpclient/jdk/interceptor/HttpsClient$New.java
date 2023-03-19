@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import sun.net.www.protocol.http.HttpURLConnection;
 
 import javax.net.ssl.HostnameVerifier;
@@ -32,11 +32,11 @@ import java.net.URL;
  * @author frank.chen021@outlook.com
  * @date 2021/3/14 11:13 下午
  */
-public class HttpsClient$New extends AbstractInterceptor {
+public class HttpsClient$New extends AfterInterceptor {
+
     /**
-     * inject HttpURLConnection instance, which creates HttpClient instance, into the instance of HttpClient as its parent
+     * Inject HttpURLConnection instance, which creates HttpClient instance, into the instance of HttpClient as its parent
      *
-     * @param aopContext
      */
     @Override
     public void after(AopContext aopContext) {

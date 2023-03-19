@@ -16,10 +16,9 @@
 
 package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -32,10 +31,10 @@ import sun.net.www.MessageHeader;
  *
  * @author frankchen
  */
-public class HttpClient$WriteRequests extends AbstractInterceptor {
+public class HttpClient$WriteRequests extends BeforeInterceptor {
 
     @Override
-    public InterceptionDecision before(AopContext aopContext) {
+    public void before(AopContext aopContext) {
         IBithonObject injectedObject = aopContext.getTargetAs();
         HttpClientContext clientContext = (HttpClientContext) injectedObject.getInjectedObject();
 
@@ -43,7 +42,7 @@ public class HttpClient$WriteRequests extends AbstractInterceptor {
 
         ITraceSpan span = TraceSpanFactory.newSpan("httpClient-jdk");
         if (span == null) {
-            return InterceptionDecision.SKIP_LEAVE;
+            return;
         }
 
         MessageHeader headers = (MessageHeader) aopContext.getArgs()[0];
@@ -56,7 +55,5 @@ public class HttpClient$WriteRequests extends AbstractInterceptor {
             .tag(Tags.HTTP_METHOD, clientContext.getMethod())
             .propagate(headers, (headersArgs, key, value) -> headersArgs.set(key, value))
             .start();
-
-        return InterceptionDecision.CONTINUE;
     }
 }

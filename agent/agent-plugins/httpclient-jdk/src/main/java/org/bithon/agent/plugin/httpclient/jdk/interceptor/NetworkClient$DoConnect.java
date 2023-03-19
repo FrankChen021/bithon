@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 
 /**
  * {@link sun.net.NetworkClient#doConnect(String, int)}
@@ -26,7 +26,7 @@ import org.bithon.agent.bootstrap.aop.IBithonObject;
  * @author frank.chen021@outlook.com
  * @date 2022/8/21 15:39
  */
-public class NetworkClient$DoConnect extends AbstractInterceptor {
+public class NetworkClient$DoConnect extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {

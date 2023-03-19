@@ -22,9 +22,9 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.impl.conn.ConnectionShutdownException;
 import org.apache.http.protocol.HttpContext;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetrics;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 
@@ -33,7 +33,7 @@ import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegi
  *
  * @author frankchen
  */
-public class MinimalClientExec$Execute extends AbstractInterceptor {
+public class MinimalClientExec$Execute extends AroundInterceptor {
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
     @Override

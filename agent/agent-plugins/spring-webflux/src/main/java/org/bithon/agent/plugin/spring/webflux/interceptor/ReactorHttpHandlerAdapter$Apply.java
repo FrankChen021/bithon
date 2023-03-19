@@ -17,10 +17,10 @@
 package org.bithon.agent.plugin.spring.webflux.interceptor;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingMetricsRegistry;
@@ -54,7 +54,7 @@ import java.util.function.BiConsumer;
  * @author frank.chen021@outlook.com
  * @date 7/10/21 3:16 pm
  */
-public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
+public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
 
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ReactorHttpHandlerAdapter$Apply.class);
     private static final String X_FORWARDED_FOR = "X-Forwarded-For";
@@ -65,8 +65,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
     private ResponseConfigs responseConfigs;
     private String xforwardTagName;
 
-    @Override
-    public boolean initialize() {
+    public ReactorHttpHandlerAdapter$Apply() {
         requestFilter = new HttpIncomingFilter();
 
         traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
@@ -74,8 +73,6 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
 
         // remove the special header for fast processing later
         xforwardTagName = responseConfigs.getHeaders().remove(X_FORWARDED_FOR);
-
-        return true;
     }
 
     @Override

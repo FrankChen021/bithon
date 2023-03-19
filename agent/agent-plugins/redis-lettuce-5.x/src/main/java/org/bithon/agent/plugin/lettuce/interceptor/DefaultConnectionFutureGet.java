@@ -17,14 +17,14 @@
 package org.bithon.agent.plugin.lettuce.interceptor;
 
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 
 /**
  * @author frankchen
  */
-public class DefaultConnectionFutureGet extends AbstractInterceptor {
+public class DefaultConnectionFutureGet extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
