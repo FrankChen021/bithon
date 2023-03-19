@@ -48,7 +48,7 @@ public final class PluginClassLoaderManager {
         return defaultLoader;
     }
 
-    public synchronized static void createDefault() {
+    public static synchronized void createDefault() {
         if (defaultLoader == null) {
             defaultLoader = new JarClassLoader("plugin",
                                                AgentDirectory.getSubDirectory("plugins"),

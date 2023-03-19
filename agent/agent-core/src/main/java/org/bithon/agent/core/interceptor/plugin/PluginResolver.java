@@ -16,11 +16,12 @@
 
 package org.bithon.agent.core.interceptor.plugin;
 
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptorType;
 import org.bithon.agent.bootstrap.aop.interceptor.InterceptorTypeResolver;
+import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.bootstrap.loader.JarClassLoader;
 import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.core.interceptor.descriptor.Descriptors;
-import org.bithon.agent.bootstrap.aop.interceptor.InterceptorType;
 import org.bithon.agent.core.interceptor.descriptor.MethodPointCutDescriptor;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -73,8 +74,12 @@ public class PluginResolver {
         for (Descriptors.Descriptor descriptor : descriptors) {
             for (Descriptors.MethodPointCuts pointcut : descriptor.getMethodPointCuts()) {
                 for (MethodPointCutDescriptor pointcutDescriptor : pointcut.getMethodInterceptors()) {
-                    InterceptorType type = resolver.resolve(pointcutDescriptor.getInterceptorClassName());
-                    pointcutDescriptor.setInterceptorType(type);
+                    try {
+                        InterceptorType type = resolver.resolve(pointcutDescriptor.getInterceptorClassName());
+                        pointcutDescriptor.setInterceptorType(type);
+                    } catch (AgentException e) {
+                        LOG.error("Unable to resolve interceptor type for [%s]", pointcutDescriptor.getInterceptorClassName());
+                    }
                 }
             }
         }
