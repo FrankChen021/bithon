@@ -20,7 +20,7 @@ import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.stub.AbstractStub;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate;
+import org.bithon.agent.bootstrap.aop.advice.DynamicAopAdvice;
 import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.core.interceptor.AopClassHelper;
 import org.bithon.agent.core.interceptor.installer.DynamicInterceptorInstaller;
@@ -49,7 +49,7 @@ public class AbstractAsyncStub$NewStub extends BeforeInterceptor {
     public AbstractAsyncStub$NewStub() {
         String targetAopClassName = AbstractAsyncStub$NewStub.class.getPackage().getName() + ".AsyncStubAop";
 
-        grpcStubAopClass = AopClassHelper.generateAopClass(IAdviceAopTemplate.class,
+        grpcStubAopClass = AopClassHelper.generateAopClass(DynamicAopAdvice.class,
                                                            targetAopClassName,
                                                            AbstractGrpcStubInterceptor.AsyncStubInterceptor.class.getName(),
                                                            true);

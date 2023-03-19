@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.guice.installer;
 
-import org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate;
+import org.bithon.agent.bootstrap.aop.advice.DynamicAopAdvice;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.interceptor.AopClassHelper;
 import org.bithon.agent.observability.aop.BeanMethodAopInstaller;
@@ -45,7 +45,7 @@ public class BeanMethodAopInstallerHelper {
 
         String targetAopClassName = BeanMethodAopInstallerHelper.class.getPackage().getName() + ".GuiceMethodAop";
 
-        targetAopClass = AopClassHelper.generateAopClass(IAdviceAopTemplate.class,
+        targetAopClass = AopClassHelper.generateAopClass(DynamicAopAdvice.class,
                                                          targetAopClassName,
                                                          GuiceBeanMethod$Invoke.class.getName(),
                                                          true);

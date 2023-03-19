@@ -22,7 +22,7 @@ import org.bithon.agent.bootstrap.aop.advice.AroundAdvice;
 import org.bithon.agent.bootstrap.aop.advice.ConstructorDecoratorAdvice;
 import org.bithon.agent.bootstrap.aop.advice.Interceptor;
 import org.bithon.agent.bootstrap.aop.advice.InterceptorResolver;
-import org.bithon.agent.bootstrap.aop.advice.MethodReplacementAdvice;
+import org.bithon.agent.bootstrap.aop.advice.ReplacementAdvice;
 import org.bithon.agent.bootstrap.aop.advice.TargetMethod;
 import org.bithon.agent.bootstrap.aop.advice.TargetMethodResolver;
 import org.bithon.agent.bootstrap.aop.interceptor.IInterceptor;
@@ -205,7 +205,7 @@ public class InterceptorInstaller {
                     builder = builder.method(pointCutDescriptor.getMethodMatcher())
                                      .intercept(Advice.withCustomMapping()
                                                       .bind(Interceptor.class, new InterceptorResolver(typeDescription, fieldName))
-                                                      .to(MethodReplacementAdvice.class).wrap(StubMethod.INSTANCE));
+                                                      .to(ReplacementAdvice.class).wrap(StubMethod.INSTANCE));
                     break;
 
                 default:

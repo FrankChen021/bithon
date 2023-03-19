@@ -25,7 +25,7 @@ import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
  * @author frank.chen021@outlook.com
  * @date 22/2/22 11:25 PM
  */
-public class MethodReplacementAdvice {
+public class ReplacementAdvice {
     /**
      * This method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
      */

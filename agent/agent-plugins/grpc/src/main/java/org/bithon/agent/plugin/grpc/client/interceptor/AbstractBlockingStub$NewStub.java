@@ -20,7 +20,7 @@ import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.stub.AbstractStub;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate;
+import org.bithon.agent.bootstrap.aop.advice.DynamicAopAdvice;
 import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.core.interceptor.AopClassHelper;
 import org.bithon.agent.core.interceptor.installer.DynamicInterceptorInstaller;
@@ -49,7 +49,7 @@ public class AbstractBlockingStub$NewStub extends BeforeInterceptor {
     public AbstractBlockingStub$NewStub() {
         String targetAopClassName = AbstractBlockingStub$NewStub.class.getPackage().getName() + ".BlockingStubAop";
 
-        grpcStubAopClass = AopClassHelper.generateAopClass(IAdviceAopTemplate.class,
+        grpcStubAopClass = AopClassHelper.generateAopClass(DynamicAopAdvice.class,
                                                            targetAopClassName,
                                                            AbstractGrpcStubInterceptor.BlockingStubInterceptor.class.getName(),
                                                            true);

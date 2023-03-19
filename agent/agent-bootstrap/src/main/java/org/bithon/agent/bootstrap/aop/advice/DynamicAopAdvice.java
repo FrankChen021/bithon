@@ -35,9 +35,9 @@ import java.util.Locale;
  * @author frank.chen021@outlook.com
  * @date 2021/12/29 22:19
  */
-public class IAdviceAopTemplate {
+public class DynamicAopAdvice {
 
-    private static final IAopLogger LOG = BootstrapHelper.createAopLogger(IAdviceAopTemplate.class);
+    private static final IAopLogger LOG = BootstrapHelper.createAopLogger(DynamicAopAdvice.class);
 
     /**
      * assigned by class generator
