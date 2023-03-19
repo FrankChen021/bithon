@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.log4j2.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.logging.LogPatternInjector;
 

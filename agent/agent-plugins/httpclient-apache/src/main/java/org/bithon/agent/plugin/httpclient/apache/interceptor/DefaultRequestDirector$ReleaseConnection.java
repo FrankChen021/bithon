@@ -21,7 +21,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.impl.client.DefaultRequestDirector;
 import org.apache.http.impl.conn.ConnectionShutdownException;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;

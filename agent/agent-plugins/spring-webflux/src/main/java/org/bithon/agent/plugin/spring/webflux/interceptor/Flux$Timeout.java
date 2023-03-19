@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.spring.webflux.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.reactivestreams.Publisher;
 

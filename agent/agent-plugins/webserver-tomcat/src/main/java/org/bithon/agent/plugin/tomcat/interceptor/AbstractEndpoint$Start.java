@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.tomcat.interceptor;
 
 import org.apache.tomcat.util.net.AbstractEndpoint;
 import org.apache.tomcat.util.threads.ResizableExecutor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;

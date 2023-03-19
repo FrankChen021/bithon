@@ -14,22 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.bootstrap.aop.advice;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+package org.bithon.agent.bootstrap.aop.interceptor;
 
 /**
- * DO NOT USE on Advice which is used for re-transformation.
- * See <a href="https://github.com/raphw/byte-buddy/issues/1210">this issue</a> on github for more details
- *
- * Work with {@link TargetMethodResolver}
- *
  * @author frank.chen021@outlook.com
- * @date 22/2/22 8:21 PM
+ * @date 2021/1/17 11:34 下午
  */
-@Retention(RetentionPolicy.RUNTIME)
-@java.lang.annotation.Target(ElementType.PARAMETER)
-public @interface TargetMethod {
+public enum InterceptionDecision {
+    CONTINUE,
+
+    /**
+     * Whether SKIP call of {@link org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor#after}
+     * It's very useful when implement interceptors for tracing
+     */
+    SKIP_LEAVE
 }

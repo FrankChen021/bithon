@@ -17,11 +17,11 @@
 package org.bithon.agent.plugin.mongodb.interceptor;
 
 import com.mongodb.MongoNamespace;
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;

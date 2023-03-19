@@ -16,7 +16,7 @@
 
 package org.bithon.agent.bootstrap.aop.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 
 /**
  * @author frank.chen021@outlook.com

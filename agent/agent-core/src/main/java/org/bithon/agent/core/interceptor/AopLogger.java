@@ -17,7 +17,7 @@
 package org.bithon.agent.core.interceptor;
 
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
-import org.bithon.agent.bootstrap.aop.IAopLogger;
+import org.bithon.agent.bootstrap.aop.logging.IAopLogger;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 

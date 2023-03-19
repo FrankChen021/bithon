@@ -16,12 +16,12 @@
 
 package org.bithon.agent.bootstrap.aop.advice;
 
-import org.bithon.agent.bootstrap.aop.AopContextImpl;
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
-import org.bithon.agent.bootstrap.aop.IAopLogger;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContextImpl;
 import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.bootstrap.aop.interceptor.IInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.logging.IAopLogger;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -41,9 +41,9 @@ public class AroundAdvice {
      */
     @Advice.OnMethodEnter
     public static boolean onEnter(
-        final @Interceptor IInterceptor interceptor,
-        final @TargetMethod Method method,
-        final @Advice.This(optional = true) Object target,
+        @AdviceAnnotation.Interceptor IInterceptor interceptor,
+        @AdviceAnnotation.TargetMethod Method method,
+        @Advice.This(optional = true) Object target,
         @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
         @Advice.Local("context") Object context
     ) {
@@ -85,11 +85,11 @@ public class AroundAdvice {
      * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit(onThrowable = Throwable.class)
-    public static void onExit(final @Interceptor IInterceptor interceptor,
-                              final @Advice.Enter boolean shouldExecute,
+    public static void onExit(@AdviceAnnotation.Interceptor IInterceptor interceptor,
+                              @Advice.Enter boolean shouldExecute,
                               @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning,
-                              final @Advice.Thrown Throwable exception,
-                              final @Advice.Local("context") Object context) {
+                              @Advice.Thrown Throwable exception,
+                              @Advice.Local("context") Object context) {
         if (!shouldExecute || context == null) {
             return;
         }

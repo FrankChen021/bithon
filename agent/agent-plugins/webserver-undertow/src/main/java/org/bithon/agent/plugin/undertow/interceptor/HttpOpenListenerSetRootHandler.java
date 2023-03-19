@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.undertow.interceptor;
 import io.undertow.UndertowOptions;
 import io.undertow.server.ConnectorStatistics;
 import io.undertow.server.protocol.http.HttpOpenListener;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.observability.metric.domain.web.WebServerMetricRegistry;

@@ -17,7 +17,7 @@
 package org.bithon.agent.plugin.log4j2.interceptor;
 
 import org.apache.logging.log4j.ThreadContext;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextListener;

@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.lettuce.interceptor;
 
 
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 
 /**

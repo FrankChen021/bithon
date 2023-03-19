@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.mysql.metrics;
 
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.observability.utils.MiscUtils;
 import org.bithon.agent.plugin.mysql.MySqlPlugin;

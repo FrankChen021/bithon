@@ -17,7 +17,7 @@
 package org.bithon.agent.plugin.grpc.client.interceptor;
 
 import io.grpc.internal.ManagedChannelImplBuilder;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.core.bytecode.ClassCopier;
 import org.bithon.agent.core.config.ConfigurationManager;

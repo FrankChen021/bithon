@@ -17,7 +17,7 @@
 package org.bithon.agent.plugin.apache.kafka.network.interceptor;
 
 import org.apache.kafka.clients.ClientResponse;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;

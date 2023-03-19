@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.lettuce.interceptor;
 
 import io.lettuce.core.api.StatefulConnection;
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.plugin.lettuce.LettuceAsyncContext;
 import org.bithon.component.commons.utils.ReflectionUtils;

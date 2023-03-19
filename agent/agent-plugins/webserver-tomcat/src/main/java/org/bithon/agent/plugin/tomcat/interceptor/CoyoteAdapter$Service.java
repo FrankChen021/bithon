@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.tomcat.interceptor;
 
 import org.apache.coyote.Request;
 import org.apache.coyote.Response;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingMetricsRegistry;

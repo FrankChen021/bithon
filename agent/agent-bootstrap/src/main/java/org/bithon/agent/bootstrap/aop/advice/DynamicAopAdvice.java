@@ -17,8 +17,9 @@
 package org.bithon.agent.bootstrap.aop.advice;
 
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
-import org.bithon.agent.bootstrap.aop.IAopLogger;
 import org.bithon.agent.bootstrap.aop.interceptor.IDynamicInterceptor;
+import org.bithon.agent.bootstrap.aop.logging.IAopLogger;
+import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -55,7 +56,7 @@ public class DynamicAopAdvice {
             // load class out of sync to eliminate potential deadlock
             Class<?> interceptorClass = Class.forName(INTERCEPTOR_CLASS_NAME,
                                                       true,
-                                                      BootstrapHelper.getPluginClassLoader());
+                                                      PluginClassLoaderManager.getClassLoader(Thread.currentThread().getContextClassLoader()));
             synchronized (INTERCEPTOR_CLASS_NAME) {
                 //double check
                 if (interceptorInstance != null) {

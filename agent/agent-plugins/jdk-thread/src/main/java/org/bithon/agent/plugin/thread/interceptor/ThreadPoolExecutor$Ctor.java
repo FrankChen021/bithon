@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.thread.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolExecutorMetrics;

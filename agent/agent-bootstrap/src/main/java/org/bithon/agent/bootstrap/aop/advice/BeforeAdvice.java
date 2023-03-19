@@ -16,11 +16,11 @@
 
 package org.bithon.agent.bootstrap.aop.advice;
 
-import org.bithon.agent.bootstrap.aop.AopContextImpl;
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
-import org.bithon.agent.bootstrap.aop.IAopLogger;
+import org.bithon.agent.bootstrap.aop.context.AopContextImpl;
 import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.bootstrap.aop.interceptor.IInterceptor;
+import org.bithon.agent.bootstrap.aop.logging.IAopLogger;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -40,9 +40,9 @@ public class BeforeAdvice {
      */
     @Advice.OnMethodEnter
     public static void onEnter(
-        final @Interceptor IInterceptor interceptor,
-        final @TargetMethod Method method,
-        final @Advice.This(optional = true) Object target,
+        @AdviceAnnotation.Interceptor IInterceptor interceptor,
+        @AdviceAnnotation.TargetMethod Method method,
+        @Advice.This(optional = true) Object target,
         @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args
     ) {
         if (interceptor == null) {

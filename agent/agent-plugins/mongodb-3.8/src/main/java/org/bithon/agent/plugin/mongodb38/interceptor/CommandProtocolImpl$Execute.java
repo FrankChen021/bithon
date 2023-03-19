@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.mongodb38.interceptor;
 
 import com.mongodb.internal.connection.InternalConnection;
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;

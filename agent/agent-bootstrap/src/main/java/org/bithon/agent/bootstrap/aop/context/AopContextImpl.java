@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.bootstrap.aop;
+package org.bithon.agent.bootstrap.aop.context;
 
 import java.lang.reflect.Executable;
 

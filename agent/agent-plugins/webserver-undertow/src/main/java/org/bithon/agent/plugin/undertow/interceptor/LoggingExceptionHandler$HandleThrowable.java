@@ -17,7 +17,7 @@
 package org.bithon.agent.plugin.undertow.interceptor;
 
 import io.undertow.server.HttpServerExchange;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.event.ExceptionCollector;
 

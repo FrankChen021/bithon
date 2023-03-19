@@ -18,9 +18,9 @@ package org.bithon.agent.plugin.tomcat.interceptor;
 
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingFilter;

@@ -17,7 +17,7 @@
 package org.bithon.agent.plugin.undertow.interceptor;
 
 import io.undertow.Undertow;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.observability.context.AppInstance;

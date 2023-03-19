@@ -16,11 +16,11 @@
 
 package org.bithon.agent.bootstrap.aop.advice;
 
-import org.bithon.agent.bootstrap.aop.AopContextImpl;
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
-import org.bithon.agent.bootstrap.aop.IAopLogger;
+import org.bithon.agent.bootstrap.aop.context.AopContextImpl;
 import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.bootstrap.aop.interceptor.IInterceptor;
+import org.bithon.agent.bootstrap.aop.logging.IAopLogger;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -40,8 +40,8 @@ public class AfterAdvice {
      */
     @Advice.OnMethodEnter
     public static void onEnter(
-        final @TargetMethod Method method,
-        final @Advice.This(optional = true) Object target,
+        @AdviceAnnotation.TargetMethod Method method,
+        @Advice.This(optional = true) Object target,
         @Advice.AllArguments Object[] args,
         @Advice.Local("context") Object context
     ) {
@@ -57,10 +57,10 @@ public class AfterAdvice {
      * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit(onThrowable = Throwable.class)
-    public static void onExit(final @Interceptor IInterceptor interceptor,
+    public static void onExit(@AdviceAnnotation.Interceptor IInterceptor interceptor,
                               @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning,
-                              final @Advice.Thrown Throwable exception,
-                              final @Advice.Local("context") Object context) {
+                              @Advice.Thrown Throwable exception,
+                              @Advice.Local("context") Object context) {
 
         AopContextImpl aopContext = (AopContextImpl) context;
         aopContext.onAfterTargetMethodInvocation();
@@ -84,4 +84,3 @@ public class AfterAdvice {
         returning = aopContext.getReturning();
     }
 }
-

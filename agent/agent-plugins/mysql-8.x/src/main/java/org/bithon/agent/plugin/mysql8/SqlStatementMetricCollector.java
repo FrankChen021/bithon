@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.mysql8;
 
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.dispatcher.IMessageConverter;
 import org.bithon.agent.observability.metric.collector.IMetricCollector;

@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.jedis.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.component.commons.logging.LoggerFactory;

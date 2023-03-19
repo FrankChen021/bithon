@@ -14,19 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.bootstrap.aop.advice;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+package org.bithon.agent.bootstrap.aop.logging;
 
 /**
- * Custom annotation used on Advice classes to reference the {@link org.bithon.agent.bootstrap.aop.interceptor.IInterceptor} object
+ * Since Aop, which is injected into bootstrap class loader, depends on log,
+ * and shaded.slf4j is not loaded by bootstrap class loader, we provide this class for Aop to log
+ * <p>
+ * NOTE: this class is injected into Bootstrap class loader
  *
  * @author frank.chen021@outlook.com
- * @date 18/2/22 8:01 PM
+ * @date 2021/2/19 10:45 下午
  */
-@Retention(RetentionPolicy.RUNTIME)
-@java.lang.annotation.Target(ElementType.PARAMETER)
-public @interface Interceptor {
+public interface IAopLogger {
+
+    void warn(String messageFormat, Object... args);
+    void warn(String message, Throwable e);
+    void error(String message, Throwable e);
 }

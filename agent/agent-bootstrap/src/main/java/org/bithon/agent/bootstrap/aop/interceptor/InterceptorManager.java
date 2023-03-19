@@ -14,10 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.bootstrap.aop;
+package org.bithon.agent.bootstrap.aop.interceptor;
 
 
-import org.bithon.agent.bootstrap.aop.interceptor.IInterceptor;
+import org.bithon.agent.bootstrap.aop.BootstrapHelper;
+import org.bithon.agent.bootstrap.aop.logging.IAopLogger;
 import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 
 import java.util.Locale;

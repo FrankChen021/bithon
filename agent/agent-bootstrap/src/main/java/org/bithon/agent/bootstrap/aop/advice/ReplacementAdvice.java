@@ -30,8 +30,8 @@ public class ReplacementAdvice {
      * This method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit
-    public static void onExecute(final @Interceptor IInterceptor interceptor,
-                                 final @Advice.AllArguments Object[] args,
+    public static void onExecute(@AdviceAnnotation.Interceptor IInterceptor interceptor,
+                                 @Advice.AllArguments Object[] args,
                                  @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning) {
         if (interceptor != null) {
             returning = ((ReplaceInterceptor) interceptor).execute(args);

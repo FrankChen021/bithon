@@ -16,6 +16,7 @@
 
 package org.bithon.agent.bootstrap.aop;
 
+import org.bithon.agent.bootstrap.aop.logging.IAopLogger;
 import org.bithon.agent.bootstrap.expt.AgentException;
 
 import java.lang.reflect.Method;

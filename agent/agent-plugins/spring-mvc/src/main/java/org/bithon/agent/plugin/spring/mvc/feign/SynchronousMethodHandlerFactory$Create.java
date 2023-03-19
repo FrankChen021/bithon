@@ -22,8 +22,8 @@ import feign.RequestTemplate;
 import feign.Target;
 import feign.codec.Decoder;
 import feign.codec.ErrorDecoder;
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 
 /**
