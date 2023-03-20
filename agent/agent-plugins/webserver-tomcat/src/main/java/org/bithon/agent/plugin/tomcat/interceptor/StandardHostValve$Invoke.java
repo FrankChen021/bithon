@@ -18,9 +18,9 @@ package org.bithon.agent.plugin.tomcat.interceptor;
 
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingFilter;
@@ -38,22 +38,14 @@ import org.bithon.component.commons.utils.StringUtils;
  *
  * @author frankchen
  */
-public class StandardHostValve$Invoke extends AbstractInterceptor {
+public class StandardHostValve$Invoke extends AroundInterceptor {
 
-    private HttpIncomingFilter requestFilter;
-    private TraceConfig traceConfig;
-
-    @Override
-    public boolean initialize() {
-        requestFilter = new HttpIncomingFilter();
-        traceConfig = ConfigurationManager.getInstance()
-                                          .getConfig(TraceConfig.class);
-
-        return true;
-    }
+    private final HttpIncomingFilter requestFilter = new HttpIncomingFilter();
+    private final TraceConfig traceConfig = ConfigurationManager.getInstance()
+                                                                .getConfig(TraceConfig.class);
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         TraceContextHolder.remove();
         InterceptorContext.remove(InterceptorContext.KEY_TRACEID);
 
@@ -113,7 +105,7 @@ public class StandardHostValve$Invoke extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         InterceptorContext.remove(InterceptorContext.KEY_URI);
 
         ITraceContext traceContext = aopContext.getUserContextAs();

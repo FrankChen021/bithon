@@ -16,19 +16,19 @@
 
 package org.bithon.agent.core.interceptor.installer;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.InterceptorManager;
-import org.bithon.agent.bootstrap.aop.advice.ConstructorDecoratorAdvice;
-import org.bithon.agent.bootstrap.aop.advice.Interceptor;
-import org.bithon.agent.bootstrap.aop.advice.InterceptorResolver;
-import org.bithon.agent.bootstrap.aop.advice.MethodDecoratorAdvice;
-import org.bithon.agent.bootstrap.aop.advice.MethodReplacementAdvice;
-import org.bithon.agent.bootstrap.aop.advice.TargetMethod;
-import org.bithon.agent.bootstrap.aop.advice.TargetMethodResolver;
+import org.bithon.agent.bootstrap.aop.advice.AdviceAnnotation;
+import org.bithon.agent.bootstrap.aop.advice.AfterAdvice;
+import org.bithon.agent.bootstrap.aop.advice.AroundAdvice;
+import org.bithon.agent.bootstrap.aop.advice.BeforeAdvice;
+import org.bithon.agent.bootstrap.aop.advice.ConstructorAfterAdvice;
+import org.bithon.agent.bootstrap.aop.advice.ReplacementAdvice;
+import org.bithon.agent.bootstrap.aop.interceptor.IInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptorManager;
 import org.bithon.agent.core.interceptor.AopDebugger;
 import org.bithon.agent.core.interceptor.descriptor.Descriptors;
 import org.bithon.agent.core.interceptor.descriptor.MethodPointCutDescriptor;
+import org.bithon.agent.core.interceptor.descriptor.MethodType;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
@@ -124,7 +124,7 @@ public class InterceptorInstaller {
         private DynamicType.Builder<?> builder;
         private Implementation.Composable interceptorInitializers;
 
-        private final TypeDescription interceptorTypeDescription = new TypeDescription.ForLoadedType(AbstractInterceptor.class);
+        private final TypeDescription interceptorTypeDescription = new TypeDescription.ForLoadedType(IInterceptor.class);
         private final ILogAdaptor log = LoggerFactory.getLogger(InterceptorInstaller.class);
 
         /**
@@ -182,19 +182,32 @@ public class InterceptorInstaller {
                 interceptorInitializers = interceptorInitializers.andThen(interceptorFieldInitializer);
             }
 
-            switch (pointCutDescriptor.getTargetMethodType()) {
-                case NON_CONSTRUCTOR:
+            switch (pointCutDescriptor.getInterceptorType()) {
+                case BEFORE:
                     builder = builder.visit(Advice.withCustomMapping()
-                                                  .bind(Interceptor.class, new InterceptorResolver(typeDescription, fieldName))
-                                                  .bind(TargetMethod.class, new TargetMethodResolver())
-                                                  .to(MethodDecoratorAdvice.class)
+                                                  .bind(AdviceAnnotation.Interceptor.class,
+                                                        new AdviceAnnotation.InterceptorResolver(typeDescription, fieldName))
+                                                  .bind(AdviceAnnotation.TargetMethod.class, new AdviceAnnotation.TargetMethodResolver())
+                                                  .to(BeforeAdvice.class)
                                                   .on(pointCutDescriptor.getMethodMatcher()));
                     break;
-                case CONSTRUCTOR:
+                case AFTER:
+                    Class<?> adviceClazz = pointCutDescriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ?
+                                           AfterAdvice.class : ConstructorAfterAdvice.class;
+
                     builder = builder.visit(Advice.withCustomMapping()
-                                                  .bind(Interceptor.class, new InterceptorResolver(typeDescription, fieldName))
-                                                  .bind(TargetMethod.class, new TargetMethodResolver())
-                                                  .to(ConstructorDecoratorAdvice.class)
+                                                  .bind(AdviceAnnotation.Interceptor.class,
+                                                        new AdviceAnnotation.InterceptorResolver(typeDescription, fieldName))
+                                                  .bind(AdviceAnnotation.TargetMethod.class, new AdviceAnnotation.TargetMethodResolver())
+                                                  .to(adviceClazz)
+                                                  .on(pointCutDescriptor.getMethodMatcher()));
+                    break;
+                case AROUND:
+                    builder = builder.visit(Advice.withCustomMapping()
+                                                  .bind(AdviceAnnotation.Interceptor.class,
+                                                        new AdviceAnnotation.InterceptorResolver(typeDescription, fieldName))
+                                                  .bind(AdviceAnnotation.TargetMethod.class, new AdviceAnnotation.TargetMethodResolver())
+                                                  .to(AroundAdvice.class)
                                                   .on(pointCutDescriptor.getMethodMatcher()));
                     break;
                 case REPLACEMENT:
@@ -204,14 +217,15 @@ public class InterceptorInstaller {
                     }
                     builder = builder.method(pointCutDescriptor.getMethodMatcher())
                                      .intercept(Advice.withCustomMapping()
-                                                      .bind(Interceptor.class, new InterceptorResolver(typeDescription, fieldName))
-                                                      .to(MethodReplacementAdvice.class).wrap(StubMethod.INSTANCE));
+                                                      .bind(AdviceAnnotation.Interceptor.class,
+                                                            new AdviceAnnotation.InterceptorResolver(typeDescription, fieldName))
+                                                      .to(ReplacementAdvice.class).wrap(StubMethod.INSTANCE));
                     break;
 
                 default:
                     log.warn("Interceptor[{}] ignored due to unknown method type {}",
                              pointCutDescriptor.getInterceptorClassName(),
-                             pointCutDescriptor.getTargetMethodType().name());
+                             pointCutDescriptor.getInterceptorType().name());
                     break;
             }
         }

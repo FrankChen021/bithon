@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.httpclient.netty3;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
@@ -35,12 +35,12 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
  * @author frank.chen021@outlook.com
  * @date 2021/5/13 5:32 下午
  */
-public class Channels$Write extends AbstractInterceptor {
+public class Channels$Write extends AroundInterceptor {
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
         if (!(aopContext.getArgs()[1] instanceof HttpRequest)) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -65,11 +65,11 @@ public class Channels$Write extends AbstractInterceptor {
 
         aopContext.setUserContext(span);
 
-        return super.onMethodEnter(aopContext);
+        return super.before(aopContext);
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (aopContext.hasException()) {
             return;
         }

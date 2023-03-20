@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import sun.net.www.protocol.http.HttpURLConnection;
 
 import java.net.Proxy;
@@ -32,12 +32,12 @@ import java.net.URL;
  * @author frank.chen021@outlook.com
  * @date 2021/2/21 11:13 下午
  */
-public class HttpClient$New extends AbstractInterceptor {
+public class HttpClient$New extends AfterInterceptor {
     /**
      * inject HttpURLConnection instance, which creates HttpClient instance, into the instance of HttpClient as its parent
      */
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         IBithonObject bithonObject = aopContext.getReturningAs();
         if (bithonObject == null) {
             // usually there's exception thrown when establish connection

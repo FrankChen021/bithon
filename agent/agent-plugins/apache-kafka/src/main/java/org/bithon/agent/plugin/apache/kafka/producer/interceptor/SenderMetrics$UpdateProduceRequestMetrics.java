@@ -18,8 +18,8 @@ package org.bithon.agent.plugin.apache.kafka.producer.interceptor;
 
 import org.apache.kafka.clients.producer.internals.ProducerBatch;
 import org.apache.kafka.common.TopicPartition;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.agent.plugin.apache.kafka.producer.metrics.ProducerMetricRegistry;
@@ -36,15 +36,14 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2022/12/3 16:36
  */
-public class SenderMetrics$UpdateProduceRequestMetrics extends AbstractInterceptor {
+public class SenderMetrics$UpdateProduceRequestMetrics extends AfterInterceptor {
 
-    private ProducerMetricRegistry metricRegistry;
+    private final ProducerMetricRegistry metricRegistry;
     private Field topicPartitionField;
     private Field recordCountField;
     private Field maxRecordSizeField;
 
-    @Override
-    public boolean initialize() {
+    public SenderMetrics$UpdateProduceRequestMetrics() {
         metricRegistry = MetricRegistryFactory.getOrCreateRegistry("kafka-producer",
                                                                    ProducerMetricRegistry::new);
 
@@ -65,12 +64,10 @@ public class SenderMetrics$UpdateProduceRequestMetrics extends AbstractIntercept
             maxRecordSizeField.setAccessible(true);
         } catch (NoSuchFieldException ignored) {
         }
-
-        return true;
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         Map<Integer, List<ProducerBatch>> batches = aopContext.getArgAs(0);
         if (batches.isEmpty()) {
             return;

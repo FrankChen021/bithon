@@ -19,6 +19,7 @@ package org.bithon.agent.core.interceptor.descriptor;
 import org.bithon.agent.core.interceptor.precondition.IInterceptorPrecondition;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,9 @@ import java.util.Set;
  * @date 26/12/21 11:07 AM
  */
 public class Descriptors {
+    /**
+     * key - target class name
+     */
     private final Map<String, Descriptor> descriptors = new HashMap<>();
 
     public Descriptor get(String type) {
@@ -69,6 +73,10 @@ public class Descriptors {
 
     public Set<String> getTypes() {
         return this.descriptors.keySet();
+    }
+
+    public Collection<Descriptor> getAllDescriptor() {
+        return this.descriptors.values();
     }
 
     public static class Descriptor {

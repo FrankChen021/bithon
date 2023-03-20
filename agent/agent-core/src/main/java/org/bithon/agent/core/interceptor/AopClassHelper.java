@@ -17,6 +17,10 @@
 package org.bithon.agent.core.interceptor;
 
 
+import org.bithon.agent.bootstrap.aop.advice.AroundAdvice;
+import org.bithon.agent.bootstrap.aop.advice.ConstructorAfterAdvice;
+import org.bithon.agent.bootstrap.aop.advice.DynamicAopAdvice;
+import org.bithon.agent.bootstrap.aop.advice.ReplacementAdvice;
 import org.bithon.shaded.net.bytebuddy.ByteBuddy;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
 import org.bithon.shaded.net.bytebuddy.dynamic.loading.ClassInjector;
@@ -28,10 +32,10 @@ import java.util.Map;
 /**
  * Create an Aop class based on a class template.
  * Such template can be one of following:
- * {@link org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate}
- * {@link org.bithon.agent.bootstrap.aop.advice.ConstructorDecoratorAdvice}
- * {@link org.bithon.agent.bootstrap.aop.advice.MethodDecoratorAdvice}
- * {@link org.bithon.agent.bootstrap.aop.advice.MethodReplacementAdvice}
+ * {@link DynamicAopAdvice}
+ * {@link ConstructorAfterAdvice}
+ * {@link AroundAdvice}
+ * {@link ReplacementAdvice}
  *
  * @author frankchen
  * @date 2021-02-18 19:23

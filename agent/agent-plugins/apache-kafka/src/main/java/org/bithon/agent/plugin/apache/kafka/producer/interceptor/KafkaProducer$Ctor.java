@@ -19,9 +19,9 @@ package org.bithon.agent.plugin.apache.kafka.producer.interceptor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.internals.Sender;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
@@ -34,10 +34,10 @@ import java.util.Properties;
  * @author frank.chen021@outlook.com
  * @date 2022/11/16 11:44
  */
-public class KafkaProducer$Ctor extends AbstractInterceptor {
+public class KafkaProducer$Ctor extends AfterInterceptor {
 
     @Override
-    public void onConstruct(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ProducerConfig producerConfig = (ProducerConfig) ReflectionUtils.getFieldValue(aopContext.getTarget(), "producerConfig");
 
         List<String> bootstrapServers = producerConfig.getList(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG);

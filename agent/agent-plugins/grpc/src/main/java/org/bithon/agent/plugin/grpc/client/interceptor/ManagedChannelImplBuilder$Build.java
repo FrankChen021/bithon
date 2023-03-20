@@ -17,9 +17,8 @@
 package org.bithon.agent.plugin.grpc.client.interceptor;
 
 import io.grpc.internal.ManagedChannelImplBuilder;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.core.bytecode.ClassCopier;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.plugin.grpc.ShadedGrpcList;
@@ -40,24 +39,26 @@ import java.util.Map;
  * @author Frank Chen
  * @date 22/12/22 9:48 pm
  */
-public class ManagedChannelImplBuilder$Build extends AbstractInterceptor {
+public class ManagedChannelImplBuilder$Build extends BeforeInterceptor {
 
     private final Map<String, String> shadedGrpcClassMap = new HashMap<>();
     private final List<String> shadedGrpcList = ConfigurationManager.getInstance().getConfig(ShadedGrpcList.class);
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public void before(AopContext aopContext) {
         String targetClazzName = aopContext.getTargetClass().getName();
         if (shadedGrpcList.isEmpty() || targetClazzName.startsWith("io.grpc.")) {
             // No shaded gRPC or current target is not a shaded one, then create a default interceptor
             // Note: use string name instead of class name because this class might be executed in a shaded grpc lib
-            return createInterceptor(aopContext, "org.bithon.agent.plugin.grpc.client.interceptor.ClientCallInterceptor");
+            createInterceptor(aopContext, "org.bithon.agent.plugin.grpc.client.interceptor.ClientCallInterceptor");
+            return;
         }
 
         String interceptor = shadedGrpcClassMap.get(targetClazzName);
         if (interceptor != null) {
             // Know the interceptor for this target, then create it by its name
-            return createInterceptor(aopContext, interceptor);
+            createInterceptor(aopContext, interceptor);
+            return;
         }
 
         // Current target is a shaded gRPC, we need to create a ClientCallInterceptor class for this shaded gRPC
@@ -91,7 +92,8 @@ public class ManagedChannelImplBuilder$Build extends AbstractInterceptor {
                 try {
                     new ClassCopier()
                         .changePackage("io.grpc", shadedPackage.toString())
-                        .copyClass(currentPackage + ".ClientCallInterceptor$TracedClientCallListener", currentPackage + "." + shadedPackage + ".ShadedTracedClientCallListener")
+                        .copyClass(currentPackage + ".ClientCallInterceptor$TracedClientCallListener",
+                                   currentPackage + "." + shadedPackage + ".ShadedTracedClientCallListener")
                         .copyClass(currentPackage + ".ClientCallInterceptor$TracedClientCall", currentPackage + "." + shadedPackage + ".ShadedTracedClientCall")
                         .copyClass(currentPackage + ".ClientCallInterceptor", clientInterceptor)
                         .to(this.getClass().getClassLoader());
@@ -105,10 +107,10 @@ public class ManagedChannelImplBuilder$Build extends AbstractInterceptor {
             }
         }
 
-        return createInterceptor(aopContext, shadedGrpcClassMap.get(targetClazzName));
+        createInterceptor(aopContext, shadedGrpcClassMap.get(targetClazzName));
     }
 
-    private InterceptionDecision createInterceptor(AopContext aopContext, String clientInterceptor) {
+    private void createInterceptor(AopContext aopContext, String clientInterceptor) {
         try {
             Object builder = aopContext.getTarget();
 
@@ -124,6 +126,5 @@ public class ManagedChannelImplBuilder$Build extends AbstractInterceptor {
         } catch (InvocationTargetException e) {
             throw new RuntimeException(e.getCause());
         }
-        return InterceptionDecision.SKIP_LEAVE;
     }
 }

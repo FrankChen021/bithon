@@ -16,10 +16,10 @@
 
 package org.bithon.agent.plugin.spring.webflux.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.plugin.spring.webflux.context.HttpClientContext;
@@ -39,12 +39,12 @@ import java.util.function.BiFunction;
  * @author frank.chen021@outlook.com
  * @date 27/11/21 1:57 pm
  */
-public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor {
+public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         HttpClient httpClient = aopContext.getTargetAs();
         String uri = httpClient.configuration().uri();
         String method = httpClient.configuration().method().name();
@@ -89,7 +89,7 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         HttpClient httpClient = aopContext.getTargetAs();
         String uri = httpClient.configuration().uri();
         String method = httpClient.configuration().method().name();

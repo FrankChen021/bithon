@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.spring.bean.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.plugin.spring.bean.installer.BeanMethodAopInstallerHelper;
 
 /**
@@ -26,13 +26,13 @@ import org.bithon.agent.plugin.spring.bean.installer.BeanMethodAopInstallerHelpe
  * @author frank.chen021@outlook.com
  * @date 2021/4/11 20:48
  */
-public class AbstractAutowireCapableBeanFactory$ApplyBeanPostProcessor extends AbstractInterceptor {
+public class AbstractAutowireCapableBeanFactory$ApplyBeanPostProcessor extends AfterInterceptor {
 
     /**
      * Re-transform
      */
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (aopContext.getReturning() == null || aopContext.hasException()) {
             return;
         }

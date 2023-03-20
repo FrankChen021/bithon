@@ -23,9 +23,9 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.protocol.HttpContext;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
@@ -38,18 +38,12 @@ import org.bithon.component.commons.tracing.Tags;
  *
  * @author frankchen
  */
-public class HttpRequestExecutor$Execute extends AbstractInterceptor {
+public class HttpRequestExecutor$Execute extends AroundInterceptor {
 
-    private TraceConfig traceConfig;
-
-    @Override
-    public boolean initialize() {
-        traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
-        return true;
-    }
+    private final TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[0];
 
         //
@@ -81,7 +75,7 @@ public class HttpRequestExecutor$Execute extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext context) {
+    public void after(AopContext context) {
         ITraceSpan thisSpan = context.getUserContextAs();
         if (thisSpan == null) {
             // in case of exception in above

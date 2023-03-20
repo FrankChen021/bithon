@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.jedis.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -32,11 +32,11 @@ import java.lang.reflect.Field;
  * @author frankchen
  * @date Dec 27, 2020 11:14:08 PM
  */
-public class RedisOutputStream$Ctor extends AbstractInterceptor {
+public class RedisOutputStream$Ctor extends AfterInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(RedisOutputStream$Ctor.class);
 
     @Override
-    public void onConstruct(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         OutputStream os = aopContext.getArgAs(0);
 
         try {

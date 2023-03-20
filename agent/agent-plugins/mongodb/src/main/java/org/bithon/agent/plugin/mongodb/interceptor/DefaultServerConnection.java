@@ -18,10 +18,11 @@ package org.bithon.agent.plugin.mongodb.interceptor;
 
 import com.mongodb.async.SingleResultCallback;
 import com.mongodb.connection.Connection;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
@@ -41,11 +42,11 @@ public class DefaultServerConnection {
     /**
      * {@link com.mongodb.connection.DefaultServerConnection#executeProtocol(com.mongodb.connection.Protocol)}
      */
-    public static class ExecuteProtocol extends AbstractInterceptor {
+    public static class ExecuteProtocol extends AroundInterceptor {
         private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
         @Override
-        public InterceptionDecision onMethodEnter(AopContext aopContext) {
+        public InterceptionDecision before(AopContext aopContext) {
             //
             // set command to thread context so that the size of sent/received could be associated with the command
             //
@@ -69,7 +70,7 @@ public class DefaultServerConnection {
         }
 
         @Override
-        public void onMethodLeave(AopContext aopContext) {
+        public void after(AopContext aopContext) {
             Connection connection = aopContext.getTargetAs();
             String hostAndPort = connection.getDescription().getServerAddress().toString();
 
@@ -110,18 +111,18 @@ public class DefaultServerConnection {
     /**
      * {@link com.mongodb.connection.DefaultServerConnection#executeProtocolAsync(com.mongodb.connection.Protocol, SingleResultCallback)}
      */
-    public static class ExecuteProtocolAsync extends AbstractInterceptor {
+    public static class ExecuteProtocolAsync extends BeforeInterceptor {
         private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
         /**
          * {@link com.mongodb.connection.DefaultServerConnection#executeProtocolAsync(com.mongodb.connection.Protocol, com.mongodb.async.SingleResultCallback)}
          */
         @Override
-        public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+        public void before(AopContext aopContext) throws Exception {
             Object protocol = aopContext.getArgs()[0];
             if (!(protocol instanceof IBithonObject)) {
                 log.warn("Unknown Command", new RuntimeException());
-                return InterceptionDecision.SKIP_LEAVE;
+                return;
             }
 
             //TODO: wrap callback and exception callback
@@ -130,8 +131,6 @@ public class DefaultServerConnection {
              * MongoCommand command = (MongoCommand) bithonObject.getInjectedObject();
              * SingleResultCallback callback = (SingleResultCallback) aopContext.getArgs()[1];
              */
-
-            return super.onMethodEnter(aopContext);
         }
     }
 }

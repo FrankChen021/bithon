@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.grpc.client.interceptor;
 
-import org.bithon.agent.bootstrap.aop.advice.IAdviceInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.IDynamicInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -27,7 +27,7 @@ import java.lang.reflect.Method;
  * @author Frank Chen
  * @date 13/12/22 6:06 pm
  */
-public class AbstractGrpcStubInterceptor implements IAdviceInterceptor {
+public class AbstractGrpcStubInterceptor implements IDynamicInterceptor {
 
     private final String component;
 

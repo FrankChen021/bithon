@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.jedis.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.redis.RedisMetricRegistry;
 import redis.clients.jedis.Jedis;
@@ -29,12 +29,12 @@ import java.util.Locale;
  * @author frank.chen021@outlook.com
  * @date 22/1/22 5:52 PM
  */
-public class OnCommand extends AbstractInterceptor {
+public class OnCommand extends AroundInterceptor {
 
     private final RedisMetricRegistry metricRegistry = RedisMetricRegistry.get();
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
         Jedis jedis = aopContext.getTargetAs();
         String hostAndPort = jedis.getClient().getHost() + ":" + jedis.getClient().getPort();
         //String db = jedis.getDB();
@@ -43,11 +43,11 @@ public class OnCommand extends AbstractInterceptor {
 
         InterceptorContext.set("redis-command", new JedisContext(metricRegistry.getOrCreateMetrics(hostAndPort, command)));
 
-        return super.onMethodEnter(aopContext);
+        return super.before(aopContext);
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) throws Exception {
+    public void after(AopContext aopContext) throws Exception {
         JedisContext ctx = (JedisContext) InterceptorContext.get("redis-command");
         if (ctx == null) {
             return;

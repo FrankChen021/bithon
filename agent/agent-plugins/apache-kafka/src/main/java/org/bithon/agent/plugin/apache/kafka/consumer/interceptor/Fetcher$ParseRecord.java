@@ -19,8 +19,8 @@ package org.bithon.agent.plugin.apache.kafka.consumer.interceptor;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.record.Record;
 import org.apache.kafka.common.record.RecordBatch;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.agent.plugin.apache.kafka.consumer.metrics.ConsumerMetricRegistry;
@@ -32,18 +32,12 @@ import org.bithon.agent.plugin.apache.kafka.consumer.metrics.ConsumerMetrics;
  * @author frank.chen021@outlook.com
  * @date 2022/12/3 15:27
  */
-public class Fetcher$ParseRecord extends AbstractInterceptor {
+public class Fetcher$ParseRecord extends AfterInterceptor {
 
-    private ConsumerMetricRegistry metricRegistry;
-
-    @Override
-    public boolean initialize() {
-        metricRegistry = MetricRegistryFactory.getOrCreateRegistry("kafka-consumer-metrics", ConsumerMetricRegistry::new);
-        return true;
-    }
+    private final ConsumerMetricRegistry metricRegistry = MetricRegistryFactory.getOrCreateRegistry("kafka-consumer-metrics", ConsumerMetricRegistry::new);
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         TopicPartition topicPartition = aopContext.getArgAs(0);
         Record record = aopContext.getArgAs(2);
 

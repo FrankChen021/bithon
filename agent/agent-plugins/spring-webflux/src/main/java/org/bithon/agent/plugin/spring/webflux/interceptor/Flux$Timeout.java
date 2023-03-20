@@ -16,27 +16,26 @@
 
 package org.bithon.agent.plugin.spring.webflux.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.reactivestreams.Publisher;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 29/11/21 3:35 pm
  */
-public class Flux$Timeout extends AbstractInterceptor {
+public class Flux$Timeout extends BeforeInterceptor {
 
     /**
      * replace the timeout callback so that we have the opportunity to do sth when timeout
      *
-     * {@link HttpClientFinalizer$ResponseConnection#onMethodLeave(AopContext)} will inject a timeout callback
+     * {@link HttpClientFinalizer$ResponseConnection#after(AopContext)} will inject a timeout callback
      */
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public void before(AopContext aopContext) {
         Runnable timeoutCallback = aopContext.getInjectedOnTargetAs();
         if (timeoutCallback == null) {
-            return InterceptionDecision.SKIP_LEAVE;
+            return;
         }
 
         Publisher originalFallback = aopContext.getArgAs(2);
@@ -52,6 +51,5 @@ public class Flux$Timeout extends AbstractInterceptor {
 
         // replace the original fallback
         aopContext.getArgs()[2] = newFallback;
-        return InterceptionDecision.SKIP_LEAVE;
     }
 }

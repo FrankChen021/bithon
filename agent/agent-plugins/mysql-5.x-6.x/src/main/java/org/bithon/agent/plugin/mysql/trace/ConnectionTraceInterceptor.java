@@ -16,20 +16,20 @@
 
 package org.bithon.agent.plugin.mysql.trace;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.observability.context.InterceptorContext;
 
 /**
  * @author frankchen
  */
-public class ConnectionTraceInterceptor extends AbstractInterceptor {
+public class ConnectionTraceInterceptor extends AroundInterceptor {
 
     public static final String KEY = "sql";
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext context) {
+    public InterceptionDecision before(AopContext context) {
         if (context.getArgs() != null && context.getArgs().length > 0) {
             InterceptorContext.set(KEY, context.getArgs()[0].toString());
             return InterceptionDecision.CONTINUE;
@@ -39,7 +39,7 @@ public class ConnectionTraceInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         //InterceptorContext.remove(KEY);
     }
 }

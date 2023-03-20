@@ -16,8 +16,11 @@
 
 package org.bithon.agent.bootstrap.loader;
 
+import org.bithon.agent.bootstrap.expt.AgentException;
+
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -171,6 +174,19 @@ public class JarClassLoader extends ClassLoader {
                 return iterator.next();
             }
         };
+    }
+
+    public InputStream getClassStream(String name) throws IOException {
+        String path = name.replace('.', '/').concat(".class");
+        for (JarFile jarFile : jars) {
+            JarEntry entry = jarFile.getJarEntry(path);
+            if (entry == null) {
+                continue;
+            }
+
+            return jarFile.getInputStream(entry);
+        }
+        throw new AgentException("Can't find clazz [%s].", name);
     }
 
     @Override

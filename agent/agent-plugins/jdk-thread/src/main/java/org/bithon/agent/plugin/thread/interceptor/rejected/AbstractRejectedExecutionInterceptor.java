@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.thread.interceptor.rejected;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 
@@ -29,7 +29,7 @@ import java.util.function.Consumer;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 9:10 下午
  */
-public class AbstractRejectedExecutionInterceptor extends AbstractInterceptor {
+public class AbstractRejectedExecutionInterceptor extends AroundInterceptor {
 
     private final Consumer<ThreadPoolExecutor> onLeave;
 
@@ -38,7 +38,7 @@ public class AbstractRejectedExecutionInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceSpan span = TraceSpanFactory.newSpan("threadPool");
         if (span != null) {
             aopContext.setUserContext(span.method(aopContext.getMethod()).start());
@@ -47,7 +47,7 @@ public class AbstractRejectedExecutionInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceSpan span = (ITraceSpan) aopContext.getUserContext();
         if (span != null) {
             span.tag(aopContext.getException()).finish();

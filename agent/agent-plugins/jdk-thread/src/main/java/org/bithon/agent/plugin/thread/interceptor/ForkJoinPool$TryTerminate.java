@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.thread.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
 
 /**
@@ -26,10 +26,10 @@ import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 11:15 下午
  */
-public class ForkJoinPool$TryTerminate extends AbstractInterceptor {
+public class ForkJoinPool$TryTerminate extends AfterInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
         if (registry != null) {
             registry.deleteThreadPool(aopContext.getTargetAs());

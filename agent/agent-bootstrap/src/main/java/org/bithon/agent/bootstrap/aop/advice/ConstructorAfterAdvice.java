@@ -1,0 +1,56 @@
+/*
+ *    Copyright 2020 bithon.org
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package org.bithon.agent.bootstrap.aop.advice;
+
+
+import org.bithon.agent.bootstrap.aop.context.AopContextImpl;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.IInterceptor;
+import org.bithon.agent.bootstrap.aop.logging.BootstrapLogger;
+import org.bithon.agent.bootstrap.aop.logging.IAopLogger;
+import org.bithon.shaded.net.bytebuddy.asm.Advice;
+
+import java.lang.reflect.Constructor;
+import java.util.Locale;
+
+
+/**
+ * @author frankchen
+ * @date 2021-02-18 18:03
+ */
+public class ConstructorAfterAdvice {
+    public static final IAopLogger LOG = BootstrapLogger.createLogger(ConstructorAfterAdvice.class);
+
+    @Advice.OnMethodExit
+    public static void onExit(@AdviceAnnotation.Interceptor IInterceptor interceptor,
+                              @AdviceAnnotation.TargetMethod Constructor<?> method,
+                              @Advice.This Object target,
+                              @Advice.AllArguments Object[] args) {
+        if (interceptor == null) {
+            return;
+        }
+        try {
+            ((AfterInterceptor) interceptor).after(new AopContextImpl(method, target, args));
+        } catch (Throwable e) {
+            LOG.error(String.format(Locale.ENGLISH,
+                                    "Exception occurs when executing onConstruct on interceptor [%s]: %s",
+                                    interceptor.getClass().getName(),
+                                    e.getMessage()),
+                      e);
+        }
+    }
+}

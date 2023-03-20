@@ -17,9 +17,9 @@
 package org.bithon.agent.plugin.mongodb38.interceptor.protocol;
 
 import com.mongodb.MongoNamespace;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 
 import java.util.List;
@@ -27,9 +27,9 @@ import java.util.List;
 /**
  * {@link com.mongodb.connection.KillCursorProtocol#KillCursorProtocol(MongoNamespace, List)}
  */
-public class KillCursorProtocol$Ctor extends AbstractInterceptor {
+public class KillCursorProtocol$Ctor extends AfterInterceptor {
     @Override
-    public void onConstruct(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         MongoNamespace ns = aopContext.getArgAs(0);
         IBithonObject bithonObject = aopContext.getTargetAs();
         bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),

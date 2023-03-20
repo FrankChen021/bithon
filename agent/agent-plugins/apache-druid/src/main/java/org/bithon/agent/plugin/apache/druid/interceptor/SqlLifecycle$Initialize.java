@@ -16,9 +16,8 @@
 
 package org.bithon.agent.plugin.apache.druid.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.component.commons.tracing.Tags;
@@ -31,10 +30,10 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 4/1/22 6:37 PM
  */
-public class SqlLifecycle$Initialize extends AbstractInterceptor {
+public class SqlLifecycle$Initialize extends BeforeInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public void before(AopContext aopContext) {
         ITraceContext ctx = TraceContextHolder.current();
         if (ctx != null) {
             Object query = aopContext.getArgs()[0];
@@ -45,6 +44,5 @@ public class SqlLifecycle$Initialize extends AbstractInterceptor {
                    .tag(Tags.SQL, query.toString());
             }
         }
-        return InterceptionDecision.SKIP_LEAVE;
     }
 }

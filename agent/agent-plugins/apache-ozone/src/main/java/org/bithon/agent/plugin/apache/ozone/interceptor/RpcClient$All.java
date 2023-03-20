@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.apache.ozone.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 
@@ -28,10 +28,10 @@ import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
  * @author Frank Chen
  * @date 14/12/22 10:37 pm
  */
-public class RpcClient$All extends AbstractInterceptor {
+public class RpcClient$All extends AroundInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceSpan span = TraceSpanFactory.newSpan("ozone-om");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -43,7 +43,7 @@ public class RpcClient$All extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getUserContextAs();
         span.tag(aopContext.getException()).finish();
     }

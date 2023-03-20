@@ -17,7 +17,7 @@
 package org.bithon.agent.plugin.alibaba.druid.interceptor;
 
 import com.alibaba.druid.pool.DruidPooledPreparedStatement;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
 
 /**
  * @author frankchen

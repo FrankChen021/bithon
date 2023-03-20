@@ -16,9 +16,8 @@
 
 package org.bithon.agent.plugin.grpc.server.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.core.bytecode.ClassCopier;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
@@ -45,7 +44,7 @@ import java.util.stream.Stream;
  * @author Frank Chen
  * @date 22/12/22 3:54 pm
  */
-public class ServerImplBuilder$Build extends AbstractInterceptor {
+public class ServerImplBuilder$Build extends BeforeInterceptor {
 
     private final Map<String, String> shadedGrpcClassMap = new HashMap<>();
     private final List<String> shadedGrpcList;
@@ -59,18 +58,20 @@ public class ServerImplBuilder$Build extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public void before(AopContext aopContext) {
         String targetClazzName = aopContext.getTargetClass().getName();
         if (shadedGrpcList.isEmpty() || targetClazzName.startsWith("io.grpc.")) {
             // No shaded gRPC or current target is not a shaded one, then create a default interceptor
             // Note: use string name instead of class name because this class might be executed in a shaded grpc lib
-            return createInterceptor(aopContext, "org.bithon.agent.plugin.grpc.server.interceptor.ServerCallInterceptor");
+            createInterceptor(aopContext, "org.bithon.agent.plugin.grpc.server.interceptor.ServerCallInterceptor");
+            return;
         }
 
         String interceptor = shadedGrpcClassMap.get(targetClazzName);
         if (interceptor != null) {
             // Know the interceptor for this target, then create it by its name
-            return createInterceptor(aopContext, interceptor);
+            createInterceptor(aopContext, interceptor);
+            return;
         }
 
         // Current target is a shaded gRPC, we need to create a ClientCallInterceptor class for this shaded gRPC
@@ -118,10 +119,10 @@ public class ServerImplBuilder$Build extends AbstractInterceptor {
             }
         }
 
-        return createInterceptor(aopContext, shadedGrpcClassMap.get(targetClazzName));
+        createInterceptor(aopContext, shadedGrpcClassMap.get(targetClazzName));
     }
 
-    private InterceptionDecision createInterceptor(AopContext aopContext, String interceptorClassName) {
+    private void createInterceptor(AopContext aopContext, String interceptorClassName) {
         try {
             Object builder = aopContext.getTarget();
 
@@ -145,6 +146,5 @@ public class ServerImplBuilder$Build extends AbstractInterceptor {
         } catch (InvocationTargetException e) {
             throw new RuntimeException(e.getCause());
         }
-        return InterceptionDecision.SKIP_LEAVE;
     }
 }

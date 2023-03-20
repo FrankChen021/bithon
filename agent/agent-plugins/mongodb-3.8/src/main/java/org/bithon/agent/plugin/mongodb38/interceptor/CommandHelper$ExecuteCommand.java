@@ -19,9 +19,9 @@ package org.bithon.agent.plugin.mongodb38.interceptor;
 import com.mongodb.MongoNamespace;
 import com.mongodb.internal.connection.ClusterClock;
 import com.mongodb.internal.connection.InternalConnection;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
@@ -39,12 +39,12 @@ import org.bson.BsonDocument;
  * @author frank.chen021@outlook.com
  * @date 2021/3/29 1:53 下午
  */
-public class CommandHelper$ExecuteCommand extends AbstractInterceptor {
+public class CommandHelper$ExecuteCommand extends AroundInterceptor {
 
     private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
         int lastIndex = aopContext.getArgs().length - 1;
         if (lastIndex == -1) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -66,11 +66,11 @@ public class CommandHelper$ExecuteCommand extends AbstractInterceptor {
         InterceptorContext.set("mongo-3.8-command", command);
         aopContext.setUserContext(command);
 
-        return super.onMethodEnter(aopContext);
+        return super.before(aopContext);
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) throws Exception {
+    public void after(AopContext aopContext) throws Exception {
         int lastIndex = aopContext.getArgs().length - 1;
         InternalConnection connection = aopContext.getArgAs(lastIndex);
         String server = connection.getDescription().getServerAddress().toString();
@@ -81,6 +81,6 @@ public class CommandHelper$ExecuteCommand extends AbstractInterceptor {
                                          command.getCollection(),
                                          command.getCommand())
                       .add(aopContext.getExecutionTime(), aopContext.hasException() ? 1 : 0);
-        super.onMethodLeave(aopContext);
+        super.after(aopContext);
     }
 }

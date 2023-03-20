@@ -40,18 +40,18 @@ public class LogbackPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("callAppenders",
                                                                     "ch.qos.logback.classic.spi.ILoggingEvent")
-                                                   .to("org.bithon.agent.plugin.logback.interceptor.LoggerCallAppenders")
+                                                   .to("org.bithon.agent.plugin.logback.interceptor.Logger$CallAppenders")
                 ),
 
             forClass("ch.qos.logback.core.pattern.PatternLayoutBase")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                         .onDefaultConstructor()
-                                                   .to("org.bithon.agent.plugin.logback.interceptor.PatternLayoutCtor"),
+                                                   .to("org.bithon.agent.plugin.logback.interceptor.PatternLayout$Ctor"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("setPattern", "java.lang.String")
-                                                   .to("org.bithon.agent.plugin.logback.interceptor.PatternLayoutSetPattern")
+                                                   .to("org.bithon.agent.plugin.logback.interceptor.PatternLayout$SetPattern")
                 )
         );
     }

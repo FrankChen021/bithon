@@ -19,35 +19,47 @@
   -->
 
 <FindBugsFilter>
+    <!--
+        https://findbugs.sourceforge.net/bugDescriptions.html
+    -->
     <Match>
-        <Class name="~org\.bithon\.agent\.rpc\.thrift.*" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.ConstructorDecoratorAdvice"/>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.ConstructorAfterAdvice"/>
         <Bug pattern="UWF_UNWRITTEN_FIELD" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate"/>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.BeforeAdvice"/>
         <Bug pattern="DLS_DEAD_LOCAL_STORE" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate"/>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.AfterAdvice"/>
+        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+    </Match>
+    <Match>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.AfterAdvice"/>
         <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodDecoratorAdvice"/>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.DynamicAopAdvice"/>
         <Bug pattern="DLS_DEAD_LOCAL_STORE" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodDecoratorAdvice"/>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.DynamicAopAdvice"/>
         <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodReplacementAdvice"/>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.AroundAdvice"/>
         <Bug pattern="DLS_DEAD_LOCAL_STORE" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodReplacementAdvice"/>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.AroundAdvice"/>
+        <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
+    </Match>
+    <Match>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.ReplacementAdvice"/>
+        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+    </Match>
+    <Match>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.ReplacementAdvice"/>
         <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
     </Match>
 
@@ -79,13 +91,15 @@
         <!--This module is interface only, so no access-->
         <Bug pattern="UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
+
+    <Bug pattern="EI_EXPOSE_STATIC_REP2" />
+    <Bug pattern="MS_EXPOSE_REP" />
     <Bug pattern="AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION"/>
     <Bug pattern="BC_UNCONFIRMED_CAST"/>
     <Bug pattern="BIT_SIGNED_CHECK_HIGH_BIT"/>
     <Bug pattern="BX_UNBOXING_IMMEDIATELY_REBOXED"/>
     <Bug pattern="CN_IDIOM_NO_SUPER_CALL"/>
     <Bug pattern="CN_IMPLEMENTS_CLONE_BUT_NOT_CLONEABLE"/>
-    <Bug pattern="DC_DOUBLECHECK"/>
     <Bug pattern="DE_MIGHT_IGNORE"/> <!--we might use catch(Exception ignored) pattern to ignore some exceptions-->
     <Bug pattern="DM_BOXED_PRIMITIVE_FOR_PARSING"/>
     <Bug pattern="DM_EXIT"/>

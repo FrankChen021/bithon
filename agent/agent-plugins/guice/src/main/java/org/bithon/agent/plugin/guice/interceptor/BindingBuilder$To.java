@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.guice.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.plugin.guice.installer.BeanMethodAopInstallerHelper;
 
 /**
@@ -26,19 +26,17 @@ import org.bithon.agent.plugin.guice.installer.BeanMethodAopInstallerHelper;
  * @author frank.chen021@outlook.com
  * @date 2021/12/06 22:48
  */
-public class BindingBuilder$To extends AbstractInterceptor {
+public class BindingBuilder$To extends AfterInterceptor {
 
-    @Override
-    public boolean initialize() {
+    public BindingBuilder$To() {
         BeanMethodAopInstallerHelper.initialize();
-        return true;
     }
 
     /**
      * Re-transform the class of the bean
      */
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         Class<?> clazz = aopContext.getArgAs(0);
         if (clazz != null) {
             BeanMethodAopInstallerHelper.install(clazz);

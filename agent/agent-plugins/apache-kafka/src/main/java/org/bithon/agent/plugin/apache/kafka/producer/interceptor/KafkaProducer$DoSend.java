@@ -18,10 +18,10 @@ package org.bithon.agent.plugin.apache.kafka.producer.interceptor;
 
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Header;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
@@ -37,18 +37,12 @@ import java.nio.charset.StandardCharsets;
  * @author Frank Chen
  * @date 18/11/22 10:33 am
  */
-public class KafkaProducer$DoSend extends AbstractInterceptor {
+public class KafkaProducer$DoSend extends AroundInterceptor {
 
-    private KafkaProducerTracingConfig tracingConfig;
-
-    @Override
-    public boolean initialize() {
-        tracingConfig = ConfigurationManager.getInstance().getConfig(KafkaProducerTracingConfig.class);
-        return true;
-    }
+    private final KafkaProducerTracingConfig tracingConfig = ConfigurationManager.getInstance().getConfig(KafkaProducerTracingConfig.class);
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceSpan span = TraceSpanFactory.newSpan("kafka");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -88,7 +82,7 @@ public class KafkaProducer$DoSend extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getUserContextAs();
         if (aopContext.hasException()) {
             span.tag(aopContext.getException());

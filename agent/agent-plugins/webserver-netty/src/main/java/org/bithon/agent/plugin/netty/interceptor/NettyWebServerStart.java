@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.netty.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.context.AppInstance;
 import org.springframework.boot.web.embedded.netty.NettyWebServer;
 
@@ -25,10 +25,10 @@ import org.springframework.boot.web.embedded.netty.NettyWebServer;
  * @author frankchen
  * @date 2021-09-22 23:36
  */
-public class NettyWebServerStart extends AbstractInterceptor {
+public class NettyWebServerStart extends AfterInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         NettyWebServer webServer = (NettyWebServer) aopContext.getTarget();
 
         AppInstance.getInstance().setPort(webServer.getPort());

@@ -17,17 +17,16 @@
 package org.bithon.agent.plugin.mongodb38.interceptor;
 
 import com.mongodb.internal.connection.InternalConnection;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
 
 /**
  * {@link com.mongodb.internal.connection.CommandProtocolImpl#execute(InternalConnection)}
  */
-public class CommandProtocolImpl$Execute extends AbstractInterceptor {
+public class CommandProtocolImpl$Execute extends BeforeInterceptor {
 
     private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
@@ -37,11 +36,9 @@ public class CommandProtocolImpl$Execute extends AbstractInterceptor {
      * {@link InternalStreamConnection$ReceiveMessage} know which command is being executed
      */
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public void before(AopContext aopContext) throws Exception {
         IBithonObject bithonObject = aopContext.getTargetAs();
 
         InterceptorContext.set("mongo-3.8-command", bithonObject.getInjectedObject());
-
-        return super.onMethodEnter(aopContext);
     }
 }

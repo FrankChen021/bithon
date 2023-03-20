@@ -20,9 +20,8 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.servlet.handlers.ServletRequestContext;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.HttpString;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingMetricsRegistry;
@@ -38,18 +37,18 @@ import org.bithon.component.commons.utils.StringUtils;
 /**
  * @author frankchen
  */
-public class HttpServerExchangeDispatch extends AbstractInterceptor {
+public class HttpServerExchangeDispatch extends BeforeInterceptor {
 
     private final HttpIncomingFilter requestFilter = new HttpIncomingFilter();
     private final HttpIncomingMetricsRegistry metricRegistry = HttpIncomingMetricsRegistry.get();
     private final TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public void before(AopContext aopContext) {
         final HttpServerExchange exchange = aopContext.getTargetAs();
 
         if (this.requestFilter.shouldBeExcluded(exchange.getRequestPath(), exchange.getRequestHeaders().getFirst("User-Agent"))) {
-            return InterceptionDecision.SKIP_LEAVE;
+            return;
         }
 
         final ITraceContext traceContext = Tracer.get()
@@ -95,7 +94,6 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
 
             nextListener.proceed();
         });
-        return InterceptionDecision.SKIP_LEAVE;
     }
 
     private void update(HttpServerExchange exchange, long startNano) {

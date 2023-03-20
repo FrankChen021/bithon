@@ -42,7 +42,7 @@ jobs:
         run: mvn clean install -T 1C -ntp --activate-profiles jooq,server,agent,component -Dmaven.javadoc.skip=true -DskipTests
 
       - name: Code Check
-        run: mvn --ntp -T 1C animal-sniffer:check checkstyle:checkstyle com.github.spotbugs:spotbugs-maven-plugin:4.2.2:check
+        run: mvn --ntp -T 1C animal-sniffer:check checkstyle:checkstyle com.github.spotbugs:spotbugs-maven-plugin:check
 
       # https://github.com/marketplace/actions/delete-tag-and-release
       - name: Delete agent tag

@@ -57,7 +57,6 @@ public class MethodPointCutDescriptorBuilder {
             throw new AgentException("Can't replace a constructor by [%s]", interceptorQualifiedClassName);
         }
 
-        methodType = MethodType.REPLACEMENT;
         return to(interceptorQualifiedClassName);
     }
 

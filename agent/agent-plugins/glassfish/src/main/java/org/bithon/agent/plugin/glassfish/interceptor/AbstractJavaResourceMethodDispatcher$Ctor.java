@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.glassfish.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -36,11 +36,11 @@ import java.lang.reflect.Method;
  *
  * @author frankchen
  */
-public class AbstractJavaResourceMethodDispatcher$Ctor extends AbstractInterceptor {
+public class AbstractJavaResourceMethodDispatcher$Ctor extends AfterInterceptor {
 
     // TODO: check the method does not return the CompletionStage/
     @Override
-    public void onConstruct(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         InvocationHandler rawInvoker = aopContext.getArgAs(1);
 
         InvocationHandler enhancedInvoker = (proxy, method, args) -> {

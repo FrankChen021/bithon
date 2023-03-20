@@ -21,9 +21,8 @@ import org.apache.http.HttpRequest;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.impl.client.DefaultRequestDirector;
 import org.apache.http.impl.conn.ConnectionShutdownException;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.component.commons.logging.ILogAdaptor;
@@ -37,17 +36,17 @@ import java.lang.reflect.Field;
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
-public class DefaultRequestDirector$ReleaseConnection extends AbstractInterceptor {
+public class DefaultRequestDirector$ReleaseConnection extends BeforeInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(DefaultRequestDirector$ReleaseConnection.class);
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
     private Field managedConnectionField;
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public void before(AopContext aopContext) throws Exception {
         HttpRequest httpRequest = InterceptorContext.getAs("apache-http-client.httpRequest");
         if (httpRequest == null) {
-            return InterceptionDecision.SKIP_LEAVE;
+            return;
         }
 
         /*
@@ -68,7 +67,7 @@ public class DefaultRequestDirector$ReleaseConnection extends AbstractIntercepto
 
         ManagedHttpClientConnection connection = (ManagedHttpClientConnection) managedConnectionField.get(aopContext.getTarget());
         if (connection == null) {
-            return InterceptionDecision.SKIP_LEAVE;
+            return;
         }
 
         try {
@@ -82,7 +81,5 @@ public class DefaultRequestDirector$ReleaseConnection extends AbstractIntercepto
         } catch (ConnectionShutdownException e) {
             log.warn("Failed to get metric on HTTP Connection since it has been shutdown", e);
         }
-
-        return InterceptionDecision.SKIP_LEAVE;
     }
 }

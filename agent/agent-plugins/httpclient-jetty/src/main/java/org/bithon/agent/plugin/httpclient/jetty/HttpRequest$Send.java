@@ -16,9 +16,8 @@
 
 package org.bithon.agent.plugin.httpclient.jetty;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
@@ -38,23 +37,17 @@ import java.nio.ByteBuffer;
  * @author frank.chen021@outlook.com
  * @date 2021/5/13 7:56 下午
  */
-public class HttpRequest$Send extends AbstractInterceptor {
+public class HttpRequest$Send extends BeforeInterceptor {
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
-    private TraceConfig traceConfig;
-
-    @Override
-    public boolean initialize() {
-        traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
-        return true;
-    }
+    private final TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
 
     /**
      * {@link org.eclipse.jetty.client.HttpRequest#send(Response.CompleteListener)}
      */
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public void before(AopContext aopContext) throws Exception {
         HttpRequest httpRequest = aopContext.getTargetAs();
 
         final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpClient-jetty")
@@ -164,8 +157,5 @@ public class HttpRequest$Send extends AbstractInterceptor {
                 }
             }
         };
-
-        return super.onMethodEnter(aopContext);
     }
-
 }

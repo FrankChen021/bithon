@@ -16,11 +16,10 @@
 
 package org.bithon.agent.plugin.apache.kafka.consumer.interceptor;
 
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
@@ -32,14 +31,7 @@ import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
 import org.bithon.agent.observability.tracing.sampler.SamplingMode;
-import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.component.commons.tracing.SpanKind;
-import org.bithon.component.commons.utils.ReflectionUtils;
-import org.springframework.kafka.listener.ContainerProperties;
-import org.springframework.kafka.support.TopicPartitionOffset;
-
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * {@link org.springframework.kafka.listener.KafkaMessageListenerContainer$ListenerConsumer}
@@ -47,48 +39,14 @@ import java.util.stream.Stream;
  * @author Frank Chen
  * @date 28/11/22 8:47 pm
  */
-public class ListenerConsumer$PollAndInvoke extends AbstractInterceptor {
+public class ListenerConsumer$PollAndInvoke extends AroundInterceptor {
 
     private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
                                                                                       .getDynamicConfig("tracing.samplingConfigs.kafka-consumer",
                                                                                                         TraceSamplingConfig.class));
 
-    /**
-     * Keep topic information on injected fields for further use
-     */
     @Override
-    public void onConstruct(AopContext aopContext) {
-        KafkaConsumer<?, ?> consumer = (KafkaConsumer<?, ?>) ReflectionUtils.getFieldValue(aopContext.getTarget(), "consumer");
-        if (consumer == null) {
-            return;
-        }
-        String cluster = ((KafkaPluginContext) ((IBithonObject) consumer).getInjectedObject()).clusterSupplier.get();
-
-        ContainerProperties properties = (ContainerProperties) ReflectionUtils.getFieldValue(aopContext.getTarget(), "containerProperties");
-        if (properties == null) {
-            return;
-        }
-
-        String uri = "kafka://" + cluster;
-        String[] topics = properties.getTopics();
-        if (topics != null) {
-            uri += "?topic=" + String.join(",", topics);
-        } else if (properties.getTopicPattern() != null) {
-            uri += "?topic=" + properties.getTopicPattern().pattern();
-        } else {
-            TopicPartitionOffset[] partitions = properties.getTopicPartitions();
-            if (partitions != null) {
-                uri += "?topic=" + Stream.of(partitions).map(TopicPartitionOffset::getTopic).collect(Collectors.joining(","));
-            }
-        }
-
-        // Keep the uri for further use
-        IBithonObject bithonObject = aopContext.getTargetAs();
-        bithonObject.setInjectedObject(uri);
-    }
-
-    @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceContext context;
         SamplingMode mode = sampler.decideSamplingMode(null);
         if (mode == SamplingMode.NONE) {
@@ -110,7 +68,7 @@ public class ListenerConsumer$PollAndInvoke extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getUserContextAs();
 
         span.tag(aopContext.getException())

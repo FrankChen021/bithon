@@ -17,9 +17,9 @@
 package org.bithon.agent.plugin.mysql8;
 
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.observability.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.observability.utils.MiscUtils;
@@ -29,11 +29,11 @@ import java.sql.Statement;
 /**
  * @author frankchen
  */
-public class StatementInterceptor extends AbstractInterceptor {
+public class StatementInterceptor extends AroundInterceptor {
     private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
         Statement statement = (Statement) aopContext.getTarget();
 
         // get the connection info before execution since the connection might be closed during execution
@@ -44,7 +44,7 @@ public class StatementInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         String connectionString = aopContext.getUserContextAs();
 
         SQLMetrics metric = metricRegistry.getOrCreateMetrics(connectionString);

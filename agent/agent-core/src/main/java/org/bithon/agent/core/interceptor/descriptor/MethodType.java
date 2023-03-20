@@ -17,12 +17,10 @@
 package org.bithon.agent.core.interceptor.descriptor;
 
 /**
- * An enum describe the type of intercepted methods
  * @author frank.chen021@outlook.com
- * @date 2021/2/20 9:42 下午
+ * @date 2023/3/19 15:33
  */
 public enum MethodType {
-
     CONSTRUCTOR,
 
     /**
@@ -30,9 +28,4 @@ public enum MethodType {
      */
     NON_CONSTRUCTOR,
 
-    /**
-     * replace the original method implementation
-     * this only works for non-constructor methods
-     */
-    REPLACEMENT;
 }

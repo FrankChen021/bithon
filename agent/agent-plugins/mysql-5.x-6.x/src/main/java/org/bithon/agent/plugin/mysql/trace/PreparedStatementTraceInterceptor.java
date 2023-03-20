@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.mysql.trace;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
@@ -29,11 +29,11 @@ import org.bithon.component.commons.tracing.SpanKind;
 /**
  * @author frankchen
  */
-public class PreparedStatementTraceInterceptor extends AbstractInterceptor {
+public class PreparedStatementTraceInterceptor extends AroundInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(PreparedStatementTraceInterceptor.class);
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceSpan span = TraceSpanFactory.newSpan("mysql");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -48,7 +48,7 @@ public class PreparedStatementTraceInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceSpan mysqlSpan = aopContext.getUserContextAs();
         try {
             String sql;

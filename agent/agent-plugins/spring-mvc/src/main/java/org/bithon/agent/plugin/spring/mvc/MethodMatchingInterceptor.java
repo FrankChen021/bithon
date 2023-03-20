@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.spring.mvc;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.CollectionUtils;
@@ -28,11 +28,11 @@ import java.util.Set;
 /**
  * frank.chen021@outlook.com
  */
-public class MethodMatchingInterceptor extends AbstractInterceptor {
+public class MethodMatchingInterceptor extends AfterInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(MethodMatchingInterceptor.class);
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         Object mapping = aopContext.getArgs()[2];
         if (!(mapping instanceof RequestMappingInfo)) {
             log.warn("spring mvc registering mapping pattern with unrecognized class");

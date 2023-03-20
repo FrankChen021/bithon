@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.bithon.brpc.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
@@ -36,14 +36,14 @@ import org.bithon.component.commons.tracing.SpanKind;
  * @author frank.chen021@outlook.com
  * @date 12/5/22 10:25 PM
  */
-public class BrpcMethodInterceptor extends AbstractInterceptor {
+public class BrpcMethodInterceptor extends AroundInterceptor {
 
     private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
                                                                                       .getDynamicConfig("tracing.samplingConfigs.brpc",
                                                                                                         TraceSamplingConfig.class));
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceContext context;
         SamplingMode mode = sampler.decideSamplingMode(null);
         if (mode == SamplingMode.NONE) {
@@ -66,7 +66,7 @@ public class BrpcMethodInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getUserContextAs();
         span.tag(aopContext.getException())
             .tag("status", aopContext.hasException() ? "500" : "200")

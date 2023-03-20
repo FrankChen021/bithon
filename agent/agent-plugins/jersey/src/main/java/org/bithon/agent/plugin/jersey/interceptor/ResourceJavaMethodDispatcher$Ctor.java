@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.jersey.interceptor;
 
 import com.sun.jersey.spi.container.JavaMethodInvoker;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -36,10 +36,10 @@ import java.lang.reflect.Method;
  *
  * @author frankchen
  */
-public class ResourceJavaMethodDispatcher$Ctor extends AbstractInterceptor {
+public class ResourceJavaMethodDispatcher$Ctor extends AfterInterceptor {
 
     @Override
-    public void onConstruct(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         JavaMethodInvoker rawInvoker = aopContext.getArgAs(1);
 
         JavaMethodInvoker enhancedInvoker = (m, o, parameters) -> {

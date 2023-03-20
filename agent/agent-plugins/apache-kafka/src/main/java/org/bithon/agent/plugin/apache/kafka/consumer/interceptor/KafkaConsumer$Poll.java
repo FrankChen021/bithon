@@ -18,9 +18,9 @@ package org.bithon.agent.plugin.apache.kafka.consumer.interceptor;
 
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
@@ -33,10 +33,10 @@ import java.time.Duration;
  * @author Frank Chen
  * @date 28/11/22 8:39 pm
  */
-public class KafkaConsumer$Poll extends AbstractInterceptor {
+public class KafkaConsumer$Poll extends AroundInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceSpan span = TraceSpanFactory.newSpan("kafka");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -48,7 +48,7 @@ public class KafkaConsumer$Poll extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         KafkaPluginContext kafkaPluginContext = aopContext.getInjectedOnTargetAs();
 
         KafkaConsumer<?, ?> consumer = aopContext.getTargetAs();

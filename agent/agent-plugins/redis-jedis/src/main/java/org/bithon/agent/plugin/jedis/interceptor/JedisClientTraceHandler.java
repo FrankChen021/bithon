@@ -16,36 +16,33 @@
 
 package org.bithon.agent.plugin.jedis.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import redis.clients.jedis.Client;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * @author frankchen
  */
-public class JedisClientTraceHandler extends AbstractInterceptor {
+public class JedisClientTraceHandler extends AroundInterceptor {
     //TODO: move the configuration
-    private final Set<String> ignoreCommands = new HashSet<>();
+    private final Set<String> ignoreCommands = new HashSet<>(Arrays.asList(
+        "AUTH",
+        "Protocol.Command.SELECT",
+        "Protocol.Command.ECHO",
+        "Protocol.Command.QUIT"
+    ));
 
     @Override
-    public boolean initialize() {
-        ignoreCommands.add("AUTH");
-        ignoreCommands.add("Protocol.Command.SELECT");
-        ignoreCommands.add("Protocol.Command.ECHO");
-        ignoreCommands.add("Protocol.Command.QUIT");
-        return true;
-    }
-
-    @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         String command = aopContext.getArgs()[0].toString();
         if (ignoreCommand(command)) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -68,7 +65,7 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getUserContextAs();
         span.finish();
     }

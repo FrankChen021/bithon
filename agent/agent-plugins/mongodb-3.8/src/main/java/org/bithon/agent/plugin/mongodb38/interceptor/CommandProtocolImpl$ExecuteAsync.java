@@ -18,16 +18,16 @@ package org.bithon.agent.plugin.mongodb38.interceptor;
 
 import com.mongodb.async.SingleResultCallback;
 import com.mongodb.internal.connection.InternalConnection;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 
 /**
  * TODO:
  * {@link com.mongodb.internal.connection.CommandProtocolImpl#executeAsync(InternalConnection, SingleResultCallback)}
  */
-public class CommandProtocolImpl$ExecuteAsync extends AbstractInterceptor {
+public class CommandProtocolImpl$ExecuteAsync extends AfterInterceptor {
     @Override
-    public void onMethodLeave(AopContext aopContext) throws Exception {
-        super.onMethodLeave(aopContext);
+    public void after(AopContext aopContext) throws Exception {
+        super.after(aopContext);
     }
 }

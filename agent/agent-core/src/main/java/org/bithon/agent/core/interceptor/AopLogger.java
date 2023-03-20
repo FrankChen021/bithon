@@ -16,14 +16,14 @@
 
 package org.bithon.agent.core.interceptor;
 
-import org.bithon.agent.bootstrap.aop.BootstrapHelper;
-import org.bithon.agent.bootstrap.aop.IAopLogger;
+import org.bithon.agent.bootstrap.aop.logging.BootstrapLogger;
+import org.bithon.agent.bootstrap.aop.logging.IAopLogger;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
 /**
  * created via reflection from bootstrap aop instances which are loaded by bootstrap class loader
- * see {@link BootstrapHelper}
+ * see {@link BootstrapLogger}
  *
  * @author frank.chen021@outlook.com
  * @date 2021/2/19 10:49 下午

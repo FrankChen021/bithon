@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.spring.bean.interceptor;
 
-import org.bithon.agent.bootstrap.aop.advice.IAdviceInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.IDynamicInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 
@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 18:46
  */
-public class BeanMethod$Invoke implements IAdviceInterceptor {
+public class BeanMethod$Invoke implements IDynamicInterceptor {
 
     @Override
     public Object onMethodEnter(

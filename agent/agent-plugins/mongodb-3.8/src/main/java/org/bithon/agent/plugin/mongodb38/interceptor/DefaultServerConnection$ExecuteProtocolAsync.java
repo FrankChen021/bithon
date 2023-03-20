@@ -21,15 +21,14 @@ import com.mongodb.internal.connection.CommandProtocol;
 import com.mongodb.internal.connection.DefaultServerConnection;
 import com.mongodb.internal.connection.LegacyProtocol;
 import com.mongodb.session.SessionContext;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
 
 /**
  * @author frankchen
  */
-public class DefaultServerConnection$ExecuteProtocolAsync extends AbstractInterceptor {
+public class DefaultServerConnection$ExecuteProtocolAsync extends BeforeInterceptor {
     private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
     /**
@@ -37,8 +36,7 @@ public class DefaultServerConnection$ExecuteProtocolAsync extends AbstractInterc
      * {@link DefaultServerConnection#executeProtocolAsync(CommandProtocol, SessionContext, SingleResultCallback)}
      */
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public void before(AopContext aopContext) throws Exception {
         // TODO: WRAP callback
-        return super.onMethodEnter(aopContext);
     }
 }

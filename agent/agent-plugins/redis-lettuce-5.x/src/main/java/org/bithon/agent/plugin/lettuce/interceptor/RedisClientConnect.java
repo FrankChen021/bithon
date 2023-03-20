@@ -17,9 +17,9 @@
 package org.bithon.agent.plugin.lettuce.interceptor;
 
 import io.lettuce.core.RedisURI;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.utils.HostAndPort;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
@@ -27,10 +27,10 @@ import org.bithon.component.commons.utils.ReflectionUtils;
 /**
  * @author frankchen
  */
-public class RedisClientConnect extends AbstractInterceptor {
+public class RedisClientConnect extends AfterInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (aopContext.hasException()) {
             return;
         }

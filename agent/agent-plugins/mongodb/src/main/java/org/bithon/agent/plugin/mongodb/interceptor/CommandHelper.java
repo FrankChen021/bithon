@@ -17,17 +17,14 @@
 package org.bithon.agent.plugin.mongodb.interceptor;
 
 import com.mongodb.MongoNamespace;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
-
-import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author frank.chen021@outlook.com
@@ -38,14 +35,12 @@ public class CommandHelper {
     /**
      * see com.mongodb.connection.CommandHelper#executeCommand(String, org.bson.BsonDocument, com.mongodb.connection.InternalConnection)
      */
-    public static class ExecuteCommand extends AbstractInterceptor {
-
-        private final Map<String, Method> methods = new ConcurrentHashMap<>();
+    public static class ExecuteCommand extends AroundInterceptor {
 
         private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
         @Override
-        public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+        public InterceptionDecision before(AopContext aopContext) throws Exception {
             //
             // set command to thread context so that the size of sent/received could be associated with the command
             //
@@ -55,7 +50,7 @@ public class CommandHelper {
                                                     "Command");
             InterceptorContext.set("mongo-3.x-command", command);
 
-            return super.onMethodEnter(aopContext);
+            return super.before(aopContext);
         }
 
         /**
@@ -67,7 +62,7 @@ public class CommandHelper {
          * Although the overhead is acceptable since the CPM is not high
          */
         @Override
-        public void onMethodLeave(AopContext aopContext) throws Exception {
+        public void after(AopContext aopContext) throws Exception {
             Object connection = aopContext.getArgs()[2];
             if (!(connection instanceof IBithonObject)) {
                 //TODO: log
@@ -79,17 +74,17 @@ public class CommandHelper {
             String server = (String) ((IBithonObject) connection).getInjectedObject();
             metricRegistry.getOrCreateMetric(server, command.getDatabase(), command.getCollection(), command.getCommand())
                           .add(aopContext.getExecutionTime(), aopContext.hasException() ? 1 : 0);
-            super.onMethodLeave(aopContext);
+            super.after(aopContext);
         }
     }
 
     /**
      * {@link com.mongodb.connection.CommandHelper#executeCommandAsync(String, BsonDocument, com.mongodb.connection.InternalConnection)}
      */
-    public static class ExecuteCommandAsync extends AbstractInterceptor {
+    public static class ExecuteCommandAsync extends AfterInterceptor {
         @Override
-        public void onMethodLeave(AopContext aopContext) throws Exception {
-            super.onMethodLeave(aopContext);
+        public void after(AopContext aopContext) throws Exception {
+            super.after(aopContext);
         }
     }
 }

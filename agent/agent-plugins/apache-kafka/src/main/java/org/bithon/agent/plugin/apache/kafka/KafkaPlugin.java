@@ -67,7 +67,7 @@ public class KafkaPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllConstructor()
-                                                   .to("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.ListenerConsumer$PollAndInvoke"),
+                                                   .to("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.ListenerConsumer$Ctor"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("pollAndInvoke")

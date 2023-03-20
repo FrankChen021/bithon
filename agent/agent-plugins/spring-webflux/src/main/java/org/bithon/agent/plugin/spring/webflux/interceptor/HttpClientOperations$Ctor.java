@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.spring.webflux.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.plugin.spring.webflux.metric.HttpIOMetrics;
 
 /**
@@ -28,10 +28,10 @@ import org.bithon.agent.plugin.spring.webflux.metric.HttpIOMetrics;
  * @author frank.chen021@outlook.com
  * @date 28/11/21 9:05 pm
  */
-public class HttpClientOperations$Ctor extends AbstractInterceptor {
+public class HttpClientOperations$Ctor extends AfterInterceptor {
 
     @Override
-    public void onConstruct(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         IBithonObject obj = (IBithonObject) aopContext.getTarget();
         if (obj.getInjectedObject() == null) {
             obj.setInjectedObject(new HttpIOMetrics());

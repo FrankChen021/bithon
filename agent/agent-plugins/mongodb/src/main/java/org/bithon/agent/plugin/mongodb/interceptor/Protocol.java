@@ -18,9 +18,9 @@ package org.bithon.agent.plugin.mongodb.interceptor;
 
 import com.mongodb.MongoNamespace;
 import com.mongodb.WriteConcern;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 import org.bson.BsonDocument;
 import org.bson.FieldNameValidator;
@@ -36,9 +36,9 @@ public class Protocol {
     /**
      * {@link com.mongodb.connection.CommandProtocol#CommandProtocol(String database, BsonDocument, FieldNameValidator, Decoder)}
      */
-    public static class CommandProtocol extends AbstractInterceptor {
+    public static class CommandProtocol extends AfterInterceptor {
         @Override
-        public void onConstruct(AopContext aopContext) {
+        public void after(AopContext aopContext) {
             IBithonObject obj = aopContext.getTargetAs();
             obj.setInjectedObject(new MongoCommand(aopContext.getArgAs(0),
                                                    MongoNamespace.COMMAND_COLLECTION_NAME,
@@ -49,9 +49,9 @@ public class Protocol {
     /**
      * {@link com.mongodb.connection.DeleteCommandProtocol#DeleteCommandProtocol(MongoNamespace, boolean, WriteConcern, List)}
      */
-    public static class DeleteCommandProtocol extends AbstractInterceptor {
+    public static class DeleteCommandProtocol extends AfterInterceptor {
         @Override
-        public void onConstruct(AopContext aopContext) {
+        public void after(AopContext aopContext) {
             MongoNamespace ns = aopContext.getArgAs(0);
             IBithonObject bithonObject = aopContext.getTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
@@ -63,9 +63,9 @@ public class Protocol {
     /**
      * {@link com.mongodb.connection.InsertCommandProtocol#InsertCommandProtocol(MongoNamespace, boolean, WriteConcern, Boolean, List)}
      */
-    public static class InsertCommandProtocol extends AbstractInterceptor {
+    public static class InsertCommandProtocol extends AfterInterceptor {
         @Override
-        public void onConstruct(AopContext aopContext) {
+        public void after(AopContext aopContext) {
             MongoNamespace ns = aopContext.getArgAs(0);
             IBithonObject bithonObject = aopContext.getTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
@@ -77,9 +77,9 @@ public class Protocol {
     /**
      * {@link com.mongodb.connection.UpdateCommandProtocol#UpdateCommandProtocol(MongoNamespace, boolean, WriteConcern, Boolean, List)}
      */
-    public static class UpdateCommandProtocol extends AbstractInterceptor {
+    public static class UpdateCommandProtocol extends AfterInterceptor {
         @Override
-        public void onConstruct(AopContext aopContext) {
+        public void after(AopContext aopContext) {
             MongoNamespace ns = aopContext.getArgAs(0);
             IBithonObject bithonObject = aopContext.getTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
@@ -91,9 +91,9 @@ public class Protocol {
     /**
      * {@link com.mongodb.connection.InsertProtocol#InsertProtocol(MongoNamespace, boolean, WriteConcern, List)}
      */
-    public static class InsertProtocol extends AbstractInterceptor {
+    public static class InsertProtocol extends AfterInterceptor {
         @Override
-        public void onConstruct(AopContext aopContext) {
+        public void after(AopContext aopContext) {
             MongoNamespace ns = aopContext.getArgAs(0);
             IBithonObject bithonObject = aopContext.getTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
@@ -106,9 +106,9 @@ public class Protocol {
      * {@link com.mongodb.connection.QueryProtocol#QueryProtocol(MongoNamespace, int, int, BsonDocument, BsonDocument, Decoder)}
      * {@link com.mongodb.connection.QueryProtocol#QueryProtocol(MongoNamespace, int, int, int, BsonDocument, BsonDocument, Decoder)}
      */
-    public static class QueryProtocol extends AbstractInterceptor {
+    public static class QueryProtocol extends AfterInterceptor {
         @Override
-        public void onConstruct(AopContext aopContext) {
+        public void after(AopContext aopContext) {
             MongoNamespace ns = aopContext.getArgAs(0);
             IBithonObject bithonObject = aopContext.getTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
@@ -120,9 +120,9 @@ public class Protocol {
     /**
      * {@link com.mongodb.connection.DeleteProtocol#DeleteProtocol(MongoNamespace, boolean, WriteConcern, List)}
      */
-    public static class DeleteProtocol extends AbstractInterceptor {
+    public static class DeleteProtocol extends AfterInterceptor {
         @Override
-        public void onConstruct(AopContext aopContext) {
+        public void after(AopContext aopContext) {
             MongoNamespace ns = aopContext.getArgAs(0);
             IBithonObject bithonObject = aopContext.getTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
@@ -134,9 +134,9 @@ public class Protocol {
     /**
      * {@link com.mongodb.connection.UpdateProtocol#UpdateProtocol(MongoNamespace, boolean, WriteConcern, List)}
      */
-    public static class UpdateProtocol extends AbstractInterceptor {
+    public static class UpdateProtocol extends AfterInterceptor {
         @Override
-        public void onConstruct(AopContext aopContext) {
+        public void after(AopContext aopContext) {
             MongoNamespace ns = aopContext.getArgAs(0);
             IBithonObject bithonObject = aopContext.getTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
@@ -148,9 +148,9 @@ public class Protocol {
     /**
      * {@link com.mongodb.connection.GetMoreProtocol#GetMoreProtocol(MongoNamespace, long, int, Decoder)}
      */
-    public static class GetMoreProtocol extends AbstractInterceptor {
+    public static class GetMoreProtocol extends AfterInterceptor {
         @Override
-        public void onConstruct(AopContext aopContext) {
+        public void after(AopContext aopContext) {
             MongoNamespace ns = aopContext.getArgAs(0);
             IBithonObject bithonObject = aopContext.getTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
@@ -162,9 +162,9 @@ public class Protocol {
     /**
      * {@link com.mongodb.connection.KillCursorProtocol#KillCursorProtocol(MongoNamespace, List)}
      */
-    public static class KillCursorProtocol extends AbstractInterceptor {
+    public static class KillCursorProtocol extends AfterInterceptor {
         @Override
-        public void onConstruct(AopContext aopContext) {
+        public void after(AopContext aopContext) {
             MongoNamespace ns = aopContext.getArgAs(0);
             IBithonObject bithonObject = aopContext.getTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),

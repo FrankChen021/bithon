@@ -16,12 +16,17 @@
 
 package org.bithon.agent.core.interceptor.plugin;
 
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptorType;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptorTypeResolver;
+import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.bootstrap.loader.JarClassLoader;
 import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.core.interceptor.descriptor.Descriptors;
+import org.bithon.agent.core.interceptor.descriptor.MethodPointCutDescriptor;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -38,17 +43,15 @@ public class PluginResolver {
 
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(PluginResolver.class);
 
-    private final List<IPlugin> plugins;
-
     public PluginResolver() {
         // create plugin class loader first
         PluginClassLoaderManager.createDefault();
-
-        // load plugins
-        plugins = resolvePlugins();
     }
 
-    public Descriptors resolveInterceptorDescriptors() {
+    public Descriptors resolveInterceptors() {
+        // Load plugins
+        List<IPlugin> plugins = resolvePlugins();
+
         Descriptors descriptors = new Descriptors();
         for (IPlugin plugin : plugins) {
             String pluginName = plugin.getClass().getSimpleName();
@@ -57,7 +60,30 @@ public class PluginResolver {
 
             descriptors.merge(pluginName, plugin.getPreconditions(), plugin.getInterceptors());
         }
+
+        resolveInterceptorType(descriptors.getAllDescriptor());
+
+        // Resolve interceptor type
         return descriptors;
+    }
+
+    private void resolveInterceptorType(Collection<Descriptors.Descriptor> descriptors) {
+        LOG.info("Resolving interceptors...");
+        InterceptorTypeResolver resolver = new InterceptorTypeResolver(PluginClassLoaderManager.getDefaultLoader());
+
+        for (Descriptors.Descriptor descriptor : descriptors) {
+            for (Descriptors.MethodPointCuts pointcut : descriptor.getMethodPointCuts()) {
+                for (MethodPointCutDescriptor pointcutDescriptor : pointcut.getMethodInterceptors()) {
+                    try {
+                        InterceptorType type = resolver.resolve(pointcutDescriptor.getInterceptorClassName());
+                        pointcutDescriptor.setInterceptorType(type);
+                    } catch (AgentException e) {
+                        LOG.error("Unable to resolve interceptor type for [%s]", pointcutDescriptor.getInterceptorClassName());
+                    }
+                }
+            }
+        }
+        LOG.info("Resolving interceptors Completes.");
     }
 
     private List<IPlugin> resolvePlugins() {

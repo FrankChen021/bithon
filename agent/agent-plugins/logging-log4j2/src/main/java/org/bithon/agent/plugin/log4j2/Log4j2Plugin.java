@@ -47,7 +47,7 @@ public class Log4j2Plugin implements IPlugin {
                                                                                                  "org.apache.logging.log4j.Level"))
                                                                      .and(Matchers.takesArgument(4,
                                                                                                  "java.lang.Throwable")))
-                                                   .to("org.bithon.agent.plugin.log4j2.interceptor.LoggerLogMessage")
+                                                   .to("org.bithon.agent.plugin.log4j2.interceptor.Logger$LogMessage")
                 ),
 
             forClass("org.apache.logging.log4j.core.pattern.PatternParser")
@@ -57,7 +57,7 @@ public class Log4j2Plugin implements IPlugin {
                      */
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor(Matchers.takesArguments(4))
-                                                   .to("org.bithon.agent.plugin.log4j2.interceptor.PatternParserCtor"),
+                                                   .to("org.bithon.agent.plugin.log4j2.interceptor.PatternParser$Ctor"),
 
                     /**
                      * {@link org.apache.logging.log4j.core.pattern.PatternParser#parse(String, List, List, boolean, boolean, boolean)}
@@ -67,7 +67,7 @@ public class Log4j2Plugin implements IPlugin {
                                                                      .and(Matchers.takesArgument(0,
                                                                                                  "java.lang.String"))
                                                                      .and(Matchers.takesArguments(6)))
-                                                   .to("org.bithon.agent.plugin.log4j2.interceptor.PatternParserParse")
+                                                   .to("org.bithon.agent.plugin.log4j2.interceptor.PatternParser$Parse")
                 )
         );
     }

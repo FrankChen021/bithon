@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.spring.scheduling;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
@@ -38,13 +38,13 @@ import org.bithon.agent.observability.tracing.sampler.SamplingMode;
  * @author Frank Chen
  * @date 28/12/22 11:08 am
  */
-public class DelegatingErrorHandlingRunnable$Run extends AbstractInterceptor {
+public class DelegatingErrorHandlingRunnable$Run extends AroundInterceptor {
     private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
                                                                                       .getDynamicConfig("tracing.samplingConfigs.spring-scheduler",
                                                                                                         TraceSamplingConfig.class));
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         SamplingMode mode = sampler.decideSamplingMode(null);
         if (mode == SamplingMode.NONE) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -58,7 +58,7 @@ public class DelegatingErrorHandlingRunnable$Run extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         TraceContextHolder.remove();
     }
 }

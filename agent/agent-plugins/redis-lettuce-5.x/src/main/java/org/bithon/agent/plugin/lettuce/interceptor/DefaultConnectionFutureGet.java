@@ -17,17 +17,17 @@
 package org.bithon.agent.plugin.lettuce.interceptor;
 
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 
 /**
  * @author frankchen
  */
-public class DefaultConnectionFutureGet extends AbstractInterceptor {
+public class DefaultConnectionFutureGet extends AfterInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         Object result = aopContext.getReturning();
         if (result instanceof IBithonObject && aopContext.getTarget() instanceof IBithonObject) {
             ((IBithonObject) result).setInjectedObject(((IBithonObject) aopContext.getTarget()).getInjectedObject());

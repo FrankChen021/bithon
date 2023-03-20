@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.spring.bean.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.plugin.spring.bean.installer.BeanMethodAopInstallerHelper;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -28,19 +28,17 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
  * @author frank.chen021@outlook.com
  * @date 2021/4/11 20:48
  */
-public class AbstractAutowireCapableBeanFactory$CreateInstance extends AbstractInterceptor {
+public class AbstractAutowireCapableBeanFactory$CreateInstance extends AfterInterceptor {
 
-    @Override
-    public boolean initialize() {
+    public AbstractAutowireCapableBeanFactory$CreateInstance() {
         BeanMethodAopInstallerHelper.initialize();
-        return true;
     }
 
     /**
      * Re-transform the class of the bean
      */
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (aopContext.getReturning() == null || aopContext.hasException()) {
             return;
         }

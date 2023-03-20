@@ -17,9 +17,9 @@
 package org.bithon.agent.plugin.apache.kafka.producer.interceptor;
 
 import org.apache.kafka.clients.ClientResponse;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 
 import java.util.Map;
@@ -30,10 +30,10 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2022/12/3 20:24
  */
-public class Sender$HandleProduceResponse extends AbstractInterceptor {
+public class Sender$HandleProduceResponse extends AroundInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) {
         ClientResponse clientResponse = aopContext.getArgAs(0);
         KafkaPluginContext.setCurrentDestination(clientResponse.destination());
 
@@ -41,7 +41,7 @@ public class Sender$HandleProduceResponse extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         KafkaPluginContext.resetCurrentDestination();
     }
 }

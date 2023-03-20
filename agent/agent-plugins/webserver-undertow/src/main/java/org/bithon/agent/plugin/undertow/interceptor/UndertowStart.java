@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.undertow.interceptor;
 
 import io.undertow.Undertow;
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.context.AopContext;
+import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
@@ -36,10 +36,10 @@ import java.util.List;
 /**
  * @author frankchen
  */
-public class UndertowStart extends AbstractInterceptor {
+public class UndertowStart extends AfterInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         if (AppInstance.getInstance().getPort() != 0 || aopContext.hasException()) {
             return;
         }
