@@ -24,21 +24,19 @@ import org.bithon.agent.bootstrap.utils.AgentDirectory;
  */
 public class AgentClassLoader {
 
-    private static JarClassLoader instance;
+    private static volatile JarClassLoader instance;
 
     public static JarClassLoader getClassLoader() {
-        return instance;
-    }
-
-    /**
-     * initialize class loader as a cascaded class loader
-     * it's parent is context class loader of thread so that any classes used by jars in libs could be found by application's class loader
-     */
-    public static ClassLoader initialize() {
-        final Thread mainThread = Thread.currentThread();
-        instance = new JarClassLoader("agent-library",
-                                      AgentDirectory.getSubDirectory("lib"),
-                                      mainThread::getContextClassLoader);
+        if (instance == null) {
+            synchronized (AgentClassLoader.class) {
+                if (instance == null) {
+                    final Thread mainThread = Thread.currentThread();
+                    instance = new JarClassLoader("agent-library",
+                                                  AgentDirectory.getSubDirectory("lib"),
+                                                  mainThread::getContextClassLoader);
+                }
+            }
+        }
         return instance;
     }
 }

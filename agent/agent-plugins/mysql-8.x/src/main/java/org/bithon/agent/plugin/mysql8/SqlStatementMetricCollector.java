@@ -43,7 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SqlStatementMetricCollector implements IMetricCollector {
     private static final ILogAdaptor log = LoggerFactory.getLogger(SqlStatementMetricCollector.class);
     private static final String MYSQL_COUNTER_NAME = "mysql8_sql_stats";
-    private static SqlStatementMetricCollector INSTANCE;
+    private static volatile SqlStatementMetricCollector INSTANCE;
     private final Map<String, Map<String, SQLStatementMetrics>> metricMap = new ConcurrentHashMap<>();
     private int sqlTimeThreshold = 1000;
 

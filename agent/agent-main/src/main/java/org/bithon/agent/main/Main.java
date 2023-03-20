@@ -59,8 +59,7 @@ public class Main {
         // So its parent is the right directory of the agent
         AgentDirectory.setRoot(JarLocator.locate(Main.class.getName()).getParentFile());
 
-        ClassLoader classLoader = AgentClassLoader.initialize();
-        Class<?> starterClass = classLoader.loadClass("org.bithon.agent.core.starter.AgentStarter");
+        Class<?> starterClass = AgentClassLoader.getClassLoader().loadClass("org.bithon.agent.core.starter.AgentStarter");
         Object starterObject = starterClass.getDeclaredConstructor().newInstance();
         Method startMethod = starterClass.getDeclaredMethod("start",
                                                             Instrumentation.class);
