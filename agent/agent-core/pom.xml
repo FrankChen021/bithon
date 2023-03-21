@@ -19,11 +19,6 @@
 
     <dependency>
       <groupId>org.bithon.shaded</groupId>
-      <artifactId>shaded-bytebuddy</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.shaded</groupId>
       <artifactId>shaded-jackson</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
