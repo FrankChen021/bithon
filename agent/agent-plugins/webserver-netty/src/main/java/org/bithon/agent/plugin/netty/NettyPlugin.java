@@ -16,14 +16,14 @@
 
 package org.bithon.agent.plugin.netty;
 
-import org.bithon.agent.core.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.core.interceptor.descriptor.MethodPointCutDescriptorBuilder;
-import org.bithon.agent.core.interceptor.plugin.IPlugin;
+import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
+import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
+import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Collections;
 import java.util.List;
 
-import static org.bithon.agent.core.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
+import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
 
 /**
  * @author frankchen

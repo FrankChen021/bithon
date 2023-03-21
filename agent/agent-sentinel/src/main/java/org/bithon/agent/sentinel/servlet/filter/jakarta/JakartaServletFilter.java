@@ -23,7 +23,7 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.bithon.agent.core.config.ConfigurationManager;
+import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.sentinel.ISentinelListener;
 import org.bithon.agent.sentinel.SentinelRuleManager;
 import org.bithon.agent.sentinel.config.SentinelConfig;

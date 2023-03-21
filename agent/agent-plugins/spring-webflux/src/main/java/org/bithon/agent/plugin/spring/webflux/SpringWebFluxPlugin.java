@@ -16,10 +16,10 @@
 
 package org.bithon.agent.plugin.spring.webflux;
 
-import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.core.interceptor.descriptor.MethodPointCutDescriptorBuilder;
-import org.bithon.agent.core.interceptor.plugin.IPlugin;
+import org.bithon.agent.configuration.ConfigurationManager;
+import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
+import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
+import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.spring.webflux.config.GatewayFilterConfigs;
 
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static org.bithon.agent.core.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
+import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
 
 /**
  * @author frankchen

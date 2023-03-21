@@ -18,9 +18,9 @@ package org.bithon.agent.plugin.mongodb38.interceptor.protocol;
 
 import com.mongodb.MongoNamespace;
 import com.mongodb.WriteConcern;
-import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.context.AopContext;
-import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.IBithonObject;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 
 import java.util.List;

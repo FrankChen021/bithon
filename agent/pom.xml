@@ -25,7 +25,7 @@
 
     <modules>
         <module>agent-sdk</module>
-        <module>agent-bootstrap</module>
+        <module>agent-instrumentation</module>
         <module>agent-core</module>
         <module>agent-observability</module>
         <module>agent-controller</module>
@@ -50,7 +50,7 @@
 
             <dependency>
                 <groupId>org.bithon.agent</groupId>
-                <artifactId>agent-bootstrap</artifactId>
+                <artifactId>agent-instrumentation</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

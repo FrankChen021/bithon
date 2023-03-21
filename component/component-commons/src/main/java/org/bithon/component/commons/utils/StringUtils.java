@@ -62,11 +62,6 @@ public class StringUtils {
         return false;
     }
 
-    public static String getSimpleClassName(String qualifiedClassName) {
-        int dot = qualifiedClassName.lastIndexOf('.');
-        return dot == -1 ? qualifiedClassName : qualifiedClassName.substring(dot + 1);
-    }
-
     public static String from(InputStream inputStream) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         int length;

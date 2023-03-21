@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.spring.bean.installer;
 
-import org.bithon.agent.bootstrap.aop.advice.DynamicAopAdvice;
-import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.interceptor.AopClassHelper;
+import org.bithon.agent.configuration.ConfigurationManager;
+import org.bithon.agent.instrumentation.aop.advice.AdviceClassGenerator;
+import org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice;
 import org.bithon.agent.observability.aop.BeanMethodAopInstaller;
 import org.bithon.agent.plugin.spring.bean.interceptor.BeanMethod$Invoke;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
@@ -45,11 +45,11 @@ public class BeanMethodAopInstallerHelper {
 
         String targetAopClassName = BeanMethodAopInstallerHelper.class.getPackage().getName() + ".SpringBeanMethodAop";
 
-        targetAopClass = AopClassHelper.generateAopClass(DynamicAopAdvice.class,
-                                                         targetAopClassName,
-                                                         BeanMethod$Invoke.class.getName(),
-                                                         true);
-        AopClassHelper.inject(targetAopClass);
+        targetAopClass = AdviceClassGenerator.generateAdviceClass(DynamicAopAdvice.class,
+                                                                  targetAopClassName,
+                                                                  BeanMethod$Invoke.class.getName(),
+                                                                  true);
+        AdviceClassGenerator.inject(targetAopClass);
     }
 
     public static void install(Class<?> targetClass) {

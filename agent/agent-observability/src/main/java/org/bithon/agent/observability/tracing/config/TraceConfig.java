@@ -16,7 +16,7 @@
 
 package org.bithon.agent.observability.tracing.config;
 
-import org.bithon.agent.core.config.ConfigurationProperties;
+import org.bithon.agent.configuration.ConfigurationProperties;
 
 import java.util.Collections;
 import java.util.List;

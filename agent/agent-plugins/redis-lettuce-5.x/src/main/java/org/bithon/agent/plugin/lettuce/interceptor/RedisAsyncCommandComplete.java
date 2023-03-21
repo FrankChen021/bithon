@@ -17,9 +17,9 @@
 package org.bithon.agent.plugin.lettuce.interceptor;
 
 import io.lettuce.core.protocol.AsyncCommand;
-import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.context.AopContext;
-import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.IBithonObject;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.redis.RedisMetricRegistry;
 import org.bithon.agent.plugin.lettuce.LettuceAsyncContext;
 

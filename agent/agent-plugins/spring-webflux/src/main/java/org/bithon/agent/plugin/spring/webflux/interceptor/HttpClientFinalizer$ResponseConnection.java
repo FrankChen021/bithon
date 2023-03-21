@@ -16,10 +16,10 @@
 
 package org.bithon.agent.plugin.spring.webflux.interceptor;
 
-import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.context.AopContext;
-import org.bithon.agent.bootstrap.aop.interceptor.AroundInterceptor;
-import org.bithon.agent.bootstrap.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.IBithonObject;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.plugin.spring.webflux.context.HttpClientContext;

@@ -19,12 +19,12 @@ package org.bithon.agent.plugin.grpc.client.interceptor;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.stub.AbstractStub;
-import org.bithon.agent.bootstrap.aop.advice.DynamicAopAdvice;
-import org.bithon.agent.bootstrap.aop.context.AopContext;
-import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
-import org.bithon.agent.core.interceptor.AopClassHelper;
-import org.bithon.agent.core.interceptor.installer.DynamicInterceptorInstaller;
-import org.bithon.agent.core.interceptor.matcher.Matchers;
+import org.bithon.agent.instrumentation.aop.advice.AdviceClassGenerator;
+import org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.installer.DynamicInterceptorInstaller;
+import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 import org.bithon.shaded.net.bytebuddy.dynamic.ClassFileLocator;
@@ -49,11 +49,11 @@ public class AbstractBlockingStub$NewStub extends BeforeInterceptor {
     public AbstractBlockingStub$NewStub() {
         String targetAopClassName = AbstractBlockingStub$NewStub.class.getPackage().getName() + ".BlockingStubAop";
 
-        grpcStubAopClass = AopClassHelper.generateAopClass(DynamicAopAdvice.class,
-                                                           targetAopClassName,
-                                                           AbstractGrpcStubInterceptor.BlockingStubInterceptor.class.getName(),
-                                                           true);
-        AopClassHelper.inject(grpcStubAopClass);
+        grpcStubAopClass = AdviceClassGenerator.generateAdviceClass(DynamicAopAdvice.class,
+                                                                    targetAopClassName,
+                                                                    AbstractGrpcStubInterceptor.BlockingStubInterceptor.class.getName(),
+                                                                    true);
+        AdviceClassGenerator.inject(grpcStubAopClass);
     }
 
     @Override

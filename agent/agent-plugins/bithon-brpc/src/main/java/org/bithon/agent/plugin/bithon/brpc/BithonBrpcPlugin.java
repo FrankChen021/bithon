@@ -16,11 +16,11 @@
 
 package org.bithon.agent.plugin.bithon.brpc;
 
-import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.config.ConfigurationProperties;
-import org.bithon.agent.core.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.core.interceptor.descriptor.MethodPointCutDescriptorBuilder;
-import org.bithon.agent.core.interceptor.plugin.IPlugin;
+import org.bithon.agent.configuration.ConfigurationManager;
+import org.bithon.agent.configuration.ConfigurationProperties;
+import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
+import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
+import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.Collections;
@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.bithon.agent.core.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
+import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
 
 /**
  * @author frank.chen021@outlook.com

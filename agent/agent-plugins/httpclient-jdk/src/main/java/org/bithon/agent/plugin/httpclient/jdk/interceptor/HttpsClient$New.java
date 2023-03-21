@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 
-import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.context.AopContext;
-import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.IBithonObject;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
 import sun.net.www.protocol.http.HttpURLConnection;
 
 import javax.net.ssl.HostnameVerifier;

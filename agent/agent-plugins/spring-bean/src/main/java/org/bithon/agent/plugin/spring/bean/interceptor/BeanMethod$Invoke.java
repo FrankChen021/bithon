@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.spring.bean.interceptor;
 
-import org.bithon.agent.bootstrap.aop.interceptor.IDynamicInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.IDynamicInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 

@@ -16,8 +16,8 @@
 
 package org.bithon.agent.observability.metric.domain.web;
 
-import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.config.ConfigurationProperties;
+import org.bithon.agent.configuration.ConfigurationManager;
+import org.bithon.agent.configuration.ConfigurationProperties;
 import org.bithon.agent.observability.utils.filter.IMatcher;
 import org.bithon.agent.observability.utils.filter.StringSuffixMatcher;
 import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonProperty;

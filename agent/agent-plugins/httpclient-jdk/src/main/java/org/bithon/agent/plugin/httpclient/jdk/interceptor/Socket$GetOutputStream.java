@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 
-import org.bithon.agent.bootstrap.aop.context.AopContext;
-import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;

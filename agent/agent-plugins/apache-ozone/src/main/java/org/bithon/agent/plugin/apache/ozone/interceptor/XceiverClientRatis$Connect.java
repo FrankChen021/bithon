@@ -18,9 +18,9 @@ package org.bithon.agent.plugin.apache.ozone.interceptor;
 
 import org.apache.hadoop.hdds.scm.XceiverClientRatis;
 import org.apache.ratis.client.RaftClient;
-import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.context.AopContext;
-import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
+import org.bithon.agent.instrumentation.aop.IBithonObject;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.util.concurrent.atomic.AtomicReference;

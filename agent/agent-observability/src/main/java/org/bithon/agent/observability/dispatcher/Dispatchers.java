@@ -16,7 +16,7 @@
 
 package org.bithon.agent.observability.dispatcher;
 
-import org.bithon.agent.core.config.ConfigurationManager;
+import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.observability.dispatcher.channel.IMessageChannelFactory;
 import org.bithon.agent.observability.dispatcher.config.DispatcherConfig;

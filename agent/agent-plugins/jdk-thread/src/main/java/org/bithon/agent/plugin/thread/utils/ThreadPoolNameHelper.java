@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.thread.utils;
 
-import org.bithon.agent.bootstrap.expt.AgentException;
+import org.bithon.agent.instrumentation.expt.AgentException;
 
 import java.lang.reflect.Field;
 import java.util.Collection;

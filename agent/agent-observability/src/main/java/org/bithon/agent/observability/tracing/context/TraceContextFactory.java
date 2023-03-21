@@ -16,7 +16,7 @@
 
 package org.bithon.agent.observability.tracing.context;
 
-import org.bithon.agent.bootstrap.expt.AgentException;
+import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
 
