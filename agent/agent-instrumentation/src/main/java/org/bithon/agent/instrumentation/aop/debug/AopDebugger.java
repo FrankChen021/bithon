@@ -84,6 +84,10 @@ public class AopDebugger extends AgentBuilder.Listener.Adapter {
         return isEnabled;
     }
 
+    public File getClassFileDirectory() {
+        return classFileDirectory;
+    }
+
     public AopDebugger withTypes(Set<String> newTargetTypes) {
         return new AopDebugger(this.isEnabled, this.classFileDirectory, newTargetTypes);
     }

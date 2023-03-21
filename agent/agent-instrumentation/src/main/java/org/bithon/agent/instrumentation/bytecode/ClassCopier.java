@@ -17,6 +17,7 @@
 package org.bithon.agent.instrumentation.bytecode;
 
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
+import org.bithon.agent.instrumentation.aop.debug.AopDebugger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.dynamic.loading.ClassInjector;
 import org.bithon.shaded.net.bytebuddy.jar.asm.ClassReader;
@@ -24,6 +25,8 @@ import org.bithon.shaded.net.bytebuddy.jar.asm.ClassWriter;
 import org.bithon.shaded.net.bytebuddy.jar.asm.commons.ClassRemapper;
 import org.bithon.shaded.net.bytebuddy.jar.asm.commons.Remapper;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -98,17 +101,17 @@ public class ClassCopier {
             // save for further injection
             shadedClasses.put(val.targetClazzName, classInBytes);
 
-            /*
-            if (AopDebugger.IS_DEBUG_ENABLED) {
+            AopDebugger debugger = InstrumentationHelper.getAopDebugger();
+            if (debugger.isEnabled()) {
                 try {
-                    File file = new File(AopDebugger.CLASS_FILE_DIR, val.targetClazzName + ".class");
+                    File file = new File(debugger.getClassFileDirectory(), val.targetClazzName + ".class");
                     file.getParentFile().mkdirs();
                     try (FileOutputStream output = new FileOutputStream(file)) {
                         output.write(classInBytes);
                     }
                 } catch (IOException ignored) {
                 }
-            }*/
+            }
         }
 
         //

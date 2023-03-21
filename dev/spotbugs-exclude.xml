@@ -23,6 +23,10 @@
         https://findbugs.sourceforge.net/bugDescriptions.html
     -->
     <Match>
+        <Class name="org.bithon.agent.instrumentation.bytecode.ClassCopier"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE" />
+    </Match>
+    <Match>
         <Class name="org.bithon.agent.instrumentation.aop.advice.ConstructorAfterAdvice"/>
         <Bug pattern="UWF_UNWRITTEN_FIELD" />
     </Match>
