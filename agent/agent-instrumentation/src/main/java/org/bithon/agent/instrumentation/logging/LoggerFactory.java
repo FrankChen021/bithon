@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.aop.logging;
+package org.bithon.agent.instrumentation.logging;
 
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
@@ -28,9 +28,9 @@ import java.util.Locale;
  * @author frank.chen021@outlook.com
  * @date 2021/2/19 8:26 下午
  */
-public class BootstrapLogger {
+public class LoggerFactory {
 
-    public static IAopLogger createLogger(Class<?> logClass) {
+    public static ILogger createLogger(Class<?> logClass) {
         // The logger is provided in the agent-core, use reflection to instantiate a class
         String loggerName = "org.bithon.agent.core.interceptor.AopLogger";
 
@@ -39,10 +39,10 @@ public class BootstrapLogger {
                                                  true,
                                                  AgentClassLoader.getClassLoader());
             Method getLoggerMethod = loggerClass.getDeclaredMethod("getLogger", Class.class);
-            return (IAopLogger) getLoggerMethod.invoke(null, logClass);
+            return (ILogger) getLoggerMethod.invoke(null, logClass);
         } catch (ClassNotFoundException e) {
             System.out.printf(Locale.ENGLISH, "[%s] could not be found, AopLogger falls back to Console Logger%n", loggerName);
-            return new IAopLogger() {
+            return new ILogger() {
                 @Override
                 public void warn(String messageFormat, Object... args) {
                     System.err.printf(Locale.ENGLISH, messageFormat, args);

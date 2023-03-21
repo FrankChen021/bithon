@@ -16,27 +16,26 @@
 
 package org.bithon.agent.core.interceptor;
 
-import org.bithon.agent.instrumentation.aop.logging.BootstrapLogger;
-import org.bithon.agent.instrumentation.aop.logging.IAopLogger;
+import org.bithon.agent.instrumentation.logging.ILogger;
+import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
-import org.bithon.component.commons.logging.LoggerFactory;
 
 /**
  * created via reflection from bootstrap aop instances which are loaded by bootstrap class loader
- * see {@link BootstrapLogger}
+ * see {@link LoggerFactory}
  *
  * @author frank.chen021@outlook.com
  * @date 2021/2/19 10:49 下午
  */
-public class AopLogger implements IAopLogger {
+public class AopLogger implements ILogger {
 
     private final ILogAdaptor log;
 
     private AopLogger(Class<?> logClass) {
-        this.log = LoggerFactory.getLogger(logClass);
+        this.log = org.bithon.component.commons.logging.LoggerFactory.getLogger(logClass);
     }
 
-    public static IAopLogger getLogger(Class<?> clazz) {
+    public static ILogger getLogger(Class<?> clazz) {
         return new AopLogger(clazz);
     }
 

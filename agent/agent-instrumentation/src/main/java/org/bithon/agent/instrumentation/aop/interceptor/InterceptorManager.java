@@ -17,9 +17,9 @@
 package org.bithon.agent.instrumentation.aop.interceptor;
 
 
-import org.bithon.agent.instrumentation.aop.logging.BootstrapLogger;
-import org.bithon.agent.instrumentation.aop.logging.IAopLogger;
 import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;
+import org.bithon.agent.instrumentation.logging.ILogger;
+import org.bithon.agent.instrumentation.logging.LoggerFactory;
 
 import java.util.Locale;
 import java.util.Map;
@@ -32,7 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author frankchen
  */
 public class InterceptorManager {
-    private static final IAopLogger log = BootstrapLogger.createLogger(InterceptorManager.class);
+    private static final ILogger log = LoggerFactory.createLogger(InterceptorManager.class);
 
     private static final Map<String, IInterceptor> INTERCEPTORS = new ConcurrentHashMap<>();
 

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.aop.logging;
+package org.bithon.agent.instrumentation.logging;
 
 /**
  * Since Aop, which is injected into bootstrap class loader, depends on log,
@@ -25,7 +25,7 @@ package org.bithon.agent.instrumentation.aop.logging;
  * @author frank.chen021@outlook.com
  * @date 2021/2/19 10:45 下午
  */
-public interface IAopLogger {
+public interface ILogger {
 
     void warn(String messageFormat, Object... args);
     void warn(String message, Throwable e);

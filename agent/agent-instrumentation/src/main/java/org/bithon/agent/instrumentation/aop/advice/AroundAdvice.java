@@ -20,8 +20,8 @@ import org.bithon.agent.instrumentation.aop.context.AopContextImpl;
 import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.IInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
-import org.bithon.agent.instrumentation.aop.logging.BootstrapLogger;
-import org.bithon.agent.instrumentation.aop.logging.IAopLogger;
+import org.bithon.agent.instrumentation.logging.ILogger;
+import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -34,7 +34,7 @@ import java.util.Locale;
  * @date 2021-02-18 20:20
  */
 public class AroundAdvice {
-    public static final IAopLogger LOG = BootstrapLogger.createLogger(AroundAdvice.class);
+    public static final ILogger LOG = LoggerFactory.createLogger(AroundAdvice.class);
 
     /**
      * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class

@@ -17,9 +17,9 @@
 package org.bithon.agent.instrumentation.aop.advice;
 
 import org.bithon.agent.instrumentation.aop.interceptor.IDynamicInterceptor;
-import org.bithon.agent.instrumentation.aop.logging.BootstrapLogger;
-import org.bithon.agent.instrumentation.aop.logging.IAopLogger;
 import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;
+import org.bithon.agent.instrumentation.logging.ILogger;
+import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -38,7 +38,7 @@ import java.util.Locale;
  */
 public class DynamicAopAdvice {
 
-    private static final IAopLogger LOG = BootstrapLogger.createLogger(DynamicAopAdvice.class);
+    private static final ILogger LOG = LoggerFactory.createLogger(DynamicAopAdvice.class);
 
     /**
      * assigned by class generator
