@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.interceptor.installer;
+package org.bithon.agent.instrumentation.aop.interceptor.installer;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
@@ -29,9 +29,8 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.Descriptors;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodType;
-import org.bithon.component.commons.logging.ILogAdaptor;
-import org.bithon.component.commons.logging.LoggerFactory;
-import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.agent.instrumentation.logging.ILogger;
+import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
@@ -58,6 +57,8 @@ import java.util.Set;
  * @date 2021/1/24 9:24 下午
  */
 public class InterceptorInstaller {
+
+    private final ILogger log = LoggerFactory.getLogger(InterceptorInstaller.class);
     private final Descriptors descriptors;
 
     public InterceptorInstaller(Descriptors descriptors) {
@@ -81,7 +82,7 @@ public class InterceptorInstaller {
                     Descriptors.Descriptor descriptor = descriptors.get(type);
                     if (descriptor == null) {
                         // this must be something wrong
-                        LoggerFactory.getLogger(InterceptorInstaller.class).error("Error to transform [{}] for the descriptor is not found", type);
+                        log.error("Error to transform [{}] for the descriptor is not found", type);
                         return builder;
                     }
 
@@ -110,7 +111,8 @@ public class InterceptorInstaller {
 
                         builder = new Installer(builder,
                                                 typeDescription,
-                                                classLoader).install(mp.getPlugin(), mp.getMethodInterceptors());
+                                                classLoader,
+                                                log).install(mp.getPlugin(), mp.getMethodInterceptors());
                     }
 
                     return builder;
@@ -131,17 +133,19 @@ public class InterceptorInstaller {
         private Implementation.Composable interceptorInitializers;
 
         private final TypeDescription interceptorTypeDescription = new TypeDescription.ForLoadedType(IInterceptor.class);
-        private final ILogAdaptor log = LoggerFactory.getLogger(InterceptorInstaller.class);
+        private final ILogger log;
 
         /**
          * @param classLoader can be NULL. If is NULL, it's Bootstrap class loader
          */
         public Installer(DynamicType.Builder<?> builder,
                          TypeDescription typeDescription,
-                         ClassLoader classLoader) {
+                         ClassLoader classLoader,
+                         ILogger log) {
             this.builder = builder;
             this.typeDescription = typeDescription;
             this.classLoader = classLoader;
+            this.log = log;
 
             getInterceptorMethod = new TypeDescription.ForLoadedType(InterceptorManager.class)
                 .getDeclaredMethods()
@@ -153,8 +157,8 @@ public class InterceptorInstaller {
             for (MethodPointCutDescriptor pointCut : mps) {
                 log.info("Install interceptor [{}#{}] to [{}#{}]",
                          providerName,
-                         StringUtils.getSimpleClassName(pointCut.getInterceptorClassName()),
-                         StringUtils.getSimpleClassName(typeDescription.getName()),
+                         getSimpleClassName(pointCut.getInterceptorClassName()),
+                         getSimpleClassName(typeDescription.getName()),
                          pointCut);
                 install(pointCut);
             }
@@ -170,7 +174,7 @@ public class InterceptorInstaller {
 
         private void install(MethodPointCutDescriptor pointCutDescriptor) {
             // Add a field to hold the interceptor object
-            String fieldName = "intcep" + StringUtils.getSimpleClassName(pointCutDescriptor.getInterceptorClassName()) + "_" + RandomString.make();
+            String fieldName = "intcep" + getSimpleClassName(pointCutDescriptor.getInterceptorClassName()) + "_" + RandomString.make();
             builder = builder.defineField(fieldName, interceptorTypeDescription, Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC);
 
             // generate assignment to the static field
@@ -235,5 +239,10 @@ public class InterceptorInstaller {
                     break;
             }
         }
+    }
+
+    private static String getSimpleClassName(String qualifiedClassName) {
+        int dot = qualifiedClassName.lastIndexOf('.');
+        return dot == -1 ? qualifiedClassName : qualifiedClassName.substring(dot + 1);
     }
 }

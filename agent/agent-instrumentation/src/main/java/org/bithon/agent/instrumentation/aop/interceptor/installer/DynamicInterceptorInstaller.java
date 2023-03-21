@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.interceptor.installer;
+package org.bithon.agent.instrumentation.aop.interceptor.installer;
 
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
-import org.bithon.component.commons.logging.ILogAdaptor;
-import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.agent.instrumentation.logging.ILogger;
+import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
@@ -40,18 +40,11 @@ import java.util.Map;
  * @date 2021/7/10 13:05
  */
 public class DynamicInterceptorInstaller {
-    private static final ILogAdaptor LOG = LoggerFactory.getLogger(DynamicInterceptorInstaller.class);
+    private static final ILogger LOG = LoggerFactory.getLogger(DynamicInterceptorInstaller.class);
     private static final DynamicInterceptorInstaller INSTANCE = new DynamicInterceptorInstaller();
 
     public static DynamicInterceptorInstaller getInstance() {
         return INSTANCE;
-    }
-
-    private DynamicType.Builder<?> install(AopDescriptor descriptor,
-                                           DynamicType.Builder<?> builder) {
-
-        LOG.info("Dynamically install interceptor for [{}]", descriptor.getTargetClass());
-        return builder.visit(descriptor.getAdvice().on(descriptor.getMethodMatcher()));
     }
 
     /**
@@ -101,6 +94,13 @@ public class DynamicInterceptorInstaller {
                                                                   .withTypes(new HashSet<>(descriptors.keySet())));
         }
         agentBuilder.installOn(InstrumentationHelper.getInstance());
+    }
+
+    private DynamicType.Builder<?> install(AopDescriptor descriptor,
+                                           DynamicType.Builder<?> builder) {
+
+        LOG.info("Dynamically install interceptor for [{}]", descriptor.getTargetClass());
+        return builder.visit(descriptor.getAdvice().on(descriptor.getMethodMatcher()));
     }
 
     public static class AopDescriptor {
