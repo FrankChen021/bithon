@@ -33,7 +33,7 @@ import java.util.Locale;
  * @date 2021-02-18 18:03
  */
 public class ConstructorAfterAdvice {
-    public static final ILogger LOG = LoggerFactory.createLogger(ConstructorAfterAdvice.class);
+    public static final ILogger LOG = LoggerFactory.getLogger(ConstructorAfterAdvice.class);
 
     @Advice.OnMethodExit
     public static void onExit(@AdviceAnnotation.Interceptor IInterceptor interceptor,

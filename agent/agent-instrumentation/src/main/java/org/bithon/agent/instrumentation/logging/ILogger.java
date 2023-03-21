@@ -27,7 +27,11 @@ package org.bithon.agent.instrumentation.logging;
  */
 public interface ILogger {
 
+    void info(String messageFormat, Object...args);
+
     void warn(String messageFormat, Object... args);
     void warn(String message, Throwable e);
     void error(String message, Throwable e);
+
+    void error(String messageFormat, Object...args);
 }

@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.interceptor.descriptor;
+package org.bithon.agent.instrumentation.aop.interceptor.descriptor;
 
-import org.bithon.agent.core.interceptor.matcher.Matchers;
+import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;

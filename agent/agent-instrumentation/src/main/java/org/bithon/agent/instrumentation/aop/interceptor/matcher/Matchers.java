@@ -14,10 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.interceptor.matcher;
+package org.bithon.agent.instrumentation.aop.interceptor.matcher;
 
-import org.bithon.component.commons.logging.ILogAdaptor;
-import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.agent.instrumentation.logging.ILogger;
+import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.description.NamedElement;
 import org.bithon.shaded.net.bytebuddy.description.annotation.AnnotationDescription;
 import org.bithon.shaded.net.bytebuddy.description.annotation.AnnotationList;
@@ -38,7 +38,7 @@ import java.util.function.Function;
  * @date 2021/2/20 9:30 下午
  */
 public class Matchers {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(Matchers.class);
+    private static final ILogger log = LoggerFactory.getLogger(Matchers.class);
 
     public static <T extends NamedElement> ElementMatcher.Junction<T> withName(String name) {
         return new ElementMatcher.Junction.AbstractBase<T>() {

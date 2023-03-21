@@ -14,9 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.interceptor.descriptor;
+package org.bithon.agent.instrumentation.aop.interceptor.descriptor;
 
-import org.bithon.agent.core.interceptor.precondition.IInterceptorPrecondition;
+
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
 
 import java.util.ArrayList;
 import java.util.Collection;

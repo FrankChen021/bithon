@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.interceptor.descriptor;
+package org.bithon.agent.instrumentation.aop.interceptor.descriptor;
 
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorType;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;

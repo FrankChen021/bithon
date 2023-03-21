@@ -16,10 +16,10 @@
 
 package org.bithon.agent.core.interceptor.plugin;
 
-import org.bithon.agent.core.interceptor.descriptor.BithonClassDescriptor;
-import org.bithon.agent.core.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.core.interceptor.precondition.IInterceptorPrecondition;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
+import org.bithon.agent.instrumentation.aop.interceptor.descriptor.BithonClassDescriptor;
+import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
 
 import java.util.Collections;
 import java.util.List;

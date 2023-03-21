@@ -16,10 +16,10 @@
 
 package org.bithon.agent.core.interceptor.plugin;
 
-import org.bithon.agent.core.interceptor.descriptor.Descriptors;
-import org.bithon.agent.core.interceptor.descriptor.MethodPointCutDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorType;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorTypeResolver;
+import org.bithon.agent.instrumentation.aop.interceptor.descriptor.Descriptors;
+import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptor;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.instrumentation.loader.JarClassLoader;
 import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;

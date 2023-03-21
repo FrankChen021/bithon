@@ -14,10 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.bytecode;
+package org.bithon.agent.instrumentation.bytecode;
 
-import org.bithon.agent.core.interceptor.AopDebugger;
-import org.bithon.agent.core.interceptor.InstrumentationHelper;
+import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.shaded.net.bytebuddy.ByteBuddy;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
@@ -108,7 +107,7 @@ public class ClassDelegation {
                                                                            .andThen(FieldAccessor.ofField("delegation").setsArgumentAt(0)))
                                                       .make();
 
-        AopDebugger.saveClassToFile(type);
+        // AopDebugger.saveClassToFile(type);
 
         //
         // Inject this dynamic class into class loader

@@ -40,6 +40,11 @@ public class AopLogger implements ILogger {
     }
 
     @Override
+    public void info(String messageFormat, Object... args) {
+        log.info(messageFormat, args);
+    }
+
+    @Override
     public void warn(String messageFormat, Object... args) {
         log.warn(messageFormat, args);
     }
@@ -52,5 +57,10 @@ public class AopLogger implements ILogger {
     @Override
     public void error(String message, Throwable e) {
         log.error(message, e);
+    }
+
+    @Override
+    public void error(String messageFormat, Object... args) {
+        log.error(messageFormat, args);
     }
 }

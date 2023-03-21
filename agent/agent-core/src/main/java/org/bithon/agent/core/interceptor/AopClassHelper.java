@@ -17,6 +17,7 @@
 package org.bithon.agent.core.interceptor;
 
 
+import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.agent.instrumentation.aop.advice.AroundAdvice;
 import org.bithon.agent.instrumentation.aop.advice.ConstructorAfterAdvice;
 import org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice;

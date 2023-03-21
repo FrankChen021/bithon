@@ -14,19 +14,16 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.bytecode;
+package org.bithon.agent.instrumentation.bytecode;
 
-import org.bithon.agent.core.interceptor.AopDebugger;
-import org.bithon.agent.core.interceptor.InstrumentationHelper;
-import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
+import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.dynamic.loading.ClassInjector;
 import org.bithon.shaded.net.bytebuddy.jar.asm.ClassReader;
 import org.bithon.shaded.net.bytebuddy.jar.asm.ClassWriter;
 import org.bithon.shaded.net.bytebuddy.jar.asm.commons.ClassRemapper;
 import org.bithon.shaded.net.bytebuddy.jar.asm.commons.Remapper;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -101,6 +98,7 @@ public class ClassCopier {
             // save for further injection
             shadedClasses.put(val.targetClazzName, classInBytes);
 
+            /*
             if (AopDebugger.IS_DEBUG_ENABLED) {
                 try {
                     File file = new File(AopDebugger.CLASS_FILE_DIR, val.targetClazzName + ".class");
@@ -110,7 +108,7 @@ public class ClassCopier {
                     }
                 } catch (IOException ignored) {
                 }
-            }
+            }*/
         }
 
         //

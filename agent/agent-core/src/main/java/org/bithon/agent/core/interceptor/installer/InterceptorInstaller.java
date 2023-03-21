@@ -17,9 +17,6 @@
 package org.bithon.agent.core.interceptor.installer;
 
 import org.bithon.agent.core.interceptor.AopDebugger;
-import org.bithon.agent.core.interceptor.descriptor.Descriptors;
-import org.bithon.agent.core.interceptor.descriptor.MethodPointCutDescriptor;
-import org.bithon.agent.core.interceptor.descriptor.MethodType;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.advice.AdviceAnnotation;
 import org.bithon.agent.instrumentation.aop.advice.AfterAdvice;
@@ -29,6 +26,9 @@ import org.bithon.agent.instrumentation.aop.advice.ConstructorAfterAdvice;
 import org.bithon.agent.instrumentation.aop.advice.ReplacementAdvice;
 import org.bithon.agent.instrumentation.aop.interceptor.IInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
+import org.bithon.agent.instrumentation.aop.interceptor.descriptor.Descriptors;
+import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptor;
+import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodType;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;

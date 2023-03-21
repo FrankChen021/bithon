@@ -32,7 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author frankchen
  */
 public class InterceptorManager {
-    private static final ILogger log = LoggerFactory.createLogger(InterceptorManager.class);
+    private static final ILogger log = LoggerFactory.getLogger(InterceptorManager.class);
 
     private static final Map<String, IInterceptor> INTERCEPTORS = new ConcurrentHashMap<>();
 

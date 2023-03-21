@@ -30,7 +30,7 @@ import java.util.Locale;
  */
 public class LoggerFactory {
 
-    public static ILogger createLogger(Class<?> logClass) {
+    public static ILogger getLogger(Class<?> logClass) {
         // The logger is provided in the agent-core, use reflection to instantiate a class
         String loggerName = "org.bithon.agent.core.interceptor.AopLogger";
 
@@ -44,6 +44,11 @@ public class LoggerFactory {
             System.out.printf(Locale.ENGLISH, "[%s] could not be found, AopLogger falls back to Console Logger%n", loggerName);
             return new ILogger() {
                 @Override
+                public void info(String messageFormat, Object... args) {
+                    System.out.printf(Locale.ENGLISH, messageFormat, args);
+                }
+
+                @Override
                 public void warn(String messageFormat, Object... args) {
                     System.err.printf(Locale.ENGLISH, messageFormat, args);
                 }
@@ -56,6 +61,11 @@ public class LoggerFactory {
                 @Override
                 public void error(String message, Throwable e) {
                     System.err.printf(Locale.ENGLISH, "[ERROR] %s: %s%n", message, e.toString());
+                }
+
+                @Override
+                public void error(String messageFormat, Object... args) {
+                    System.err.printf(Locale.ENGLISH, "[ERROR] %s%n", String.format(Locale.ENGLISH, messageFormat, args));
                 }
             };
         } catch (Exception e) {

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.interceptor.descriptor;
+package org.bithon.agent.instrumentation.aop.interceptor.descriptor;
 
 /**
  * Defines which class should be transformed into IBithonObject subclasses

@@ -14,22 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.interceptor;
-
-import java.lang.instrument.Instrumentation;
+package org.bithon.agent.instrumentation.aop.interceptor.descriptor;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/7/10 13:40
+ * @date 2023/3/19 15:33
  */
-public class InstrumentationHelper {
-    private static Instrumentation inst;
+public enum MethodType {
+    CONSTRUCTOR,
 
-    public static Instrumentation getInstance() {
-        return inst;
-    }
+    /**
+     * for those which are not constructors
+     */
+    NON_CONSTRUCTOR,
 
-    public static void setInstance(Instrumentation inst) {
-        InstrumentationHelper.inst = inst;
-    }
 }

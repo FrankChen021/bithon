@@ -17,7 +17,7 @@
 package org.bithon.agent.core.interceptor.installer;
 
 import org.bithon.agent.core.interceptor.AopDebugger;
-import org.bithon.agent.core.interceptor.InstrumentationHelper;
+import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;

@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.interceptor.precondition;
+package org.bithon.agent.instrumentation.aop.interceptor.precondition;
 
-import org.bithon.component.commons.logging.LoggerFactory;
+import com.sun.org.slf4j.internal.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 
 /**

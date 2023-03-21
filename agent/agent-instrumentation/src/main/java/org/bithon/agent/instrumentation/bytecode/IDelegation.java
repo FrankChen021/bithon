@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.bytecode;
+package org.bithon.agent.instrumentation.bytecode;
 
 /**
  * @author frank.chen021@outlook.com

@@ -38,7 +38,7 @@ import java.util.Locale;
  */
 public class DynamicAopAdvice {
 
-    private static final ILogger LOG = LoggerFactory.createLogger(DynamicAopAdvice.class);
+    private static final ILogger LOG = LoggerFactory.getLogger(DynamicAopAdvice.class);
 
     /**
      * assigned by class generator
