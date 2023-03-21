@@ -27,7 +27,7 @@ import feign.codec.Encoder;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.discovery.client.local.LocalDiscoveryClient;
+import org.bithon.server.discovery.client.inprocess.InProcessDiscoveryClient;
 import org.bithon.server.discovery.client.nacos.NacosDiscoveryClient;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
@@ -74,7 +74,7 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
         }
 
         // Service Discovery is not enabled, use Local
-        return new LocalDiscoveryClient(applicationContext);
+        return new InProcessDiscoveryClient(applicationContext);
     }
 
     /**

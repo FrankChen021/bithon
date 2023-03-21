@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.discovery.client.local;
+package org.bithon.server.discovery.client.inprocess;
 
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.server.discovery.client.IDiscoveryClient;
@@ -32,23 +32,25 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2023/3/21 23:55
  */
-public class LocalDiscoveryClient implements IDiscoveryClient {
+public class InProcessDiscoveryClient implements IDiscoveryClient {
 
     private final ApplicationContext applicationContext;
 
-    public LocalDiscoveryClient(ApplicationContext applicationContext) {
+    public InProcessDiscoveryClient(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 
     @Override
     public List<HostAndPort> getInstanceList(String serviceName) {
+        // Find the service implementations in current running process
         Map<String, Object> serviceProviders = applicationContext.getBeansWithAnnotation(DiscoverableService.class);
         if (serviceProviders.isEmpty()) {
             // The ServiceProvider is not deployed with the web-server module
             throw new HttpMappableException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                                            "Can't find the service provider: The Bithon web-server is neither deployed with collector nor deployed under Alibaba Nacos.");
+                                            "Can't find the service provider: The Bithon web-server is neither deployed with collector nor deployed under any service discovery service such as Alibaba Nacos.");
         }
 
+        // Find given service by name
         for (Map.Entry<String, Object> entry : serviceProviders.entrySet()) {
             Object serviceProvider = entry.getValue();
 
@@ -60,6 +62,7 @@ public class LocalDiscoveryClient implements IDiscoveryClient {
                 for (Class<?> intf : serviceClazz.getInterfaces()) {
                     DiscoverableService annotation = intf.getAnnotation(DiscoverableService.class);
                     if (annotation != null && serviceName.equals(annotation.name())) {
+                        // Return current application port
                         return Collections.singletonList(new HostAndPort("localhost",
                                                                          applicationContext.getEnvironment().getProperty("server.port", Integer.class)));
                     }
