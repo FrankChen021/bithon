@@ -32,7 +32,7 @@ public class LoggerFactory {
 
     public static ILogger getLogger(Class<?> logClass) {
         // The logger is provided in the agent-core, use reflection to instantiate a class
-        String loggerName = "org.bithon.agent.core.interceptor.AopLogger";
+        String loggerName = "org.bithon.agent.core.logging.LoggerAdaptor";
 
         try {
             Class<?> loggerClass = Class.forName(loggerName,

@@ -18,11 +18,11 @@ package org.bithon.agent.core.starter;
 
 import org.bithon.agent.AgentBuildVersion;
 import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.interceptor.AopConfig;
-import org.bithon.agent.core.interceptor.plugin.PluginResolver;
+import org.bithon.agent.core.config.PluginConfiguration;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.agent.instrumentation.aop.debug.AopDebugger;
 import org.bithon.agent.instrumentation.aop.interceptor.installer.InterceptorInstaller;
+import org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginResolver;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
 import org.bithon.component.commons.logging.ILogAdaptor;
@@ -77,7 +77,12 @@ public class AgentStarter {
         InstrumentationHelper.setAopDebugger(createAopDebugger());
 
         // Install interceptors for plugins
-        new InterceptorInstaller(new PluginResolver().resolveInterceptors())
+        new InterceptorInstaller(new PluginResolver() {
+            @Override
+            protected boolean resolve(Class<?> pluginClazz) {
+                return PluginConfiguration.load(pluginClazz);
+            }
+        }.resolveInterceptors())
             .installOn(inst);
 
         // Initialize other agent libs

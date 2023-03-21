@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.interceptor;
+package org.bithon.agent.core.logging;
 
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
@@ -27,16 +27,16 @@ import org.bithon.component.commons.logging.ILogAdaptor;
  * @author frank.chen021@outlook.com
  * @date 2021/2/19 10:49 下午
  */
-public class AopLogger implements ILogger {
+public class LoggerAdaptor implements ILogger {
 
     private final ILogAdaptor log;
 
-    private AopLogger(Class<?> logClass) {
+    private LoggerAdaptor(Class<?> logClass) {
         this.log = org.bithon.component.commons.logging.LoggerFactory.getLogger(logClass);
     }
 
     public static ILogger getLogger(Class<?> clazz) {
-        return new AopLogger(clazz);
+        return new LoggerAdaptor(clazz);
     }
 
     @Override

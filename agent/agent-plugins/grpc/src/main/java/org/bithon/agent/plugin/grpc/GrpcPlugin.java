@@ -17,10 +17,10 @@
 package org.bithon.agent.plugin.grpc;
 
 import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
+import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.ArrayList;
 import java.util.Arrays;

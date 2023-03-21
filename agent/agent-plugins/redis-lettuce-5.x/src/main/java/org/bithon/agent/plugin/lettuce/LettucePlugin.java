@@ -16,10 +16,10 @@
 
 package org.bithon.agent.plugin.lettuce;
 
-import org.bithon.agent.core.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.BithonClassDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
+import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.lettuce.interceptor.RedisClientConnect;
 
 import java.util.Arrays;

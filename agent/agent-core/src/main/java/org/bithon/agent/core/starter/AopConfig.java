@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.interceptor;
+package org.bithon.agent.core.starter;
 
 import org.bithon.agent.core.config.ConfigurationProperties;
 

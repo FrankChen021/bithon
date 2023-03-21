@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.interceptor.plugin;
+package org.bithon.agent.instrumentation.aop.interceptor.plugin;
 
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorType;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorTypeResolver;
@@ -23,8 +23,8 @@ import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCu
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.instrumentation.loader.JarClassLoader;
 import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;
-import org.bithon.component.commons.logging.ILogAdaptor;
-import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.agent.instrumentation.logging.ILogger;
+import org.bithon.agent.instrumentation.logging.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -39,9 +39,9 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2021/3/18-20:36
  */
-public class PluginResolver {
+public abstract class PluginResolver {
 
-    private static final ILogAdaptor LOG = LoggerFactory.getLogger(PluginResolver.class);
+    private final ILogger LOG = LoggerFactory.getLogger(PluginResolver.class);
 
     public PluginResolver() {
         // create plugin class loader first
@@ -93,12 +93,12 @@ public class PluginResolver {
                                 .flatMap(JarFile::stream)
                                 .filter(jarEntry -> jarEntry.getName().endsWith("Plugin.class"))
                                 .sorted(Comparator.comparing(JarEntry::getName))
-                                .map((jarEntry) -> loadPlugin(jarEntry, pluginClassLoader))
+                                .map((jarEntry) -> resolve(jarEntry, pluginClassLoader))
                                 .filter(Objects::nonNull)
                                 .collect(Collectors.toList());
     }
 
-    private IPlugin loadPlugin(JarEntry jarEntry, JarClassLoader pluginClassLoader) {
+    private IPlugin resolve(JarEntry jarEntry, JarClassLoader pluginClassLoader) {
         String jarEntryName = jarEntry.getName();
         String pluginFullClassName = jarEntryName.substring(0, jarEntryName.length() - ".class".length()).replace('/', '.');
 
@@ -110,8 +110,8 @@ public class PluginResolver {
                 return null;
             }
 
-            if (!PluginConfiguration.load(pluginClass)) {
-                LOG.info("Found plugin {}, but it's DISABLED by configuration", pluginClass.getSimpleName());
+            if (!resolve(pluginClass)) {
+                LOG.info("Found plugin {}, but it's not DISABLED by configuration", pluginClass.getSimpleName());
                 return null;
             }
 
@@ -132,4 +132,6 @@ public class PluginResolver {
         Class<?> parentClass = possiblePluginClass.getSuperclass();
         return parentClass != null && isPluginClass(parentClass);
     }
+
+    protected abstract boolean resolve(Class<?> pluginClazz);
 }

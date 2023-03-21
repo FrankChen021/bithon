@@ -14,10 +14,8 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.interceptor.plugin;
+package org.bithon.agent.core.config;
 
-import org.bithon.agent.core.config.Configuration;
-import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.instrumentation.expt.AgentException;
 
 import java.io.BufferedReader;
@@ -32,12 +30,12 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2021/8/11 16:31
  */
-class PluginConfiguration {
+public class PluginConfiguration {
 
     /**
      * @return false is the plugin is disabled by configuration
      */
-    static boolean load(Class<?> pluginClass) {
+    public static boolean load(Class<?> pluginClass) {
         String pluginConfigurationPrefix = getConfigurationPrefix(pluginClass.getName());
 
         Configuration pluginConfiguration = load(pluginClass, pluginConfigurationPrefix);

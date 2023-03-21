@@ -17,9 +17,9 @@
 package org.bithon.agent.plugin.spring.webflux;
 
 import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
+import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.plugin.spring.webflux.config.GatewayFilterConfigs;
 
 import java.util.ArrayList;

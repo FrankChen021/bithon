@@ -16,10 +16,10 @@
 
 package org.bithon.agent.plugin.jedis;
 
-import org.bithon.agent.core.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
+import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 

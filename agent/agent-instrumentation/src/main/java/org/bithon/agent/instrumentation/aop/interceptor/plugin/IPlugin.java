@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.interceptor.plugin;
+package org.bithon.agent.instrumentation.aop.interceptor.plugin;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.BithonClassDescriptor;
