@@ -16,7 +16,7 @@
 
 package org.bithon.agent.observability.tracing.context;
 
-import org.bithon.agent.core.config.ConfigurationManager;
+import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;

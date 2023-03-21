@@ -20,7 +20,7 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.servlet.handlers.ServletRequestContext;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.HttpString;
-import org.bithon.agent.core.config.ConfigurationManager;
+import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingFilter;

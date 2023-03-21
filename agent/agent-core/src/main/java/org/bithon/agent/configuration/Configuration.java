@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.config;
+package org.bithon.agent.configuration;
 
-import org.bithon.agent.core.config.validation.Validator;
+import org.bithon.agent.configuration.validation.Validator;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.com.fasterxml.jackson.core.JsonProcessingException;

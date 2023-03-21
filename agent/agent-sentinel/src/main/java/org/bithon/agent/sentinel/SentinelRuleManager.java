@@ -16,9 +16,9 @@
 
 package org.bithon.agent.sentinel;
 
+import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.controller.config.DynamicConfigurationManager;
 import org.bithon.agent.controller.config.IConfigurationChangedListener;
-import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
 import org.bithon.agent.sentinel.expt.SentinelCommandException;
 import org.bithon.agent.sentinel.flow.FlowRuleDto;

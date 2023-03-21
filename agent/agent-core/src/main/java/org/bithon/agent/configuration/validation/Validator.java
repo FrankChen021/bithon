@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.config.validation;
+package org.bithon.agent.configuration.validation;
 
-import org.bithon.agent.core.config.ConfigurationProperties;
+import org.bithon.agent.configuration.ConfigurationProperties;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.lang.annotation.Annotation;

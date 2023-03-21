@@ -14,23 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.starter;
+package org.bithon.agent.configuration.validation;
 
-import org.bithon.agent.core.config.ConfigurationProperties;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/8/7 13:53
+ * @date 2021/8/7 10:35
  */
-@ConfigurationProperties(prefix = "aop", dynamic = false)
-public class AopConfig {
-    private boolean debug = false;
-
-    public boolean isDebug() {
-        return debug;
-    }
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface NotBlank {
+    String message();
 }

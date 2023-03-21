@@ -17,7 +17,7 @@
 package org.bithon.agent.plugin.spring.webflux.interceptor;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import org.bithon.agent.core.config.ConfigurationManager;
+import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;

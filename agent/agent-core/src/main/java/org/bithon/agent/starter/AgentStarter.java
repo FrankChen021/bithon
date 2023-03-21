@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.starter;
+package org.bithon.agent.starter;
 
 import org.bithon.agent.AgentBuildVersion;
-import org.bithon.agent.core.config.ConfigurationManager;
-import org.bithon.agent.core.config.PluginConfiguration;
+import org.bithon.agent.configuration.ConfigurationManager;
+import org.bithon.agent.configuration.PluginConfiguration;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.agent.instrumentation.aop.debug.AopDebugger;
 import org.bithon.agent.instrumentation.aop.interceptor.installer.InterceptorInstaller;
@@ -117,8 +117,8 @@ public class AgentStarter {
     private AopDebugger createAopDebugger() {
         boolean isDebug = ConfigurationManager.getInstance().getConfig(AopConfig.class).isDebug();
 
-        String appName = ConfigurationManager.getInstance().getConfig("bithon.application.name", String.class);
-        String env = ConfigurationManager.getInstance().getConfig("bithon.application.env", String.class);
+        String appName = ConfigurationManager.getInstance().getConfig(ConfigurationManager.BITHON_APPLICATION_NAME, String.class);
+        String env = ConfigurationManager.getInstance().getConfig(ConfigurationManager.BITHON_APPLICATION_NAME, String.class);
         File targetDirectory = AgentDirectory.getSubDirectory(AgentDirectory.TMP_DIR
                                                               + separator
                                                               + appName + "-" + env

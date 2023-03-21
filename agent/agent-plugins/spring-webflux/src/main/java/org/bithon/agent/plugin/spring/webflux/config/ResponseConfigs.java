@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.spring.webflux.config;
 
-import org.bithon.agent.core.config.ConfigurationProperties;
+import org.bithon.agent.configuration.ConfigurationProperties;
 
 import java.util.Collections;
 import java.util.Map;

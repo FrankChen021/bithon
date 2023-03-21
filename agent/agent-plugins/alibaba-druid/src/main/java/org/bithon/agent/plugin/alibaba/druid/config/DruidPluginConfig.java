@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.alibaba.druid.config;
 
-import org.bithon.agent.core.config.ConfigurationProperties;
+import org.bithon.agent.configuration.ConfigurationProperties;
 import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonProperty;
 
 /**

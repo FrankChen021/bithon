@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.config;
+package org.bithon.agent.configuration;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

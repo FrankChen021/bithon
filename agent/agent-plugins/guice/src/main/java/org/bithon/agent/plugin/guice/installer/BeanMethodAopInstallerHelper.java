@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.guice.installer;
 
-import org.bithon.agent.core.config.ConfigurationManager;
+import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.advice.AdviceClassGenerator;
 import org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice;
 import org.bithon.agent.observability.aop.BeanMethodAopInstaller;

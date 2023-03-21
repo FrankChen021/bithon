@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.apache.kafka.producer.interceptor;
 
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Header;
-import org.bithon.agent.core.config.ConfigurationManager;
+import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;

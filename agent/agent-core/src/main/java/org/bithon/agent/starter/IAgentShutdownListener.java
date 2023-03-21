@@ -14,21 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.config.validation;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package org.bithon.agent.starter;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/8/7 17:55
+ * @date 2023/3/17 00:39
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface Range {
-    long min();
+public interface IAgentShutdownListener {
+    /**
+     * The lower the value, the lower priority that the listener will be invoked
+     */
+    default int getOrder() {
+        return 0;
+    }
 
-    long max();
+    void shutdown();
 }

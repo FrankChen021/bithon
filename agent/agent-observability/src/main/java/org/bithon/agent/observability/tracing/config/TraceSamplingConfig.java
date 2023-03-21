@@ -16,7 +16,7 @@
 
 package org.bithon.agent.observability.tracing.config;
 
-import org.bithon.agent.core.config.validation.Range;
+import org.bithon.agent.configuration.validation.Range;
 
 /**
  * @author frank.chen021@outlook.com

@@ -16,11 +16,11 @@
 
 package org.bithon.agent.observability.jvm;
 
-import org.bithon.agent.core.starter.IAgentService;
 import org.bithon.agent.observability.dispatcher.Dispatcher;
 import org.bithon.agent.observability.dispatcher.Dispatchers;
 import org.bithon.agent.observability.metric.collector.jvm.JvmEventMessageBuilder;
 import org.bithon.agent.observability.metric.collector.jvm.JvmMetricCollector;
+import org.bithon.agent.starter.IAgentService;
 
 /**
  * @author frank.chen021@outlook.com

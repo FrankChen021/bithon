@@ -17,9 +17,9 @@
 package org.bithon.agent.controller.config;
 
 
+import org.bithon.agent.configuration.Configuration;
+import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.controller.IAgentController;
-import org.bithon.agent.core.config.Configuration;
-import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.component.commons.concurrency.PeriodicTask;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;

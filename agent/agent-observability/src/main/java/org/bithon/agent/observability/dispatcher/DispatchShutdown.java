@@ -16,7 +16,7 @@
 
 package org.bithon.agent.observability.dispatcher;
 
-import org.bithon.agent.core.starter.IAgentShutdownListener;
+import org.bithon.agent.starter.IAgentShutdownListener;
 
 /**
  * @author frank.chen021@outlook.com

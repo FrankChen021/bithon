@@ -14,19 +14,26 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.config.validation;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package org.bithon.agent.starter;
 
 /**
+ * This initializer should not be used in plugins
+ *
  * @author frank.chen021@outlook.com
- * @date 2021/8/7 10:35
+ * @date 2021/7/1 5:56 下午
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface NotBlank {
-    String message();
+public interface IAgentService {
+    /**
+     * The smaller the value, the lower priority this service object is
+     */
+    default int getOrder() {
+        return 0;
+    }
+
+    void start() throws Exception;
+
+    /**
+     * Called when the agent is being shutdown
+     */
+    void stop() throws Exception;
 }

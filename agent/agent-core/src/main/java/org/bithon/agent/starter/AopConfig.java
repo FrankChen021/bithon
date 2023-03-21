@@ -14,19 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.starter;
+package org.bithon.agent.starter;
+
+import org.bithon.agent.configuration.ConfigurationProperties;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/3/17 00:39
+ * @date 2021/8/7 13:53
  */
-public interface IAgentShutdownListener {
-    /**
-     * The lower the value, the lower priority that the listener will be invoked
-     */
-    default int getOrder() {
-        return 0;
+@ConfigurationProperties(prefix = "aop", dynamic = false)
+public class AopConfig {
+    private boolean debug = false;
+
+    public boolean isDebug() {
+        return debug;
     }
 
-    void shutdown();
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
 }

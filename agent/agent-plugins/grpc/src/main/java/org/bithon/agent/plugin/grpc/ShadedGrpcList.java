@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.grpc;
 
-import org.bithon.agent.core.config.ConfigurationProperties;
+import org.bithon.agent.configuration.ConfigurationProperties;
 
 import java.util.ArrayList;
 

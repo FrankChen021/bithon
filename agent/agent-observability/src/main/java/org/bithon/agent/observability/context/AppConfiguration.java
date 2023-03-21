@@ -16,8 +16,8 @@
 
 package org.bithon.agent.observability.context;
 
-import org.bithon.agent.core.config.ConfigurationProperties;
-import org.bithon.agent.core.config.validation.NotBlank;
+import org.bithon.agent.configuration.ConfigurationProperties;
+import org.bithon.agent.configuration.validation.NotBlank;
 
 /**
  * @author frank.chen021@outlook.com

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.config;
+package org.bithon.agent.configuration;
 
 import org.bithon.agent.instrumentation.bytecode.ClassDelegation;
 import org.bithon.agent.instrumentation.bytecode.IDelegation;

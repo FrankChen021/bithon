@@ -16,7 +16,7 @@
 
 package org.bithon.agent.sentinel.servlet.filter.javax;
 
-import org.bithon.agent.core.config.ConfigurationManager;
+import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.sentinel.ISentinelListener;
 import org.bithon.agent.sentinel.SentinelRuleManager;
 import org.bithon.agent.sentinel.config.SentinelConfig;
