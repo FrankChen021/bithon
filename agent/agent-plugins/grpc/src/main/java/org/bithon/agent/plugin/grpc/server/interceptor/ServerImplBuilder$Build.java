@@ -16,10 +16,10 @@
 
 package org.bithon.agent.plugin.grpc.server.interceptor;
 
-import org.bithon.agent.bootstrap.aop.context.AopContext;
-import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.core.bytecode.ClassCopier;
 import org.bithon.agent.core.config.ConfigurationManager;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.observability.tracing.context.propagation.ChainedTraceContextExtractor;
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;

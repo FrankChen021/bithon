@@ -16,8 +16,8 @@
 
 package org.bithon.agent.observability.aop;
 
-import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.core.interceptor.installer.DynamicInterceptorInstaller;
+import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.observability.utils.filter.IMatcher;
 import org.bithon.agent.observability.utils.filter.InCollectionMatcher;

@@ -18,9 +18,9 @@ package org.bithon.agent.plugin.spring.webflux.interceptor;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.context.AopContext;
-import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.IBithonObject;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;

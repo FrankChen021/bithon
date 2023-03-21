@@ -21,8 +21,8 @@ import com.mongodb.internal.connection.CommandProtocol;
 import com.mongodb.internal.connection.DefaultServerConnection;
 import com.mongodb.internal.connection.LegacyProtocol;
 import com.mongodb.session.SessionContext;
-import org.bithon.agent.bootstrap.aop.context.AopContext;
-import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
 
 /**

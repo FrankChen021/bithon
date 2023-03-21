@@ -90,7 +90,7 @@
     </dependency>
 
     <!-- DEV TOOLS -->
-    <!-- This conflicts with classes in agent-bootstrap when the project is launched from IntelliJ
+    <!-- This conflicts with classes in agent-instrumentation when the project is launched from IntelliJ
          So, we disable this dependency here
     -->
 <!--    <dependency>-->

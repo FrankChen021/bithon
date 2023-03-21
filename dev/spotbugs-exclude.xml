@@ -23,43 +23,43 @@
         https://findbugs.sourceforge.net/bugDescriptions.html
     -->
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.ConstructorAfterAdvice"/>
+        <Class name="org.bithon.agent.instrumentation.aop.advice.ConstructorAfterAdvice"/>
         <Bug pattern="UWF_UNWRITTEN_FIELD" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.BeforeAdvice"/>
+        <Class name="org.bithon.agent.instrumentation.aop.advice.BeforeAdvice"/>
         <Bug pattern="DLS_DEAD_LOCAL_STORE" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.AfterAdvice"/>
+        <Class name="org.bithon.agent.instrumentation.aop.advice.AfterAdvice"/>
         <Bug pattern="DLS_DEAD_LOCAL_STORE" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.AfterAdvice"/>
+        <Class name="org.bithon.agent.instrumentation.aop.advice.AfterAdvice"/>
         <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.DynamicAopAdvice"/>
+        <Class name="org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice"/>
         <Bug pattern="DLS_DEAD_LOCAL_STORE" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.DynamicAopAdvice"/>
+        <Class name="org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice"/>
         <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.AroundAdvice"/>
+        <Class name="org.bithon.agent.instrumentation.aop.advice.AroundAdvice"/>
         <Bug pattern="DLS_DEAD_LOCAL_STORE" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.AroundAdvice"/>
+        <Class name="org.bithon.agent.instrumentation.aop.advice.AroundAdvice"/>
         <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.ReplacementAdvice"/>
+        <Class name="org.bithon.agent.instrumentation.aop.advice.ReplacementAdvice"/>
         <Bug pattern="DLS_DEAD_LOCAL_STORE" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.ReplacementAdvice"/>
+        <Class name="org.bithon.agent.instrumentation.aop.advice.ReplacementAdvice"/>
         <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
     </Match>
 

@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.httpclient.jetty;
 
-import org.bithon.agent.bootstrap.aop.context.AopContext;
-import org.bithon.agent.bootstrap.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.core.config.ConfigurationManager;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;

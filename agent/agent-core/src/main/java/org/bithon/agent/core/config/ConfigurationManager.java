@@ -16,10 +16,10 @@
 
 package org.bithon.agent.core.config;
 
-import org.bithon.agent.bootstrap.expt.AgentException;
-import org.bithon.agent.bootstrap.utils.AgentDirectory;
 import org.bithon.agent.core.bytecode.ClassDelegation;
 import org.bithon.agent.core.bytecode.IDelegation;
+import org.bithon.agent.instrumentation.expt.AgentException;
+import org.bithon.agent.instrumentation.utils.AgentDirectory;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.File;

@@ -16,7 +16,7 @@
 
 package org.bithon.agent.observability.metric.collector.jvm;
 
-import org.bithon.agent.bootstrap.expt.AgentException;
+import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.observability.metric.domain.jvm.MemoryRegionMetrics;
 
 import java.lang.management.BufferPoolMXBean;

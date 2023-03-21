@@ -14,7 +14,7 @@
   <dependencies>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-bootstrap</artifactId>
+      <artifactId>agent-instrumentation</artifactId>
       <scope>provided</scope>
     </dependency>
   </dependencies>
@@ -36,7 +36,7 @@
               <Premain-Class>org.bithon.agent.main.Main</Premain-Class>
               <Can-Retransform-Classes>true</Can-Retransform-Classes>
               <Can-Redefine-Classes>true</Can-Redefine-Classes>
-              <Boot-Class-Path>./boot/agent-bootstrap.jar ./boot/shaded-bytebuddy.jar</Boot-Class-Path>
+              <Boot-Class-Path>./boot/agent-instrumentation.jar ./boot/shaded-bytebuddy.jar</Boot-Class-Path>
               <Class-Path>./sdk/agent-sdk.jar</Class-Path>
             </manifestEntries>
           </archive>

@@ -16,9 +16,9 @@
 
 package org.bithon.agent.core.bytecode;
 
-import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.interceptor.AopDebugger;
 import org.bithon.agent.core.interceptor.InstrumentationHelper;
+import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.shaded.net.bytebuddy.ByteBuddy;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;

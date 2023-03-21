@@ -16,9 +16,9 @@
 
 package org.bithon.agent.core.interceptor.plugin;
 
-import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.config.Configuration;
 import org.bithon.agent.core.config.ConfigurationManager;
+import org.bithon.agent.instrumentation.expt.AgentException;
 
 import java.io.BufferedReader;
 import java.io.IOException;

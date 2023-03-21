@@ -17,8 +17,8 @@
 package org.bithon.agent.core.interceptor;
 
 
-import org.bithon.agent.bootstrap.utils.AgentDirectory;
 import org.bithon.agent.core.config.ConfigurationManager;
+import org.bithon.agent.instrumentation.utils.AgentDirectory;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
 import org.bithon.shaded.net.bytebuddy.utility.JavaModule;

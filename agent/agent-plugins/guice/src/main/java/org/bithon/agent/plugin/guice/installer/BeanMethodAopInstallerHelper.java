@@ -16,9 +16,9 @@
 
 package org.bithon.agent.plugin.guice.installer;
 
-import org.bithon.agent.bootstrap.aop.advice.DynamicAopAdvice;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.interceptor.AopClassHelper;
+import org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice;
 import org.bithon.agent.observability.aop.BeanMethodAopInstaller;
 import org.bithon.agent.plugin.guice.interceptor.GuiceBeanMethod$Invoke;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;

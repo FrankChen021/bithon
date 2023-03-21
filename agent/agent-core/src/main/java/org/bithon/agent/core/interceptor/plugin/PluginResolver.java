@@ -16,13 +16,13 @@
 
 package org.bithon.agent.core.interceptor.plugin;
 
-import org.bithon.agent.bootstrap.aop.interceptor.InterceptorType;
-import org.bithon.agent.bootstrap.aop.interceptor.InterceptorTypeResolver;
-import org.bithon.agent.bootstrap.expt.AgentException;
-import org.bithon.agent.bootstrap.loader.JarClassLoader;
-import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.core.interceptor.descriptor.Descriptors;
 import org.bithon.agent.core.interceptor.descriptor.MethodPointCutDescriptor;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptorType;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptorTypeResolver;
+import org.bithon.agent.instrumentation.expt.AgentException;
+import org.bithon.agent.instrumentation.loader.JarClassLoader;
+import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 

@@ -22,9 +22,9 @@ import feign.RequestTemplate;
 import feign.Target;
 import feign.codec.Decoder;
 import feign.codec.ErrorDecoder;
-import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.bootstrap.aop.context.AopContext;
-import org.bithon.agent.bootstrap.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.IBithonObject;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
 
 /**
  * {@link feign.SynchronousMethodHandler.Factory#create(Target, MethodMetadata, RequestTemplate.Factory, Request.Options, Decoder, ErrorDecoder)}

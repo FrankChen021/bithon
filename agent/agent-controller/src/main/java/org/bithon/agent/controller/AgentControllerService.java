@@ -16,13 +16,13 @@
 
 package org.bithon.agent.controller;
 
-import org.bithon.agent.bootstrap.loader.AgentClassLoader;
-import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.controller.cmd.IAgentCommand;
 import org.bithon.agent.controller.cmd.JvmCommand;
 import org.bithon.agent.controller.config.DynamicConfigurationManager;
 import org.bithon.agent.core.config.ConfigurationManager;
 import org.bithon.agent.core.starter.IAgentService;
+import org.bithon.agent.instrumentation.loader.AgentClassLoader;
+import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;
 import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;

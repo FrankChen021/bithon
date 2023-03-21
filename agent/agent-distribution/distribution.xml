@@ -39,10 +39,10 @@
     <!-- boot-class-path -->
     <dependencySet>
       <includes>
-        <include>${project.parent.groupId}:agent-bootstrap</include>
+        <include>${project.parent.groupId}:agent-instrumentation</include>
       </includes>
       <outputDirectory>/boot</outputDirectory>
-      <outputFileNameMapping>agent-bootstrap.jar</outputFileNameMapping>
+      <outputFileNameMapping>agent-instrumentation.jar</outputFileNameMapping>
     </dependencySet>
     <dependencySet>
       <includes>
@@ -56,7 +56,7 @@
     <dependencySet>
       <excludes>
         <exclude>org.bithon.shaded:shaded-bytebuddy</exclude>
-        <exclude>${project.parent.groupId}:agent-bootstrap</exclude>
+        <exclude>${project.parent.groupId}:agent-instrumentation</exclude>
         <exclude>${project.parent.groupId}:agent-main</exclude>
         <exclude>${project.parent.groupId}:agent-sdk</exclude>
 

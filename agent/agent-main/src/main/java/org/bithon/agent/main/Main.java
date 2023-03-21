@@ -16,9 +16,9 @@
 
 package org.bithon.agent.main;
 
-import org.bithon.agent.bootstrap.loader.AgentClassLoader;
-import org.bithon.agent.bootstrap.utils.AgentDirectory;
-import org.bithon.agent.bootstrap.utils.JarLocator;
+import org.bithon.agent.instrumentation.loader.AgentClassLoader;
+import org.bithon.agent.instrumentation.utils.AgentDirectory;
+import org.bithon.agent.instrumentation.utils.JarLocator;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
@@ -42,16 +42,16 @@ public class Main {
         }
 
         //
-        // agent-boostrap.jar should be on the boot-class-path
+        // agent-instrumentation.jar should be on the boot-class-path
         // check if agent is deployed correctly
         //
         if (ManagementFactory.getRuntimeMXBean().isBootClassPathSupported()) {
             boolean hasBootstrapJar = Arrays.stream(ManagementFactory.getRuntimeMXBean()
                                                                      .getBootClassPath()
                                                                      .split(File.pathSeparator))
-                                            .anyMatch(path -> path.endsWith(File.separator + "agent-bootstrap.jar"));
+                                            .anyMatch(path -> path.endsWith(File.separator + "agent-instrumentation.jar"));
             if (!hasBootstrapJar) {
-                throw new IllegalStateException("agent-bootstrap.jar is not on boot class path");
+                throw new IllegalStateException("agent-instrumentation.jar is not on boot class path");
             }
         }
 

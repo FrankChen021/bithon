@@ -16,7 +16,7 @@
 
 package org.bithon.agent.core.interceptor.descriptor;
 
-import org.bithon.agent.bootstrap.aop.interceptor.InterceptorType;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptorType;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 

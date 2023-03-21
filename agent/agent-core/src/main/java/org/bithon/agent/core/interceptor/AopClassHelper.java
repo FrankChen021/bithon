@@ -17,10 +17,10 @@
 package org.bithon.agent.core.interceptor;
 
 
-import org.bithon.agent.bootstrap.aop.advice.AroundAdvice;
-import org.bithon.agent.bootstrap.aop.advice.ConstructorAfterAdvice;
-import org.bithon.agent.bootstrap.aop.advice.DynamicAopAdvice;
-import org.bithon.agent.bootstrap.aop.advice.ReplacementAdvice;
+import org.bithon.agent.instrumentation.aop.advice.AroundAdvice;
+import org.bithon.agent.instrumentation.aop.advice.ConstructorAfterAdvice;
+import org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice;
+import org.bithon.agent.instrumentation.aop.advice.ReplacementAdvice;
 import org.bithon.shaded.net.bytebuddy.ByteBuddy;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
 import org.bithon.shaded.net.bytebuddy.dynamic.loading.ClassInjector;
