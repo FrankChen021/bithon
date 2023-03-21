@@ -16,8 +16,8 @@
 
 package org.bithon.agent.core.interceptor.installer;
 
-import org.bithon.agent.core.interceptor.AopDebugger;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
+import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.agent.instrumentation.aop.advice.AdviceAnnotation;
 import org.bithon.agent.instrumentation.aop.advice.AfterAdvice;
 import org.bithon.agent.instrumentation.aop.advice.AroundAdvice;
@@ -67,54 +67,60 @@ public class InterceptorInstaller {
     public void installOn(Instrumentation inst) {
         Set<String> types = new HashSet<>(descriptors.getTypes());
 
-        new AgentBuilder
-            .Default()
-            .assureReadEdgeFromAndTo(inst, IBithonObject.class)
-            .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(ElementMatchers.nameStartsWith("org.bithon.shaded.").or(ElementMatchers.isSynthetic())))
-            .type(new NameMatcher<>(new StringSetMatcher(types)))
-            .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule, ProtectionDomain protectionDomain) -> {
-                //
-                // get interceptor def for target class
-                //
-                String type = typeDescription.getTypeName();
-                Descriptors.Descriptor descriptor = descriptors.get(type);
-                if (descriptor == null) {
-                    // this must be something wrong
-                    LoggerFactory.getLogger(InterceptorInstaller.class).error("Error to transform [{}] for the descriptor is not found", type);
-                    return builder;
-                }
-
-                //
-                // Transform target class to type of IBithonObject
-                //
-                if (!typeDescription.isAssignableTo(IBithonObject.class)) {
-                    // define an object field on this class to hold objects across interceptors for state sharing
-                    builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME, Object.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_VOLATILE)
-                                     .implement(IBithonObject.class)
-                                     .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
-                }
-
-                //
-                // install interceptors for current matched type
-                //
-                for (Descriptors.MethodPointCuts mp : descriptor.getMethodPointCuts()) {
+        AgentBuilder agentBuilder =
+            new AgentBuilder
+                .Default()
+                .assureReadEdgeFromAndTo(inst, IBithonObject.class)
+                .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(ElementMatchers.nameStartsWith("org.bithon.shaded.").or(ElementMatchers.isSynthetic())))
+                .type(new NameMatcher<>(new StringSetMatcher(types)))
+                .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule, ProtectionDomain protectionDomain) -> {
                     //
-                    // Run checkers first to see if an interceptor can be installed
+                    // get interceptor def for target class
                     //
-                    if (mp.getPrecondition() != null) {
-                        if (!mp.getPrecondition().canInstall(mp.getPlugin(), classLoader, typeDescription)) {
-                            return builder;
-                        }
+                    String type = typeDescription.getTypeName();
+                    Descriptors.Descriptor descriptor = descriptors.get(type);
+                    if (descriptor == null) {
+                        // this must be something wrong
+                        LoggerFactory.getLogger(InterceptorInstaller.class).error("Error to transform [{}] for the descriptor is not found", type);
+                        return builder;
                     }
 
-                    builder = new Installer(builder,
-                                            typeDescription,
-                                            classLoader).install(mp.getPlugin(), mp.getMethodInterceptors());
-                }
+                    //
+                    // Transform target class to type of IBithonObject
+                    //
+                    if (!typeDescription.isAssignableTo(IBithonObject.class)) {
+                        // define an object field on this class to hold objects across interceptors for state sharing
+                        builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME, Object.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_VOLATILE)
+                                         .implement(IBithonObject.class)
+                                         .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
+                    }
 
-                return builder;
-            })
-            .with(new AopDebugger(types)).installOn(inst);
+                    //
+                    // install interceptors for current matched type
+                    //
+                    for (Descriptors.MethodPointCuts mp : descriptor.getMethodPointCuts()) {
+                        //
+                        // Run checkers first to see if an interceptor can be installed
+                        //
+                        if (mp.getPrecondition() != null) {
+                            if (!mp.getPrecondition().canInstall(mp.getPlugin(), classLoader, typeDescription)) {
+                                return builder;
+                            }
+                        }
+
+                        builder = new Installer(builder,
+                                                typeDescription,
+                                                classLoader).install(mp.getPlugin(), mp.getMethodInterceptors());
+                    }
+
+                    return builder;
+                });
+
+        if (InstrumentationHelper.getAopDebugger().isEnabled()) {
+            agentBuilder = agentBuilder.with(InstrumentationHelper.getAopDebugger().withTypes(types));
+        }
+
+        agentBuilder.installOn(inst);
     }
 
     public static class Installer {

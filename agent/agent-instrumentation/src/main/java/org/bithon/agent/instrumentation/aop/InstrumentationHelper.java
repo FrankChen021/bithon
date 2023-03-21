@@ -16,6 +16,8 @@
 
 package org.bithon.agent.instrumentation.aop;
 
+import org.bithon.agent.instrumentation.aop.debug.AopDebugger;
+
 import java.lang.instrument.Instrumentation;
 
 /**
@@ -24,6 +26,7 @@ import java.lang.instrument.Instrumentation;
  */
 public class InstrumentationHelper {
     private static Instrumentation inst;
+    private static AopDebugger debugger;
 
     public static Instrumentation getInstance() {
         return inst;
@@ -31,5 +34,13 @@ public class InstrumentationHelper {
 
     public static void setInstance(Instrumentation inst) {
         InstrumentationHelper.inst = inst;
+    }
+
+    public static void setAopDebugger(AopDebugger debugger) {
+        InstrumentationHelper.debugger = debugger;
+    }
+
+    public static AopDebugger getAopDebugger() {
+        return debugger;
     }
 }

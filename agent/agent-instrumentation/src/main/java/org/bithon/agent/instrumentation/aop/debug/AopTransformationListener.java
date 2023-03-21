@@ -14,10 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.interceptor;
+package org.bithon.agent.instrumentation.aop.debug;
 
-import org.bithon.component.commons.logging.ILogAdaptor;
-import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.agent.instrumentation.logging.ILogger;
+import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import org.bithon.shaded.net.bytebuddy.utility.JavaModule;
 
@@ -28,7 +28,7 @@ import java.util.Locale;
  * @date 26/12/21 1:50 PM
  */
 public class AopTransformationListener extends AgentBuilder.Listener.Adapter {
-    protected static final ILogAdaptor log = LoggerFactory.getLogger(AopTransformationListener.class);
+    protected static final ILogger log = LoggerFactory.getLogger(AopTransformationListener.class);
 
     @Override
     public void onError(String s, ClassLoader classLoader, JavaModule javaModule, boolean b, Throwable throwable) {

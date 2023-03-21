@@ -18,10 +18,13 @@ package org.bithon.agent.core.starter;
 
 import org.bithon.agent.AgentBuildVersion;
 import org.bithon.agent.core.config.ConfigurationManager;
+import org.bithon.agent.core.interceptor.AopConfig;
 import org.bithon.agent.core.interceptor.installer.InterceptorInstaller;
 import org.bithon.agent.core.interceptor.plugin.PluginResolver;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
+import org.bithon.agent.instrumentation.aop.debug.AopDebugger;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
+import org.bithon.agent.instrumentation.utils.AgentDirectory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -30,6 +33,8 @@ import java.lang.instrument.Instrumentation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
+
+import static java.io.File.separator;
 
 /**
  * @author frankchen
@@ -57,11 +62,7 @@ public class AgentStarter {
     public void start(Instrumentation inst) throws Exception {
         showBanner();
 
-        InstrumentationHelper.setInstance(inst);
-
-        //
-        // show loaded libs
-        //
+        // Show loaded libs
         AgentClassLoader.getClassLoader()
                         .getJars()
                         .stream()
@@ -71,7 +72,11 @@ public class AgentStarter {
 
         ConfigurationManager.create();
 
-        // install interceptors for plugins
+        // Initialize instrumentation after configuration initialized
+        InstrumentationHelper.setInstance(inst);
+        InstrumentationHelper.setAopDebugger(createAopDebugger());
+
+        // Install interceptors for plugins
         new InterceptorInstaller(new PluginResolver().resolveInterceptors())
             .installOn(inst);
 
@@ -102,6 +107,20 @@ public class AgentStarter {
 
             notifyShutdown();
         }, "agentShutdown"));
+    }
+
+    private AopDebugger createAopDebugger() {
+        boolean isDebug = ConfigurationManager.getInstance().getConfig(AopConfig.class).isDebug();
+
+        String appName = ConfigurationManager.getInstance().getConfig("bithon.application.name", String.class);
+        String env = ConfigurationManager.getInstance().getConfig("bithon.application.env", String.class);
+        File targetDirectory = AgentDirectory.getSubDirectory(AgentDirectory.TMP_DIR
+                                                              + separator
+                                                              + appName + "-" + env
+                                                              + separator
+                                                              + "classes");
+
+        return new AopDebugger(isDebug, targetDirectory);
     }
 
     private void notifyShutdown() {

@@ -14,14 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.interceptor;
+package org.bithon.agent.instrumentation.aop.advice;
 
 
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
-import org.bithon.agent.instrumentation.aop.advice.AroundAdvice;
-import org.bithon.agent.instrumentation.aop.advice.ConstructorAfterAdvice;
-import org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice;
-import org.bithon.agent.instrumentation.aop.advice.ReplacementAdvice;
 import org.bithon.shaded.net.bytebuddy.ByteBuddy;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
 import org.bithon.shaded.net.bytebuddy.dynamic.loading.ClassInjector;
@@ -41,29 +37,24 @@ import java.util.Map;
  * @author frankchen
  * @date 2021-02-18 19:23
  */
-public class AopClassHelper {
+public class AdviceClassGenerator {
 
-    public static DynamicType.Unloaded<?> generateAopClass(Class<?> aopTemplateClass,
-                                                           String targetAopClassName,
-                                                           String interceptorClassName,
-                                                           boolean debug) {
+    public static DynamicType.Unloaded<?> generateAdviceClass(Class<?> aopTemplateClass,
+                                                              String targetAopClassName,
+                                                              String interceptorClassName,
+                                                              boolean debug) {
         DynamicType.Unloaded<?> aopClassType = new ByteBuddy().redefine(aopTemplateClass)
                                                               .name(targetAopClassName)
+                                                              // Assign interceptor name to field
                                                               .field(ElementMatchers.named("INTERCEPTOR_CLASS_NAME"))
                                                               .value(interceptorClassName)
                                                               .make();
 
         if (debug) {
-            AopDebugger.saveClassToFile(aopClassType);
+            InstrumentationHelper.getAopDebugger().saveClazz(aopClassType);
         }
 
         return aopClassType;
-    }
-
-    public static ClassInjector.UsingUnsafe.Factory inject(Map<? extends String, byte[]> types) {
-        ClassInjector.UsingUnsafe.Factory factory = ClassInjector.UsingUnsafe.Factory.resolve(InstrumentationHelper.getInstance());
-        factory.make(null, null).injectRaw(types);
-        return factory;
     }
 
     public static ClassInjector.UsingUnsafe.Factory inject(DynamicType.Unloaded<?>... types) {
@@ -72,5 +63,11 @@ public class AopClassHelper {
             typeMap.put(type.getTypeDescription().getTypeName(), type.getBytes());
         }
         return inject(typeMap);
+    }
+
+    private static ClassInjector.UsingUnsafe.Factory inject(Map<? extends String, byte[]> types) {
+        ClassInjector.UsingUnsafe.Factory factory = ClassInjector.UsingUnsafe.Factory.resolve(InstrumentationHelper.getInstance());
+        factory.make(null, null).injectRaw(types);
+        return factory;
     }
 }

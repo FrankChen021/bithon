@@ -16,7 +16,7 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.precondition;
 
-import com.sun.org.slf4j.internal.LoggerFactory;
+import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 
 /**
