@@ -44,15 +44,10 @@
       "title": "Response Time",
       "width": 4,
       "type": "line",
-      "yAxis": [
-        {
-          "format": "millisecond"
-        }
-      ],
       "columns": [
-        "minResponseTime",
-        "avgResponseTime",
-        "maxResponseTime"
+        {"name": "minResponseTime", "format": "nanosecond"},
+        {"name": "avgResponseTime", "format": "millisecond"},
+        {"name": "maxResponseTime", "format": "nanosecond"}
       ],
       "query": {
         "type": "timeseries",
@@ -68,9 +63,10 @@
           "targetHostPort",
           "path",
           "statusCode",
-          {"name": "minResponseTime", "title": "min", "format": "nanoFormatter"},
+          "requestCount",
+          {"name": "minResponseTime", "title": "min", "format": "nanosecond"},
           {"name": "avgResponseTime", "title": "avg", "format": "millisecond"},
-          {"name": "maxResponseTime", "title": "max", "format": "nanoFormatter"}
+          {"name": "maxResponseTime", "title": "max", "format": "nanosecond"}
         ],
         "query": {
           "type": "groupBy",
@@ -78,6 +74,7 @@
             "targetHostPort",
             "path",
             "statusCode",
+            "requestCount",
             "minResponseTime",
             "avgResponseTime",
             "maxResponseTime"

@@ -545,7 +545,6 @@ class Dashboard {
         // runtime properties
         chartDescriptor.columnMap = {};
 
-        let yAxisFormatters = [];
         if (chartDescriptor.yAxis === undefined) {
             chartDescriptor.yAxis = [];
         }
@@ -579,11 +578,8 @@ class Dashboard {
                 yAxis.format = column.format === undefined ? 'compact_number' : column.format;
             }
 
-            const yFormatter = this.getFormatter(yAxis.format);
-            yAxisFormatters.push(yFormatter);
-
             if (yAxis.formatter === undefined) {
-                yAxis.formatter = yFormatter;
+                yAxis.formatter = this.getFormatter(yAxis.format);
             }
         }
 
@@ -617,7 +613,7 @@ class Dashboard {
                 //Use the yAxis defined formatter to format the data
                 const yAxisIndex = currentChartOption.series[s.seriesIndex].yAxisIndex;
 
-                let formatterFn = yAxisFormatters[yAxisIndex];
+                let formatterFn = currentChartOption.yAxis[yAxisIndex].axisLabel.formatter;
 
                 const text = formatterFn(s.data);
 

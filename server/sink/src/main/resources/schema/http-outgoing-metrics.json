@@ -28,15 +28,15 @@
       "visible": false
     },
     {
+      "name": "method",
+      "displayText": "HTTP Method",
+      "required": true,
+      "visible": true
+    },
+    {
       "name": "path",
       "displayText": "Path",
       "required": true
-    },
-    {
-      "name": "method",
-      "displayText": "Request Method",
-      "required": true,
-      "visible": false
     },
     {
       "name": "statusCode",

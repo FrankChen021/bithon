@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.input.filter.AndFilter;
 import org.bithon.server.storage.datasource.input.filter.IInputRowFilter;
@@ -34,6 +35,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 11/4/22 10:49 PM
  */
+@Slf4j
 @Builder
 @AllArgsConstructor
 public class TransformSpec {
@@ -74,30 +76,35 @@ public class TransformSpec {
      * @return a boolean value, whether to include this row in result set
      */
     public boolean transform(IInputRow inputRow) {
-        if (prefilter != null) {
-            if (!prefilter.shouldInclude(inputRow)) {
-                return false;
-            }
-        }
-        if (flatteners != null) {
-            for (IFlattener flattener : flatteners) {
-                flattener.flatten(inputRow);
-            }
-        }
-        if (transformers != null) {
-            for (ITransformer transformer : transformers) {
-                try {
-                    transformer.transform(inputRow);
-                } catch (ITransformer.TransformException ignored) {
+        try {
+            if (prefilter != null) {
+                if (!prefilter.shouldInclude(inputRow)) {
                     return false;
                 }
             }
-        }
-        if (postfilter != null) {
-            if (!postfilter.shouldInclude(inputRow)) {
-                return false;
+            if (flatteners != null) {
+                for (IFlattener flattener : flatteners) {
+                    flattener.flatten(inputRow);
+                }
             }
+            if (transformers != null) {
+                for (ITransformer transformer : transformers) {
+                    try {
+                        transformer.transform(inputRow);
+                    } catch (ITransformer.TransformException ignored) {
+                        return false;
+                    }
+                }
+            }
+            if (postfilter != null) {
+                if (!postfilter.shouldInclude(inputRow)) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to transform input data", e);
+            return false;
         }
-        return true;
     }
 }
