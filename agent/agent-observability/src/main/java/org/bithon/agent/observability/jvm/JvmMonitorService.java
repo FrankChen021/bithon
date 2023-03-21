@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability;
+package org.bithon.agent.observability.jvm;
 
 import org.bithon.agent.core.starter.IAgentService;
 import org.bithon.agent.observability.dispatcher.Dispatcher;
@@ -26,7 +26,7 @@ import org.bithon.agent.observability.metric.collector.jvm.JvmMetricCollector;
  * @author frank.chen021@outlook.com
  * @date 2023/3/16 23:26
  */
-public class CoreService implements IAgentService {
+public class JvmMonitorService implements IAgentService {
     @Override
     public int getOrder() {
         return Integer.MIN_VALUE;
