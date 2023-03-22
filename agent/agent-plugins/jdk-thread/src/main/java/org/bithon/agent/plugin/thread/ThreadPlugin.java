@@ -51,10 +51,6 @@ public class ThreadPlugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.thread.interceptor.ThreadPoolExecutor$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("afterExecute")
-                                                   .to("org.bithon.agent.plugin.thread.interceptor.ThreadPoolExecutor$AfterExecute"),
-
-                    MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("shutdown")
                                                    .to("org.bithon.agent.plugin.thread.interceptor.ThreadPoolExecutor$Shutdown")
                 ),
