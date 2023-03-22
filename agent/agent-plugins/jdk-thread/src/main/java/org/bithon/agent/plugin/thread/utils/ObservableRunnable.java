@@ -14,26 +14,47 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.tracing;
+package org.bithon.agent.plugin.thread.utils;
 
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
+
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 12/5/22 8:57 PM
  */
-public class TracedRunnable implements Runnable {
+public class ObservableRunnable implements Runnable {
+    private final ThreadPoolExecutor executor;
     private final Runnable delegate;
     private final ITraceSpan runnableSpan;
 
-    public TracedRunnable(Runnable delegate, ITraceSpan runnableSpan) {
+    public ObservableRunnable(ThreadPoolExecutor executor,
+                              Runnable delegate,
+                              ITraceSpan runnableSpan) {
+        this.executor = executor;
         this.delegate = delegate;
         this.runnableSpan = runnableSpan;
     }
 
+    public Runnable getDelegate() {
+        return delegate;
+    }
+
     @Override
     public void run() {
+        if (this.runnableSpan == null) {
+            runWithoutTracing();
+        } else {
+            runWithTracing();
+        }
+    }
+
+    private void runWithTracing() {
+        boolean hasException = false;
+
         // Setup context on current thread
         TraceContextHolder.set(runnableSpan.context());
 
@@ -42,6 +63,7 @@ public class TracedRunnable implements Runnable {
         try {
             delegate.run();
         } catch (Throwable e) {
+            hasException = true;
             runnableSpan.tag(e);
             throw e;
         } finally {
@@ -52,6 +74,28 @@ public class TracedRunnable implements Runnable {
 
             // Clear context on current thread
             TraceContextHolder.remove();
+
+            ThreadPoolMetricRegistry.getInstance().addRunCount(executor,
+                                                               runnableSpan.endTime() - runnableSpan.startTime(),
+                                                               hasException);
+        }
+    }
+
+    private void runWithoutTracing() {
+        boolean hasException = false;
+
+        long millis = System.currentTimeMillis();
+        long nanos = System.nanoTime();
+
+        try {
+            delegate.run();
+        } catch (Exception e) {
+            hasException = true;
+            throw e;
+        } finally {
+            ThreadPoolMetricRegistry.getInstance().addRunCount(executor,
+                                                               (System.nanoTime() - nanos) / 1000L + (System.currentTimeMillis() - millis) * 1000,
+                                                               hasException);
         }
     }
 }

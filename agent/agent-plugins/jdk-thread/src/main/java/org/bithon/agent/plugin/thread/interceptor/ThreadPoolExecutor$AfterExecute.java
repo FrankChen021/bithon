@@ -18,9 +18,6 @@ package org.bithon.agent.plugin.thread.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
-import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
-
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author frank.chen021@outlook.com
@@ -30,8 +27,10 @@ public class ThreadPoolExecutor$AfterExecute extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
+        /*
         ThreadPoolExecutor executor = (ThreadPoolExecutor) aopContext.getTarget();
         Throwable exception = (Throwable) aopContext.getArgs()[1];
         ThreadPoolMetricRegistry.getInstance().addRunCount(executor, exception != null);
+         */
     }
 }

@@ -93,7 +93,11 @@ public class ThreadPoolMetricRegistry extends MetricRegistry<ThreadPoolMetrics> 
         return Optional.ofNullable(this.getMetrics(dimensions));
     }
 
+    /**
+     * @param duration millisecond
+     */
     public void addRunCount(AbstractExecutorService executor,
+                            long duration,
                             boolean hasException) {
         this.getMetrics(executor).ifPresent((metrics) -> {
             if (hasException) {
@@ -101,6 +105,9 @@ public class ThreadPoolMetricRegistry extends MetricRegistry<ThreadPoolMetrics> 
             } else {
                 metrics.successfulTaskCount.incr();
             }
+            metrics.minDuration.update(duration);
+            metrics.maxDuration.update(duration);
+            metrics.duration.update(duration);
             metrics.totalTaskCount.incr();
         });
     }
