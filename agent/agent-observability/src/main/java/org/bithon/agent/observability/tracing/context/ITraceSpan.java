@@ -79,8 +79,14 @@ public interface ITraceSpan {
 
     ITraceSpan clazz(String clazz);
 
+    /**
+     * start timestamp in microseconds
+     */
     long startTime();
 
+    /**
+     * end timestamp in microseconds
+     */
     long endTime();
 
     ITraceSpan newChildSpan(String name);

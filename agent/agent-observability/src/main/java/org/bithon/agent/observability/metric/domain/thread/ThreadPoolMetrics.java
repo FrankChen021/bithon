@@ -18,6 +18,7 @@ package org.bithon.agent.observability.metric.domain.thread;
 
 import org.bithon.agent.observability.metric.model.IMetricSet;
 import org.bithon.agent.observability.metric.model.IMetricValueProvider;
+import org.bithon.agent.observability.metric.model.Min;
 import org.bithon.agent.observability.metric.model.Sum;
 
 import java.util.ArrayList;
@@ -37,6 +38,9 @@ public class ThreadPoolMetrics<T> implements IMetricSet {
     public final Sum exceptionTaskCount = new Sum();
     public final Sum successfulTaskCount = new Sum();
     public final Sum totalTaskCount = new Sum();
+    public final Min minDuration = new Min();
+    public final Sum duration = new Sum();
+    public final Sum maxDuration = new Sum();
     public final IMetricValueProvider activeThreads;
     public final IMetricValueProvider currentPoolSize;
     public final IMetricValueProvider maxPoolSize;
@@ -95,6 +99,9 @@ public class ThreadPoolMetrics<T> implements IMetricSet {
             exceptionTaskCount,
             successfulTaskCount,
             totalTaskCount,
+            minDuration,
+            duration,
+            maxDuration,
             activeThreads,
             currentPoolSize,
             maxPoolSize,
