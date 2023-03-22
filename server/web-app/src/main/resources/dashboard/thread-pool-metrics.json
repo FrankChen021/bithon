@@ -44,7 +44,91 @@
         "totalTaskCount",
         "successfulTaskCount",
         "queuedTaskCount",
-        "exceptionTaskCount",
+        "exceptionTaskCount"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "thread-pool-metrics",
+        "fields": [
+          "totalTaskCount",
+          "successfulTaskCount",
+          "queuedTaskCount",
+          "exceptionTaskCount"
+        ]
+      }
+    },
+    {
+      "dataSource": "thread-pool-metrics",
+      "title": "Tasks Duration",
+      "width": 4,
+      "type": "line",
+      "yAxis": [
+        {
+          "format": "microsecond"
+        }
+      ],
+      "columns": [
+        "minDuration",
+        "avgDuration",
+        "maxDuration"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "thread-pool-metrics",
+        "fields": [
+          "minDuration",
+          "avgDuration",
+          "maxDuration"
+        ],
+        "filters": [{
+          "type": "metric",
+          "name": "totalTaskCount",
+          "matcher": {
+            "type": "gt",
+            "value": 0
+          }
+        }]
+      },
+      "details": {
+        "columns": [
+          "executorClass",
+          "poolName",
+          "totalTaskCount",
+          {"name": "minDuration", "format": "microsecond"},
+          {"name": "avgDuration", "format": "microsecond"},
+          {"name": "maxDuration", "format": "microsecond"}
+        ],
+        "query": {
+          "dataSource": "thread-pool-metrics",
+          "fields": [
+            "executorClass",
+            "poolName",
+            "totalTaskCount",
+            "minDuration",
+            "avgDuration",
+            "maxDuration"
+          ],
+          "filters": [{
+            "type": "metric",
+            "name": "totalTaskCount",
+            "matcher": {
+              "type": "gt",
+              "value": 0
+            }
+          }],
+          "orderBy": {
+            "name": "totalTaskCount",
+            "order": "desc"
+          }
+        }
+      }
+    },
+    {
+      "dataSource": "thread-pool-metrics",
+      "title": "Rejected Policy",
+      "width": 4,
+      "type": "line",
+      "columns": [
         "callerRunTaskCount",
         "abortedTaskCount",
         "discardedTaskCount",
@@ -54,10 +138,6 @@
         "type": "timeseries",
         "dataSource": "thread-pool-metrics",
         "fields": [
-          "totalTaskCount",
-          "successfulTaskCount",
-          "queuedTaskCount",
-          "exceptionTaskCount",
           "callerRunTaskCount",
           "abortedTaskCount",
           "discardedTaskCount",

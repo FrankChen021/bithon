@@ -71,6 +71,24 @@
       "unit": ""
     },
     {
+      "type": "longMin",
+      "name": "minDuration",
+      "displayText": "min duration",
+      "unit": "microsecond"
+    },
+    {
+      "type": "longSum",
+      "name": "duration",
+      "displayText": "duration",
+      "unit": "microsecond"
+    },
+    {
+      "type": "longMax",
+      "name": "maxDuration",
+      "displayText": "max duration",
+      "unit": "microsecond"
+    },
+    {
       "type": "longLast",
       "name": "activeThreads",
       "displayText": "activeThreads",
@@ -105,6 +123,14 @@
       "name": "poolCount",
       "displayText": "poolCount",
       "unit": ""
+    },
+    {
+      "type": "post",
+      "name": "avgDuration",
+      "expression": "round(duration * 1.0 /totalTaskCount,2)",
+      "displayText": "Avg duration",
+      "unit": "microsecond",
+      "valueType": "double"
     }
   ],
   "inputSourceSpec": {
