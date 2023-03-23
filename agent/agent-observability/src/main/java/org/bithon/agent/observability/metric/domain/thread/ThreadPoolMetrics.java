@@ -31,10 +31,16 @@ import java.util.function.Function;
  */
 public class ThreadPoolMetrics<T> implements IMetricSet {
 
+    /**
+     * rejectedTask = callRun + aborted + discarded + discardedOldest + user
+     */
+    public final Sum totalRejectedCount = new Sum();
     public final Sum callerRunTaskCount = new Sum();
     public final Sum abortedTaskCount = new Sum();
     public final Sum discardedTaskCount = new Sum();
     public final Sum discardedOldestTaskCount = new Sum();
+    public final Sum userRejectedPolicyCount = new Sum();
+
     public final Sum exceptionTaskCount = new Sum();
     public final Sum successfulTaskCount = new Sum();
     public final Sum totalTaskCount = new Sum();
@@ -92,16 +98,20 @@ public class ThreadPoolMetrics<T> implements IMetricSet {
         this.poolCount = executors::size;
 
         this.metrics = new IMetricValueProvider[]{
+            totalRejectedCount,
             callerRunTaskCount,
             abortedTaskCount,
             discardedTaskCount,
             discardedOldestTaskCount,
+            userRejectedPolicyCount,
+
             exceptionTaskCount,
             successfulTaskCount,
             totalTaskCount,
             minDuration,
             duration,
             maxDuration,
+
             activeThreads,
             currentPoolSize,
             maxPoolSize,

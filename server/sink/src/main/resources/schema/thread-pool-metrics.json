@@ -30,6 +30,12 @@
   "metricsSpec": [
     {
       "type": "longSum",
+      "name": "totalRejectedCount",
+      "displayText": "Total Rejected",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
       "name": "callerRunTaskCount",
       "displayText": "Count of CallerRun",
       "unit": ""
@@ -50,6 +56,12 @@
       "type": "longSum",
       "name": "discardedOldestTaskCount",
       "displayText": "discardedOldestTaskCount",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "userRejectedPolicyCount",
+      "displayText": "Count of user rejected policy",
       "unit": ""
     },
     {

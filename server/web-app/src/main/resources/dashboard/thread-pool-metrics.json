@@ -129,19 +129,23 @@
       "width": 4,
       "type": "line",
       "columns": [
+        {"name" :"totalRejectedCount", "fill": false},
         "callerRunTaskCount",
         "abortedTaskCount",
         "discardedTaskCount",
-        "discardedOldestTaskCount"
+        "discardedOldestTaskCount",
+        "userRejectedPolicyCount"
       ],
       "query": {
         "type": "timeseries",
         "dataSource": "thread-pool-metrics",
         "fields": [
+          "totalRejectedCount",
           "callerRunTaskCount",
           "abortedTaskCount",
           "discardedTaskCount",
-          "discardedOldestTaskCount"
+          "discardedOldestTaskCount",
+          "userRejectedPolicyCount"
         ]
       }
     }
