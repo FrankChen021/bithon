@@ -23,7 +23,7 @@ import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
-import org.bithon.agent.plugin.thread.tracing.TracedRunnable;
+import org.bithon.agent.plugin.thread.utils.ObservedTask;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -37,13 +37,16 @@ public class ThreadPoolExecutor$Execute extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceContext currentContext = TraceContextHolder.current();
-        if (currentContext == null) {
+        Runnable runnable = aopContext.getArgAs(0);
+        if (runnable == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        Runnable runnable = aopContext.getArgAs(0);
-        if (runnable == null) {
+        ITraceContext currentContext = TraceContextHolder.current();
+        if (currentContext == null) {
+            aopContext.getArgs()[0] = new ObservedTask(aopContext.getTargetAs(),
+                                                       runnable,
+                                                       null);
             return InterceptionDecision.SKIP_LEAVE;
         }
 
@@ -52,11 +55,12 @@ public class ThreadPoolExecutor$Execute extends AroundInterceptor {
                                                 .method(aopContext.getMethod())
                                                 .start());
 
-        // change users' runnable
-        aopContext.getArgs()[0] = new TracedRunnable(runnable,
-                                                     TraceSpanFactory.newAsyncSpan("task")
-                                                                     .clazz(runnable.getClass().getName())
-                                                                     .method("run"));
+        // Change users' runnable
+        aopContext.getArgs()[0] = new ObservedTask(aopContext.getTargetAs(),
+                                                   runnable,
+                                                   TraceSpanFactory.newAsyncSpan("asyncTask")
+                                                                         .clazz(runnable.getClass().getName())
+                                                                         .method("run"));
 
         return InterceptionDecision.CONTINUE;
     }

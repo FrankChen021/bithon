@@ -28,7 +28,7 @@ import java.lang.reflect.Executable;
  */
 public abstract class AopContext {
 
-    private final Object target;
+    protected Object target;
     private final Executable method;
     private final Object[] args;
     private Object userContext;

@@ -44,11 +44,7 @@
         "totalTaskCount",
         "successfulTaskCount",
         "queuedTaskCount",
-        "exceptionTaskCount",
-        "callerRunTaskCount",
-        "abortedTaskCount",
-        "discardedTaskCount",
-        "discardedOldestTaskCount"
+        "exceptionTaskCount"
       ],
       "query": {
         "type": "timeseries",
@@ -57,12 +53,162 @@
           "totalTaskCount",
           "successfulTaskCount",
           "queuedTaskCount",
-          "exceptionTaskCount",
+          "exceptionTaskCount"
+        ]
+      },
+      "details": {
+        "columns": [
+          "executorClass",
+          "poolName",
+          "totalTaskCount",
+          "successfulTaskCount",
+          "queuedTaskCount",
+          "exceptionTaskCount"
+        ],
+        "query": {
+          "dataSource": "thread-pool-metrics",
+          "fields": [
+            "executorClass",
+            "poolName",
+            "totalTaskCount",
+            "successfulTaskCount",
+            "queuedTaskCount",
+            "exceptionTaskCount"
+          ],
+          "orderBy": {
+            "name": "totalTaskCount",
+            "order": "desc"
+          }
+        }
+      }
+    },
+    {
+      "dataSource": "thread-pool-metrics",
+      "title": "Tasks Duration",
+      "width": 4,
+      "type": "line",
+      "yAxis": [
+        {
+          "format": "microsecond"
+        }
+      ],
+      "columns": [
+        "minDuration",
+        "avgDuration",
+        "maxDuration"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "thread-pool-metrics",
+        "fields": [
+          "minDuration",
+          "avgDuration",
+          "maxDuration"
+        ],
+        "filters": [{
+          "type": "metric",
+          "name": "totalTaskCount",
+          "matcher": {
+            "type": "gt",
+            "value": 0
+          }
+        }]
+      },
+      "details": {
+        "columns": [
+          "executorClass",
+          "poolName",
+          "totalTaskCount",
+          {"name": "minDuration", "format": "microsecond"},
+          {"name": "avgDuration", "format": "microsecond"},
+          {"name": "maxDuration", "format": "microsecond"}
+        ],
+        "query": {
+          "dataSource": "thread-pool-metrics",
+          "fields": [
+            "executorClass",
+            "poolName",
+            "totalTaskCount",
+            "minDuration",
+            "avgDuration",
+            "maxDuration"
+          ],
+          "filters": [{
+            "type": "metric",
+            "name": "totalTaskCount",
+            "matcher": {
+              "type": "gt",
+              "value": 0
+            }
+          }],
+          "orderBy": {
+            "name": "totalTaskCount",
+            "order": "desc"
+          }
+        }
+      }
+    },
+    {
+      "dataSource": "thread-pool-metrics",
+      "title": "Rejected Policy",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        {"name" :"totalRejectedCount", "fill": false},
+        "callerRunTaskCount",
+        "abortedTaskCount",
+        "discardedTaskCount",
+        "discardedOldestTaskCount",
+        "userRejectedPolicyCount"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "thread-pool-metrics",
+        "fields": [
+          "totalRejectedCount",
           "callerRunTaskCount",
           "abortedTaskCount",
           "discardedTaskCount",
-          "discardedOldestTaskCount"
+          "discardedOldestTaskCount",
+          "userRejectedPolicyCount"
         ]
+      },
+      "details": {
+        "columns": [
+          "executorClass",
+          "poolName",
+          {"name": "totalRejected",   "field": "totalRejectedCount"},
+          {"name": "callerRun",       "field": "callerRunTaskCount"},
+          {"name": "aborted",         "field": "abortedTaskCount"},
+          {"name": "discarded",       "field": "discardedTaskCount"},
+          {"name": "discardedOldest", "field": "discardedOldestTaskCount"},
+          {"name": "userPolicy",      "field": "userRejectedPolicyCount"}
+        ],
+        "query": {
+          "dataSource": "thread-pool-metrics",
+          "fields": [
+            "executorClass",
+            "poolName",
+            "totalRejectedCount",
+            "callerRunTaskCount",
+            "abortedTaskCount",
+            "discardedTaskCount",
+            "discardedOldestTaskCount",
+            "userRejectedPolicyCount"
+          ],
+          "filters": [{
+            "type": "metric",
+            "name": "totalRejectedCount",
+            "matcher": {
+              "type": "gt",
+              "value": 0
+            }
+          }],
+          "orderBy": {
+            "name": "totalRejectedCount",
+            "order": "desc"
+          }
+        }
       }
     }
   ]

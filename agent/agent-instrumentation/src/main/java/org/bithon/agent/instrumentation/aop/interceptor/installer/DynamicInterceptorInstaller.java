@@ -51,18 +51,15 @@ public class DynamicInterceptorInstaller {
      * Install one interceptor
      */
     public void installOne(AopDescriptor descriptor) {
-        AgentBuilder agentBuilder =
-            new AgentBuilder.Default().ignore(ElementMatchers.nameStartsWith("org.bithon.shaded."))
-                                      .disableClassFormatChanges()
-                                      .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
-                                      .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
-                                      .type(ElementMatchers.named(descriptor.targetClass))
-                                      .transform((builder, typeDescription, classLoader, javaModule, protectionDomain) -> install(descriptor, builder));
-        if (InstrumentationHelper.getAopDebugger().isEnabled()) {
-            agentBuilder = agentBuilder.with(InstrumentationHelper.getAopDebugger()
-                                                                  .withTypes(new HashSet<>(Collections.singletonList(descriptor.getTargetClass()))));
-        }
-        agentBuilder.installOn(InstrumentationHelper.getInstance());
+        new AgentBuilder.Default()
+            .ignore(ElementMatchers.nameStartsWith("org.bithon.shaded."))
+            .disableClassFormatChanges()
+            .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
+            .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+            .type(ElementMatchers.named(descriptor.targetClass))
+            .transform((builder, typeDescription, classLoader, javaModule, protectionDomain) -> install(descriptor, builder))
+            .with(InstrumentationHelper.getAopDebugger().withTypes(new HashSet<>(Collections.singletonList(descriptor.getTargetClass()))))
+            .installOn(InstrumentationHelper.getInstance());
     }
 
     /**
@@ -71,29 +68,24 @@ public class DynamicInterceptorInstaller {
     public void install(Map<String, AopDescriptor> descriptors) {
         ElementMatcher<? super TypeDescription> typeMatcher = new NameMatcher<>(new StringSetMatcher(new HashSet<>(descriptors.keySet())));
 
-        AgentBuilder agentBuilder =
-            new AgentBuilder.Default().ignore(ElementMatchers.nameStartsWith("org.bithon.shaded."))
-                                      .disableClassFormatChanges()
-                                      .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
-                                      .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
-                                      .type(typeMatcher)
-                                      .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule, ProtectionDomain protectionDomain) -> {
+        new AgentBuilder.Default()
+            .ignore(ElementMatchers.nameStartsWith("org.bithon.shaded."))
+            .disableClassFormatChanges()
+            .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
+            .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+            .type(typeMatcher)
+            .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule, ProtectionDomain protectionDomain) -> {
 
-                                          AopDescriptor descriptor = descriptors.get(typeDescription.getTypeName());
-                                          if (descriptor == null) {
-                                              // this must be an error
-                                              LOG.error("Can't find BeanAopDescriptor for [{}]", typeDescription.getTypeName());
-                                              return builder;
-                                          }
+                AopDescriptor descriptor = descriptors.get(typeDescription.getTypeName());
+                if (descriptor == null) {
+                    // this must be an error
+                    LOG.error("Can't find BeanAopDescriptor for [{}]", typeDescription.getTypeName());
+                    return builder;
+                }
 
-                                          return install(descriptor, builder);
-                                      });
-
-        if (InstrumentationHelper.getAopDebugger().isEnabled()) {
-            agentBuilder = agentBuilder.with(InstrumentationHelper.getAopDebugger()
-                                                                  .withTypes(new HashSet<>(descriptors.keySet())));
-        }
-        agentBuilder.installOn(InstrumentationHelper.getInstance());
+                return install(descriptor, builder);
+            }).with(InstrumentationHelper.getAopDebugger().withTypes(new HashSet<>(descriptors.keySet())))
+            .installOn(InstrumentationHelper.getInstance());
     }
 
     private DynamicType.Builder<?> install(AopDescriptor descriptor,

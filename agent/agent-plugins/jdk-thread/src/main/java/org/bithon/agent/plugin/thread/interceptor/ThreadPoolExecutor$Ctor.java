@@ -17,10 +17,12 @@
 package org.bithon.agent.plugin.thread.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolExecutorMetrics;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
+import org.bithon.agent.plugin.thread.utils.ObservedExecutionHandler;
 import org.bithon.agent.plugin.thread.utils.ThreadPoolNameHelper;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -36,7 +38,15 @@ import java.util.concurrent.TimeUnit;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 9:10 下午
  */
-public class ThreadPoolExecutor$Ctor extends AfterInterceptor {
+public class ThreadPoolExecutor$Ctor extends AroundInterceptor {
+
+    public InterceptionDecision before(AopContext aopContext) {
+        RejectedExecutionHandler handler = aopContext.getArgAs(6);
+        if (handler != null) {
+            aopContext.getArgs()[6] = new ObservedExecutionHandler(handler);
+        }
+        return InterceptionDecision.CONTINUE;
+    }
 
     @Override
     public void after(AopContext aopContext) {

@@ -30,6 +30,12 @@
   "metricsSpec": [
     {
       "type": "longSum",
+      "name": "totalRejectedCount",
+      "displayText": "Total Rejected",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
       "name": "callerRunTaskCount",
       "displayText": "Count of CallerRun",
       "unit": ""
@@ -54,6 +60,12 @@
     },
     {
       "type": "longSum",
+      "name": "userRejectedPolicyCount",
+      "displayText": "Count of user rejected policy",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
       "name": "exceptionTaskCount",
       "displayText": "exceptionTaskCount",
       "unit": ""
@@ -69,6 +81,24 @@
       "name": "totalTaskCount",
       "displayText": "totalTaskCount",
       "unit": ""
+    },
+    {
+      "type": "longMin",
+      "name": "minDuration",
+      "displayText": "min duration",
+      "unit": "microsecond"
+    },
+    {
+      "type": "longSum",
+      "name": "duration",
+      "displayText": "duration",
+      "unit": "microsecond"
+    },
+    {
+      "type": "longMax",
+      "name": "maxDuration",
+      "displayText": "max duration",
+      "unit": "microsecond"
     },
     {
       "type": "longLast",
@@ -105,6 +135,14 @@
       "name": "poolCount",
       "displayText": "poolCount",
       "unit": ""
+    },
+    {
+      "type": "post",
+      "name": "avgDuration",
+      "expression": "round(duration * 1.0 /totalTaskCount,2)",
+      "displayText": "Avg duration",
+      "unit": "microsecond",
+      "valueType": "double"
     }
   ],
   "inputSourceSpec": {

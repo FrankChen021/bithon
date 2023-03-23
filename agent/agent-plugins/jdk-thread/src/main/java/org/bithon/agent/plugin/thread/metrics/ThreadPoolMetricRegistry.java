@@ -93,7 +93,11 @@ public class ThreadPoolMetricRegistry extends MetricRegistry<ThreadPoolMetrics> 
         return Optional.ofNullable(this.getMetrics(dimensions));
     }
 
+    /**
+     * @param duration millisecond
+     */
     public void addRunCount(AbstractExecutorService executor,
+                            long duration,
                             boolean hasException) {
         this.getMetrics(executor).ifPresent((metrics) -> {
             if (hasException) {
@@ -101,6 +105,9 @@ public class ThreadPoolMetricRegistry extends MetricRegistry<ThreadPoolMetrics> 
             } else {
                 metrics.successfulTaskCount.incr();
             }
+            metrics.minDuration.update(duration);
+            metrics.maxDuration.update(duration);
+            metrics.duration.update(duration);
             metrics.totalTaskCount.incr();
         });
     }
@@ -110,18 +117,37 @@ public class ThreadPoolMetricRegistry extends MetricRegistry<ThreadPoolMetrics> 
     }
 
     public void addAbort(ThreadPoolExecutor pool) {
-        this.getMetrics(pool).ifPresent((metrics) -> metrics.abortedTaskCount.incr());
+        this.getMetrics(pool).ifPresent((metrics) -> {
+            metrics.abortedTaskCount.incr();
+            metrics.totalRejectedCount.incr();
+        });
     }
 
     public void addCallerRun(ThreadPoolExecutor pool) {
-        this.getMetrics(pool).ifPresent((metrics) -> metrics.callerRunTaskCount.incr());
+        this.getMetrics(pool).ifPresent((metrics) -> {
+            metrics.callerRunTaskCount.incr();
+            metrics.totalRejectedCount.incr();
+        });
     }
 
     public void addDiscard(ThreadPoolExecutor pool) {
-        this.getMetrics(pool).ifPresent((metrics) -> metrics.discardedTaskCount.incr());
+        this.getMetrics(pool).ifPresent((metrics) -> {
+            metrics.discardedTaskCount.incr();
+            metrics.totalRejectedCount.incr();
+        });
     }
 
     public void addDiscardOldest(ThreadPoolExecutor pool) {
-        this.getMetrics(pool).ifPresent((metrics) -> metrics.discardedOldestTaskCount.incr());
+        this.getMetrics(pool).ifPresent((metrics) -> {
+            metrics.discardedOldestTaskCount.incr();
+            metrics.totalRejectedCount.incr();
+        });
+    }
+
+    public void addUserPolicy(ThreadPoolExecutor pool) {
+        this.getMetrics(pool).ifPresent((metrics) -> {
+            metrics.userRejectedPolicyCount.incr();
+            metrics.totalRejectedCount.incr();
+        });
     }
 }

@@ -49,4 +49,8 @@ public class AopContextImpl extends AopContext {
         endNanoTime = System.nanoTime();
         endTimestamp = System.currentTimeMillis();
     }
+
+    public void setTarget(Object target) {
+        this.target = target;
+    }
 }
