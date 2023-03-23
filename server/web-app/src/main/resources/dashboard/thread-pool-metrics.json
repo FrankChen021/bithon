@@ -177,12 +177,12 @@
         "columns": [
           "executorClass",
           "poolName",
-          "totalRejectedCount",
-          "callerRunTaskCount",
-          "abortedTaskCount",
-          "discardedTaskCount",
-          "discardedOldestTaskCount",
-          "userRejectedPolicyCount"
+          {"name": "totalRejected",   "field": "totalRejectedCount"},
+          {"name": "callerRun",       "field": "callerRunTaskCount"},
+          {"name": "aborted",         "field": "abortedTaskCount"},
+          {"name": "discarded",       "field": "discardedTaskCount"},
+          {"name": "discardedOldest", "field": "discardedOldestTaskCount"},
+          {"name": "userPolicy",      "field": "userRejectedPolicyCount"}
         ],
         "query": {
           "dataSource": "thread-pool-metrics",
