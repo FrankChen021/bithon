@@ -55,6 +55,31 @@
           "queuedTaskCount",
           "exceptionTaskCount"
         ]
+      },
+      "details": {
+        "columns": [
+          "executorClass",
+          "poolName",
+          "totalTaskCount",
+          "successfulTaskCount",
+          "queuedTaskCount",
+          "exceptionTaskCount"
+        ],
+        "query": {
+          "dataSource": "thread-pool-metrics",
+          "fields": [
+            "executorClass",
+            "poolName",
+            "totalTaskCount",
+            "successfulTaskCount",
+            "queuedTaskCount",
+            "exceptionTaskCount"
+          ],
+          "orderBy": {
+            "name": "totalTaskCount",
+            "order": "desc"
+          }
+        }
       }
     },
     {
@@ -147,6 +172,43 @@
           "discardedOldestTaskCount",
           "userRejectedPolicyCount"
         ]
+      },
+      "details": {
+        "columns": [
+          "executorClass",
+          "poolName",
+          "totalRejectedCount",
+          "callerRunTaskCount",
+          "abortedTaskCount",
+          "discardedTaskCount",
+          "discardedOldestTaskCount",
+          "userRejectedPolicyCount"
+        ],
+        "query": {
+          "dataSource": "thread-pool-metrics",
+          "fields": [
+            "executorClass",
+            "poolName",
+            "totalRejectedCount",
+            "callerRunTaskCount",
+            "abortedTaskCount",
+            "discardedTaskCount",
+            "discardedOldestTaskCount",
+            "userRejectedPolicyCount"
+          ],
+          "filters": [{
+            "type": "metric",
+            "name": "totalRejectedCount",
+            "matcher": {
+              "type": "gt",
+              "value": 0
+            }
+          }],
+          "orderBy": {
+            "name": "totalRejectedCount",
+            "order": "desc"
+          }
+        }
       }
     }
   ]
