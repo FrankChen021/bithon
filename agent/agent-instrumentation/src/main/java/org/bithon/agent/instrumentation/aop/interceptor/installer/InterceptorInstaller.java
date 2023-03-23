@@ -21,6 +21,7 @@ import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.agent.instrumentation.aop.advice.AdviceAnnotation;
 import org.bithon.agent.instrumentation.aop.advice.AfterAdvice;
 import org.bithon.agent.instrumentation.aop.advice.AroundAdvice;
+import org.bithon.agent.instrumentation.aop.advice.AroundConstructorAdvice;
 import org.bithon.agent.instrumentation.aop.advice.BeforeAdvice;
 import org.bithon.agent.instrumentation.aop.advice.ConstructorAfterAdvice;
 import org.bithon.agent.instrumentation.aop.advice.ReplacementAdvice;
@@ -201,7 +202,7 @@ public class InterceptorInstaller {
                                                   .to(BeforeAdvice.class)
                                                   .on(pointCutDescriptor.getMethodMatcher()));
                     break;
-                case AFTER:
+                case AFTER: {
                     Class<?> adviceClazz = pointCutDescriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ?
                                            AfterAdvice.class : ConstructorAfterAdvice.class;
 
@@ -211,15 +212,22 @@ public class InterceptorInstaller {
                                                   .bind(AdviceAnnotation.TargetMethod.class, new AdviceAnnotation.TargetMethodResolver())
                                                   .to(adviceClazz)
                                                   .on(pointCutDescriptor.getMethodMatcher()));
-                    break;
-                case AROUND:
+                }
+                break;
+
+                case AROUND: {
+                    Class<?> adviceClazz = pointCutDescriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ?
+                                           AroundAdvice.class : AroundConstructorAdvice.class;
+
                     builder = builder.visit(Advice.withCustomMapping()
                                                   .bind(AdviceAnnotation.Interceptor.class,
                                                         new AdviceAnnotation.InterceptorResolver(typeDescription, fieldName))
                                                   .bind(AdviceAnnotation.TargetMethod.class, new AdviceAnnotation.TargetMethodResolver())
-                                                  .to(AroundAdvice.class)
+                                                  .to(adviceClazz)
                                                   .on(pointCutDescriptor.getMethodMatcher()));
-                    break;
+                }
+                break;
+
                 case REPLACEMENT:
                     if (classLoader == null) {
                         log.error("REPLACEMENT on JDK class [{}] is not allowed", typeDescription.getName());
