@@ -26,26 +26,29 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author frank.chen021@outlook.com
  * @date 12/5/22 8:57 PM
  */
-public class ObservableRunnable implements Runnable {
+public class ObservedTask implements Runnable {
+    /**
+     * The executor that runs the the runnable object
+     */
     private final ThreadPoolExecutor executor;
-    private final Runnable delegate;
-    private final ITraceSpan runnableSpan;
+    private final Runnable task;
+    private final ITraceSpan taskSpan;
 
-    public ObservableRunnable(ThreadPoolExecutor executor,
-                              Runnable delegate,
-                              ITraceSpan runnableSpan) {
+    public ObservedTask(ThreadPoolExecutor executor,
+                        Runnable task,
+                        ITraceSpan taskSpan) {
         this.executor = executor;
-        this.delegate = delegate;
-        this.runnableSpan = runnableSpan;
+        this.task = task;
+        this.taskSpan = taskSpan;
     }
 
-    public Runnable getDelegate() {
-        return delegate;
+    public Runnable getTask() {
+        return task;
     }
 
     @Override
     public void run() {
-        if (this.runnableSpan == null) {
+        if (this.taskSpan == null) {
             runWithoutTracing();
         } else {
             runWithTracing();
@@ -53,31 +56,31 @@ public class ObservableRunnable implements Runnable {
     }
 
     private void runWithTracing() {
-        boolean hasException = false;
+        Throwable exception = null;
 
         // Setup context on current thread
-        TraceContextHolder.set(runnableSpan.context());
+        TraceContextHolder.set(taskSpan.context());
 
-        runnableSpan.start();
+        taskSpan.start();
 
         try {
-            delegate.run();
+            task.run();
         } catch (Throwable e) {
-            hasException = true;
-            runnableSpan.tag(e);
+            exception = e;
             throw e;
         } finally {
             // Set the thread at the end because the thread name might be updated in the users' runnable
-            runnableSpan.tag("thread", Thread.currentThread().getName())
-                        .finish();
-            runnableSpan.context().finish();
+            taskSpan.tag("thread", Thread.currentThread().getName())
+                    .tag(exception)
+                    .finish();
+            taskSpan.context().finish();
 
             // Clear context on current thread
             TraceContextHolder.remove();
 
             ThreadPoolMetricRegistry.getInstance().addRunCount(executor,
-                                                               runnableSpan.endTime() - runnableSpan.startTime(),
-                                                               hasException);
+                                                               taskSpan.endTime() - taskSpan.startTime(),
+                                                               exception != null);
         }
     }
 
@@ -88,7 +91,7 @@ public class ObservableRunnable implements Runnable {
         long nanos = System.nanoTime();
 
         try {
-            delegate.run();
+            task.run();
         } catch (Exception e) {
             hasException = true;
             throw e;

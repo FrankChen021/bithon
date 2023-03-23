@@ -21,7 +21,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
-import org.bithon.agent.plugin.thread.utils.ObservableRunnable;
+import org.bithon.agent.plugin.thread.utils.ObservedTask;
 
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
@@ -41,9 +41,9 @@ public class AbstractRejectedExecutionInterceptor extends AroundInterceptor {
     @Override
     public InterceptionDecision before(AopContext aopContext) {
         Object arg0 = aopContext.getArgs()[0];
-        if (arg0 instanceof ObservableRunnable) {
+        if (arg0 instanceof ObservedTask) {
             // Restore the runnable object for user's application code
-            aopContext.getArgs()[0] = ((ObservableRunnable) arg0).getDelegate();
+            aopContext.getArgs()[0] = ((ObservedTask) arg0).getTask();
         }
 
         ITraceSpan span = TraceSpanFactory.newSpan("threadPool");
