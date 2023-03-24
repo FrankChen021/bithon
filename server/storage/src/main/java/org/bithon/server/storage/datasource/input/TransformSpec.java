@@ -43,7 +43,7 @@ public class TransformSpec {
      * the granularity that the data should be aggregated at
      */
     @Getter
-    private final Period graunularity;
+    private final Period granularity;
 
     @Getter
     private final IInputRowFilter prefilter;
@@ -65,7 +65,7 @@ public class TransformSpec {
                          @JsonProperty("flatteners") List<IFlattener> flatteners,
                          @JsonProperty("transformers") List<ITransformer> transformers,
                          @JsonProperty("postfilter") IInputRowFilter postfilter) {
-        this.graunularity = granularity;
+        this.granularity = granularity;
         this.flatteners = flatteners;
         this.prefilter = prefilters != null ? new AndFilter(prefilters) : prefilter;
         this.transformers = transformers;
@@ -97,9 +97,7 @@ public class TransformSpec {
                 }
             }
             if (postfilter != null) {
-                if (!postfilter.shouldInclude(inputRow)) {
-                    return false;
-                }
+                return postfilter.shouldInclude(inputRow);
             }
             return true;
         } catch (Exception e) {

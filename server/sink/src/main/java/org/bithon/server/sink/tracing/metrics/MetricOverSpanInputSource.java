@@ -160,7 +160,7 @@ public class MetricOverSpanInputSource implements IInputSource {
             //
             // aggregate the metrics together if required
             //
-            Period granularity = transformSpec.getGraunularity();
+            Period granularity = transformSpec.getGranularity();
             if (granularity != null && granularity.getMilliseconds() > 0) {
                 MetricsAggregator aggregator = new MetricsAggregator(schema, granularity);
                 metricRows.forEach(aggregator::aggregate);
