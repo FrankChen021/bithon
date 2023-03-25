@@ -20,7 +20,7 @@ dispatchers:
       # in milliseconds
       maxLifeTime: 300000
     servers: 127.0.0.1:9895
-    batchSize: 500
+    batchSize: 2000
     flushTime: 3000
     queueSize: 8192
   event:
@@ -29,7 +29,7 @@ dispatchers:
       # in milliseconds
       maxLifeTime: 300000
     servers: 127.0.0.1:9896
-    batchSize: 100
+    batchSize: 500
     flushTime: 5000
 
 tracing:
