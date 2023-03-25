@@ -55,7 +55,8 @@ public class RedisOutputStream$Ctor extends AfterInterceptor {
 
         @Override
         public void write(byte[] b, int off, int len) throws IOException {
-            super.write(b, off, len);
+            // Call the target's write method directly instead of the super's because the super's implementation has very poor performance
+            out.write(b, off, len);
 
             try {
                 JedisContext ctx = InterceptorContext.getAs("redis-command");
