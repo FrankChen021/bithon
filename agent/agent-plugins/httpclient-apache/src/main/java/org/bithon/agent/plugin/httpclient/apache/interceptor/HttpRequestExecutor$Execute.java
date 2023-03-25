@@ -49,7 +49,7 @@ public class HttpRequestExecutor$Execute extends AroundInterceptor {
         //
         // Trace
         //
-        ITraceSpan span = TraceSpanFactory.newSpan("apache-httpClient");
+        ITraceSpan span = TraceSpanFactory.newSpan("httpClient-apache");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

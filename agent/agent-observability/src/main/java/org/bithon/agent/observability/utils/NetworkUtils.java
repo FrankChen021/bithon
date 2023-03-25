@@ -39,10 +39,20 @@ public class NetworkUtils {
                 Enumeration<InetAddress> addresses = ni.getInetAddresses();
                 while (addresses.hasMoreElements()) {
                     InetAddress ip = addresses.nextElement();
-                    boolean has = !ni.isLoopback() && !ni.isPointToPoint() && !ni.isVirtual();
-                    has = has && !ni.getName().contains("vmnet") && !ni.getName().contains("utun") &&
-                          !ni.getName().contains("vboxnet");
-                    if (ni.isUp() && has && !ip.isLoopbackAddress() && !ip.getHostAddress().contains(":")) {
+                    boolean has = !ni.isVirtual()
+                                  // virtual network interfaces on a host machine that is running virtualization software such as VMware
+                                  && !ni.getName().startsWith("vmnet")
+                                  // virtual network interfaces on macOS.
+                                  && !ni.getName().contains("utun")
+                                  // virtual network interfaces on a host machine that is running Oracle VM VirtualBox,
+                                  && !ni.getName().contains("vboxnet")
+                                  && !ni.getName().startsWith("docker")
+                                  && !ni.isLoopback()
+                                  && !ni.isPointToPoint()
+                                  && ni.isUp();
+                    if (has
+                        && !ip.isLoopbackAddress()
+                        && !ip.getHostAddress().contains(":")) {
                         if (ip.isSiteLocalAddress()) {
                             localIPs.add(ip);
                         } else {
@@ -51,9 +61,7 @@ public class NetworkUtils {
                     }
                 }
             }
-        } catch (SocketException e) {
-            e.printStackTrace();
-            // Ignore
+        } catch (SocketException ignored) {
         }
         return new NetworkUtils.IpAddress(localIPs, netIPs);
     }

@@ -124,6 +124,14 @@ Following matrix lists the JDKs that have been tested on macOS. And in theory, t
 | JDK 16.02     | &check;   |
 | JDK 17        | &check;   |
 
+## JDK 11 and above
+
+If the target application run under JDK 11 and above, following arguments should be added to JVM command to allow the agent to use Java Reflection on corresponding packages.
+
+```text
+--add-exports=java.base/jdk.internal.misc=ALL-UNNAMED --add-exports=java.base/sun.net.www=ALL-UNNAMED
+```
+
 # Contribution
 
 To develop for this project, intellij is recommended. 
