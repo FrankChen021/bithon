@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
+ * {@link java.net.Socket#getOutputStream()}
+ *
  * @author frank.chen021@outlook.com
  * @date 2022/8/21 16:57
  */
@@ -35,7 +37,7 @@ public class Socket$GetOutputStream extends AfterInterceptor {
             return;
         }
 
-        // this object is assigned at NetworkClient#doConnect
+        // this object is assigned in NetworkClient#doConnect
         HttpClientContext clientContext = aopContext.getInjectedOnTargetAs();
         if (clientContext == null) {
             return;
@@ -46,7 +48,8 @@ public class Socket$GetOutputStream extends AfterInterceptor {
         aopContext.setReturning(new FilterOutputStream(os) {
             @Override
             public void write(byte[] b, int off, int len) throws IOException {
-                super.write(b, off, len);
+                // Call the target's write method directly instead of the super's because the super's implementation has very poor performance
+                out.write(b, off, len);
                 clientContext.getSentBytes().update(len);
             }
         });
