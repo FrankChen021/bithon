@@ -29,19 +29,19 @@ public class InterceptorExpressionTest {
     @Test
     public void testArgsSyntax() {
         ExpressionParser.create("args. length")
-                        .methodObjectExpression();
+                        .objectExpression();
 
         ExpressionParser.create("args.size")
-                        .methodObjectExpression();
+                        .objectExpression();
 
         ExpressionParser.create("args [ 1 ]")
-                        .methodObjectExpression();
+                        .objectExpression();
 
         ExpressionParser.create("args[1]")
-                        .methodObjectExpression();
+                        .objectExpression();
 
         ExpressionParser.create("args[1].type")
-                        .methodObjectExpression();
+                        .objectExpression();
     }
 
     @Test
@@ -58,36 +58,43 @@ public class InterceptorExpressionTest {
 
     @Test
     public void testClassSyntax() {
-        ExpressionParser.create("FOR class.fn('InterceptorExpressionTest')")
-                        .classFilterExpression();
+        ExpressionParser.create("name('InterceptorExpressionTest')")
+                        .classExpression();
 
-        ExpressionParser.create("for class.in('org.bithon.InterceptorExpressionTest', '2')")
-                        .classFilterExpression();
+        ExpressionParser.create("in('org.bithon.InterceptorExpressionTest', '2')")
+                        .classExpression();
+
+        ExpressionParser.create("org.bithon.InterceptorExpressionTest")
+                        .classExpression();
+    }
+
+    @Test
+    public void testMethodExpression() {
+        ExpressionParser.create("print()")
+                        .methodExpression();
+
+        ExpressionParser.create("print(6)")
+                        .methodExpression();
+
+        ExpressionParser.create("print(args[0] = 'a')")
+                        .methodExpression();
+
+        ExpressionParser.create("print(args[0] = 'int' and args[4] = 'String')")
+                        .methodExpression();
     }
 
     @Test
     public void testExpression() {
-        ExpressionParser.create("for class.name('org.bithon.InterceptorExpressionTest') on method = 'print' ")
+        ExpressionParser.create("org.bithon.InterceptorExpressionTest#print()")
                         .parse();
 
-        ExpressionParser.create("for class.name('org.bithon.InterceptorExpressionTest') "
-                                + "on (method = 'print')"
-                                + "AND (args.length = 1)")
+        ExpressionParser.create("name('org.bithon.InterceptorExpressionTest')#print()")
                         .parse();
 
-        ExpressionParser.create("for class.name('org.bithon.InterceptorExpressionTest') "
-                                + "\non ("
-                                + " (method = 'print1' AND method = 'm2')"
-                                + ")")
+        ExpressionParser.create("in('org.bithon.InterceptorExpressionTest', 'org.bithon.InterceptorExpressionTest2')#print(1)")
                         .parse();
 
-        ExpressionParser.create("for class.name('org.bithon.InterceptorExpressionTest') "
-                                + "\n ON ("
-                                + " (method = 'print1' or method = 'm2')"
-                                + "\nOR (method = 'print2' AND args.length = 4)"
-                                + "\nOR (method = 'print3' AND args.length = 4 AND args[0].type = 3)"
-                                + "\nOR (method = 'print4' AND args.length = 4)"
-                                + ")")
+        ExpressionParser.create("when has('org.apache.http.client5.HttpClient') public org.bithon.InterceptorExpressionTest#print1(args.length=4 and args[0]='String' )")
                         .parse();
     }
 }

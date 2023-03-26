@@ -7,34 +7,67 @@ grammar InterceptorExpression;
 // class.implemented(name)
 // Guard
 
+
+// WHEN functionExpression modifier? classExpression#methodExpression(argExpression)
+//
+// WHEN exists() public|private|internal|protected|private com.alibaba.druid.pool.DruidDataSource#close(length=6 AND arg[6] = '')
+// implemented('aaaa')#close(length=6 AND arg[6] = '')
+// in('a','b')#close(0)
+// in('a','b')#close*(0)
+// in('a','b')#*close()
+// in('a','c')#annotated('')()
+// in('a','c')#overridden('')()
+
 parse
-  : whenExpression? classFilterExpression ('ON' | 'on') methodFilterExpression EOF
+  : whenExpression? modifierExpression? classExpression '#' methodExpression EOF
   ;
 
 whenExpression
   : ('WHEN' | 'when') functionCallExpression
   ;
 
-classFilterExpression
-  : ('FOR' | 'for') 'class' '.' functionCallExpression
+modifierExpression
+  : 'public'
+  | 'protected'
+  | 'private'
   ;
 
-methodFilterExpression
+classExpression
+  : classNameExpression
+  | functionCallExpression
+  ;
+
+classNameExpression
+  : IDENTIFIER ('.' IDENTIFIER)* ('*')?
+  ;
+
+methodExpression
+  : (methodNameExpression | methodFunctionExpression ) methodArgExpression
+  |
+  ;
+
+methodNameExpression
+  : '*' IDENTIFIER
+  | IDENTIFIER ('*')?
+  ;
+
+methodFunctionExpression
+  : functionCallExpression
+  ;
+
+methodArgExpression
+  : '(' (UNSIGNED_INTEGER_LITERAL)? ')'
+  | '(' argFilterExpression ')'
+  ;
+
+argFilterExpression
    : binaryExpression
-   | unaryExpression
-   | methodFilterExpression logicOperator methodFilterExpression
-   | '(' methodFilterExpression ')'
+   | argFilterExpression logicExpression argFilterExpression
   ;
 
 binaryExpression
-   : unaryExpression predicateOperator unaryExpression
+   : objectExpression predicateExpression constExpression
    |
-   ;
-
-unaryExpression
-   : constExpression
-   | methodObjectExpression
-   | functionCallExpression
    ;
 
 constExpression
@@ -52,22 +85,21 @@ functionCallArgsExpression
   : constExpression (',' constExpression)*
   ;
 
-methodObjectExpression
+objectExpression
    : simpleNameExpression
    | arrayAccessorExpression
-   | methodObjectExpression '.' IDENTIFIER
+   | objectExpression '.' IDENTIFIER
    ;
 
 simpleNameExpression
-   : 'method'
-   | 'args'
+   : IDENTIFIER
    ;
 
 arrayAccessorExpression
    : simpleNameExpression '[' UNSIGNED_INTEGER_LITERAL ']'
    ;
 
-predicateOperator
+predicateExpression
    : '='
    | '>'
    | '<'
@@ -77,7 +109,7 @@ predicateOperator
    | '!='
    ;
 
-logicOperator
+logicExpression
    : 'AND'
    | 'and'
    | 'OR'

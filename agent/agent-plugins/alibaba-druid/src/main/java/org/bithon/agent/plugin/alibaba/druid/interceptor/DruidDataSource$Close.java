@@ -18,6 +18,7 @@ package org.bithon.agent.plugin.alibaba.druid.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.Intercept;
 import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSourceManager;
 
 /**
@@ -25,6 +26,7 @@ import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSourceManager;
  *
  * @author frankchen
  */
+@Intercept(expressions = "com.alibaba.druid.pool.DruidDataSource#close()")
 public class DruidDataSource$Close extends BeforeInterceptor {
     @Override
     public void before(AopContext context) {

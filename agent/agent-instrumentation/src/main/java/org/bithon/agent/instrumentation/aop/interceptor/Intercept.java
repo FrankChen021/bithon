@@ -21,5 +21,5 @@ package org.bithon.agent.instrumentation.aop.interceptor;
  * @date 2023/3/18 23:06
  */
 public @interface Intercept {
-    String match();
+    String[] expressions();
 }
