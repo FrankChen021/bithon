@@ -27,7 +27,7 @@ methodFilterExpression
   ;
 
 binaryExpression
-   : unaryExpression comparisonOperator unaryExpression
+   : unaryExpression predicateOperator unaryExpression
    |
    ;
 
@@ -67,7 +67,7 @@ arrayAccessorExpression
    : simpleNameExpression '[' UNSIGNED_INTEGER_LITERAL ']'
    ;
 
-comparisonOperator
+predicateOperator
    : '='
    | '>'
    | '<'

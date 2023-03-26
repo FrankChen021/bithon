@@ -27,7 +27,7 @@ public class InterceptorExpressionTest {
 
 
     @Test
-    public void syntaxTest() {
+    public void testArgsSyntax() {
         ExpressionParser.create("args. length")
                         .methodObjectExpression();
 
@@ -42,13 +42,31 @@ public class InterceptorExpressionTest {
 
         ExpressionParser.create("args[1].type")
                         .methodObjectExpression();
+    }
 
+    @Test
+    public void testWhenExpression() {
+        ExpressionParser.create("when has() ")
+                        .whenExpression();
+
+        ExpressionParser.create("when has('a') ")
+                        .whenExpression();
+
+        ExpressionParser.create("when has('a', 'b', 3)")
+                        .whenExpression();
+    }
+
+    @Test
+    public void testClassSyntax() {
         ExpressionParser.create("FOR class.fn('InterceptorExpressionTest')")
                         .classFilterExpression();
 
         ExpressionParser.create("for class.in('org.bithon.InterceptorExpressionTest', '2')")
-                            .classFilterExpression();
+                        .classFilterExpression();
+    }
 
+    @Test
+    public void testExpression() {
         ExpressionParser.create("for class.name('org.bithon.InterceptorExpressionTest') on method = 'print' ")
                         .parse();
 
