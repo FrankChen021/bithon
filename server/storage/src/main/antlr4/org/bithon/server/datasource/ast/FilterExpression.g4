@@ -1,59 +1,83 @@
 grammar FilterExpression;
 
-
 parse
    : filterExpression EOF
    ;
 
 filterExpression
-  : binaryExpression
-  | filterExpression logicOperator filterExpression
-  | '(' filterExpression ')'
-  ;
+   : binaryExpression
+   | unaryExpression
+   | filterExpression logicOperator filterExpression
+   | '(' filterExpression ')'
+   ;
 
 binaryExpression
-  : unaryExpression comparisonOperator unaryExpression
-  ;
+   : unaryExpression comparisonOperator unaryExpression
+   ;
 
 unaryExpression
-  : VARIABLE
-  | STRING_LITERAL | NUMBER_LITERAL
-  ;
+   : constExpression
+   | objectExpression
+   | functionExpression
+   ;
 
-logicOperator
-  : AND | OR
-  ;
+constExpression
+   : STRING_LITERAL
+   | DECIMAL_LITERAL
+   | UNSIGNED_INTEGER_LITERAL
+   ;
 
-AND
-  : [aA][nN][dD]
-  ;
+functionExpression
+   : IDENTIFIER '(' ')'
+   ;
 
-OR
-  : [oO][rR]
-  ;
+objectExpression
+   : simpleNameExpression
+   | arrayAccessorExpression
+   | objectExpression '.' objectExpression
+   ;
+
+arrayAccessorExpression
+   : simpleNameExpression '[' UNSIGNED_INTEGER_LITERAL ']'
+   ;
+
+simpleNameExpression
+   : IDENTIFIER
+   ;
 
 comparisonOperator
-    : '='
-    | '>'
-    | '<'
-    | '<='
-    | '>='
-    | '<>'
-    | '!='
-    ;
+   : '='
+   | '>'
+   | '<'
+   | '<='
+   | '>='
+   | '<>'
+   | '!='
+   ;
 
-VARIABLE
-  : [a-zA-Z_][a-zA-Z_0-9]*
-  ;
+logicOperator
+   : 'AND'
+   | 'and'
+   | 'OR'
+   | 'or'
+   ;
 
-NUMBER_LITERAL
- : [0-9]+('.'?[0-9]+)?
- ;
+IDENTIFIER
+   : [a-zA-Z_] [a-zA-Z_0-9]*
+   ;
+
+UNSIGNED_INTEGER_LITERAL
+   : [0-9]+
+   ;
+
+DECIMAL_LITERAL
+   : [0-9]+'.'[0-9]+
+   ;
 
 STRING_LITERAL
- : SQUOTA_STRING;
+   : '\'' ( '\\\'' | ~('\'' | '\\') )* '\''
+   ;
 
-fragment SQUOTA_STRING
-  : '\'' ('\\'. | '\'\'' | ~('\'' | '\\'))* '\'';
-
-WS: [ \n\t\r]+ -> skip;
+WS
+   : [ \t\r\n] -> skip
+   ;

@@ -28,6 +28,7 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.server.datasource.ast.FilterExpressionBaseVisitor;
 import org.bithon.server.datasource.ast.FilterExpressionLexer;
@@ -35,6 +36,7 @@ import org.bithon.server.datasource.ast.FilterExpressionParser;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.spec.InvalidExpressionException;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.function.Function;
@@ -74,7 +76,7 @@ public class ExpressionFilter implements IInputRowFilter {
                                     int charPositionInLine,
                                     String msg,
                                     RecognitionException e) {
-                throw new InvalidExpressionException(expression, charPositionInLine, msg);
+                throw new InvalidExpressionException(expression, line, charPositionInLine, msg);
             }
         });
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -88,7 +90,7 @@ public class ExpressionFilter implements IInputRowFilter {
                                     int charPositionInLine,
                                     String msg,
                                     RecognitionException e) {
-                throw new InvalidExpressionException(expression, charPositionInLine, msg);
+                throw new InvalidExpressionException(expression, line, charPositionInLine, msg);
             }
         });
         delegation = parser.parse().filterExpression().accept(new Builder(this.debug));
@@ -137,34 +139,48 @@ public class ExpressionFilter implements IInputRowFilter {
 
         @Override
         public IInputRowFilter visitBinaryExpression(FilterExpressionParser.BinaryExpressionContext ctx) {
-            TerminalNode left = ctx.unaryExpression(0).getChild(TerminalNode.class, 0);
+            ParseTree left = ctx.unaryExpression(0).getChild(0);
             String comparisonOperator = ctx.comparisonOperator().getText();
-            TerminalNode right = ctx.unaryExpression(1).getChild(TerminalNode.class, 0);
+            ParseTree right = ctx.unaryExpression(1).getChild(0);
 
-            if (left.getSymbol().getType() != FilterExpressionLexer.VARIABLE) {
+            if (left instanceof FilterExpressionParser.ConstExpressionContext) {
                 // just for simplicity
-                throw new InvalidExpressionException(ctx.getText(), left.getSymbol().getStartIndex(), "left expression must be a variable");
+                throw new InvalidExpressionException(ctx.getText(),
+                                                     ((FilterExpressionParser.ConstExpressionContext) left).start.getLine(),
+                                                     ((FilterExpressionParser.ConstExpressionContext) left).start.getCharPositionInLine(),
+                                                     "left expression must be a variable");
             }
 
-            Function<IInputRow, Object> getRight;
-            switch (right.getSymbol().getType()) {
-                case FilterExpressionLexer.NUMBER_LITERAL: {
-                    final long rightVal = Long.parseLong(right.getText());
-                    getRight = inputRow -> rightVal;
-                    break;
+            Function<IInputRow, Object> getRight = null;
+            if (right instanceof FilterExpressionParser.ConstExpressionContext) {
+                TerminalNode constExpression = (TerminalNode) ((FilterExpressionParser.ConstExpressionContext) right).children.get(0);
+
+                switch (constExpression.getSymbol().getType()) {
+                    case FilterExpressionLexer.UNSIGNED_INTEGER_LITERAL: {
+                        final long rightVal = Long.parseLong(constExpression.getText());
+                        getRight = inputRow -> rightVal;
+                        break;
+                    }
+                    case FilterExpressionLexer.DECIMAL_LITERAL: {
+                        final BigDecimal rightVal = new BigDecimal(constExpression.getText());
+                        getRight = inputRow -> rightVal;
+                        break;
+                    }
+                    case FilterExpressionLexer.STRING_LITERAL: {
+                        final String rightVal = getUnQuotedString(constExpression.getSymbol());
+                        getRight = inputRow -> rightVal;
+                        break;
+                    }
+                    default:
+                        break;
                 }
-                case FilterExpressionLexer.STRING_LITERAL: {
-                    final String rightVal = getUnQuotedString(right.getSymbol());
-                    getRight = inputRow -> rightVal;
-                    break;
-                }
-                case FilterExpressionLexer.VARIABLE: {
-                    final String rightVal = right.getText();
-                    getRight = inputRow -> inputRow.getCol(rightVal);
-                    break;
-                }
-                default:
-                    throw new RuntimeException("unexpected right expression type");
+            }
+            if (right instanceof FilterExpressionParser.ObjectExpressionContext) {
+                final String rightVal = right.getText();
+                getRight = inputRow -> inputRow.getCol(rightVal);
+            }
+            if (getRight == null) {
+                throw new RuntimeException("unexpected right expression type");
             }
 
             BinaryExpressionFilter filter;

@@ -24,7 +24,35 @@ import java.util.Locale;
  * @date 2021/3/11
  */
 public class InvalidExpressionException extends RuntimeException {
-    public InvalidExpressionException(@NotNull String expression, int charPos, String parseExceptionMessage) {
-        super(String.format(Locale.ENGLISH, "Invalid expression [%s] at position %d, %s", expression, charPos, parseExceptionMessage));
+    public InvalidExpressionException(@NotNull String expression, int line, int charPos, String parseExceptionMessage) {
+        super(String.format(Locale.ENGLISH, "%s\n%s", parseExceptionMessage, formatMessage(expression, line, charPos)));
+    }
+
+    private static String formatMessage(String text, int line, int pos) {
+        StringBuilder message = new StringBuilder(text.length());
+
+        int lines = 0;
+        char[] chars = text.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            message.append(chars[i]);
+
+            if (chars[i] == '\n' && ++lines == line) {
+                while (pos-- > 0) {
+                    message.append(' ');
+                }
+                message.append('^');
+                message.append('\n');
+            }
+        }
+
+        if (pos > 0) {
+            message.append('\n');
+            while (pos-- > 0) {
+                message.append(' ');
+            }
+            message.append('^');
+        }
+
+        return message.toString();
     }
 }
