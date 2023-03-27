@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  */
 public class FunctionCallExpression {
     private final String name;
-    private final List<TerminalNode> args;
+    private final List<ConstExpression> args;
 
     public FunctionCallExpression(InterceptorExpressionParser.FunctionCallExpressionContext functionCallExpression) {
         this.name = functionCallExpression.IDENTIFIER().getText();
@@ -38,7 +38,7 @@ public class FunctionCallExpression {
         if (argsExpression != null) {
             args = argsExpression.constExpression()
                                  .stream()
-                                 .map(c -> (TerminalNode) c.getChild(0))
+                                 .map(c -> new ConstExpression((TerminalNode) c.getChild(0)))
                                  .collect(Collectors.toList());
         } else {
             args = Collections.emptyList();
@@ -49,7 +49,7 @@ public class FunctionCallExpression {
         return name;
     }
 
-    public List<TerminalNode> getArgs() {
+    public List<ConstExpression> getArgs() {
         return args;
     }
 }

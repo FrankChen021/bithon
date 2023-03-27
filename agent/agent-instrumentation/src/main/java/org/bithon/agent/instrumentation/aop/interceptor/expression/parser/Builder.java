@@ -14,11 +14,8 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.aop.interceptor.expression;
+package org.bithon.agent.instrumentation.aop.interceptor.expression.parser;
 
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.misc.Interval;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorExpressionBaseVisitor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorExpressionParser;
 import org.bithon.agent.instrumentation.aop.interceptor.expression.matcher.ITypeMatcher;
@@ -46,23 +43,10 @@ class Builder extends InterceptorExpressionBaseVisitor<Void> {
         }
 
         InterceptorExpressionParser.ClassExpressionContext classExpression = ctx.classExpression();
-        ITypeMatcher typeMatcher = classExpression.accept(new ClassExpressionVisitor());
+        ITypeMatcher typeMatcher = classExpression.accept(new ClassExpressionToMatcher());
 
         InterceptorExpressionParser.MethodExpressionContext methodExpression = ctx.methodExpression();
-        ElementMatcher.Junction<MethodDescription> methodMatcher = methodExpression.accept(new MethodExpressionVisitor());
+        ElementMatcher.Junction<MethodDescription> methodMatcher = methodExpression.accept(new MethodExpressionToMatcher());
         return null;
-    }
-
-
-    private String getUnQuotedString(Token symbol) {
-        CharStream input = symbol.getInputStream();
-        if (input == null) {
-            return null;
-        } else {
-            int n = input.size();
-            int s = symbol.getStartIndex() + 1; // +1 to skip the leading quoted character
-            int e = symbol.getStopIndex() - 1;  // -1 to skip the ending quoted character
-            return s < n && e < n ? input.getText(Interval.of(s, e)) : "<EOF>";
-        }
     }
 }

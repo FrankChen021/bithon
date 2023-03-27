@@ -14,11 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.aop.interceptor.expression;
+package org.bithon.agent.instrumentation.aop.interceptor.expression.parser;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorExpressionBaseVisitor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorExpressionParser;
+import org.bithon.agent.instrumentation.aop.interceptor.expression.FunctionCallExpression;
 import org.bithon.agent.instrumentation.aop.interceptor.expression.matcher.And;
 import org.bithon.agent.instrumentation.aop.interceptor.expression.matcher.IArgumentMatcher;
 import org.bithon.agent.instrumentation.aop.interceptor.expression.matcher.Or;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2023/3/27 21:13
  */
-public class MethodExpressionVisitor extends InterceptorExpressionBaseVisitor<ElementMatcher.Junction<MethodDescription>> {
+public class MethodExpressionToMatcher extends InterceptorExpressionBaseVisitor<ElementMatcher.Junction<MethodDescription>> {
 
     private ElementMatcher.Junction<MethodDescription> matcher;
 
@@ -61,13 +62,13 @@ public class MethodExpressionVisitor extends InterceptorExpressionBaseVisitor<El
             case "annotated":
                 matcher = ElementMatchers.isAnnotatedWith(new NameMatcher<>(new StringSetMatcher(functionCallExpression.getArgs()
                                                                                                                        .stream()
-                                                                                                                       .map(ParseTree::getText)
+                                                                                                                       .map(arg -> arg.getText())
                                                                                                                        .collect(Collectors.toSet()))));
                 break;
             case "overridden":
                 matcher = ElementMatchers.isOverriddenFrom(new NameMatcher<>(new StringSetMatcher(functionCallExpression.getArgs()
                                                                                                                         .stream()
-                                                                                                                        .map(ParseTree::getText)
+                                                                                                                        .map(arg -> arg.getText())
                                                                                                                         .collect(Collectors.toSet()))));
                 break;
             default:

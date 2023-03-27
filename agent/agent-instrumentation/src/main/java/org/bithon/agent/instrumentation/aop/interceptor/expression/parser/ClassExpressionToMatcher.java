@@ -14,12 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.aop.interceptor.expression;
+package org.bithon.agent.instrumentation.aop.interceptor.expression.parser;
 
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorExpressionBaseVisitor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorExpressionParser;
+import org.bithon.agent.instrumentation.aop.interceptor.expression.ConstExpression;
+import org.bithon.agent.instrumentation.aop.interceptor.expression.FunctionCallExpression;
 import org.bithon.agent.instrumentation.aop.interceptor.expression.matcher.ITypeMatcher;
 
 import java.util.List;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2023/3/27 21:00
  */
-public class ClassExpressionVisitor extends InterceptorExpressionBaseVisitor<ITypeMatcher> {
+public class ClassExpressionToMatcher extends InterceptorExpressionBaseVisitor<ITypeMatcher> {
 
     @Override
     public ITypeMatcher visitClassNameExpression(InterceptorExpressionParser.ClassNameExpressionContext ctx) {
@@ -48,13 +48,13 @@ public class ClassExpressionVisitor extends InterceptorExpressionBaseVisitor<ITy
     }
 
     private ITypeMatcher buildInTypeMatcher(FunctionCallExpression functionCallExpression) {
-        List<TerminalNode> args = functionCallExpression.getArgs();
+        List<ConstExpression> args = functionCallExpression.getArgs();
         if (args.isEmpty()) {
             throw new RuntimeException("Function 'in' must take at least in parameter.");
         }
 
-        for (TerminalNode arg : args) {
-            if (arg.getSymbol().getType() != InterceptorExpressionParser.STRING_LITERAL) {
+        for (ConstExpression arg : args) {
+            if (arg.getType() != InterceptorExpressionParser.STRING_LITERAL) {
                 throw new RuntimeException(String.format(Locale.ENGLISH, "Argument %s must be type of STRING.", arg.getText()));
             }
         }
@@ -64,6 +64,6 @@ public class ClassExpressionVisitor extends InterceptorExpressionBaseVisitor<ITy
             return new ITypeMatcher.NameMatcher(args.get(0).getText());
         }
 
-        return new ITypeMatcher.InMatcher(args.stream().map(ParseTree::getText).collect(Collectors.toList()));
+        return new ITypeMatcher.InMatcher(args.stream().map((arg) -> arg.getText()).collect(Collectors.toList()));
     }
 }

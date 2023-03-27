@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.aop.interceptor.expression;
+package org.bithon.agent.instrumentation.aop.interceptor.expression.parser;
 
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
