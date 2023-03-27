@@ -27,74 +27,70 @@ public class InterceptorExpressionTest {
 
 
     @Test
-    public void testArgsSyntax() {
-        ExpressionParser.create("args. length")
+    public void testArgsExpressionSyntax() {
+        ExpressionParser.createGrammarParser("args. length")
                         .objectExpression();
 
-        ExpressionParser.create("args.size")
+        ExpressionParser.createGrammarParser("args.size")
                         .objectExpression();
 
-        ExpressionParser.create("args [ 1 ]")
+        ExpressionParser.createGrammarParser("args [ 1 ]")
                         .objectExpression();
 
-        ExpressionParser.create("args[1]")
+        ExpressionParser.createGrammarParser("args[1]")
                         .objectExpression();
 
-        ExpressionParser.create("args[1].type")
+        ExpressionParser.createGrammarParser("args[1].type")
                         .objectExpression();
     }
 
     @Test
-    public void testWhenExpression() {
-        ExpressionParser.create("when has() ")
+    public void testWhenExpressionSyntax() {
+        ExpressionParser.createGrammarParser("when has() ")
                         .whenExpression();
 
-        ExpressionParser.create("when has('a') ")
+        ExpressionParser.createGrammarParser("when has('a') ")
                         .whenExpression();
 
-        ExpressionParser.create("when has('a', 'b', 3)")
+        ExpressionParser.createGrammarParser("when has('a', 'b', 3)")
                         .whenExpression();
     }
 
     @Test
-    public void testClassSyntax() {
-        ExpressionParser.create("name('InterceptorExpressionTest')")
+    public void testClassExpressionSyntax() {
+        ExpressionParser.createGrammarParser("name('InterceptorExpressionTest')")
                         .classExpression();
 
-        ExpressionParser.create("in('org.bithon.InterceptorExpressionTest', '2')")
+        ExpressionParser.createGrammarParser("in('org.bithon.InterceptorExpressionTest', '2')")
                         .classExpression();
 
-        ExpressionParser.create("org.bithon.InterceptorExpressionTest")
+        ExpressionParser.createGrammarParser("org.bithon.InterceptorExpressionTest")
                         .classExpression();
     }
 
     @Test
-    public void testMethodExpression() {
-        ExpressionParser.create("print()")
+    public void testMethodExpressionSyntax() {
+        ExpressionParser.createGrammarParser("print()")
                         .methodExpression();
 
-        ExpressionParser.create("print(6)")
+        ExpressionParser.createGrammarParser("print(6)")
                         .methodExpression();
 
-        ExpressionParser.create("print(args[0] = 'a')")
+        ExpressionParser.createGrammarParser("print(args[0] = 'a')")
                         .methodExpression();
 
-        ExpressionParser.create("print(args[0] = 'int' and args[4] = 'String')")
+        ExpressionParser.createGrammarParser("print(args[0] = 'int' and args[4] = 'String')")
                         .methodExpression();
     }
 
     @Test
-    public void testExpression() {
-        ExpressionParser.create("org.bithon.InterceptorExpressionTest#print()")
-                        .parse();
+    public void testParseExpression() {
+        ExpressionParser.parse("org.bithon.InterceptorExpressionTest#print()");
 
-        ExpressionParser.create("name('org.bithon.InterceptorExpressionTest')#print()")
-                        .parse();
+        ExpressionParser.parse("in('org.bithon.InterceptorExpressionTest')#print()");
 
-        ExpressionParser.create("in('org.bithon.InterceptorExpressionTest', 'org.bithon.InterceptorExpressionTest2')#print(1)")
-                        .parse();
+        ExpressionParser.parse("in('org.bithon.InterceptorExpressionTest', 'org.bithon.InterceptorExpressionTest2')#print(1)");
 
-        ExpressionParser.create("when has('org.apache.http.client5.HttpClient') public org.bithon.InterceptorExpressionTest#print1(args.length=4 and args[0]='String' )")
-                        .parse();
+        ExpressionParser.parse("when has('org.apache.http.client5.HttpClient') public org.bithon.InterceptorExpressionTest#print1(args.length=4 and args[0] ='String' )");
     }
 }

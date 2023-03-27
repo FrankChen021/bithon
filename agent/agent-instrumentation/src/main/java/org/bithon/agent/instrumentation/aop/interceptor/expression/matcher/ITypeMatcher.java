@@ -16,12 +16,27 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.expression.matcher;
 
-import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
+import java.util.List;
 
 /**
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2023/3/27 21:01
  */
-public interface IMethodMatcher {
+public interface ITypeMatcher {
 
-    boolean matches(MethodDescription method);
+    class NameMatcher implements ITypeMatcher {
+        private final String name;
+
+        public NameMatcher(String name) {
+            this.name = name;
+        }
+    }
+
+    class InMatcher implements ITypeMatcher {
+        private final List<String> names;
+
+        public InMatcher(List<String> names) {
+            this.names = names;
+        }
+    }
 }

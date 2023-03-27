@@ -18,25 +18,24 @@ package org.bithon.agent.instrumentation.aop.interceptor.expression.matcher;
 
 
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
-
-import java.util.List;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 4/8/22 3:31 PM
  */
-public class And implements IMethodMatcher {
+public class And implements ElementMatcher<MethodDescription> {
 
-    private final List<IMethodMatcher> filters;
+    private final ElementMatcher<MethodDescription>[] matchers;
 
-    public And(List<IMethodMatcher> filters) {
-        this.filters = filters;
+    public And(ElementMatcher<MethodDescription>... matchers) {
+        this.matchers = matchers;
     }
 
     @Override
     public boolean matches(MethodDescription method) {
-        for (IMethodMatcher filter : this.filters) {
-            if (!filter.matches(method)) {
+        for (ElementMatcher<MethodDescription> matcher : this.matchers) {
+            if (!matcher.matches(method)) {
                 return false;
             }
         }

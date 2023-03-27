@@ -11,7 +11,7 @@ grammar InterceptorExpression;
 // WHEN functionExpression modifier? classExpression#methodExpression(argExpression)
 //
 // WHEN exists() public|private|internal|protected|private com.alibaba.druid.pool.DruidDataSource#close(length=6 AND arg[6] = '')
-// implemented('aaaa')#close(length=6 AND arg[6] = '')
+// implemented('aaaa')#close(args.length=6 AND args[6] = '')
 // in('a','b')#close(0)
 // in('a','b')#close*(0)
 // in('a','b')#*close()
@@ -42,7 +42,7 @@ classNameExpression
   ;
 
 methodExpression
-  : (methodNameExpression | methodFunctionExpression ) methodArgExpression
+  : (methodNameExpression | methodFunctionExpression) methodArgExpression
   |
   ;
 
@@ -86,9 +86,8 @@ functionCallArgsExpression
   ;
 
 objectExpression
-   : simpleNameExpression
+   : simpleNameExpression '.' propertyAccessorExpression
    | arrayAccessorExpression
-   | objectExpression '.' IDENTIFIER
    ;
 
 simpleNameExpression
@@ -97,6 +96,10 @@ simpleNameExpression
 
 arrayAccessorExpression
    : simpleNameExpression '[' UNSIGNED_INTEGER_LITERAL ']'
+   ;
+
+propertyAccessorExpression
+   : IDENTIFIER
    ;
 
 predicateExpression

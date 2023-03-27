@@ -18,11 +18,9 @@ package org.bithon.agent.instrumentation.aop.interceptor.expression;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.bithon.agent.instrumentation.aop.interceptor.InterceptorExpressionBaseVisitor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorExpressionLexer;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorExpressionParser;
-import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
-import org.bithon.shaded.net.bytebuddy.description.method.ParameterList;
+import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 
 /**
  * @author frank.chen021@outlook.com
@@ -30,7 +28,7 @@ import org.bithon.shaded.net.bytebuddy.description.method.ParameterList;
  */
 public class ExpressionParser {
 
-    public static InterceptorExpressionParser create(String expression) {
+    public static InterceptorExpressionParser createGrammarParser(String expression) {
         ErrorListener errorListener = new ErrorListener(expression);
         InterceptorExpressionLexer lexer = new InterceptorExpressionLexer(CharStreams.fromString(expression));
         lexer.getErrorListeners().clear();
@@ -42,65 +40,10 @@ public class ExpressionParser {
         return parser;
     }
 
-//    public static InterceptorDescriptor parse(String expression) {
-//        InterceptorExpressionParser parser = create(expression);
-//        parser.parse().accept(new Builder());
-//        return null;
-//    }
-
-    static class ClassFilterBuilder extends InterceptorExpressionBaseVisitor<IValueSupplier> {
-
+    // TODO: NEED to change return
+    public static InterceptorDescriptor parse(String expression) {
+        InterceptorExpressionParser parser = createGrammarParser(expression);
+        parser.parse().accept(new Builder());
+        return null;
     }
-
-    static class MethodFilterBuilder extends InterceptorExpressionBaseVisitor<IValueSupplier> {
-
-        @Override
-        public IValueSupplier visitSimpleNameExpression(InterceptorExpressionParser.SimpleNameExpressionContext ctx) {
-            String name = ctx.getText();
-            if ("method".equals(name)) {
-                return MethodDescription::getName;
-            }
-            throw new RuntimeException("Unsupported identifier " + name);
-        }
-
-//        @Override
-//        public IValueSupplier visitPropertyAccessExpression(InterceptorExpressionParser.PropertyAccessExpressionContext ctx) {
-//            String objName = ctx.getChild(0).getText();
-//            String propName = ctx.getChild(2).getText();
-//            if ("method".equals(objName)) {
-//                switch (propName) {
-//                    case "isPublic":
-//                        return MethodDescription::isPublic;
-//                    case "isPrivate":
-//                        return MethodDescription::isPrivate;
-//                    case "isProtected":
-//                        return MethodDescription::isProtected;
-//                    case "name":
-//                        return MethodDescription::getName;
-//                    case "return":
-//                        return methodDescription -> methodDescription.getReturnType().getTypeName();
-//                    default:
-//                        throw new RuntimeException("Unsupported property " + propName);
-//                }
-//            }
-//            throw new RuntimeException("Unsupported object " + objName);
-//        }
-
-        @Override
-        public IValueSupplier visitArrayAccessorExpression(InterceptorExpressionParser.ArrayAccessorExpressionContext ctx) {
-            String arrayObjectName = ctx.simpleNameExpression().getText();
-            int index = Integer.parseInt(ctx.UNSIGNED_INTEGER_LITERAL().getText());
-            if (!"args".equals(arrayObjectName)) {
-                throw new RuntimeException("Array accessor is not allowed on " + arrayObjectName);
-            }
-            return methodDescription -> {
-                ParameterList<?> parameterList = methodDescription.getParameters();
-                if (parameterList.size() > index) {
-                    return parameterList.get(index);
-                }
-                return null;
-            };
-        }
-    }
-
 }
