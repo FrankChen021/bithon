@@ -20,7 +20,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorExpressionLexer;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorExpressionParser;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
+import org.bithon.agent.instrumentation.aop.interceptor.expression.ExpressionMatcher;
 
 /**
  * @author frank.chen021@outlook.com
@@ -40,10 +40,8 @@ public class ExpressionParser {
         return parser;
     }
 
-    // TODO: NEED to change return
-    public static InterceptorDescriptor parse(String expression) {
+    public static ExpressionMatcher parse(String expression) {
         InterceptorExpressionParser parser = createGrammarParser(expression);
-        parser.parse().accept(new Builder());
-        return null;
+        return parser.parse().accept(new Builder());
     }
 }

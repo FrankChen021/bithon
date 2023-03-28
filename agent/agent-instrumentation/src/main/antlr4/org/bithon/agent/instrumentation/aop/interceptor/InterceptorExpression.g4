@@ -8,7 +8,7 @@ grammar InterceptorExpression;
 // Guard
 
 
-// WHEN functionExpression modifier? classExpression#methodExpression(argExpression)
+// WHEN functionExpression modifier? return(returnExpression) classExpression#methodExpression(argExpression)
 //
 // WHEN exists() public|private|internal|protected|private com.alibaba.druid.pool.DruidDataSource#close(length=6 AND arg[6] = '')
 // implemented('aaaa')#close(args.length=6 AND args[6] = '')

@@ -16,7 +16,9 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor;
 
+import org.bithon.agent.instrumentation.aop.interceptor.expression.ExpressionMatcher;
 import org.bithon.agent.instrumentation.aop.interceptor.expression.parser.ExpressionParser;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**

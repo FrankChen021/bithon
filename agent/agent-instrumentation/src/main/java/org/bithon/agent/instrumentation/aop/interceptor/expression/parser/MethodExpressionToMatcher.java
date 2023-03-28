@@ -37,26 +37,26 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2023/3/27 21:13
  */
-public class MethodExpressionToMatcher extends InterceptorExpressionBaseVisitor<ElementMatcher.Junction<MethodDescription>> {
+public class MethodExpressionToMatcher extends InterceptorExpressionBaseVisitor<ElementMatcher.Junction<? super MethodDescription>> {
 
-    private ElementMatcher.Junction<MethodDescription> matcher;
+    private ElementMatcher.Junction<? super MethodDescription> matcher;
 
 
     @Override
-    public ElementMatcher.Junction<MethodDescription> visitMethodExpression(InterceptorExpressionParser.MethodExpressionContext ctx) {
+    public ElementMatcher.Junction<? super MethodDescription> visitMethodExpression(InterceptorExpressionParser.MethodExpressionContext ctx) {
         super.visitMethodExpression(ctx);
         return matcher;
     }
 
     @Override
-    public ElementMatcher.Junction<MethodDescription> visitMethodNameExpression(InterceptorExpressionParser.MethodNameExpressionContext ctx) {
+    public ElementMatcher.Junction<? super MethodDescription> visitMethodNameExpression(InterceptorExpressionParser.MethodNameExpressionContext ctx) {
         String methodName = ctx.getText();
         matcher = ElementMatchers.named(methodName);
         return null;
     }
 
     @Override
-    public ElementMatcher.Junction<MethodDescription> visitMethodFunctionExpression(InterceptorExpressionParser.MethodFunctionExpressionContext ctx) {
+    public ElementMatcher.Junction<? super MethodDescription> visitMethodFunctionExpression(InterceptorExpressionParser.MethodFunctionExpressionContext ctx) {
         FunctionCallExpression functionCallExpression = new FunctionCallExpression(ctx.functionCallExpression());
         switch (functionCallExpression.getName()) {
             case "annotated":
@@ -78,7 +78,7 @@ public class MethodExpressionToMatcher extends InterceptorExpressionBaseVisitor<
     }
 
     @Override
-    public ElementMatcher.Junction<MethodDescription> visitMethodArgExpression(InterceptorExpressionParser.MethodArgExpressionContext ctx) {
+    public ElementMatcher.Junction<? super MethodDescription> visitMethodArgExpression(InterceptorExpressionParser.MethodArgExpressionContext ctx) {
         if (ctx.children.size() == 2) {
             // No argument given
             return null;
@@ -95,11 +95,11 @@ public class MethodExpressionToMatcher extends InterceptorExpressionBaseVisitor<
         return null;
     }
 
-    static class ArgumentMatcherBuilder extends InterceptorExpressionBaseVisitor<ElementMatcher<MethodDescription>> {
+    static class ArgumentMatcherBuilder extends InterceptorExpressionBaseVisitor<ElementMatcher<? super MethodDescription>> {
 
         // Nested filter
         @Override
-        public ElementMatcher<MethodDescription> visitArgFilterExpression(InterceptorExpressionParser.ArgFilterExpressionContext ctx) {
+        public ElementMatcher<? super MethodDescription> visitArgFilterExpression(InterceptorExpressionParser.ArgFilterExpressionContext ctx) {
             if (ctx.children.size() == 1) {
                 // binary Expression
                 return ctx.children.get(0).accept(this);
@@ -121,7 +121,7 @@ public class MethodExpressionToMatcher extends InterceptorExpressionBaseVisitor<
         }
 
         @Override
-        public ElementMatcher<MethodDescription> visitBinaryExpression(InterceptorExpressionParser.BinaryExpressionContext ctx) {
+        public ElementMatcher<? super MethodDescription> visitBinaryExpression(InterceptorExpressionParser.BinaryExpressionContext ctx) {
             InterceptorExpressionParser.ObjectExpressionContext left = (InterceptorExpressionParser.ObjectExpressionContext) ctx.getChild(0);
             String predicate = ctx.getChild(1).getText();
             InterceptorExpressionParser.ConstExpressionContext right = (InterceptorExpressionParser.ConstExpressionContext) ctx.getChild(2);

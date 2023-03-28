@@ -30,7 +30,7 @@ public class InterceptorDescriptor {
 
     public InterceptorDescriptor(boolean debug,
                                  String targetClass,
-                                 MethodPointCutDescriptor[] methodPointCutDescriptors) {
+                                 MethodPointCutDescriptor... methodPointCutDescriptors) {
         this.debug = debug;
         this.targetClass = targetClass;
         this.methodPointCutDescriptors = methodPointCutDescriptors;

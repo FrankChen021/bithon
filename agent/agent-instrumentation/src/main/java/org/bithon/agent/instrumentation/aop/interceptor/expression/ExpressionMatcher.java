@@ -14,31 +14,29 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.aop.interceptor.expression.matcher;
+package org.bithon.agent.instrumentation.aop.interceptor.expression;
 
-
-import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
+import org.bithon.agent.instrumentation.aop.interceptor.expression.matcher.ITypeMatcher;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 4/8/22 3:31 PM
+ * @date 2023/3/28 20:59
  */
-public class And<T extends MethodDescription> implements ElementMatcher<T> {
+public class ExpressionMatcher {
+    private final ITypeMatcher clazzMatcher;
+    private final ElementMatcher.Junction<?> methodMatcher;
 
-    private final ElementMatcher<T>[] matchers;
-
-    public And(ElementMatcher<T>... matchers) {
-        this.matchers = matchers;
+    public ExpressionMatcher(ITypeMatcher clazzMatcher, ElementMatcher.Junction<?> methodMatcher) {
+        this.clazzMatcher = clazzMatcher;
+        this.methodMatcher = methodMatcher;
     }
 
-    @Override
-    public boolean matches(T target) {
-        for (ElementMatcher<T> matcher : this.matchers) {
-            if (!matcher.matches(target)) {
-                return false;
-            }
-        }
-        return true;
+    public ITypeMatcher getClazzMatcher() {
+        return clazzMatcher;
+    }
+
+    public ElementMatcher.Junction<?> getMethodMatcher() {
+        return methodMatcher;
     }
 }

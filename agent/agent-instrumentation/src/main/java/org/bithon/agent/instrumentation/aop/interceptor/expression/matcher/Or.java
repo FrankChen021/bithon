@@ -23,17 +23,17 @@ import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
  * @author frank.chen021@outlook.com
  * @date 2021/1/19
  */
-public class Or implements ElementMatcher<MethodDescription> {
+public class Or<T extends MethodDescription> implements ElementMatcher<T> {
 
-    private final ElementMatcher<MethodDescription>[] matchers;
+    private final ElementMatcher<T>[] matchers;
 
-    public Or(ElementMatcher<MethodDescription>... matchers) {
+    public Or(ElementMatcher<T>... matchers) {
         this.matchers = matchers;
     }
 
     @Override
-    public boolean matches(MethodDescription method) {
-        for (ElementMatcher<MethodDescription> matcher : this.matchers) {
+    public boolean matches(T method) {
+        for (ElementMatcher<T> matcher : this.matchers) {
             if (matcher.matches(method)) {
                 return true;
             }
