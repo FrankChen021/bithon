@@ -14,11 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.aop.interceptor;
+package org.bithon.agent.instrumentation.aop.interceptor.expression;
 
-import org.bithon.agent.instrumentation.aop.interceptor.expression.ExpressionMatcher;
 import org.bithon.agent.instrumentation.aop.interceptor.expression.parser.ExpressionParser;
-import org.junit.Assert;
 import org.junit.Test;
 
 /**

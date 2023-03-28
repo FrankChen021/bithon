@@ -23,13 +23,23 @@ package org.bithon.agent.instrumentation.aop.interceptor;
  */
 public enum InterceptorType {
 
-    BEFORE,
-    AFTER,
-    AROUND,
+    BEFORE(BeforeInterceptor.class.getName().replace('.', '/')),
+    AFTER(AfterInterceptor.class.getName().replace('.', '/')),
+    AROUND(AroundInterceptor.class.getName().replace('.', '/')),
 
     /**
      * replace the original method implementation
      * this only works for non-constructor methods
      */
-    REPLACEMENT;
+    REPLACEMENT(ReplaceInterceptor.class.getName().replace('.', '/'));
+
+    InterceptorType(String type) {
+        this.type = type;
+    }
+
+    private String type;
+
+    public String type() {
+        return type;
+    }
 }

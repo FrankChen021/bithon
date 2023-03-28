@@ -62,11 +62,13 @@ class Builder extends InterceptorExpressionBaseVisitor<ExpressionMatcher> {
         ITypeMatcher clazzMatcher = classExpression.accept(new ClassExpressionToMatcher());
 
         InterceptorExpressionParser.MethodExpressionContext methodExpression = ctx.methodExpression();
-        ElementMatcher.Junction<? super MethodDescription> methodMatcher = methodExpression.accept(new MethodExpressionToMatcher());
+
+        MethodExpressionToMatcher expressionVisitor = new MethodExpressionToMatcher();
+        ElementMatcher.Junction<? super MethodDescription> methodMatcher = methodExpression.accept(expressionVisitor);
         if (modifierMatcher != null) {
             methodMatcher = modifierMatcher.and(methodMatcher);
         }
 
-        return new ExpressionMatcher(clazzMatcher, methodMatcher);
+        return new ExpressionMatcher(clazzMatcher, methodMatcher, expressionVisitor.isCtor());
     }
 }

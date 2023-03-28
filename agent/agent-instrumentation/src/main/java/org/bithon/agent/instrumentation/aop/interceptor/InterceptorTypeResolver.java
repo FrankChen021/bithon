@@ -33,11 +33,6 @@ import java.util.Map;
  */
 public class InterceptorTypeResolver {
 
-    private final String AROUND = AroundInterceptor.class.getName().replace('.', '/');
-    private final String BEFORE = BeforeInterceptor.class.getName().replace('.', '/');
-    private final String AFTER = AfterInterceptor.class.getName().replace('.', '/');
-    private final String REPLACE = ReplaceInterceptor.class.getName().replace('.', '/');
-
     private final JarClassLoader classLoader;
     private final Map<String, InterceptorType> superType = new HashMap<>();
 
@@ -56,13 +51,13 @@ public class InterceptorTypeResolver {
         }
 
         String superName = visitor.getSuperName();
-        if (AROUND.equals(superName)) {
+        if (InterceptorType.AROUND.type().equals(superName)) {
             return InterceptorType.AROUND;
-        } else if (BEFORE.equals(superName)) {
+        } else if (InterceptorType.BEFORE.type().equals(superName)) {
             return InterceptorType.BEFORE;
-        } else if (AFTER.equals(superName)) {
+        } else if (InterceptorType.AFTER.type().equals(superName)) {
             return InterceptorType.AFTER;
-        } else if (REPLACE.equals(superName)) {
+        } else if (InterceptorType.REPLACEMENT.type().equals(superName)) {
             return InterceptorType.REPLACEMENT;
         } else {
             InterceptorType type = superType.get(superName);

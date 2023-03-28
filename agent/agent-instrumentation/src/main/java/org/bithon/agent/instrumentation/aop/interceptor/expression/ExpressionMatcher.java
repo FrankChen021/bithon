@@ -17,6 +17,7 @@
 package org.bithon.agent.instrumentation.aop.interceptor.expression;
 
 import org.bithon.agent.instrumentation.aop.interceptor.expression.matcher.ITypeMatcher;
+import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 
 /**
@@ -25,18 +26,26 @@ import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
  */
 public class ExpressionMatcher {
     private final ITypeMatcher clazzMatcher;
-    private final ElementMatcher.Junction<?> methodMatcher;
+    private final ElementMatcher.Junction<? super MethodDescription> methodMatcher;
+    private final boolean isCtor;
 
-    public ExpressionMatcher(ITypeMatcher clazzMatcher, ElementMatcher.Junction<?> methodMatcher) {
+    public ExpressionMatcher(ITypeMatcher clazzMatcher,
+                             ElementMatcher.Junction<? super MethodDescription> methodMatcher,
+                             boolean ctor) {
         this.clazzMatcher = clazzMatcher;
         this.methodMatcher = methodMatcher;
+        this.isCtor = ctor;
     }
 
     public ITypeMatcher getClazzMatcher() {
         return clazzMatcher;
     }
 
-    public ElementMatcher.Junction<?> getMethodMatcher() {
+    public ElementMatcher.Junction<? super MethodDescription> getMethodMatcher() {
         return methodMatcher;
+    }
+
+    public boolean isCtor() {
+        return isCtor;
     }
 }

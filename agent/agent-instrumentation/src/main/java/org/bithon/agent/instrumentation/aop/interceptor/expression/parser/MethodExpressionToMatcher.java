@@ -40,7 +40,11 @@ import java.util.stream.Collectors;
 public class MethodExpressionToMatcher extends InterceptorExpressionBaseVisitor<ElementMatcher.Junction<? super MethodDescription>> {
 
     private ElementMatcher.Junction<? super MethodDescription> matcher;
+    private boolean isCtor;
 
+    public boolean isCtor() {
+        return isCtor;
+    }
 
     @Override
     public ElementMatcher.Junction<? super MethodDescription> visitMethodExpression(InterceptorExpressionParser.MethodExpressionContext ctx) {
@@ -51,7 +55,12 @@ public class MethodExpressionToMatcher extends InterceptorExpressionBaseVisitor<
     @Override
     public ElementMatcher.Junction<? super MethodDescription> visitMethodNameExpression(InterceptorExpressionParser.MethodNameExpressionContext ctx) {
         String methodName = ctx.getText();
-        matcher = ElementMatchers.named(methodName);
+        if ("ctor".equals(methodName)) {
+            matcher = ElementMatchers.isConstructor();
+            isCtor = true;
+        } else {
+            matcher = ElementMatchers.named(methodName);
+        }
         return null;
     }
 

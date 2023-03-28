@@ -26,8 +26,10 @@ import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -67,6 +69,21 @@ public abstract class PluginResolver {
         return descriptors;
     }
 
+    public void resolveInterceptorsFromAnnotation() {
+        for (JarFile jarFile : PluginClassLoaderManager.getDefaultLoader()
+                                                       .getJars()) {
+            Enumeration<JarEntry> entries = jarFile.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry jarEntry = entries.nextElement();
+                try {
+                    jarFile.getInputStream(jarEntry);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
     private void resolveInterceptorType(Collection<Descriptors.Descriptor> descriptors) {
         LOG.info("Resolving interceptors...");
         InterceptorTypeResolver resolver = new InterceptorTypeResolver(PluginClassLoaderManager.getDefaultLoader());
@@ -83,6 +100,7 @@ public abstract class PluginResolver {
                 }
             }
         }
+
         LOG.info("Resolving interceptors Completes.");
     }
 
