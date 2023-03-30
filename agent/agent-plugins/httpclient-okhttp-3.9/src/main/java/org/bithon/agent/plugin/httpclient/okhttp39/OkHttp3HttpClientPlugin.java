@@ -14,19 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpclient.okhttp3;
+package org.bithon.agent.plugin.httpclient.okhttp39;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
 
 /**
- * OkHttp3 plugin, for version &gt; 3.3
+ * OkHttp3 plugin, for version &gt; 3.9
  *
  * @author frankchen
  */
@@ -34,8 +35,16 @@ public class OkHttp3HttpClientPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
-        return Collections.singletonList(
+        return Arrays.asList(
             forClass("okhttp3.RealCall")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndNoArgs("getResponseWithInterceptorChain")
+                                                   .to("org.bithon.agent.plugin.httpclient.okhttp3.RealCall$GetResponseWithInterceptorChain")
+                ),
+
+            // 4.4+
+            forClass("okhttp3.internal.connection.RealCall")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("getResponseWithInterceptorChain")
