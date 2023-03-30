@@ -17,93 +17,136 @@
 package org.bithon.agent.plugin.httpclient.okhttp32;
 
 import okhttp3.Call;
+import okhttp3.Headers;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
-import okhttp3.internal.Internal;
-import okhttp3.internal.http.StreamAllocation;
-import okhttp3.internal.io.RealConnection;
-import okio.BufferedSource;
+import okhttp3.ResponseBody;
+import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetrics;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
-import org.bithon.component.commons.logging.ILogAdaptor;
-import org.bithon.component.commons.logging.LoggerFactory;
-import org.bithon.component.commons.utils.ReflectionUtils;
+import org.bithon.agent.observability.metric.domain.http.HttpOutgoingUriFilter;
+import org.bithon.agent.observability.tracing.Tracer;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
 
-import java.util.Arrays;
+import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Locale;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
- * OkHttp3 agent plugin
+ * 3.2+ {@link okhttp3.RealCall}
+ * 4.4+ {@link okhttp3.internal.connection.RealCall()}
  *
  * @author frankchen
  */
 public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(RealCall$GetResponseWithInterceptorChain.class);
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
-    private final Set<String> ignoredSuffixes = Arrays.stream("html, js, css, jpg, gif, png, swf, ttf, ico, woff, woff2, json, eot, svg".split(
-                                                          ","))
-                                                      .map(x -> x.trim().toLowerCase(Locale.ENGLISH))
-                                                      .collect(Collectors.toSet());
+    private final HttpOutgoingUriFilter filter = ConfigurationManager.getInstance().getConfig(HttpOutgoingUriFilter.class);
 
+    private final Field headerField;
+
+    public RealCall$GetResponseWithInterceptorChain() {
+        Field tmp;
+        try {
+            tmp = Request.class.getDeclaredField("headers");
+            tmp.setAccessible(true);
+        } catch (NoSuchFieldException ignored) {
+            tmp = null;
+        }
+        headerField = tmp;
+    }
 
     @Override
-    public InterceptionDecision before(AopContext aopContext) {
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
         Call realCall = aopContext.getTargetAs();
-        Request originRequest = realCall.request();
-        String uri = originRequest.url().uri().toString().split("\\?")[0];
-        return needIgnore(uri) ? InterceptionDecision.SKIP_LEAVE : InterceptionDecision.CONTINUE;
+        Request request = realCall.request();
+        String uri = request.url().uri().toString().split("\\?")[0];
+
+        if (needIgnore(uri)) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
+
+        ITraceContext traceContext = TraceContextHolder.current();
+        if (traceContext != null && traceContext.traceMode().equals(TraceMode.TRACE)) {
+            // Start a new span
+            ITraceSpan span = traceContext.newSpan().component("httpclient")
+                                          .tag("type", "okhttp3")
+                                          .clazz(aopContext.getTargetClass().getName())
+                                          .method("execute")
+                                          .start();
+            aopContext.setUserContext(span);
+
+            // Propagate the tracing context if we can modify the header
+            if ( headerField != null) {
+                Headers.Builder headersBuilder = request.headers().newBuilder();
+                Tracer.get().propagator().inject(traceContext, headersBuilder, Headers.Builder::add);
+
+                // Can throw exception
+                headerField.set(request, headersBuilder.build());
+            }
+        }
+
+        return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        Call realCall = (Call) aopContext.getTarget();
-        Request originRequest = realCall.request();
-
-        String requestUri = originRequest.url().uri().toString();
-        String requestMethod = originRequest.method().toUpperCase(Locale.ENGLISH);
-
-        if (aopContext.getException() != null) {
-            metricRegistry.addExceptionRequest(requestUri,
-                                               requestMethod,
-                                               aopContext.getExecutionTime());
-        } else {
-            Response response = aopContext.getReturningAs();
-            metricRegistry.addRequest(requestUri, requestMethod, response.code(), aopContext.getExecutionTime());
+        //
+        // Tracing Processing
+        //
+        ITraceSpan span = aopContext.getUserContextAs();
+        if (span != null) {
+            span.tag(aopContext.getException()).finish();
         }
 
-        addBytes(requestUri, requestMethod, originRequest, realCall);
+        //
+        // Metrics Processing
+        //
+        Response response = aopContext.getReturningAs();
+        Call realCall = (Call) aopContext.getTarget();
+        Request request = realCall.request();
+
+        String uri = request.url().uri().toString();
+        String httpMethod = request.method().toUpperCase(Locale.ENGLISH);
+
+        HttpOutgoingMetrics metrics;
+        if (aopContext.getException() != null) {
+            metrics = metricRegistry.addExceptionRequest(uri,
+                                                         httpMethod,
+                                                         aopContext.getExecutionTime());
+        } else {
+            metrics = metricRegistry.addRequest(uri, httpMethod, response.code(), aopContext.getExecutionTime());
+        }
+
+        RequestBody requestBody = request.body();
+        if (requestBody != null) {
+            try {
+                long size = requestBody.contentLength();
+                if (size > 0) {
+                    metrics.getRequestBytes().update(size);
+                }
+            } catch (IOException ignored) {
+            }
+        }
+
+        ResponseBody responseBody = response.body();
+        if (responseBody != null) {
+            long size = responseBody.contentLength();
+            if (size > 0) {
+                metrics.getResponseBytes().update(size);
+            }
+        }
     }
 
     private boolean needIgnore(String uri) {
         String suffix = uri.substring(uri.lastIndexOf(".") + 1).toLowerCase(Locale.ENGLISH);
-        return ignoredSuffixes.contains(suffix);
-    }
-
-    private void addBytes(String uri, String method,
-                          Request request,
-                          Call call) {
-        try {
-            long requestByteSize = 0;
-            long responseByteSize = 0;
-            if (request.body() != null) {
-                requestByteSize = request.body().contentLength() < 0 ? 0 : request.body().contentLength();
-            }
-
-            StreamAllocation streamAllocation = Internal.instance.callEngineGetStreamAllocation(call);
-            RealConnection realConnection = streamAllocation.connection();
-            if (realConnection != null) {
-                responseByteSize = ((BufferedSource) ReflectionUtils.getFieldValue(realConnection, "source")).buffer()
-                                                                                                             .size();
-            }
-
-            metricRegistry.addBytes(uri, method, requestByteSize, responseByteSize);
-        } catch (Exception e) {
-            log.warn("OKHttp getByteSize", e);
-        }
+        return filter.getSuffixes().contains(suffix);
     }
 }

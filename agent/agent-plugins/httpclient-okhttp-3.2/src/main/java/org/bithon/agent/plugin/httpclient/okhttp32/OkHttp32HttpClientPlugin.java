@@ -20,7 +20,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDe
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
@@ -35,30 +35,29 @@ public class OkHttp32HttpClientPlugin implements IPlugin {
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
 
-        return Collections.singletonList(
+        return Arrays.asList(
             forClass("okhttp3.RealCall")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("getResponseWithInterceptorChain",
                                                                     "boolean")
                                                    .to("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
-                )
+                ),
 
-            /*
-            forClass("okhttp3.internal.http.BridgeInterceptor")
+            // 4.4+
+            forClass("okhttp3.internal.connection.RealCall")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("intercept")
-                        .to("org.commons.agent.plugin.httpclient.okhttp32.OkHttp32TraceInterceptorHandler")
+                                                   .onMethodAndNoArgs("getResponseWithInterceptorChain")
+                                                   .to("org.bithon.agent.plugin.httpclient.okhttp3.RealCall$GetResponseWithInterceptorChain")
                 ),
 
             forClass("okhttp3.Request$Builder")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("build")
-                        .to("org.commons.agent.plugin.httpclient.okhttp32.OkHttp32TraceRequestHandler")
+                                                   .onAllMethods("build")
+                                                   .to("org.bithon.agent.plugin.httpclient.okhttp3.RequestBuilder$Build")
                 )
-             */
         );
     }
 }
