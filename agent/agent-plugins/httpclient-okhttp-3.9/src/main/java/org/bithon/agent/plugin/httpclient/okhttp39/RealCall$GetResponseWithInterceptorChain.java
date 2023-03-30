@@ -45,7 +45,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        Call realCall = (Call) aopContext.getTarget();
+        Call realCall = aopContext.getTargetAs();
         Request request = realCall.request();
         String uri = request.url().uri().toString().split("\\?")[0];
 
@@ -54,10 +54,10 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
 
     @Override
     public void after(AopContext aopContext) {
-        Call realCall = (Call) aopContext.getTarget();
         Response response = aopContext.getReturningAs();
-
+        Call realCall = (Call) aopContext.getTarget();
         Request request = realCall.request();
+
         String uri = request.url().uri().toString();
         String httpMethod = request.method().toUpperCase(Locale.ENGLISH);
 
@@ -67,10 +67,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
                                                          httpMethod,
                                                          aopContext.getExecutionTime());
         } else {
-            metrics = metricRegistry.addRequest(uri,
-                                                httpMethod,
-                                                response.code(),
-                                                aopContext.getExecutionTime());
+            metrics = metricRegistry.addRequest(uri, httpMethod, response.code(), aopContext.getExecutionTime());
         }
 
         RequestBody requestBody = request.body();
