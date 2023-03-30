@@ -156,10 +156,16 @@ If the target application run under JDK 11 and above, following arguments should
 | Quartz                 | 2.x         |             | &check; | &check; |
 | Redis - Jedis          | 2.9         |             | &check; |         |
 | Redis - Lettuce        | 5.1.2       |             | &check; |         |
+| Spring Bean            | 4.3.12      |             |         | &check; |
+| Spring Open Feign      | 10.12       |             |         | &check; |
+| Spring Rest Template   | 4.3.12      |             |         | &check; |
+| Spring Scheduling      | 4.3.12      |             |         | &check; |
+| Spring WebFlux         | 5.0.0       |             | &check; | &check; | 
 | HTTP Server - Jetty    | 9.4.41      |             | &check; | &check; |
 | HTTP Server - Netty    | 2.0.0       |             |         | &check; |
 | HTTP Server - Tomcat   | 8.5.20      |             | &check; | &check; |
 | HTTP Server - Undertow | 1.4.12      |             | &check; | &check; |
+
 
 
 # Contribution
