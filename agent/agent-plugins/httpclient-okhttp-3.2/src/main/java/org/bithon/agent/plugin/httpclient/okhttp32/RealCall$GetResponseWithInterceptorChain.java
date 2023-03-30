@@ -76,7 +76,8 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
         ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext != null && traceContext.traceMode().equals(TraceMode.TRACE)) {
             // Start a new span
-            ITraceSpan span = traceContext.newSpan().component("httpclient")
+            ITraceSpan span = traceContext.newSpan()
+                                          .component("httpclient")
                                           .tag("type", "okhttp3")
                                           .clazz(aopContext.getTargetClass().getName())
                                           .method("execute")
@@ -84,7 +85,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
             aopContext.setUserContext(span);
 
             // Propagate the tracing context if we can modify the header
-            if ( headerField != null) {
+            if (headerField != null) {
                 Headers.Builder headersBuilder = request.headers().newBuilder();
                 Tracer.get().propagator().inject(traceContext, headersBuilder, Headers.Builder::add);
 
@@ -118,9 +119,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
 
         HttpOutgoingMetrics metrics;
         if (aopContext.getException() != null) {
-            metrics = metricRegistry.addExceptionRequest(uri,
-                                                         httpMethod,
-                                                         aopContext.getExecutionTime());
+            metrics = metricRegistry.addExceptionRequest(uri, httpMethod, aopContext.getExecutionTime());
         } else {
             metrics = metricRegistry.addRequest(uri, httpMethod, response.code(), aopContext.getExecutionTime());
         }
