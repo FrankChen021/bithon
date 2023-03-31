@@ -47,12 +47,13 @@ public class HttpRequest$Send extends BeforeInterceptor {
      * {@link org.eclipse.jetty.client.HttpRequest#send(Response.CompleteListener)}
      */
     @Override
-    public void before(AopContext aopContext) throws Exception {
+    public void before(AopContext aopContext) {
         HttpRequest httpRequest = aopContext.getTargetAs();
 
-        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpClient-jetty")
+        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpclient")
                                                 .method(aopContext.getMethod())
                                                 .kind(SpanKind.CLIENT)
+                                                .tag(Tags.CLIENT_TYPE, "jetty")
                                                 .tag(Tags.HTTP_URI, httpRequest.getURI().toString())
                                                 .tag(Tags.HTTP_METHOD, httpRequest.getMethod())
                                                 .propagate(httpRequest.getHeaders(), (headersArgs, key, value) -> headersArgs.put(key, value))
@@ -106,13 +107,13 @@ public class HttpRequest$Send extends BeforeInterceptor {
                 //
                 if (result.isFailed()) {
                     metricRegistry.addExceptionRequest(result.getRequest().getURI().toString(),
-                                                       result.getRequest().getMethod(),
-                                                       System.nanoTime() - startAt);
+                            result.getRequest().getMethod(),
+                            System.nanoTime() - startAt);
                 } else {
                     metricRegistry.addRequest(result.getRequest().getURI().toString(),
-                                              result.getRequest().getMethod(),
-                                              result.getResponse().getStatus(),
-                                              System.nanoTime() - startAt);
+                            result.getRequest().getMethod(),
+                            result.getResponse().getStatus(),
+                            System.nanoTime() - startAt);
                 }
 
                 //

@@ -42,4 +42,6 @@ public class Tags {
     public static final String TARGET = "target";
 
     public static final String REMOTE_ADDR = "remote.address";
+
+    public static final String CLIENT_TYPE = "client.type";
 }
