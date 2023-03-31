@@ -38,7 +38,7 @@ class HasClassPrecondition implements IInterceptorPrecondition {
         boolean resolved = TypeResolver.getInstance().isResolved(classLoader, this.className);
         if (!resolved) {
             LoggerFactory.getLogger(HasClassPrecondition.class)
-                         .warn("Required class [{}] not found to install interceptor for [{}] in [{}]",
+                         .info("Required class [{}] not found to install interceptor for [{}] in [{}]",
                                this.className,
                                typeDescription.getName(),
                                providerName);
