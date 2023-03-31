@@ -48,15 +48,8 @@ public class OkHttp32HttpClientPlugin implements IPlugin {
             forClass("okhttp3.internal.connection.RealCall")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("getResponseWithInterceptorChain")
-                                                   .to("org.bithon.agent.plugin.httpclient.okhttp3.RealCall$GetResponseWithInterceptorChain")
-                ),
-
-            forClass("okhttp3.Request$Builder")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("build")
-                                                   .to("org.bithon.agent.plugin.httpclient.okhttp3.RequestBuilder$Build")
+                                                   .onMethodAndNoArgs("getResponseWithInterceptorChain$okhttp")
+                                                   .to("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
                 )
         );
     }
