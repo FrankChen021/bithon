@@ -20,7 +20,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDe
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
@@ -35,30 +35,24 @@ public class OkHttp32HttpClientPlugin implements IPlugin {
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
 
-        return Collections.singletonList(
-            forClass("okhttp3.RealCall")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("getResponseWithInterceptorChain",
-                                                                    "boolean")
-                                                   .to("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
-                )
+        return Arrays.asList(
+                forClass("okhttp3.RealCall")
+                        .methods(
+                                MethodPointCutDescriptorBuilder.build()
+                                        .onMethodAndArgs("getResponseWithInterceptorChain",
+                                                "boolean")
+                                        .to("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
+                        ),
 
-            /*
-            forClass("okhttp3.internal.http.BridgeInterceptor")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("intercept")
-                        .to("org.commons.agent.plugin.httpclient.okhttp32.OkHttp32TraceInterceptorHandler")
-                ),
-
-            forClass("okhttp3.Request$Builder")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("build")
-                        .to("org.commons.agent.plugin.httpclient.okhttp32.OkHttp32TraceRequestHandler")
-                )
-             */
+                // 4.4+
+                forClass("okhttp3.internal.connection.RealCall")
+                        .methods(
+                                MethodPointCutDescriptorBuilder.build()
+                                        // OKHttp has been obfuscated by ProGuard, '$okhttp' suffix is appended during compilation.
+                                        // So we need to add this suffix to make sure it matches the method in the byte code
+                                        .onMethodAndNoArgs("getResponseWithInterceptorChain$okhttp")
+                                        .to("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
+                        )
         );
     }
 }

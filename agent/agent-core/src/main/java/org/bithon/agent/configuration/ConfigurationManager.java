@@ -41,8 +41,8 @@ import static java.io.File.separator;
  */
 public class ConfigurationManager {
 
-    public static final String BITHON_APPLICATION_ENV = "bithon.application.env";
-    public static final String BITHON_APPLICATION_NAME = "bithon.application.name";
+    public static final String BITHON_APPLICATION_ENV = "application.env";
+    public static final String BITHON_APPLICATION_NAME = "application.name";
 
     private static ConfigurationManager INSTANCE;
 

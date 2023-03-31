@@ -29,8 +29,7 @@
     <module>quartz2</module>
     <module>jersey</module>
     <module>jdk-thread</module>
-    <module>httpclient-okhttp3</module>
-    <module>httpclient-okhttp32</module>
+    <module>httpclient-okhttp-3.2</module>
     <module>httpclient-jdk</module>
     <module>httpclient-apache</module>
     <module>httpclient-jetty</module>
@@ -165,12 +164,7 @@
     <!-- HTTP Client -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-httpclient-okhttp3</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-httpclient-okhttp32</artifactId>
+      <artifactId>agent-plugin-httpclient-okhttp-3.2</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

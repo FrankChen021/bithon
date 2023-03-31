@@ -72,6 +72,14 @@ public class HttpOutgoingMetrics implements IMetricSet {
         this.responseBytes.update(responseByteSize);
     }
 
+    public Sum getRequestBytes() {
+        return requestBytes;
+    }
+
+    public Sum getResponseBytes() {
+        return responseBytes;
+    }
+
     @Override
     public IMetricValueProvider[] getMetrics() {
         return new IMetricValueProvider[]{
