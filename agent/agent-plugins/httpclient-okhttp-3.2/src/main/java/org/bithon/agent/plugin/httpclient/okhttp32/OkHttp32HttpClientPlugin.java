@@ -36,21 +36,23 @@ public class OkHttp32HttpClientPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
 
         return Arrays.asList(
-            forClass("okhttp3.RealCall")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("getResponseWithInterceptorChain",
-                                                                    "boolean")
-                                                   .to("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
-                ),
+                forClass("okhttp3.RealCall")
+                        .methods(
+                                MethodPointCutDescriptorBuilder.build()
+                                        .onMethodAndArgs("getResponseWithInterceptorChain",
+                                                "boolean")
+                                        .to("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
+                        ),
 
-            // 4.4+
-            forClass("okhttp3.internal.connection.RealCall")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("getResponseWithInterceptorChain$okhttp")
-                                                   .to("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
-                )
+                // 4.4+
+                forClass("okhttp3.internal.connection.RealCall")
+                        .methods(
+                                MethodPointCutDescriptorBuilder.build()
+                                        // OKHttp has been obfuscated by ProGuard, '$okhttp' suffix is appended during compilation.
+                                        // So we need to add this suffix to make sure it matches the method in the byte code
+                                        .onMethodAndNoArgs("getResponseWithInterceptorChain$okhttp")
+                                        .to("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
+                        )
         );
     }
 }
