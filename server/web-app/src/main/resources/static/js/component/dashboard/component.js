@@ -563,7 +563,7 @@ class Dashboard {
 
             // legend
             chartOption.legend.data.push({
-                name: column.name,
+                name: column.title || column.name,
                 icon: 'circle'
             });
 

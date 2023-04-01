@@ -7,10 +7,7 @@
       "width": 4,
       "type": "line",
       "columns": [
-        {
-          "name": "qps",
-          "title": "QPS"
-        },
+        "qps",
         "okQPS",
         {
           "name": "totalCount",
@@ -31,8 +28,8 @@
           "method",
           "uri",
           "statusCode",
-          "qps",
-          "totalCount"
+          "totalCount",
+          "qps"
         ],
         "query": {
           "dataSource": "http-incoming-metrics",
