@@ -46,7 +46,7 @@
       "type": "line",
       "columns": [
         {"name": "minResponseTime", "format": "nanosecond"},
-        {"name": "avgResponseTime", "format": "millisecond"},
+        {"name": "avgResponseTime", "format": "nanosecond"},
         {"name": "maxResponseTime", "format": "nanosecond"}
       ],
       "query": {
@@ -65,7 +65,7 @@
           "statusCode",
           "requestCount",
           {"name": "minResponseTime", "title": "min", "format": "nanosecond"},
-          {"name": "avgResponseTime", "title": "avg", "format": "millisecond"},
+          {"name": "avgResponseTime", "title": "avg", "format": "nanosecond"},
           {"name": "maxResponseTime", "title": "max", "format": "nanosecond"}
         ],
         "query": {

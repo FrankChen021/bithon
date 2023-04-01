@@ -63,7 +63,7 @@
       "type": "line",
       "yAxis": [
         {
-          "format": "millisecond"
+          "format": "nanoFormatter"
         }
       ],
       "columns": ["minResponseTime", "avgResponseTime", "maxResponseTime"],
@@ -81,8 +81,9 @@
           "method",
           "uri",
           "statusCode",
+          "totalCount",
           {"name": "minResponseTime", "format": "nanoFormatter"},
-          {"name":"avgResponseTime", "format": "millisecond"},
+          {"name":"avgResponseTime",  "format": "nanoFormatter"},
           {"name": "maxResponseTime", "format": "nanoFormatter"}
         ],
         "query": {
@@ -92,6 +93,7 @@
             "method",
             "uri",
             "statusCode",
+            "totalCount",
             "minResponseTime",
             "avgResponseTime",
             "maxResponseTime"
@@ -208,6 +210,7 @@
           "method",
           "uri",
           "statusCode",
+          "totalCount",
           "requestByteRate",
           "responseByteRate"
         ],
@@ -217,9 +220,14 @@
             "method",
             "uri",
             "statusCode",
+            "totalCount",
             "requestByteRate",
             "responseByteRate"
-          ]
+          ],
+          "orderBy": {
+            "name": "requestByteRate",
+            "order": "desc"
+          }
         }
       }
     }
