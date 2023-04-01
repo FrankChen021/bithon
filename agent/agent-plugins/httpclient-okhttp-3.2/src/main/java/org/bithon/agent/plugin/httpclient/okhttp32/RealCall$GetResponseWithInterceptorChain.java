@@ -39,6 +39,7 @@ import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -79,12 +80,12 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
         ITraceSpan span = TraceSpanFactory.newSpan("httpclient");
         if (span != null) {
             aopContext.setUserContext(span.kind(SpanKind.CLIENT)
-                    .tag("type", "okhttp3")
-                    .clazz(aopContext.getTargetClass().getName())
-                    .method("execute")
-                    .tag(Tags.HTTP_METHOD, request.method())
-                    .tag(Tags.HTTP_URI, request.url().toString())
-                    .start());
+                                          .tag(Tags.CLIENT_TYPE, "okhttp3")
+                                          .clazz(aopContext.getTargetClass().getName())
+                                          .method("execute")
+                                          .tag(Tags.HTTP_METHOD, request.method())
+                                          .tag(Tags.HTTP_URI, request.url().toString())
+                                          .start());
 
             // Propagate the tracing context if we can modify the header
             if (headerField != null) {
@@ -111,20 +112,19 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
             //
             // Record configured response headers in tracing logs
             //
-            if (!traceConfig.getHeaders().getResponse().isEmpty()) {
-                traceConfig.getHeaders()
-                        .getResponse()
-                        .forEach((name) -> {
-                            String value = response.header(name);
-                            if (StringUtils.hasText(value)) {
-                                span.tag("http.response.header." + name, value);
-                            }
-                        });
+            List<String> responseHeaders = traceConfig.getHeaders().getResponse();
+            if (!responseHeaders.isEmpty()) {
+                responseHeaders.forEach((name) -> {
+                    String value = response.header(name);
+                    if (StringUtils.hasText(value)) {
+                        span.tag("http.response.header." + name, value);
+                    }
+                });
             }
 
             span.tag(aopContext.getException())
-                    .tag(Tags.HTTP_STATUS, response.code())
-                    .finish();
+                .tag(Tags.HTTP_STATUS, response.code())
+                .finish();
         }
 
         //
