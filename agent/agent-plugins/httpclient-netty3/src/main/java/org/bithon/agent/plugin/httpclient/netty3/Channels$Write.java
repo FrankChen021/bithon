@@ -47,14 +47,12 @@ public class Channels$Write extends AroundInterceptor {
 
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
 
-        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpClient-netty3")
+        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpclient")
                                                 .method(aopContext.getMethod())
                                                 .kind(SpanKind.CLIENT)
+                                                .tag(Tags.CLIENT_TYPE, "netty3")
                                                 .tag(Tags.HTTP_METHOD, httpRequest.getMethod().getName())
-                                                .propagate(
-                                                    httpRequest.headers(),
-                                                    (headersArgs, key, value) -> headersArgs.set(key, value)
-                                                )
+                                                .propagate(httpRequest.headers(), (headersArgs, key, value) -> headersArgs.set(key, value))
                                                 .start();
         //
         // propagate tracing after span creation
@@ -95,18 +93,18 @@ public class Channels$Write extends AroundInterceptor {
             //
             if (channelFuture.getCause() != null) {
                 metricRegistry.addExceptionRequest(
-                    uri,
-                    method,
-                    System.nanoTime() - startAt
+                        uri,
+                        method,
+                        System.nanoTime() - startAt
                 );
             } else {
                 // TODO: it's a little bit complex to get response
                 // see NettyHttpClient in druid to know how to get HttpResponse
                 metricRegistry.addRequest(
-                    uri,
-                    method,
-                    200,
-                    System.nanoTime() - startAt
+                        uri,
+                        method,
+                        200,
+                        System.nanoTime() - startAt
                 );
             }
 

@@ -49,7 +49,7 @@ public class HttpRequestExecutor$Execute extends AroundInterceptor {
         //
         // Trace
         //
-        ITraceSpan span = TraceSpanFactory.newSpan("httpClient-apache");
+        ITraceSpan span = TraceSpanFactory.newSpan("httpclient");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -66,6 +66,7 @@ public class HttpRequestExecutor$Execute extends AroundInterceptor {
         // create a span and save it in user-context
         aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
+                                      .tag(Tags.CLIENT_TYPE, "apache")
                                       .tag(Tags.HTTP_URI, uri)
                                       .tag(Tags.HTTP_METHOD, httpRequest.getRequestLine().getMethod())
                                       .propagate(httpRequest, (request, key, value) -> request.setHeader(key, value))

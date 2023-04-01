@@ -104,9 +104,9 @@
     {
       "type": "post",
       "name": "avgResponseTime",
-      "expression": "round(responseTime/1000.0/1000/requestCount, 2)",
+      "expression": "round(responseTime * 1.0 /requestCount, 2)",
       "displayText": "Avg cost time",
-      "unit": "millisecond",
+      "unit": "nanosecond",
       "valueType": "double"
     },
     {

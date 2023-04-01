@@ -40,7 +40,7 @@ public class HttpClient$WriteRequests extends BeforeInterceptor {
 
         clientContext.setWriteAt(System.nanoTime());
 
-        ITraceSpan span = TraceSpanFactory.newSpan("httpClient-jdk");
+        ITraceSpan span = TraceSpanFactory.newSpan("httpclient");
         if (span == null) {
             return;
         }
@@ -51,6 +51,7 @@ public class HttpClient$WriteRequests extends BeforeInterceptor {
          */
         span.method(aopContext.getMethod())
             .kind(SpanKind.CLIENT)
+            .tag(Tags.CLIENT_TYPE, "jdk")
             .tag(Tags.HTTP_URI, clientContext.getUrl())
             .tag(Tags.HTTP_METHOD, clientContext.getMethod())
             .propagate(headers, (headersArgs, key, value) -> headersArgs.set(key, value))

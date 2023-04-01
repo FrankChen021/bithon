@@ -30,13 +30,16 @@ import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetrics;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingUriFilter;
 import org.bithon.agent.observability.tracing.Tracer;
-import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
+import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.tracing.Tags;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -49,6 +52,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
     private final HttpOutgoingUriFilter filter = ConfigurationManager.getInstance().getConfig(HttpOutgoingUriFilter.class);
+    private final TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
 
     private final Field headerField;
 
@@ -73,21 +77,20 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceContext traceContext = TraceContextHolder.current();
-        if (traceContext != null && traceContext.traceMode().equals(TraceMode.TRACE)) {
-            // Start a new span
-            ITraceSpan span = traceContext.newSpan()
-                                          .component("httpclient")
-                                          .tag("type", "okhttp3")
+        ITraceSpan span = TraceSpanFactory.newSpan("httpclient");
+        if (span != null) {
+            aopContext.setUserContext(span.kind(SpanKind.CLIENT)
+                                          .tag(Tags.CLIENT_TYPE, "okhttp3")
                                           .clazz(aopContext.getTargetClass().getName())
                                           .method("execute")
-                                          .start();
-            aopContext.setUserContext(span);
+                                          .tag(Tags.HTTP_METHOD, request.method())
+                                          .tag(Tags.HTTP_URI, request.url().toString())
+                                          .start());
 
             // Propagate the tracing context if we can modify the header
             if (headerField != null) {
                 Headers.Builder headersBuilder = request.headers().newBuilder();
-                Tracer.get().propagator().inject(traceContext, headersBuilder, Headers.Builder::add);
+                Tracer.get().propagator().inject(span.context(), headersBuilder, Headers.Builder::add);
 
                 // Can throw exception
                 headerField.set(request, headersBuilder.build());
@@ -99,18 +102,34 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
 
     @Override
     public void after(AopContext aopContext) {
+        Response response = aopContext.getReturningAs();
+
         //
         // Tracing Processing
         //
         ITraceSpan span = aopContext.getUserContextAs();
         if (span != null) {
-            span.tag(aopContext.getException()).finish();
+            //
+            // Record configured response headers in tracing logs
+            //
+            List<String> responseHeaders = traceConfig.getHeaders().getResponse();
+            if (!responseHeaders.isEmpty()) {
+                responseHeaders.forEach((name) -> {
+                    String value = response.header(name);
+                    if (StringUtils.hasText(value)) {
+                        span.tag("http.response.header." + name, value);
+                    }
+                });
+            }
+
+            span.tag(aopContext.getException())
+                .tag(Tags.HTTP_STATUS, response.code())
+                .finish();
         }
 
         //
         // Metrics Processing
         //
-        Response response = aopContext.getReturningAs();
         Call realCall = (Call) aopContext.getTarget();
         Request request = realCall.request();
 

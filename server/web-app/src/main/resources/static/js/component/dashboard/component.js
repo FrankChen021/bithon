@@ -421,7 +421,10 @@ class Dashboard {
 
         const tracingSpec = chartDescriptor.details.tracing;
 
-        $.each(chartDescriptor.details.groupBy, (index, dimension) => {
+        // groupBy is a legacy property
+        const columns = chartDescriptor.details.groupBy === undefined ?  chartDescriptor.details.columns : chartDescriptor.details.groupBy;
+
+        $.each(columns, (index, dimension) => {
             const mappingField = tracingSpec.dimensionMaps[dimension];
             if (mappingField == null) {
                 return;
@@ -563,7 +566,7 @@ class Dashboard {
 
             // legend
             chartOption.legend.data.push({
-                name: column.name,
+                name: column.title || column.name,
                 icon: 'circle'
             });
 

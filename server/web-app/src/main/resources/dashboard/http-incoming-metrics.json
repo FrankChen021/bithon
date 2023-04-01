@@ -7,10 +7,7 @@
       "width": 4,
       "type": "line",
       "columns": [
-        {
-          "name": "qps",
-          "title": "QPS"
-        },
+        "qps",
         "okQPS",
         {
           "name": "totalCount",
@@ -31,8 +28,8 @@
           "method",
           "uri",
           "statusCode",
-          "qps",
-          "totalCount"
+          "totalCount",
+          "qps"
         ],
         "query": {
           "dataSource": "http-incoming-metrics",
@@ -63,7 +60,7 @@
       "type": "line",
       "yAxis": [
         {
-          "format": "millisecond"
+          "format": "nanoFormatter"
         }
       ],
       "columns": ["minResponseTime", "avgResponseTime", "maxResponseTime"],
@@ -81,8 +78,9 @@
           "method",
           "uri",
           "statusCode",
+          "totalCount",
           {"name": "minResponseTime", "format": "nanoFormatter"},
-          {"name":"avgResponseTime", "format": "millisecond"},
+          {"name":"avgResponseTime",  "format": "nanoFormatter"},
           {"name": "maxResponseTime", "format": "nanoFormatter"}
         ],
         "query": {
@@ -92,6 +90,7 @@
             "method",
             "uri",
             "statusCode",
+            "totalCount",
             "minResponseTime",
             "avgResponseTime",
             "maxResponseTime"
@@ -103,7 +102,7 @@
         },
         "tracing": {
           "dimensionMaps": {
-            "uri": "normalizedUrl",
+            "uri": "url",
             "statusCode": "status"
           }
         }
@@ -162,7 +161,7 @@
         },
         "tracing": {
           "dimensionMaps": {
-            "uri": "normalizedUrl",
+            "uri": "url",
             "statusCode": "status"
           }
         }
@@ -208,6 +207,7 @@
           "method",
           "uri",
           "statusCode",
+          "totalCount",
           "requestByteRate",
           "responseByteRate"
         ],
@@ -217,9 +217,14 @@
             "method",
             "uri",
             "statusCode",
+            "totalCount",
             "requestByteRate",
             "responseByteRate"
-          ]
+          ],
+          "orderBy": {
+            "name": "requestByteRate",
+            "order": "desc"
+          }
         }
       }
     }
