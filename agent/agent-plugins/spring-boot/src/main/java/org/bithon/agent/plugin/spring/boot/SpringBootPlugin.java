@@ -20,7 +20,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDe
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
@@ -32,7 +32,16 @@ public class SpringBootPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
-        return Collections.singletonList(
+        return Arrays.asList(
+                // 1.5.0+
+                forClass("org.springframework.boot.logging.LoggingApplicationListener")
+                        .methods(
+                                MethodPointCutDescriptorBuilder.build()
+                                                               .onMethodAndArgs("onApplicationEvent", "org.springframework.context.ApplicationEvent")
+                                                               .to("org.bithon.agent.plugin.spring.boot.interceptor.LoggingApplicationListener$OnApplicationStartingEvent")
+                        ),
+
+                // 2.0.0+
                 forClass("org.springframework.boot.context.logging.LoggingApplicationListener")
                         .methods(
                                 MethodPointCutDescriptorBuilder.build()

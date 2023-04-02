@@ -35,6 +35,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
+ * SpringBoot 1.5+
+ * {@link org.springframework.boot.logging.LoggingApplicationListener#onApplicationEvent(ApplicationEvent)}
+ *
+ * SpringBoot 2.0+
  * {@link org.springframework.boot.context.logging.LoggingApplicationListener#onApplicationEvent(ApplicationEvent)}
  *
  * @author frank.chen021@outlook.com
