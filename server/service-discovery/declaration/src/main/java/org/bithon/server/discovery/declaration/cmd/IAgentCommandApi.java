@@ -16,10 +16,9 @@
 
 package org.bithon.server.discovery.declaration.cmd;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.bithon.component.commons.logging.LoggerConfiguration;
+import lombok.NoArgsConstructor;
 import org.bithon.component.commons.logging.LoggingLevel;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
@@ -159,25 +158,24 @@ public interface IAgentCommandApi {
     @PostMapping("/api/command/config/get")
     ServiceResponse<ConfigurationRecord> getConfiguration(@Valid @RequestBody CommandArgs<GetConfigurationRequest> args);
 
-    class LoggerConfigurationAdaptor extends LoggerConfiguration implements IObjectArrayConvertable {
+    @NoArgsConstructor
+    @AllArgsConstructor
+    class LoggerConfigurationRecord implements IObjectArrayConvertable {
 
-        @JsonCreator
-        public LoggerConfigurationAdaptor(@JsonProperty String name,
-                                          @JsonProperty LoggingLevel level,
-                                          @JsonProperty LoggingLevel effectiveLevel) {
-            setName(name);
-            setLevel(level);
-            setEffectiveLevel(effectiveLevel);
-        }
+        public String name;
+
+        public String level;
+
+        public String effectiveLevel;
 
         @Override
         public Object[] toObjectArray() {
-            return new Object[0];
+            return new Object[]{name, level, effectiveLevel};
         }
     }
 
     @PostMapping("/api/command/logger/get")
-    ServiceResponse<LoggerConfigurationAdaptor> getLoggerList(@Valid @RequestBody CommandArgs<Void> args);
+    ServiceResponse<LoggerConfigurationRecord> getLoggerList(@Valid @RequestBody CommandArgs<Void> args);
 
     @Data
     class SetLoggerArgs {

@@ -147,16 +147,18 @@ public class AgentCommandApi implements IAgentCommandApi {
     }
 
     @Override
-    public ServiceResponse<LoggerConfigurationAdaptor> getLoggerList(@RequestBody CommandArgs<Void> args) {
+    public ServiceResponse<LoggerConfigurationRecord> getLoggerList(@RequestBody CommandArgs<Void> args) {
         ILoggingCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(),
-                ILoggingCommand.class,
-                30_000);
+                                                                                     ILoggingCommand.class,
+                                                                                     30_000);
 
         List<LoggerConfiguration> loggers = command.getLoggers();
 
-        List<LoggerConfigurationAdaptor> result = loggers.stream()
-                                                         .map((c) -> new LoggerConfigurationAdaptor(c.getName(), c.getLevel(), c.getEffectiveLevel()))
-                                                         .collect(Collectors.toList());
+        List<LoggerConfigurationRecord> result = loggers.stream()
+                                                        .map((c) -> new LoggerConfigurationRecord(c.getName(),
+                                                                                                  c.getLevel() == null ? null : c.getLevel().toString(),
+                                                                                                  c.getEffectiveLevel() == null ? null : c.getEffectiveLevel().toString()))
+                                                        .collect(Collectors.toList());
         return ServiceResponse.success(result);
     }
 
@@ -165,11 +167,11 @@ public class AgentCommandApi implements IAgentCommandApi {
         Preconditions.checkArgumentNotNull("args", args.getArgs());
 
         ILoggingCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(),
-                ILoggingCommand.class,
-                30_000);
+                                                                                     ILoggingCommand.class,
+                                                                                     30_000);
 
         command.setLogger(args.getArgs().getName(),
-                args.getArgs().getLevel());
+                          args.getArgs().getLevel());
     }
 
     /**

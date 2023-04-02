@@ -25,32 +25,32 @@ import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 import java.util.List;
 
 /**
- * @author Frank Chen
- * @date 1/3/23 8:18 pm
+ * @author frank.chen021@outlook.com
+ * @date 2023/4/2 16:20
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
-public class ConfigurationTable extends AbstractBaseTable {
+public class LoggerTable extends AbstractBaseTable {
     private final IAgentCommandApi impl;
 
-    public ConfigurationTable(IAgentCommandApi impl) {
+    public LoggerTable(IAgentCommandApi impl) {
         this.impl = impl;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
         String appId = (String) executionContext.get("appId");
         Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
 
-        ServiceResponse<IAgentCommandApi.ConfigurationRecord> configurations = impl.getConfiguration(new CommandArgs<>(appId, null));
-        if (configurations.getError() != null) {
-            throw new RuntimeException(configurations.getError().toString());
+        ServiceResponse<IAgentCommandApi.LoggerConfigurationRecord> records = impl.getLoggerList(new CommandArgs<>(appId, null));
+        if (records.getError() != null) {
+            throw new RuntimeException(records.getError().toString());
         }
 
-        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>) configurations.getRows();
+        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>) records.getRows();
     }
 
     @Override
     protected Class<?> getRecordClazz() {
-        return IAgentCommandApi.ConfigurationRecord.class;
+        return IAgentCommandApi.LoggerConfigurationRecord.class;
     }
 }

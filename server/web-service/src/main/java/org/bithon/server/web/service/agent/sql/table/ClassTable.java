@@ -50,7 +50,7 @@ public class ClassTable extends AbstractBaseTable {
     }
 
     @Override
-    protected Class getRecordClazz() {
+    protected Class<?> getRecordClazz() {
         return IAgentCommandApi.ClassRecord.class;
     }
 }

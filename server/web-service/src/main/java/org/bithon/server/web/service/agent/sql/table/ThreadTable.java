@@ -28,7 +28,7 @@ import java.util.List;
  * @author Frank Chen
  * @date 1/3/23 8:18 pm
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressWarnings({"unchecked"})
 public class ThreadTable extends AbstractBaseTable {
     private final IAgentCommandApi impl;
 
@@ -50,7 +50,7 @@ public class ThreadTable extends AbstractBaseTable {
     }
 
     @Override
-    protected Class getRecordClazz() {
+    protected Class<?> getRecordClazz() {
         return IAgentCommandApi.ThreadRecord.class;
     }
 }
