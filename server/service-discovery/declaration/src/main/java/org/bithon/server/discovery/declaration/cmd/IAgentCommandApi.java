@@ -16,12 +16,18 @@
 
 package org.bithon.server.discovery.declaration.cmd;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import org.bithon.component.commons.logging.LoggerConfiguration;
+import org.bithon.component.commons.logging.LoggingLevel;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import javax.validation.Valid;
 
 /**
  * @author Frank Chen
@@ -90,29 +96,29 @@ public interface IAgentCommandApi {
 
         public Object[] toObjectArray() {
             return new Object[]{
-                threadId,
-                name,
-                daemon,
-                priority,
-                state,
-                cpuTime,
-                userTime,
-                blockedTime,
-                blockedCount,
-                waitedTime,
-                waitedCount,
-                lockName,
-                lockOwnerId,
-                lockOwnerName,
-                inNative,
-                suspended,
-                stack
+                    threadId,
+                    name,
+                    daemon,
+                    priority,
+                    state,
+                    cpuTime,
+                    userTime,
+                    blockedTime,
+                    blockedCount,
+                    waitedTime,
+                    waitedCount,
+                    lockName,
+                    lockOwnerId,
+                    lockOwnerName,
+                    inNative,
+                    suspended,
+                    stack
             };
         }
     }
 
     @PostMapping("/api/command/jvm/dumpThread")
-    ServiceResponse<ThreadRecord> getThreads(@RequestBody CommandArgs<Void> args);
+    ServiceResponse<ThreadRecord> getThreads(@Valid @RequestBody CommandArgs<Void> args);
 
     class ClassRecord implements IObjectArrayConvertable {
         public String name;
@@ -131,7 +137,7 @@ public interface IAgentCommandApi {
      * Get loaded class
      */
     @PostMapping("/api/command/jvm/dumpClazz")
-    ServiceResponse<ClassRecord> getClass(@RequestBody CommandArgs<Void> args);
+    ServiceResponse<ClassRecord> getClass(@Valid @RequestBody CommandArgs<Void> args);
 
     @Data
     class GetConfigurationRequest {
@@ -151,5 +157,34 @@ public interface IAgentCommandApi {
     }
 
     @PostMapping("/api/command/config/get")
-    ServiceResponse<ConfigurationRecord> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args);
+    ServiceResponse<ConfigurationRecord> getConfiguration(@Valid @RequestBody CommandArgs<GetConfigurationRequest> args);
+
+    class LoggerConfigurationAdaptor extends LoggerConfiguration implements IObjectArrayConvertable {
+
+        @JsonCreator
+        public LoggerConfigurationAdaptor(@JsonProperty String name,
+                                          @JsonProperty LoggingLevel level,
+                                          @JsonProperty LoggingLevel effectiveLevel) {
+            setName(name);
+            setLevel(level);
+            setEffectiveLevel(effectiveLevel);
+        }
+
+        @Override
+        public Object[] toObjectArray() {
+            return new Object[0];
+        }
+    }
+
+    @PostMapping("/api/command/logger/get")
+    ServiceResponse<LoggerConfigurationAdaptor> getLoggerList(@Valid @RequestBody CommandArgs<Void> args);
+
+    @Data
+    class SetLoggerArgs {
+        private String name;
+        private LoggingLevel level;
+    }
+
+    @PostMapping("/api/command/logger/set")
+    void setLogger(@Valid @RequestBody CommandArgs<SetLoggerArgs> args);
 }

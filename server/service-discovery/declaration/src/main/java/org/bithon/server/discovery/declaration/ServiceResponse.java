@@ -32,7 +32,7 @@ import java.util.List;
  * @date 2022/8/7 21:29
  */
 public class ServiceResponse<T> {
-    public static final ServiceResponse EMPTY = new ServiceResponse(Collections.emptyList());
+    public static final ServiceResponse EMPTY = new ServiceResponse<>(Collections.emptyList());
 
     @Data
     @Builder

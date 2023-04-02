@@ -25,6 +25,7 @@ import org.bithon.component.commons.exception.HttpResponseMapping;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -44,7 +45,8 @@ public class GlobalExceptionHandler {
         BadRequestException.class,
         HttpMessageNotReadableException.class,
         MethodArgumentNotValidException.class,
-        HttpRequestMethodNotSupportedException.class
+        HttpRequestMethodNotSupportedException.class,
+        HttpMediaTypeNotSupportedException.class
     })
     public ResponseEntity<ErrorResponse> handleKnownExceptions(HttpServletRequest request, Exception exception) {
         return ResponseEntity.badRequest().body(ErrorResponse.builder()

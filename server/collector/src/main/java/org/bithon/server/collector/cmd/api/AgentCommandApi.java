@@ -18,8 +18,11 @@ package org.bithon.server.collector.cmd.api;
 
 import org.bithon.agent.rpc.brpc.cmd.IConfigCommand;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
+import org.bithon.agent.rpc.brpc.cmd.ILoggingCommand;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
+import org.bithon.component.commons.logging.LoggerConfiguration;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.collector.cmd.service.AgentCommandService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.CommandArgs;
@@ -32,8 +35,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -72,7 +75,7 @@ public class AgentCommandApi implements IAgentCommandApi {
     }
 
     @Override
-    public ServiceResponse<ThreadRecord> getThreads(@Valid @RequestBody CommandArgs<Void> args) {
+    public ServiceResponse<ThreadRecord> getThreads(@RequestBody CommandArgs<Void> args) {
         IJvmCommand command = commandService.getServerChannel()
                                             .getRemoteService(args.getAppId(), IJvmCommand.class, 30_000);
 
@@ -110,7 +113,7 @@ public class AgentCommandApi implements IAgentCommandApi {
      *             "%bithon% matches all qualified classes whose name contains bithon
      */
     @Override
-    public ServiceResponse<ClassRecord> getClass(@Valid @RequestBody CommandArgs<Void> args) {
+    public ServiceResponse<ClassRecord> getClass(@RequestBody CommandArgs<Void> args) {
         IJvmCommand command = commandService.getServerChannel()
                                             .getRemoteService(args.getAppId(), IJvmCommand.class, 30_000);
 
@@ -141,6 +144,32 @@ public class AgentCommandApi implements IAgentCommandApi {
         record.payload = command.getConfiguration(format, isPretty);
 
         return ServiceResponse.success(Collections.singletonList(record));
+    }
+
+    @Override
+    public ServiceResponse<LoggerConfigurationAdaptor> getLoggerList(@RequestBody CommandArgs<Void> args) {
+        ILoggingCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(),
+                ILoggingCommand.class,
+                30_000);
+
+        List<LoggerConfiguration> loggers = command.getLoggers();
+
+        List<LoggerConfigurationAdaptor> result = loggers.stream()
+                                                         .map((c) -> new LoggerConfigurationAdaptor(c.getName(), c.getLevel(), c.getEffectiveLevel()))
+                                                         .collect(Collectors.toList());
+        return ServiceResponse.success(result);
+    }
+
+    @Override
+    public void setLogger(@RequestBody CommandArgs<SetLoggerArgs> args) {
+        Preconditions.checkArgumentNotNull("args", args.getArgs());
+
+        ILoggingCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(),
+                ILoggingCommand.class,
+                30_000);
+
+        command.setLogger(args.getArgs().getName(),
+                args.getArgs().getLevel());
     }
 
     /**
