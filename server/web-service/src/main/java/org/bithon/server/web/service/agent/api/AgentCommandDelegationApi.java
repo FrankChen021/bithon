@@ -26,6 +26,7 @@ import org.apache.calcite.sql.SqlLiteral;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlOrderBy;
 import org.apache.calcite.sql.SqlSelect;
+import org.apache.calcite.sql.SqlUpdate;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.sql.util.SqlBasicVisitor;
@@ -94,6 +95,8 @@ public class AgentCommandDelegationApi {
                 whereNode = ((SqlSelect) ((SqlOrderBy) sqlNode).query).getWhere();
             } else if (sqlNode.getKind() == SqlKind.SELECT) {
                 whereNode = ((SqlSelect) (sqlNode)).getWhere();
+            } else if (sqlNode.getKind() == SqlKind.UPDATE) {
+                whereNode = ((SqlUpdate) (sqlNode)).getCondition();
             } else {
                 throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unsupported SQL Kind: %s", sqlNode.getKind());
             }
