@@ -33,24 +33,38 @@ import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.logical.LogicalTableModify;
 import org.apache.calcite.rel.rules.CoreRules;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.Table;
+import org.apache.calcite.sql.SqlCall;
+import org.apache.calcite.sql.SqlIdentifier;
+import org.apache.calcite.sql.SqlLiteral;
 import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.SqlNodeList;
+import org.apache.calcite.sql.SqlOperator;
+import org.apache.calcite.sql.SqlUpdate;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.calcite.sql.type.SqlTypeName;
+import org.apache.calcite.sql.util.SqlBasicVisitor;
 import org.apache.calcite.sql.validate.SqlValidator;
 import org.apache.calcite.sql.validate.SqlValidatorUtil;
 import org.apache.calcite.sql2rel.SqlToRelConverter;
 import org.apache.calcite.sql2rel.StandardConvertletTable;
+import org.apache.calcite.util.NlsString;
+import org.bithon.server.web.service.agent.sql.table.LoggerTable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.function.BiConsumer;
 
@@ -84,6 +98,148 @@ public class SqlExecutionEngine {
                                                  Collections.singletonList(""),
                                                  new JavaTypeFactoryImpl(),
                                                  new CalciteConnectionConfigImpl(props));
+    }
+
+    public abstract static class Expression {
+    }
+
+    public static class ColumnExpression extends Expression {
+        private final String columnName;
+
+        public ColumnExpression(String columnName) {
+            this.columnName = columnName;
+        }
+
+        public String getColumnName() {
+            return columnName;
+        }
+    }
+
+    public static class LiteralExpression extends Expression {
+        private final Object value;
+
+        public LiteralExpression(Object value) {
+            this.value = value;
+        }
+
+        public Object getValue() {
+            return value;
+        }
+    }
+
+    public static class ComparisonExpression extends Expression {
+        private final String operatorName;
+        private final Expression left;
+        private final Expression right;
+
+        public ComparisonExpression(String operatorName, Expression left, Expression right) {
+            this.operatorName = operatorName;
+            this.left = left;
+            this.right = right;
+        }
+
+        public String getOperatorName() {
+            return operatorName;
+        }
+
+        public Expression getLeft() {
+            return left;
+        }
+
+        public Expression getRight() {
+            return right;
+        }
+    }
+
+    public static class LogicalExpression extends Expression {
+        private final String operatorName;
+        private final List<Expression> operands;
+
+        public LogicalExpression(String operatorName, List<Expression> operands) {
+            this.operatorName = operatorName;
+            this.operands = operands;
+        }
+
+        public String getOperatorName() {
+            return operatorName;
+        }
+
+        public List<Expression> getOperands() {
+            return operands;
+        }
+    }
+
+
+    public static class ExpressionConverter extends SqlBasicVisitor<Expression> {
+
+        public Expression convertExpression(SqlNode node) {
+            return node.accept(this);
+        }
+
+        @Override
+        public Expression visit(SqlCall call) {
+            SqlOperator operator = call.getOperator();
+            List<Expression> operands = new ArrayList<>();
+            for (SqlNode operand : call.getOperandList()) {
+                Expression expression = operand.accept(this);
+                operands.add(expression);
+            }
+            switch (operator.getKind()) {
+                case AND:
+                case OR:
+                    return new LogicalExpression(operator.getName(), operands);
+                case NOT:
+                    if (operands.size() != 1) {
+                        throw new IllegalArgumentException("NOT operator should have exactly one operand");
+                    }
+                    return new LogicalExpression(operator.getName(), Collections.singletonList(operands.get(0)));
+                case EQUALS:
+                case NOT_EQUALS:
+                case GREATER_THAN:
+                case GREATER_THAN_OR_EQUAL:
+                case LESS_THAN:
+                case LESS_THAN_OR_EQUAL:
+                    if (operands.size() != 2) {
+                        throw new IllegalArgumentException("Comparison operator should have exactly two operands");
+                    }
+                    String operatorName = operator.getName();
+                    Expression left = operands.get(0);
+                    Expression right = operands.get(1);
+                    return new ComparisonExpression(operatorName, left, right);
+                default:
+                    throw new IllegalArgumentException("Unknown operator: " + operator);
+            }
+        }
+
+        @Override
+        public Expression visit(SqlIdentifier identifier) {
+            String columnName = identifier.toString();
+            return new ColumnExpression(columnName);
+        }
+
+        @Override
+        public Expression visit(SqlLiteral literal) {
+            SqlTypeName typeName = literal.getTypeName();
+            switch (typeName) {
+                case CHAR:
+                case VARCHAR:
+                    NlsString nlsString = (NlsString) literal.getValue();
+                    String stringValue = nlsString.getValue();
+                    return new LiteralExpression(stringValue);
+                case INTEGER:
+                case BIGINT:
+                case FLOAT:
+                case DOUBLE:
+                case DECIMAL:
+                    Number numericValue = (Number) literal.getValue();
+                    return new LiteralExpression(numericValue);
+                case BOOLEAN:
+                    Boolean booleanValue = (Boolean) literal.getValue();
+                    return new LiteralExpression(booleanValue);
+                default:
+                    throw new IllegalArgumentException("Unsupported literal type: " + typeName + ", literal: " + literal.toValue());
+            }
+        }
     }
 
     public void addTable(String tableName, Table table) {
@@ -124,6 +280,30 @@ public class SqlExecutionEngine {
                                                                SqlToRelConverter.config());
         RelNode logicPlan = relConverter.convertQuery(sqlNode, true, true).rel;
 
+        if (logicPlan instanceof LogicalTableModify) {
+            LogicalTableModify modify = (LogicalTableModify) logicPlan;
+
+            SqlUpdate updateNode = (SqlUpdate) sqlNode;
+
+            // Extract the column values from the UPDATE statement
+            Map<String, Object> columnValues = new HashMap<>();
+            SqlNodeList targetColumnList = updateNode.getTargetColumnList();
+            SqlNodeList sourceExpressionList = updateNode.getSourceExpressionList();
+            for (int i = 0; i < targetColumnList.size(); i++) {
+                SqlIdentifier targetColumn = (SqlIdentifier) targetColumnList.get(i);
+                SqlNode sourceExpression = sourceExpressionList.get(i);
+                Object value = ((SqlLiteral) sourceExpression).getValue();
+                columnValues.put(targetColumn.toString(), value);
+            }
+
+            // Extract the condition from the UPDATE statement
+            Expression condition = new ExpressionConverter().convertExpression(updateNode.getCondition());
+
+            LoggerTable table = (LoggerTable) catalogReader.getRootSchema().getSubSchema("agent", false)
+                                                           .getTable("logger", false)
+                                                           .getTable();
+
+        }
         //
         // Initialize optimizer/planner with the necessary rules
         //
