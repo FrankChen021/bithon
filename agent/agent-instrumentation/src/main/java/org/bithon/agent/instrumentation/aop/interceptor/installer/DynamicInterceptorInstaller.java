@@ -92,7 +92,7 @@ public class DynamicInterceptorInstaller {
                                            DynamicType.Builder<?> builder) {
 
         LOG.info("Dynamically install interceptor for [{}]", descriptor.getTargetClass());
-        return builder.visit(descriptor.getAdvice().on(descriptor.getMethodMatcher()));
+        return builder.visit(InterceptorInstaller.newInstaller(descriptor.getAdvice(), descriptor.getMethodMatcher()));
     }
 
     public static class AopDescriptor {
