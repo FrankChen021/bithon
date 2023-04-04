@@ -17,6 +17,7 @@
 package org.bithon.server.collector.cmd.api;
 
 import org.bithon.agent.rpc.brpc.cmd.IConfigCommand;
+import org.bithon.agent.rpc.brpc.cmd.IInstrumentationCommand;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -141,6 +143,26 @@ public class AgentCommandApi implements IAgentCommandApi {
         record.payload = command.getConfiguration(format, isPretty);
 
         return ServiceResponse.success(Collections.singletonList(record));
+    }
+
+    @Override
+    public ServiceResponse<InstrumentedMethodRecord> getInstrumentedMethod(CommandArgs<Void> args) {
+        IInstrumentationCommand command = commandService.getServerChannel()
+                                                        .getRemoteService(args.getAppId(), IInstrumentationCommand.class, 30_000);
+
+        List<InstrumentedMethodRecord> records = command.getInstrumentedMethods()
+                                                        .stream()
+                                                        .map((method) -> {
+                                                            InstrumentedMethodRecord record = new InstrumentedMethodRecord();
+                                                            record.clazzName = method.getClazzName();
+                                                            record.parameters = method.getParameters();
+                                                            record.methodName = method.getMethodName();
+                                                            record.returnType = method.getReturnType();
+                                                            return record;
+                                                        }).collect(Collectors.toList());
+
+        return ServiceResponse.success(records);
+
     }
 
     /**

@@ -90,23 +90,23 @@ public interface IAgentCommandApi {
 
         public Object[] toObjectArray() {
             return new Object[]{
-                threadId,
-                name,
-                daemon,
-                priority,
-                state,
-                cpuTime,
-                userTime,
-                blockedTime,
-                blockedCount,
-                waitedTime,
-                waitedCount,
-                lockName,
-                lockOwnerId,
-                lockOwnerName,
-                inNative,
-                suspended,
-                stack
+                    threadId,
+                    name,
+                    daemon,
+                    priority,
+                    state,
+                    cpuTime,
+                    userTime,
+                    blockedTime,
+                    blockedCount,
+                    waitedTime,
+                    waitedCount,
+                    lockName,
+                    lockOwnerId,
+                    lockOwnerName,
+                    inNative,
+                    suspended,
+                    stack
             };
         }
     }
@@ -152,4 +152,21 @@ public interface IAgentCommandApi {
 
     @PostMapping("/api/command/config/get")
     ServiceResponse<ConfigurationRecord> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args);
+
+    class InstrumentedMethodRecord implements IObjectArrayConvertable {
+        public String clazzName;
+        public String returnType;
+        public String methodName;
+        public String parameters;
+
+
+        @Override
+        public Object[] toObjectArray() {
+            return new Object[]{clazzName, returnType, methodName, parameters};
+        }
+    }
+
+    @PostMapping("/api/command/instrumentation/method/list")
+    ServiceResponse<InstrumentedMethodRecord> getInstrumentedMethod(@RequestBody CommandArgs<Void> args);
+
 }
