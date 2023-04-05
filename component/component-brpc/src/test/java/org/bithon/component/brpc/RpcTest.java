@@ -27,6 +27,7 @@ import org.bithon.component.brpc.example.IExampleService;
 import org.bithon.component.brpc.example.protobuf.WebRequestMetrics;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.ServiceNotFoundException;
+import org.bithon.component.brpc.message.Headers;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -212,7 +213,7 @@ public class RpcTest {
     @Test
     public void testServerCallsClient() {
         try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
-            ch.setAppId("app1");
+            ch.setHeader(Headers.HEADER_APP_ID, "app1");
 
             // bind a service at client side
             ch.bindService(new ExampleServiceImpl() {

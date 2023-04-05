@@ -206,8 +206,10 @@ public class ClientChannel implements IChannelWriter, Closeable {
         return ServiceStubFactory.create(this.appName, this.headers, this, serviceType);
     }
 
-    public void setAppId(String appId) {
-        this.headers.put("appId", appId);
+    public void setHeader(String name, String value) {
+        synchronized (this.headers) {
+            this.headers.put(name, value);
+        }
     }
 
     class ClientChannelManager extends ChannelInboundHandlerAdapter {

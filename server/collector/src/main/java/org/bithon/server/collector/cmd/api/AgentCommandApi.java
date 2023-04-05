@@ -68,6 +68,7 @@ public class AgentCommandApi implements IAgentCommandApi {
                                                          instance.setAppName(session.getAppName());
                                                          instance.setAppId(session.getAppId());
                                                          instance.setEndpoint(session.getEndpoint().toString());
+                                                         instance.setAgentVersion(session.getClientVersion());
                                                          return instance;
                                                      })
                                                      .collect(Collectors.toList()));

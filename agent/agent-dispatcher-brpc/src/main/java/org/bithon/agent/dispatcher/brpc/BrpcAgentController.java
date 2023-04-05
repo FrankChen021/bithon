@@ -16,6 +16,7 @@
 
 package org.bithon.agent.dispatcher.brpc;
 
+import org.bithon.agent.AgentBuildVersion;
 import org.bithon.agent.controller.AgentControllerConfig;
 import org.bithon.agent.controller.IAgentController;
 import org.bithon.agent.observability.context.AppInstance;
@@ -29,6 +30,7 @@ import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
 import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.CallerSideException;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
+import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -68,13 +70,16 @@ public class BrpcAgentController implements IAgentController {
 
         if (appInstance.getPort() > 0) {
             // Set the default the appId
-            channel.setAppId(appInstance.getHostAndPort());
+            channel.setHeader(Headers.HEADER_APP_ID, appInstance.getHostAndPort());
+            channel.setHeader(Headers.HEADER_VERSION, AgentBuildVersion.getString());
         }
 
         // Update appId once the port is configured,
         // so that the management API in the server side can find this agent by appId correctly
         appInstance.addListener((port) -> {
-            channel.setAppId(AppInstance.getInstance().getHostAndPort());
+            channel.setHeader(Headers.HEADER_APP_ID, AppInstance.getInstance().getHostAndPort());
+            channel.setHeader(Headers.HEADER_VERSION, AgentBuildVersion.getString());
+
             if (refreshListener != null) {
                 try {
                     refreshListener.run();

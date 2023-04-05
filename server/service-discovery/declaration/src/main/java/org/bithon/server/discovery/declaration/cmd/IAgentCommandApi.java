@@ -43,9 +43,10 @@ public interface IAgentCommandApi {
         public String appName;
         public String appId;
         public String endpoint;
+        public String agentVersion;
 
         public Object[] toObjectArray() {
-            return new Object[]{appName, appId, endpoint};
+            return new Object[]{appName, appId, endpoint, agentVersion};
         }
     }
 
