@@ -30,10 +30,6 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
  */
 public class AbstractAutowireCapableBeanFactory$CreateInstance extends AfterInterceptor {
 
-    public AbstractAutowireCapableBeanFactory$CreateInstance() {
-        BeanMethodAopInstallerHelper.initialize();
-    }
-
     /**
      * Re-transform the class of the bean
      */

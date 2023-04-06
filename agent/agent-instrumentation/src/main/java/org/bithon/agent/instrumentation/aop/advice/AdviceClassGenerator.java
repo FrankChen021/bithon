@@ -21,7 +21,6 @@ import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.shaded.net.bytebuddy.ByteBuddy;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
 import org.bithon.shaded.net.bytebuddy.dynamic.loading.ClassInjector;
-import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,8 +45,8 @@ public class AdviceClassGenerator {
         DynamicType.Unloaded<?> aopClassType = new ByteBuddy().redefine(aopTemplateClass)
                                                               .name(targetAopClassName)
                                                               // Assign interceptor name to field
-                                                              .field(ElementMatchers.named("INTERCEPTOR_CLASS_NAME"))
-                                                              .value(interceptorClassName)
+                                                              //.field(ElementMatchers.named("INTERCEPTOR_CLASS_NAME"))
+                                                              //.value(interceptorClassName)
                                                               .make();
 
         if (debug) {

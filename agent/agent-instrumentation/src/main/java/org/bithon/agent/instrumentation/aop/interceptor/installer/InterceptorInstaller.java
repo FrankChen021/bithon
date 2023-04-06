@@ -148,7 +148,7 @@ public class InterceptorInstaller {
 
             getInterceptorMethod = new TypeDescription.ForLoadedType(InterceptorManager.class)
                     .getDeclaredMethods()
-                    .filter(ElementMatchers.named("getInterceptor"))
+                    .filter(ElementMatchers.named("getInterceptor").and(ElementMatchers.takesArguments(2)))
                     .getOnly();
         }
 

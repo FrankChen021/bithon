@@ -17,6 +17,7 @@
 package org.bithon.agent.instrumentation.aop.advice;
 
 import org.bithon.agent.instrumentation.aop.interceptor.IDynamicInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
 import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
@@ -40,11 +41,6 @@ public class DynamicAopAdvice {
 
     private static final ILogger LOG = LoggerFactory.getLogger(DynamicAopAdvice.class);
 
-    /**
-     * assigned by class generator
-     */
-    private static String INTERCEPTOR_CLASS_NAME;
-
     private static volatile IDynamicInterceptor interceptorInstance;
 
     public static IDynamicInterceptor getOrCreateInterceptor(String name) {
@@ -57,7 +53,7 @@ public class DynamicAopAdvice {
             Class<?> interceptorClass = Class.forName(name,
                                                       true,
                                                       PluginClassLoaderManager.getClassLoader(Thread.currentThread().getContextClassLoader()));
-            synchronized (INTERCEPTOR_CLASS_NAME) {
+            synchronized (DynamicAopAdvice.class) {
                 //double check
                 if (interceptorInstance != null) {
                     return interceptorInstance;
@@ -67,31 +63,32 @@ public class DynamicAopAdvice {
             }
 
         } catch (Exception e) {
-            LOG.error(String.format(Locale.ENGLISH, "Failed to create interceptor [%s]", INTERCEPTOR_CLASS_NAME), e);
+            LOG.error(String.format(Locale.ENGLISH, "Failed to create interceptor [%s]", name), e);
         }
         return interceptorInstance;
     }
 
     /**
-     * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
+     * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodEnter
     public static void onEnter(
             @AdviceAnnotation.InterceptorName String name,
+            @AdviceAnnotation.InterceptorIndex int index,
             final @Advice.Origin Method method,
             final @Advice.This(optional = true) Object target,
             @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
             @Advice.Local("context") Object context,
             @Advice.Local("interceptor") Object interceptor
     ) {
-        interceptor = getOrCreateInterceptor(name);
+        interceptor = InterceptorManager.getInterceptor(index);
         if (interceptor != null) {
             Object[] newArgs = args;
 
             try {
                 context = ((IDynamicInterceptor) interceptor).onMethodEnter(method, target, newArgs);
             } catch (Throwable t) {
-                LOG.error(String.format(Locale.ENGLISH, "Failed to execute interceptor [%s]", INTERCEPTOR_CLASS_NAME), t);
+                LOG.error(String.format(Locale.ENGLISH, "Failed to execute interceptor [%s]", name), t);
                 return;
             }
 
@@ -102,7 +99,7 @@ public class DynamicAopAdvice {
     }
 
     /**
-     * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
+     * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit(onThrowable = Throwable.class)
     public static void onExit(final @Advice.Origin Method method,
@@ -122,7 +119,7 @@ public class DynamicAopAdvice {
         try {
             returning = ((IDynamicInterceptor) interceptor).onMethodExit(method, target, args, returning, exception, context);
         } catch (Throwable t) {
-            LOG.error(String.format(Locale.ENGLISH, "Failed to execute exit interceptor [%s]", INTERCEPTOR_CLASS_NAME), t);
+            LOG.error(String.format(Locale.ENGLISH, "Failed to execute exit interceptor [%s]", interceptor.getClass().getName()), t);
         }
     }
 }

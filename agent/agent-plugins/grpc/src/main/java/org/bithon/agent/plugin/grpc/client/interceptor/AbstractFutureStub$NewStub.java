@@ -19,15 +19,11 @@ package org.bithon.agent.plugin.grpc.client.interceptor;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.stub.AbstractStub;
-import org.bithon.agent.instrumentation.aop.advice.AdviceClassGenerator;
-import org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.installer.DynamicInterceptorInstaller;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
-import org.bithon.shaded.net.bytebuddy.dynamic.ClassFileLocator;
-import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.Set;
@@ -43,18 +39,6 @@ public class AbstractFutureStub$NewStub extends BeforeInterceptor {
 
     private static final Set<String> INSTRUMENTED = new ConcurrentSkipListSet<>();
 
-    private final DynamicType.Unloaded<?> grpcStubAopClass;
-
-    public AbstractFutureStub$NewStub() {
-        String targetAopClassName = AbstractFutureStub$NewStub.class.getPackage().getName() + ".FutureStubAop";
-
-        grpcStubAopClass = AdviceClassGenerator.generateAdviceClass(DynamicAopAdvice.class,
-                                                                    targetAopClassName,
-                                                                    AbstractGrpcStubInterceptor.FutureStubInterceptor.class.getName(),
-                                                                    true);
-        AdviceClassGenerator.inject(grpcStubAopClass);
-    }
-
     @Override
     public void before(AopContext aopContext) {
         Object stubFactory = aopContext.getArgs()[0];
@@ -69,8 +53,6 @@ public class AbstractFutureStub$NewStub extends BeforeInterceptor {
 
         // Enhance the stub class
         DynamicInterceptorInstaller.getInstance().installOne(new DynamicInterceptorInstaller.AopDescriptor(clientStubClass.getName(),
-                                                                                                           grpcStubAopClass.getTypeDescription(),
-                                                                                                           ClassFileLocator.Simple.of(grpcStubAopClass.getAllTypes()),
                                                                                                            Matchers.visibility(Visibility.PUBLIC),
                                                                                                            AbstractGrpcStubInterceptor.FutureStubInterceptor.class.getName()));
     }

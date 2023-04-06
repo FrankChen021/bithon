@@ -23,8 +23,6 @@ import org.bithon.agent.observability.utils.filter.IMatcher;
 import org.bithon.agent.observability.utils.filter.InCollectionMatcher;
 import org.bithon.agent.observability.utils.filter.StringEqualMatcher;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
-import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
-import org.bithon.shaded.net.bytebuddy.dynamic.ClassFileLocator;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 
 import java.lang.reflect.Field;
@@ -58,8 +56,6 @@ public class BeanMethodAopInstaller {
     }
 
     public static void install(Class<?> targetClass,
-                               TypeDescription adviceType,
-                               ClassFileLocator adviceLocator,
                                String interceptor,
                                BeanTransformationConfig transformationConfig) {
         if (targetClass.isSynthetic()) {
@@ -124,8 +120,6 @@ public class BeanMethodAopInstaller {
         }
 
         DynamicInterceptorInstaller.AopDescriptor descriptor = new DynamicInterceptorInstaller.AopDescriptor(targetClass.getName(),
-                                                                                                             adviceType,
-                                                                                                             adviceLocator,
                                                                                                              new BeanMethodMatcher(propertyMethods,
                                                                                                                                    excludedMethods),
                                                                                                              interceptor);

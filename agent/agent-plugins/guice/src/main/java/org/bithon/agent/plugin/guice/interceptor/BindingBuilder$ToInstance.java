@@ -28,10 +28,6 @@ import org.bithon.agent.plugin.guice.installer.BeanMethodAopInstallerHelper;
  */
 public class BindingBuilder$ToInstance extends AfterInterceptor {
 
-    public BindingBuilder$ToInstance() {
-        BeanMethodAopInstallerHelper.initialize();
-    }
-
     /**
      * Re-transform the class of the bean
      */

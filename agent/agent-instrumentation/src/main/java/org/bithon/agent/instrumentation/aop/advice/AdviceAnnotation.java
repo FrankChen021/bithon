@@ -43,6 +43,11 @@ public class AdviceAnnotation {
     public @interface InterceptorName {
     }
 
+    @Retention(RetentionPolicy.RUNTIME)
+    @java.lang.annotation.Target(ElementType.PARAMETER)
+    public @interface InterceptorIndex {
+    }
+
     /**
      * Custom annotation used on Advice classes to reference the {@link org.bithon.agent.instrumentation.aop.interceptor.IInterceptor} object
      *
@@ -151,6 +156,24 @@ public class AdviceAnnotation {
                               @Nonnull Advice.ArgumentHandler argumentHandler,
                               @Nonnull Sort sort) {
             return new Target.ForStackManipulation(new JavaConstantValue(JavaConstant.Simple.ofLoaded(name)));
+        }
+    }
+
+    public static class InterceptorIndexResolver implements Advice.OffsetMapping {
+        private final int index;
+
+        public InterceptorIndexResolver(int index) {
+            this.index = index;
+        }
+
+        @Nonnull
+        @Override
+        public Target resolve(@Nonnull TypeDescription instrumentedType,
+                              @Nonnull MethodDescription instrumentedMethod,
+                              @Nonnull Assigner assigner,
+                              @Nonnull Advice.ArgumentHandler argumentHandler,
+                              @Nonnull Sort sort) {
+            return new Target.ForStackManipulation(new JavaConstantValue(JavaConstant.Simple.ofLoaded(index)));
         }
     }
 }

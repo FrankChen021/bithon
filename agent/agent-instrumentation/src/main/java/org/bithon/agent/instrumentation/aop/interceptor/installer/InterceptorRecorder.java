@@ -16,7 +16,6 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.installer;
 
-import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.asm.AsmVisitorWrapper;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.description.method.ParameterDescription;
@@ -80,6 +79,9 @@ public class InterceptorRecorder implements AsmVisitorWrapper.ForDeclaredMethods
         return new LinkedHashMap<>(instrumentedMethods);
     }
 
+    public InterceptorRecorder() {
+    }
+
     @Override
     public MethodVisitor wrap(TypeDescription instrumentedType,
                               MethodDescription instrumentedMethod,
@@ -88,9 +90,9 @@ public class InterceptorRecorder implements AsmVisitorWrapper.ForDeclaredMethods
                               TypePool typePool,
                               int writerFlags,
                               int readerFlags) {
-        //TODO: extract InterceptorName binding from the visitor
-        Advice.Local
-        ((Advice.AdviceVisitor.WithExitAdvice.WithoutExceptionHandling) methodVisitor).methodEnter.this$0.offsetMappings
+        // TODO: extract InterceptorName binding from the visitor
+        // See: https://github.com/raphw/byte-buddy/issues/1418
+        // ((Advice.AdviceVisitor.WithExitAdvice.WithoutExceptionHandling) methodVisitor).methodEnter.this$0.offsetMappings
 
         StringBuilder parameters = new StringBuilder(32);
         for (ParameterDescription parameter : instrumentedMethod.getParameters()) {
