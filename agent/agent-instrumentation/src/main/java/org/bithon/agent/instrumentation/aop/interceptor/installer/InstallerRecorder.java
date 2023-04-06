@@ -33,27 +33,31 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ *
  * @author Frank Chen
  * @date 10/3/23 8:54 pm
  */
-public class InterceptorRecorder implements AsmVisitorWrapper.ForDeclaredMethods.MethodVisitorWrapper {
+public class InstallerRecorder implements AsmVisitorWrapper.ForDeclaredMethods.MethodVisitorWrapper {
 
-    public static final InterceptorRecorder INSTANCE = new InterceptorRecorder();
+    public static final InstallerRecorder INSTANCE = new InstallerRecorder();
 
     public static class InstrumentedMethod {
         private final String returnType;
         private final String methodName;
         private final boolean isStatic;
         private final String parameters;
+        private final String interceptor;
 
         public InstrumentedMethod(String returnType,
                                   String methodName,
                                   boolean aStatic,
-                                  String parameters) {
+                                  String parameters,
+                                  String interceptor) {
             this.returnType = returnType;
             this.methodName = methodName;
             this.isStatic = aStatic;
             this.parameters = parameters;
+            this.interceptor = interceptor;
         }
 
         public String getReturnType() {
@@ -71,6 +75,10 @@ public class InterceptorRecorder implements AsmVisitorWrapper.ForDeclaredMethods
         public String getParameters() {
             return parameters;
         }
+
+        public String getInterceptor() {
+            return interceptor;
+        }
     }
 
     private final Map<String, List<InstrumentedMethod>> instrumentedMethods = Collections.synchronizedMap(new HashMap<>());
@@ -79,7 +87,7 @@ public class InterceptorRecorder implements AsmVisitorWrapper.ForDeclaredMethods
         return new LinkedHashMap<>(instrumentedMethods);
     }
 
-    public InterceptorRecorder() {
+    public InstallerRecorder() {
     }
 
     @Override
@@ -112,7 +120,8 @@ public class InterceptorRecorder implements AsmVisitorWrapper.ForDeclaredMethods
                            .add(new InstrumentedMethod(instrumentedMethod.getReturnType().getTypeName(),
                                                        instrumentedMethod.isConstructor() ? "<ctor>" : instrumentedMethod.getName(),
                                                        instrumentedMethod.isStatic(),
-                                                       parameters.toString()));
+                                                       parameters.toString(),
+                                                       null));
 
         return methodVisitor;
     }

@@ -254,6 +254,6 @@ public class InterceptorInstaller {
     public static AsmVisitorWrapper newInstaller(Advice advice, ElementMatcher<? super MethodDescription> matcher) {
         return new AsmVisitorWrapper.ForDeclaredMethods().invokable(matcher,
                                                                     advice,
-                                                                    InterceptorRecorder.INSTANCE);
+                                                                    InstallerRecorder.INSTANCE);
     }
 }

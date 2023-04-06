@@ -161,7 +161,6 @@ public interface IAgentCommandApi {
         public String methodName;
         public String parameters;
 
-
         @Override
         public Object[] toObjectArray() {
             return new Object[]{clazzName, isStatic, returnType, methodName, parameters};

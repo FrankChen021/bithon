@@ -16,7 +16,7 @@
 
 package org.bithon.agent.controller.cmd;
 
-import org.bithon.agent.instrumentation.aop.interceptor.installer.InterceptorRecorder;
+import org.bithon.agent.instrumentation.aop.interceptor.installer.InstallerRecorder;
 import org.bithon.agent.rpc.brpc.cmd.IInstrumentationCommand;
 
 import java.util.ArrayList;
@@ -31,15 +31,16 @@ public class InstrumentationCommand implements IInstrumentationCommand, IAgentCo
     public List<InstrumentedMethod> getInstrumentedMethods() {
         List<InstrumentedMethod> returning = new ArrayList<>();
 
-        InterceptorRecorder.INSTANCE.getInstrumentedMethods()
-                                    .forEach((type, methods) -> {
-                                        for (InterceptorRecorder.InstrumentedMethod method : methods) {
+        InstallerRecorder.INSTANCE.getInstrumentedMethods()
+                                  .forEach((type, methods) -> {
+                                        for (InstallerRecorder.InstrumentedMethod method : methods) {
                                             InstrumentedMethod m = new InstrumentedMethod();
                                             m.setClazzName(type);
                                             m.setReturnType(method.getReturnType());
                                             m.setMethodName(method.getMethodName());
                                             m.setStatic(method.isStatic());
                                             m.setParameters(method.getParameters());
+                                            m.setInterceptor(method.getInterceptor());
                                             returning.add(m);
                                         }
                                     });

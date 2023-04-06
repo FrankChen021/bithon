@@ -34,6 +34,7 @@ public interface IInstrumentationCommand {
         private String methodName;
         private boolean isStatic;
         private String parameters;
+        private String interceptor;
 
         public String getClazzName() {
             return clazzName;
@@ -73,6 +74,14 @@ public interface IInstrumentationCommand {
 
         public void setStatic(boolean aStatic) {
             isStatic = aStatic;
+        }
+
+        public String getInterceptor() {
+            return interceptor;
+        }
+
+        public void setInterceptor(String interceptor) {
+            this.interceptor = interceptor;
         }
     }
 
