@@ -132,7 +132,7 @@ public interface IAgentCommandApi {
      * Get loaded class
      */
     @PostMapping("/api/command/jvm/dumpClazz")
-    ServiceResponse<ClassRecord> getClass(@RequestBody CommandArgs<Void> args);
+    ServiceResponse<ClassRecord> getClassList(@RequestBody CommandArgs<Void> args);
 
     @Data
     class GetConfigurationRequest {

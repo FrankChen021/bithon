@@ -251,10 +251,6 @@ public class BeanMethodAopInstaller {
                 return false;
             }
 
-            if (propertyMethods.contains(name)) {
-                return false;
-            }
-
             if (excludedMethods.matches(name)) {
                 return false;
             }

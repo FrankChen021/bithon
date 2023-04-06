@@ -113,7 +113,7 @@ public class AgentCommandApi implements IAgentCommandApi {
      *             "%bithon% matches all qualified classes whose name contains bithon
      */
     @Override
-    public ServiceResponse<ClassRecord> getClass(@Valid @RequestBody CommandArgs<Void> args) {
+    public ServiceResponse<ClassRecord> getClassList(@Valid @RequestBody CommandArgs<Void> args) {
         IJvmCommand command = commandService.getServerChannel()
                                             .getRemoteService(args.getAppId(), IJvmCommand.class, 30_000);
 
