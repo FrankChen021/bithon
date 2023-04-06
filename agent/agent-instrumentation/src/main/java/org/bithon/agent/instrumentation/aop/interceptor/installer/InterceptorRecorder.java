@@ -16,13 +16,16 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.installer;
 
+import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.asm.AsmVisitorWrapper;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
+import org.bithon.shaded.net.bytebuddy.description.method.ParameterDescription;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 import org.bithon.shaded.net.bytebuddy.implementation.Implementation;
 import org.bithon.shaded.net.bytebuddy.jar.asm.MethodVisitor;
 import org.bithon.shaded.net.bytebuddy.pool.TypePool;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,11 +44,16 @@ public class InterceptorRecorder implements AsmVisitorWrapper.ForDeclaredMethods
     public static class InstrumentedMethod {
         private final String returnType;
         private final String methodName;
+        private final boolean isStatic;
         private final String parameters;
 
-        public InstrumentedMethod(String returnType, String methodName, String parameters) {
+        public InstrumentedMethod(String returnType,
+                                  String methodName,
+                                  boolean aStatic,
+                                  String parameters) {
             this.returnType = returnType;
             this.methodName = methodName;
+            this.isStatic = aStatic;
             this.parameters = parameters;
         }
 
@@ -55,6 +63,10 @@ public class InterceptorRecorder implements AsmVisitorWrapper.ForDeclaredMethods
 
         public String getMethodName() {
             return methodName;
+        }
+
+        public boolean isStatic() {
+            return isStatic;
         }
 
         public String getParameters() {
@@ -71,23 +83,33 @@ public class InterceptorRecorder implements AsmVisitorWrapper.ForDeclaredMethods
     @Override
     public MethodVisitor wrap(TypeDescription instrumentedType,
                               MethodDescription instrumentedMethod,
-                              MethodVisitor methodVisitor,
+                              @Nonnull MethodVisitor methodVisitor,
                               Implementation.Context implementationContext,
                               TypePool typePool,
                               int writerFlags,
                               int readerFlags) {
+        //TODO: extract InterceptorName binding from the visitor
+        Advice.Local
+        ((Advice.AdviceVisitor.WithExitAdvice.WithoutExceptionHandling) methodVisitor).methodEnter.this$0.offsetMappings
 
         StringBuilder parameters = new StringBuilder(32);
-        for (Object parameterType : instrumentedMethod.getParameters()) {
+        for (ParameterDescription parameter : instrumentedMethod.getParameters()) {
             if (parameters.length() > 0) {
-                parameters.append(',');
+                parameters.append(", ");
             }
-            parameters.append(parameterType);
+
+            String str = parameter.toString();
+            if (parameter.getType().isArray()) {
+                str = str.substring(2);
+                str = str.replace(";", "[]");
+            }
+            parameters.append(str);
         }
 
         instrumentedMethods.computeIfAbsent(instrumentedType.getName(), v -> Collections.synchronizedList(new ArrayList<>()))
                            .add(new InstrumentedMethod(instrumentedMethod.getReturnType().getTypeName(),
-                                                       instrumentedMethod.getName(),
+                                                       instrumentedMethod.isConstructor() ? "<ctor>" : instrumentedMethod.getName(),
+                                                       instrumentedMethod.isStatic(),
                                                        parameters.toString()));
 
         return methodVisitor;

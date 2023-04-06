@@ -38,6 +38,7 @@ public class InstrumentationCommand implements IInstrumentationCommand, IAgentCo
                                             m.setClazzName(type);
                                             m.setReturnType(method.getReturnType());
                                             m.setMethodName(method.getMethodName());
+                                            m.setStatic(method.isStatic());
                                             m.setParameters(method.getParameters());
                                             returning.add(m);
                                         }

@@ -156,6 +156,7 @@ public class AgentCommandApi implements IAgentCommandApi {
                                                         .map((method) -> {
                                                             InstrumentedMethodRecord record = new InstrumentedMethodRecord();
                                                             record.clazzName = method.getClazzName();
+                                                            record.isStatic = method.isStatic();
                                                             record.parameters = method.getParameters();
                                                             record.methodName = method.getMethodName();
                                                             record.returnType = method.getReturnType();
@@ -163,7 +164,6 @@ public class AgentCommandApi implements IAgentCommandApi {
                                                         }).collect(Collectors.toList());
 
         return ServiceResponse.success(records);
-
     }
 
     /**

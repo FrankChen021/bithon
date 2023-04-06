@@ -21,7 +21,6 @@ import org.bithon.agent.instrumentation.aop.advice.AdviceClassGenerator;
 import org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice;
 import org.bithon.agent.observability.aop.BeanMethodAopInstaller;
 import org.bithon.agent.plugin.spring.bean.interceptor.BeanMethod$Invoke;
-import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.dynamic.ClassFileLocator;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
 
@@ -55,7 +54,9 @@ public class BeanMethodAopInstallerHelper {
     public static void install(Class<?> targetClass) {
         if (BeanMethod$Invoke.AnnotationHelper.getOrCreateComponentName(targetClass) != null) {
             BeanMethodAopInstaller.install(targetClass,
-                                           Advice.to(targetAopClass.getTypeDescription(), ClassFileLocator.Simple.of(targetAopClass.getAllTypes())),
+                                           targetAopClass.getTypeDescription(),
+                                           ClassFileLocator.Simple.of(targetAopClass.getAllTypes()),
+                                           BeanMethod$Invoke.class.getName(),
                                            transformationConfig);
         }
     }

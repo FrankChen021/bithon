@@ -28,7 +28,7 @@ import java.util.Locale;
 
 /**
  * Classes of spring beans are re-transformed after these classes are loaded,
- * so we HAVE to use {@link Advice} instead of {@link shaded.net.bytebuddy.implementation.MethodDelegation}to intercept methods
+ * so we HAVE to use {@link Advice} instead of {@link org.bithon.shaded.net.bytebuddy.implementation.MethodDelegation}to intercept methods
  * <p>
  * And because the byte code of the methods are weaved into target classes which are loaded by many class loaders,
  * we also HAVE to inject any dependencies to the bootstrap class loader so that they could be found via any class loader
@@ -47,14 +47,14 @@ public class DynamicAopAdvice {
 
     private static volatile IDynamicInterceptor interceptorInstance;
 
-    public static IDynamicInterceptor getOrCreateInterceptor() {
+    public static IDynamicInterceptor getOrCreateInterceptor(String name) {
         if (interceptorInstance != null) {
             return interceptorInstance;
         }
 
         try {
             // load class out of sync to eliminate potential deadlock
-            Class<?> interceptorClass = Class.forName(INTERCEPTOR_CLASS_NAME,
+            Class<?> interceptorClass = Class.forName(name,
                                                       true,
                                                       PluginClassLoaderManager.getClassLoader(Thread.currentThread().getContextClassLoader()));
             synchronized (INTERCEPTOR_CLASS_NAME) {
@@ -76,25 +76,27 @@ public class DynamicAopAdvice {
      * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodEnter
-    public static void enter(
-        final @Advice.Origin Method method,
-        final @Advice.This(optional = true) Object target,
-        @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
-        @Advice.Local("context") Object context
+    public static void onEnter(
+            @AdviceAnnotation.InterceptorName String name,
+            final @Advice.Origin Method method,
+            final @Advice.This(optional = true) Object target,
+            @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
+            @Advice.Local("context") Object context,
+            @Advice.Local("interceptor") Object interceptor
     ) {
-        IDynamicInterceptor interceptor = getOrCreateInterceptor();
+        interceptor = getOrCreateInterceptor(name);
         if (interceptor != null) {
             Object[] newArgs = args;
 
             try {
-                context = interceptor.onMethodEnter(method, target, newArgs);
+                context = ((IDynamicInterceptor) interceptor).onMethodEnter(method, target, newArgs);
             } catch (Throwable t) {
                 LOG.error(String.format(Locale.ENGLISH, "Failed to execute interceptor [%s]", INTERCEPTOR_CLASS_NAME), t);
                 return;
             }
 
-            // This assignment must be kept since it tells bytebuddy that args might have been re-written
-            // so that bytebuddy re-map the args to original function input argument
+            // This assignment must be kept since it tells byte-buddy that args might have been re-written
+            // so that byte-buddy re-map the args to original function input argument
             args = newArgs;
         }
     }
@@ -103,22 +105,22 @@ public class DynamicAopAdvice {
      * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit(onThrowable = Throwable.class)
-    public static void exit(final @Advice.Origin Method method,
-                            final @Advice.This Object target,
-                            @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning,
-                            final @Advice.AllArguments Object[] args,
-                            final @Advice.Thrown Throwable exception,
-                            final @Advice.Local("context") Object context) {
+    public static void onExit(final @Advice.Origin Method method,
+                              final @Advice.This Object target,
+                              @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning,
+                              final @Advice.AllArguments Object[] args,
+                              final @Advice.Thrown Throwable exception,
+                              final @Advice.Local("context") Object context,
+                              final @Advice.Local("interceptor") Object interceptor) {
         if (context == null) {
             return;
         }
 
-        IDynamicInterceptor interceptor = getOrCreateInterceptor();
         if (interceptor == null) {
             return;
         }
         try {
-            returning = interceptor.onMethodExit(method, target, args, returning, exception, context);
+            returning = ((IDynamicInterceptor) interceptor).onMethodExit(method, target, args, returning, exception, context);
         } catch (Throwable t) {
             LOG.error(String.format(Locale.ENGLISH, "Failed to execute exit interceptor [%s]", INTERCEPTOR_CLASS_NAME), t);
         }

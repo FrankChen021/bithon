@@ -40,13 +40,14 @@ public class AfterAdvice {
      */
     @Advice.OnMethodEnter
     public static void onEnter(
+        @AdviceAnnotation.InterceptorName String name,
         @AdviceAnnotation.TargetMethod Method method,
         @Advice.This(optional = true) Object target,
         @Advice.AllArguments Object[] args,
         @Advice.Local("context") Object context
     ) {
         AopContextImpl aopContext = new AopContextImpl(method, target, args);
-
+        LOG.info("Executing interceptor {}", name);
         aopContext.onBeforeTargetMethodInvocation();
 
         // assign the context so that the leave method can access this object

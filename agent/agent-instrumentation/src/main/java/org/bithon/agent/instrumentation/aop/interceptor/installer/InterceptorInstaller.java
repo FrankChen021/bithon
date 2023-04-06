@@ -194,6 +194,7 @@ public class InterceptorInstaller {
             switch (pointCutDescriptor.getInterceptorType()) {
                 case BEFORE:
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
+                                                               .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(pointCutDescriptor.getInterceptorClassName()))
                                                                .bind(AdviceAnnotation.Interceptor.class, new AdviceAnnotation.InterceptorResolver(typeDescription, fieldName))
                                                                .bind(AdviceAnnotation.TargetMethod.class, new AdviceAnnotation.TargetMethodResolver())
                                                                .to(BeforeAdvice.class),
@@ -204,6 +205,7 @@ public class InterceptorInstaller {
                             AfterAdvice.class : ConstructorAfterAdvice.class;
 
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
+                                                               .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(pointCutDescriptor.getInterceptorClassName()))
                                                                .bind(AdviceAnnotation.Interceptor.class, new AdviceAnnotation.InterceptorResolver(typeDescription, fieldName))
                                                                .bind(AdviceAnnotation.TargetMethod.class, new AdviceAnnotation.TargetMethodResolver())
                                                                .to(adviceClazz),
@@ -216,6 +218,7 @@ public class InterceptorInstaller {
                             AroundAdvice.class : AroundConstructorAdvice.class;
 
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
+                                                               .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(pointCutDescriptor.getInterceptorClassName()))
                                                                .bind(AdviceAnnotation.Interceptor.class, new AdviceAnnotation.InterceptorResolver(typeDescription, fieldName))
                                                                .bind(AdviceAnnotation.TargetMethod.class, new AdviceAnnotation.TargetMethodResolver())
                                                                .to(adviceClazz),
@@ -230,8 +233,7 @@ public class InterceptorInstaller {
                     }
                     builder = builder.method(pointCutDescriptor.getMethodMatcher())
                                      .intercept(Advice.withCustomMapping()
-                                                      .bind(AdviceAnnotation.Interceptor.class,
-                                                            new AdviceAnnotation.InterceptorResolver(typeDescription, fieldName))
+                                                      .bind(AdviceAnnotation.Interceptor.class, new AdviceAnnotation.InterceptorResolver(typeDescription, fieldName))
                                                       .to(ReplacementAdvice.class).wrap(StubMethod.INSTANCE));
                     break;
 

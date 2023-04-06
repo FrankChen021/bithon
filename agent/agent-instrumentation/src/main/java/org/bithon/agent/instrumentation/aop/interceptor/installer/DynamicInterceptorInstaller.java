@@ -17,12 +17,14 @@
 package org.bithon.agent.instrumentation.aop.interceptor.installer;
 
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
+import org.bithon.agent.instrumentation.aop.advice.AdviceAnnotation;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
+import org.bithon.shaded.net.bytebuddy.dynamic.ClassFileLocator;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
@@ -58,7 +60,7 @@ public class DynamicInterceptorInstaller {
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
             .type(ElementMatchers.named(descriptor.targetClass))
             .transform((builder, typeDescription, classLoader, javaModule, protectionDomain) -> install(descriptor, builder))
-            .with(InstrumentationHelper.getAopDebugger().withTypes(new HashSet<>(Collections.singletonList(descriptor.getTargetClass()))))
+            .with(InstrumentationHelper.getAopDebugger().withTypes(new HashSet<>(Collections.singletonList(descriptor.targetClass))))
             .installOn(InstrumentationHelper.getInstance());
     }
 
@@ -91,33 +93,34 @@ public class DynamicInterceptorInstaller {
     private DynamicType.Builder<?> install(AopDescriptor descriptor,
                                            DynamicType.Builder<?> builder) {
 
-        LOG.info("Dynamically install interceptor for [{}]", descriptor.getTargetClass());
-        return builder.visit(InterceptorInstaller.newInstaller(descriptor.getAdvice(), descriptor.getMethodMatcher()));
+        LOG.info("Dynamically install interceptor for [{}]", descriptor.targetClass);
+        return builder.visit(InterceptorInstaller.newInstaller(Advice.withCustomMapping()
+                                                                     .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(descriptor.interceptorName))
+                                                                     .to(descriptor.advice, descriptor.adviceLocator),
+                                                               descriptor.methodMatcher));
     }
 
     public static class AopDescriptor {
         private final String targetClass;
-        private final Advice advice;
+        private final TypeDescription advice;
+        private final ClassFileLocator adviceLocator;
         private final ElementMatcher.Junction<MethodDescription> methodMatcher;
+        private final String interceptorName;
 
         public AopDescriptor(String targetClass,
-                             Advice advice,
-                             ElementMatcher.Junction<MethodDescription> methodMatcher) {
+                             TypeDescription advice,
+                             ClassFileLocator adviceLocator,
+                             ElementMatcher.Junction<MethodDescription> methodMatcher,
+                             String interceptorName) {
             this.targetClass = targetClass;
             this.advice = advice;
+            this.adviceLocator = adviceLocator;
             this.methodMatcher = methodMatcher;
+            this.interceptorName = interceptorName;
         }
 
         public String getTargetClass() {
             return targetClass;
-        }
-
-        public Advice getAdvice() {
-            return advice;
-        }
-
-        public ElementMatcher.Junction<MethodDescription> getMethodMatcher() {
-            return methodMatcher;
         }
     }
 }

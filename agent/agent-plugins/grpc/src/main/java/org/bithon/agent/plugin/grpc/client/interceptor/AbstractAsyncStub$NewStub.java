@@ -25,7 +25,6 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.installer.DynamicInterceptorInstaller;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
-import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 import org.bithon.shaded.net.bytebuddy.dynamic.ClassFileLocator;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
@@ -69,9 +68,11 @@ public class AbstractAsyncStub$NewStub extends BeforeInterceptor {
         }
 
         // Enhance the stub class
-        DynamicInterceptorInstaller.getInstance().installOne(new DynamicInterceptorInstaller.AopDescriptor(clientStubClass.getName(),
-                                                                                                           Advice.to(grpcStubAopClass.getTypeDescription(),
-                                                                                                                     ClassFileLocator.Simple.of(grpcStubAopClass.getAllTypes())),
-                                                                                                           Matchers.visibility(Visibility.PUBLIC)));
+        DynamicInterceptorInstaller.getInstance()
+                                   .installOne(new DynamicInterceptorInstaller.AopDescriptor(clientStubClass.getName(),
+                                                                                             grpcStubAopClass.getTypeDescription(),
+                                                                                             ClassFileLocator.Simple.of(grpcStubAopClass.getAllTypes()),
+                                                                                             Matchers.visibility(Visibility.PUBLIC),
+                                                                                             AbstractGrpcStubInterceptor.AsyncStubInterceptor.class.getName()));
     }
 }

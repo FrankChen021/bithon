@@ -32,6 +32,7 @@ public interface IInstrumentationCommand {
         private String clazzName;
         private String returnType;
         private String methodName;
+        private boolean isStatic;
         private String parameters;
 
         public String getClazzName() {
@@ -64,6 +65,14 @@ public interface IInstrumentationCommand {
 
         public void setParameters(String parameters) {
             this.parameters = parameters;
+        }
+
+        public boolean isStatic() {
+            return isStatic;
+        }
+
+        public void setStatic(boolean aStatic) {
+            isStatic = aStatic;
         }
     }
 

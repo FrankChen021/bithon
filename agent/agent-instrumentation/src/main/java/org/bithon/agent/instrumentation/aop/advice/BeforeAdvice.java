@@ -40,6 +40,7 @@ public class BeforeAdvice {
      */
     @Advice.OnMethodEnter
     public static void onEnter(
+            @AdviceAnnotation.InterceptorName String name,
         @AdviceAnnotation.Interceptor IInterceptor interceptor,
         @AdviceAnnotation.TargetMethod Method method,
         @Advice.This(optional = true) Object target,

@@ -41,6 +41,7 @@ public class AroundAdvice {
      */
     @Advice.OnMethodEnter
     public static boolean onEnter(
+        @AdviceAnnotation.InterceptorName String name,
         @AdviceAnnotation.Interceptor IInterceptor interceptor,
         @AdviceAnnotation.TargetMethod Method method,
         @Advice.This(optional = true) Object target,

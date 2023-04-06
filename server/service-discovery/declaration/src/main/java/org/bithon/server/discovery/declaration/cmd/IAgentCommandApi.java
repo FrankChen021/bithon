@@ -156,6 +156,7 @@ public interface IAgentCommandApi {
 
     class InstrumentedMethodRecord implements IObjectArrayConvertable {
         public String clazzName;
+        public boolean isStatic;
         public String returnType;
         public String methodName;
         public String parameters;
@@ -163,7 +164,7 @@ public interface IAgentCommandApi {
 
         @Override
         public Object[] toObjectArray() {
-            return new Object[]{clazzName, returnType, methodName, parameters};
+            return new Object[]{clazzName, isStatic, returnType, methodName, parameters};
         }
     }
 
