@@ -36,15 +36,15 @@ public class BeforeAdvice {
     public static final ILogger LOG = LoggerFactory.getLogger(BeforeAdvice.class);
 
     /**
-     * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
+     * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodEnter
     public static void onEnter(
             @AdviceAnnotation.InterceptorName String name,
-        @AdviceAnnotation.Interceptor IInterceptor interceptor,
-        @AdviceAnnotation.TargetMethod Method method,
-        @Advice.This(optional = true) Object target,
-        @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args
+            @AdviceAnnotation.Interceptor IInterceptor interceptor,
+            @AdviceAnnotation.TargetMethod Method method,
+            @Advice.This(optional = true) Object target,
+            @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args
     ) {
         if (interceptor == null) {
             return;
@@ -64,8 +64,8 @@ public class BeforeAdvice {
             // continue to execute
         }
 
-        //this assignment must be kept since it tells bytebuddy that args might have been re-written
-        // so that bytebyddy re-map the args to original function input argument
+        // This assignment must be kept since it tells byte-buddy that args might have been re-written
+        // so that byte-buddy re-map the args to original function input argument
         args = aopContext.getArgs();
     }
 }

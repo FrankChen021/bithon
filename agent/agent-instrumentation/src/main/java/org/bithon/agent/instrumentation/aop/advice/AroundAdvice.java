@@ -37,7 +37,7 @@ public class AroundAdvice {
     public static final ILogger LOG = LoggerFactory.getLogger(AroundAdvice.class);
 
     /**
-     * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
+     * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodEnter
     public static boolean onEnter(
@@ -67,8 +67,8 @@ public class AroundAdvice {
             // continue to execute
         }
 
-        //this assignment must be kept since it tells bytebuddy that args might have been re-written
-        // so that bytebyddy re-map the args to original function input argument
+        // This assignment must be kept since it tells byte-buddy that args might have been re-written
+        // so that byte-buddy re-map the args to original function input argument
         args = aopContext.getArgs();
 
         if (skipAfterMethod) {
@@ -83,7 +83,7 @@ public class AroundAdvice {
     }
 
     /**
-     * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
+     * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit(onThrowable = Throwable.class)
     public static void onExit(@AdviceAnnotation.Interceptor IInterceptor interceptor,

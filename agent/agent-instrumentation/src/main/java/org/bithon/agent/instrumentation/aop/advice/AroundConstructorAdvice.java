@@ -42,11 +42,11 @@ public class AroundConstructorAdvice {
     @Advice.OnMethodEnter
     public static boolean onEnter(
             @AdviceAnnotation.InterceptorName String name,
-        @AdviceAnnotation.Interceptor IInterceptor interceptor,
-        @AdviceAnnotation.TargetMethod Method method,
-        @Advice.This(optional = true) Object target,
-        @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
-        @Advice.Local("context") Object context
+            @AdviceAnnotation.Interceptor IInterceptor interceptor,
+            @AdviceAnnotation.TargetMethod Method method,
+            @Advice.This(optional = true) Object target,
+            @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
+            @Advice.Local("context") Object context
     ) {
         if (interceptor == null) {
             return false;
@@ -58,17 +58,18 @@ public class AroundConstructorAdvice {
         try {
             skipAfterMethod = ((AroundInterceptor) interceptor).before(aopContext) == InterceptionDecision.SKIP_LEAVE;
         } catch (Throwable e) {
-            LOG.error(String.format(Locale.ENGLISH, "Exception occurred when executing onEnter of [%s] for [%s]: %s",
-                                    interceptor.getClass().getSimpleName(),
-                                    method.getDeclaringClass().getSimpleName(),
-                                    e.getMessage()),
-                      e);
+            LOG.error(
+                    String.format(Locale.ENGLISH, "Exception occurred when executing onEnter of [%s] for [%s]: %s",
+                                  interceptor.getClass().getSimpleName(),
+                                  method.getDeclaringClass().getSimpleName(),
+                                  e.getMessage()),
+                    e);
 
             // continue to execute
         }
 
-        //this assignment must be kept since it tells bytebuddy that args might have been re-written
-        // so that bytebyddy re-map the args to original function input argument
+        // This assignment must be kept since it tells byte-buddy that args might have been re-written
+        // so that byte-buddy re-map the args to original function input argument
         args = aopContext.getArgs();
 
         if (skipAfterMethod) {
@@ -86,10 +87,11 @@ public class AroundConstructorAdvice {
      * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit
-    public static void onExit(@AdviceAnnotation.Interceptor IInterceptor interceptor,
-                              @Advice.This Object target,
-                              @Advice.Enter boolean shouldExecute,
-                              @Advice.Local("context") Object context) {
+    public static void onExit(
+            @AdviceAnnotation.Interceptor IInterceptor interceptor,
+            @Advice.This Object target,
+            @Advice.Enter boolean shouldExecute,
+            @Advice.Local("context") Object context) {
         if (!shouldExecute || context == null) {
             return;
         }
