@@ -89,25 +89,25 @@ public class ServerChannel implements Closeable {
 
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         serverBootstrap
-            .group(bossGroup, workerGroup)
-            .channel(NioServerSocketChannel.class)
-            .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-            .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-            .option(ChannelOption.SO_BACKLOG, 1024)
-            .childOption(ChannelOption.SO_KEEPALIVE, false)
-            .childOption(ChannelOption.TCP_NODELAY, true)
-            .childHandler(new ChannelInitializer<NioSocketChannel>() {
-                @Override
-                protected void initChannel(NioSocketChannel ch) {
-                    ChannelPipeline pipeline = ch.pipeline();
-                    pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
-                    pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
-                    pipeline.addLast("decoder", new ServiceMessageInDecoder());
-                    pipeline.addLast("encoder", new ServiceMessageOutEncoder());
-                    pipeline.addLast(sessionManager);
-                    pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry));
-                }
-            });
+                .group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel.class)
+                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                .option(ChannelOption.SO_BACKLOG, 1024)
+                .childOption(ChannelOption.SO_KEEPALIVE, false)
+                .childOption(ChannelOption.TCP_NODELAY, true)
+                .childHandler(new ChannelInitializer<NioSocketChannel>() {
+                    @Override
+                    protected void initChannel(NioSocketChannel ch) {
+                        ChannelPipeline pipeline = ch.pipeline();
+                        pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
+                        pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
+                        pipeline.addLast("decoder", new ServiceMessageInDecoder());
+                        pipeline.addLast("encoder", new ServiceMessageOutEncoder());
+                        pipeline.addLast(sessionManager);
+                        pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry));
+                    }
+                });
         try {
             serverBootstrap.bind(port).sync();
         } catch (InterruptedException e) {
@@ -186,6 +186,8 @@ public class ServerChannel implements Closeable {
          */
         private String appId;
 
+        private String clientVersion;
+
         public Session(Channel channel) {
             this.channel = channel;
             this.endpoint = EndPoint.of((InetSocketAddress) channel.remoteAddress());
@@ -212,6 +214,14 @@ public class ServerChannel implements Closeable {
 
         public void setAppId(String appId) {
             this.appId = appId;
+        }
+
+        public String getClientVersion() {
+            return clientVersion;
+        }
+
+        public void setClientVersion(String clientVersion) {
+            this.clientVersion = clientVersion;
         }
     }
 
@@ -249,6 +259,11 @@ public class ServerChannel implements Closeable {
                 String appId = request.getHeaders().get(Headers.HEADER_APP_ID);
                 if (!StringUtils.isEmpty(appId)) {
                     session.setAppId(appId);
+                }
+
+                String buildId = request.getHeaders().get(Headers.HEADER_VERSION);
+                if (!StringUtils.isEmpty(buildId)) {
+                    session.setClientVersion(buildId);
                 }
             }
 

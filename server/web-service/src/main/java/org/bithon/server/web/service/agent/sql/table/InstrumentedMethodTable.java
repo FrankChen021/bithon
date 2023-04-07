@@ -26,31 +26,31 @@ import java.util.List;
 
 /**
  * @author Frank Chen
- * @date 1/3/23 8:18 pm
+ * @date 4/4/23 10:39 pm
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
-public class ClassTable extends AbstractBaseTable {
+public class InstrumentedMethodTable extends AbstractBaseTable {
     private final IAgentCommandApi impl;
 
-    public ClassTable(IAgentCommandApi impl) {
+    public InstrumentedMethodTable(IAgentCommandApi impl) {
         this.impl = impl;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
         String appId = (String) executionContext.get("appId");
         Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
 
-        ServiceResponse<IAgentCommandApi.ClassRecord> classList = impl.getClassList(new CommandArgs<>(appId, null));
-        if (classList.getError() != null) {
-            throw new RuntimeException(classList.getError().toString());
+        ServiceResponse<IAgentCommandApi.InstrumentedMethodRecord> methodList = impl.getInstrumentedMethod(new CommandArgs<>(appId, null));
+        if (methodList.getError() != null) {
+            throw new RuntimeException(methodList.getError().toString());
         }
 
-        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>) classList.getRows();
+        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>) methodList.getRows();
     }
 
     @Override
     protected Class getRecordClazz() {
-        return IAgentCommandApi.ClassRecord.class;
+        return IAgentCommandApi.InstrumentedMethodRecord.class;
     }
 }

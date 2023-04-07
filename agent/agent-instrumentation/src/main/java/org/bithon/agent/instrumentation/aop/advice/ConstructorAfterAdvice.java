@@ -36,7 +36,8 @@ public class ConstructorAfterAdvice {
     public static final ILogger LOG = LoggerFactory.getLogger(ConstructorAfterAdvice.class);
 
     @Advice.OnMethodExit
-    public static void onExit(@AdviceAnnotation.Interceptor IInterceptor interceptor,
+    public static void onExit(@AdviceAnnotation.InterceptorName String name,
+                              @AdviceAnnotation.Interceptor IInterceptor interceptor,
                               @AdviceAnnotation.TargetMethod Constructor<?> method,
                               @Advice.This Object target,
                               @Advice.AllArguments Object[] args) {

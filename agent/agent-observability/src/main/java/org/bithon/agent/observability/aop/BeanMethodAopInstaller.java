@@ -22,7 +22,6 @@ import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.observability.utils.filter.IMatcher;
 import org.bithon.agent.observability.utils.filter.InCollectionMatcher;
 import org.bithon.agent.observability.utils.filter.StringEqualMatcher;
-import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 
@@ -56,7 +55,9 @@ public class BeanMethodAopInstaller {
         });
     }
 
-    public static void install(Class<?> targetClass, Advice advice, BeanTransformationConfig transformationConfig) {
+    public static void install(Class<?> targetClass,
+                               String interceptor,
+                               BeanTransformationConfig transformationConfig) {
         if (targetClass.isSynthetic()) {
             /*
              * eg: org.springframework.boot.actuate.autoconfigure.metrics.KafkaMetricsAutoConfiguration$$Lambda$709/829537923
@@ -119,9 +120,9 @@ public class BeanMethodAopInstaller {
         }
 
         DynamicInterceptorInstaller.AopDescriptor descriptor = new DynamicInterceptorInstaller.AopDescriptor(targetClass.getName(),
-                                                                                                             advice,
                                                                                                              new BeanMethodMatcher(propertyMethods,
-                                                                                                                                   excludedMethods));
+                                                                                                                                   excludedMethods),
+                                                                                                             interceptor);
 
         if (AppInstance.getInstance().getPort() == 0) {
             //
@@ -235,10 +236,10 @@ public class BeanMethodAopInstaller {
         @Override
         public boolean matches(MethodDescription target) {
             boolean matched = target.isPublic()
-                              && !target.isConstructor()
-                              && !target.isStatic()
-                              && !target.isAbstract()
-                              && !target.isNative();
+                    && !target.isConstructor()
+                    && !target.isStatic()
+                    && !target.isAbstract()
+                    && !target.isNative();
             if (!matched) {
                 return false;
             }
@@ -247,10 +248,6 @@ public class BeanMethodAopInstaller {
 
             matched = !name.startsWith("is") && !name.startsWith("set") && !name.startsWith("can");
             if (!matched) {
-                return false;
-            }
-
-            if (propertyMethods.contains(name)) {
                 return false;
             }
 

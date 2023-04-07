@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
  * @author frank.chen021@outlook.com
  * @date 2021/7/11 11:27
  */
-public interface IDynamicInterceptor {
+public interface IDynamicInterceptor extends IInterceptor {
 
     /**
      * @return context

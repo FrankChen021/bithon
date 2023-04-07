@@ -118,7 +118,7 @@ public class AgentStarter {
         boolean isDebug = ConfigurationManager.getInstance().getConfig(AopConfig.class).isDebug();
 
         String appName = ConfigurationManager.getInstance().getConfig(ConfigurationManager.BITHON_APPLICATION_NAME, String.class);
-        String env = ConfigurationManager.getInstance().getConfig(ConfigurationManager.BITHON_APPLICATION_NAME, String.class);
+        String env = ConfigurationManager.getInstance().getConfig(ConfigurationManager.BITHON_APPLICATION_ENV, String.class);
         File targetDirectory = AgentDirectory.getSubDirectory(AgentDirectory.TMP_DIR
                                                               + separator
                                                               + appName + "-" + env

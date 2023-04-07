@@ -17,7 +17,7 @@
 package org.bithon.agent.instrumentation.aop.advice;
 
 import org.bithon.agent.instrumentation.aop.interceptor.IDynamicInterceptor;
-import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
@@ -28,7 +28,7 @@ import java.util.Locale;
 
 /**
  * Classes of spring beans are re-transformed after these classes are loaded,
- * so we HAVE to use {@link Advice} instead of {@link shaded.net.bytebuddy.implementation.MethodDelegation}to intercept methods
+ * so we HAVE to use {@link Advice} instead of {@link org.bithon.shaded.net.bytebuddy.implementation.MethodDelegation}to intercept methods
  * <p>
  * And because the byte code of the methods are weaved into target classes which are loaded by many class loaders,
  * we also HAVE to inject any dependencies to the bootstrap class loader so that they could be found via any class loader
@@ -41,86 +41,53 @@ public class DynamicAopAdvice {
     private static final ILogger LOG = LoggerFactory.getLogger(DynamicAopAdvice.class);
 
     /**
-     * assigned by class generator
-     */
-    private static String INTERCEPTOR_CLASS_NAME;
-
-    private static volatile IDynamicInterceptor interceptorInstance;
-
-    public static IDynamicInterceptor getOrCreateInterceptor() {
-        if (interceptorInstance != null) {
-            return interceptorInstance;
-        }
-
-        try {
-            // load class out of sync to eliminate potential deadlock
-            Class<?> interceptorClass = Class.forName(INTERCEPTOR_CLASS_NAME,
-                                                      true,
-                                                      PluginClassLoaderManager.getClassLoader(Thread.currentThread().getContextClassLoader()));
-            synchronized (INTERCEPTOR_CLASS_NAME) {
-                //double check
-                if (interceptorInstance != null) {
-                    return interceptorInstance;
-                }
-
-                interceptorInstance = (IDynamicInterceptor) interceptorClass.getDeclaredConstructor().newInstance();
-            }
-
-        } catch (Exception e) {
-            LOG.error(String.format(Locale.ENGLISH, "Failed to create interceptor [%s]", INTERCEPTOR_CLASS_NAME), e);
-        }
-        return interceptorInstance;
-    }
-
-    /**
-     * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
+     * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodEnter
-    public static void enter(
-        final @Advice.Origin Method method,
-        final @Advice.This(optional = true) Object target,
-        @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
-        @Advice.Local("context") Object context
+    public static void onEnter(
+            @AdviceAnnotation.InterceptorName String name,
+            @AdviceAnnotation.InterceptorIndex int index,
+            @Advice.Origin Method method,
+            @Advice.This(optional = true) Object target,
+            @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
+            @Advice.Local("context") Object context,
+            @Advice.Local("interceptor") Object interceptor
     ) {
-        IDynamicInterceptor interceptor = getOrCreateInterceptor();
+        interceptor = InterceptorManager.getInterceptor(index);
         if (interceptor != null) {
             Object[] newArgs = args;
 
             try {
-                context = interceptor.onMethodEnter(method, target, newArgs);
+                context = ((IDynamicInterceptor) interceptor).onMethodEnter(method, target, newArgs);
             } catch (Throwable t) {
-                LOG.error(String.format(Locale.ENGLISH, "Failed to execute interceptor [%s]", INTERCEPTOR_CLASS_NAME), t);
+                LOG.error(String.format(Locale.ENGLISH, "Failed to execute interceptor [%s]", name), t);
                 return;
             }
 
-            // This assignment must be kept since it tells bytebuddy that args might have been re-written
-            // so that bytebuddy re-map the args to original function input argument
+            // This assignment must be kept since it tells byte-buddy that args might have been re-written
+            // so that byte-buddy re-map the args to original function input argument
             args = newArgs;
         }
     }
 
     /**
-     * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
+     * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit(onThrowable = Throwable.class)
-    public static void exit(final @Advice.Origin Method method,
-                            final @Advice.This Object target,
-                            @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning,
-                            final @Advice.AllArguments Object[] args,
-                            final @Advice.Thrown Throwable exception,
-                            final @Advice.Local("context") Object context) {
-        if (context == null) {
-            return;
-        }
-
-        IDynamicInterceptor interceptor = getOrCreateInterceptor();
-        if (interceptor == null) {
+    public static void onExit(@Advice.Origin Method method,
+                              @Advice.This Object target,
+                              @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning,
+                              @Advice.AllArguments Object[] args,
+                              @Advice.Thrown Throwable exception,
+                              @Advice.Local("context") Object context,
+                              @Advice.Local("interceptor") Object interceptor) {
+        if (context == null || interceptor == null) {
             return;
         }
         try {
-            returning = interceptor.onMethodExit(method, target, args, returning, exception, context);
+            returning = ((IDynamicInterceptor) interceptor).onMethodExit(method, target, args, returning, exception, context);
         } catch (Throwable t) {
-            LOG.error(String.format(Locale.ENGLISH, "Failed to execute exit interceptor [%s]", INTERCEPTOR_CLASS_NAME), t);
+            LOG.error(String.format(Locale.ENGLISH, "Failed to execute exit interceptor [%s]", interceptor.getClass().getName()), t);
         }
     }
 }

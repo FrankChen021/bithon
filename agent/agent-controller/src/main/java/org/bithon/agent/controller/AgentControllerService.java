@@ -18,6 +18,7 @@ package org.bithon.agent.controller;
 
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.controller.cmd.IAgentCommand;
+import org.bithon.agent.controller.cmd.InstrumentationCommand;
 import org.bithon.agent.controller.cmd.JvmCommand;
 import org.bithon.agent.controller.config.DynamicConfigurationManager;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
@@ -61,6 +62,7 @@ public class AgentControllerService implements IAgentService {
         }
 
         attachCommand(controller, new JvmCommand());
+        attachCommand(controller, new InstrumentationCommand());
         loadAgentCommands(controller, AgentClassLoader.getClassLoader());
         loadAgentCommands(controller, PluginClassLoaderManager.getDefaultLoader());
 

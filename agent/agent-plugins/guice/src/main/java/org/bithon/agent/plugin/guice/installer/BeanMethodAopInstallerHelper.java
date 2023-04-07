@@ -17,13 +17,8 @@
 package org.bithon.agent.plugin.guice.installer;
 
 import org.bithon.agent.configuration.ConfigurationManager;
-import org.bithon.agent.instrumentation.aop.advice.AdviceClassGenerator;
-import org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice;
 import org.bithon.agent.observability.aop.BeanMethodAopInstaller;
 import org.bithon.agent.plugin.guice.interceptor.GuiceBeanMethod$Invoke;
-import org.bithon.shaded.net.bytebuddy.asm.Advice;
-import org.bithon.shaded.net.bytebuddy.dynamic.ClassFileLocator;
-import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
 
 /**
  * @author frank.chen021@outlook.com
@@ -31,30 +26,13 @@ import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
  */
 public class BeanMethodAopInstallerHelper {
 
-    static BeanMethodAopInstaller.BeanTransformationConfig transformationConfig;
-
-    private static DynamicType.Unloaded<?> targetAopClass;
-
-    /**
-     * for the interceptors of spring-beans, they perform same function,
-     * So we use one interceptor for all spring-beans, and generates an Aop for that interceptor
-     */
-    public static void initialize() {
-        transformationConfig = ConfigurationManager.getInstance()
-                                                   .getConfig("agent.plugin.guice", BeanMethodAopInstaller.BeanTransformationConfig.class);
-
-        String targetAopClassName = BeanMethodAopInstallerHelper.class.getPackage().getName() + ".GuiceMethodAop";
-
-        targetAopClass = AdviceClassGenerator.generateAdviceClass(DynamicAopAdvice.class,
-                                                                  targetAopClassName,
-                                                                  GuiceBeanMethod$Invoke.class.getName(),
-                                                                  true);
-        AdviceClassGenerator.inject(targetAopClass);
-    }
-
     public static void install(Class<?> targetClass) {
+        BeanMethodAopInstaller.BeanTransformationConfig
+                transformationConfig = ConfigurationManager.getInstance()
+                                                           .getConfig("agent.plugin.guice", BeanMethodAopInstaller.BeanTransformationConfig.class);
+
         BeanMethodAopInstaller.install(targetClass,
-                                       Advice.to(targetAopClass.getTypeDescription(), ClassFileLocator.Simple.of(targetAopClass.getAllTypes())),
+                                       GuiceBeanMethod$Invoke.class.getName(),
                                        transformationConfig);
     }
 }
