@@ -27,7 +27,7 @@ import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
  */
 public class ReplacementAdvice {
     /**
-     * This method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
+     * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit
     public static void onExecute(@AdviceAnnotation.Interceptor IInterceptor interceptor,

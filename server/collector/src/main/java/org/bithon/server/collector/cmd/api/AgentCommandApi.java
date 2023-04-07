@@ -17,6 +17,7 @@
 package org.bithon.server.collector.cmd.api;
 
 import org.bithon.agent.rpc.brpc.cmd.IConfigCommand;
+import org.bithon.agent.rpc.brpc.cmd.IInstrumentationCommand;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.agent.rpc.brpc.cmd.ILoggingCommand;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -69,6 +71,7 @@ public class AgentCommandApi implements IAgentCommandApi {
                                                          instance.setAppName(session.getAppName());
                                                          instance.setAppId(session.getAppId());
                                                          instance.setEndpoint(session.getEndpoint().toString());
+                                                         instance.setAgentVersion(session.getClientVersion());
                                                          return instance;
                                                      })
                                                      .collect(Collectors.toList()));
@@ -113,7 +116,7 @@ public class AgentCommandApi implements IAgentCommandApi {
      *             "%bithon% matches all qualified classes whose name contains bithon
      */
     @Override
-    public ServiceResponse<ClassRecord> getClass(@RequestBody CommandArgs<Void> args) {
+    public ServiceResponse<ClassRecord> getClassList(@Valid @RequestBody CommandArgs<Void> args) {
         IJvmCommand command = commandService.getServerChannel()
                                             .getRemoteService(args.getAppId(), IJvmCommand.class, 30_000);
 
@@ -147,18 +150,38 @@ public class AgentCommandApi implements IAgentCommandApi {
     }
 
     @Override
+    public ServiceResponse<InstrumentedMethodRecord> getInstrumentedMethod(CommandArgs<Void> args) {
+        IInstrumentationCommand command = commandService.getServerChannel()
+                                                        .getRemoteService(args.getAppId(), IInstrumentationCommand.class, 30_000);
+
+        List<InstrumentedMethodRecord> records = command.getInstrumentedMethods()
+                                                        .stream()
+                                                        .map((method) -> {
+                                                            InstrumentedMethodRecord record = new InstrumentedMethodRecord();
+                                                            record.clazzName = method.getClazzName();
+                                                            record.isStatic = method.isStatic();
+                                                            record.parameters = method.getParameters();
+                                                            record.methodName = method.getMethodName();
+                                                            record.returnType = method.getReturnType();
+                                                            return record;
+                                                        }).collect(Collectors.toList());
+
+        return ServiceResponse.success(records);
+    }
+
+    @Override
     public ServiceResponse<LoggerConfigurationRecord> getLoggerList(@RequestBody CommandArgs<Void> args) {
         ILoggingCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(),
-                                                                                     ILoggingCommand.class,
-                                                                                     30_000);
+                ILoggingCommand.class,
+                30_000);
 
         List<LoggerConfiguration> loggers = command.getLoggers();
 
         List<LoggerConfigurationRecord> result = loggers.stream()
-                                                        .map((c) -> new LoggerConfigurationRecord(c.getName(),
-                                                                                                  c.getLevel() == null ? null : c.getLevel().toString(),
-                                                                                                  c.getEffectiveLevel() == null ? null : c.getEffectiveLevel().toString()))
-                                                        .collect(Collectors.toList());
+                .map((c) -> new LoggerConfigurationRecord(c.getName(),
+                        c.getLevel() == null ? null : c.getLevel().toString(),
+                        c.getEffectiveLevel() == null ? null : c.getEffectiveLevel().toString()))
+                .collect(Collectors.toList());
         return ServiceResponse.success(result);
     }
 
@@ -167,11 +190,11 @@ public class AgentCommandApi implements IAgentCommandApi {
         Preconditions.checkArgumentNotNull("args", args.getArgs());
 
         ILoggingCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(),
-                                                                                     ILoggingCommand.class,
-                                                                                     30_000);
+                ILoggingCommand.class,
+                30_000);
 
         command.setLogger(args.getArgs().getName(),
-                          args.getArgs().getLevel());
+                args.getArgs().getLevel());
     }
 
     /**

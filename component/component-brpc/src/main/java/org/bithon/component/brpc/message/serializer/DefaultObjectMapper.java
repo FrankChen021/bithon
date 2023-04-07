@@ -23,6 +23,9 @@ import org.bithon.shaded.com.fasterxml.jackson.databind.SerializationFeature;
 import org.bithon.shaded.com.fasterxml.jackson.dataformat.smile.SmileFactory;
 import org.bithon.shaded.com.fasterxml.jackson.dataformat.smile.SmileGenerator;
 
+/**
+ * @author frank.chen
+ */
 public class DefaultObjectMapper extends ObjectMapper {
 
     private DefaultObjectMapper(DefaultObjectMapper mapper) {

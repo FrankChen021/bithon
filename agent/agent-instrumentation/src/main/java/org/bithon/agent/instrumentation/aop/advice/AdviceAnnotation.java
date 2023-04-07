@@ -23,8 +23,10 @@ import org.bithon.shaded.net.bytebuddy.description.field.FieldDescription;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
+import org.bithon.shaded.net.bytebuddy.implementation.bytecode.constant.JavaConstantValue;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.constant.MethodConstant;
 import org.bithon.shaded.net.bytebuddy.jar.asm.Opcodes;
+import org.bithon.shaded.net.bytebuddy.utility.JavaConstant;
 
 import javax.annotation.Nonnull;
 import java.lang.annotation.ElementType;
@@ -35,6 +37,16 @@ import java.lang.annotation.RetentionPolicy;
  * @author frankchen
  */
 public class AdviceAnnotation {
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @java.lang.annotation.Target(ElementType.PARAMETER)
+    public @interface InterceptorName {
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @java.lang.annotation.Target(ElementType.PARAMETER)
+    public @interface InterceptorIndex {
+    }
 
     /**
      * Custom annotation used on Advice classes to reference the {@link org.bithon.agent.instrumentation.aop.interceptor.IInterceptor} object
@@ -49,8 +61,8 @@ public class AdviceAnnotation {
 
     /**
      * DO NOT USE on Advice which is used for re-transformation.
-     * See <a href="https://github.com/raphw/byte-buddy/issues/1210">this issue</a> on github for more details
-     *
+     * See <a href="https://github.com/raphw/byte-buddy/issues/1210">this issue</a> on GitHub for more details
+     * <p>
      * Work with {@link TargetMethodResolver}
      *
      * @author frank.chen021@outlook.com
@@ -111,7 +123,7 @@ public class AdviceAnnotation {
 
     /**
      * Resolve {@link TargetMethod} annotation
-     *
+     * <p>
      * See <a href="https://github.com/raphw/byte-buddy/issues/1210">this issue</a> on GitHub for more details
      *
      * @author frank.chen021@outlook.com
@@ -126,6 +138,42 @@ public class AdviceAnnotation {
                               @Nonnull Advice.ArgumentHandler argumentHandler,
                               @Nonnull Sort sort) {
             return new Target.ForStackManipulation(MethodConstant.of(instrumentedMethod.asDefined()).cached());
+        }
+    }
+
+    public static class InterceptorNameResolver implements Advice.OffsetMapping {
+        private final String name;
+
+        public InterceptorNameResolver(String name) {
+            this.name = name;
+        }
+
+        @Nonnull
+        @Override
+        public Target resolve(@Nonnull TypeDescription instrumentedType,
+                              @Nonnull MethodDescription instrumentedMethod,
+                              @Nonnull Assigner assigner,
+                              @Nonnull Advice.ArgumentHandler argumentHandler,
+                              @Nonnull Sort sort) {
+            return new Target.ForStackManipulation(new JavaConstantValue(JavaConstant.Simple.ofLoaded(name)));
+        }
+    }
+
+    public static class InterceptorIndexResolver implements Advice.OffsetMapping {
+        private final int index;
+
+        public InterceptorIndexResolver(int index) {
+            this.index = index;
+        }
+
+        @Nonnull
+        @Override
+        public Target resolve(@Nonnull TypeDescription instrumentedType,
+                              @Nonnull MethodDescription instrumentedMethod,
+                              @Nonnull Assigner assigner,
+                              @Nonnull Advice.ArgumentHandler argumentHandler,
+                              @Nonnull Sort sort) {
+            return new Target.ForStackManipulation(new JavaConstantValue(JavaConstant.Simple.ofLoaded(index)));
         }
     }
 }

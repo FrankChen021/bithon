@@ -17,6 +17,9 @@
 package org.bithon.agent.instrumentation.aop.interceptor.installer;
 
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
+import org.bithon.agent.instrumentation.aop.advice.AdviceAnnotation;
+import org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
@@ -57,8 +60,8 @@ public class DynamicInterceptorInstaller {
             .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
             .type(ElementMatchers.named(descriptor.targetClass))
-            .transform((builder, typeDescription, classLoader, javaModule, protectionDomain) -> install(descriptor, builder))
-            .with(InstrumentationHelper.getAopDebugger().withTypes(new HashSet<>(Collections.singletonList(descriptor.getTargetClass()))))
+            .transform((builder, typeDescription, classLoader, javaModule, protectionDomain) -> install(descriptor, builder, classLoader))
+            .with(InstrumentationHelper.getAopDebugger().withTypes(new HashSet<>(Collections.singletonList(descriptor.targetClass))))
             .installOn(InstrumentationHelper.getInstance());
     }
 
@@ -74,7 +77,11 @@ public class DynamicInterceptorInstaller {
             .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
             .type(typeMatcher)
-            .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule, ProtectionDomain protectionDomain) -> {
+            .transform((DynamicType.Builder<?> builder,
+                        TypeDescription typeDescription,
+                        ClassLoader classLoader,
+                        JavaModule javaModule,
+                        ProtectionDomain protectionDomain) -> {
 
                 AopDescriptor descriptor = descriptors.get(typeDescription.getTypeName());
                 if (descriptor == null) {
@@ -83,41 +90,47 @@ public class DynamicInterceptorInstaller {
                     return builder;
                 }
 
-                return install(descriptor, builder);
+                return install(descriptor, builder, classLoader);
             }).with(InstrumentationHelper.getAopDebugger().withTypes(new HashSet<>(descriptors.keySet())))
             .installOn(InstrumentationHelper.getInstance());
     }
 
+    /**
+     *
+     * @param classLoader The class loader that's going to load the target type
+     */
     private DynamicType.Builder<?> install(AopDescriptor descriptor,
-                                           DynamicType.Builder<?> builder) {
+                                           DynamicType.Builder<?> builder,
+                                           ClassLoader classLoader) {
 
-        LOG.info("Dynamically install interceptor for [{}]", descriptor.getTargetClass());
-        return builder.visit(descriptor.getAdvice().on(descriptor.getMethodMatcher()));
+        InterceptorManager.InterceptorEntry entry = InterceptorManager.getOrCreateInterceptor(descriptor.interceptorName, classLoader, true);
+        if (entry == null) {
+            LOG.info("Skipped to install dynamic interceptor for [{}], index={}, name={}", descriptor.targetClass, descriptor.interceptorName);
+            return builder;
+        }
+        LOG.info("Dynamic interceptor installed for [{}], index={}, name={}", descriptor.targetClass, entry.index, descriptor.interceptorName);
+        return builder.visit(InterceptorInstaller.newInstaller(Advice.withCustomMapping()
+                                                                     .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(descriptor.interceptorName))
+                                                                     .bind(AdviceAnnotation.InterceptorIndex.class, new AdviceAnnotation.InterceptorIndexResolver(entry.index))
+                                                                     .to(DynamicAopAdvice.class),
+                                                               descriptor.methodMatcher));
     }
 
     public static class AopDescriptor {
         private final String targetClass;
-        private final Advice advice;
         private final ElementMatcher.Junction<MethodDescription> methodMatcher;
+        private final String interceptorName;
 
         public AopDescriptor(String targetClass,
-                             Advice advice,
-                             ElementMatcher.Junction<MethodDescription> methodMatcher) {
+                             ElementMatcher.Junction<MethodDescription> methodMatcher,
+                             String interceptorName) {
             this.targetClass = targetClass;
-            this.advice = advice;
             this.methodMatcher = methodMatcher;
+            this.interceptorName = interceptorName;
         }
 
         public String getTargetClass() {
             return targetClass;
-        }
-
-        public Advice getAdvice() {
-            return advice;
-        }
-
-        public ElementMatcher.Junction<MethodDescription> getMethodMatcher() {
-            return methodMatcher;
         }
     }
 }

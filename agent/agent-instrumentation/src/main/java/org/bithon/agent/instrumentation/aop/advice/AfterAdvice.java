@@ -36,17 +36,17 @@ public class AfterAdvice {
     public static final ILogger LOG = LoggerFactory.getLogger(AfterAdvice.class);
 
     /**
-     * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
+     * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class.
      */
     @Advice.OnMethodEnter
     public static void onEnter(
+        @AdviceAnnotation.InterceptorName String name,
         @AdviceAnnotation.TargetMethod Method method,
         @Advice.This(optional = true) Object target,
         @Advice.AllArguments Object[] args,
         @Advice.Local("context") Object context
     ) {
         AopContextImpl aopContext = new AopContextImpl(method, target, args);
-
         aopContext.onBeforeTargetMethodInvocation();
 
         // assign the context so that the leave method can access this object
@@ -54,7 +54,7 @@ public class AfterAdvice {
     }
 
     /**
-     * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
+     * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit(onThrowable = Throwable.class)
     public static void onExit(@AdviceAnnotation.Interceptor IInterceptor interceptor,

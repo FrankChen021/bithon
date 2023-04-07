@@ -48,9 +48,10 @@ public interface IAgentCommandApi {
         public String appName;
         public String appId;
         public String endpoint;
+        public String agentVersion;
 
         public Object[] toObjectArray() {
-            return new Object[]{appName, appId, endpoint};
+            return new Object[]{appName, appId, endpoint, agentVersion};
         }
     }
 
@@ -136,7 +137,7 @@ public interface IAgentCommandApi {
      * Get loaded class
      */
     @PostMapping("/api/command/jvm/dumpClazz")
-    ServiceResponse<ClassRecord> getClass(@Valid @RequestBody CommandArgs<Void> args);
+    ServiceResponse<ClassRecord> getClassList(@Valid @RequestBody CommandArgs<Void> args);
 
     @Data
     class GetConfigurationRequest {
@@ -156,7 +157,23 @@ public interface IAgentCommandApi {
     }
 
     @PostMapping("/api/command/config/get")
-    ServiceResponse<ConfigurationRecord> getConfiguration(@Valid @RequestBody CommandArgs<GetConfigurationRequest> args);
+    ServiceResponse<ConfigurationRecord> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args);
+
+    class InstrumentedMethodRecord implements IObjectArrayConvertable {
+        public String clazzName;
+        public boolean isStatic;
+        public String returnType;
+        public String methodName;
+        public String parameters;
+
+        @Override
+        public Object[] toObjectArray() {
+            return new Object[]{clazzName, isStatic, returnType, methodName, parameters};
+        }
+    }
+
+    @PostMapping("/api/command/instrumentation/method/list")
+    ServiceResponse<InstrumentedMethodRecord> getInstrumentedMethod(@RequestBody CommandArgs<Void> args);
 
     @NoArgsConstructor
     @AllArgsConstructor

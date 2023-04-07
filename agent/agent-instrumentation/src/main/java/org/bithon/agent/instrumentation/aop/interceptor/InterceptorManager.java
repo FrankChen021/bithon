@@ -24,6 +24,7 @@ import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -32,46 +33,84 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author frankchen
  */
 public class InterceptorManager {
-    private static final ILogger log = LoggerFactory.getLogger(InterceptorManager.class);
+    public static class InterceptorEntry {
+        public final IInterceptor interceptor;
 
-    private static final Map<String, IInterceptor> INTERCEPTORS = new ConcurrentHashMap<>();
+        /**
+         * Index in the array.
+         * -1 means no index for current entry
+         */
+        public final int index;
 
+        public InterceptorEntry(IInterceptor interceptor, int index) {
+            this.interceptor = interceptor;
+            this.index = index;
+        }
+    }
+
+    private static final ILogger LOG = LoggerFactory.getLogger(InterceptorManager.class);
+
+    private static IInterceptor[] ARRAY_INTERCEPTORS = new IInterceptor[4];
+    private static final Map<String, InterceptorEntry> INTERCEPTORS = new ConcurrentHashMap<>();
     private static final ReentrantLock INTERCEPTOR_INSTANTIATION_LOCK = new ReentrantLock();
+
+    private static final AtomicInteger INDEX = new AtomicInteger(0);
+
+    /**
+     * Get interceptor by given index.
+     */
+    public static IDynamicInterceptor getInterceptor(int index) {
+        return (IDynamicInterceptor) ARRAY_INTERCEPTORS[index];
+    }
 
     /**
      * Called by injected code in static initializer for target classes
-     * see org.bithon.agent.core.aop.interceptor.InterceptorInstall for more detail
+     * see {@link org.bithon.agent.instrumentation.aop.interceptor.installer.InterceptorInstaller} for more detail
      */
     public static IInterceptor getInterceptor(String interceptorClassName, Class<?> fromClass) {
-        // get interceptor from cache first
-        String interceptorId = generateInterceptorId(interceptorClassName, fromClass.getClassLoader());
-        IInterceptor interceptor = INTERCEPTORS.get(interceptorId);
-        if (interceptor != null) {
-            return interceptor;
+        InterceptorEntry entry = getOrCreateInterceptor(interceptorClassName, fromClass.getClassLoader(), false);
+        return entry == null ? null : entry.interceptor;
+    }
+
+    public static InterceptorEntry getOrCreateInterceptor(String interceptorClassName,
+                                                          ClassLoader classLoader,
+                                                          boolean createIndex) {
+        // Get interceptor from cache first
+        String interceptorId = generateInterceptorId(interceptorClassName, classLoader);
+        InterceptorEntry entry = INTERCEPTORS.get(interceptorId);
+        if (entry != null) {
+            return entry;
         }
 
         try {
             // Load class out of lock in case of deadlock
-            ClassLoader interceptorClassLoader = PluginClassLoaderManager.getClassLoader(fromClass.getClassLoader());
+            ClassLoader interceptorClassLoader = PluginClassLoaderManager.getClassLoader(classLoader);
             Class<?> interceptorClass = Class.forName(interceptorClassName, true, interceptorClassLoader);
 
             INTERCEPTOR_INSTANTIATION_LOCK.lock();
             try {
-                interceptor = INTERCEPTORS.get(interceptorId);
-                if (interceptor != null) {
-                    // double check
-                    return interceptor;
+                entry = INTERCEPTORS.get(interceptorId);
+                if (entry != null) {
+                    // Double check
+                    return entry;
                 }
 
-                interceptor = (IInterceptor) interceptorClass.getConstructor().newInstance();
+                IInterceptor interceptor = (IInterceptor) interceptorClass.getConstructor().newInstance();
+                int index = -1;
+                if (createIndex) {
+                    index = INDEX.getAndIncrement();
+                    ensureCapacity(index);
+                    ARRAY_INTERCEPTORS[index] = interceptor;
+                }
 
-                INTERCEPTORS.put(interceptorId, interceptor);
-                return interceptor;
+                entry = new InterceptorEntry(interceptor, index);
+                INTERCEPTORS.put(interceptorId, entry);
+                return entry;
             } finally {
                 INTERCEPTOR_INSTANTIATION_LOCK.unlock();
             }
         } catch (Throwable e) {
-            log.error(String.format(Locale.ENGLISH,
+            LOG.error(String.format(Locale.ENGLISH,
                                     "Failed to load interceptor[%s] due to %s",
                                     interceptorClassName,
                                     e.getMessage()), e);
@@ -82,9 +121,19 @@ public class InterceptorManager {
     private static String generateInterceptorId(String interceptorClass,
                                                 ClassLoader loader) {
         if (null == loader) {
-            return "bootstrap-" + interceptorClass;
+            return interceptorClass + "@bootstrap";
         }
-        return loader.hashCode() + "-" + interceptorClass;
+        return interceptorClass + "@" + System.identityHashCode(loader);
     }
 
+    private static void ensureCapacity(int index) {
+        if (ARRAY_INTERCEPTORS.length > index) {
+            return;
+        }
+
+        IInterceptor[] newArray = new IDynamicInterceptor[(int) (ARRAY_INTERCEPTORS.length * 1.5)];
+        System.arraycopy(ARRAY_INTERCEPTORS, 0, newArray, 0, ARRAY_INTERCEPTORS.length);
+        ARRAY_INTERCEPTORS = newArray;
+        LOG.info("Enlarge dynamic interceptors storage to {}", ARRAY_INTERCEPTORS.length);
+    }
 }

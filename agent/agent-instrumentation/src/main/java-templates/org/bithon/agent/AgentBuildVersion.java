@@ -37,4 +37,8 @@ public final class AgentBuildVersion {
      * build timestamp
      */
     public static final String TIMESTAMP = "${buildtimestamp}";
+
+    public static String getString() {
+        return VERSION + "@" + SCM_REVISION + "@" + TIMESTAMP;
+    }
 }

@@ -102,7 +102,6 @@ public class ClientInvocationManager {
                                                                           .serviceName(serviceRegistryItem.getServiceName())
                                                                           .methodName(serviceRegistryItem.getMethodName())
                                                                           .transactionId(transactionId.incrementAndGet())
-
                                                                           .serializer(serviceRegistryItem.getSerializer())
                                                                           .isOneway(serviceRegistryItem.isOneway())
                                                                           .messageType(serviceRegistryItem.getMessageType())
