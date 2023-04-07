@@ -18,7 +18,6 @@ package org.bithon.agent.instrumentation.aop.advice;
 
 import org.bithon.agent.instrumentation.aop.interceptor.IDynamicInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
-import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
@@ -41,33 +40,6 @@ public class DynamicAopAdvice {
 
     private static final ILogger LOG = LoggerFactory.getLogger(DynamicAopAdvice.class);
 
-    private static volatile IDynamicInterceptor interceptorInstance;
-
-    public static IDynamicInterceptor getOrCreateInterceptor(String name) {
-        if (interceptorInstance != null) {
-            return interceptorInstance;
-        }
-
-        try {
-            // load class out of sync to eliminate potential deadlock
-            Class<?> interceptorClass = Class.forName(name,
-                                                      true,
-                                                      PluginClassLoaderManager.getClassLoader(Thread.currentThread().getContextClassLoader()));
-            synchronized (DynamicAopAdvice.class) {
-                //double check
-                if (interceptorInstance != null) {
-                    return interceptorInstance;
-                }
-
-                interceptorInstance = (IDynamicInterceptor) interceptorClass.getDeclaredConstructor().newInstance();
-            }
-
-        } catch (Exception e) {
-            LOG.error(String.format(Locale.ENGLISH, "Failed to create interceptor [%s]", name), e);
-        }
-        return interceptorInstance;
-    }
-
     /**
      * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
@@ -75,8 +47,8 @@ public class DynamicAopAdvice {
     public static void onEnter(
             @AdviceAnnotation.InterceptorName String name,
             @AdviceAnnotation.InterceptorIndex int index,
-            final @Advice.Origin Method method,
-            final @Advice.This(optional = true) Object target,
+            @Advice.Origin Method method,
+            @Advice.This(optional = true) Object target,
             @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
             @Advice.Local("context") Object context,
             @Advice.Local("interceptor") Object interceptor
@@ -102,18 +74,14 @@ public class DynamicAopAdvice {
      * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit(onThrowable = Throwable.class)
-    public static void onExit(final @Advice.Origin Method method,
-                              final @Advice.This Object target,
+    public static void onExit(@Advice.Origin Method method,
+                              @Advice.This Object target,
                               @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning,
-                              final @Advice.AllArguments Object[] args,
-                              final @Advice.Thrown Throwable exception,
-                              final @Advice.Local("context") Object context,
-                              final @Advice.Local("interceptor") Object interceptor) {
-        if (context == null) {
-            return;
-        }
-
-        if (interceptor == null) {
+                              @Advice.AllArguments Object[] args,
+                              @Advice.Thrown Throwable exception,
+                              @Advice.Local("context") Object context,
+                              @Advice.Local("interceptor") Object interceptor) {
+        if (context == null || interceptor == null) {
             return;
         }
         try {
