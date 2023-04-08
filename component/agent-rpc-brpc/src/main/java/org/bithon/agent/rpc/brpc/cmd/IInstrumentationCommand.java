@@ -25,7 +25,7 @@ import java.util.List;
  * @author Frank Chen
  * @date 4/4/23 10:17 pm
  */
-@BrpcService(name = "agent.instrumentation", serializer = Serializer.JSON)
+@BrpcService(name = "agent.instrumentation", serializer = Serializer.JSON_SMILE)
 public interface IInstrumentationCommand {
 
     class InstrumentedMethod {

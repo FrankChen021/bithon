@@ -26,7 +26,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021/7/2 3:50 下午
  */
-@BrpcService(serializer = Serializer.JSON)
+@BrpcService(serializer = Serializer.JSON_SMILE)
 public interface IJvmCommand {
 
     class ThreadInfo {

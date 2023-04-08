@@ -55,7 +55,7 @@ public enum Serializer {
             }
         }
     },
-    JSON {
+    JSON_SMILE {
         private final ObjectMapper om = DefaultObjectMapper.createInstance();
 
         @Override
@@ -96,8 +96,8 @@ public enum Serializer {
         if (type == BINARY.getType()) {
             return BINARY;
         }
-        if (type == JSON.getType()) {
-            return JSON;
+        if (type == JSON_SMILE.getType()) {
+            return JSON_SMILE;
         }
         throw new IllegalArgumentException("Unknown serializer: " + type);
     }

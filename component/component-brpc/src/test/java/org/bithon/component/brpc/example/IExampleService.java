@@ -69,7 +69,7 @@ public interface IExampleService {
 
     String sendWebMetrics3(WebRequestMetrics metrics, String uri);
 
-    @BrpcMethod(serializer = Serializer.JSON, name = "merge2")
+    @BrpcMethod(serializer = Serializer.JSON_SMILE, name = "merge2")
     Map<String, String> mergeWithJson(Map<String, String> a, Map<String, String> b);
 
     /**

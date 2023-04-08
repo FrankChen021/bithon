@@ -29,10 +29,10 @@ import java.util.Set;
 @BrpcService
 public interface IFlowRuleManager {
 
-    @BrpcMethod(serializer = Serializer.JSON)
+    @BrpcMethod(serializer = Serializer.JSON_SMILE)
     void create(FlowRuleDto request);
 
-    @BrpcMethod(serializer = Serializer.JSON)
+    @BrpcMethod(serializer = Serializer.JSON_SMILE)
     void update(FlowRuleDto request);
 
     void delete(String ruleId);
