@@ -36,6 +36,7 @@ Following list describes the features that the Bithon supports now.
 3. query logger level
 4. update logger level
 5. query instrumented methods
+6. query loaded classes
 
 ## Query instances
 
@@ -149,4 +150,20 @@ SELECT * FROM agent.instrumented_method WHERE appId = '192.168.50.151:9897'
 | methodName | The name of intercepted method. `<ctor>` represents constructor of the target class. |
 | parameters | The parameters of intercepted method.                                                |
 
+## Query loaded classes
 
+### SQL
+
+```sql
+SELECT * FROM agent.load_class WHERE appId = '192.168.50.151:9897'
+```
+### Output fields explanation
+
+| Field        | Explanation                                                 |
+|--------------|-------------------------------------------------------------|
+| name         | The name of loaded class.                                   |
+| classLoader  | The class name of class loader that loads the target class. |
+| isSynthetic  | 1 if the target class is a synthetic class.                 |
+| isInterface  | 1 if the target class is an interface.                      |
+| isAnnotation | 1 if the target class is an annotation.                     |
+| isEnum       | 1 if the target class is an enum class.                     |
