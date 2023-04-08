@@ -122,12 +122,13 @@ We can also change the configured logging level during application running by us
 ### SQL
 
 ```sql
-UPDATE agent.logger SET level = 'DEBUG' where appId = '192.168.50.151:9897' AND name = 'org.bithon'
+UPDATE agent.logger SET level = 'DEBUG' where appId = '192.168.50.151:9897' AND name = 'org.bithon' AND _token = '525'
 ```
 
 > NOTE:
 > 1. The SQL must provide `appId` and `name` filter in the `WHERE` clause.
 > 2. Only `level` can be UPDATED
+> 3. A token is needed and it's configured per-application basis. See 
 
 ## Query instrumented methods
 
