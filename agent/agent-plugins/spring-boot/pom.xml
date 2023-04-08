@@ -12,7 +12,7 @@
   <dependencies>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-observability</artifactId>
+      <artifactId>agent-instrumentation</artifactId>
     </dependency>
 
     <dependency>
