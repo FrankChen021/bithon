@@ -27,8 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * TODO: implement SET
- * <p>
  * {@link IExpression} is used at both server and agent side, since the server and the agent use different jackson to deal with deserialization,
  * we can depend on jackson's own deserialization mechanism but instead, we deserialize the object manually.
  *
@@ -138,7 +136,7 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
             if (valueNode.isBoolean()) {
                 return new org.bithon.component.commons.expression.LiteralExpression(valueNode.asBoolean());
             }
-            throw new UnsupportedOperationException("value is not type of any [String/Long/Int]");
+            throw new UnsupportedOperationException("value is not type of any [String/Long/Int/Boolean]");
         }
     }
 
