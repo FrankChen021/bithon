@@ -41,7 +41,7 @@ public class InstrumentedMethodTable extends AbstractBaseTable {
         String appId = (String) executionContext.get("appId");
         Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
 
-        ServiceResponse<IAgentCommandApi.InstrumentedMethodRecord> methodList = impl.getInstrumentedMethod(new CommandArgs<>(appId, null));
+        ServiceResponse<IAgentCommandApi.InstrumentedMethodRecord> methodList = impl.getInstrumentedMethod(new CommandArgs<>(appId));
         if (methodList.getError() != null) {
             throw new RuntimeException(methodList.getError().toString());
         }

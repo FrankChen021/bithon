@@ -19,11 +19,13 @@ package org.bithon.server.discovery.client;
 import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
 import com.alibaba.cloud.nacos.discovery.NacosServiceDiscovery;
 import com.alibaba.cloud.nacos.registry.NacosAutoServiceRegistration;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Contract;
 import feign.Feign;
 import feign.FeignException;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
+import feign.codec.ErrorDecoder;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
@@ -37,6 +39,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.HttpStatus;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -57,11 +60,13 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
     private ApplicationContext applicationContext;
 
     private final ExecutorService executorService = Executors.newCachedThreadPool(new NamedThreadFactory("service-invoker", true));
+    private ObjectMapper objectMapper;
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
         this.serviceDiscoveryClient = createDiscoveryClient(applicationContext);
+        this.objectMapper = applicationContext.getBean(ObjectMapper.class);
     }
 
     private IDiscoveryClient createDiscoveryClient(ApplicationContext applicationContext) {
@@ -79,6 +84,7 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
 
     /**
      * Create invoker for given interface.
+     *
      * @param serviceDeclaration An interface which MUST be annotated by {@link DiscoverableService}
      */
     public <T> T create(Class<T> serviceDeclaration) {
@@ -92,16 +98,20 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
         //noinspection unchecked
         return (T) Proxy.newProxyInstance(serviceDeclaration.getClassLoader(),
                                           new Class<?>[]{serviceDeclaration},
-                                          new ServiceBroadcastInvocationHandler<>(serviceDeclaration,
+                                          new ServiceBroadcastInvocationHandler<>(objectMapper,
+                                                                                  serviceDeclaration,
                                                                                   metadata.name()));
     }
 
     private class ServiceBroadcastInvocationHandler<T> implements InvocationHandler {
+        private final ObjectMapper objectMapper;
         private final Class<T> type;
         private final String serviceName;
 
-        private ServiceBroadcastInvocationHandler(Class<T> type,
+        private ServiceBroadcastInvocationHandler(ObjectMapper objectMapper,
+                                                  Class<T> type,
                                                   String name) {
+            this.objectMapper = objectMapper;
             this.type = type;
             this.serviceName = name;
         }
@@ -122,7 +132,7 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
             //
             List<Future<ServiceResponse<?>>> futures = new ArrayList<>(instanceList.size());
             for (IDiscoveryClient.HostAndPort hostAndPort : instanceList) {
-                futures.add(executorService.submit(new RemoteServiceCaller<>(type, hostAndPort, method, args)));
+                futures.add(executorService.submit(new RemoteServiceCaller<>(objectMapper, type, hostAndPort, method, args)));
             }
 
             // Since the deserialized rows object might be unmodifiable, we always create a new array to hold the final result
@@ -141,6 +151,9 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
                     // Merge response
                     mergedRows.addAll(response.getRows());
                 } catch (InterruptedException | ExecutionException e) {
+                    if (e.getCause() instanceof HttpMappableException) {
+                        throw (HttpMappableException) e.getCause();
+                    }
                     throw new RuntimeException(e);
                 }
             }
@@ -150,6 +163,7 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
     }
 
     private class RemoteServiceCaller<T> implements Callable<ServiceResponse<?>> {
+        final ObjectMapper objectMapper;
 
         private final Class<T> type;
 
@@ -157,7 +171,11 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
         private final Method method;
         private final Object[] args;
 
-        private RemoteServiceCaller(Class<T> type, IDiscoveryClient.HostAndPort hostAndPort, Method method, Object[] args) {
+        private RemoteServiceCaller(ObjectMapper objectMapper,
+                                    Class<T> type,
+                                    IDiscoveryClient.HostAndPort hostAndPort,
+                                    Method method, Object[] args) {
+            this.objectMapper = objectMapper;
             this.type = type;
             this.hostAndPort = hostAndPort;
             this.method = method;
@@ -170,6 +188,16 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
                                       .contract(applicationContext.getBean(Contract.class))
                                       .encoder(applicationContext.getBean(Encoder.class))
                                       .decoder(applicationContext.getBean(Decoder.class))
+                                      .errorDecoder((methodKey, response) -> {
+                                          try {
+                                              ServiceResponse.Error error = objectMapper.readValue(response.body().asInputStream(), ServiceResponse.Error.class);
+                                              return new HttpMappableException(response.status(), "Exception from remote [%s]: %s", hostAndPort, error.getMessage());
+                                          } catch (IOException ignored) {
+                                          }
+
+                                          // Delegate to default decoder
+                                          return new ErrorDecoder.Default().decode(methodKey, response);
+                                      })
                                       .target(type, "http://" + hostAndPort.getHost() + ":" + hostAndPort.getPort());
 
             InvocationHandler handler = Proxy.getInvocationHandler(proxyObject);
@@ -180,6 +208,12 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
                 // Ignore the exception that the target service does not have data of given args
                 // This might also ignore the HTTP layer 404 problem
                 return ServiceResponse.EMPTY;
+            } catch (FeignException.Forbidden e) {
+                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
+                                                e.getMessage());
+            } catch (HttpMappableException e) {
+                // Customized ErrorDecoder decodes exception
+                throw e;
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }

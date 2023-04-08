@@ -19,6 +19,14 @@ collector-http:
     clickhouseApplications:
       - clickhouse
 
+collector-controller:
+  permission:
+    rules:
+      - application:
+          type: startwith
+          pattern: bithon-
+        token: "525"
+
 logging:
   level:
     org.bithon.collector: debug

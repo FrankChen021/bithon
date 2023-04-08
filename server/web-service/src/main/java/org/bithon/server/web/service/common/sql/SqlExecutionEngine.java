@@ -98,7 +98,8 @@ public class SqlExecutionEngine {
         this.catalogReader.getRootSchema().add(name, schema);
     }
 
-    public SqlExecutionResult executeSql(String sql, @Nullable BiConsumer<SqlNode, SqlExecutionContext> onParsed) throws Exception {
+    public SqlExecutionResult executeSql(String sql,
+                                         @Nullable BiConsumer<SqlNode, SqlExecutionContext> onParsed) throws Exception {
         SqlExecutionContext queryContext = new SqlExecutionContext(catalogReader.getRootSchema(),
                                                                    (JavaTypeFactory) catalogReader.getTypeFactory());
 

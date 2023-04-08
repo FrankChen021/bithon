@@ -14,30 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.discovery.client;
+package org.bithon.server.collector.cmd.api.permission;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
- * @author frank.chen
+ * A simple permission control on SET/WRITE commands to agent to ensure safety.
+ *
+ * @author frank.chen021@outlook.com
+ * @date 2023/4/8 15:08
  */
-public interface IDiscoveryClient {
+@Data
+@Configuration
+@ConfigurationProperties(prefix = "collector-controller.permission")
+public class PermissionConfiguration {
 
-    @Data
-    @AllArgsConstructor
-    class HostAndPort
-    {
-        private String host;
-        private int port;
-
-        @Override
-        public String toString() {
-            return host + ":" + port;
-        }
-    }
-
-    List<HostAndPort> getInstanceList(String serviceName);
+    private List<PermissionRule> rules = Collections.emptyList();
 }

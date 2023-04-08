@@ -138,38 +138,23 @@ public class ServerChannel implements Closeable {
     }
 
     /**
-     * @param remoteAppId
-     * @param timeout     in milliseconds
+     * @param timeout in milliseconds
      */
     public <T> T getRemoteService(String remoteAppId, Class<T> serviceClass, int timeout) {
-        Channel channel = sessionManager.getSessions()
-                                        .stream()
-                                        .filter(s -> remoteAppId.equals(s.getAppId()))
-                                        .findFirst()
-                                        .map(value -> value.channel)
-                                        .orElse(null);
-        if (channel == null) {
-            throw new SessionNotFoundException("Can't find any connected remote application [%s] on this server.", remoteAppId);
-        }
-
-        return ServiceStubFactory.create(null,
-                                         Headers.EMPTY,
-                                         new Server2ClientChannelWriter(channel),
-                                         serviceClass,
-                                         timeout);
+        return sessionManager.getSessions()
+                             .stream()
+                             .filter(s -> remoteAppId.equals(s.getAppId()))
+                             .findFirst()
+                             .map(session -> session.getRemoteService(serviceClass, timeout))
+                             .orElseThrow(() -> new SessionNotFoundException("Can't find any connected remote application [%s] on this server.", remoteAppId));
     }
 
     public <T> List<T> getRemoteServices(String appName, Class<T> serviceClass) {
         return sessionManager.getSessions()
                              .stream()
                              .filter(s -> appName.equals(s.getAppName()))
-                             .map(s -> ServiceStubFactory.create(null,
-                                                                 Headers.EMPTY,
-                                                                 new Server2ClientChannelWriter(s.channel),
-                                                                 serviceClass,
-                                                                 5000))
+                             .map(s -> s.getRemoteService(serviceClass, 5_000))
                              .collect(Collectors.toList());
-
     }
 
     public static class Session {
@@ -222,6 +207,14 @@ public class ServerChannel implements Closeable {
 
         public void setClientVersion(String clientVersion) {
             this.clientVersion = clientVersion;
+        }
+
+        public <T> T getRemoteService(Class<T> serviceClass, int timeout) {
+            return ServiceStubFactory.create(null,
+                                             Headers.EMPTY,
+                                             new Server2ClientChannelWriter(channel),
+                                             serviceClass,
+                                             timeout);
         }
     }
 

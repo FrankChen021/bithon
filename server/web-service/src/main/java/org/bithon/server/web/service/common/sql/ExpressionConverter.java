@@ -61,6 +61,10 @@ public class ExpressionConverter extends SqlBasicVisitor<IExpression> {
 
         List<IExpression> newOperands = new ArrayList<>(logicalExpression.getOperands().size());
         for (IExpression operand : logicalExpression.getOperands()) {
+            if (operand instanceof LogicalExpression) {
+                // Recursive
+                operand = optimize(operand);
+            }
             if (!isAlwaysTrue(operand)) {
                 newOperands.add(operand);
             }

@@ -16,14 +16,19 @@
 
 package org.bithon.server.collector.cmd.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.agent.rpc.brpc.cmd.IConfigCommand;
 import org.bithon.agent.rpc.brpc.cmd.IInstrumentationCommand;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.agent.rpc.brpc.cmd.ILoggingCommand;
+import org.bithon.component.brpc.channel.ServerChannel;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
+import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.logging.LoggerConfiguration;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.collector.cmd.api.permission.PermissionConfiguration;
+import org.bithon.server.collector.cmd.api.permission.PermissionRule;
 import org.bithon.server.collector.cmd.service.AgentCommandService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.CommandArgs;
@@ -39,6 +44,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -55,10 +61,14 @@ import java.util.stream.Collectors;
 @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
 public class AgentCommandApi implements IAgentCommandApi {
 
+    private final ObjectMapper objectMapper;
     private final AgentCommandService commandService;
+    private final PermissionConfiguration permissionConfiguration;
 
-    public AgentCommandApi(AgentCommandService commandService) {
+    public AgentCommandApi(ObjectMapper objectMapper, AgentCommandService commandService, PermissionConfiguration permissionConfiguration) {
+        this.objectMapper = objectMapper;
         this.commandService = commandService;
+        this.permissionConfiguration = permissionConfiguration;
     }
 
     @Override
@@ -188,12 +198,33 @@ public class AgentCommandApi implements IAgentCommandApi {
     @Override
     public ServiceResponse<ModifiedRecord> setLogger(@RequestBody CommandArgs<SetLoggerArgs> args) {
         Preconditions.checkArgumentNotNull("args", args.getArgs());
+        Preconditions.checkNotNull("token", args.getToken());
 
-        ILoggingCommand command = commandService.getServerChannel()
-                                                .getRemoteService(args.getAppId(),
-                                                                  ILoggingCommand.class,
-                                                                  30_000);
-        int rows = command.setLogger(args.getArgs().getName(), args.getArgs().getLevel());
+        // Find session
+        Optional<ServerChannel.Session> session = commandService.getServerChannel()
+                                                                .getSessions().stream().filter((s) -> s.getAppId().equals(args.getAppId()))
+                                                                .findFirst();
+        if (!session.isPresent()) {
+            throw new SessionNotFoundException("Can't find any connected remote application [%s] on this server.", args.getAppId());
+        }
+
+        // Check token
+        final String appName = session.get().getAppName();
+        Optional<PermissionRule> applicationRule = permissionConfiguration.getRules()
+                                                                          .stream()
+                                                                          .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(appName))
+                                                                          .findFirst();
+        if (!applicationRule.isPresent()) {
+            throw new HttpMappableException(HttpStatus.FORBIDDEN.value(), "Application [%s] does not define a permission rule.", appName);
+        }
+
+        if (!applicationRule.get().getToken().equals(args.getToken())) {
+            throw new HttpMappableException(HttpStatus.FORBIDDEN.value(), "Given token does not match.");
+        }
+
+        int rows = session.get()
+                          .getRemoteService(ILoggingCommand.class, 30_000)
+                          .setLogger(args.getArgs().getName(), args.getArgs().getLevel());
         ModifiedRecord modifiedRecord = new ModifiedRecord();
         modifiedRecord.setRows(rows);
         return ServiceResponse.success(Collections.singletonList(modifiedRecord));

@@ -51,7 +51,7 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
         String appId = (String) executionContext.get("appId");
         Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
 
-        ServiceResponse<IAgentCommandApi.LoggerConfigurationRecord> records = impl.getLoggerList(new CommandArgs<>(appId, null));
+        ServiceResponse<IAgentCommandApi.LoggerConfigurationRecord> records = impl.getLoggerList(new CommandArgs<>(appId));
         if (records.getError() != null) {
             throw new RuntimeException(records.getError().toString());
         }
@@ -87,6 +87,10 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
                       Map<String, Object> newValues) {
         String appId = (String) executionContext.get("appId");
         Preconditions.checkNotNull(appId, "'appId' is missed in the WHERE clause.");
+
+        String token = (String) executionContext.get("_token");
+        Preconditions.checkNotNull(token, "'_token' is missed in the WHERE clause.");
+
         Preconditions.checkNotNull(filterExpression, "'name' is missed in the WHERE clause.");
         Preconditions.checkIfTrue(filterExpression instanceof BinaryExpression, "WHERE clause must only contain one filter.");
 
@@ -123,9 +127,10 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
         IAgentCommandApi.SetLoggerArgs args = new IAgentCommandApi.SetLoggerArgs();
         args.setLevel(loggingLevel);
         args.setName((String) nameFilter.value);
-        ServiceResponse<IAgentCommandApi.ModifiedRecord> result = impl.setLogger(new CommandArgs<>(appId, args));
+        ServiceResponse<IAgentCommandApi.ModifiedRecord> result = impl.setLogger(new CommandArgs<>(appId, token, args));
         if (result.getError() != null) {
-            throw new RuntimeException(result.getError().toString());
+            throw new HttpMappableException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                            result.getError().toString());
         }
 
         int totalRows = 0;

@@ -34,13 +34,25 @@ public class CommandArgs<T> {
     @Getter
     private final String appId;
 
+    /**
+     * Token for operation. Can be null.
+     */
+    @Getter
+    private final String token;
+
     @Getter
     private final T args;
 
     @JsonCreator
     public CommandArgs(@JsonProperty("appId") String appId,
+                       @JsonProperty("token") String token,
                        @JsonProperty("args") T args) {
         this.appId = appId;
+        this.token = token;
         this.args = args;
+    }
+
+    public CommandArgs(String appId) {
+        this(appId, null, null);
     }
 }

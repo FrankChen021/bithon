@@ -41,7 +41,7 @@ public class ThreadTable extends AbstractBaseTable {
         String appId = (String) executionContext.get("appId");
         Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
 
-        ServiceResponse<IAgentCommandApi.ThreadRecord> stackTraceList = impl.getThreads(new CommandArgs<>(appId, null));
+        ServiceResponse<IAgentCommandApi.ThreadRecord> stackTraceList = impl.getThreads(new CommandArgs<>(appId));
         if (stackTraceList.getError() != null) {
             throw new RuntimeException(stackTraceList.getError().toString());
         }
