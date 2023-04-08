@@ -31,7 +31,6 @@ import org.bithon.shaded.io.netty.util.internal.StringUtil;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -68,33 +67,6 @@ public class ClientInvocationManager {
                          long timeoutMillisecond,
                          Method method,
                          Object[] args) throws Throwable {
-        //
-        // make sure channel has been established
-        //
-        channelWriter.connect();
-
-        //
-        // check channel status
-        //
-        Channel ch = channelWriter.getChannel();
-        if (ch == null) {
-            throw new CallerSideException("Failed to invoke %s#%s due to channel is empty",
-                                          method.getDeclaringClass().getSimpleName(),
-                                          method.getName());
-        }
-
-        if (!ch.isActive()) {
-            throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not active",
-                                          method.getDeclaringClass().getSimpleName(),
-                                          method.getName(),
-                                          ch.remoteAddress().toString());
-        }
-        if (!ch.isWritable()) {
-            throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not writable",
-                                          method.getDeclaringClass().getSimpleName(),
-                                          method.getName(),
-                                          ch.remoteAddress().toString());
-        }
 
         ServiceRegistryItem serviceRegistryItem = serviceRegistryItems.computeIfAbsent(method, ServiceRegistryItem::create);
 
@@ -110,17 +82,55 @@ public class ClientInvocationManager {
                                                                           .args(args)
                                                                           .build();
 
+        ServiceResponseMessageIn response = invoke(channelWriter, serviceRequest, timeoutMillisecond);
+        if (response != null) {
+            try {
+                return response.getReturning(method.getGenericReturnType());
+            } catch (IOException e) {
+                throw new ServiceInvocationException(e, "Failed to deserialize the received response: %s", e.getMessage());
+            }
+        }
+        return null;
+    }
+
+    public ServiceResponseMessageIn invoke(IChannelWriter channelWriter,
+                                           ServiceRequestMessageOut serviceRequest,
+                                           long timeoutMillisecond) throws Throwable {
+        //
+        // make sure channel has been established
+        //
+        channelWriter.connect();
+
+        //
+        // check channel status
+        //
+        Channel ch = channelWriter.getChannel();
+        if (ch == null) {
+            throw new CallerSideException("Failed to invoke %s#%s due to channel is empty",
+                                          serviceRequest.getServiceName(),
+                                          serviceRequest.getMethodName());
+        }
+
+        if (!ch.isActive()) {
+            throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not active",
+                                          serviceRequest.getServiceName(),
+                                          serviceRequest.getMethodName(),
+                                          ch.remoteAddress().toString());
+        }
+        if (!ch.isWritable()) {
+            throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not writable",
+                                          serviceRequest.getServiceName(),
+                                          serviceRequest.getMethodName(),
+                                          ch.remoteAddress().toString());
+        }
+
         InflightRequest inflightRequest = null;
         if (!serviceRequest.isOneway()) {
             inflightRequest = new InflightRequest();
             inflightRequest.requestAt = System.currentTimeMillis();
             inflightRequest.methodName = serviceRequest.getMethodName();
             inflightRequest.serviceName = serviceRequest.getServiceName();
-            inflightRequest.returnObjType = method.getGenericReturnType();
             this.inflightRequests.put(serviceRequest.getTransactionId(), inflightRequest);
-        }
-        if (debug) {
-            //log.info("[DEBUGGING] Sending message: {}", message);
         }
 
         for (int i = 0; i < 3; i++) {
@@ -142,8 +152,8 @@ public class ClientInvocationManager {
             } catch (InterruptedException e) {
                 inflightRequests.remove(serviceRequest.getTransactionId());
                 throw new CallerSideException("Failed to invoke %s#%s at [%s] due to invocation is interrupted",
-                                              method.getDeclaringClass().getSimpleName(),
-                                              method.getName(),
+                                              serviceRequest.getServiceName(),
+                                              serviceRequest.getMethodName(),
                                               ch.remoteAddress().toString());
             }
 
@@ -173,14 +183,10 @@ public class ClientInvocationManager {
             return;
         }
 
-        try {
-            inflightRequest.response = response.getReturning(inflightRequest.returnObjType);
-        } catch (IOException e) {
-            inflightRequest.exception = new ServiceInvocationException(e, "Failed to deserialize the received response: %s", e.getMessage());
-        }
-
         if (!StringUtil.isNullOrEmpty(response.getException())) {
             inflightRequest.exception = new CalleeSideException(response.getException());
+        } else {
+            inflightRequest.response = response;
         }
 
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
@@ -207,8 +213,8 @@ public class ClientInvocationManager {
 
     static class InflightRequest {
         long requestAt;
-        Type returnObjType;
-        Object response;
+        ServiceResponseMessageIn response;
+
         /**
          * indicate whether this request has response.
          * This is required so that {@link #response} might be null

@@ -20,6 +20,7 @@ import org.bithon.component.brpc.BrpcMethod;
 import org.bithon.component.brpc.ServiceRegistry;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
+import org.bithon.component.brpc.invocation.ClientLowLevelInvocation;
 import org.bithon.component.brpc.invocation.ServiceStubFactory;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
@@ -133,6 +134,14 @@ public class ServerChannel implements Closeable {
         return sessionManager.getSessions();
     }
 
+    public Session getSession(String remoteAppId) {
+        return sessionManager.getSessions()
+                             .stream()
+                             .filter(s -> remoteAppId.equals(s.getAppId()))
+                             .findFirst()
+                             .orElseThrow(() -> new SessionNotFoundException("Can't find any connected remote application [%s] on this server.", remoteAppId));
+    }
+
     public <T> T getRemoteService(String remoteAppId, Class<T> serviceClass) {
         return getRemoteService(remoteAppId, serviceClass, 5000);
     }
@@ -141,12 +150,7 @@ public class ServerChannel implements Closeable {
      * @param timeout in milliseconds
      */
     public <T> T getRemoteService(String remoteAppId, Class<T> serviceClass, int timeout) {
-        return sessionManager.getSessions()
-                             .stream()
-                             .filter(s -> remoteAppId.equals(s.getAppId()))
-                             .findFirst()
-                             .map(session -> session.getRemoteService(serviceClass, timeout))
-                             .orElseThrow(() -> new SessionNotFoundException("Can't find any connected remote application [%s] on this server.", remoteAppId));
+        return getSession(remoteAppId).getRemoteService(serviceClass, timeout);
     }
 
     public <T> List<T> getRemoteServices(String appName, Class<T> serviceClass) {
@@ -215,6 +219,10 @@ public class ServerChannel implements Closeable {
                                              new Server2ClientChannelWriter(channel),
                                              serviceClass,
                                              timeout);
+        }
+
+        public ClientLowLevelInvocation getClientInvocation() {
+            return new ClientLowLevelInvocation(new Server2ClientChannelWriter(channel));
         }
     }
 

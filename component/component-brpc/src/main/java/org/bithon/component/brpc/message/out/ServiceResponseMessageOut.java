@@ -93,6 +93,10 @@ public class ServiceResponseMessageOut extends ServiceMessageOut {
             return this;
         }
 
+        public ServiceResponseMessageOut build() {
+            return response;
+        }
+
         public void send(Channel channel) {
             channel.writeAndFlush(response);
         }

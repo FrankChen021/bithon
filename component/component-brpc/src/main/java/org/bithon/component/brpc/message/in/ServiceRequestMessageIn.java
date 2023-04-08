@@ -22,6 +22,7 @@ import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.serializer.Serializer;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
+import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -116,5 +117,24 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
             }
         }
         return inputArgs;
+    }
+
+    public byte[] getRawArgs() {
+        CodedOutputStream os;
+
+        // TODO: HOW TO READ ALL REMAINING DATA???
+        //this.argsInputStream.readRawBytes(this.argsInputStream.readByteBuffer())
+        return null;
+    }
+
+    public static ServiceRequestMessageIn from(CodedInputStream inputStream) throws IOException {
+        int messageType = inputStream.readInt32();
+        if (messageType == ServiceMessageType.CLIENT_REQUEST
+                || messageType == ServiceMessageType.CLIENT_REQUEST_ONEWAY
+                || messageType == ServiceMessageType.CLIENT_REQUEST_V2) {
+            return (ServiceRequestMessageIn) new ServiceRequestMessageIn(messageType).decode(inputStream);
+        } else {
+            throw new BadRequestException("messageType [%x] is not a valid ServiceRequest message", messageType);
+        }
     }
 }

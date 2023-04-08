@@ -24,6 +24,9 @@ import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
 
+/**
+ * @author frankchen
+ */
 public class ServiceResponseMessageIn extends ServiceMessageIn {
     private long serverResponseAt;
     private CodedInputStream returning;
