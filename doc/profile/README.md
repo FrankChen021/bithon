@@ -5,6 +5,31 @@ All commands are sent to a specific application instance immediately to perform 
 These commands are not persistent in the backend of Bithon, this means once the application instance restarts,
 previous commands went away.
 
+# Rationale
+
+Bithon's agent set up a bi-direction TCP channel to its collector. 
+Each instance of collectors can get information from this channel or update information through this channel.
+
+Over this channel, all messages are in protobuf or SMILE encoded JSON text. Which one is used is dependent on the implementations.
+
+In practice, the Bithon collector is usually deployed after a network load balancer, this means each collector has to communicate only parts of the target applications.
+To communicate with the right target application instance, we need a SERVICE DISCOVERY mechanism to help us find the right collector that is connecting to the target application instance.
+Currently, only Alibaba Nacos is supported.
+
+You can check the [Nacos Configuration](../configuration/server/configuration-nacos.md)
+
+Under such mode, each collector register itself on Alibaba Nacos, and when we want to send commands to a specific application instance,
+Bithon will first talk with Alibaba Nacos to get all collector instances, and then broadcast these commands to all collector instances.
+Because the commands contain the information of target application, only one of the collector has connection to the target application, when such collector receives the command,
+it gets the right connection to the target application instance from its connections, and then sends commands on such connection.
+
+
+But if the collector is deployed without network load balancer, that's to say it's deployed as a single instance, there's no need of deployment of Alibaba Nacos,
+because this collector has all connections to the target applications.
+
+
+# User manual
+
 Following list describes the features that the Bithon supports now.
 1. query instances
 2. query running threads(including call stack)

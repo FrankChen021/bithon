@@ -35,5 +35,21 @@ spring:
         namespace: ffffffff-d350-4755-ab1a-28721fc79cfa
         refresh-enabled: true
         group: DEFAULT_GROUP
+```
 
+## Enable Service Discovery
+
+If the collector is deployed with web-server separately, we also need to enable service discovery.
+To do this, we need to turn on `spring.cloud.nacos.discovery.enabled`, and set correct Nacos server address by property `spring.cloud.nacos.discovery.server-addr`.
+Here's an example.
+
+```yaml
+spring:
+  cloud:
+    nacos:
+      discovery:
+        enabled: true
+        watch:
+          enabled: false
+        server-addr: nacos.server:80
 ```
