@@ -56,6 +56,7 @@ public class ServiceRequestMessageOut extends ServiceMessageOut {
      * args
      */
     private Object[] args;
+    private byte[] rawArgs;
 
     public static Builder builder() {
         return new Builder();
@@ -90,7 +91,11 @@ public class ServiceRequestMessageOut extends ServiceMessageOut {
 
         // Args
         if (this.args == null) {
-            out.writeInt32NoTag(0);
+            if (this.rawArgs == null) {
+                out.writeInt32NoTag(0);
+            } else {
+                out.write(this.rawArgs, 0, this.rawArgs.length);
+            }
         } else {
             out.writeInt32NoTag(this.args.length);
             for (Object arg : this.args) {
@@ -123,6 +128,13 @@ public class ServiceRequestMessageOut extends ServiceMessageOut {
 
         public Builder args(Object[] args) {
             request.args = args;
+            request.rawArgs = null;
+            return this;
+        }
+
+        public Builder rawArgs(byte[] args) {
+            request.rawArgs = args;
+            request.args = null;
             return this;
         }
 

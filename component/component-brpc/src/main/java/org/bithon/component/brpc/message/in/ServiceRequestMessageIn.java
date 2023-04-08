@@ -22,7 +22,6 @@ import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.serializer.Serializer;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
-import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -119,12 +118,11 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
         return inputArgs;
     }
 
-    public byte[] getRawArgs() {
-        CodedOutputStream os;
-
-        // TODO: HOW TO READ ALL REMAINING DATA???
-        //this.argsInputStream.readRawBytes(this.argsInputStream.readByteBuffer())
-        return null;
+    /**
+     * {@link CodedInputStream#pushLimit(int)} must be called on the input stream of this object to make sure following method behaves correctly.
+     */
+    public byte[] getRawArgs() throws IOException {
+        return this.argsInputStream.readRawBytes(this.argsInputStream.getBytesUntilLimit());
     }
 
     public static ServiceRequestMessageIn from(CodedInputStream inputStream) throws IOException {

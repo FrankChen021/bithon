@@ -25,8 +25,10 @@ import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
+import java.io.IOException;
 
 /**
  * @author Frank Chen
@@ -213,4 +215,7 @@ public interface IAgentCommandApi {
 
     @PostMapping("/api/command/logger/set")
     ServiceResponse<ModifiedRecord> setLogger(@Valid @RequestBody CommandArgs<SetLoggerArgs> args);
+
+    @PostMapping("/api/command/proxy")
+    byte[] proxy(@RequestParam(name = "appId") String appId, @RequestBody byte[] body) throws IOException;
 }

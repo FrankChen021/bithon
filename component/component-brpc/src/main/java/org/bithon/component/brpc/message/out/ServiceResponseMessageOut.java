@@ -29,6 +29,7 @@ import java.io.IOException;
 public class ServiceResponseMessageOut extends ServiceMessageOut {
     private long serverResponseAt;
     private Object returning;
+    private byte[] returningRaw;
     private String exception;
 
     public static Builder builder() {
@@ -55,7 +56,11 @@ public class ServiceResponseMessageOut extends ServiceMessageOut {
         }
 
         if (this.returning == null) {
-            out.writeRawByte(0);
+            if (this.returningRaw == null || this.returningRaw.length == 0) {
+                out.writeRawByte(0);
+            } else {
+                out.writeRawBytes(this.returningRaw);
+            }
         } else {
             out.writeRawByte(1);
 
@@ -85,6 +90,13 @@ public class ServiceResponseMessageOut extends ServiceMessageOut {
 
         public Builder returning(Object ret) {
             response.returning = ret;
+            response.returningRaw = null;
+            return this;
+        }
+
+        public Builder returningRaw(byte[] returningRaw) {
+            response.returningRaw = returningRaw;
+            response.returning = null;
             return this;
         }
 

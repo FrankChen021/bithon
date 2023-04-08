@@ -59,12 +59,19 @@ public class ServiceResponseMessageIn extends ServiceMessageIn {
         return serverResponseAt;
     }
 
-    public Object getReturning(Type type) throws IOException {
+    public Object getReturningAsObject(Type type) throws IOException {
         if (returning != null) {
             int serializer = this.returning.readInt32();
             return Serializer.getSerializer(serializer).deserialize(this.returning, type);
         }
         return null;
+    }
+
+    public byte[] getReturnAsRaw() throws IOException {
+        if (returning != null) {
+            return returning.readRawBytes(returning.getBytesUntilLimit());
+        }
+        return new byte[0];
     }
 
     public String getException() {

@@ -85,7 +85,7 @@ public class ClientInvocationManager {
         ServiceResponseMessageIn response = invoke(channelWriter, serviceRequest, timeoutMillisecond);
         if (response != null) {
             try {
-                return response.getReturning(method.getGenericReturnType());
+                return response.getReturningAsObject(method.getGenericReturnType());
             } catch (IOException e) {
                 throw new ServiceInvocationException(e, "Failed to deserialize the received response: %s", e.getMessage());
             }

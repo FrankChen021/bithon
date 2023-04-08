@@ -24,6 +24,11 @@ import org.bithon.agent.rpc.brpc.cmd.ILoggingCommand;
 import org.bithon.component.brpc.channel.ServerChannel;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
+import org.bithon.component.brpc.invocation.ClientLowLevelInvocation;
+import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
+import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
+import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
+import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.logging.LoggerConfiguration;
 import org.bithon.component.commons.utils.Preconditions;
@@ -33,6 +38,8 @@ import org.bithon.server.collector.cmd.service.AgentCommandService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.CommandArgs;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
+import org.bithon.shaded.com.google.protobuf.CodedInputStream;
+import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +49,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -231,6 +240,47 @@ public class AgentCommandApi implements IAgentCommandApi {
         return ServiceResponse.success(Collections.singletonList(modifiedRecord));
     }
 
+    @Override
+    public byte[] proxy(String appId, byte[] body) throws IOException {
+        CodedInputStream input = CodedInputStream.newInstance(body);
+        input.pushLimit(body.length);
+        ServiceRequestMessageIn fromClient = ServiceRequestMessageIn.from(input);
+        ServiceRequestMessageOut toTarget = ServiceRequestMessageOut.builder()
+                                                                    .applicationName(fromClient.getAppName())
+                                                                    .headers(fromClient.getHeaders())
+                                                                    .isOneway(false)
+                                                                    .messageType(fromClient.getMessageType())
+                                                                    .serviceName(fromClient.getServiceName())
+                                                                    .methodName(fromClient.getMethodName())
+                                                                    .transactionId(fromClient.getTransactionId())
+                                                                    .serializer(fromClient.getSerializer())
+                                                                    .rawArgs(fromClient.getRawArgs())
+                                                                    .build();
+
+        ClientLowLevelInvocation invocation = commandService.getServerChannel()
+                                                            .getSession(appId)
+                                                            .getClientInvocation();
+
+        try {
+            ServiceResponseMessageIn fromTarget = invocation.invoke(toTarget, 30_000);
+            ServiceResponseMessageOut toClient = ServiceResponseMessageOut.builder()
+                                                                          .serverResponseAt(fromTarget.getServerResponseAt())
+                                                                          .txId(fromTarget.getTransactionId())
+                                                                          .exception(fromTarget.getException())
+                                                                          .returningRaw(fromTarget.getReturnAsRaw())
+                                                                          // .returning() // NEEDS to write raw returning
+                                                                          .build();
+
+            try (ByteArrayOutputStream stream = new ByteArrayOutputStream(512)) {
+                CodedOutputStream outputStream = CodedOutputStream.newInstance(stream);
+                toClient.encode(outputStream);
+                return stream.toByteArray();
+            }
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Handle exception thrown in this REST controller.
      */
@@ -245,4 +295,5 @@ public class AgentCommandApi implements IAgentCommandApi {
                                                                               .message(exception.getMessage())
                                                                               .build()));
     }
+
 }
