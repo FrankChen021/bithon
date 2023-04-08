@@ -17,7 +17,11 @@
 package org.bithon.server.web.service.agent.sql.table;
 
 import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.logging.LoggingLevel;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.discovery.declaration.ServiceResponse;
@@ -27,6 +31,7 @@ import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -59,12 +64,41 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
         return IAgentCommandApi.LoggerConfigurationRecord.class;
     }
 
+    static class OneFilter implements IExpressionVisitor<Void> {
+        private String name;
+        private Object value;
+
+        @Override
+        public Void visit(LiteralExpression expression) {
+            value = expression.getValue();
+            return null;
+        }
+
+        @Override
+        public Void visit(IdentifierExpression expression) {
+            name = expression.getIdentifier();
+            return null;
+        }
+    }
+
     @Override
-    public void update(SqlExecutionContext executionContext,
-                       IExpression filterExpression,
-                       Map<String, Object> newValues) {
+    public int update(SqlExecutionContext executionContext,
+                      IExpression filterExpression,
+                      Map<String, Object> newValues) {
         String appId = (String) executionContext.get("appId");
-        Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
+        Preconditions.checkNotNull(appId, "'appId' is missed in the WHERE clause.");
+        Preconditions.checkNotNull(filterExpression, "'name' is missed in the WHERE clause.");
+        Preconditions.checkIfTrue(filterExpression instanceof BinaryExpression, "WHERE clause must only contain one filter.");
+
+        BinaryExpression binaryExpression = (BinaryExpression) filterExpression;
+        Preconditions.checkIfTrue("=".equals(binaryExpression.getOperator()), "Logger table does not support operator '%s', only '=' is supported", binaryExpression.getOperator());
+
+        OneFilter nameFilter = new OneFilter();
+        binaryExpression.getLeft().accept(nameFilter);
+        binaryExpression.getRight().accept(nameFilter);
+        Preconditions.checkNotNull(nameFilter.name, "WHERE clause must contains a filter");
+        Preconditions.checkIfTrue("name".equals(nameFilter.name), "WHERE clause must only contain a filter that works on 'name' field");
+        Preconditions.checkIfTrue(nameFilter.value instanceof String, "Filter on 'name' field must compare to type of STRING");
 
         String newLevel = (String) newValues.get("level");
         if (newLevel == null) {
@@ -72,11 +106,13 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
                                             "'level' is not updated");
         }
 
+        LoggingLevel loggingLevel;
         try {
-            LoggingLevel.valueOf(newLevel);
+            loggingLevel = LoggingLevel.valueOf(newLevel.toUpperCase(Locale.ENGLISH));
         } catch (IllegalArgumentException ignored) {
             throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
-                                            "Given level [%s] is not a valid value", newLevel);
+                                            "Given level [%s] is not a valid value, must be one of []",
+                                            newLevel);
         }
 
         if (newValues.size() > 1) {
@@ -85,8 +121,17 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
         }
 
         IAgentCommandApi.SetLoggerArgs args = new IAgentCommandApi.SetLoggerArgs();
-        args.setNewValues(newValues);
-        args.setCondition(filterExpression);
-        impl.setLogger(new CommandArgs<>(appId, args));
+        args.setLevel(loggingLevel);
+        args.setName((String) nameFilter.value);
+        ServiceResponse<IAgentCommandApi.ModifiedRecord> result = impl.setLogger(new CommandArgs<>(appId, args));
+        if (result.getError() != null) {
+            throw new RuntimeException(result.getError().toString());
+        }
+
+        int totalRows = 0;
+        for (IAgentCommandApi.ModifiedRecord record : result.getRows()) {
+            totalRows += record.getRows();
+        }
+        return totalRows;
     }
 }

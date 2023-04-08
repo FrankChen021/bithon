@@ -32,5 +32,5 @@ public interface ILoggingCommand {
 
     List<LoggerConfiguration> getLoggers();
 
-    void setLogger(String name, LoggingLevel level);
+    int setLogger(String name, LoggingLevel level);
 }

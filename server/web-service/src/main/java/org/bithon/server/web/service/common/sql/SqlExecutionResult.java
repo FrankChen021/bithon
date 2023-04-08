@@ -14,35 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.commons.expression;
+package org.bithon.server.web.service.common.sql;
+
+import org.apache.calcite.linq4j.Enumerable;
+import org.apache.calcite.rel.type.RelDataTypeField;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/4/7 20:16
+ * @date 2023/4/8 13:19
  */
-public class IdentifierExpression implements IExpression {
-    private final String identifier;
+public class SqlExecutionResult {
+    public final Enumerable<Object[]> rows;
+    public final List<RelDataTypeField> fields;
 
-    public IdentifierExpression(String identifier) {
-        this.identifier = identifier;
-    }
-
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    @Override
-    public String getType() {
-        return "identifier";
-    }
-
-    @Override
-    public <T> T accept(IExpressionVisitor<T> visitor) {
-        return visitor.visit(this);
-    }
-
-    @Override
-    public Object evaluate(EvaluationContext context) {
-        return context.get(identifier);
+    public SqlExecutionResult(Enumerable<Object[]> rows, List<RelDataTypeField> fields) {
+        this.rows = rows;
+        this.fields = fields;
     }
 }

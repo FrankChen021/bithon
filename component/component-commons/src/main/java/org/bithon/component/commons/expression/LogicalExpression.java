@@ -36,7 +36,7 @@ public class LogicalExpression implements IExpression {
     public LogicalExpression(String operator, IExpression... operands) {
         this(operator, Arrays.asList(operands));
     }
-    
+
     public LogicalExpression(String operator, List<IExpression> operands) {
         this.operator = operator.toUpperCase(Locale.ENGLISH);
         this.operands = operands;
@@ -64,6 +64,11 @@ public class LogicalExpression implements IExpression {
     @Override
     public String getType() {
         return "logical";
+    }
+
+    @Override
+    public <T> T accept(IExpressionVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 
     @Override

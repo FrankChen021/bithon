@@ -133,8 +133,9 @@ public class LoggingApplicationListener$OnApplicationStartingEvent extends After
         }
 
         @Override
-        public void setLogger(String name, LoggingLevel level) {
+        public int setLogger(String name, LoggingLevel level) {
             loggingSystem.setLogLevel(name, toLocalLevel.get(level));
+            return 1;
         }
     }
 }

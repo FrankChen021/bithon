@@ -18,31 +18,22 @@ package org.bithon.component.commons.expression;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/4/7 20:16
+ * @date 2023/4/8 11:41
  */
-public class IdentifierExpression implements IExpression {
-    private final String identifier;
-
-    public IdentifierExpression(String identifier) {
-        this.identifier = identifier;
+public interface IExpressionVisitor<T> {
+    default T visit(LiteralExpression expression) {
+        return null;
     }
 
-    public String getIdentifier() {
-        return identifier;
+    default T visit(LogicalExpression expression) {
+        return null;
     }
 
-    @Override
-    public String getType() {
-        return "identifier";
+    default T visit(IdentifierExpression expression) {
+        return null;
     }
 
-    @Override
-    public <T> T accept(IExpressionVisitor<T> visitor) {
-        return visitor.visit(this);
-    }
-
-    @Override
-    public Object evaluate(EvaluationContext context) {
-        return context.get(identifier);
+    default T visit(BinaryExpression expression) {
+        return null;
     }
 }

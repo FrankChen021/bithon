@@ -27,8 +27,8 @@ import java.util.Map;
  */
 public interface IUpdatableTable {
 
-    void update(SqlExecutionContext executionContext,
-                IExpression filterExpression,
-                Map<String, Object> newValues);
+    int update(SqlExecutionContext executionContext,
+               IExpression filterExpression,
+               Map<String, Object> newValues);
 
 }

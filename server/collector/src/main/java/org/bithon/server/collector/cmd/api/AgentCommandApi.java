@@ -171,30 +171,32 @@ public class AgentCommandApi implements IAgentCommandApi {
 
     @Override
     public ServiceResponse<LoggerConfigurationRecord> getLoggerList(@RequestBody CommandArgs<Void> args) {
-        ILoggingCommand command = commandService.getServerChannel()
-                                                .getRemoteService(args.getAppId(),
-                                                                  ILoggingCommand.class,
-                                                                  30_000);
-
-        List<LoggerConfiguration> loggers = command.getLoggers();
+        List<LoggerConfiguration> loggers = commandService.getServerChannel()
+                                                          .getRemoteService(args.getAppId(),
+                                                                            ILoggingCommand.class,
+                                                                            30_000)
+                                                          .getLoggers();
 
         List<LoggerConfigurationRecord> result = loggers.stream()
-                .map((c) -> new LoggerConfigurationRecord(c.getName(),
-                        c.getLevel() == null ? null : c.getLevel().toString(),
-                        c.getEffectiveLevel() == null ? null : c.getEffectiveLevel().toString()))
-                .collect(Collectors.toList());
+                                                        .map((c) -> new LoggerConfigurationRecord(c.getName(),
+                                                                                                  c.getLevel() == null ? null : c.getLevel().toString(),
+                                                                                                  c.getEffectiveLevel() == null ? null : c.getEffectiveLevel().toString()))
+                                                        .collect(Collectors.toList());
         return ServiceResponse.success(result);
     }
 
     @Override
-    public void setLogger(@RequestBody CommandArgs<SetLoggerArgs> args) {
+    public ServiceResponse<ModifiedRecord> setLogger(@RequestBody CommandArgs<SetLoggerArgs> args) {
         Preconditions.checkArgumentNotNull("args", args.getArgs());
 
         ILoggingCommand command = commandService.getServerChannel()
                                                 .getRemoteService(args.getAppId(),
                                                                   ILoggingCommand.class,
                                                                   30_000);
-
+        int rows = command.setLogger(args.getArgs().getName(), args.getArgs().getLevel());
+        ModifiedRecord modifiedRecord = new ModifiedRecord();
+        modifiedRecord.setRows(rows);
+        return ServiceResponse.success(Collections.singletonList(modifiedRecord));
     }
 
     /**

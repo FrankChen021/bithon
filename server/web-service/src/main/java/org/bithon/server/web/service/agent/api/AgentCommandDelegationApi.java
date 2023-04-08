@@ -42,6 +42,7 @@ import org.bithon.server.web.service.common.output.JsonCompactOutputFormatter;
 import org.bithon.server.web.service.common.output.TabSeparatedOutputFormatter;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 import org.bithon.server.web.service.common.sql.SqlExecutionEngine;
+import org.bithon.server.web.service.common.sql.SqlExecutionResult;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -84,7 +85,7 @@ public class AgentCommandDelegationApi {
                                             "Content-Type with application/x-www-form-urlencoded is not accepted. Please use text/plain instead.");
         }
 
-        SqlExecutionEngine.QueryResult result = this.sqlExecutionEngine.executeSql(query, (sqlNode, queryContext) -> {
+        SqlExecutionResult result = this.sqlExecutionEngine.executeSql(query, (sqlNode, queryContext) -> {
             //
             // appId is an always pushed down filter
             // We remove it from SQL because this specific field does not exist on all tables
