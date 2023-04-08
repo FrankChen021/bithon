@@ -171,9 +171,10 @@ public class AgentCommandApi implements IAgentCommandApi {
 
     @Override
     public ServiceResponse<LoggerConfigurationRecord> getLoggerList(@RequestBody CommandArgs<Void> args) {
-        ILoggingCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(),
-                ILoggingCommand.class,
-                30_000);
+        ILoggingCommand command = commandService.getServerChannel()
+                                                .getRemoteService(args.getAppId(),
+                                                                  ILoggingCommand.class,
+                                                                  30_000);
 
         List<LoggerConfiguration> loggers = command.getLoggers();
 
@@ -189,12 +190,11 @@ public class AgentCommandApi implements IAgentCommandApi {
     public void setLogger(@RequestBody CommandArgs<SetLoggerArgs> args) {
         Preconditions.checkArgumentNotNull("args", args.getArgs());
 
-        ILoggingCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(),
-                ILoggingCommand.class,
-                30_000);
+        ILoggingCommand command = commandService.getServerChannel()
+                                                .getRemoteService(args.getAppId(),
+                                                                  ILoggingCommand.class,
+                                                                  30_000);
 
-        command.setLogger(args.getArgs().getName(),
-                args.getArgs().getLevel());
     }
 
     /**

@@ -25,6 +25,7 @@ import org.apache.calcite.interpreter.BindableRel;
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.linq4j.Enumerable;
+import org.apache.calcite.linq4j.Linq4j;
 import org.apache.calcite.plan.ConventionTraitDef;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptPlanner;
@@ -33,7 +34,6 @@ import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.logical.LogicalTableModify;
 import org.apache.calcite.rel.rules.CoreRules;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rel.type.RelDataTypeField;
@@ -56,7 +56,14 @@ import org.apache.calcite.sql.validate.SqlValidatorUtil;
 import org.apache.calcite.sql2rel.SqlToRelConverter;
 import org.apache.calcite.sql2rel.StandardConvertletTable;
 import org.apache.calcite.util.NlsString;
-import org.bithon.server.web.service.agent.sql.table.LoggerTable;
+import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.component.commons.expression.BinaryExpression;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.server.web.service.agent.sql.table.IUpdatableTable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
@@ -64,6 +71,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.BiConsumer;
@@ -74,6 +82,8 @@ import java.util.function.BiConsumer;
  */
 @Service
 public class SqlExecutionEngine {
+
+    private static final RelOptTable.ViewExpander NOOP_EXPANDER = (rowType, queryString, schemaPath, viewPath) -> null;
 
     public static class QueryResult {
         public final Enumerable<Object[]> rows;
@@ -100,94 +110,25 @@ public class SqlExecutionEngine {
                                                  new CalciteConnectionConfigImpl(props));
     }
 
-    public abstract static class Expression {
-    }
 
-    public static class ColumnExpression extends Expression {
-        private final String columnName;
+    public static class ExpressionConverter extends SqlBasicVisitor<IExpression> {
 
-        public ColumnExpression(String columnName) {
-            this.columnName = columnName;
-        }
-
-        public String getColumnName() {
-            return columnName;
-        }
-    }
-
-    public static class LiteralExpression extends Expression {
-        private final Object value;
-
-        public LiteralExpression(Object value) {
-            this.value = value;
-        }
-
-        public Object getValue() {
-            return value;
-        }
-    }
-
-    public static class ComparisonExpression extends Expression {
-        private final String operatorName;
-        private final Expression left;
-        private final Expression right;
-
-        public ComparisonExpression(String operatorName, Expression left, Expression right) {
-            this.operatorName = operatorName;
-            this.left = left;
-            this.right = right;
-        }
-
-        public String getOperatorName() {
-            return operatorName;
-        }
-
-        public Expression getLeft() {
-            return left;
-        }
-
-        public Expression getRight() {
-            return right;
-        }
-    }
-
-    public static class LogicalExpression extends Expression {
-        private final String operatorName;
-        private final List<Expression> operands;
-
-        public LogicalExpression(String operatorName, List<Expression> operands) {
-            this.operatorName = operatorName;
-            this.operands = operands;
-        }
-
-        public String getOperatorName() {
-            return operatorName;
-        }
-
-        public List<Expression> getOperands() {
-            return operands;
-        }
-    }
-
-
-    public static class ExpressionConverter extends SqlBasicVisitor<Expression> {
-
-        public Expression convertExpression(SqlNode node) {
-            return node.accept(this);
+        public static IExpression toExpression(SqlNode node) {
+            return node.accept(new ExpressionConverter());
         }
 
         @Override
-        public Expression visit(SqlCall call) {
+        public IExpression visit(SqlCall call) {
             SqlOperator operator = call.getOperator();
-            List<Expression> operands = new ArrayList<>();
+            List<IExpression> operands = new ArrayList<>();
             for (SqlNode operand : call.getOperandList()) {
-                Expression expression = operand.accept(this);
+                IExpression expression = operand.accept(this);
                 operands.add(expression);
             }
             switch (operator.getKind()) {
                 case AND:
                 case OR:
-                    return new LogicalExpression(operator.getName(), operands);
+                    return new LogicalExpression(operator.getName().toUpperCase(Locale.ENGLISH), operands);
                 case NOT:
                     if (operands.size() != 1) {
                         throw new IllegalArgumentException("NOT operator should have exactly one operand");
@@ -203,22 +144,22 @@ public class SqlExecutionEngine {
                         throw new IllegalArgumentException("Comparison operator should have exactly two operands");
                     }
                     String operatorName = operator.getName();
-                    Expression left = operands.get(0);
-                    Expression right = operands.get(1);
-                    return new ComparisonExpression(operatorName, left, right);
+                    IExpression left = operands.get(0);
+                    IExpression right = operands.get(1);
+                    return new BinaryExpression(operatorName, left, right);
                 default:
                     throw new IllegalArgumentException("Unknown operator: " + operator);
             }
         }
 
         @Override
-        public Expression visit(SqlIdentifier identifier) {
+        public IExpression visit(SqlIdentifier identifier) {
             String columnName = identifier.toString();
-            return new ColumnExpression(columnName);
+            return new IdentifierExpression(columnName);
         }
 
         @Override
-        public Expression visit(SqlLiteral literal) {
+        public IExpression visit(SqlLiteral literal) {
             SqlTypeName typeName = literal.getTypeName();
             switch (typeName) {
                 case CHAR:
@@ -263,14 +204,13 @@ public class SqlExecutionEngine {
             onParsed.accept(sqlNode, queryContext);
         }
 
+        //
+        // Turn AST into logic plan
+        //
         SqlValidator validator = SqlValidatorUtil.newValidator(SqlStdOperatorTable.instance(),
                                                                catalogReader,
                                                                catalogReader.getTypeFactory(),
                                                                SqlValidator.Config.DEFAULT);
-
-        //
-        // Turn AST into logic plan
-        //
         RelOptCluster cluster = newCluster(catalogReader.getTypeFactory());
         SqlToRelConverter relConverter = new SqlToRelConverter(NOOP_EXPANDER,
                                                                validator,
@@ -280,30 +220,21 @@ public class SqlExecutionEngine {
                                                                SqlToRelConverter.config());
         RelNode logicPlan = relConverter.convertQuery(sqlNode, true, true).rel;
 
-        if (logicPlan instanceof LogicalTableModify) {
-            LogicalTableModify modify = (LogicalTableModify) logicPlan;
-
+        if (sqlNode instanceof SqlUpdate) {
             SqlUpdate updateNode = (SqlUpdate) sqlNode;
 
-            // Extract the column values from the UPDATE statement
-            Map<String, Object> columnValues = new HashMap<>();
-            SqlNodeList targetColumnList = updateNode.getTargetColumnList();
-            SqlNodeList sourceExpressionList = updateNode.getSourceExpressionList();
-            for (int i = 0; i < targetColumnList.size(); i++) {
-                SqlIdentifier targetColumn = (SqlIdentifier) targetColumnList.get(i);
-                SqlNode sourceExpression = sourceExpressionList.get(i);
-                Object value = ((SqlLiteral) sourceExpression).getValue();
-                columnValues.put(targetColumn.toString(), value);
-            }
-
             // Extract the condition from the UPDATE statement
-            Expression condition = new ExpressionConverter().convertExpression(updateNode.getCondition());
+            IExpression filterExpression = ExpressionConverter.toExpression(updateNode.getCondition());
 
-            LoggerTable table = (LoggerTable) catalogReader.getRootSchema().getSubSchema("agent", false)
-                                                           .getTable("logger", false)
-                                                           .getTable();
-
+            IUpdatableTable updatableTable = logicPlan.getTable().unwrap(IUpdatableTable.class);
+            if (updatableTable != null) {
+                updatableTable.update(queryContext, filterExpression, getUpdateValues(updateNode));
+                return new QueryResult(Linq4j.asEnumerable(new Object[0][]), Collections.emptyList());
+            } else {
+                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Table [%s] does not support UPDATE", ((SqlUpdate) sqlNode).getTargetTable().toString());
+            }
         }
+
         //
         // Initialize optimizer/planner with the necessary rules
         //
@@ -323,7 +254,24 @@ public class SqlExecutionEngine {
                                physicalPlan.getRowType().getFieldList());
     }
 
-    private static final RelOptTable.ViewExpander NOOP_EXPANDER = (rowType, queryString, schemaPath, viewPath) -> null;
+    private static Map<String, Object> getUpdateValues(SqlUpdate updateStatement) {
+        Map<String, Object> newValues = new HashMap<>();
+
+        SqlNodeList targetColumnList = updateStatement.getTargetColumnList();
+        SqlNodeList sourceExpressionList = updateStatement.getSourceExpressionList();
+        for (int i = 0; i < targetColumnList.size(); i++) {
+            SqlIdentifier targetColumn = (SqlIdentifier) targetColumnList.get(i);
+            SqlNode sourceExpression = sourceExpressionList.get(i);
+            Object value = ((SqlLiteral) sourceExpression).getValue();
+            if (value instanceof NlsString) {
+                newValues.put(targetColumn.toString(), ((NlsString) value).getValue());
+            } else {
+                newValues.put(targetColumn.toString(), value);
+            }
+        }
+
+        return newValues;
+    }
 
     /**
      * Should be instanced per execution
@@ -335,4 +283,6 @@ public class SqlExecutionEngine {
         RelOptUtil.registerDefaultRules(planner, false, true);
         return RelOptCluster.create(planner, new RexBuilder(factory));
     }
+
+
 }

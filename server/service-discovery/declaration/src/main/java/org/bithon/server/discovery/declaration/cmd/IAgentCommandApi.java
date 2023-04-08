@@ -19,6 +19,7 @@ package org.bithon.server.discovery.declaration.cmd;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.logging.LoggingLevel;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
+import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -196,8 +198,8 @@ public interface IAgentCommandApi {
 
     @Data
     class SetLoggerArgs {
-        private String name;
-        private LoggingLevel level;
+        private Map<String, Object> newValues;
+        private IExpression condition;
     }
 
     @PostMapping("/api/command/logger/set")
