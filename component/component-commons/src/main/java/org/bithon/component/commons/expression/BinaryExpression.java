@@ -66,6 +66,6 @@ public class BinaryExpression implements IExpression {
     private Object evaluateEqual(EvaluationContext context) {
         Object leftValue = left.evaluate(context);
         Object rightValue = right.evaluate(context);
-        return left.equals(right);
+        return leftValue.equals(rightValue);
     }
 }
