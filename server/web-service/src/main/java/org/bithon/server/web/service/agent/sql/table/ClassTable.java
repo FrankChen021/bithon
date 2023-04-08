@@ -41,7 +41,7 @@ public class ClassTable extends AbstractBaseTable {
         String appId = (String) executionContext.get("appId");
         Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
 
-        ServiceResponse<IAgentCommandApi.ClassRecord> classList = impl.getClassList(new CommandArgs<>(appId, null));
+        ServiceResponse<IAgentCommandApi.ClassRecord> classList = impl.getClassList(new CommandArgs<>(appId));
         if (classList.getError() != null) {
             throw new RuntimeException(classList.getError().toString());
         }
@@ -50,7 +50,7 @@ public class ClassTable extends AbstractBaseTable {
     }
 
     @Override
-    protected Class getRecordClazz() {
+    protected Class<?> getRecordClazz() {
         return IAgentCommandApi.ClassRecord.class;
     }
 }

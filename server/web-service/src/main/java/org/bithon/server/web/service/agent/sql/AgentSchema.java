@@ -24,6 +24,7 @@ import org.bithon.server.web.service.agent.sql.table.ClassTable;
 import org.bithon.server.web.service.agent.sql.table.ConfigurationTable;
 import org.bithon.server.web.service.agent.sql.table.InstanceTable;
 import org.bithon.server.web.service.agent.sql.table.InstrumentedMethodTable;
+import org.bithon.server.web.service.agent.sql.table.LoggerTable;
 import org.bithon.server.web.service.agent.sql.table.ThreadTable;
 
 import java.util.Map;
@@ -40,7 +41,9 @@ public class AgentSchema extends AbstractSchema {
                                         "loaded_class", new ClassTable(impl),
                                         "thread", new ThreadTable(impl),
                                         "configuration", new ConfigurationTable(impl),
-                                        "instrumented_method", new InstrumentedMethodTable(impl));
+                                        "instrumented_method", new InstrumentedMethodTable(impl),
+                                        "logger", new LoggerTable(impl)
+        );
     }
 
     @Override

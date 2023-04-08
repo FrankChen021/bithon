@@ -24,7 +24,7 @@ import org.apache.calcite.interpreter.BindableConvention;
 import org.apache.calcite.interpreter.BindableRel;
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
-import org.apache.calcite.linq4j.Enumerable;
+import org.apache.calcite.linq4j.Linq4j;
 import org.apache.calcite.plan.ConventionTraitDef;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptPlanner;
@@ -35,22 +35,33 @@ import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.rules.CoreRules;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
-import org.apache.calcite.rel.type.RelDataTypeField;
+import org.apache.calcite.rel.type.RelDataTypeFieldImpl;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.Table;
+import org.apache.calcite.sql.SqlIdentifier;
+import org.apache.calcite.sql.SqlLiteral;
 import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.SqlNodeList;
+import org.apache.calcite.sql.SqlUpdate;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.sql.validate.SqlValidator;
 import org.apache.calcite.sql.validate.SqlValidatorUtil;
 import org.apache.calcite.sql2rel.SqlToRelConverter;
 import org.apache.calcite.sql2rel.StandardConvertletTable;
+import org.apache.calcite.util.NlsString;
+import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.server.web.service.agent.sql.table.IUpdatableTable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.function.BiConsumer;
 
@@ -61,15 +72,7 @@ import java.util.function.BiConsumer;
 @Service
 public class SqlExecutionEngine {
 
-    public static class QueryResult {
-        public final Enumerable<Object[]> rows;
-        public final List<RelDataTypeField> fields;
-
-        public QueryResult(Enumerable<Object[]> rows, List<RelDataTypeField> fields) {
-            this.rows = rows;
-            this.fields = fields;
-        }
-    }
+    private static final RelOptTable.ViewExpander NOOP_EXPANDER = (rowType, queryString, schemaPath, viewPath) -> null;
 
     private final CalciteCatalogReader catalogReader;
 
@@ -86,6 +89,7 @@ public class SqlExecutionEngine {
                                                  new CalciteConnectionConfigImpl(props));
     }
 
+
     public void addTable(String tableName, Table table) {
         this.catalogReader.getRootSchema().add(tableName, table);
     }
@@ -94,7 +98,8 @@ public class SqlExecutionEngine {
         this.catalogReader.getRootSchema().add(name, schema);
     }
 
-    public QueryResult executeSql(String sql, @Nullable BiConsumer<SqlNode, SqlExecutionContext> onParsed) throws Exception {
+    public SqlExecutionResult executeSql(String sql,
+                                         @Nullable BiConsumer<SqlNode, SqlExecutionContext> onParsed) throws Exception {
         SqlExecutionContext queryContext = new SqlExecutionContext(catalogReader.getRootSchema(),
                                                                    (JavaTypeFactory) catalogReader.getTypeFactory());
 
@@ -107,14 +112,13 @@ public class SqlExecutionEngine {
             onParsed.accept(sqlNode, queryContext);
         }
 
+        //
+        // Turn AST into logic plan
+        //
         SqlValidator validator = SqlValidatorUtil.newValidator(SqlStdOperatorTable.instance(),
                                                                catalogReader,
                                                                catalogReader.getTypeFactory(),
                                                                SqlValidator.Config.DEFAULT);
-
-        //
-        // Turn AST into logic plan
-        //
         RelOptCluster cluster = newCluster(catalogReader.getTypeFactory());
         SqlToRelConverter relConverter = new SqlToRelConverter(NOOP_EXPANDER,
                                                                validator,
@@ -123,6 +127,26 @@ public class SqlExecutionEngine {
                                                                StandardConvertletTable.INSTANCE,
                                                                SqlToRelConverter.config());
         RelNode logicPlan = relConverter.convertQuery(sqlNode, true, true).rel;
+
+        if (sqlNode instanceof SqlUpdate) {
+            SqlUpdate updateNode = (SqlUpdate) sqlNode;
+
+            // Extract the condition from the UPDATE statement
+            IExpression filterExpression = ExpressionConverter.toExpression(updateNode.getCondition());
+
+            IUpdatableTable updatableTable = logicPlan.getTable().unwrap(IUpdatableTable.class);
+            if (updatableTable != null) {
+                int totalRows = updatableTable.update(queryContext, filterExpression, getUpdateValues(updateNode));
+                return new SqlExecutionResult(Linq4j.asEnumerable(new Object[][]{{totalRows}}),
+                                              Collections.singletonList(new RelDataTypeFieldImpl("affectedRows",
+                                                                                                 0,
+                                                                                                 catalogReader.getTypeFactory().createSqlType(SqlTypeName.INTEGER))));
+            } else {
+                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                                "Table [%s] does not support UPDATE",
+                                                ((SqlUpdate) sqlNode).getTargetTable().toString());
+            }
+        }
 
         //
         // Initialize optimizer/planner with the necessary rules
@@ -139,11 +163,28 @@ public class SqlExecutionEngine {
         //
         // Run the executable plan using a context simply providing access to the schema
         //
-        return new QueryResult(physicalPlan.bind(queryContext),
-                               physicalPlan.getRowType().getFieldList());
+        return new SqlExecutionResult(physicalPlan.bind(queryContext),
+                                      physicalPlan.getRowType().getFieldList());
     }
 
-    private static final RelOptTable.ViewExpander NOOP_EXPANDER = (rowType, queryString, schemaPath, viewPath) -> null;
+    private static Map<String, Object> getUpdateValues(SqlUpdate updateStatement) {
+        Map<String, Object> newValues = new HashMap<>();
+
+        SqlNodeList targetColumnList = updateStatement.getTargetColumnList();
+        SqlNodeList sourceExpressionList = updateStatement.getSourceExpressionList();
+        for (int i = 0; i < targetColumnList.size(); i++) {
+            SqlIdentifier targetColumn = (SqlIdentifier) targetColumnList.get(i);
+            SqlNode sourceExpression = sourceExpressionList.get(i);
+            Object value = ((SqlLiteral) sourceExpression).getValue();
+            if (value instanceof NlsString) {
+                newValues.put(targetColumn.toString(), ((NlsString) value).getValue());
+            } else {
+                newValues.put(targetColumn.toString(), value);
+            }
+        }
+
+        return newValues;
+    }
 
     /**
      * Should be instanced per execution
@@ -155,4 +196,6 @@ public class SqlExecutionEngine {
         RelOptUtil.registerDefaultRules(planner, false, true);
         return RelOptCluster.create(planner, new RexBuilder(factory));
     }
+
+
 }

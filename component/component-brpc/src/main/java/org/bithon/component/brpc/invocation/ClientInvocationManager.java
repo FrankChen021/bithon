@@ -21,6 +21,7 @@ import org.bithon.component.brpc.channel.IChannelWriter;
 import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.CallerSideException;
 import org.bithon.component.brpc.exception.ChannelException;
+import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.TimeoutException;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
@@ -174,7 +175,8 @@ public class ClientInvocationManager {
 
         try {
             inflightRequest.response = response.getReturning(inflightRequest.returnObjType);
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            inflightRequest.exception = new ServiceInvocationException(e, "Failed to deserialize the received response: %s", e.getMessage());
         }
 
         if (!StringUtil.isNullOrEmpty(response.getException())) {

@@ -32,7 +32,7 @@ import java.util.List;
  * @date 2022/8/7 21:29
  */
 public class ServiceResponse<T> {
-    public static final ServiceResponse EMPTY = new ServiceResponse(Collections.emptyList());
+    public static final ServiceResponse EMPTY = new ServiceResponse<>(Collections.emptyList());
 
     @Data
     @Builder
@@ -40,6 +40,18 @@ public class ServiceResponse<T> {
         private String uri;
         private String exception;
         private String message;
+
+        /**
+         * Add jackson annotation so that client can deserialize the response manually.
+         */
+        @JsonCreator
+        public Error(@JsonProperty("uri") String uri,
+                     @JsonProperty("exception") String exception,
+                     @JsonProperty("message") String message) {
+            this.uri = uri;
+            this.exception = exception;
+            this.message = message;
+        }
     }
 
     /**

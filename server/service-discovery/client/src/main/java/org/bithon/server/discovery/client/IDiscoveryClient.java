@@ -32,6 +32,11 @@ public interface IDiscoveryClient {
     {
         private String host;
         private int port;
+
+        @Override
+        public String toString() {
+            return host + ":" + port;
+        }
     }
 
     List<HostAndPort> getInstanceList(String serviceName);

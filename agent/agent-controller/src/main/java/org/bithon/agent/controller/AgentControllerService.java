@@ -38,6 +38,12 @@ import java.util.ServiceLoader;
 public class AgentControllerService implements IAgentService {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(AgentControllerService.class);
 
+    private static IAgentController controller;
+
+    public static IAgentController getControllerInstance() {
+        return controller;
+    }
+
     @Override
     public void start() throws Exception {
         LOG.info("Initializing agent controller");
@@ -51,7 +57,6 @@ public class AgentControllerService implements IAgentService {
         //
         // create controller
         //
-        IAgentController controller;
         try {
             IAgentControllerFactory factory = (IAgentControllerFactory) Class.forName(ctrlConfig.getClient())
                                                                              .getDeclaredConstructor().newInstance();
@@ -67,7 +72,7 @@ public class AgentControllerService implements IAgentService {
         loadAgentCommands(controller, PluginClassLoaderManager.getDefaultLoader());
 
         //
-        // start fetcher
+        // Start fetcher
         //
         DynamicConfigurationManager.createInstance(AppInstance.getInstance().getAppName(),
                                                    AppInstance.getInstance().getEnv(),

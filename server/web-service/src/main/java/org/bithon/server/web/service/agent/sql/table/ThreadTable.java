@@ -28,7 +28,7 @@ import java.util.List;
  * @author Frank Chen
  * @date 1/3/23 8:18 pm
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressWarnings({"unchecked"})
 public class ThreadTable extends AbstractBaseTable {
     private final IAgentCommandApi impl;
 
@@ -41,7 +41,7 @@ public class ThreadTable extends AbstractBaseTable {
         String appId = (String) executionContext.get("appId");
         Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
 
-        ServiceResponse<IAgentCommandApi.ThreadRecord> stackTraceList = impl.getThreads(new CommandArgs<>(appId, null));
+        ServiceResponse<IAgentCommandApi.ThreadRecord> stackTraceList = impl.getThreads(new CommandArgs<>(appId));
         if (stackTraceList.getError() != null) {
             throw new RuntimeException(stackTraceList.getError().toString());
         }
@@ -50,7 +50,7 @@ public class ThreadTable extends AbstractBaseTable {
     }
 
     @Override
-    protected Class getRecordClazz() {
+    protected Class<?> getRecordClazz() {
         return IAgentCommandApi.ThreadRecord.class;
     }
 }

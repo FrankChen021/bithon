@@ -35,9 +35,9 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings("rawtypes")
 abstract class AbstractBaseTable extends AbstractTable implements ScannableTable {
-    private RelDataType rowType;
+    protected RelDataType rowType;
 
-    protected abstract Class getRecordClazz();
+    protected abstract Class<?> getRecordClazz();
 
     @Override
     public RelDataType getRowType(final RelDataTypeFactory typeFactory) {

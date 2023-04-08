@@ -41,6 +41,7 @@
     <module>logging-log4j2</module>
     <module>logging-logback</module>
     <module>spring-bean</module>
+    <module>spring-boot</module>
     <module>spring-mvc</module>
     <module>spring-scheduling</module>
     <module>spring-webflux</module>
@@ -216,6 +217,11 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-spring-bean</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-spring-boot</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

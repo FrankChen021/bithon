@@ -16,12 +16,17 @@
 
 package org.bithon.server.discovery.declaration.cmd;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.bithon.component.commons.logging.LoggingLevel;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import javax.validation.Valid;
 
 /**
  * @author Frank Chen
@@ -113,7 +118,7 @@ public interface IAgentCommandApi {
     }
 
     @PostMapping("/api/command/jvm/dumpThread")
-    ServiceResponse<ThreadRecord> getThreads(@RequestBody CommandArgs<Void> args);
+    ServiceResponse<ThreadRecord> getThreads(@Valid @RequestBody CommandArgs<Void> args);
 
     class ClassRecord implements IObjectArrayConvertable {
         public String name;
@@ -132,7 +137,7 @@ public interface IAgentCommandApi {
      * Get loaded class
      */
     @PostMapping("/api/command/jvm/dumpClazz")
-    ServiceResponse<ClassRecord> getClassList(@RequestBody CommandArgs<Void> args);
+    ServiceResponse<ClassRecord> getClassList(@Valid @RequestBody CommandArgs<Void> args);
 
     @Data
     class GetConfigurationRequest {
@@ -170,4 +175,41 @@ public interface IAgentCommandApi {
     @PostMapping("/api/command/instrumentation/method/list")
     ServiceResponse<InstrumentedMethodRecord> getInstrumentedMethod(@RequestBody CommandArgs<Void> args);
 
+    @NoArgsConstructor
+    @AllArgsConstructor
+    class LoggerConfigurationRecord implements IObjectArrayConvertable {
+
+        public String name;
+
+        public String level;
+
+        public String effectiveLevel;
+
+        @Override
+        public Object[] toObjectArray() {
+            return new Object[]{name, level, effectiveLevel};
+        }
+    }
+
+    @PostMapping("/api/command/logger/get")
+    ServiceResponse<LoggerConfigurationRecord> getLoggerList(@Valid @RequestBody CommandArgs<Void> args);
+
+    @Data
+    class SetLoggerArgs {
+        private String name;
+        private LoggingLevel level;
+    }
+
+    @Data
+    class ModifiedRecord implements IObjectArrayConvertable {
+        private int rows;
+
+        @Override
+        public Object[] toObjectArray() {
+            return new Object[]{rows};
+        }
+    }
+
+    @PostMapping("/api/command/logger/set")
+    ServiceResponse<ModifiedRecord> setLogger(@Valid @RequestBody CommandArgs<SetLoggerArgs> args);
 }

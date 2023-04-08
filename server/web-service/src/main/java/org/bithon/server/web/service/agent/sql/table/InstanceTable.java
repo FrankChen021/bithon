@@ -44,7 +44,7 @@ public class InstanceTable extends AbstractBaseTable {
     }
 
     @Override
-    protected Class getRecordClazz() {
+    protected Class<?> getRecordClazz() {
         return IAgentCommandApi.InstanceRecord.class;
     }
 }

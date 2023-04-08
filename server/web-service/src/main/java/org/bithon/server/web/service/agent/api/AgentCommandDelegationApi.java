@@ -26,12 +26,14 @@ import org.apache.calcite.sql.SqlLiteral;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlOrderBy;
 import org.apache.calcite.sql.SqlSelect;
+import org.apache.calcite.sql.SqlUpdate;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.sql.util.SqlBasicVisitor;
 import org.apache.calcite.sql.validate.SqlValidatorException;
 import org.apache.calcite.util.NlsString;
 import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
@@ -41,6 +43,7 @@ import org.bithon.server.web.service.common.output.JsonCompactOutputFormatter;
 import org.bithon.server.web.service.common.output.TabSeparatedOutputFormatter;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 import org.bithon.server.web.service.common.sql.SqlExecutionEngine;
+import org.bithon.server.web.service.common.sql.SqlExecutionResult;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -83,7 +86,7 @@ public class AgentCommandDelegationApi {
                                             "Content-Type with application/x-www-form-urlencoded is not accepted. Please use text/plain instead.");
         }
 
-        SqlExecutionEngine.QueryResult result = this.sqlExecutionEngine.executeSql(query, (sqlNode, queryContext) -> {
+        SqlExecutionResult result = this.sqlExecutionEngine.executeSql(query, (sqlNode, queryContext) -> {
             //
             // appId is an always pushed down filter
             // We remove it from SQL because this specific field does not exist on all tables
@@ -94,6 +97,8 @@ public class AgentCommandDelegationApi {
                 whereNode = ((SqlSelect) ((SqlOrderBy) sqlNode).query).getWhere();
             } else if (sqlNode.getKind() == SqlKind.SELECT) {
                 whereNode = ((SqlSelect) (sqlNode)).getWhere();
+            } else if (sqlNode.getKind() == SqlKind.UPDATE) {
+                whereNode = ((SqlUpdate) (sqlNode)).getCondition();
             } else {
                 throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unsupported SQL Kind: %s", sqlNode.getKind());
             }
@@ -133,25 +138,28 @@ public class AgentCommandDelegationApi {
             if (call.getOperandList().size() != 2) {
                 return super.visit(call);
             }
-            SqlNode identifier = call.getOperandList().get(0);
+            SqlNode identifierNode = call.getOperandList().get(0);
             SqlNode literal = call.getOperandList().get(1);
-            if (!(identifier instanceof SqlIdentifier)) {
+            if (!(identifierNode instanceof SqlIdentifier)) {
                 SqlNode tmp = literal;
-                literal = identifier;
-                identifier = tmp;
+                literal = identifierNode;
+                identifierNode = tmp;
             }
-            if (!(identifier instanceof SqlIdentifier)) {
+            if (!(identifierNode instanceof SqlIdentifier)) {
                 return super.visit(call);
             }
-            if (!"appId".equalsIgnoreCase(((SqlIdentifier) identifier).getSimple())) {
+
+            String identifier = ((SqlIdentifier) identifierNode).getSimple();
+            if (!"appId".equalsIgnoreCase(identifier) && !"_token".equalsIgnoreCase(identifier)) {
                 return super.visit(call);
             }
 
             if (!(literal instanceof SqlCharStringLiteral)) {
-                throw new RuntimeException("xxx");
+                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                                StringUtils.format("Operand for [%s] must be type of STRING", identifier));
             }
 
-            this.queryContext.set("appId", ((SqlCharStringLiteral) literal).getValueAs(NlsString.class).getValue());
+            this.queryContext.set(identifier, ((SqlCharStringLiteral) literal).getValueAs(NlsString.class).getValue());
 
             // Replace current filter expression by '1 = 1'
             call.setOperand(0, SqlLiteral.createBoolean(true, new SqlParserPos(-1, -1)));

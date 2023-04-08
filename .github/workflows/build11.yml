@@ -34,8 +34,9 @@ jobs:
       - name: Compilation
         run: mvn clean install -T 1C -ntp --activate-profiles shaded,jooq,server,component,agent -Dmaven.javadoc.skip=true -DskipTests
 
+      # No use of -T parameter because it will mess up the output message
       - name: Dependency Check
-        run: mvn -T 1C -ntp dependency:analyze-only
+        run: mvn -ntp dependency:analyze-only
 
       # Execute UT excluding component modules
       - name: UT
