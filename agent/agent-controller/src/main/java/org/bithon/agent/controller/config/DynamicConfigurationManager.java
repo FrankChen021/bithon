@@ -62,7 +62,7 @@ public class DynamicConfigurationManager {
         this.updateConfigTask = new UpdateConfigurationTask();
 
         // Attach service on this channel
-        this.controller.attachCommands(new ConfigCommandImpl());
+        this.controller.attachCommands(new ConfigurationCommandImpl());
 
         // Trigger re-retrieve on immediately once some changes happen
         this.controller.refreshListener(updateConfigTask::runImmediately);

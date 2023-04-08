@@ -17,7 +17,7 @@
 package org.bithon.server.collector.cmd.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.agent.rpc.brpc.cmd.IConfigCommand;
+import org.bithon.agent.rpc.brpc.cmd.IConfigurationCommand;
 import org.bithon.agent.rpc.brpc.cmd.IInstrumentationCommand;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.agent.rpc.brpc.cmd.ILoggingCommand;
@@ -151,7 +151,7 @@ public class AgentCommandApi implements IAgentCommandApi {
         String format = request == null ? "YAML" : request.getFormat();
         boolean isPretty = request == null ? true : request.isPretty();
 
-        IConfigCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IConfigCommand.class, 30_000);
+        IConfigurationCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IConfigurationCommand.class, 30_000);
 
         ConfigurationRecord record = new ConfigurationRecord();
         record.payload = command.getConfiguration(format, isPretty);
