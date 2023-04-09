@@ -24,6 +24,7 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.logging.LoggingLevel;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.CommandArgs;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
@@ -41,8 +42,8 @@ import java.util.Map;
 public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
     private final IAgentCommandApi impl;
 
-    public LoggerTable(IAgentCommandApi impl) {
-        this.impl = impl;
+    public LoggerTable(ServiceBroadcastInvoker impl) {
+        this.impl = impl.create(IAgentCommandApi.class);
     }
 
     @SuppressWarnings("unchecked")

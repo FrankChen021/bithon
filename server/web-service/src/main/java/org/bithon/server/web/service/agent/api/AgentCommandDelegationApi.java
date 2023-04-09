@@ -74,7 +74,7 @@ public class AgentCommandDelegationApi {
                                      ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
         this.sqlExecutionEngine = sqlExecutionEngine;
-        this.sqlExecutionEngine.addSchema("agent", new AgentSchema(serviceBroadcastInvoker.create(IAgentCommandApi.class)));
+        this.sqlExecutionEngine.addSchema("agent", new AgentSchema(serviceBroadcastInvoker));
     }
 
     @PostMapping(value = "/api/agent/query")

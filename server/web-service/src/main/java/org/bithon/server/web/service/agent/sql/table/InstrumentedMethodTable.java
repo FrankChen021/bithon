@@ -17,6 +17,7 @@
 package org.bithon.server.web.service.agent.sql.table;
 
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.CommandArgs;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
@@ -31,8 +32,8 @@ import java.util.List;
 public class InstrumentedMethodTable extends AbstractBaseTable {
     private final IAgentCommandApi impl;
 
-    public InstrumentedMethodTable(IAgentCommandApi impl) {
-        this.impl = impl;
+    public InstrumentedMethodTable(ServiceBroadcastInvoker impl) {
+        this.impl = impl.create(IAgentCommandApi.class);
     }
 
     @SuppressWarnings("unchecked")

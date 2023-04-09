@@ -19,6 +19,8 @@ package org.bithon.server.web.service.agent.sql;
 import com.google.common.collect.ImmutableMap;
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.schema.impl.AbstractSchema;
+import org.bithon.component.brpc.ServiceRegistry;
+import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.agent.sql.table.ClassTable;
 import org.bithon.server.web.service.agent.sql.table.ConfigurationTable;
@@ -36,13 +38,13 @@ import java.util.Map;
 public class AgentSchema extends AbstractSchema {
     private final ImmutableMap<String, Table> tableMap;
 
-    public AgentSchema(IAgentCommandApi impl) {
-        this.tableMap = ImmutableMap.of("instance", new InstanceTable(impl),
-                                        "loaded_class", new ClassTable(impl),
-                                        "thread", new ThreadTable(impl),
-                                        "configuration", new ConfigurationTable(impl),
-                                        "instrumented_method", new InstrumentedMethodTable(impl),
-                                        "logger", new LoggerTable(impl)
+    public AgentSchema(ServiceBroadcastInvoker serviceInvoker) {
+        this.tableMap = ImmutableMap.of("instance", new InstanceTable(serviceInvoker),
+                                        "loaded_class", new ClassTable(serviceInvoker),
+                                        "thread", new ThreadTable(serviceInvoker),
+                                        "configuration", new ConfigurationTable(serviceInvoker),
+                                        "instrumented_method", new InstrumentedMethodTable(serviceInvoker),
+                                        "logger", new LoggerTable(serviceInvoker)
         );
     }
 

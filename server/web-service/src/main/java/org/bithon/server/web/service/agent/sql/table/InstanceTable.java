@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.agent.sql.table;
 
+import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
@@ -26,12 +27,12 @@ import java.util.List;
  * @author Frank Chen
  * @date 1/3/23 8:18 pm
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressWarnings({"unchecked"})
 public class InstanceTable extends AbstractBaseTable {
     private final IAgentCommandApi impl;
 
-    public InstanceTable(IAgentCommandApi impl) {
-        this.impl = impl;
+    public InstanceTable(ServiceBroadcastInvoker invoker) {
+        this.impl = invoker.create(IAgentCommandApi.class);
     }
 
     @Override
