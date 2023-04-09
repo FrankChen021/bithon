@@ -16,9 +16,6 @@
 
 package org.bithon.server.discovery.client;
 
-import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
-import com.alibaba.cloud.nacos.discovery.NacosServiceDiscovery;
-import com.alibaba.cloud.nacos.registry.NacosAutoServiceRegistration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Contract;
 import feign.Feign;
@@ -29,12 +26,9 @@ import feign.codec.ErrorDecoder;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.discovery.client.inprocess.InProcessDiscoveryClient;
-import org.bithon.server.discovery.client.nacos.NacosDiscoveryClient;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.HttpStatus;
@@ -61,25 +55,17 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
 
     private final ExecutorService executorService = Executors.newCachedThreadPool(new NamedThreadFactory("service-invoker", true));
     private ObjectMapper objectMapper;
+    private final IDiscoveryClient discoveryClient;
+
+    public ServiceBroadcastInvoker(IDiscoveryClient discoveryClient) {
+        this.discoveryClient = discoveryClient;
+    }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
-        this.serviceDiscoveryClient = createDiscoveryClient(applicationContext);
+        this.serviceDiscoveryClient = discoveryClient;
         this.objectMapper = applicationContext.getBean(ObjectMapper.class);
-    }
-
-    private IDiscoveryClient createDiscoveryClient(ApplicationContext applicationContext) {
-        try {
-            // Try to create a Nacos client first
-            applicationContext.getBean(NacosAutoServiceRegistration.class);
-            return new NacosDiscoveryClient(applicationContext.getBean(NacosServiceDiscovery.class),
-                                            applicationContext.getBean(NacosDiscoveryProperties.class));
-        } catch (NoSuchBeanDefinitionException ignored) {
-        }
-
-        // Service Discovery is not enabled, use Local
-        return new InProcessDiscoveryClient(applicationContext);
     }
 
     /**

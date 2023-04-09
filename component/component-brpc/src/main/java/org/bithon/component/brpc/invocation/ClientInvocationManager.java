@@ -104,6 +104,7 @@ public class ClientInvocationManager {
         //
         // check channel status
         //
+        //TODO: extract follow judge into a method of IChannelWritter
         Channel ch = channelWriter.getChannel();
         if (ch == null) {
             throw new CallerSideException("Failed to invoke %s#%s due to channel is empty",
