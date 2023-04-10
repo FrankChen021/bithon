@@ -16,12 +16,14 @@
 
 package org.bithon.component.brpc.message.in;
 
+import org.bithon.component.brpc.exception.BadRequestException;
 import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.serializer.Serializer;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 
 /**
@@ -76,5 +78,15 @@ public class ServiceResponseMessageIn extends ServiceMessageIn {
 
     public String getException() {
         return exception;
+    }
+
+    public static ServiceResponseMessageIn from(InputStream inputStream) throws IOException {
+        CodedInputStream is = CodedInputStream.newInstance(inputStream);
+        is.pushLimit(inputStream.available());
+        int messageType = is.readInt32();
+        if (messageType == ServiceMessageType.SERVER_RESPONSE) {
+            return (ServiceResponseMessageIn) new ServiceResponseMessageIn().decode(is);
+        }
+        throw new BadRequestException("messageType [%x] is not a valid ServiceResponseMessageIn message", messageType);
     }
 }

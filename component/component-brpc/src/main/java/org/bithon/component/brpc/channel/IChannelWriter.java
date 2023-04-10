@@ -20,6 +20,9 @@ import org.bithon.shaded.io.netty.channel.Channel;
 
 import java.io.IOException;
 
+/**
+ * @author frankchen
+ */
 public interface IChannelWriter {
 
     void connect();
@@ -36,5 +39,8 @@ public interface IChannelWriter {
      */
     Channel getChannel();
 
-    void writeAndFlush(Object obj) throws IOException;
+    /**
+     * Write the message without waiting for response
+     */
+    void write(Object obj) throws IOException;
 }

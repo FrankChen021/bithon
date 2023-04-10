@@ -122,7 +122,7 @@ public class ClientChannel implements IChannelWriter, Closeable {
     }
 
     @Override
-    public void writeAndFlush(Object obj) {
+    public void write(Object obj) {
         Channel ch = channel.get();
         if (ch == null) {
             throw new ChannelException("Client channel is closed");

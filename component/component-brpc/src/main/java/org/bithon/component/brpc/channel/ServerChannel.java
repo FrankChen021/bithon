@@ -318,7 +318,7 @@ public class ServerChannel implements Closeable {
         }
 
         @Override
-        public void writeAndFlush(Object obj) {
+        public void write(Object obj) {
             channel.writeAndFlush(obj);
         }
     }

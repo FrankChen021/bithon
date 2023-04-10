@@ -131,7 +131,7 @@ public class InvocationManager {
 
         for (int i = 0; i < 3; i++) {
             try {
-                channelWriter.writeAndFlush(serviceRequest);
+                channelWriter.write(serviceRequest);
                 break;
             } catch (ChannelException e) {
                 if (i < 2) {
