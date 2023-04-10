@@ -54,8 +54,9 @@ public class ServiceStubFactory {
     public static <T> T create(String clientAppName,
                                Headers headers,
                                IChannelWriter channelWriter,
-                               Class<T> serviceInterface) {
-        return create(clientAppName, headers, channelWriter, serviceInterface, 5000);
+                               Class<T> serviceInterface,
+                               ClientInvocationManager invocationManager) {
+        return create(clientAppName, headers, channelWriter, serviceInterface, 5000, invocationManager);
     }
 
     @SuppressWarnings("unchecked")
@@ -63,13 +64,14 @@ public class ServiceStubFactory {
                                Headers headers,
                                IChannelWriter channelWriter,
                                Class<T> serviceInterface,
-                               int timeout) {
+                               int timeout,
+                               ClientInvocationManager invocationManager) {
         return (T) Proxy.newProxyInstance(serviceInterface.getClassLoader(),
                                           new Class[]{serviceInterface, IServiceController.class},
                                           new ServiceInvocationStub(clientAppName,
                                                                     headers,
                                                                     channelWriter,
-                                                                    ClientInvocationManager.getInstance(),
+                                                                    invocationManager,
                                                                     timeout));
     }
 

@@ -20,6 +20,7 @@ import org.bithon.component.brpc.BrpcMethod;
 import org.bithon.component.brpc.ServiceRegistry;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
+import org.bithon.component.brpc.invocation.ClientInvocationManager;
 import org.bithon.component.brpc.invocation.ClientLowLevelInvocation;
 import org.bithon.component.brpc.invocation.ServiceStubFactory;
 import org.bithon.component.brpc.message.Headers;
@@ -61,18 +62,20 @@ public class ServerChannel implements Closeable {
     private final NioEventLoopGroup workerGroup;
     private final ServiceRegistry serviceRegistry = new ServiceRegistry();
 
-    /**
-     * 服务端的请求直接在worker线程中处理，无需单独定义线程池
-     */
-    private final SessionManager sessionManager = new SessionManager();
+    private final SessionManager sessionManager;
+
+    private final ClientInvocationManager invocationManager;
 
     public ServerChannel() {
-        this(8);
+        this(Runtime.getRuntime().availableProcessors());
     }
 
     public ServerChannel(int nThreadCount) {
-        bossGroup = new NioEventLoopGroup(1, NamedThreadFactory.of("brpc-server"));
-        workerGroup = new NioEventLoopGroup(nThreadCount, NamedThreadFactory.of("brpc-s-worker"));
+        this.bossGroup = new NioEventLoopGroup(1, NamedThreadFactory.of("brpc-server"));
+        this.workerGroup = new NioEventLoopGroup(nThreadCount, NamedThreadFactory.of("brpc-s-worker"));
+
+        this.invocationManager = new ClientInvocationManager();
+        this.sessionManager = new SessionManager(this.invocationManager);
     }
 
     /**
@@ -104,9 +107,9 @@ public class ServerChannel implements Closeable {
                         pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
                         pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
                         pipeline.addLast("decoder", new ServiceMessageInDecoder());
-                        pipeline.addLast("encoder", new ServiceMessageOutEncoder());
+                        pipeline.addLast("encoder", new ServiceMessageOutEncoder(invocationManager));
                         pipeline.addLast(sessionManager);
-                        pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry));
+                        pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry, invocationManager));
                     }
                 });
         try {
@@ -168,6 +171,7 @@ public class ServerChannel implements Closeable {
          * Socket endpoint of client
          */
         private final EndPoint endpoint;
+        private final ClientInvocationManager clientInvocationManager;
         private String appName;
 
         /**
@@ -177,9 +181,10 @@ public class ServerChannel implements Closeable {
 
         private String clientVersion;
 
-        public Session(Channel channel) {
+        public Session(Channel channel, ClientInvocationManager clientInvocationManager) {
             this.channel = channel;
             this.endpoint = EndPoint.of((InetSocketAddress) channel.remoteAddress());
+            this.clientInvocationManager = clientInvocationManager;
 
             // appId default to endpoint at first
             this.appId = this.endpoint.toString();
@@ -218,18 +223,24 @@ public class ServerChannel implements Closeable {
                                              Headers.EMPTY,
                                              new Server2ClientChannelWriter(channel),
                                              serviceClass,
-                                             timeout);
+                                             timeout,
+                                             clientInvocationManager);
         }
 
         public ClientLowLevelInvocation getClientInvocation() {
-            return new ClientLowLevelInvocation(new Server2ClientChannelWriter(channel));
+            return new ClientLowLevelInvocation(new Server2ClientChannelWriter(channel), clientInvocationManager);
         }
     }
 
     @ChannelHandler.Sharable
     private static class SessionManager extends ChannelInboundHandlerAdapter {
+        private final ClientInvocationManager clientInvocationManager;
 
         private final Map<String, Session> sessions = new ConcurrentHashMap<>();
+
+        private SessionManager(ClientInvocationManager clientInvocationManager) {
+            this.clientInvocationManager = clientInvocationManager;
+        }
 
         public List<Session> getSessions() {
             return new ArrayList<>(sessions.values());
@@ -237,7 +248,7 @@ public class ServerChannel implements Closeable {
 
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            sessions.computeIfAbsent(ctx.channel().id().asLongText(), key -> new Session(ctx.channel()));
+            sessions.computeIfAbsent(ctx.channel().id().asLongText(), key -> new Session(ctx.channel(), clientInvocationManager));
             super.channelActive(ctx);
         }
 

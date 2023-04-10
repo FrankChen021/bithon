@@ -43,21 +43,23 @@ public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
 
     private final IServiceInvocationExecutor executor;
     private final ServiceRegistry serviceRegistry;
+    private final ClientInvocationManager clientInvocationManager;
     private boolean channelDebugEnabled;
 
     /**
      * Instantiate an instance which calls the service in worker threads
      */
-    public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry) {
-        this(serviceRegistry, ServiceInvocationRunnable::run);
+    public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry, ClientInvocationManager clientInvocationManager) {
+        this(serviceRegistry, ServiceInvocationRunnable::run, clientInvocationManager);
     }
 
     /**
      * Instantiate an instance which calls the service in specified executor.
      */
-    public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry, IServiceInvocationExecutor executor) {
+    public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry, IServiceInvocationExecutor executor, ClientInvocationManager clientInvocationManager) {
         this.serviceRegistry = serviceRegistry;
         this.executor = executor;
+        this.clientInvocationManager = clientInvocationManager;
     }
 
     @Override
@@ -82,7 +84,7 @@ public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
                 if (channelDebugEnabled) {
                     LOG.info("Receiving response, txId={}", message.getTransactionId());
                 }
-                ClientInvocationManager.getInstance().onResponse((ServiceResponseMessageIn) message);
+                clientInvocationManager.onResponse((ServiceResponseMessageIn) message);
                 break;
             default:
                 LOG.warn("Receiving unknown message: {}", message.getMessageType());

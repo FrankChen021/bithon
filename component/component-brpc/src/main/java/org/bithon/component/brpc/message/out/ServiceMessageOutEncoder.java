@@ -35,6 +35,11 @@ import org.bithon.shaded.io.netty.handler.codec.MessageToByteEncoder;
 public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessageOut> {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ServiceMessageOutEncoder.class);
 
+    private final ClientInvocationManager clientInvocationManager;
+    public ServiceMessageOutEncoder(ClientInvocationManager clientInvocationManager) {
+        this.clientInvocationManager = clientInvocationManager;
+    }
+
     @Override
     protected void encode(ChannelHandlerContext ctx, ServiceMessageOut msg, ByteBuf out) {
         try {
@@ -59,8 +64,7 @@ public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessag
                 ServiceMessageOut out = ((ServiceMessageEncodingException) cause).out;
                 if (out.getMessageType() == ServiceMessageType.CLIENT_REQUEST
                     || out.getMessageType() == ServiceMessageType.CLIENT_REQUEST_V2) {
-                    ClientInvocationManager.getInstance()
-                                           .onClientException(((ServiceMessageEncodingException) cause).out.getTransactionId(),
+                    clientInvocationManager.onClientException(((ServiceMessageEncodingException) cause).out.getTransactionId(),
                                                               cause.getCause());
                     return;
                 }

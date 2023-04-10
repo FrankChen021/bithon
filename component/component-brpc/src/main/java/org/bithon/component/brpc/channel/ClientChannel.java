@@ -24,6 +24,7 @@ import org.bithon.component.brpc.endpoint.IEndPointProvider;
 import org.bithon.component.brpc.exception.CallerSideException;
 import org.bithon.component.brpc.exception.ChannelException;
 import org.bithon.component.brpc.exception.ServiceNotFoundException;
+import org.bithon.component.brpc.invocation.ClientInvocationManager;
 import org.bithon.component.brpc.invocation.ServiceStubFactory;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
@@ -77,6 +78,8 @@ public class ClientChannel implements IChannelWriter, Closeable {
 
     private long connectionTimestamp;
 
+    private ClientInvocationManager clientInvocationManager;
+
     /**
      * It's better to use {@link ClientChannelBuilder} to instantiate the instance
      *
@@ -92,24 +95,25 @@ public class ClientChannel implements IChannelWriter, Closeable {
         this.retryInterval = retryInterval;
         this.appName = appName;
 
-        bossGroup = new NioEventLoopGroup(nWorkerThreads, NamedThreadFactory.of("brpc-client"));
-        bootstrap = new Bootstrap();
-        bootstrap.group(bossGroup)
-                 .channel(NioSocketChannel.class)
-                 .option(ChannelOption.SO_KEEPALIVE, true)
-                 .handler(new ChannelInitializer<SocketChannel>() {
-                     @Override
-                     public void initChannel(SocketChannel ch) {
-                         ChannelPipeline pipeline = ch.pipeline();
-                         pipeline.addLast("frameDecoder",
-                                          new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
-                         pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
-                         pipeline.addLast("decoder", new ServiceMessageInDecoder());
-                         pipeline.addLast("encoder", new ServiceMessageOutEncoder());
-                         pipeline.addLast(new ClientChannelManager());
-                         pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry));
-                     }
-                 });
+        this.clientInvocationManager = new ClientInvocationManager();
+        this.bossGroup = new NioEventLoopGroup(nWorkerThreads, NamedThreadFactory.of("brpc-client"));
+        this.bootstrap = new Bootstrap();
+        this.bootstrap.group(this.bossGroup)
+                      .channel(NioSocketChannel.class)
+                      .option(ChannelOption.SO_KEEPALIVE, true)
+                      .handler(new ChannelInitializer<SocketChannel>() {
+                          @Override
+                          public void initChannel(SocketChannel ch) {
+                              ChannelPipeline pipeline = ch.pipeline();
+                              pipeline.addLast("frameDecoder",
+                                               new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
+                              pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
+                              pipeline.addLast("decoder", new ServiceMessageInDecoder());
+                              pipeline.addLast("encoder", new ServiceMessageOutEncoder(clientInvocationManager));
+                              pipeline.addLast(new ClientChannelManager());
+                              pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry, clientInvocationManager));
+                          }
+                      });
     }
 
     @Override
@@ -197,13 +201,14 @@ public class ClientChannel implements IChannelWriter, Closeable {
         IServiceRegistry serviceRegistry = ServiceStubFactory.create(this.appName,
                                                                      Headers.EMPTY,
                                                                      this,
-                                                                     IServiceRegistry.class);
+                                                                     IServiceRegistry.class,
+                                                                     this.clientInvocationManager);
         String serviceName = ServiceRegistryItem.getServiceName(serviceType);
         if (!serviceRegistry.contains(serviceName)) {
             throw new ServiceNotFoundException(serviceName);
         }
 
-        return ServiceStubFactory.create(this.appName, this.headers, this, serviceType);
+        return ServiceStubFactory.create(this.appName, this.headers, this, serviceType, this.clientInvocationManager);
     }
 
     public void setHeader(String name, String value) {

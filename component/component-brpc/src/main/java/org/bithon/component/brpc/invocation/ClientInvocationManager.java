@@ -46,7 +46,6 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class ClientInvocationManager {
 
-    private static final ClientInvocationManager INSTANCE = new ClientInvocationManager();
     private final AtomicLong transactionId = new AtomicLong(21515);
 
     /**
@@ -55,10 +54,6 @@ public class ClientInvocationManager {
     private final Map<Long, InflightRequest> inflightRequests = new ConcurrentHashMap<>();
 
     private final Map<Method, ServiceRegistryItem> serviceRegistryItems = new ConcurrentHashMap<>();
-
-    public static ClientInvocationManager getInstance() {
-        return INSTANCE;
-    }
 
     public Object invoke(String appName,
                          Headers headers,

@@ -18,6 +18,8 @@ package org.bithon.component.brpc.channel;
 
 import org.bithon.shaded.io.netty.channel.Channel;
 
+import java.io.IOException;
+
 public interface IChannelWriter {
 
     void connect();
@@ -34,5 +36,5 @@ public interface IChannelWriter {
      */
     Channel getChannel();
 
-    void writeAndFlush(Object obj);
+    void writeAndFlush(Object obj) throws IOException;
 }
