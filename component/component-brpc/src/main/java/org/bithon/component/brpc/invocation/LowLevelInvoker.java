@@ -24,17 +24,17 @@ import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
  * @author frank.chen021@outlook.com
  * @date 2023/4/8 19:49
  */
-public class ClientLowLevelInvocation {
+public class LowLevelInvoker {
 
     private final IChannelWriter channelWriter;
-    private final ClientInvocationManager clientInvocationManager;
+    private final InvocationManager invocationManager;
 
-    public ClientLowLevelInvocation(IChannelWriter channelWriter, ClientInvocationManager clientInvocationManager) {
+    public LowLevelInvoker(IChannelWriter channelWriter, InvocationManager invocationManager) {
         this.channelWriter = channelWriter;
-        this.clientInvocationManager = clientInvocationManager;
+        this.invocationManager = invocationManager;
     }
 
     public ServiceResponseMessageIn invoke(ServiceRequestMessageOut serviceRequest, int timeout) throws Throwable {
-        return clientInvocationManager.invoke(channelWriter, serviceRequest, timeout);
+        return invocationManager.invoke(channelWriter, serviceRequest, timeout);
     }
 }

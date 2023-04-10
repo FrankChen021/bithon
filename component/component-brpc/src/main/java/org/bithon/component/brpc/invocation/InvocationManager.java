@@ -44,7 +44,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author frankchen
  */
-public class ClientInvocationManager {
+public class InvocationManager {
 
     private final AtomicLong transactionId = new AtomicLong(21515);
 

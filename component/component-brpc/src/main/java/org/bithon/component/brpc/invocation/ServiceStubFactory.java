@@ -55,7 +55,7 @@ public class ServiceStubFactory {
                                Headers headers,
                                IChannelWriter channelWriter,
                                Class<T> serviceInterface,
-                               ClientInvocationManager invocationManager) {
+                               InvocationManager invocationManager) {
         return create(clientAppName, headers, channelWriter, serviceInterface, 5000, invocationManager);
     }
 
@@ -65,7 +65,7 @@ public class ServiceStubFactory {
                                IChannelWriter channelWriter,
                                Class<T> serviceInterface,
                                int timeout,
-                               ClientInvocationManager invocationManager) {
+                               InvocationManager invocationManager) {
         return (T) Proxy.newProxyInstance(serviceInterface.getClassLoader(),
                                           new Class[]{serviceInterface, IServiceController.class},
                                           new ServiceInvocationStub(clientAppName,
@@ -80,7 +80,7 @@ public class ServiceStubFactory {
      */
     static class ServiceInvocationStub implements InvocationHandler {
         private final IChannelWriter channelWriter;
-        private final ClientInvocationManager clientInvocationManager;
+        private final InvocationManager invocationManager;
         private final String appName;
         private final Headers headers;
         private boolean debugEnabled;
@@ -90,14 +90,14 @@ public class ServiceStubFactory {
         public ServiceInvocationStub(String appName,
                                      Headers headers,
                                      IChannelWriter channelWriter,
-                                     ClientInvocationManager clientInvocationManager,
+                                     InvocationManager invocationManager,
                                      int timeout) {
             Preconditions.checkIfTrue(timeout > 0, "timeout must be greater than zero.");
 
             this.appName = appName;
             this.headers = headers;
             this.channelWriter = channelWriter;
-            this.clientInvocationManager = clientInvocationManager;
+            this.invocationManager = invocationManager;
             this.timeout = timeout;
             this.defaultTimeout = timeout;
         }
@@ -126,13 +126,13 @@ public class ServiceStubFactory {
             if (getChannelMethod.equals(method)) {
                 return this.channelWriter;
             }
-            return clientInvocationManager.invoke(appName,
-                                                  headers,
-                                                  channelWriter,
-                                                  debugEnabled,
-                                                  timeout,
-                                                  method,
-                                                  args);
+            return invocationManager.invoke(appName,
+                                            headers,
+                                            channelWriter,
+                                            debugEnabled,
+                                            timeout,
+                                            method,
+                                            args);
         }
     }
 }

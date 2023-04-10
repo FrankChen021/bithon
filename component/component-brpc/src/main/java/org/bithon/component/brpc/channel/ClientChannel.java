@@ -24,7 +24,7 @@ import org.bithon.component.brpc.endpoint.IEndPointProvider;
 import org.bithon.component.brpc.exception.CallerSideException;
 import org.bithon.component.brpc.exception.ChannelException;
 import org.bithon.component.brpc.exception.ServiceNotFoundException;
-import org.bithon.component.brpc.invocation.ClientInvocationManager;
+import org.bithon.component.brpc.invocation.InvocationManager;
 import org.bithon.component.brpc.invocation.ServiceStubFactory;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
@@ -78,7 +78,7 @@ public class ClientChannel implements IChannelWriter, Closeable {
 
     private long connectionTimestamp;
 
-    private ClientInvocationManager clientInvocationManager;
+    private InvocationManager invocationManager;
 
     /**
      * It's better to use {@link ClientChannelBuilder} to instantiate the instance
@@ -95,7 +95,7 @@ public class ClientChannel implements IChannelWriter, Closeable {
         this.retryInterval = retryInterval;
         this.appName = appName;
 
-        this.clientInvocationManager = new ClientInvocationManager();
+        this.invocationManager = new InvocationManager();
         this.bossGroup = new NioEventLoopGroup(nWorkerThreads, NamedThreadFactory.of("brpc-client"));
         this.bootstrap = new Bootstrap();
         this.bootstrap.group(this.bossGroup)
@@ -109,9 +109,9 @@ public class ClientChannel implements IChannelWriter, Closeable {
                                                new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
                               pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
                               pipeline.addLast("decoder", new ServiceMessageInDecoder());
-                              pipeline.addLast("encoder", new ServiceMessageOutEncoder(clientInvocationManager));
+                              pipeline.addLast("encoder", new ServiceMessageOutEncoder(invocationManager));
                               pipeline.addLast(new ClientChannelManager());
-                              pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry, clientInvocationManager));
+                              pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry, invocationManager));
                           }
                       });
     }
@@ -202,13 +202,13 @@ public class ClientChannel implements IChannelWriter, Closeable {
                                                                      Headers.EMPTY,
                                                                      this,
                                                                      IServiceRegistry.class,
-                                                                     this.clientInvocationManager);
+                                                                     this.invocationManager);
         String serviceName = ServiceRegistryItem.getServiceName(serviceType);
         if (!serviceRegistry.contains(serviceName)) {
             throw new ServiceNotFoundException(serviceName);
         }
 
-        return ServiceStubFactory.create(this.appName, this.headers, this, serviceType, this.clientInvocationManager);
+        return ServiceStubFactory.create(this.appName, this.headers, this, serviceType, this.invocationManager);
     }
 
     public void setHeader(String name, String value) {

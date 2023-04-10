@@ -24,7 +24,7 @@ import org.bithon.agent.rpc.brpc.cmd.ILoggingCommand;
 import org.bithon.component.brpc.channel.ServerChannel;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
-import org.bithon.component.brpc.invocation.ClientLowLevelInvocation;
+import org.bithon.component.brpc.invocation.LowLevelInvoker;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
@@ -257,9 +257,9 @@ public class AgentCommandApi implements IAgentCommandApi {
                                                                     .rawArgs(fromClient.getRawArgs())
                                                                     .build();
 
-        ClientLowLevelInvocation invocation = commandService.getServerChannel()
-                                                            .getSession(appId)
-                                                            .getClientInvocation();
+        LowLevelInvoker invocation = commandService.getServerChannel()
+                                                   .getSession(appId)
+                                                   .getClientInvocation();
 
         try {
             ServiceResponseMessageIn fromTarget = invocation.invoke(toTarget, 30_000);

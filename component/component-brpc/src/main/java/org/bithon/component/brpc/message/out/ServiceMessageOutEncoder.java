@@ -16,7 +16,7 @@
 
 package org.bithon.component.brpc.message.out;
 
-import org.bithon.component.brpc.invocation.ClientInvocationManager;
+import org.bithon.component.brpc.invocation.InvocationManager;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -35,9 +35,9 @@ import org.bithon.shaded.io.netty.handler.codec.MessageToByteEncoder;
 public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessageOut> {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ServiceMessageOutEncoder.class);
 
-    private final ClientInvocationManager clientInvocationManager;
-    public ServiceMessageOutEncoder(ClientInvocationManager clientInvocationManager) {
-        this.clientInvocationManager = clientInvocationManager;
+    private final InvocationManager invocationManager;
+    public ServiceMessageOutEncoder(InvocationManager invocationManager) {
+        this.invocationManager = invocationManager;
     }
 
     @Override
@@ -64,8 +64,8 @@ public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessag
                 ServiceMessageOut out = ((ServiceMessageEncodingException) cause).out;
                 if (out.getMessageType() == ServiceMessageType.CLIENT_REQUEST
                     || out.getMessageType() == ServiceMessageType.CLIENT_REQUEST_V2) {
-                    clientInvocationManager.onClientException(((ServiceMessageEncodingException) cause).out.getTransactionId(),
-                                                              cause.getCause());
+                    invocationManager.onClientException(((ServiceMessageEncodingException) cause).out.getTransactionId(),
+                                                        cause.getCause());
                     return;
                 }
             }

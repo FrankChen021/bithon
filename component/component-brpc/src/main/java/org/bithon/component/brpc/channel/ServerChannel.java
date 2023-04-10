@@ -20,8 +20,8 @@ import org.bithon.component.brpc.BrpcMethod;
 import org.bithon.component.brpc.ServiceRegistry;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
-import org.bithon.component.brpc.invocation.ClientInvocationManager;
-import org.bithon.component.brpc.invocation.ClientLowLevelInvocation;
+import org.bithon.component.brpc.invocation.InvocationManager;
+import org.bithon.component.brpc.invocation.LowLevelInvoker;
 import org.bithon.component.brpc.invocation.ServiceStubFactory;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
@@ -64,7 +64,7 @@ public class ServerChannel implements Closeable {
 
     private final SessionManager sessionManager;
 
-    private final ClientInvocationManager invocationManager;
+    private final InvocationManager invocationManager;
 
     public ServerChannel() {
         this(Runtime.getRuntime().availableProcessors());
@@ -74,7 +74,7 @@ public class ServerChannel implements Closeable {
         this.bossGroup = new NioEventLoopGroup(1, NamedThreadFactory.of("brpc-server"));
         this.workerGroup = new NioEventLoopGroup(nThreadCount, NamedThreadFactory.of("brpc-s-worker"));
 
-        this.invocationManager = new ClientInvocationManager();
+        this.invocationManager = new InvocationManager();
         this.sessionManager = new SessionManager(this.invocationManager);
     }
 
@@ -171,7 +171,7 @@ public class ServerChannel implements Closeable {
          * Socket endpoint of client
          */
         private final EndPoint endpoint;
-        private final ClientInvocationManager clientInvocationManager;
+        private final InvocationManager invocationManager;
         private String appName;
 
         /**
@@ -181,10 +181,10 @@ public class ServerChannel implements Closeable {
 
         private String clientVersion;
 
-        public Session(Channel channel, ClientInvocationManager clientInvocationManager) {
+        public Session(Channel channel, InvocationManager invocationManager) {
             this.channel = channel;
             this.endpoint = EndPoint.of((InetSocketAddress) channel.remoteAddress());
-            this.clientInvocationManager = clientInvocationManager;
+            this.invocationManager = invocationManager;
 
             // appId default to endpoint at first
             this.appId = this.endpoint.toString();
@@ -224,22 +224,22 @@ public class ServerChannel implements Closeable {
                                              new Server2ClientChannelWriter(channel),
                                              serviceClass,
                                              timeout,
-                                             clientInvocationManager);
+                                             invocationManager);
         }
 
-        public ClientLowLevelInvocation getClientInvocation() {
-            return new ClientLowLevelInvocation(new Server2ClientChannelWriter(channel), clientInvocationManager);
+        public LowLevelInvoker getClientInvocation() {
+            return new LowLevelInvoker(new Server2ClientChannelWriter(channel), invocationManager);
         }
     }
 
     @ChannelHandler.Sharable
     private static class SessionManager extends ChannelInboundHandlerAdapter {
-        private final ClientInvocationManager clientInvocationManager;
+        private final InvocationManager invocationManager;
 
         private final Map<String, Session> sessions = new ConcurrentHashMap<>();
 
-        private SessionManager(ClientInvocationManager clientInvocationManager) {
-            this.clientInvocationManager = clientInvocationManager;
+        private SessionManager(InvocationManager invocationManager) {
+            this.invocationManager = invocationManager;
         }
 
         public List<Session> getSessions() {
@@ -248,7 +248,7 @@ public class ServerChannel implements Closeable {
 
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            sessions.computeIfAbsent(ctx.channel().id().asLongText(), key -> new Session(ctx.channel(), clientInvocationManager));
+            sessions.computeIfAbsent(ctx.channel().id().asLongText(), key -> new Session(ctx.channel(), invocationManager));
             super.channelActive(ctx);
         }
 

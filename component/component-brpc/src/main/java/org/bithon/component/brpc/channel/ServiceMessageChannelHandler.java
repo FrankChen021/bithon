@@ -17,7 +17,7 @@
 package org.bithon.component.brpc.channel;
 
 import org.bithon.component.brpc.ServiceRegistry;
-import org.bithon.component.brpc.invocation.ClientInvocationManager;
+import org.bithon.component.brpc.invocation.InvocationManager;
 import org.bithon.component.brpc.invocation.IServiceInvocationExecutor;
 import org.bithon.component.brpc.invocation.ServiceInvocationRunnable;
 import org.bithon.component.brpc.message.ServiceMessage;
@@ -43,23 +43,23 @@ public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
 
     private final IServiceInvocationExecutor executor;
     private final ServiceRegistry serviceRegistry;
-    private final ClientInvocationManager clientInvocationManager;
+    private final InvocationManager invocationManager;
     private boolean channelDebugEnabled;
 
     /**
      * Instantiate an instance which calls the service in worker threads
      */
-    public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry, ClientInvocationManager clientInvocationManager) {
-        this(serviceRegistry, ServiceInvocationRunnable::run, clientInvocationManager);
+    public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry, InvocationManager invocationManager) {
+        this(serviceRegistry, ServiceInvocationRunnable::run, invocationManager);
     }
 
     /**
      * Instantiate an instance which calls the service in specified executor.
      */
-    public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry, IServiceInvocationExecutor executor, ClientInvocationManager clientInvocationManager) {
+    public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry, IServiceInvocationExecutor executor, InvocationManager invocationManager) {
         this.serviceRegistry = serviceRegistry;
         this.executor = executor;
-        this.clientInvocationManager = clientInvocationManager;
+        this.invocationManager = invocationManager;
     }
 
     @Override
@@ -84,7 +84,7 @@ public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
                 if (channelDebugEnabled) {
                     LOG.info("Receiving response, txId={}", message.getTransactionId());
                 }
-                clientInvocationManager.onResponse((ServiceResponseMessageIn) message);
+                invocationManager.onResponse((ServiceResponseMessageIn) message);
                 break;
             default:
                 LOG.warn("Receiving unknown message: {}", message.getMessageType());
