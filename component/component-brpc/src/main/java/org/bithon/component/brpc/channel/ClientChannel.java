@@ -47,6 +47,8 @@ import org.bithon.shaded.io.netty.handler.codec.LengthFieldPrepender;
 import org.bithon.shaded.io.netty.util.concurrent.Future;
 
 import java.io.Closeable;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -78,7 +80,7 @@ public class ClientChannel implements IChannelWriter, Closeable {
 
     private long connectionTimestamp;
 
-    private InvocationManager invocationManager;
+    private final InvocationManager invocationManager;
 
     /**
      * It's better to use {@link ClientChannelBuilder} to instantiate the instance
@@ -117,11 +119,6 @@ public class ClientChannel implements IChannelWriter, Closeable {
     }
 
     @Override
-    public Channel getChannel() {
-        return channel.get();
-    }
-
-    @Override
     public void write(Object obj) {
         Channel ch = channel.get();
         if (ch == null) {
@@ -152,6 +149,24 @@ public class ClientChannel implements IChannelWriter, Closeable {
     @Override
     public long getConnectionLifeTime() {
         return connectionTimestamp > 0 ? System.currentTimeMillis() - connectionTimestamp : 0;
+    }
+
+    @Override
+    public boolean isActive() {
+        Channel ch = channel.get();
+        return ch != null && ch.isActive();
+    }
+
+    @Override
+    public boolean isWritable() {
+        Channel ch = channel.get();
+        return ch != null && ch.isWritable();
+    }
+
+    @Override
+    public EndPoint getRemoteAddress() {
+        Channel ch = channel.get();
+        return ch != null ? EndPoint.of(ch.remoteAddress()) : null;
     }
 
     @Override

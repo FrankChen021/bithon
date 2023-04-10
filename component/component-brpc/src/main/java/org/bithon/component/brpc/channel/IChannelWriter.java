@@ -16,9 +16,11 @@
 
 package org.bithon.component.brpc.channel;
 
-import org.bithon.shaded.io.netty.channel.Channel;
+import org.bithon.component.brpc.endpoint.EndPoint;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 /**
  * @author frankchen
@@ -35,9 +37,16 @@ public interface IChannelWriter {
     long getConnectionLifeTime();
 
     /**
-     * get underlying channel object
+     * If underlying channel is active
      */
-    Channel getChannel();
+    boolean isActive();
+
+    boolean isWritable();
+
+    /**
+     * Get remote address of underlying connected channel
+     */
+    EndPoint getRemoteAddress();
 
     /**
      * Write the message without waiting for response

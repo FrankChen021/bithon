@@ -47,6 +47,7 @@ import org.bithon.shaded.io.netty.util.internal.StringUtil;
 
 import java.io.Closeable;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -313,8 +314,19 @@ public class ServerChannel implements Closeable {
         }
 
         @Override
-        public Channel getChannel() {
-            return channel;
+        public boolean isActive() {
+            return channel.isActive();
+        }
+
+        @Override
+        public boolean isWritable() {
+            return channel.isWritable();
+        }
+
+        @Override
+        public EndPoint getRemoteAddress() {
+            SocketAddress addr = channel.remoteAddress();
+            return addr != null ? EndPoint.of(addr) : null;
         }
 
         @Override

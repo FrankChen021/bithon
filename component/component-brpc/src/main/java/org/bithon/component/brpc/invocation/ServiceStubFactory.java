@@ -18,14 +18,12 @@ package org.bithon.component.brpc.invocation;
 
 import org.bithon.component.brpc.IServiceController;
 import org.bithon.component.brpc.channel.IChannelWriter;
-import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.commons.utils.Preconditions;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.net.InetSocketAddress;
 
 /**
  * @author frankchen
@@ -120,8 +118,7 @@ public class ServiceStubFactory {
                 return null;
             }
             if (getPeerMethod.equals(method)) {
-                InetSocketAddress socketAddress = (InetSocketAddress) channelWriter.getChannel().remoteAddress();
-                return EndPoint.of(socketAddress);
+                return channelWriter.getRemoteAddress();
             }
             if (getChannelMethod.equals(method)) {
                 return this.channelWriter;

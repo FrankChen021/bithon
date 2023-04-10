@@ -18,6 +18,7 @@ package org.bithon.component.brpc.invocation;
 
 import org.bithon.component.brpc.ServiceRegistryItem;
 import org.bithon.component.brpc.channel.IChannelWriter;
+import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.CallerSideException;
 import org.bithon.component.brpc.exception.ChannelException;
@@ -26,7 +27,6 @@ import org.bithon.component.brpc.exception.TimeoutException;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
-import org.bithon.shaded.io.netty.channel.Channel;
 import org.bithon.shaded.io.netty.util.internal.StringUtil;
 
 import java.io.IOException;
@@ -97,27 +97,26 @@ public class InvocationManager {
         channelWriter.connect();
 
         //
-        // check channel status
+        // Check channel status
         //
-        //TODO: extract follow judge into a method of IChannelWritter
-        Channel ch = channelWriter.getChannel();
-        if (ch == null) {
+        EndPoint remoteEndpoint = channelWriter.getRemoteAddress();
+        if (remoteEndpoint == null) {
             throw new CallerSideException("Failed to invoke %s#%s due to channel is empty",
                                           serviceRequest.getServiceName(),
                                           serviceRequest.getMethodName());
         }
 
-        if (!ch.isActive()) {
+        if (!channelWriter.isActive()) {
             throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not active",
                                           serviceRequest.getServiceName(),
                                           serviceRequest.getMethodName(),
-                                          ch.remoteAddress().toString());
+                                          remoteEndpoint);
         }
-        if (!ch.isWritable()) {
+        if (!channelWriter.isWritable()) {
             throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not writable",
                                           serviceRequest.getServiceName(),
                                           serviceRequest.getMethodName(),
-                                          ch.remoteAddress().toString());
+                                          remoteEndpoint);
         }
 
         InflightRequest inflightRequest = null;
@@ -150,7 +149,7 @@ public class InvocationManager {
                 throw new CallerSideException("Failed to invoke %s#%s at [%s] due to invocation is interrupted",
                                               serviceRequest.getServiceName(),
                                               serviceRequest.getMethodName(),
-                                              ch.remoteAddress().toString());
+                                              remoteEndpoint);
             }
 
             //make sure it has been cleared when timeout
@@ -161,7 +160,7 @@ public class InvocationManager {
             }
 
             if (!inflightRequest.returned) {
-                throw new TimeoutException(ch.remoteAddress().toString(),
+                throw new TimeoutException(channelWriter.getRemoteAddress().toString(),
                                            serviceRequest.getServiceName(),
                                            serviceRequest.getMethodName(),
                                            timeoutMillisecond);
