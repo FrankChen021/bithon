@@ -38,6 +38,14 @@ import org.springframework.context.annotation.Import;
 @Configuration(proxyBeanMethods = false)
 public class DiscoveryClientAutoConfiguration {
 
+    /**
+     * Define as a bean so that other service can access this executor
+     */
+    @Bean
+    ServiceInvocationExecutor serviceInvocationExecutor() {
+        return new ServiceInvocationExecutor();
+    }
+
     @Bean
     IDiscoveryClient discoveryClient(ApplicationContext applicationContext) {
         try {
@@ -53,7 +61,7 @@ public class DiscoveryClientAutoConfiguration {
     }
 
     @Bean
-    ServiceBroadcastInvoker serviceBroadcastInvoker(IDiscoveryClient discoveryClient) {
-        return new ServiceBroadcastInvoker(discoveryClient);
+    ServiceBroadcastInvoker serviceBroadcastInvoker(IDiscoveryClient discoveryClient, ServiceInvocationExecutor executor) {
+        return new ServiceBroadcastInvoker(discoveryClient, executor);
     }
 }
