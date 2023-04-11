@@ -46,8 +46,8 @@ public class AgentSchema extends AbstractSchema {
                                         "loaded_class", new ClassTable(agentCommandFactory),
                                         "thread", new ThreadTable(agentCommandFactory),
                                         "configuration", new ConfigurationTable(serviceInvoker),
-                                        "instrumented_method", new InstrumentedMethodTable(serviceInvoker),
-                                        "logger", new LoggerTable(serviceInvoker)
+                                        "instrumented_method", new InstrumentedMethodTable(agentCommandFactory),
+                                        "logger", new LoggerTable(agentCommandFactory)
         );
     }
 

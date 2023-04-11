@@ -29,6 +29,7 @@ import org.springframework.boot.logging.LogLevel;
 import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.context.ApplicationEvent;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
 /**
  * SpringBoot 1.5+
  * {@link org.springframework.boot.logging.LoggingApplicationListener#onApplicationEvent(ApplicationEvent)}
- *
+ * <p>
  * SpringBoot 2.0+
  * {@link org.springframework.boot.context.logging.LoggingApplicationListener#onApplicationEvent(ApplicationEvent)}
  *
@@ -133,9 +134,9 @@ public class LoggingApplicationListener$OnApplicationStartingEvent extends After
         }
 
         @Override
-        public int setLogger(String name, LoggingLevel level) {
+        public List<Integer> setLogger(String name, LoggingLevel level) {
             loggingSystem.setLogLevel(name, toLocalLevel.get(level));
-            return 1;
+            return Collections.singletonList(1);
         }
     }
 }

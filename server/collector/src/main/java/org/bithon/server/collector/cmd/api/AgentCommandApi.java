@@ -232,11 +232,11 @@ public class AgentCommandApi implements IAgentCommandApi {
             throw new HttpMappableException(HttpStatus.FORBIDDEN.value(), "Given token does not match.");
         }
 
-        int rows = session.get()
-                          .getRemoteService(ILoggingCommand.class, 30_000)
-                          .setLogger(args.getArgs().getName(), args.getArgs().getLevel());
+        List<Integer> rows = session.get()
+                                    .getRemoteService(ILoggingCommand.class, 30_000)
+                                    .setLogger(args.getArgs().getName(), args.getArgs().getLevel());
         ModifiedRecord modifiedRecord = new ModifiedRecord();
-        modifiedRecord.setRows(rows);
+        modifiedRecord.setRows(rows.get(0));
         return ServiceResponse.success(Collections.singletonList(modifiedRecord));
     }
 

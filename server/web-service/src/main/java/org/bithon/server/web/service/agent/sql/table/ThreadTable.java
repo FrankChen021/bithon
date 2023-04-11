@@ -41,12 +41,12 @@ public class ThreadTable extends AbstractBaseTable {
         String appId = (String) executionContext.get("appId");
         Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
 
-        List<IJvmCommand.ThreadInfo> stackTraceList =
-                commandFactory.create(IAgentCommandApi.class, appId, IJvmCommand.class)
-                              .dumpThreads();
-
         return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>)
-                stackTraceList.stream()
+                commandFactory.create(IAgentCommandApi.class,
+                                      appId,
+                                      IJvmCommand.class)
+                              .dumpThreads()
+                              .stream()
                               .map((threadInfo) -> {
                                   IAgentCommandApi.ThreadRecord thread = new IAgentCommandApi.ThreadRecord();
                                   thread.setName(threadInfo.getName());
