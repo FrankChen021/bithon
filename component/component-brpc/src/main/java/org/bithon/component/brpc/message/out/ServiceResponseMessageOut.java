@@ -59,15 +59,20 @@ public class ServiceResponseMessageOut extends ServiceMessageOut {
             if (this.returningRaw == null || this.returningRaw.length == 0) {
                 out.writeRawByte(0);
             } else {
+                // Placeholder to indicate that there's returning
+                out.writeRawByte(1);
+
                 out.writeRawBytes(this.returningRaw);
             }
         } else {
+            // Placeholder to indicate that there's returning
             out.writeRawByte(1);
 
             Serializer serializer = getSerializer();
             out.writeInt32NoTag(serializer.getType());
             serializer.serialize(out, this.returning);
         }
+        out.flush();
     }
 
     public static class Builder {

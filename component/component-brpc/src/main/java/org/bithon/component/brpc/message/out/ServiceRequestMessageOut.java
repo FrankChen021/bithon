@@ -102,6 +102,7 @@ public class ServiceRequestMessageOut extends ServiceMessageOut {
                 serializer.serialize(out, arg);
             }
         }
+        out.flush();
     }
 
     public boolean isOneway() {

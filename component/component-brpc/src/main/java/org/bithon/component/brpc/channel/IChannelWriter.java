@@ -19,8 +19,6 @@ package org.bithon.component.brpc.channel;
 import org.bithon.component.brpc.endpoint.EndPoint;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 
 /**
  * @author frankchen

@@ -17,8 +17,8 @@
 package org.bithon.component.brpc.channel;
 
 import org.bithon.component.brpc.ServiceRegistry;
-import org.bithon.component.brpc.invocation.InvocationManager;
 import org.bithon.component.brpc.invocation.IServiceInvocationExecutor;
+import org.bithon.component.brpc.invocation.InvocationManager;
 import org.bithon.component.brpc.invocation.ServiceInvocationRunnable;
 import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;

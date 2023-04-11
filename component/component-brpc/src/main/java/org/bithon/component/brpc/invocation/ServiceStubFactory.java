@@ -126,7 +126,6 @@ public class ServiceStubFactory {
             return invocationManager.invoke(appName,
                                             headers,
                                             channelWriter,
-                                            debugEnabled,
                                             timeout,
                                             method,
                                             args);

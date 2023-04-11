@@ -31,6 +31,7 @@ import org.bithon.shaded.io.netty.util.internal.StringUtil;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -58,7 +59,6 @@ public class InvocationManager {
     public Object invoke(String appName,
                          Headers headers,
                          IChannelWriter channelWriter,
-                         boolean debug,
                          long timeoutMillisecond,
                          Method method,
                          Object[] args) throws Throwable {
@@ -77,20 +77,22 @@ public class InvocationManager {
                                                                           .args(args)
                                                                           .build();
 
-        ServiceResponseMessageIn response = invoke(channelWriter, serviceRequest, timeoutMillisecond);
-        if (response != null) {
-            try {
-                return response.getReturningAsObject(method.getGenericReturnType());
-            } catch (IOException e) {
-                throw new ServiceInvocationException(e, "Failed to deserialize the received response: %s", e.getMessage());
-            }
-        }
-        return null;
+        return invoke(channelWriter,
+                      serviceRequest,
+                      method.getGenericReturnType(),
+                      timeoutMillisecond);
     }
 
-    public ServiceResponseMessageIn invoke(IChannelWriter channelWriter,
-                                           ServiceRequestMessageOut serviceRequest,
-                                           long timeoutMillisecond) throws Throwable {
+    public byte[] invoke(IChannelWriter channelWriter,
+                         ServiceRequestMessageOut serviceRequest,
+                         long timeoutMillisecond) throws Throwable {
+        return (byte[]) invoke(channelWriter, serviceRequest, null, timeoutMillisecond);
+    }
+
+    private Object invoke(IChannelWriter channelWriter,
+                          ServiceRequestMessageOut serviceRequest,
+                          Type returnObjectType,
+                          long timeoutMillisecond) throws Throwable {
         //
         // make sure channel has been established
         //
@@ -121,10 +123,10 @@ public class InvocationManager {
 
         InflightRequest inflightRequest = null;
         if (!serviceRequest.isOneway()) {
-            inflightRequest = new InflightRequest();
-            inflightRequest.requestAt = System.currentTimeMillis();
-            inflightRequest.methodName = serviceRequest.getMethodName();
-            inflightRequest.serviceName = serviceRequest.getServiceName();
+            inflightRequest = new InflightRequest(serviceRequest.getServiceName(),
+                                                  serviceRequest.getMethodName(),
+                                                  returnObjectType,
+                                                  System.currentTimeMillis());
             this.inflightRequests.put(serviceRequest.getTransactionId(), inflightRequest);
         }
 
@@ -141,6 +143,7 @@ public class InvocationManager {
 
         if (inflightRequest != null) {
             try {
+                //noinspection ReassignedVariable,SynchronizationOnLocalVariableOrMethodParameter
                 synchronized (inflightRequest) {
                     inflightRequest.wait(timeoutMillisecond);
                 }
@@ -159,14 +162,14 @@ public class InvocationManager {
                 throw inflightRequest.exception;
             }
 
-            if (!inflightRequest.returned) {
+            if (!inflightRequest.responseReceived) {
                 throw new TimeoutException(channelWriter.getRemoteAddress().toString(),
                                            serviceRequest.getServiceName(),
                                            serviceRequest.getMethodName(),
                                            timeoutMillisecond);
             }
 
-            return inflightRequest.response;
+            return inflightRequest.returnObject;
         }
         return null;
     }
@@ -181,12 +184,18 @@ public class InvocationManager {
         if (!StringUtil.isNullOrEmpty(response.getException())) {
             inflightRequest.exception = new CalleeSideException(response.getException());
         } else {
-            inflightRequest.response = response;
+            try {
+                inflightRequest.returnObject = inflightRequest.returnObjectType == null ?
+                        response.getReturnAsRaw() :
+                        response.getReturningAsObject(inflightRequest.returnObjectType);
+            } catch (IOException e) {
+                inflightRequest.exception = new ServiceInvocationException(e, "Failed to deserialize the received response: %s", e.getMessage());
+            }
         }
 
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (inflightRequest) {
-            inflightRequest.returned = true;
+            inflightRequest.responseReceived = true;
             inflightRequest.notify();
         }
     }
@@ -201,22 +210,45 @@ public class InvocationManager {
 
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (inflightRequest) {
-            inflightRequest.returned = true;
+            inflightRequest.responseReceived = true;
             inflightRequest.notify();
         }
     }
 
     static class InflightRequest {
-        long requestAt;
-        ServiceResponseMessageIn response;
+        final String serviceName;
+
+        final String methodName;
+
+        /**
+         * Can be NULL.
+         * If NULL, byte-stream is returned.
+         */
+        final Type returnObjectType;
+
+        final long requestAt;
+
+        public InflightRequest(String serviceName,
+                               String methodName,
+                               Type returnObjectType,
+                               long requestAt) {
+            this.serviceName = serviceName;
+            this.methodName = methodName;
+            this.returnObjectType = returnObjectType;
+            this.requestAt = requestAt;
+        }
+
+        /**
+         * The deserialized response object.
+         * If {@link #returnObjectType} is NULL, then this object holds raw byte-stream of the response.
+         */
+        Object returnObject;
 
         /**
          * indicate whether this request has response.
-         * This is required so that {@link #response} might be null
+         * This is required so that {@link #returnObject} might be null
          */
-        boolean returned;
+        boolean responseReceived;
         Throwable exception;
-        private String serviceName;
-        private String methodName;
     }
 }

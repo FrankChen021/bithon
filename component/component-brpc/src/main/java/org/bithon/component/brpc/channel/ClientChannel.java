@@ -47,8 +47,6 @@ import org.bithon.shaded.io.netty.handler.codec.LengthFieldPrepender;
 import org.bithon.shaded.io.netty.util.concurrent.Future;
 
 import java.io.Closeable;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
