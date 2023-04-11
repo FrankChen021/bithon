@@ -81,4 +81,7 @@ public interface IExampleService {
     default String testV1Compatibility(String echo) {
         return echo;
     }
+
+    @BrpcMethod(serializer = Serializer.JSON_SMILE)
+    List<String> createList(int size);
 }

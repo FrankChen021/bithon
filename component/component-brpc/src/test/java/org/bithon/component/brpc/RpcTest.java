@@ -77,8 +77,8 @@ public class RpcTest {
 
             // test map
             Assert.assertEquals(
-                ImmutableMap.of("k1", "v1", "k2", "v2"),
-                exampleService.mergeMap(ImmutableMap.of("k1", "v1"), ImmutableMap.of("k2", "v2"))
+                    ImmutableMap.of("k1", "v1", "k2", "v2"),
+                    exampleService.mergeMap(ImmutableMap.of("k1", "v1"), ImmutableMap.of("k2", "v2"))
             );
         }
     }
@@ -90,14 +90,14 @@ public class RpcTest {
 
             // test the 2nd argument is null
             Assert.assertEquals(
-                ImmutableMap.of("k1", "v1"),
-                service.mergeMap(ImmutableMap.of("k1", "v1"), null)
+                    ImmutableMap.of("k1", "v1"),
+                    service.mergeMap(ImmutableMap.of("k1", "v1"), null)
             );
 
             // test the 1st argument is null
             Assert.assertEquals(
-                ImmutableMap.of("k2", "v2"),
-                service.mergeMap(null, ImmutableMap.of("k2", "v2"))
+                    ImmutableMap.of("k2", "v2"),
+                    service.mergeMap(null, ImmutableMap.of("k2", "v2"))
             );
 
             // test both arguments are null
@@ -121,18 +121,18 @@ public class RpcTest {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             Assert.assertEquals("/1-/2", exampleService.sendWebMetrics1(
-                WebRequestMetrics.newBuilder().setUri("/1").build(),
-                WebRequestMetrics.newBuilder().setUri("/2").build()
+                    WebRequestMetrics.newBuilder().setUri("/1").build(),
+                    WebRequestMetrics.newBuilder().setUri("/2").build()
             ));
 
             Assert.assertEquals("/2-/3", exampleService.sendWebMetrics2(
-                "/2",
-                WebRequestMetrics.newBuilder().setUri("/3").build()
+                    "/2",
+                    WebRequestMetrics.newBuilder().setUri("/3").build()
             ));
 
             Assert.assertEquals("/4-/5", exampleService.sendWebMetrics3(
-                WebRequestMetrics.newBuilder().setUri("/4").build(),
-                "/5"
+                    WebRequestMetrics.newBuilder().setUri("/4").build(),
+                    "/5"
             ));
         }
     }
@@ -348,8 +348,8 @@ public class RpcTest {
                                                                                     IExampleService.class);
             Assert.assertEquals(2, client1Services.size());
             Assert.assertEquals(ImmutableSet.of("pong1", "pong2"), ImmutableSet.of(
-                client1Services.get(0).ping(),
-                client1Services.get(1).ping()
+                    client1Services.get(0).ping(),
+                    client1Services.get(1).ping()
             ));
 
             //
@@ -381,10 +381,10 @@ public class RpcTest {
 
             // test map
             Assert.assertEquals(
-                ImmutableMap.of("k1", "v1", "k2", "v2"),
-                exampleService.mergeWithJson(
-                    ImmutableMap.of("k1", "v1"),
-                    ImmutableMap.of("k2", "v2"))
+                    ImmutableMap.of("k1", "v1", "k2", "v2"),
+                    exampleService.mergeWithJson(
+                            ImmutableMap.of("k1", "v1"),
+                            ImmutableMap.of("k2", "v2"))
             );
         }
     }
@@ -427,6 +427,18 @@ public class RpcTest {
 
             // test map
             Assert.assertEquals("ping", exampleService.testV1Compatibility("ping"));
+        }
+    }
+
+    @Test
+    public void testLargeResponse() {
+        try (ClientChannel ch = ClientChannelBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
+            IExampleService exampleService = ch.getRemoteService(IExampleService.class);
+
+            ((IServiceController) exampleService).setTimeout(1000_000);
+
+            // test map
+            Assert.assertEquals(5000_000, exampleService.createList(5000_000).size());
         }
     }
 }

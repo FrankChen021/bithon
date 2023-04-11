@@ -18,6 +18,7 @@ package org.bithon.component.brpc.example;
 
 import org.bithon.component.brpc.example.protobuf.WebRequestMetrics;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -108,5 +109,14 @@ public class ExampleServiceImpl implements IExampleService {
     @Override
     public String ping() {
         return "pong";
+    }
+
+    @Override
+    public List<String> createList(int size) {
+        List<String> ret = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            ret.add(String.valueOf(i));
+        }
+        return ret;
     }
 }
