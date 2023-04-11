@@ -82,22 +82,19 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
 
     @Override
     public List<ClassInfo> getLoadedClassList() {
-
         return Arrays.stream(InstrumentationHelper.getInstance().getAllLoadedClasses())
                      // It does not make any sense to return anonymous class or lambda class
                      .filter(clazz -> !isAnonymousClassOrLambda(clazz))
                      .map((clazz) -> {
                          ClassInfo classInfo = new ClassInfo();
-                         classInfo.setName(clazz.getName());
+                         classInfo.setName(clazz.getTypeName());
                          classInfo.setClassLoader(clazz.getClassLoader() == null ? "bootstrap" : clazz.getClassLoader().getClass().getName());
                          classInfo.setAnnotation(clazz.isAnnotation());
                          classInfo.setInterface(clazz.isInterface());
                          classInfo.setSynthetic(clazz.isSynthetic());
                          classInfo.setEnum(clazz.isEnum());
-
                          return classInfo;
                      })
-                     // There might be same classes loaded into different class loaders, use set to deduplicate them
                      .collect(Collectors.toList());
     }
 
