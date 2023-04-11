@@ -22,12 +22,14 @@ import org.apache.calcite.schema.impl.AbstractSchema;
 import org.bithon.component.brpc.ServiceRegistry;
 import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
+import org.bithon.server.web.service.agent.sql.table.AgentCommandFactory;
 import org.bithon.server.web.service.agent.sql.table.ClassTable;
 import org.bithon.server.web.service.agent.sql.table.ConfigurationTable;
 import org.bithon.server.web.service.agent.sql.table.InstanceTable;
 import org.bithon.server.web.service.agent.sql.table.InstrumentedMethodTable;
 import org.bithon.server.web.service.agent.sql.table.LoggerTable;
 import org.bithon.server.web.service.agent.sql.table.ThreadTable;
+import org.springframework.context.ApplicationContext;
 
 import java.util.Map;
 
@@ -38,9 +40,12 @@ import java.util.Map;
 public class AgentSchema extends AbstractSchema {
     private final ImmutableMap<String, Table> tableMap;
 
-    public AgentSchema(ServiceBroadcastInvoker serviceInvoker) {
+    public AgentSchema(ServiceBroadcastInvoker serviceInvoker, ApplicationContext applicationContext) {
+        AgentCommandFactory agentCommandFactory = new AgentCommandFactory(serviceInvoker.getDiscoveryClient(),
+                                                                          serviceInvoker.getExecutor(),
+                                                                          applicationContext);
         this.tableMap = ImmutableMap.of("instance", new InstanceTable(serviceInvoker),
-                                        "loaded_class", new ClassTable(serviceInvoker),
+                                        "loaded_class", new ClassTable(agentCommandFactory),
                                         "thread", new ThreadTable(serviceInvoker),
                                         "configuration", new ConfigurationTable(serviceInvoker),
                                         "instrumented_method", new InstrumentedMethodTable(serviceInvoker),

@@ -16,14 +16,13 @@
 
 package org.bithon.server.web.service.agent.sql.table;
 
+import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
-import org.bithon.server.discovery.declaration.ServiceResponse;
-import org.bithon.server.discovery.declaration.cmd.CommandArgs;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
@@ -31,10 +30,10 @@ import java.util.List;
  */
 @SuppressWarnings({"unchecked"})
 public class ClassTable extends AbstractBaseTable {
-    private final IAgentCommandApi impl;
+    private final AgentCommandFactory impl;
 
-    public ClassTable(ServiceBroadcastInvoker impl) {
-        this.impl = impl.create(IAgentCommandApi.class);
+    public ClassTable(AgentCommandFactory impl) {
+        this.impl = impl;
     }
 
     @Override
@@ -42,12 +41,20 @@ public class ClassTable extends AbstractBaseTable {
         String appId = (String) executionContext.get("appId");
         Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
 
-        ServiceResponse<IAgentCommandApi.ClassRecord> classList = impl.getClassList(new CommandArgs<>(appId));
-        if (classList.getError() != null) {
-            throw new RuntimeException(classList.getError().toString());
-        }
 
-        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>) classList.getRows();
+        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>) impl.create(IAgentCommandApi.class, appId, IJvmCommand.class)
+                                                                              .getLoadedClassList()
+                                                                              .stream().map((clazzInfo) -> {
+                    IAgentCommandApi.ClassRecord classRecord = new IAgentCommandApi.ClassRecord();
+                    classRecord.name = clazzInfo.getName();
+                    classRecord.classLoader = clazzInfo.getClassLoader();
+                    classRecord.isAnnotation = clazzInfo.isAnnotation() ? 1 : 0;
+                    classRecord.isInterface = clazzInfo.isInterface() ? 1 : 0;
+                    classRecord.isEnum = clazzInfo.isEnum() ? 1 : 0;
+                    classRecord.isSynthetic = clazzInfo.isSynthetic() ? 1 : 0;
+                    return classRecord;
+                })
+                                                                              .collect(Collectors.toList());
     }
 
     @Override

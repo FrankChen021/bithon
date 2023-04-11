@@ -45,6 +45,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -241,7 +242,7 @@ public class AgentCommandApi implements IAgentCommandApi {
     }
 
     @Override
-    public byte[] proxy(String appId, byte[] body) throws IOException {
+    public byte[] proxy(@RequestParam(name = "appId") String appId, @RequestBody byte[] body) throws IOException {
         CodedInputStream input = CodedInputStream.newInstance(body);
         input.pushLimit(body.length);
         ServiceRequestMessageIn fromClient = ServiceRequestMessageIn.from(input);

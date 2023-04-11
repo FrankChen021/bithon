@@ -44,6 +44,7 @@ import org.bithon.server.web.service.common.output.TabSeparatedOutputFormatter;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 import org.bithon.server.web.service.common.sql.SqlExecutionEngine;
 import org.bithon.server.web.service.common.sql.SqlExecutionResult;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -71,10 +72,11 @@ public class AgentCommandDelegationApi {
 
     public AgentCommandDelegationApi(ServiceBroadcastInvoker serviceBroadcastInvoker,
                                      SqlExecutionEngine sqlExecutionEngine,
-                                     ObjectMapper objectMapper) {
+                                     ObjectMapper objectMapper,
+                                     ApplicationContext applicationContext) {
         this.objectMapper = objectMapper;
         this.sqlExecutionEngine = sqlExecutionEngine;
-        this.sqlExecutionEngine.addSchema("agent", new AgentSchema(serviceBroadcastInvoker));
+        this.sqlExecutionEngine.addSchema("agent", new AgentSchema(serviceBroadcastInvoker, applicationContext));
     }
 
     @PostMapping(value = "/api/agent/query")

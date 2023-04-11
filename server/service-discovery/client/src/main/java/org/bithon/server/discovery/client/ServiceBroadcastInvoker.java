@@ -59,6 +59,18 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
         this.executor = executor;
     }
 
+    public IDiscoveryClient getServiceDiscoveryClient() {
+        return serviceDiscoveryClient;
+    }
+
+    public ServiceInvocationExecutor getExecutor() {
+        return executor;
+    }
+
+    public IDiscoveryClient getDiscoveryClient() {
+        return discoveryClient;
+    }
+
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
