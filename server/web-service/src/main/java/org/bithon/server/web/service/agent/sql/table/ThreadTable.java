@@ -16,14 +16,13 @@
 
 package org.bithon.server.web.service.agent.sql.table;
 
+import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
-import org.bithon.server.discovery.declaration.ServiceResponse;
-import org.bithon.server.discovery.declaration.cmd.CommandArgs;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
@@ -31,10 +30,10 @@ import java.util.List;
  */
 @SuppressWarnings({"unchecked"})
 public class ThreadTable extends AbstractBaseTable {
-    private final IAgentCommandApi impl;
+    private final AgentCommandFactory commandFactory;
 
-    public ThreadTable(ServiceBroadcastInvoker impl) {
-        this.impl = impl.create(IAgentCommandApi.class);
+    public ThreadTable(AgentCommandFactory commandFactory) {
+        this.commandFactory = commandFactory;
     }
 
     @Override
@@ -42,12 +41,34 @@ public class ThreadTable extends AbstractBaseTable {
         String appId = (String) executionContext.get("appId");
         Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
 
-        ServiceResponse<IAgentCommandApi.ThreadRecord> stackTraceList = impl.getThreads(new CommandArgs<>(appId));
-        if (stackTraceList.getError() != null) {
-            throw new RuntimeException(stackTraceList.getError().toString());
-        }
+        List<IJvmCommand.ThreadInfo> stackTraceList =
+                commandFactory.create(IAgentCommandApi.class, appId, IJvmCommand.class)
+                              .dumpThreads();
 
-        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>) stackTraceList.getRows();
+        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>)
+                stackTraceList.stream()
+                              .map((threadInfo) -> {
+                                  IAgentCommandApi.ThreadRecord thread = new IAgentCommandApi.ThreadRecord();
+                                  thread.setName(threadInfo.getName());
+                                  thread.setThreadId(threadInfo.getThreadId());
+                                  thread.setState(threadInfo.getState());
+                                  thread.setPriority(threadInfo.getPriority());
+                                  thread.setCpuTime(threadInfo.getCpuTime());
+                                  thread.setUserTime(threadInfo.getUserTime());
+                                  thread.setDaemon(threadInfo.isDaemon() ? 1 : 0);
+                                  thread.setWaitedCount(threadInfo.getWaitedCount());
+                                  thread.setWaitedTime(threadInfo.getWaitedTime());
+                                  thread.setBlockedCount(threadInfo.getBlockedCount());
+                                  thread.setBlockedTime(threadInfo.getBlockedTime());
+                                  thread.setLockName(threadInfo.getLockName());
+                                  thread.setLockOwnerId(threadInfo.getLockOwnerId());
+                                  thread.setLockOwnerName(threadInfo.getLockOwnerName());
+                                  thread.setInNative(threadInfo.getInNative());
+                                  thread.setSuspended(threadInfo.getSuspended());
+                                  thread.setStack(threadInfo.getStacks());
+                                  return thread;
+                              })
+                              .collect(Collectors.toList());
     }
 
     @Override
