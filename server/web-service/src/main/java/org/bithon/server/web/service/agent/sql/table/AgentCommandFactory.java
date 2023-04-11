@@ -129,7 +129,6 @@ public class AgentCommandFactory {
                         return (Collection<?>) invocationManager.invoke("",
                                                                         Headers.EMPTY,
                                                                         new ProxyChannel(hostAndPort, agentId),
-                                                                        false,
                                                                         30_000,
                                                                         method,
                                                                         args);

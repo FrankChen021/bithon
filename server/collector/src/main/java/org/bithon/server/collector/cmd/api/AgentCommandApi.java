@@ -26,7 +26,6 @@ import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.brpc.invocation.LowLevelInvoker;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
-import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
 import org.bithon.component.commons.exception.HttpMappableException;
@@ -262,23 +261,20 @@ public class AgentCommandApi implements IAgentCommandApi {
                                                    .getSession(appId)
                                                    .getClientInvocation();
 
+        ServiceResponseMessageOut.Builder builder = ServiceResponseMessageOut.builder();
         try {
-            ServiceResponseMessageIn fromTarget = invocation.invoke(toTarget, 30_000);
-            ServiceResponseMessageOut toClient = ServiceResponseMessageOut.builder()
-                                                                          .serverResponseAt(fromTarget.getServerResponseAt())
-                                                                          .txId(fromTarget.getTransactionId())
-                                                                          .exception(fromTarget.getException())
-                                                                          .returningRaw(fromTarget.getReturnAsRaw())
-                                                                          // .returning() // NEEDS to write raw returning
-                                                                          .build();
-
-            try (ByteArrayOutputStream stream = new ByteArrayOutputStream(512)) {
-                CodedOutputStream outputStream = CodedOutputStream.newInstance(stream);
-                toClient.encode(outputStream);
-                return stream.toByteArray();
-            }
+            builder.returningRaw(invocation.invoke(toTarget, 30_000))
+                   .serverResponseAt(System.currentTimeMillis())
+                   .txId(fromClient.getTransactionId());
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            builder.exception(e.getMessage());
+        }
+        ServiceResponseMessageOut toClient = builder.build();
+
+        try (ByteArrayOutputStream stream = new ByteArrayOutputStream(512)) {
+            CodedOutputStream outputStream = CodedOutputStream.newInstance(stream);
+            toClient.encode(outputStream);
+            return stream.toByteArray();
         }
     }
 
