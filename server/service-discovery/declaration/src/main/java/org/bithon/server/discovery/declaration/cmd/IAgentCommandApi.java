@@ -160,6 +160,7 @@ public interface IAgentCommandApi {
     ServiceResponse<ConfigurationRecord> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args);
 
     class InstrumentedMethodRecord implements IObjectArrayConvertable {
+        public String interceptor;
         public String clazzName;
         public boolean isStatic;
         public String returnType;
@@ -168,7 +169,7 @@ public interface IAgentCommandApi {
 
         @Override
         public Object[] toObjectArray() {
-            return new Object[]{clazzName, isStatic, returnType, methodName, parameters};
+            return new Object[]{interceptor, clazzName, isStatic, returnType, methodName, parameters};
         }
     }
 

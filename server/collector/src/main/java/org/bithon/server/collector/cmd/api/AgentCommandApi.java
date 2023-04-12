@@ -173,6 +173,7 @@ public class AgentCommandApi implements IAgentCommandApi {
                                                             record.parameters = method.getParameters();
                                                             record.methodName = method.getMethodName();
                                                             record.returnType = method.getReturnType();
+                                                            record.interceptor = method.getInterceptor();
                                                             return record;
                                                         }).collect(Collectors.toList());
 

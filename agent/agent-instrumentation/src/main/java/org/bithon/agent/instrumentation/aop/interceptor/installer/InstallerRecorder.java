@@ -16,15 +16,10 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.installer;
 
-import org.bithon.shaded.net.bytebuddy.asm.AsmVisitorWrapper;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.description.method.ParameterDescription;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
-import org.bithon.shaded.net.bytebuddy.implementation.Implementation;
-import org.bithon.shaded.net.bytebuddy.jar.asm.MethodVisitor;
-import org.bithon.shaded.net.bytebuddy.pool.TypePool;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,11 +28,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
  * @author Frank Chen
  * @date 10/3/23 8:54 pm
  */
-public class InstallerRecorder implements AsmVisitorWrapper.ForDeclaredMethods.MethodVisitorWrapper {
+public class InstallerRecorder {
 
     public static final InstallerRecorder INSTANCE = new InstallerRecorder();
 
@@ -90,18 +84,9 @@ public class InstallerRecorder implements AsmVisitorWrapper.ForDeclaredMethods.M
     public InstallerRecorder() {
     }
 
-    @Override
-    public MethodVisitor wrap(TypeDescription instrumentedType,
-                              MethodDescription instrumentedMethod,
-                              @Nonnull MethodVisitor methodVisitor,
-                              Implementation.Context implementationContext,
-                              TypePool typePool,
-                              int writerFlags,
-                              int readerFlags) {
-        // TODO: extract InterceptorName binding from the visitor
-        // See: https://github.com/raphw/byte-buddy/issues/1418
-        // ((Advice.AdviceVisitor.WithExitAdvice.WithoutExceptionHandling) methodVisitor).methodEnter.this$0.offsetMappings
-
+    public void addInterceptedMethod(String interceptor,
+                                     TypeDescription instrumentedType,
+                                     MethodDescription instrumentedMethod) {
         StringBuilder parameters = new StringBuilder(32);
         for (ParameterDescription parameter : instrumentedMethod.getParameters()) {
             if (parameters.length() > 0) {
@@ -121,8 +106,6 @@ public class InstallerRecorder implements AsmVisitorWrapper.ForDeclaredMethods.M
                                                        instrumentedMethod.isConstructor() ? "<ctor>" : instrumentedMethod.getName(),
                                                        instrumentedMethod.isStatic(),
                                                        parameters.toString(),
-                                                       null));
-
-        return methodVisitor;
+                                                       interceptor));
     }
 }
