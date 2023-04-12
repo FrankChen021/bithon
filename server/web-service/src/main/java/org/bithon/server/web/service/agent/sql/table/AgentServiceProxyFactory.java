@@ -35,7 +35,7 @@ import org.bithon.server.discovery.client.IDiscoveryClient;
 import org.bithon.server.discovery.client.ServiceInvocationExecutor;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
-import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
+import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 
@@ -214,11 +214,11 @@ public class AgentServiceProxyFactory {
             // However, this writeMessage is an async operation,
             // we use CompletableFuture to turn the sync operation into async
             CompletableFuture.supplyAsync(() -> {
-                                              IAgentCommandApi proxyApi = Feign.builder()
-                                                                               .contract(applicationContext.getBean(Contract.class))
-                                                                               .encoder(applicationContext.getBean(Encoder.class))
-                                                                               .decoder(applicationContext.getBean(Decoder.class))
-                                                                               .errorDecoder((methodKey, response) -> {
+                                              IAgentProxyApi proxyApi = Feign.builder()
+                                                                             .contract(applicationContext.getBean(Contract.class))
+                                                                             .encoder(applicationContext.getBean(Encoder.class))
+                                                                             .decoder(applicationContext.getBean(Decoder.class))
+                                                                             .errorDecoder((methodKey, response) -> {
                                                                                    try {
                                                                                        ServiceResponse.Error error = applicationContext.getBean(ObjectMapper.class).readValue(response.body().asInputStream(), ServiceResponse.Error.class);
                                                                                        return new HttpMappableException(response.status(), "Exception from remote [%s]: %s", proxyHost, error.getMessage());
@@ -228,7 +228,7 @@ public class AgentServiceProxyFactory {
                                                                                    // Delegate to default decoder
                                                                                    return new ErrorDecoder.Default().decode(methodKey, response);
                                                                                })
-                                                                               .target(IAgentCommandApi.class, "http://" + proxyHost.getHost() + ":" + proxyHost.getPort());
+                                                                             .target(IAgentProxyApi.class, "http://" + proxyHost.getHost() + ":" + proxyHost.getPort());
 
                                               try {
                                                   return proxyApi.proxy((String) context.getOrDefault("agentId", ""),

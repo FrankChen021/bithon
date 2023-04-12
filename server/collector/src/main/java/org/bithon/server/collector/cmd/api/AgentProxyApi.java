@@ -27,7 +27,7 @@ import org.bithon.server.collector.cmd.api.permission.PermissionConfiguration;
 import org.bithon.server.collector.cmd.api.permission.PermissionRule;
 import org.bithon.server.collector.cmd.service.AgentCommandService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
-import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
+import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
@@ -54,15 +54,15 @@ import java.util.stream.Collectors;
  */
 @RestController
 @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
-public class AgentCommandApi implements IAgentCommandApi {
+public class AgentProxyApi implements IAgentProxyApi {
 
     private final ObjectMapper objectMapper;
     private final AgentCommandService commandService;
     private final PermissionConfiguration permissionConfiguration;
 
-    public AgentCommandApi(ObjectMapper objectMapper,
-                           AgentCommandService commandService,
-                           PermissionConfiguration permissionConfiguration) {
+    public AgentProxyApi(ObjectMapper objectMapper,
+                         AgentCommandService commandService,
+                         PermissionConfiguration permissionConfiguration) {
         this.objectMapper = objectMapper;
         this.commandService = commandService;
         this.permissionConfiguration = permissionConfiguration;

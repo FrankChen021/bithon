@@ -26,7 +26,7 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.logging.LoggerConfiguration;
 import org.bithon.component.commons.logging.LoggingLevel;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
+import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 import org.springframework.http.HttpStatus;
 
@@ -48,7 +48,7 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(IAgentCommandApi.class,
+        return proxyFactory.create(IAgentProxyApi.class,
                                    executionContext.getParameters(),
                                    ILoggingCommand.class)
                            .getLoggers()
@@ -128,7 +128,7 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
                                             "Only 'level' is allowed to updated");
         }
 
-        return proxyFactory.create(IAgentCommandApi.class,
+        return proxyFactory.create(IAgentProxyApi.class,
                                    executionContext.getParameters(),
                                    ILoggingCommand.class)
                            .setLogger((String) nameFilter.value, loggingLevel)

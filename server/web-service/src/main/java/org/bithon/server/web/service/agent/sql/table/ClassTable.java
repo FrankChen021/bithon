@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.agent.sql.table;
 
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
-import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
+import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
@@ -36,7 +36,7 @@ public class ClassTable extends AbstractBaseTable {
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(IAgentCommandApi.class, executionContext.getParameters(), IJvmCommand.class)
+        return proxyFactory.create(IAgentProxyApi.class, executionContext.getParameters(), IJvmCommand.class)
                            .getLoadedClassList()
                            .stream().map(IJvmCommand.ClassInfo::toObjects)
                            .collect(Collectors.toList());

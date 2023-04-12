@@ -64,15 +64,15 @@ import java.io.IOException;
 @CrossOrigin
 @RestController
 @Conditional(WebServiceModuleEnabler.class)
-public class AgentCommandDelegationApi {
+public class AgentDiagnosisApi {
 
     private final SqlExecutionEngine sqlExecutionEngine;
     private final ObjectMapper objectMapper;
 
-    public AgentCommandDelegationApi(ServiceBroadcastInvoker serviceBroadcastInvoker,
-                                     SqlExecutionEngine sqlExecutionEngine,
-                                     ObjectMapper objectMapper,
-                                     ApplicationContext applicationContext) {
+    public AgentDiagnosisApi(ServiceBroadcastInvoker serviceBroadcastInvoker,
+                             SqlExecutionEngine sqlExecutionEngine,
+                             ObjectMapper objectMapper,
+                             ApplicationContext applicationContext) {
         this.objectMapper = objectMapper;
         this.sqlExecutionEngine = sqlExecutionEngine;
         this.sqlExecutionEngine.addSchema("agent", new AgentSchema(serviceBroadcastInvoker, applicationContext));

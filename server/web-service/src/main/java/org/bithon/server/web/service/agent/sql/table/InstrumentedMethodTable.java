@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.agent.sql.table;
 
 import org.bithon.agent.rpc.brpc.cmd.IInstrumentationCommand;
-import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
+import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
@@ -36,7 +36,7 @@ public class InstrumentedMethodTable extends AbstractBaseTable {
 
     @Override
     public List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(IAgentCommandApi.class,
+        return proxyFactory.create(IAgentProxyApi.class,
                                    executionContext.getParameters(),
                                    IInstrumentationCommand.class)
                            .getInstrumentedMethods()

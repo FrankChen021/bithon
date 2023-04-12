@@ -27,11 +27,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.io.IOException;
 
 /**
+ * An API that proxies remote services on agents over HTTP.
+ *
  * @author Frank Chen
  * @date 2022/8/7 20:46
  */
 @DiscoverableService(name = "agentCommand")
-public interface IAgentCommandApi {
+public interface IAgentProxyApi {
 
     /**
      * Declare all fields as public to treat it as a record
@@ -49,13 +51,15 @@ public interface IAgentCommandApi {
         }
     }
 
-    @GetMapping("/api/command/clients")
+    @GetMapping("/api/agent/service/instances")
     ServiceResponse<AgentInstanceRecord> getAgentInstanceList();
 
     /**
-     * Proxy Brpc services provided at agent side to allow them to be used over HTTP
+     * Proxy Brpc services provided at agent side to allow them to be used over HTTP.
+     * @param agentId the target agent that the request will be sent to.
+     * @param token For WRITE operations(the method name does not start with 'get' or 'dump'), the token is required.
      */
-    @PostMapping("/api/command/proxy")
+    @PostMapping("/api/agent/service/proxy")
     byte[] proxy(@RequestParam(name = "agentId") String agentId,
                  @RequestParam(name = "token") String token,
                  @RequestBody byte[] body) throws IOException;

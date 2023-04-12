@@ -18,7 +18,7 @@ package org.bithon.server.web.service.agent.sql.table;
 
 import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
 import org.bithon.server.discovery.declaration.ServiceResponse;
-import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
+import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
@@ -30,26 +30,26 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings({"unchecked"})
 public class InstanceTable extends AbstractBaseTable {
-    private final IAgentCommandApi impl;
+    private final IAgentProxyApi impl;
 
     public InstanceTable(ServiceBroadcastInvoker invoker) {
-        this.impl = invoker.create(IAgentCommandApi.class);
+        this.impl = invoker.create(IAgentProxyApi.class);
     }
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        ServiceResponse<IAgentCommandApi.AgentInstanceRecord> clients = impl.getAgentInstanceList();
+        ServiceResponse<IAgentProxyApi.AgentInstanceRecord> clients = impl.getAgentInstanceList();
         if (clients.getError() != null) {
             throw new RuntimeException(clients.getError().toString());
         }
         return clients.getRows()
                       .stream()
-                      .map(IAgentCommandApi.AgentInstanceRecord::toObjectArray)
+                      .map(IAgentProxyApi.AgentInstanceRecord::toObjectArray)
                       .collect(Collectors.toList());
     }
 
     @Override
     protected Class<?> getRecordClazz() {
-        return IAgentCommandApi.AgentInstanceRecord.class;
+        return IAgentProxyApi.AgentInstanceRecord.class;
     }
 }
