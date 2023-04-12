@@ -97,15 +97,15 @@ public class AgentCommandFactory {
 
     private class AgentCommandBroadcastInvoker<T> implements InvocationHandler {
 
-        private final InvocationManager brpcServiceInvocationManager;
+        private final InvocationManager brpcServiceInvoker;
         private final String proxyServiceName;
         private final Map<String, Object> context;
 
         private AgentCommandBroadcastInvoker(String proxyServiceName,
                                              Map<String, Object> context,
-                                             InvocationManager brpcServiceInvocationManager) {
+                                             InvocationManager brpcServiceInvoker) {
             this.proxyServiceName = proxyServiceName;
-            this.brpcServiceInvocationManager = brpcServiceInvocationManager;
+            this.brpcServiceInvoker = brpcServiceInvoker;
             this.context = context;
         }
 
@@ -128,13 +128,13 @@ public class AgentCommandFactory {
             for (IDiscoveryClient.HostAndPort hostAndPort : instanceList) {
                 futures.add(executor.submit(() -> {
                     try {
-                        return (Collection<?>) brpcServiceInvocationManager.invoke("bithon-webservice",
-                                                                                   Headers.EMPTY,
-                                                                                   new ProxyChannel(hostAndPort, context),
-                                                                                   30_000,
-                                                                                   agentServiceMethod,
-                                                                                   args);
-                    } catch (HttpMappableException e) {
+                        return (Collection<?>) brpcServiceInvoker.invoke("bithon-webservice",
+                                                                         Headers.EMPTY,
+                                                                         new ProxyChannel(hostAndPort, context),
+                                                                         30_000,
+                                                                         agentServiceMethod,
+                                                                         args);
+                    } catch (RuntimeException e) {
                         throw e;
                     } catch (Throwable e) {
                         throw new RuntimeException(e);
@@ -155,7 +155,7 @@ public class AgentCommandFactory {
                     // Merge response
                     mergedRows.addAll(response);
                 } catch (InterruptedException | ExecutionException e) {
-                    if (e.getCause() instanceof HttpMappableException) {
+                    if (e.getCause() instanceof RuntimeException) {
                         throw e.getCause();
                     }
                     throw new RuntimeException(e);

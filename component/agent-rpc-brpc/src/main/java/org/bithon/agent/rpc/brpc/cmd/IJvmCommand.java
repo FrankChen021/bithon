@@ -19,7 +19,6 @@ package org.bithon.agent.rpc.brpc.cmd;
 import org.bithon.component.brpc.BrpcService;
 import org.bithon.component.brpc.message.serializer.Serializer;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -30,236 +29,75 @@ import java.util.List;
 public interface IJvmCommand {
 
     class ThreadInfo {
-        private String name;
-        private long threadId;
-        private boolean isDaemon;
-        private int priority;
-        private String state;
-        private long cpuTime;
-        private long userTime;
-        private String stacks;
+        public String name;
+        public long threadId;
+        public boolean isDaemon;
+        public int priority;
+        public String state;
+        public long cpuTime;
+        public long userTime;
+        public String stack;
 
-        private long blockedTime;
+        public long blockedTime;
 
         /**
          * The total number of times that the thread entered the BLOCKED state
          */
-        private long blockedCount;
+        public long blockedCount;
 
         /**
          * The approximate accumulated elapsed time in milliseconds that a thread has been in the WAITING or TIMED_WAITING state;
          * -1 if thread contention monitoring is disabled.
          */
-        private long waitedTime;
+        public long waitedTime;
 
         /**
          * The total number of times that the thread was in the WAITING or TIMED_WAITING state.
          */
-        private long waitedCount;
+        public long waitedCount;
 
-        private String lockName;
-        private long lockOwnerId;
-        private String lockOwnerName;
+        public String lockName;
+        public long lockOwnerId;
+        public String lockOwnerName;
 
-        private int inNative;
-        private int suspended;
+        public int inNative;
+        public int suspended;
 
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public long getThreadId() {
-            return threadId;
-        }
-
-        public void setThreadId(long threadId) {
-            this.threadId = threadId;
-        }
-
-        public boolean isDaemon() {
-            return isDaemon;
-        }
-
-        public void setDaemon(boolean daemon) {
-            isDaemon = daemon;
-        }
-
-        public int getPriority() {
-            return priority;
-        }
-
-        public void setPriority(int priority) {
-            this.priority = priority;
-        }
-
-        public String getState() {
-            return state;
-        }
-
-        public void setState(String state) {
-            this.state = state;
-        }
-
-        public long getCpuTime() {
-            return cpuTime;
-        }
-
-        public void setCpuTime(long cpuTime) {
-            this.cpuTime = cpuTime;
-        }
-
-        public long getUserTime() {
-            return userTime;
-        }
-
-        public void setUserTime(long userTime) {
-            this.userTime = userTime;
-        }
-
-        public String getStacks() {
-            return stacks;
-        }
-
-        public void setStacks(String stacks) {
-            this.stacks = stacks;
-        }
-
-        public long getBlockedTime() {
-            return blockedTime;
-        }
-
-        public void setBlockedTime(long blockedTime) {
-            this.blockedTime = blockedTime;
-        }
-
-        public long getBlockedCount() {
-            return blockedCount;
-        }
-
-        public void setBlockedCount(long blockedCount) {
-            this.blockedCount = blockedCount;
-        }
-
-        public long getWaitedTime() {
-            return waitedTime;
-        }
-
-        public void setWaitedTime(long waitedTime) {
-            this.waitedTime = waitedTime;
-        }
-
-        public long getWaitedCount() {
-            return waitedCount;
-        }
-
-        public void setWaitedCount(long waitedCount) {
-            this.waitedCount = waitedCount;
-        }
-
-        public String getLockName() {
-            return lockName;
-        }
-
-        public void setLockName(String lockName) {
-            this.lockName = lockName;
-        }
-
-        public long getLockOwnerId() {
-            return lockOwnerId;
-        }
-
-        public void setLockOwnerId(long lockOwnerId) {
-            this.lockOwnerId = lockOwnerId;
-        }
-
-        public String getLockOwnerName() {
-            return lockOwnerName;
-        }
-
-        public void setLockOwnerName(String lockOwnerName) {
-            this.lockOwnerName = lockOwnerName;
-        }
-
-        public int getInNative() {
-            return inNative;
-        }
-
-        public void setInNative(int inNative) {
-            this.inNative = inNative;
-        }
-
-        public int getSuspended() {
-            return suspended;
-        }
-
-        public void setSuspended(int suspended) {
-            this.suspended = suspended;
+        public Object[] toObjects() {
+            return new Object[]{
+                    threadId,
+                    name,
+                    isDaemon,
+                    priority,
+                    state,
+                    cpuTime,
+                    userTime,
+                    blockedTime,
+                    blockedCount,
+                    waitedTime,
+                    waitedCount,
+                    lockName,
+                    lockOwnerId,
+                    lockOwnerName,
+                    inNative,
+                    suspended,
+                    stack
+            };
         }
     }
 
     List<ThreadInfo> dumpThreads();
 
-    @Deprecated
-    Collection<String> dumpClass(String pattern);
-
     class ClassInfo {
-        private String name;
-        private String classLoader;
-        private boolean isSynthetic;
-        private boolean isInterface;
-        private boolean isAnnotation;
-        private boolean isEnum;
+        public String name;
+        public String classLoader;
+        public boolean isSynthetic;
+        public boolean isInterface;
+        public boolean isAnnotation;
+        public boolean isEnum;
 
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getClassLoader() {
-            return classLoader;
-        }
-
-        public void setClassLoader(String classLoader) {
-            this.classLoader = classLoader;
-        }
-
-        public boolean isSynthetic() {
-            return isSynthetic;
-        }
-
-        public void setSynthetic(boolean synthetic) {
-            isSynthetic = synthetic;
-        }
-
-        public boolean isInterface() {
-            return isInterface;
-        }
-
-        public void setInterface(boolean anInterface) {
-            isInterface = anInterface;
-        }
-
-        public boolean isAnnotation() {
-            return isAnnotation;
-        }
-
-        public void setAnnotation(boolean annotation) {
-            isAnnotation = annotation;
-        }
-
-        public boolean isEnum() {
-            return isEnum;
-        }
-
-        public void setEnum(boolean anEnum) {
-            isEnum = anEnum;
+        public Object[] toObjects() {
+            return new Object[]{name, classLoader, isSynthetic, isInterface, isAnnotation, isEnum};
         }
     }
 

@@ -17,7 +17,6 @@
 package org.bithon.server.web.service.agent.sql.table;
 
 import org.bithon.agent.rpc.brpc.cmd.IInstrumentationCommand;
-import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
@@ -35,29 +34,19 @@ public class InstrumentedMethodTable extends AbstractBaseTable {
         this.commandFactory = commandFactory;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
-        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>)
-                commandFactory.create(IAgentCommandApi.class,
-                                      executionContext.getParameters(),
-                                      IInstrumentationCommand.class)
-                              .getInstrumentedMethods()
-                              .stream()
-                              .map((method) -> {
-                                  IAgentCommandApi.InstrumentedMethodRecord record = new IAgentCommandApi.InstrumentedMethodRecord();
-                                  record.clazzName = method.getClazzName();
-                                  record.isStatic = method.isStatic();
-                                  record.parameters = method.getParameters();
-                                  record.methodName = method.getMethodName();
-                                  record.returnType = method.getReturnType();
-                                  record.interceptor = method.getInterceptor();
-                                  return record;
-                              }).collect(Collectors.toList());
+    public List<Object[]> getData(SqlExecutionContext executionContext) {
+        return commandFactory.create(IAgentCommandApi.class,
+                                     executionContext.getParameters(),
+                                     IInstrumentationCommand.class)
+                             .getInstrumentedMethods()
+                             .stream()
+                             .map(IInstrumentationCommand.InstrumentedMethod::toObjects)
+                             .collect(Collectors.toList());
     }
 
     @Override
     protected Class getRecordClazz() {
-        return IAgentCommandApi.InstrumentedMethodRecord.class;
+        return IInstrumentationCommand.InstrumentedMethod.class;
     }
 }

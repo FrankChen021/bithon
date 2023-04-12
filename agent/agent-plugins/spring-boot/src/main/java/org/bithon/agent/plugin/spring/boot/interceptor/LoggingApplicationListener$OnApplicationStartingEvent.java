@@ -126,9 +126,9 @@ public class LoggingApplicationListener$OnApplicationStartingEvent extends After
                                 .stream()
                                 .map((cfg) -> {
                                     LoggerConfiguration configuration = new LoggerConfiguration();
-                                    configuration.setName(cfg.getName());
-                                    configuration.setLevel(toLoggingLevel.get(cfg.getConfiguredLevel()));
-                                    configuration.setEffectiveLevel(toLoggingLevel.get(cfg.getEffectiveLevel()));
+                                    configuration.name = (cfg.getName());
+                                    configuration.level = (toLoggingLevel.get(cfg.getConfiguredLevel()));
+                                    configuration.effectiveLevel = (toLoggingLevel.get(cfg.getEffectiveLevel()));
                                     return configuration;
                                 }).collect(Collectors.toList());
         }

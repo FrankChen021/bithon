@@ -17,7 +17,6 @@
 package org.bithon.server.collector.cmd.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.agent.rpc.brpc.cmd.IConfigurationCommand;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
@@ -28,7 +27,6 @@ import org.bithon.server.collector.cmd.api.permission.PermissionConfiguration;
 import org.bithon.server.collector.cmd.api.permission.PermissionRule;
 import org.bithon.server.collector.cmd.service.AgentCommandService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
-import org.bithon.server.discovery.declaration.cmd.CommandArgs;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
@@ -43,7 +41,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -90,20 +87,6 @@ public class AgentCommandApi implements IAgentCommandApi {
     }
 
     @Override
-    public ServiceResponse<ConfigurationRecord> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args) {
-        GetConfigurationRequest request = args.getArgs();
-        String format = request == null ? "YAML" : request.getFormat();
-        boolean isPretty = request == null ? true : request.isPretty();
-
-        IConfigurationCommand command = commandService.getServerChannel().getRemoteService(args.getAppId(), IConfigurationCommand.class, 30_000);
-
-        ConfigurationRecord record = new ConfigurationRecord();
-        record.payload = command.getConfiguration(format, isPretty);
-
-        return ServiceResponse.success(Collections.singletonList(record));
-    }
-
-    @Override
     public byte[] proxy(@RequestParam(name = "agentId") String agentId,
                         @RequestParam(name = "token") String token,
                         @RequestBody byte[] body) throws IOException {
@@ -144,16 +127,17 @@ public class AgentCommandApi implements IAgentCommandApi {
                                                                     .build();
 
         // Forwarding the request to agent and wait for response
-        ServiceResponseMessageOut.Builder responseBuilder = ServiceResponseMessageOut.builder();
+        ServiceResponseMessageOut.Builder responseBuilder = ServiceResponseMessageOut.builder()
+                                                                                     .txId(fromClient.getTransactionId());
         try {
             responseBuilder.returningRaw(commandService.getServerChannel()
                                                        .getSession(agentId)
                                                        .getClientInvocation()
-                                                       .invoke(toTarget, 30_000))
-                           .serverResponseAt(System.currentTimeMillis())
-                           .txId(fromClient.getTransactionId());
+                                                       .invoke(toTarget, 30_000));
         } catch (Throwable e) {
             responseBuilder.exception(e.getMessage());
+        } finally {
+            responseBuilder.serverResponseAt(System.currentTimeMillis());
         }
 
         // Turn the response stream from agent into stream that is going to send back

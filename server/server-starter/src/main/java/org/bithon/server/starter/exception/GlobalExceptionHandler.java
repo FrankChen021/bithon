@@ -20,6 +20,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.exception.BadRequestException;
+import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.exception.HttpResponseMapping;
 import org.springframework.http.HttpStatus;

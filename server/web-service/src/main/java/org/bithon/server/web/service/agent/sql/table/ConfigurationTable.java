@@ -16,42 +16,40 @@
 
 package org.bithon.server.web.service.agent.sql.table;
 
-import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
-import org.bithon.server.discovery.declaration.ServiceResponse;
-import org.bithon.server.discovery.declaration.cmd.CommandArgs;
+import org.bithon.agent.rpc.brpc.cmd.IConfigurationCommand;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
  * @date 1/3/23 8:18 pm
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
 public class ConfigurationTable extends AbstractBaseTable {
-    private final IAgentCommandApi impl;
 
-    public ConfigurationTable(ServiceBroadcastInvoker impl) {
-        this.impl = impl.create(IAgentCommandApi.class);
+    public static class ConfigurationRecord {
+        public String payload;
+    }
+
+    private final AgentCommandFactory impl;
+
+    public ConfigurationTable(AgentCommandFactory impl) {
+        this.impl = impl;
     }
 
     @Override
-    protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
-        String agentId = (String) executionContext.get("agentId");
-        Preconditions.checkNotNull(agentId, "'agentId' is missed in the query filter");
-
-        ServiceResponse<IAgentCommandApi.ConfigurationRecord> configurations = impl.getConfiguration(new CommandArgs<>(agentId));
-        if (configurations.getError() != null) {
-            throw new RuntimeException(configurations.getError().toString());
-        }
-
-        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>) configurations.getRows();
+    protected List<Object[]> getData(SqlExecutionContext executionContext) {
+        return impl.create(IAgentCommandApi.class, executionContext.getParameters(), IConfigurationCommand.class)
+                   .getConfiguration("YAML", true)
+                   .stream()
+                   .map((cfg) -> new Object[]{cfg})
+                   .collect(Collectors.toList());
     }
 
     @Override
     protected Class<?> getRecordClazz() {
-        return IAgentCommandApi.ConfigurationRecord.class;
+        return ConfigurationRecord.class;
     }
 }

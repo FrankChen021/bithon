@@ -16,9 +16,7 @@
 
 package org.bithon.server.discovery.declaration.cmd;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,16 +33,12 @@ import java.io.IOException;
 @DiscoverableService(name = "agentCommand")
 public interface IAgentCommandApi {
 
-    interface IObjectArrayConvertable {
-        Object[] toObjectArray();
-    }
-
     /**
      * Declare all fields as public to treat it as a record
      * This simplifies Calcite related type construction.
      */
     @Data
-    class AgentInstanceRecord implements IObjectArrayConvertable {
+    class AgentInstanceRecord {
         public String appName;
         public String agentId;
         public String endpoint;
@@ -58,128 +52,9 @@ public interface IAgentCommandApi {
     @GetMapping("/api/command/clients")
     ServiceResponse<AgentInstanceRecord> getAgentInstanceList();
 
-    @Data
-    class ThreadRecord implements IObjectArrayConvertable {
-        public long threadId;
-        public String name;
-        public int daemon;
-        public int priority;
-        public String state;
-        public long cpuTime;
-        public long userTime;
-
-        public long blockedTime;
-
-        /**
-         * The total number of times that the thread entered the BLOCKED state
-         */
-        public long blockedCount;
-
-        /**
-         * The approximate accumulated elapsed time in milliseconds that a thread has been in the WAITING or TIMED_WAITING state;
-         * -1 if thread contention monitoring is disabled.
-         */
-        public long waitedTime;
-
-        /**
-         * The total number of times that the thread was in the WAITING or TIMED_WAITING state.
-         */
-        public long waitedCount;
-
-        public String lockName;
-        public long lockOwnerId;
-        public String lockOwnerName;
-
-        public int inNative;
-        public int suspended;
-        public String stack;
-
-        public Object[] toObjectArray() {
-            return new Object[]{
-                    threadId,
-                    name,
-                    daemon,
-                    priority,
-                    state,
-                    cpuTime,
-                    userTime,
-                    blockedTime,
-                    blockedCount,
-                    waitedTime,
-                    waitedCount,
-                    lockName,
-                    lockOwnerId,
-                    lockOwnerName,
-                    inNative,
-                    suspended,
-                    stack
-            };
-        }
-    }
-
-    class ClassRecord implements IObjectArrayConvertable {
-        public String name;
-        public String classLoader;
-        public int isSynthetic;
-        public int isInterface;
-        public int isAnnotation;
-        public int isEnum;
-
-        public Object[] toObjectArray() {
-            return new Object[]{name, classLoader, isSynthetic, isInterface, isAnnotation, isEnum};
-        }
-    }
-
-    @Data
-    class GetConfigurationRequest {
-        /**
-         * JSON | YAML
-         */
-        private String format;
-        private boolean pretty;
-    }
-
-    class ConfigurationRecord implements IObjectArrayConvertable {
-        public String payload;
-
-        public Object[] toObjectArray() {
-            return new Object[]{payload};
-        }
-    }
-
-    class InstrumentedMethodRecord implements IObjectArrayConvertable {
-        public String interceptor;
-        public String clazzName;
-        public boolean isStatic;
-        public String returnType;
-        public String methodName;
-        public String parameters;
-
-        @Override
-        public Object[] toObjectArray() {
-            return new Object[]{interceptor, clazzName, isStatic, returnType, methodName, parameters};
-        }
-    }
-
-    @NoArgsConstructor
-    @AllArgsConstructor
-    class LoggerConfigurationRecord implements IObjectArrayConvertable {
-
-        public String name;
-
-        public String level;
-
-        public String effectiveLevel;
-
-        @Override
-        public Object[] toObjectArray() {
-            return new Object[]{name, level, effectiveLevel};
-        }
-    }
-
-    @PostMapping("/api/command/config/get")
-    ServiceResponse<ConfigurationRecord> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args);
-
+    /**
+     * Proxy Brpc services provided at agent side to allow them to be used over HTTP
+     */
     @PostMapping("/api/command/proxy")
     byte[] proxy(@RequestParam(name = "agentId") String agentId,
                  @RequestParam(name = "token") String token,

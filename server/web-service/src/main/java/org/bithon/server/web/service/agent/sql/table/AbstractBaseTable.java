@@ -23,17 +23,14 @@ import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.schema.ScannableTable;
 import org.apache.calcite.schema.impl.AbstractTable;
-import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
  * @date 1/3/23 8:18 pm
  */
-@SuppressWarnings("rawtypes")
 abstract class AbstractBaseTable extends AbstractTable implements ScannableTable {
     protected RelDataType rowType;
 
@@ -49,10 +46,8 @@ abstract class AbstractBaseTable extends AbstractTable implements ScannableTable
 
     @Override
     public Enumerable<Object[]> scan(final DataContext root) {
-        return Linq4j.asEnumerable(getData((SqlExecutionContext) root).stream()
-                                                                      .map((IAgentCommandApi.IObjectArrayConvertable::toObjectArray))
-                                                                      .collect(Collectors.toList()));
+        return Linq4j.asEnumerable(getData((SqlExecutionContext) root));
     }
 
-    protected abstract <T extends IAgentCommandApi.IObjectArrayConvertable> List<T> getData(SqlExecutionContext executionContext);
+    protected abstract List<Object[]> getData(SqlExecutionContext executionContext);
 }

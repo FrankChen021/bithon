@@ -81,7 +81,6 @@ public class ServiceStubFactory {
         private final InvocationManager invocationManager;
         private final String appName;
         private final Headers headers;
-        private boolean debugEnabled;
         private long timeout;
         private final long defaultTimeout;
 
@@ -106,7 +105,6 @@ public class ServiceStubFactory {
                 return "ServiceInvocationHandler";
             }
             if (setDebugMethod.equals(method)) {
-                debugEnabled = (boolean) args[0];
                 return null;
             }
             if (setTimeoutMethod.equals(method)) {

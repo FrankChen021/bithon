@@ -19,6 +19,8 @@ package org.bithon.agent.rpc.brpc.cmd;
 import org.bithon.component.brpc.BrpcService;
 import org.bithon.component.brpc.message.serializer.Serializer;
 
+import java.util.List;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/1/7 17:31
@@ -31,5 +33,5 @@ public interface IConfigurationCommand {
      *
      * @param format JSON | YAML
      */
-    String getConfiguration(String format, boolean prettyFormat);
+    List<String> getConfiguration(String format, boolean prettyFormat);
 }

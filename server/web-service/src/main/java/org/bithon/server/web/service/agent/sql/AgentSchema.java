@@ -45,7 +45,7 @@ public class AgentSchema extends AbstractSchema {
         this.tableMap = ImmutableMap.of("instance", new InstanceTable(serviceInvoker),
                                         "loaded_class", new ClassTable(agentCommandFactory),
                                         "thread", new ThreadTable(agentCommandFactory),
-                                        "configuration", new ConfigurationTable(serviceInvoker),
+                                        "configuration", new ConfigurationTable(agentCommandFactory),
                                         "instrumented_method", new InstrumentedMethodTable(agentCommandFactory),
                                         "logger", new LoggerTable(agentCommandFactory)
         );

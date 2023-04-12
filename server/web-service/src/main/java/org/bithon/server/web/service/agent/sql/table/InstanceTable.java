@@ -22,6 +22,7 @@ import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
@@ -36,12 +37,15 @@ public class InstanceTable extends AbstractBaseTable {
     }
 
     @Override
-    protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
+    protected List<Object[]> getData(SqlExecutionContext executionContext) {
         ServiceResponse<IAgentCommandApi.AgentInstanceRecord> clients = impl.getAgentInstanceList();
         if (clients.getError() != null) {
             throw new RuntimeException(clients.getError().toString());
         }
-        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>) clients.getRows();
+        return clients.getRows()
+                      .stream()
+                      .map(IAgentCommandApi.AgentInstanceRecord::toObjectArray)
+                      .collect(Collectors.toList());
     }
 
     @Override

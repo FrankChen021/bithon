@@ -23,6 +23,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.logging.LoggerConfiguration;
 import org.bithon.component.commons.logging.LoggingLevel;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
@@ -45,24 +46,29 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
         this.commandFactory = commandFactory;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
-        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>)
-                commandFactory.create(IAgentCommandApi.class,
-                                      executionContext.getParameters(),
-                                      ILoggingCommand.class)
-                              .getLoggers()
-                              .stream()
-                              .map((c) -> new IAgentCommandApi.LoggerConfigurationRecord(c.getName(),
-                                                                                         c.getLevel() == null ? null : c.getLevel().toString(),
-                                                                                         c.getEffectiveLevel() == null ? null : c.getEffectiveLevel().toString()))
-                              .collect(Collectors.toList());
+    protected List<Object[]> getData(SqlExecutionContext executionContext) {
+        return commandFactory.create(IAgentCommandApi.class,
+                                     executionContext.getParameters(),
+                                     ILoggingCommand.class)
+                             .getLoggers()
+                             .stream()
+                             .map(LoggerConfiguration::toObjects)
+                             .collect(Collectors.toList());
     }
 
     @Override
     protected Class<?> getRecordClazz() {
-        return IAgentCommandApi.LoggerConfigurationRecord.class;
+        return LoggerConfigurationRecord.class;
+    }
+
+    public static class LoggerConfigurationRecord {
+
+        public String name;
+
+        // For the Schema, the level is declared as String to avoid Enum problem at Calcite side
+        public String level;
+        public String effectiveLevel;
     }
 
     static class OneFilter implements IExpressionVisitor<Void> {

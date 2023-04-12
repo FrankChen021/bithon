@@ -19,6 +19,8 @@ package org.bithon.agent.controller.config;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.rpc.brpc.cmd.IConfigurationCommand;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -27,7 +29,8 @@ import java.util.Locale;
  */
 public class ConfigurationCommandImpl implements IConfigurationCommand {
     @Override
-    public String getConfiguration(String format, boolean prettyFormat) {
-        return ConfigurationManager.getInstance().format(format.toLowerCase(Locale.ENGLISH), prettyFormat);
+    public List<String> getConfiguration(String format, boolean prettyFormat) {
+        return Collections.singletonList(ConfigurationManager.getInstance()
+                                                             .format(format.toLowerCase(Locale.ENGLISH), prettyFormat));
     }
 }

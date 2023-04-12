@@ -17,7 +17,6 @@
 package org.bithon.server.web.service.agent.sql.table;
 
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
-import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
@@ -37,39 +36,18 @@ public class ThreadTable extends AbstractBaseTable {
     }
 
     @Override
-    protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
-        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>)
-                commandFactory.create(IAgentCommandApi.class,
-                                      executionContext.getParameters(),
-                                      IJvmCommand.class)
-                              .dumpThreads()
-                              .stream()
-                              .map((threadInfo) -> {
-                                  IAgentCommandApi.ThreadRecord thread = new IAgentCommandApi.ThreadRecord();
-                                  thread.setName(threadInfo.getName());
-                                  thread.setThreadId(threadInfo.getThreadId());
-                                  thread.setState(threadInfo.getState());
-                                  thread.setPriority(threadInfo.getPriority());
-                                  thread.setCpuTime(threadInfo.getCpuTime());
-                                  thread.setUserTime(threadInfo.getUserTime());
-                                  thread.setDaemon(threadInfo.isDaemon() ? 1 : 0);
-                                  thread.setWaitedCount(threadInfo.getWaitedCount());
-                                  thread.setWaitedTime(threadInfo.getWaitedTime());
-                                  thread.setBlockedCount(threadInfo.getBlockedCount());
-                                  thread.setBlockedTime(threadInfo.getBlockedTime());
-                                  thread.setLockName(threadInfo.getLockName());
-                                  thread.setLockOwnerId(threadInfo.getLockOwnerId());
-                                  thread.setLockOwnerName(threadInfo.getLockOwnerName());
-                                  thread.setInNative(threadInfo.getInNative());
-                                  thread.setSuspended(threadInfo.getSuspended());
-                                  thread.setStack(threadInfo.getStacks());
-                                  return thread;
-                              })
-                              .collect(Collectors.toList());
+    protected List<Object[]> getData(SqlExecutionContext executionContext) {
+        return commandFactory.create(IAgentCommandApi.class,
+                                     executionContext.getParameters(),
+                                     IJvmCommand.class)
+                             .dumpThreads()
+                             .stream()
+                             .map(IJvmCommand.ThreadInfo::toObjects)
+                             .collect(Collectors.toList());
     }
 
     @Override
     protected Class<?> getRecordClazz() {
-        return IAgentCommandApi.ThreadRecord.class;
+        return IJvmCommand.ThreadInfo.class;
     }
 }

@@ -17,7 +17,6 @@
 package org.bithon.server.web.service.agent.sql.table;
 
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
-import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
@@ -28,7 +27,6 @@ import java.util.stream.Collectors;
  * @author Frank Chen
  * @date 1/3/23 8:18 pm
  */
-@SuppressWarnings({"unchecked"})
 public class ClassTable extends AbstractBaseTable {
     private final AgentCommandFactory impl;
 
@@ -37,24 +35,15 @@ public class ClassTable extends AbstractBaseTable {
     }
 
     @Override
-    protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
-        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>) impl.create(IAgentCommandApi.class, executionContext.getParameters(), IJvmCommand.class)
-                                                                              .getLoadedClassList()
-                                                                              .stream().map((clazzInfo) -> {
-                    IAgentCommandApi.ClassRecord classRecord = new IAgentCommandApi.ClassRecord();
-                    classRecord.name = clazzInfo.getName();
-                    classRecord.classLoader = clazzInfo.getClassLoader();
-                    classRecord.isAnnotation = clazzInfo.isAnnotation() ? 1 : 0;
-                    classRecord.isInterface = clazzInfo.isInterface() ? 1 : 0;
-                    classRecord.isEnum = clazzInfo.isEnum() ? 1 : 0;
-                    classRecord.isSynthetic = clazzInfo.isSynthetic() ? 1 : 0;
-                    return classRecord;
-                })
-                                                                              .collect(Collectors.toList());
+    protected List<Object[]> getData(SqlExecutionContext executionContext) {
+        return impl.create(IAgentCommandApi.class, executionContext.getParameters(), IJvmCommand.class)
+                   .getLoadedClassList()
+                   .stream().map(IJvmCommand.ClassInfo::toObjects)
+                   .collect(Collectors.toList());
     }
 
     @Override
     protected Class<?> getRecordClazz() {
-        return IAgentCommandApi.ClassRecord.class;
+        return IJvmCommand.ClassInfo.class;
     }
 }

@@ -23,33 +23,13 @@ package org.bithon.component.commons.logging;
  * @date 2023/4/1 20:18
  */
 public class LoggerConfiguration {
-    private String name;
+    public String name;
 
-    private LoggingLevel level;
+    public LoggingLevel level;
 
-    private LoggingLevel effectiveLevel;
+    public LoggingLevel effectiveLevel;
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public LoggingLevel getLevel() {
-        return level;
-    }
-
-    public void setLevel(LoggingLevel level) {
-        this.level = level;
-    }
-
-    public LoggingLevel getEffectiveLevel() {
-        return effectiveLevel;
-    }
-
-    public void setEffectiveLevel(LoggingLevel effectiveLevel) {
-        this.effectiveLevel = effectiveLevel;
+    public Object[] toObjects() {
+        return new Object[]{name, level, effectiveLevel};
     }
 }

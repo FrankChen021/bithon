@@ -22,11 +22,9 @@ import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -68,31 +66,18 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
     }
 
     @Override
-    public Collection<String> dumpClass(String pattern) {
-        Pattern p = Pattern.compile(pattern);
-
-        return Arrays.stream(InstrumentationHelper.getInstance().getAllLoadedClasses())
-                     .filter(clazz -> !clazz.isSynthetic() &&
-                                      !isAnonymousClassOrLambda(clazz) &&
-                                      p.matcher(clazz.getName()).matches())
-                     .map(Class::getName)
-                     // There might be same classes loaded into different class loaders, use set to deduplicate them
-                     .collect(Collectors.toSet());
-    }
-
-    @Override
     public List<ClassInfo> getLoadedClassList() {
         return Arrays.stream(InstrumentationHelper.getInstance().getAllLoadedClasses())
                      // It does not make any sense to return anonymous class or lambda class
                      .filter(clazz -> !isAnonymousClassOrLambda(clazz))
                      .map((clazz) -> {
                          ClassInfo classInfo = new ClassInfo();
-                         classInfo.setName(clazz.getTypeName());
-                         classInfo.setClassLoader(clazz.getClassLoader() == null ? "bootstrap" : clazz.getClassLoader().getClass().getName());
-                         classInfo.setAnnotation(clazz.isAnnotation());
-                         classInfo.setInterface(clazz.isInterface());
-                         classInfo.setSynthetic(clazz.isSynthetic());
-                         classInfo.setEnum(clazz.isEnum());
+                         classInfo.name = clazz.getTypeName();
+                         classInfo.classLoader = (clazz.getClassLoader() == null ? "bootstrap" : clazz.getClassLoader().getClass().getName());
+                         classInfo.isAnnotation = (clazz.isAnnotation());
+                         classInfo.isInterface = (clazz.isInterface());
+                         classInfo.isSynthetic = (clazz.isSynthetic());
+                         classInfo.isEnum = (clazz.isEnum());
                          return classInfo;
                      })
                      .collect(Collectors.toList());
@@ -118,28 +103,28 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
         }
 
         ThreadInfo threadInfo = new ThreadInfo();
-        threadInfo.setName(thread.getName());
-        threadInfo.setThreadId(thread.getId());
-        threadInfo.setDaemon(thread.isDaemon());
-        threadInfo.setPriority(thread.getPriority());
-        threadInfo.setState(thread.getState().toString());
-        threadInfo.setCpuTime(cpuTimeEnabled ? threadMxBean.getThreadCpuTime(thread.getId()) : -1);
-        threadInfo.setUserTime(cpuTimeEnabled ? threadMxBean.getThreadUserTime(thread.getId()) : -1);
+        threadInfo.name = (thread.getName());
+        threadInfo.threadId = (thread.getId());
+        threadInfo.isDaemon = (thread.isDaemon());
+        threadInfo.priority = (thread.getPriority());
+        threadInfo.state = (thread.getState().toString());
+        threadInfo.cpuTime = (cpuTimeEnabled ? threadMxBean.getThreadCpuTime(thread.getId()) : -1);
+        threadInfo.userTime = (cpuTimeEnabled ? threadMxBean.getThreadUserTime(thread.getId()) : -1);
 
-        threadInfo.setBlockedCount(info.getBlockedCount());
-        threadInfo.setBlockedTime(info.getBlockedTime());
+        threadInfo.blockedCount = (info.getBlockedCount());
+        threadInfo.blockedTime = (info.getBlockedTime());
 
-        threadInfo.setWaitedCount(info.getWaitedCount());
-        threadInfo.setWaitedTime(info.getWaitedTime());
+        threadInfo.waitedCount = (info.getWaitedCount());
+        threadInfo.waitedTime = (info.getWaitedTime());
 
-        threadInfo.setInNative(info.isInNative() ? 1 : 0);
-        threadInfo.setSuspended(info.isSuspended() ? 1 : 0);
+        threadInfo.inNative = (info.isInNative() ? 1 : 0);
+        threadInfo.suspended = (info.isSuspended() ? 1 : 0);
 
-        threadInfo.setLockName(info.getLockName());
-        threadInfo.setLockOwnerId(info.getLockOwnerId());
-        threadInfo.setLockOwnerName(info.getLockOwnerName());
+        threadInfo.lockName = (info.getLockName());
+        threadInfo.lockOwnerId = (info.getLockOwnerId());
+        threadInfo.lockOwnerName = (info.getLockOwnerName());
 
-        threadInfo.setStacks(sb.toString());
+        threadInfo.stack = (sb.toString());
         return threadInfo;
     }
 
