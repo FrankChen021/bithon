@@ -151,7 +151,7 @@ public class AgentCommandDelegationApi {
             }
 
             String identifier = ((SqlIdentifier) identifierNode).getSimple();
-            if (!"appId".equalsIgnoreCase(identifier) && !"_token".equalsIgnoreCase(identifier)) {
+            if (!"agentId".equalsIgnoreCase(identifier) && !"_token".equalsIgnoreCase(identifier)) {
                 return super.visit(call);
             }
 

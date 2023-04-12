@@ -69,6 +69,10 @@ public class ExpressionConverter extends SqlBasicVisitor<IExpression> {
                 newOperands.add(operand);
             }
         }
+        if (newOperands.isEmpty()) {
+            // Turn this LogicalExpression into a constant TRUE expression
+            return new LiteralExpression(true);
+        }
         if (newOperands.size() < logicalExpression.getOperands().size()) {
             if (newOperands.size() == 1) {
                 return newOperands.get(0);
@@ -80,14 +84,15 @@ public class ExpressionConverter extends SqlBasicVisitor<IExpression> {
     }
 
     private static boolean isAlwaysTrue(IExpression expression) {
-        if (!(expression instanceof BinaryExpression)) {
-            return false;
-        }
-        BinaryExpression binaryExpression = (BinaryExpression) expression;
-        IExpression left = binaryExpression.getLeft();
-        IExpression right = binaryExpression.getRight();
-        if (left instanceof LiteralExpression && right instanceof LiteralExpression) {
-            return ((LiteralExpression) left).getValue().equals(((LiteralExpression) right).getValue());
+        if (expression instanceof BinaryExpression) {
+            BinaryExpression binaryExpression = (BinaryExpression) expression;
+            IExpression left = binaryExpression.getLeft();
+            IExpression right = binaryExpression.getRight();
+            if (left instanceof LiteralExpression && right instanceof LiteralExpression) {
+                return ((LiteralExpression) left).getValue().equals(((LiteralExpression) right).getValue());
+            }
+        } else if (expression instanceof LiteralExpression) {
+            return ((LiteralExpression) expression).getValue().equals(true);
         }
         return false;
     }

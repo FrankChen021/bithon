@@ -38,11 +38,7 @@ public class ClassTable extends AbstractBaseTable {
 
     @Override
     protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
-        String appId = (String) executionContext.get("appId");
-        Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
-
-
-        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>) impl.create(IAgentCommandApi.class, appId, IJvmCommand.class)
+        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>) impl.create(IAgentCommandApi.class, executionContext.getParameters(), IJvmCommand.class)
                                                                               .getLoadedClassList()
                                                                               .stream().map((clazzInfo) -> {
                     IAgentCommandApi.ClassRecord classRecord = new IAgentCommandApi.ClassRecord();

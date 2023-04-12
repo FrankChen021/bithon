@@ -18,19 +18,12 @@ package org.bithon.server.collector.cmd.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.agent.rpc.brpc.cmd.IConfigurationCommand;
-import org.bithon.agent.rpc.brpc.cmd.IInstrumentationCommand;
-import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
-import org.bithon.agent.rpc.brpc.cmd.ILoggingCommand;
-import org.bithon.component.brpc.channel.ServerChannel;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
-import org.bithon.component.brpc.invocation.LowLevelInvoker;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
 import org.bithon.component.commons.exception.HttpMappableException;
-import org.bithon.component.commons.logging.LoggerConfiguration;
-import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.collector.cmd.api.permission.PermissionConfiguration;
 import org.bithon.server.collector.cmd.api.permission.PermissionRule;
 import org.bithon.server.collector.cmd.service.AgentCommandService;
@@ -48,11 +41,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -74,84 +65,28 @@ public class AgentCommandApi implements IAgentCommandApi {
     private final AgentCommandService commandService;
     private final PermissionConfiguration permissionConfiguration;
 
-    public AgentCommandApi(ObjectMapper objectMapper, AgentCommandService commandService, PermissionConfiguration permissionConfiguration) {
+    public AgentCommandApi(ObjectMapper objectMapper,
+                           AgentCommandService commandService,
+                           PermissionConfiguration permissionConfiguration) {
         this.objectMapper = objectMapper;
         this.commandService = commandService;
         this.permissionConfiguration = permissionConfiguration;
     }
 
     @Override
-    public ServiceResponse<InstanceRecord> getClients() {
+    public ServiceResponse<AgentInstanceRecord> getAgentInstanceList() {
         return ServiceResponse.success(commandService.getServerChannel()
                                                      .getSessions()
                                                      .stream()
                                                      .map((session) -> {
-                                                         InstanceRecord instance = new InstanceRecord();
+                                                         AgentInstanceRecord instance = new AgentInstanceRecord();
                                                          instance.setAppName(session.getAppName());
-                                                         instance.setAppId(session.getAppId());
+                                                         instance.setAgentId(session.getAppId());
                                                          instance.setEndpoint(session.getEndpoint().toString());
                                                          instance.setAgentVersion(session.getClientVersion());
                                                          return instance;
                                                      })
                                                      .collect(Collectors.toList()));
-    }
-
-    @Override
-    public ServiceResponse<ThreadRecord> getThreads(@RequestBody CommandArgs<Void> args) {
-        IJvmCommand command = commandService.getServerChannel()
-                                            .getRemoteService(args.getAppId(), IJvmCommand.class, 30_000);
-
-        return ServiceResponse.success(command.dumpThreads()
-                                              .stream()
-                                              .map((threadInfo) -> {
-                                                  ThreadRecord thread = new ThreadRecord();
-                                                  thread.setName(threadInfo.getName());
-                                                  thread.setThreadId(threadInfo.getThreadId());
-                                                  thread.setState(threadInfo.getState());
-                                                  thread.setPriority(threadInfo.getPriority());
-                                                  thread.setCpuTime(threadInfo.getCpuTime());
-                                                  thread.setUserTime(threadInfo.getUserTime());
-                                                  thread.setDaemon(threadInfo.isDaemon() ? 1 : 0);
-                                                  thread.setWaitedCount(threadInfo.getWaitedCount());
-                                                  thread.setWaitedTime(threadInfo.getWaitedTime());
-                                                  thread.setBlockedCount(threadInfo.getBlockedCount());
-                                                  thread.setBlockedTime(threadInfo.getBlockedTime());
-                                                  thread.setLockName(threadInfo.getLockName());
-                                                  thread.setLockOwnerId(threadInfo.getLockOwnerId());
-                                                  thread.setLockOwnerName(threadInfo.getLockOwnerName());
-                                                  thread.setInNative(threadInfo.getInNative());
-                                                  thread.setSuspended(threadInfo.getSuspended());
-                                                  thread.setStack(threadInfo.getStacks());
-                                                  return thread;
-                                              })
-                                              .collect(Collectors.toList()));
-    }
-
-    /**
-     * @param args A string pattern which comply with database's like expression.
-     *             For example:
-     *             "%CommandApi" will match all classes whose name ends with CommandApi
-     *             "CommandApi" matches only qualified class name that is the exact CommandApi
-     *             "%bithon% matches all qualified classes whose name contains bithon
-     */
-    @Override
-    public ServiceResponse<ClassRecord> getClassList(@Valid @RequestBody CommandArgs<Void> args) {
-        IJvmCommand command = commandService.getServerChannel()
-                                            .getRemoteService(args.getAppId(), IJvmCommand.class, 30_000);
-
-        return ServiceResponse.success(command.getLoadedClassList()
-                                              .stream()
-                                              .map((clazzInfo) -> {
-                                                  ClassRecord classRecord = new ClassRecord();
-                                                  classRecord.name = clazzInfo.getName();
-                                                  classRecord.classLoader = clazzInfo.getClassLoader();
-                                                  classRecord.isAnnotation = clazzInfo.isAnnotation() ? 1 : 0;
-                                                  classRecord.isInterface = clazzInfo.isInterface() ? 1 : 0;
-                                                  classRecord.isEnum = clazzInfo.isEnum() ? 1 : 0;
-                                                  classRecord.isSynthetic = clazzInfo.isSynthetic() ? 1 : 0;
-                                                  return classRecord;
-                                              })
-                                              .collect(Collectors.toList()));
     }
 
     @Override
@@ -169,82 +104,33 @@ public class AgentCommandApi implements IAgentCommandApi {
     }
 
     @Override
-    public ServiceResponse<InstrumentedMethodRecord> getInstrumentedMethod(CommandArgs<Void> args) {
-        IInstrumentationCommand command = commandService.getServerChannel()
-                                                        .getRemoteService(args.getAppId(), IInstrumentationCommand.class, 30_000);
-
-        List<InstrumentedMethodRecord> records = command.getInstrumentedMethods()
-                                                        .stream()
-                                                        .map((method) -> {
-                                                            InstrumentedMethodRecord record = new InstrumentedMethodRecord();
-                                                            record.clazzName = method.getClazzName();
-                                                            record.isStatic = method.isStatic();
-                                                            record.parameters = method.getParameters();
-                                                            record.methodName = method.getMethodName();
-                                                            record.returnType = method.getReturnType();
-                                                            record.interceptor = method.getInterceptor();
-                                                            return record;
-                                                        }).collect(Collectors.toList());
-
-        return ServiceResponse.success(records);
-    }
-
-    @Override
-    public ServiceResponse<LoggerConfigurationRecord> getLoggerList(@RequestBody CommandArgs<Void> args) {
-        List<LoggerConfiguration> loggers = commandService.getServerChannel()
-                                                          .getRemoteService(args.getAppId(),
-                                                                            ILoggingCommand.class,
-                                                                            30_000)
-                                                          .getLoggers();
-
-        List<LoggerConfigurationRecord> result = loggers.stream()
-                                                        .map((c) -> new LoggerConfigurationRecord(c.getName(),
-                                                                                                  c.getLevel() == null ? null : c.getLevel().toString(),
-                                                                                                  c.getEffectiveLevel() == null ? null : c.getEffectiveLevel().toString()))
-                                                        .collect(Collectors.toList());
-        return ServiceResponse.success(result);
-    }
-
-    @Override
-    public ServiceResponse<ModifiedRecord> setLogger(@RequestBody CommandArgs<SetLoggerArgs> args) {
-        Preconditions.checkArgumentNotNull("args", args.getArgs());
-        Preconditions.checkNotNull("token", args.getToken());
-
-        // Find session
-        Optional<ServerChannel.Session> session = commandService.getServerChannel()
-                                                                .getSessions().stream().filter((s) -> s.getAppId().equals(args.getAppId()))
-                                                                .findFirst();
-        if (!session.isPresent()) {
-            throw new SessionNotFoundException("Can't find any connected remote application [%s] on this server.", args.getAppId());
-        }
-
-        // Check token
-        final String appName = session.get().getAppName();
-        Optional<PermissionRule> applicationRule = permissionConfiguration.getRules()
-                                                                          .stream()
-                                                                          .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(appName))
-                                                                          .findFirst();
-        if (!applicationRule.isPresent()) {
-            throw new HttpMappableException(HttpStatus.FORBIDDEN.value(), "Application [%s] does not define a permission rule.", appName);
-        }
-
-        if (!applicationRule.get().getToken().equals(args.getToken())) {
-            throw new HttpMappableException(HttpStatus.FORBIDDEN.value(), "Given token does not match.");
-        }
-
-        List<Integer> rows = session.get()
-                                    .getRemoteService(ILoggingCommand.class, 30_000)
-                                    .setLogger(args.getArgs().getName(), args.getArgs().getLevel());
-        ModifiedRecord modifiedRecord = new ModifiedRecord();
-        modifiedRecord.setRows(rows.get(0));
-        return ServiceResponse.success(Collections.singletonList(modifiedRecord));
-    }
-
-    @Override
-    public byte[] proxy(@RequestParam(name = "appId") String appId, @RequestBody byte[] body) throws IOException {
+    public byte[] proxy(@RequestParam(name = "agentId") String agentId,
+                        @RequestParam(name = "token") String token,
+                        @RequestBody byte[] body) throws IOException {
+        //
+        // Parse input request stream
+        //
         CodedInputStream input = CodedInputStream.newInstance(body);
         input.pushLimit(body.length);
         ServiceRequestMessageIn fromClient = ServiceRequestMessageIn.from(input);
+
+        // Verify if the given token matches
+        // By default, if a method that starts with 'get' or 'dump' will be seen as a READ method that requires no permission check.
+        if (!fromClient.getMethodName().startsWith("get") && !fromClient.getMethodName().startsWith("dump")) {
+            Optional<PermissionRule> applicationRule = permissionConfiguration.getRules()
+                                                                              .stream()
+                                                                              .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(fromClient.getAppName()))
+                                                                              .findFirst();
+            if (!applicationRule.isPresent()) {
+                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(), "Application [%s] does not define a permission rule.", fromClient.getAppName());
+            }
+
+            if (!applicationRule.get().getToken().equals(token)) {
+                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(), "Given token does not match.");
+            }
+        }
+
+        // Turn the input request stream to the request that is going to send to remote
         ServiceRequestMessageOut toTarget = ServiceRequestMessageOut.builder()
                                                                     .applicationName(fromClient.getAppName())
                                                                     .headers(fromClient.getHeaders())
@@ -257,20 +143,21 @@ public class AgentCommandApi implements IAgentCommandApi {
                                                                     .rawArgs(fromClient.getRawArgs())
                                                                     .build();
 
-        LowLevelInvoker invocation = commandService.getServerChannel()
-                                                   .getSession(appId)
-                                                   .getClientInvocation();
-
-        ServiceResponseMessageOut.Builder builder = ServiceResponseMessageOut.builder();
+        // Forwarding the request to agent and wait for response
+        ServiceResponseMessageOut.Builder responseBuilder = ServiceResponseMessageOut.builder();
         try {
-            builder.returningRaw(invocation.invoke(toTarget, 30_000))
-                   .serverResponseAt(System.currentTimeMillis())
-                   .txId(fromClient.getTransactionId());
+            responseBuilder.returningRaw(commandService.getServerChannel()
+                                                       .getSession(agentId)
+                                                       .getClientInvocation()
+                                                       .invoke(toTarget, 30_000))
+                           .serverResponseAt(System.currentTimeMillis())
+                           .txId(fromClient.getTransactionId());
         } catch (Throwable e) {
-            builder.exception(e.getMessage());
+            responseBuilder.exception(e.getMessage());
         }
-        ServiceResponseMessageOut toClient = builder.build();
 
+        // Turn the response stream from agent into stream that is going to send back
+        ServiceResponseMessageOut toClient = responseBuilder.build();
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream(512)) {
             CodedOutputStream outputStream = CodedOutputStream.newInstance(stream);
             toClient.encode(outputStream);

@@ -19,7 +19,6 @@ package org.bithon.server.discovery.declaration.cmd;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bithon.component.commons.logging.LoggingLevel;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +26,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.validation.Valid;
 import java.io.IOException;
 
 /**
@@ -46,19 +44,19 @@ public interface IAgentCommandApi {
      * This simplifies Calcite related type construction.
      */
     @Data
-    class InstanceRecord implements IObjectArrayConvertable {
+    class AgentInstanceRecord implements IObjectArrayConvertable {
         public String appName;
-        public String appId;
+        public String agentId;
         public String endpoint;
         public String agentVersion;
 
         public Object[] toObjectArray() {
-            return new Object[]{appName, appId, endpoint, agentVersion};
+            return new Object[]{appName, agentId, endpoint, agentVersion};
         }
     }
 
     @GetMapping("/api/command/clients")
-    ServiceResponse<InstanceRecord> getClients();
+    ServiceResponse<AgentInstanceRecord> getAgentInstanceList();
 
     @Data
     class ThreadRecord implements IObjectArrayConvertable {
@@ -119,9 +117,6 @@ public interface IAgentCommandApi {
         }
     }
 
-    @PostMapping("/api/command/jvm/dumpThread")
-    ServiceResponse<ThreadRecord> getThreads(@Valid @RequestBody CommandArgs<Void> args);
-
     class ClassRecord implements IObjectArrayConvertable {
         public String name;
         public String classLoader;
@@ -134,12 +129,6 @@ public interface IAgentCommandApi {
             return new Object[]{name, classLoader, isSynthetic, isInterface, isAnnotation, isEnum};
         }
     }
-
-    /**
-     * Get loaded class
-     */
-    @PostMapping("/api/command/jvm/dumpClazz")
-    ServiceResponse<ClassRecord> getClassList(@Valid @RequestBody CommandArgs<Void> args);
 
     @Data
     class GetConfigurationRequest {
@@ -158,9 +147,6 @@ public interface IAgentCommandApi {
         }
     }
 
-    @PostMapping("/api/command/config/get")
-    ServiceResponse<ConfigurationRecord> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args);
-
     class InstrumentedMethodRecord implements IObjectArrayConvertable {
         public String interceptor;
         public String clazzName;
@@ -174,9 +160,6 @@ public interface IAgentCommandApi {
             return new Object[]{interceptor, clazzName, isStatic, returnType, methodName, parameters};
         }
     }
-
-    @PostMapping("/api/command/instrumentation/method/list")
-    ServiceResponse<InstrumentedMethodRecord> getInstrumentedMethod(@RequestBody CommandArgs<Void> args);
 
     @NoArgsConstructor
     @AllArgsConstructor
@@ -194,28 +177,11 @@ public interface IAgentCommandApi {
         }
     }
 
-    @PostMapping("/api/command/logger/get")
-    ServiceResponse<LoggerConfigurationRecord> getLoggerList(@Valid @RequestBody CommandArgs<Void> args);
-
-    @Data
-    class SetLoggerArgs {
-        private String name;
-        private LoggingLevel level;
-    }
-
-    @Data
-    class ModifiedRecord implements IObjectArrayConvertable {
-        private int rows;
-
-        @Override
-        public Object[] toObjectArray() {
-            return new Object[]{rows};
-        }
-    }
-
-    @PostMapping("/api/command/logger/set")
-    ServiceResponse<ModifiedRecord> setLogger(@Valid @RequestBody CommandArgs<SetLoggerArgs> args);
+    @PostMapping("/api/command/config/get")
+    ServiceResponse<ConfigurationRecord> getConfiguration(@RequestBody CommandArgs<GetConfigurationRequest> args);
 
     @PostMapping("/api/command/proxy")
-    byte[] proxy(@RequestParam(name = "appId") String appId, @RequestBody byte[] body) throws IOException;
+    byte[] proxy(@RequestParam(name = "agentId") String agentId,
+                 @RequestParam(name = "token") String token,
+                 @RequestBody byte[] body) throws IOException;
 }

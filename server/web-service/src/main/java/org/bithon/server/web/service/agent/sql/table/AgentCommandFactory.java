@@ -29,6 +29,7 @@ import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.IDiscoveryClient;
 import org.bithon.server.discovery.client.ServiceInvocationExecutor;
@@ -48,6 +49,7 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -72,8 +74,12 @@ public class AgentCommandFactory {
     }
 
     public <T> T create(Class<?> proxyServiceDeclaration,
-                        String agentId,
+                        Map<String, Object> context,
                         Class<T> serviceDeclaration) {
+        // appId is a mandatory parameter
+        String appId = (String) context.get("agentId");
+        Preconditions.checkNotNull(appId, "'agentId' is not given in the context.");
+
         DiscoverableService metadata = proxyServiceDeclaration.getAnnotation(DiscoverableService.class);
         if (metadata == null) {
             throw new RuntimeException(StringUtils.format("Given class [%s] is not marked by annotation [%s].",
@@ -85,31 +91,27 @@ public class AgentCommandFactory {
         return (T) Proxy.newProxyInstance(serviceDeclaration.getClassLoader(),
                                           new Class<?>[]{serviceDeclaration},
                                           new AgentCommandBroadcastInvoker<>(metadata.name(),
-                                                                             agentId,
-                                                                             applicationContext,
+                                                                             context,
                                                                              invocationManager));
     }
 
     private class AgentCommandBroadcastInvoker<T> implements InvocationHandler {
 
-        private final InvocationManager invocationManager;
+        private final InvocationManager brpcServiceInvocationManager;
         private final String proxyServiceName;
-        private final String agentId;
-        private final ApplicationContext applicationContext;
+        private final Map<String, Object> context;
 
         private AgentCommandBroadcastInvoker(String proxyServiceName,
-                                             String agentId,
-                                             ApplicationContext applicationContext,
-                                             InvocationManager invocationManager) {
+                                             Map<String, Object> context,
+                                             InvocationManager brpcServiceInvocationManager) {
             this.proxyServiceName = proxyServiceName;
-            this.invocationManager = invocationManager;
-            this.agentId = agentId;
-            this.applicationContext = applicationContext;
+            this.brpcServiceInvocationManager = brpcServiceInvocationManager;
+            this.context = context;
         }
 
         @Override
-        public Object invoke(Object proxy,
-                             Method method,
+        public Object invoke(Object object,
+                             Method agentServiceMethod,
                              Object[] args) throws Throwable {
             if (serviceDiscoveryClient == null) {
                 throw new HttpMappableException(HttpStatus.SERVICE_UNAVAILABLE.value(),
@@ -126,12 +128,14 @@ public class AgentCommandFactory {
             for (IDiscoveryClient.HostAndPort hostAndPort : instanceList) {
                 futures.add(executor.submit(() -> {
                     try {
-                        return (Collection<?>) invocationManager.invoke("",
-                                                                        Headers.EMPTY,
-                                                                        new ProxyChannel(hostAndPort, agentId),
-                                                                        30_000,
-                                                                        method,
-                                                                        args);
+                        return (Collection<?>) brpcServiceInvocationManager.invoke("bithon-webservice",
+                                                                                   Headers.EMPTY,
+                                                                                   new ProxyChannel(hostAndPort, context),
+                                                                                   30_000,
+                                                                                   agentServiceMethod,
+                                                                                   args);
+                    } catch (HttpMappableException e) {
+                        throw e;
                     } catch (Throwable e) {
                         throw new RuntimeException(e);
                     }
@@ -164,12 +168,12 @@ public class AgentCommandFactory {
 
     class ProxyChannel implements IChannelWriter {
         private final IDiscoveryClient.HostAndPort proxyHost;
-        private final String agentId;
+        private final Map<String, Object> context;
 
         public ProxyChannel(IDiscoveryClient.HostAndPort proxyHost,
-                            String agentId) {
+                            Map<String, Object> context) {
             this.proxyHost = proxyHost;
-            this.agentId = agentId;
+            this.context = context;
         }
 
         @Override
@@ -224,7 +228,9 @@ public class AgentCommandFactory {
                                                                                   .target(IAgentCommandApi.class, "http://" + proxyHost.getHost() + ":" + proxyHost.getPort());
 
                                               try {
-                                                  return proxyObject.proxy(agentId, message);
+                                                  return proxyObject.proxy((String) context.getOrDefault("agentId", ""),
+                                                                           (String) context.getOrDefault("_token", ""),
+                                                                           message);
                                               } catch (IOException e) {
                                                   throw new RuntimeException(e);
                                               }
@@ -240,7 +246,7 @@ public class AgentCommandFactory {
                              })
                              .whenComplete((v, ex) -> {
                                  if (ex != null) {
-                                     invocationManager.onClientException(txId, ex);
+                                     invocationManager.onClientException(txId, ex.getCause() != null ? ex.getCause() : ex);
                                  }
                              });
         }

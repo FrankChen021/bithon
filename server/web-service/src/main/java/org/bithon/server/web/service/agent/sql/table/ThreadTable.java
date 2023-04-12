@@ -38,12 +38,9 @@ public class ThreadTable extends AbstractBaseTable {
 
     @Override
     protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
-        String appId = (String) executionContext.get("appId");
-        Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
-
         return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>)
                 commandFactory.create(IAgentCommandApi.class,
-                                      appId,
+                                      executionContext.getParameters(),
                                       IJvmCommand.class)
                               .dumpThreads()
                               .stream()

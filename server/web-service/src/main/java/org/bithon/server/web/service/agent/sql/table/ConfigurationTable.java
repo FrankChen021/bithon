@@ -39,10 +39,10 @@ public class ConfigurationTable extends AbstractBaseTable {
 
     @Override
     protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
-        String appId = (String) executionContext.get("appId");
-        Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
+        String agentId = (String) executionContext.get("agentId");
+        Preconditions.checkNotNull(agentId, "'agentId' is missed in the query filter");
 
-        ServiceResponse<IAgentCommandApi.ConfigurationRecord> configurations = impl.getConfiguration(new CommandArgs<>(appId));
+        ServiceResponse<IAgentCommandApi.ConfigurationRecord> configurations = impl.getConfiguration(new CommandArgs<>(agentId));
         if (configurations.getError() != null) {
             throw new RuntimeException(configurations.getError().toString());
         }

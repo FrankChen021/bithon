@@ -37,7 +37,7 @@ public class InstanceTable extends AbstractBaseTable {
 
     @Override
     protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
-        ServiceResponse<IAgentCommandApi.InstanceRecord> clients = impl.getClients();
+        ServiceResponse<IAgentCommandApi.AgentInstanceRecord> clients = impl.getAgentInstanceList();
         if (clients.getError() != null) {
             throw new RuntimeException(clients.getError().toString());
         }
@@ -46,6 +46,6 @@ public class InstanceTable extends AbstractBaseTable {
 
     @Override
     protected Class<?> getRecordClazz() {
-        return IAgentCommandApi.InstanceRecord.class;
+        return IAgentCommandApi.AgentInstanceRecord.class;
     }
 }

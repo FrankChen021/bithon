@@ -22,6 +22,7 @@ import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.linq4j.QueryProvider;
 import org.apache.calcite.schema.SchemaPlus;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,5 +66,9 @@ public final class SqlExecutionContext implements DataContext {
 
     public void set(String name, Object val) {
         parameters.put(name, val);
+    }
+
+    public Map<String, Object> getParameters() {
+        return Collections.unmodifiableMap(parameters);
     }
 }

@@ -48,12 +48,9 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
     @SuppressWarnings("unchecked")
     @Override
     protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
-        String appId = (String) executionContext.get("appId");
-        Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
-
         return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>)
                 commandFactory.create(IAgentCommandApi.class,
-                                      appId,
+                                      executionContext.getParameters(),
                                       ILoggingCommand.class)
                               .getLoggers()
                               .stream()
@@ -89,9 +86,6 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
     public int update(SqlExecutionContext executionContext,
                       IExpression filterExpression,
                       Map<String, Object> newValues) {
-        String appId = (String) executionContext.get("appId");
-        Preconditions.checkNotNull(appId, "'appId' is missed in the WHERE clause.");
-
         String token = (String) executionContext.get("_token");
         Preconditions.checkNotNull(token, "'_token' is missed in the WHERE clause.");
 
@@ -128,10 +122,8 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
                                             "Only 'level' is allowed to updated");
         }
 
-        // TODO: VERIFY THE TOKEN
-
         return commandFactory.create(IAgentCommandApi.class,
-                                     appId,
+                                     executionContext.getParameters(),
                                      ILoggingCommand.class)
                              .setLogger((String) nameFilter.value, loggingLevel)
                              .stream().reduce(0, Integer::sum);
