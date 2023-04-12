@@ -33,19 +33,19 @@ public class ConfigurationTable extends AbstractBaseTable {
         public String payload;
     }
 
-    private final AgentCommandFactory impl;
+    private final AgentServiceProxyFactory proxyFactory;
 
-    public ConfigurationTable(AgentCommandFactory impl) {
-        this.impl = impl;
+    public ConfigurationTable(AgentServiceProxyFactory proxyFactory) {
+        this.proxyFactory = proxyFactory;
     }
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return impl.create(IAgentCommandApi.class, executionContext.getParameters(), IConfigurationCommand.class)
-                   .getConfiguration("YAML", true)
-                   .stream()
-                   .map((cfg) -> new Object[]{cfg})
-                   .collect(Collectors.toList());
+        return proxyFactory.create(IAgentCommandApi.class, executionContext.getParameters(), IConfigurationCommand.class)
+                           .getConfiguration("YAML", true)
+                           .stream()
+                           .map((cfg) -> new Object[]{cfg})
+                           .collect(Collectors.toList());
     }
 
     @Override

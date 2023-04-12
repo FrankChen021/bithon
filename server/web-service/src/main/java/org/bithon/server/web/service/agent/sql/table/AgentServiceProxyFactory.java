@@ -36,12 +36,10 @@ import org.bithon.server.discovery.client.ServiceInvocationExecutor;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
-import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -55,19 +53,21 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
+ * A factory that creates proxy to call Agent side BRPC service over an HTTP-based proxy server
+ *
  * @author frank.chen021@outlook.com
  * @date 2023/4/9 16:27
  */
-public class AgentCommandFactory {
+public class AgentServiceProxyFactory {
 
     private final InvocationManager invocationManager = new InvocationManager();
     private final IDiscoveryClient serviceDiscoveryClient;
     private final ServiceInvocationExecutor executor;
     private final ApplicationContext applicationContext;
 
-    public AgentCommandFactory(IDiscoveryClient discoveryClient,
-                               ServiceInvocationExecutor executor,
-                               ApplicationContext applicationContext) {
+    public AgentServiceProxyFactory(IDiscoveryClient discoveryClient,
+                                    ServiceInvocationExecutor executor,
+                                    ApplicationContext applicationContext) {
         this.serviceDiscoveryClient = discoveryClient;
         this.executor = executor;
         this.applicationContext = applicationContext;
@@ -76,10 +76,11 @@ public class AgentCommandFactory {
     public <T> T create(Class<?> proxyServiceDeclaration,
                         Map<String, Object> context,
                         Class<T> serviceDeclaration) {
-        // appId is a mandatory parameter
+        // agentId is a mandatory parameter
         String appId = (String) context.get("agentId");
         Preconditions.checkNotNull(appId, "'agentId' is not given in the context.");
 
+        // Locate the proxy server
         DiscoverableService metadata = proxyServiceDeclaration.getAnnotation(DiscoverableService.class);
         if (metadata == null) {
             throw new RuntimeException(StringUtils.format("Given class [%s] is not marked by annotation [%s].",
@@ -90,18 +91,22 @@ public class AgentCommandFactory {
         //noinspection unchecked
         return (T) Proxy.newProxyInstance(serviceDeclaration.getClassLoader(),
                                           new Class<?>[]{serviceDeclaration},
-                                          new AgentCommandBroadcastInvoker<>(metadata.name(),
-                                                                             context,
-                                                                             invocationManager));
+                                          new AgentServiceBroadcastInvoker(metadata.name(),
+                                                                           context,
+                                                                           invocationManager));
     }
 
-    private class AgentCommandBroadcastInvoker<T> implements InvocationHandler {
+    /**
+     * Invoke the agent service on ALL proxy servers,
+     * and the proxy server is responsible for invoking agent service on given agent
+     */
+    private class AgentServiceBroadcastInvoker implements InvocationHandler {
 
         private final InvocationManager brpcServiceInvoker;
         private final String proxyServiceName;
         private final Map<String, Object> context;
 
-        private AgentCommandBroadcastInvoker(String proxyServiceName,
+        private AgentServiceBroadcastInvoker(String proxyServiceName,
                                              Map<String, Object> context,
                                              InvocationManager brpcServiceInvoker) {
             this.proxyServiceName = proxyServiceName;
@@ -119,18 +124,19 @@ public class AgentCommandFactory {
             }
 
             // Get all instances first
-            List<IDiscoveryClient.HostAndPort> instanceList = serviceDiscoveryClient.getInstanceList(proxyServiceName);
+            List<IDiscoveryClient.HostAndPort> proxyServerList = serviceDiscoveryClient.getInstanceList(proxyServiceName);
 
             //
             // Invoke remote service on each instance
             //
-            List<Future<Collection<?>>> futures = new ArrayList<>(instanceList.size());
-            for (IDiscoveryClient.HostAndPort hostAndPort : instanceList) {
+            List<Future<Collection<?>>> futures = new ArrayList<>(proxyServerList.size());
+            for (IDiscoveryClient.HostAndPort proxyServer : proxyServerList) {
                 futures.add(executor.submit(() -> {
                     try {
+                        // The agent's Brpc services MUST return type of Collection
                         return (Collection<?>) brpcServiceInvoker.invoke("bithon-webservice",
                                                                          Headers.EMPTY,
-                                                                         new ProxyChannel(hostAndPort, context),
+                                                                         new ProxyChannel(proxyServer, context),
                                                                          30_000,
                                                                          agentServiceMethod,
                                                                          args);
@@ -177,14 +183,6 @@ public class AgentCommandFactory {
         }
 
         @Override
-        public void connect() {
-        }
-
-        @Override
-        public void disconnect() {
-        }
-
-        @Override
         public long getConnectionLifeTime() {
             return 0;
         }
@@ -205,32 +203,37 @@ public class AgentCommandFactory {
         }
 
         @Override
-        public void write(Object obj) throws IOException {
+        public void writeAsync(Object obj) throws IOException {
             ServiceRequestMessageOut serviceRequest = (ServiceRequestMessageOut) obj;
             final long txId = serviceRequest.getTransactionId();
-            final byte[] message = toByteArray(serviceRequest);
 
+            // Turn the message into byte array to send over HTTP
+            final byte[] message = serviceRequest.toByteArray();
+
+            // The underlying call on remote HTTP endpoint is synchronous,
+            // However, this writeMessage is an async operation,
+            // we use CompletableFuture to turn the sync operation into async
             CompletableFuture.supplyAsync(() -> {
-                                              IAgentCommandApi proxyObject = Feign.builder()
-                                                                                  .contract(applicationContext.getBean(Contract.class))
-                                                                                  .encoder(applicationContext.getBean(Encoder.class))
-                                                                                  .decoder(applicationContext.getBean(Decoder.class))
-                                                                                  .errorDecoder((methodKey, response) -> {
-                                                                                      try {
-                                                                                          ServiceResponse.Error error = applicationContext.getBean(ObjectMapper.class).readValue(response.body().asInputStream(), ServiceResponse.Error.class);
-                                                                                          return new HttpMappableException(response.status(), "Exception from remote [%s]: %s", proxyHost, error.getMessage());
-                                                                                      } catch (IOException ignored) {
-                                                                                      }
+                                              IAgentCommandApi proxyApi = Feign.builder()
+                                                                               .contract(applicationContext.getBean(Contract.class))
+                                                                               .encoder(applicationContext.getBean(Encoder.class))
+                                                                               .decoder(applicationContext.getBean(Decoder.class))
+                                                                               .errorDecoder((methodKey, response) -> {
+                                                                                   try {
+                                                                                       ServiceResponse.Error error = applicationContext.getBean(ObjectMapper.class).readValue(response.body().asInputStream(), ServiceResponse.Error.class);
+                                                                                       return new HttpMappableException(response.status(), "Exception from remote [%s]: %s", proxyHost, error.getMessage());
+                                                                                   } catch (IOException ignored) {
+                                                                                   }
 
-                                                                                      // Delegate to default decoder
-                                                                                      return new ErrorDecoder.Default().decode(methodKey, response);
-                                                                                  })
-                                                                                  .target(IAgentCommandApi.class, "http://" + proxyHost.getHost() + ":" + proxyHost.getPort());
+                                                                                   // Delegate to default decoder
+                                                                                   return new ErrorDecoder.Default().decode(methodKey, response);
+                                                                               })
+                                                                               .target(IAgentCommandApi.class, "http://" + proxyHost.getHost() + ":" + proxyHost.getPort());
 
                                               try {
-                                                  return proxyObject.proxy((String) context.getOrDefault("agentId", ""),
-                                                                           (String) context.getOrDefault("_token", ""),
-                                                                           message);
+                                                  return proxyApi.proxy((String) context.getOrDefault("agentId", ""),
+                                                                        (String) context.getOrDefault("_token", ""),
+                                                                        message);
                                               } catch (IOException e) {
                                                   throw new RuntimeException(e);
                                               }
@@ -249,15 +252,6 @@ public class AgentCommandFactory {
                                      invocationManager.onClientException(txId, ex.getCause() != null ? ex.getCause() : ex);
                                  }
                              });
-        }
-
-        private byte[] toByteArray(ServiceRequestMessageOut outMessage) throws IOException {
-            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream(1024)) {
-                CodedOutputStream stream = CodedOutputStream.newInstance(outputStream);
-                outMessage.encode(stream);
-                stream.flush();
-                return outputStream.toByteArray();
-            }
         }
     }
 }

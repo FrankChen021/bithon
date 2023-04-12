@@ -40,21 +40,21 @@ import java.util.stream.Collectors;
  * @date 2023/4/2 16:20
  */
 public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
-    private final AgentCommandFactory commandFactory;
+    private final AgentServiceProxyFactory proxyFactory;
 
-    public LoggerTable(AgentCommandFactory commandFactory) {
-        this.commandFactory = commandFactory;
+    public LoggerTable(AgentServiceProxyFactory proxyFactory) {
+        this.proxyFactory = proxyFactory;
     }
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return commandFactory.create(IAgentCommandApi.class,
-                                     executionContext.getParameters(),
-                                     ILoggingCommand.class)
-                             .getLoggers()
-                             .stream()
-                             .map(LoggerConfiguration::toObjects)
-                             .collect(Collectors.toList());
+        return proxyFactory.create(IAgentCommandApi.class,
+                                   executionContext.getParameters(),
+                                   ILoggingCommand.class)
+                           .getLoggers()
+                           .stream()
+                           .map(LoggerConfiguration::toObjects)
+                           .collect(Collectors.toList());
     }
 
     @Override
@@ -128,10 +128,10 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
                                             "Only 'level' is allowed to updated");
         }
 
-        return commandFactory.create(IAgentCommandApi.class,
-                                     executionContext.getParameters(),
-                                     ILoggingCommand.class)
-                             .setLogger((String) nameFilter.value, loggingLevel)
-                             .stream().reduce(0, Integer::sum);
+        return proxyFactory.create(IAgentCommandApi.class,
+                                   executionContext.getParameters(),
+                                   ILoggingCommand.class)
+                           .setLogger((String) nameFilter.value, loggingLevel)
+                           .stream().reduce(0, Integer::sum);
     }
 }

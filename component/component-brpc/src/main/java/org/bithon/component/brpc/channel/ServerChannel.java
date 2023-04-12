@@ -46,7 +46,6 @@ import org.bithon.shaded.io.netty.handler.codec.LengthFieldPrepender;
 import org.bithon.shaded.io.netty.util.internal.StringUtil;
 
 import java.io.Closeable;
-import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -182,9 +181,9 @@ public class ServerChannel implements Closeable {
 
         private String clientVersion;
 
-        public Session(Channel channel, InvocationManager invocationManager) {
+        private Session(Channel channel, InvocationManager invocationManager) {
             this.channel = channel;
-            this.endpoint = EndPoint.of((InetSocketAddress) channel.remoteAddress());
+            this.endpoint = EndPoint.of(channel.remoteAddress());
             this.invocationManager = invocationManager;
 
             // appId default to endpoint at first
@@ -228,7 +227,7 @@ public class ServerChannel implements Closeable {
                                              invocationManager);
         }
 
-        public LowLevelInvoker getClientInvocation() {
+        public LowLevelInvoker getLowLevelInvoker() {
             return new LowLevelInvoker(new Server2ClientChannelWriter(channel), invocationManager);
         }
     }
@@ -298,16 +297,6 @@ public class ServerChannel implements Closeable {
         }
 
         @Override
-        public void connect() {
-            //do nothing for a server channel
-        }
-
-        @Override
-        public void disconnect() {
-            //do nothing for a server channel
-        }
-
-        @Override
         public long getConnectionLifeTime() {
             // not support for a server channel now
             return 0;
@@ -330,7 +319,7 @@ public class ServerChannel implements Closeable {
         }
 
         @Override
-        public void write(Object obj) {
+        public void writeAsync(Object obj) {
             channel.writeAndFlush(obj);
         }
     }

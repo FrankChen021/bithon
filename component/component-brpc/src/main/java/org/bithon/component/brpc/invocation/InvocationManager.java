@@ -132,7 +132,7 @@ public class InvocationManager {
 
         for (int i = 0; i < 3; i++) {
             try {
-                channelWriter.write(serviceRequest);
+                channelWriter.writeAsync(serviceRequest);
                 break;
             } catch (ChannelException e) {
                 if (i < 2) {
@@ -228,10 +228,10 @@ public class InvocationManager {
 
         final long requestAt;
 
-        public InflightRequest(String serviceName,
-                               String methodName,
-                               Type returnObjectType,
-                               long requestAt) {
+        private InflightRequest(String serviceName,
+                                String methodName,
+                                Type returnObjectType,
+                                long requestAt) {
             this.serviceName = serviceName;
             this.methodName = methodName;
             this.returnObjectType = returnObjectType;

@@ -29,7 +29,6 @@ import org.bithon.server.collector.cmd.service.AgentCommandService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
-import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +38,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -132,7 +130,7 @@ public class AgentCommandApi implements IAgentCommandApi {
         try {
             responseBuilder.returningRaw(commandService.getServerChannel()
                                                        .getSession(agentId)
-                                                       .getClientInvocation()
+                                                       .getLowLevelInvoker()
                                                        .invoke(toTarget, 30_000));
         } catch (Throwable e) {
             responseBuilder.exception(e.getMessage());
@@ -141,12 +139,7 @@ public class AgentCommandApi implements IAgentCommandApi {
         }
 
         // Turn the response stream from agent into stream that is going to send back
-        ServiceResponseMessageOut toClient = responseBuilder.build();
-        try (ByteArrayOutputStream stream = new ByteArrayOutputStream(512)) {
-            CodedOutputStream outputStream = CodedOutputStream.newInstance(stream);
-            toClient.encode(outputStream);
-            return stream.toByteArray();
-        }
+        return responseBuilder.build().toByteArray();
     }
 
     /**

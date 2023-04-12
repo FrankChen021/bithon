@@ -29,21 +29,21 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings({"unchecked"})
 public class ThreadTable extends AbstractBaseTable {
-    private final AgentCommandFactory commandFactory;
+    private final AgentServiceProxyFactory proxyFactory;
 
-    public ThreadTable(AgentCommandFactory commandFactory) {
-        this.commandFactory = commandFactory;
+    public ThreadTable(AgentServiceProxyFactory proxyFactory) {
+        this.proxyFactory = proxyFactory;
     }
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return commandFactory.create(IAgentCommandApi.class,
-                                     executionContext.getParameters(),
-                                     IJvmCommand.class)
-                             .dumpThreads()
-                             .stream()
-                             .map(IJvmCommand.ThreadInfo::toObjects)
-                             .collect(Collectors.toList());
+        return proxyFactory.create(IAgentCommandApi.class,
+                                   executionContext.getParameters(),
+                                   IJvmCommand.class)
+                           .dumpThreads()
+                           .stream()
+                           .map(IJvmCommand.ThreadInfo::toObjects)
+                           .collect(Collectors.toList());
     }
 
     @Override

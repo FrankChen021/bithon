@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.schema.impl.AbstractSchema;
 import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
-import org.bithon.server.web.service.agent.sql.table.AgentCommandFactory;
+import org.bithon.server.web.service.agent.sql.table.AgentServiceProxyFactory;
 import org.bithon.server.web.service.agent.sql.table.ClassTable;
 import org.bithon.server.web.service.agent.sql.table.ConfigurationTable;
 import org.bithon.server.web.service.agent.sql.table.InstanceTable;
@@ -39,15 +39,15 @@ public class AgentSchema extends AbstractSchema {
     private final ImmutableMap<String, Table> tableMap;
 
     public AgentSchema(ServiceBroadcastInvoker serviceInvoker, ApplicationContext applicationContext) {
-        AgentCommandFactory agentCommandFactory = new AgentCommandFactory(serviceInvoker.getDiscoveryClient(),
-                                                                          serviceInvoker.getExecutor(),
-                                                                          applicationContext);
+        AgentServiceProxyFactory agentServiceProxyFactory = new AgentServiceProxyFactory(serviceInvoker.getDiscoveryClient(),
+                                                                                         serviceInvoker.getExecutor(),
+                                                                                         applicationContext);
         this.tableMap = ImmutableMap.of("instance", new InstanceTable(serviceInvoker),
-                                        "loaded_class", new ClassTable(agentCommandFactory),
-                                        "thread", new ThreadTable(agentCommandFactory),
-                                        "configuration", new ConfigurationTable(agentCommandFactory),
-                                        "instrumented_method", new InstrumentedMethodTable(agentCommandFactory),
-                                        "logger", new LoggerTable(agentCommandFactory)
+                                        "loaded_class", new ClassTable(agentServiceProxyFactory),
+                                        "thread", new ThreadTable(agentServiceProxyFactory),
+                                        "configuration", new ConfigurationTable(agentServiceProxyFactory),
+                                        "instrumented_method", new InstrumentedMethodTable(agentServiceProxyFactory),
+                                        "logger", new LoggerTable(agentServiceProxyFactory)
         );
     }
 

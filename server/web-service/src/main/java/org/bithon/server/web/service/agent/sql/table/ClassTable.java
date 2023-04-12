@@ -28,18 +28,18 @@ import java.util.stream.Collectors;
  * @date 1/3/23 8:18 pm
  */
 public class ClassTable extends AbstractBaseTable {
-    private final AgentCommandFactory impl;
+    private final AgentServiceProxyFactory proxyFactory;
 
-    public ClassTable(AgentCommandFactory impl) {
-        this.impl = impl;
+    public ClassTable(AgentServiceProxyFactory proxyFactory) {
+        this.proxyFactory = proxyFactory;
     }
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return impl.create(IAgentCommandApi.class, executionContext.getParameters(), IJvmCommand.class)
-                   .getLoadedClassList()
-                   .stream().map(IJvmCommand.ClassInfo::toObjects)
-                   .collect(Collectors.toList());
+        return proxyFactory.create(IAgentCommandApi.class, executionContext.getParameters(), IJvmCommand.class)
+                           .getLoadedClassList()
+                           .stream().map(IJvmCommand.ClassInfo::toObjects)
+                           .collect(Collectors.toList());
     }
 
     @Override

@@ -25,9 +25,9 @@ import java.io.IOException;
  */
 public interface IChannelWriter {
 
-    void connect();
+    default void connect() {}
 
-    void disconnect();
+    default void disconnect() {}
 
     /**
      * how long this connection has been set up in millisecond
@@ -49,5 +49,5 @@ public interface IChannelWriter {
     /**
      * Write the message without waiting for response
      */
-    void write(Object obj) throws IOException;
+    void writeAsync(Object obj) throws IOException;
 }

@@ -20,6 +20,7 @@ import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.serializer.Serializer;
 import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 /**
@@ -37,5 +38,16 @@ public abstract class ServiceMessageOut extends ServiceMessage {
         this.serializer = serializer;
     }
 
+    /**
+     * NOTE, The implementation MUST call {@link CodedOutputStream#flush()} when exits the function
+     */
     public abstract void encode(CodedOutputStream out) throws IOException;
+
+    public byte[] toByteArray() throws IOException {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream(1024)) {
+            CodedOutputStream stream = CodedOutputStream.newInstance(outputStream);
+            this.encode(stream);
+            return outputStream.toByteArray();
+        }
+    }
 }

@@ -28,21 +28,21 @@ import java.util.stream.Collectors;
  * @date 4/4/23 10:39 pm
  */
 public class InstrumentedMethodTable extends AbstractBaseTable {
-    private final AgentCommandFactory commandFactory;
+    private final AgentServiceProxyFactory proxyFactory;
 
-    public InstrumentedMethodTable(AgentCommandFactory commandFactory) {
-        this.commandFactory = commandFactory;
+    public InstrumentedMethodTable(AgentServiceProxyFactory proxyFactory) {
+        this.proxyFactory = proxyFactory;
     }
 
     @Override
     public List<Object[]> getData(SqlExecutionContext executionContext) {
-        return commandFactory.create(IAgentCommandApi.class,
-                                     executionContext.getParameters(),
-                                     IInstrumentationCommand.class)
-                             .getInstrumentedMethods()
-                             .stream()
-                             .map(IInstrumentationCommand.InstrumentedMethod::toObjects)
-                             .collect(Collectors.toList());
+        return proxyFactory.create(IAgentCommandApi.class,
+                                   executionContext.getParameters(),
+                                   IInstrumentationCommand.class)
+                           .getInstrumentedMethods()
+                           .stream()
+                           .map(IInstrumentationCommand.InstrumentedMethod::toObjects)
+                           .collect(Collectors.toList());
     }
 
     @Override
