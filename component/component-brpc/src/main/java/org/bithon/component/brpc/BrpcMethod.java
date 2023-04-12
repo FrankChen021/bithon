@@ -45,5 +45,5 @@ public @interface BrpcMethod {
      */
     int messageType() default ServiceMessageType.CLIENT_REQUEST_V2;
 
-    Serializer serializer() default Serializer.BINARY;
+    Serializer serializer() default Serializer.PROTOBUF;
 }

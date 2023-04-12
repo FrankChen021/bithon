@@ -40,5 +40,5 @@ public @interface BrpcService {
 
     boolean isOneway() default false;
 
-    Serializer serializer() default Serializer.BINARY;
+    Serializer serializer() default Serializer.PROTOBUF;
 }

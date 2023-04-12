@@ -28,7 +28,7 @@ import java.lang.reflect.Type;
  * @author frankchen
  */
 public enum Serializer {
-    BINARY {
+    PROTOBUF {
         private final ProtocolBufferSerializer serializer = new ProtocolBufferSerializer();
 
         @Override
@@ -93,8 +93,8 @@ public enum Serializer {
     public abstract Object deserialize(CodedInputStream is, Type type) throws IOException;
 
     public static Serializer getSerializer(int type) {
-        if (type == BINARY.getType()) {
-            return BINARY;
+        if (type == PROTOBUF.getType()) {
+            return PROTOBUF;
         }
         if (type == JSON_SMILE.getType()) {
             return JSON_SMILE;

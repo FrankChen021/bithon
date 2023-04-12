@@ -27,7 +27,7 @@ import java.io.IOException;
  */
 public abstract class ServiceMessageOut extends ServiceMessage {
 
-    private Serializer serializer = Serializer.BINARY;
+    private Serializer serializer = Serializer.PROTOBUF;
 
     public Serializer getSerializer() {
         return serializer;

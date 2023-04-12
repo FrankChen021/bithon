@@ -71,7 +71,7 @@ public class ServiceRegistryItem {
         if (methodConfig != null) {
             serializer = methodConfig.serializer();
         } else {
-            serializer = serviceConfig == null ? Serializer.BINARY : serviceConfig.serializer();
+            serializer = serviceConfig == null ? Serializer.PROTOBUF : serviceConfig.serializer();
         }
 
         return new ServiceRegistryItem(getServiceName(method.getDeclaringClass()),
