@@ -29,15 +29,13 @@ import java.util.List;
 public interface IJvmCommand {
 
     class ThreadInfo {
-        public String name;
         public long threadId;
+        public String name;
         public boolean isDaemon;
         public int priority;
         public String state;
         public long cpuTime;
         public long userTime;
-        public String stack;
-
         public long blockedTime;
 
         /**
@@ -59,9 +57,9 @@ public interface IJvmCommand {
         public String lockName;
         public long lockOwnerId;
         public String lockOwnerName;
-
         public int inNative;
         public int suspended;
+        public String stack;
 
         public Object[] toObjects() {
             return new Object[]{
