@@ -19,13 +19,15 @@ package org.bithon.server.web.service.agent.sql;
 import com.google.common.collect.ImmutableMap;
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.schema.impl.AbstractSchema;
-import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
+import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
+import org.bithon.server.web.service.agent.sql.table.AgentServiceProxyFactory;
 import org.bithon.server.web.service.agent.sql.table.ClassTable;
 import org.bithon.server.web.service.agent.sql.table.ConfigurationTable;
 import org.bithon.server.web.service.agent.sql.table.InstanceTable;
 import org.bithon.server.web.service.agent.sql.table.InstrumentedMethodTable;
 import org.bithon.server.web.service.agent.sql.table.LoggerTable;
 import org.bithon.server.web.service.agent.sql.table.ThreadTable;
+import org.springframework.context.ApplicationContext;
 
 import java.util.Map;
 
@@ -36,13 +38,16 @@ import java.util.Map;
 public class AgentSchema extends AbstractSchema {
     private final ImmutableMap<String, Table> tableMap;
 
-    public AgentSchema(IAgentCommandApi impl) {
-        this.tableMap = ImmutableMap.of("instance", new InstanceTable(impl),
-                                        "loaded_class", new ClassTable(impl),
-                                        "thread", new ThreadTable(impl),
-                                        "configuration", new ConfigurationTable(impl),
-                                        "instrumented_method", new InstrumentedMethodTable(impl),
-                                        "logger", new LoggerTable(impl)
+    public AgentSchema(ServiceBroadcastInvoker serviceInvoker, ApplicationContext applicationContext) {
+        AgentServiceProxyFactory agentServiceProxyFactory = new AgentServiceProxyFactory(serviceInvoker.getDiscoveryClient(),
+                                                                                         serviceInvoker.getExecutor(),
+                                                                                         applicationContext);
+        this.tableMap = ImmutableMap.of("instance", new InstanceTable(serviceInvoker),
+                                        "loaded_class", new ClassTable(agentServiceProxyFactory),
+                                        "thread", new ThreadTable(agentServiceProxyFactory),
+                                        "configuration", new ConfigurationTable(agentServiceProxyFactory),
+                                        "instrumented_method", new InstrumentedMethodTable(agentServiceProxyFactory),
+                                        "logger", new LoggerTable(agentServiceProxyFactory)
         );
     }
 

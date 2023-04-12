@@ -27,10 +27,10 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2023/4/1 21:22
  */
-@BrpcService(name = "agent.logging", serializer = Serializer.JSON)
+@BrpcService(name = "agent.logging", serializer = Serializer.JSON_SMILE)
 public interface ILoggingCommand {
 
     List<LoggerConfiguration> getLoggers();
 
-    int setLogger(String name, LoggingLevel level);
+    List<Integer> setLogger(String name, LoggingLevel level);
 }

@@ -33,17 +33,17 @@ public class InstrumentationCommand implements IInstrumentationCommand, IAgentCo
 
         InstallerRecorder.INSTANCE.getInstrumentedMethods()
                                   .forEach((type, methods) -> {
-                                        for (InstallerRecorder.InstrumentedMethod method : methods) {
-                                            InstrumentedMethod m = new InstrumentedMethod();
-                                            m.setClazzName(type);
-                                            m.setReturnType(method.getReturnType());
-                                            m.setMethodName(method.getMethodName());
-                                            m.setStatic(method.isStatic());
-                                            m.setParameters(method.getParameters());
-                                            m.setInterceptor(method.getInterceptor());
-                                            returning.add(m);
-                                        }
-                                    });
+                                      for (InstallerRecorder.InstrumentedMethod method : methods) {
+                                          InstrumentedMethod m = new InstrumentedMethod();
+                                          m.clazzName = (type);
+                                          m.returnType = (method.getReturnType());
+                                          m.methodName = (method.getMethodName());
+                                          m.isStatic = (method.isStatic());
+                                          m.parameters = (method.getParameters());
+                                          m.interceptor = (method.getInterceptor());
+                                          returning.add(m);
+                                      }
+                                  });
         return returning;
     }
 }

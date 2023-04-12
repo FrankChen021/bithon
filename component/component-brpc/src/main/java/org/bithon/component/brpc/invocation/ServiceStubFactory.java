@@ -18,14 +18,12 @@ package org.bithon.component.brpc.invocation;
 
 import org.bithon.component.brpc.IServiceController;
 import org.bithon.component.brpc.channel.IChannelWriter;
-import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.commons.utils.Preconditions;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.net.InetSocketAddress;
 
 /**
  * @author frankchen
@@ -54,8 +52,9 @@ public class ServiceStubFactory {
     public static <T> T create(String clientAppName,
                                Headers headers,
                                IChannelWriter channelWriter,
-                               Class<T> serviceInterface) {
-        return create(clientAppName, headers, channelWriter, serviceInterface, 5000);
+                               Class<T> serviceInterface,
+                               InvocationManager invocationManager) {
+        return create(clientAppName, headers, channelWriter, serviceInterface, 5000, invocationManager);
     }
 
     @SuppressWarnings("unchecked")
@@ -63,13 +62,14 @@ public class ServiceStubFactory {
                                Headers headers,
                                IChannelWriter channelWriter,
                                Class<T> serviceInterface,
-                               int timeout) {
+                               int timeout,
+                               InvocationManager invocationManager) {
         return (T) Proxy.newProxyInstance(serviceInterface.getClassLoader(),
                                           new Class[]{serviceInterface, IServiceController.class},
                                           new ServiceInvocationStub(clientAppName,
                                                                     headers,
                                                                     channelWriter,
-                                                                    ClientInvocationManager.getInstance(),
+                                                                    invocationManager,
                                                                     timeout));
     }
 
@@ -78,24 +78,23 @@ public class ServiceStubFactory {
      */
     static class ServiceInvocationStub implements InvocationHandler {
         private final IChannelWriter channelWriter;
-        private final ClientInvocationManager clientInvocationManager;
+        private final InvocationManager invocationManager;
         private final String appName;
         private final Headers headers;
-        private boolean debugEnabled;
         private long timeout;
         private final long defaultTimeout;
 
         public ServiceInvocationStub(String appName,
                                      Headers headers,
                                      IChannelWriter channelWriter,
-                                     ClientInvocationManager clientInvocationManager,
+                                     InvocationManager invocationManager,
                                      int timeout) {
             Preconditions.checkIfTrue(timeout > 0, "timeout must be greater than zero.");
 
             this.appName = appName;
             this.headers = headers;
             this.channelWriter = channelWriter;
-            this.clientInvocationManager = clientInvocationManager;
+            this.invocationManager = invocationManager;
             this.timeout = timeout;
             this.defaultTimeout = timeout;
         }
@@ -106,7 +105,6 @@ public class ServiceStubFactory {
                 return "ServiceInvocationHandler";
             }
             if (setDebugMethod.equals(method)) {
-                debugEnabled = (boolean) args[0];
                 return null;
             }
             if (setTimeoutMethod.equals(method)) {
@@ -118,19 +116,17 @@ public class ServiceStubFactory {
                 return null;
             }
             if (getPeerMethod.equals(method)) {
-                InetSocketAddress socketAddress = (InetSocketAddress) channelWriter.getChannel().remoteAddress();
-                return EndPoint.of(socketAddress);
+                return channelWriter.getRemoteAddress();
             }
             if (getChannelMethod.equals(method)) {
                 return this.channelWriter;
             }
-            return clientInvocationManager.invoke(appName,
-                                                  headers,
-                                                  channelWriter,
-                                                  debugEnabled,
-                                                  timeout,
-                                                  method,
-                                                  args);
+            return invocationManager.invoke(appName,
+                                            headers,
+                                            channelWriter,
+                                            timeout,
+                                            method,
+                                            args);
         }
     }
 }

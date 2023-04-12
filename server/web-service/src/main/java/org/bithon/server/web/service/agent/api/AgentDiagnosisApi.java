@@ -35,7 +35,6 @@ import org.apache.calcite.util.NlsString;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
-import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.agent.sql.AgentSchema;
 import org.bithon.server.web.service.common.output.IOutputFormatter;
@@ -44,6 +43,7 @@ import org.bithon.server.web.service.common.output.TabSeparatedOutputFormatter;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 import org.bithon.server.web.service.common.sql.SqlExecutionEngine;
 import org.bithon.server.web.service.common.sql.SqlExecutionResult;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -64,17 +64,18 @@ import java.io.IOException;
 @CrossOrigin
 @RestController
 @Conditional(WebServiceModuleEnabler.class)
-public class AgentCommandDelegationApi {
+public class AgentDiagnosisApi {
 
     private final SqlExecutionEngine sqlExecutionEngine;
     private final ObjectMapper objectMapper;
 
-    public AgentCommandDelegationApi(ServiceBroadcastInvoker serviceBroadcastInvoker,
-                                     SqlExecutionEngine sqlExecutionEngine,
-                                     ObjectMapper objectMapper) {
+    public AgentDiagnosisApi(ServiceBroadcastInvoker serviceBroadcastInvoker,
+                             SqlExecutionEngine sqlExecutionEngine,
+                             ObjectMapper objectMapper,
+                             ApplicationContext applicationContext) {
         this.objectMapper = objectMapper;
         this.sqlExecutionEngine = sqlExecutionEngine;
-        this.sqlExecutionEngine.addSchema("agent", new AgentSchema(serviceBroadcastInvoker.create(IAgentCommandApi.class)));
+        this.sqlExecutionEngine.addSchema("agent", new AgentSchema(serviceBroadcastInvoker, applicationContext));
     }
 
     @PostMapping(value = "/api/agent/query")
@@ -150,7 +151,7 @@ public class AgentCommandDelegationApi {
             }
 
             String identifier = ((SqlIdentifier) identifierNode).getSimple();
-            if (!"appId".equalsIgnoreCase(identifier) && !"_token".equalsIgnoreCase(identifier)) {
+            if (!"agentId".equalsIgnoreCase(identifier) && !"_token".equalsIgnoreCase(identifier)) {
                 return super.visit(call);
             }
 

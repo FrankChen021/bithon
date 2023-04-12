@@ -16,41 +16,34 @@
 
 package org.bithon.server.web.service.agent.sql.table;
 
-import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.discovery.declaration.ServiceResponse;
-import org.bithon.server.discovery.declaration.cmd.CommandArgs;
-import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
+import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
+import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
  * @date 1/3/23 8:18 pm
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
 public class ClassTable extends AbstractBaseTable {
-    private final IAgentCommandApi impl;
+    private final AgentServiceProxyFactory proxyFactory;
 
-    public ClassTable(IAgentCommandApi impl) {
-        this.impl = impl;
+    public ClassTable(AgentServiceProxyFactory proxyFactory) {
+        this.proxyFactory = proxyFactory;
     }
 
     @Override
-    protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
-        String appId = (String) executionContext.get("appId");
-        Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
-
-        ServiceResponse<IAgentCommandApi.ClassRecord> classList = impl.getClassList(new CommandArgs<>(appId));
-        if (classList.getError() != null) {
-            throw new RuntimeException(classList.getError().toString());
-        }
-
-        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>) classList.getRows();
+    protected List<Object[]> getData(SqlExecutionContext executionContext) {
+        return proxyFactory.create(IAgentProxyApi.class, executionContext.getParameters(), IJvmCommand.class)
+                           .getLoadedClassList()
+                           .stream().map(IJvmCommand.ClassInfo::toObjects)
+                           .collect(Collectors.toList());
     }
 
     @Override
     protected Class<?> getRecordClazz() {
-        return IAgentCommandApi.ClassRecord.class;
+        return IJvmCommand.ClassInfo.class;
     }
 }

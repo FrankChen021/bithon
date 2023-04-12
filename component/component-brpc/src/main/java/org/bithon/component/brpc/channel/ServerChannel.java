@@ -20,6 +20,8 @@ import org.bithon.component.brpc.BrpcMethod;
 import org.bithon.component.brpc.ServiceRegistry;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
+import org.bithon.component.brpc.invocation.InvocationManager;
+import org.bithon.component.brpc.invocation.LowLevelInvoker;
 import org.bithon.component.brpc.invocation.ServiceStubFactory;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
@@ -44,7 +46,7 @@ import org.bithon.shaded.io.netty.handler.codec.LengthFieldPrepender;
 import org.bithon.shaded.io.netty.util.internal.StringUtil;
 
 import java.io.Closeable;
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -60,18 +62,20 @@ public class ServerChannel implements Closeable {
     private final NioEventLoopGroup workerGroup;
     private final ServiceRegistry serviceRegistry = new ServiceRegistry();
 
-    /**
-     * 服务端的请求直接在worker线程中处理，无需单独定义线程池
-     */
-    private final SessionManager sessionManager = new SessionManager();
+    private final SessionManager sessionManager;
+
+    private final InvocationManager invocationManager;
 
     public ServerChannel() {
-        this(8);
+        this(Runtime.getRuntime().availableProcessors());
     }
 
     public ServerChannel(int nThreadCount) {
-        bossGroup = new NioEventLoopGroup(1, NamedThreadFactory.of("brpc-server"));
-        workerGroup = new NioEventLoopGroup(nThreadCount, NamedThreadFactory.of("brpc-s-worker"));
+        this.bossGroup = new NioEventLoopGroup(1, NamedThreadFactory.of("brpc-server"));
+        this.workerGroup = new NioEventLoopGroup(nThreadCount, NamedThreadFactory.of("brpc-s-worker"));
+
+        this.invocationManager = new InvocationManager();
+        this.sessionManager = new SessionManager(this.invocationManager);
     }
 
     /**
@@ -103,9 +107,9 @@ public class ServerChannel implements Closeable {
                         pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
                         pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
                         pipeline.addLast("decoder", new ServiceMessageInDecoder());
-                        pipeline.addLast("encoder", new ServiceMessageOutEncoder());
+                        pipeline.addLast("encoder", new ServiceMessageOutEncoder(invocationManager));
                         pipeline.addLast(sessionManager);
-                        pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry));
+                        pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry, invocationManager));
                     }
                 });
         try {
@@ -133,6 +137,14 @@ public class ServerChannel implements Closeable {
         return sessionManager.getSessions();
     }
 
+    public Session getSession(String remoteAppId) {
+        return sessionManager.getSessions()
+                             .stream()
+                             .filter(s -> remoteAppId.equals(s.getAppId()))
+                             .findFirst()
+                             .orElseThrow(() -> new SessionNotFoundException("Can't find any connected remote application [%s] on this server.", remoteAppId));
+    }
+
     public <T> T getRemoteService(String remoteAppId, Class<T> serviceClass) {
         return getRemoteService(remoteAppId, serviceClass, 5000);
     }
@@ -141,12 +153,7 @@ public class ServerChannel implements Closeable {
      * @param timeout in milliseconds
      */
     public <T> T getRemoteService(String remoteAppId, Class<T> serviceClass, int timeout) {
-        return sessionManager.getSessions()
-                             .stream()
-                             .filter(s -> remoteAppId.equals(s.getAppId()))
-                             .findFirst()
-                             .map(session -> session.getRemoteService(serviceClass, timeout))
-                             .orElseThrow(() -> new SessionNotFoundException("Can't find any connected remote application [%s] on this server.", remoteAppId));
+        return getSession(remoteAppId).getRemoteService(serviceClass, timeout);
     }
 
     public <T> List<T> getRemoteServices(String appName, Class<T> serviceClass) {
@@ -164,6 +171,7 @@ public class ServerChannel implements Closeable {
          * Socket endpoint of client
          */
         private final EndPoint endpoint;
+        private final InvocationManager invocationManager;
         private String appName;
 
         /**
@@ -173,9 +181,10 @@ public class ServerChannel implements Closeable {
 
         private String clientVersion;
 
-        public Session(Channel channel) {
+        private Session(Channel channel, InvocationManager invocationManager) {
             this.channel = channel;
-            this.endpoint = EndPoint.of((InetSocketAddress) channel.remoteAddress());
+            this.endpoint = EndPoint.of(channel.remoteAddress());
+            this.invocationManager = invocationManager;
 
             // appId default to endpoint at first
             this.appId = this.endpoint.toString();
@@ -214,14 +223,24 @@ public class ServerChannel implements Closeable {
                                              Headers.EMPTY,
                                              new Server2ClientChannelWriter(channel),
                                              serviceClass,
-                                             timeout);
+                                             timeout,
+                                             invocationManager);
+        }
+
+        public LowLevelInvoker getLowLevelInvoker() {
+            return new LowLevelInvoker(new Server2ClientChannelWriter(channel), invocationManager);
         }
     }
 
     @ChannelHandler.Sharable
     private static class SessionManager extends ChannelInboundHandlerAdapter {
+        private final InvocationManager invocationManager;
 
         private final Map<String, Session> sessions = new ConcurrentHashMap<>();
+
+        private SessionManager(InvocationManager invocationManager) {
+            this.invocationManager = invocationManager;
+        }
 
         public List<Session> getSessions() {
             return new ArrayList<>(sessions.values());
@@ -229,7 +248,7 @@ public class ServerChannel implements Closeable {
 
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            sessions.computeIfAbsent(ctx.channel().id().asLongText(), key -> new Session(ctx.channel()));
+            sessions.computeIfAbsent(ctx.channel().id().asLongText(), key -> new Session(ctx.channel(), invocationManager));
             super.channelActive(ctx);
         }
 
@@ -278,28 +297,29 @@ public class ServerChannel implements Closeable {
         }
 
         @Override
-        public void connect() {
-            //do nothing for a server channel
-        }
-
-        @Override
-        public void disconnect() {
-            //do nothing for a server channel
-        }
-
-        @Override
         public long getConnectionLifeTime() {
             // not support for a server channel now
             return 0;
         }
 
         @Override
-        public Channel getChannel() {
-            return channel;
+        public boolean isActive() {
+            return channel.isActive();
         }
 
         @Override
-        public void writeAndFlush(Object obj) {
+        public boolean isWritable() {
+            return channel.isWritable();
+        }
+
+        @Override
+        public EndPoint getRemoteAddress() {
+            SocketAddress addr = channel.remoteAddress();
+            return addr != null ? EndPoint.of(addr) : null;
+        }
+
+        @Override
+        public void writeAsync(Object obj) {
             channel.writeAndFlush(obj);
         }
     }

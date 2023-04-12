@@ -16,9 +16,6 @@
 
 package org.bithon.server.discovery.client;
 
-import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
-import com.alibaba.cloud.nacos.discovery.NacosServiceDiscovery;
-import com.alibaba.cloud.nacos.registry.NacosAutoServiceRegistration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Contract;
 import feign.Feign;
@@ -26,15 +23,11 @@ import feign.FeignException;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
-import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.discovery.client.inprocess.InProcessDiscoveryClient;
-import org.bithon.server.discovery.client.nacos.NacosDiscoveryClient;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.HttpStatus;
@@ -47,8 +40,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
@@ -59,27 +50,32 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
     private IDiscoveryClient serviceDiscoveryClient;
     private ApplicationContext applicationContext;
 
-    private final ExecutorService executorService = Executors.newCachedThreadPool(new NamedThreadFactory("service-invoker", true));
+    private final ServiceInvocationExecutor executor;
     private ObjectMapper objectMapper;
+    private final IDiscoveryClient discoveryClient;
+
+    public ServiceBroadcastInvoker(IDiscoveryClient discoveryClient, ServiceInvocationExecutor executor) {
+        this.discoveryClient = discoveryClient;
+        this.executor = executor;
+    }
+
+    public IDiscoveryClient getServiceDiscoveryClient() {
+        return serviceDiscoveryClient;
+    }
+
+    public ServiceInvocationExecutor getExecutor() {
+        return executor;
+    }
+
+    public IDiscoveryClient getDiscoveryClient() {
+        return discoveryClient;
+    }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
-        this.serviceDiscoveryClient = createDiscoveryClient(applicationContext);
+        this.serviceDiscoveryClient = discoveryClient;
         this.objectMapper = applicationContext.getBean(ObjectMapper.class);
-    }
-
-    private IDiscoveryClient createDiscoveryClient(ApplicationContext applicationContext) {
-        try {
-            // Try to create a Nacos client first
-            applicationContext.getBean(NacosAutoServiceRegistration.class);
-            return new NacosDiscoveryClient(applicationContext.getBean(NacosServiceDiscovery.class),
-                                            applicationContext.getBean(NacosDiscoveryProperties.class));
-        } catch (NoSuchBeanDefinitionException ignored) {
-        }
-
-        // Service Discovery is not enabled, use Local
-        return new InProcessDiscoveryClient(applicationContext);
     }
 
     /**
@@ -132,7 +128,7 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
             //
             List<Future<ServiceResponse<?>>> futures = new ArrayList<>(instanceList.size());
             for (IDiscoveryClient.HostAndPort hostAndPort : instanceList) {
-                futures.add(executorService.submit(new RemoteServiceCaller<>(objectMapper, type, hostAndPort, method, args)));
+                futures.add(executor.submit(new RemoteServiceCaller<>(objectMapper, type, hostAndPort, method, args)));
             }
 
             // Since the deserialized rows object might be unmodifiable, we always create a new array to hold the final result

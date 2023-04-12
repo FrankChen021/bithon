@@ -117,4 +117,22 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
         }
         return inputArgs;
     }
+
+    /**
+     * {@link CodedInputStream#pushLimit(int)} must be called on the input stream of this object to make sure following method behaves correctly.
+     */
+    public byte[] getRawArgs() throws IOException {
+        return this.argsInputStream.readRawBytes(this.argsInputStream.getBytesUntilLimit());
+    }
+
+    public static ServiceRequestMessageIn from(CodedInputStream inputStream) throws IOException {
+        int messageType = inputStream.readInt32();
+        if (messageType == ServiceMessageType.CLIENT_REQUEST
+                || messageType == ServiceMessageType.CLIENT_REQUEST_ONEWAY
+                || messageType == ServiceMessageType.CLIENT_REQUEST_V2) {
+            return (ServiceRequestMessageIn) new ServiceRequestMessageIn(messageType).decode(inputStream);
+        } else {
+            throw new BadRequestException("messageType [%x] is not a valid ServiceRequest message", messageType);
+        }
+    }
 }

@@ -16,8 +16,15 @@
 
 package org.bithon.server.discovery.client;
 
+import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
+import com.alibaba.cloud.nacos.discovery.NacosServiceDiscovery;
+import com.alibaba.cloud.nacos.registry.NacosAutoServiceRegistration;
+import org.bithon.server.discovery.client.inprocess.InProcessDiscoveryClient;
+import org.bithon.server.discovery.client.nacos.NacosDiscoveryClient;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -30,8 +37,31 @@ import org.springframework.context.annotation.Import;
 @Import(FeignClientsConfiguration.class)
 @Configuration(proxyBeanMethods = false)
 public class DiscoveryClientAutoConfiguration {
+
+    /**
+     * Define as a bean so that other service can access this executor
+     */
     @Bean
-    ServiceBroadcastInvoker serviceBroadcastInvoker() {
-        return new ServiceBroadcastInvoker();
+    ServiceInvocationExecutor serviceInvocationExecutor() {
+        return new ServiceInvocationExecutor();
+    }
+
+    @Bean
+    IDiscoveryClient discoveryClient(ApplicationContext applicationContext) {
+        try {
+            // Try to create a Nacos client first
+            applicationContext.getBean(NacosAutoServiceRegistration.class);
+            return new NacosDiscoveryClient(applicationContext.getBean(NacosServiceDiscovery.class),
+                                            applicationContext.getBean(NacosDiscoveryProperties.class));
+        } catch (NoSuchBeanDefinitionException ignored) {
+        }
+
+        // Service Discovery is not enabled, use Local
+        return new InProcessDiscoveryClient(applicationContext);
+    }
+
+    @Bean
+    ServiceBroadcastInvoker serviceBroadcastInvoker(IDiscoveryClient discoveryClient, ServiceInvocationExecutor executor) {
+        return new ServiceBroadcastInvoker(discoveryClient, executor);
     }
 }

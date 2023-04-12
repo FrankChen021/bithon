@@ -16,52 +16,59 @@
 
 package org.bithon.server.web.service.agent.sql.table;
 
+import org.bithon.agent.rpc.brpc.cmd.ILoggingCommand;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.logging.LoggerConfiguration;
 import org.bithon.component.commons.logging.LoggingLevel;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.discovery.declaration.ServiceResponse;
-import org.bithon.server.discovery.declaration.cmd.CommandArgs;
-import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
+import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/4/2 16:20
  */
 public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
-    private final IAgentCommandApi impl;
+    private final AgentServiceProxyFactory proxyFactory;
 
-    public LoggerTable(IAgentCommandApi impl) {
-        this.impl = impl;
+    public LoggerTable(AgentServiceProxyFactory proxyFactory) {
+        this.proxyFactory = proxyFactory;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
-        String appId = (String) executionContext.get("appId");
-        Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
-
-        ServiceResponse<IAgentCommandApi.LoggerConfigurationRecord> records = impl.getLoggerList(new CommandArgs<>(appId));
-        if (records.getError() != null) {
-            throw new RuntimeException(records.getError().toString());
-        }
-
-        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>) records.getRows();
+    protected List<Object[]> getData(SqlExecutionContext executionContext) {
+        return proxyFactory.create(IAgentProxyApi.class,
+                                   executionContext.getParameters(),
+                                   ILoggingCommand.class)
+                           .getLoggers()
+                           .stream()
+                           .map(LoggerConfiguration::toObjects)
+                           .collect(Collectors.toList());
     }
 
     @Override
     protected Class<?> getRecordClazz() {
-        return IAgentCommandApi.LoggerConfigurationRecord.class;
+        return LoggerConfigurationRecord.class;
+    }
+
+    public static class LoggerConfigurationRecord {
+
+        public String name;
+
+        // For the Schema, the level is declared as String to avoid Enum problem at Calcite side
+        public String level;
+        public String effectiveLevel;
     }
 
     static class OneFilter implements IExpressionVisitor<Void> {
@@ -85,9 +92,6 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
     public int update(SqlExecutionContext executionContext,
                       IExpression filterExpression,
                       Map<String, Object> newValues) {
-        String appId = (String) executionContext.get("appId");
-        Preconditions.checkNotNull(appId, "'appId' is missed in the WHERE clause.");
-
         String token = (String) executionContext.get("_token");
         Preconditions.checkNotNull(token, "'_token' is missed in the WHERE clause.");
 
@@ -124,19 +128,10 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
                                             "Only 'level' is allowed to updated");
         }
 
-        IAgentCommandApi.SetLoggerArgs args = new IAgentCommandApi.SetLoggerArgs();
-        args.setLevel(loggingLevel);
-        args.setName((String) nameFilter.value);
-        ServiceResponse<IAgentCommandApi.ModifiedRecord> result = impl.setLogger(new CommandArgs<>(appId, token, args));
-        if (result.getError() != null) {
-            throw new HttpMappableException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                                            result.getError().toString());
-        }
-
-        int totalRows = 0;
-        for (IAgentCommandApi.ModifiedRecord record : result.getRows()) {
-            totalRows += record.getRows();
-        }
-        return totalRows;
+        return proxyFactory.create(IAgentProxyApi.class,
+                                   executionContext.getParameters(),
+                                   ILoggingCommand.class)
+                           .setLogger((String) nameFilter.value, loggingLevel)
+                           .stream().reduce(0, Integer::sum);
     }
 }

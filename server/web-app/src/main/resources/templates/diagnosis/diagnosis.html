@@ -4,19 +4,19 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{app/app-layout}" xmlns="http://www.w3.org/1999/html">
 <head>
-    <title>Bithon Profiling - Query</title>
+    <title>Bithon Diagnosis</title>
 
     <script type="text/javascript" th:src="@{/js/app-card-component.js}"></script>
 
     <script type="text/javascript">
         function handleKeyDown(event) {
-          if (event.keyCode === 13) {
-            getData();
-          }
+            if (event.keyCode === 13) {
+                getData();
+            }
         }
 
         function getData() {
-            var sql = $('#sql').val();
+            const sql = $('#sql').val();
 
             $('#sql').prop('disabled', true);
             $('button').prop('disabled', true);
@@ -34,14 +34,14 @@
                     $('#errorMessage').hide();
                     try {
                         renderResult(data);
-                    } catch(e) {
+                    } catch (e) {
                         console.log(e);
                     }
                 },
                 error: (data) => {
                     $('#resultTable').hide();
                     $('#errorMessage').show();
-                    if(data.responseJSON !== undefined) {
+                    if (data.responseJSON !== undefined) {
                         $("#errorMessage")[0].innerHTML = JSON.stringify(data.responseJSON, null, 2);
                     } else {
                         $("#errorMessage")[0].innerHTML = data.responseText;
@@ -55,7 +55,7 @@
             });
         }
 
-        var gColumnNameToIndex = {};
+        let gColumnNameToIndex = {};
 
         function renderResult(data) {
             gColumnNameToIndex = {};
@@ -63,7 +63,7 @@
             const vTable = $('#resultTable');
 
             const tableColumns = [];
-            for(var i = 0; i < data.meta.columns.length; i++) {
+            for (let i = 0; i < data.meta.columns.length; i++) {
                 const columnName = data.meta.columns[i];
                 tableColumns.push({
                     field: columnName,
@@ -76,50 +76,49 @@
             }
 
             vTable.bootstrapTable('destroy')
-            .bootstrapTable({
-                showRefresh: false,
+                .bootstrapTable({
+                    showRefresh: false,
 
-                columns: tableColumns,
+                    columns: tableColumns,
 
-                sidePagination: 'client',
-                pagination: true,
-                pageSize: 200,
-                pageList: [200, 500, 1000],
+                    sidePagination: 'client',
+                    pagination: true,
+                    pageSize: 200,
+                    pageList: [200, 500, 1000],
 
-                serverSort: false,
-                sortResetPage: true,
-                sortable: true,
-                customSort: (sortName, sortOrder, data) => {
-                    var order = sortOrder === 'desc' ? -1 : 1
-                    var index = gColumnNameToIndex[sortName];
-                    data.sort((a, b) => {
-                      var aa = a[index];
-                      var bb = b[index];
-                      if (aa < bb) {
-                        return order * -1
-                      }
-                      if (aa > bb) {
-                        return order
-                      }
-                      return 0
-                    })
-                },
+                    serverSort: false,
+                    sortResetPage: true,
+                    sortable: true,
+                    customSort: (sortName, sortOrder, data) => {
+                        const order = sortOrder === 'desc' ? -1 : 1;
+                        const index = gColumnNameToIndex[sortName];
+                        data.sort((a, b) => {
+                            const aa = a[index];
+                            const bb = b[index];
+                            if (aa < bb) {
+                                return order * -1
+                            }
+                            if (aa > bb) {
+                                return order
+                            }
+                            return 0
+                        })
+                    },
 
-                stickyHeader: true,
-                stickyHeaderOffsetLeft: parseInt($('body').css('padding-left'), 10),
-                stickyHeaderOffsetRight: parseInt($('body').css('padding-right'), 10),
-                theadClasses: 'thead-light',
+                    stickyHeader: true,
+                    stickyHeaderOffsetLeft: parseInt($('body').css('padding-left'), 10),
+                    stickyHeaderOffsetRight: parseInt($('body').css('padding-right'), 10),
+                    theadClasses: 'thead-light',
 
-                data: data.rows
-            }).show();
+                    data: data.rows
+                }).show();
         }
 
         function createFormatterFunction(index) {
             return (value, row) => {
-                return row[index];
+                return '<pre>' + row[index] + '</pre>';
             }
         }
-
     </script>
 </head>
 <body>
@@ -136,9 +135,14 @@
         <i id="progress" class="fas fa-spinner fa-spin" style="padding: 10px; display: none"></i>
     </div>
     <div id="resultContainer" style="background: rgba(0,0,0,.03)">
-        <table id="resultTable" />
+        <table id="resultTable"></table>
         <pre id="errorMessage" style="display: none"></pre>
     </div>
+    <script type="text/javascript">
+        $(document).ready(() => {
+            $('#filterContainer').hide();
+        });
+    </script>
 </div>
 </body>
 </html>

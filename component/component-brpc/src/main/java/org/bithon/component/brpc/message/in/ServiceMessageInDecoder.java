@@ -37,11 +37,16 @@ public class ServiceMessageInDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws IOException {
         if (in.readableBytes() < 4) {
-            // this might be a fragment packet
+            // This might be a fragment packet
             return;
         }
 
         CodedInputStream is = CodedInputStream.newInstance(new ByteBufInputStream(in));
+
+        // The CodedInputStream does not provide an API to get the length of unread data
+        // So, we need to set the limit first and then use getBytesUntilLimit() as a workaround
+        is.pushLimit(in.readableBytes());
+
         int messageType = is.readInt32();
         if (messageType == ServiceMessageType.CLIENT_REQUEST
             || messageType == ServiceMessageType.CLIENT_REQUEST_ONEWAY

@@ -18,6 +18,7 @@ package org.bithon.component.brpc.invocation;
 
 import org.bithon.component.brpc.ServiceRegistryItem;
 import org.bithon.component.brpc.channel.IChannelWriter;
+import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.CallerSideException;
 import org.bithon.component.brpc.exception.ChannelException;
@@ -26,7 +27,6 @@ import org.bithon.component.brpc.exception.TimeoutException;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
-import org.bithon.shaded.io.netty.channel.Channel;
 import org.bithon.shaded.io.netty.util.internal.StringUtil;
 
 import java.io.IOException;
@@ -45,9 +45,8 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author frankchen
  */
-public class ClientInvocationManager {
+public class InvocationManager {
 
-    private static final ClientInvocationManager INSTANCE = new ClientInvocationManager();
     private final AtomicLong transactionId = new AtomicLong(21515);
 
     /**
@@ -57,44 +56,12 @@ public class ClientInvocationManager {
 
     private final Map<Method, ServiceRegistryItem> serviceRegistryItems = new ConcurrentHashMap<>();
 
-    public static ClientInvocationManager getInstance() {
-        return INSTANCE;
-    }
-
     public Object invoke(String appName,
                          Headers headers,
                          IChannelWriter channelWriter,
-                         boolean debug,
                          long timeoutMillisecond,
                          Method method,
                          Object[] args) throws Throwable {
-        //
-        // make sure channel has been established
-        //
-        channelWriter.connect();
-
-        //
-        // check channel status
-        //
-        Channel ch = channelWriter.getChannel();
-        if (ch == null) {
-            throw new CallerSideException("Failed to invoke %s#%s due to channel is empty",
-                                          method.getDeclaringClass().getSimpleName(),
-                                          method.getName());
-        }
-
-        if (!ch.isActive()) {
-            throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not active",
-                                          method.getDeclaringClass().getSimpleName(),
-                                          method.getName(),
-                                          ch.remoteAddress().toString());
-        }
-        if (!ch.isWritable()) {
-            throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not writable",
-                                          method.getDeclaringClass().getSimpleName(),
-                                          method.getName(),
-                                          ch.remoteAddress().toString());
-        }
 
         ServiceRegistryItem serviceRegistryItem = serviceRegistryItems.computeIfAbsent(method, ServiceRegistryItem::create);
 
@@ -110,22 +77,62 @@ public class ClientInvocationManager {
                                                                           .args(args)
                                                                           .build();
 
+        return invoke(channelWriter,
+                      serviceRequest,
+                      method.getGenericReturnType(),
+                      timeoutMillisecond);
+    }
+
+    public byte[] invoke(IChannelWriter channelWriter,
+                         ServiceRequestMessageOut serviceRequest,
+                         long timeoutMillisecond) throws Throwable {
+        return (byte[]) invoke(channelWriter, serviceRequest, null, timeoutMillisecond);
+    }
+
+    private Object invoke(IChannelWriter channelWriter,
+                          ServiceRequestMessageOut serviceRequest,
+                          Type returnObjectType,
+                          long timeoutMillisecond) throws Throwable {
+        //
+        // make sure channel has been established
+        //
+        channelWriter.connect();
+
+        //
+        // Check channel status
+        //
+        EndPoint remoteEndpoint = channelWriter.getRemoteAddress();
+        if (remoteEndpoint == null) {
+            throw new CallerSideException("Failed to invoke %s#%s due to channel is empty",
+                                          serviceRequest.getServiceName(),
+                                          serviceRequest.getMethodName());
+        }
+
+        if (!channelWriter.isActive()) {
+            throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not active",
+                                          serviceRequest.getServiceName(),
+                                          serviceRequest.getMethodName(),
+                                          remoteEndpoint);
+        }
+        if (!channelWriter.isWritable()) {
+            throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not writable",
+                                          serviceRequest.getServiceName(),
+                                          serviceRequest.getMethodName(),
+                                          remoteEndpoint);
+        }
+
         InflightRequest inflightRequest = null;
         if (!serviceRequest.isOneway()) {
-            inflightRequest = new InflightRequest();
-            inflightRequest.requestAt = System.currentTimeMillis();
-            inflightRequest.methodName = serviceRequest.getMethodName();
-            inflightRequest.serviceName = serviceRequest.getServiceName();
-            inflightRequest.returnObjType = method.getGenericReturnType();
+            inflightRequest = new InflightRequest(serviceRequest.getServiceName(),
+                                                  serviceRequest.getMethodName(),
+                                                  returnObjectType,
+                                                  System.currentTimeMillis());
             this.inflightRequests.put(serviceRequest.getTransactionId(), inflightRequest);
-        }
-        if (debug) {
-            //log.info("[DEBUGGING] Sending message: {}", message);
         }
 
         for (int i = 0; i < 3; i++) {
             try {
-                channelWriter.writeAndFlush(serviceRequest);
+                channelWriter.writeAsync(serviceRequest);
                 break;
             } catch (ChannelException e) {
                 if (i < 2) {
@@ -136,15 +143,16 @@ public class ClientInvocationManager {
 
         if (inflightRequest != null) {
             try {
+                //noinspection ReassignedVariable,SynchronizationOnLocalVariableOrMethodParameter
                 synchronized (inflightRequest) {
                     inflightRequest.wait(timeoutMillisecond);
                 }
             } catch (InterruptedException e) {
                 inflightRequests.remove(serviceRequest.getTransactionId());
                 throw new CallerSideException("Failed to invoke %s#%s at [%s] due to invocation is interrupted",
-                                              method.getDeclaringClass().getSimpleName(),
-                                              method.getName(),
-                                              ch.remoteAddress().toString());
+                                              serviceRequest.getServiceName(),
+                                              serviceRequest.getMethodName(),
+                                              remoteEndpoint);
             }
 
             //make sure it has been cleared when timeout
@@ -154,14 +162,14 @@ public class ClientInvocationManager {
                 throw inflightRequest.exception;
             }
 
-            if (!inflightRequest.returned) {
-                throw new TimeoutException(ch.remoteAddress().toString(),
+            if (!inflightRequest.responseReceived) {
+                throw new TimeoutException(channelWriter.getRemoteAddress().toString(),
                                            serviceRequest.getServiceName(),
                                            serviceRequest.getMethodName(),
                                            timeoutMillisecond);
             }
 
-            return inflightRequest.response;
+            return inflightRequest.returnObject;
         }
         return null;
     }
@@ -173,19 +181,21 @@ public class ClientInvocationManager {
             return;
         }
 
-        try {
-            inflightRequest.response = response.getReturning(inflightRequest.returnObjType);
-        } catch (IOException e) {
-            inflightRequest.exception = new ServiceInvocationException(e, "Failed to deserialize the received response: %s", e.getMessage());
-        }
-
         if (!StringUtil.isNullOrEmpty(response.getException())) {
             inflightRequest.exception = new CalleeSideException(response.getException());
+        } else {
+            try {
+                inflightRequest.returnObject = inflightRequest.returnObjectType == null ?
+                        response.getReturnAsRaw() :
+                        response.getReturningAsObject(inflightRequest.returnObjectType);
+            } catch (IOException e) {
+                inflightRequest.exception = new ServiceInvocationException(e, "Failed to deserialize the received response: %s", e.getMessage());
+            }
         }
 
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (inflightRequest) {
-            inflightRequest.returned = true;
+            inflightRequest.responseReceived = true;
             inflightRequest.notify();
         }
     }
@@ -200,22 +210,45 @@ public class ClientInvocationManager {
 
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (inflightRequest) {
-            inflightRequest.returned = true;
+            inflightRequest.responseReceived = true;
             inflightRequest.notify();
         }
     }
 
     static class InflightRequest {
-        long requestAt;
-        Type returnObjType;
-        Object response;
+        final String serviceName;
+
+        final String methodName;
+
+        /**
+         * Can be NULL.
+         * If NULL, byte-stream is returned.
+         */
+        final Type returnObjectType;
+
+        final long requestAt;
+
+        private InflightRequest(String serviceName,
+                                String methodName,
+                                Type returnObjectType,
+                                long requestAt) {
+            this.serviceName = serviceName;
+            this.methodName = methodName;
+            this.returnObjectType = returnObjectType;
+            this.requestAt = requestAt;
+        }
+
+        /**
+         * The deserialized response object.
+         * If {@link #returnObjectType} is NULL, then this object holds raw byte-stream of the response.
+         */
+        Object returnObject;
+
         /**
          * indicate whether this request has response.
-         * This is required so that {@link #response} might be null
+         * This is required so that {@link #returnObject} might be null
          */
-        boolean returned;
+        boolean responseReceived;
         Throwable exception;
-        private String serviceName;
-        private String methodName;
     }
 }

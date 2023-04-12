@@ -29,10 +29,10 @@ import java.util.Set;
 @BrpcService
 public interface IDegradingRuleManager {
 
-    @BrpcMethod(serializer = Serializer.JSON)
+    @BrpcMethod(serializer = Serializer.JSON_SMILE)
     void create(DegradingRuleDto request);
 
-    @BrpcMethod(serializer = Serializer.JSON)
+    @BrpcMethod(serializer = Serializer.JSON_SMILE)
     void update(DegradingRuleDto request);
 
     void delete(String ruleId);

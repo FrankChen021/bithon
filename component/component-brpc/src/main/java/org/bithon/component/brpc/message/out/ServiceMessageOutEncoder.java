@@ -16,7 +16,7 @@
 
 package org.bithon.component.brpc.message.out;
 
-import org.bithon.component.brpc.invocation.ClientInvocationManager;
+import org.bithon.component.brpc.invocation.InvocationManager;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -35,12 +35,17 @@ import org.bithon.shaded.io.netty.handler.codec.MessageToByteEncoder;
 public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessageOut> {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ServiceMessageOutEncoder.class);
 
+    private final InvocationManager invocationManager;
+
+    public ServiceMessageOutEncoder(InvocationManager invocationManager) {
+        this.invocationManager = invocationManager;
+    }
+
     @Override
     protected void encode(ChannelHandlerContext ctx, ServiceMessageOut msg, ByteBuf out) {
         try {
             CodedOutputStream os = CodedOutputStream.newInstance(new ByteBufOutputStream(out));
             msg.encode(os);
-            os.flush();
         } catch (Exception e) {
             throw new ServiceMessageEncodingException(msg, e);
         }
@@ -48,26 +53,27 @@ public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessag
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        super.write(ctx, msg, promise.addListener((ChannelFutureListener) future -> {
-            if (future.isSuccess()) {
-                return;
-            }
+        super.write(ctx,
+                    msg,
+                    promise.addListener((ChannelFutureListener) future -> {
+                        if (future.isSuccess()) {
+                            return;
+                        }
 
-            // Handle encoding exception
-            Throwable cause = future.cause();
-            if (cause instanceof ServiceMessageEncodingException) {
-                ServiceMessageOut out = ((ServiceMessageEncodingException) cause).out;
-                if (out.getMessageType() == ServiceMessageType.CLIENT_REQUEST
-                    || out.getMessageType() == ServiceMessageType.CLIENT_REQUEST_V2) {
-                    ClientInvocationManager.getInstance()
-                                           .onClientException(((ServiceMessageEncodingException) cause).out.getTransactionId(),
-                                                              cause.getCause());
-                    return;
-                }
-            }
+                        // Handle encoding exception
+                        Throwable cause = future.cause();
+                        if (cause instanceof ServiceMessageEncodingException) {
+                            ServiceMessageOut out = ((ServiceMessageEncodingException) cause).out;
+                            if (out.getMessageType() == ServiceMessageType.CLIENT_REQUEST
+                                    || out.getMessageType() == ServiceMessageType.CLIENT_REQUEST_V2) {
+                                invocationManager.onClientException(((ServiceMessageEncodingException) cause).out.getTransactionId(),
+                                                                    cause.getCause());
+                                return;
+                            }
+                        }
 
-            LOG.error("Exception when encoding out message", cause);
-        }));
+                        LOG.error("Exception when encoding out message", cause);
+                    }));
     }
 
     static class ServiceMessageEncodingException extends EncoderException {

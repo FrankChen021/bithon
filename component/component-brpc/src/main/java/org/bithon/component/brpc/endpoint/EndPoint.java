@@ -17,6 +17,7 @@
 package org.bithon.component.brpc.endpoint;
 
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Objects;
 
 public class EndPoint {
@@ -28,8 +29,11 @@ public class EndPoint {
         this.port = port;
     }
 
-    public static EndPoint of(InetSocketAddress addr) {
-        return new EndPoint(addr.getHostString(), addr.getPort());
+    public static EndPoint of(SocketAddress addr) {
+        if (addr instanceof InetSocketAddress) {
+            return new EndPoint(((InetSocketAddress) addr).getHostString(), ((InetSocketAddress) addr).getPort());
+        }
+        return new EndPoint(addr.toString(), 0);
     }
 
     public String getHost() {

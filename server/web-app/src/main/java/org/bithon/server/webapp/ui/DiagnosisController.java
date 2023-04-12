@@ -31,17 +31,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Slf4j
 @Controller
 @Conditional(value = WebAppModuleEnabler.class)
-public class ProfilingController {
+public class DiagnosisController {
 
     private final ServiceDiscovery serviceDiscovery;
 
-    public ProfilingController(ServiceDiscovery serviceDiscovery) {
+    public DiagnosisController(ServiceDiscovery serviceDiscovery) {
         this.serviceDiscovery = serviceDiscovery;
     }
 
-    @GetMapping("/web/profiling/query")
+    @GetMapping("/web/diagnosis/diagnosis")
     public String traceList(Model model) {
         model.addAttribute("apiHost", serviceDiscovery.getApiHost());
-        return "profile/query";
+        return "diagnosis/diagnosis";
     }
 }

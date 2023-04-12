@@ -25,63 +25,23 @@ import java.util.List;
  * @author Frank Chen
  * @date 4/4/23 10:17 pm
  */
-@BrpcService(name = "agent.instrumentation", serializer = Serializer.JSON)
+@BrpcService(name = "agent.instrumentation", serializer = Serializer.JSON_SMILE)
 public interface IInstrumentationCommand {
 
     class InstrumentedMethod {
-        private String clazzName;
-        private String returnType;
-        private String methodName;
-        private boolean isStatic;
-        private String parameters;
-        private String interceptor;
+        public String interceptor;
+        public String clazzName;
+        public String returnType;
+        public String methodName;
+        public boolean isStatic;
+        public String parameters;
 
-        public String getClazzName() {
-            return clazzName;
-        }
-
-        public void setClazzName(String clazzName) {
-            this.clazzName = clazzName;
-        }
-
-        public String getReturnType() {
-            return returnType;
-        }
-
-        public void setReturnType(String returnType) {
-            this.returnType = returnType;
-        }
-
-        public String getMethodName() {
-            return methodName;
-        }
-
-        public void setMethodName(String methodName) {
-            this.methodName = methodName;
-        }
-
-        public String getParameters() {
-            return parameters;
-        }
-
-        public void setParameters(String parameters) {
-            this.parameters = parameters;
-        }
-
-        public boolean isStatic() {
-            return isStatic;
-        }
-
-        public void setStatic(boolean aStatic) {
-            isStatic = aStatic;
-        }
-
-        public String getInterceptor() {
-            return interceptor;
-        }
-
-        public void setInterceptor(String interceptor) {
-            this.interceptor = interceptor;
+        /**
+         * return the object in object array.
+         * The sequence of the values in the array MUST be in accordance with the sequence of fields
+         */
+        public Object[] toObjects() {
+            return new Object[]{interceptor, clazzName, returnType, methodName, isStatic, parameters};
         }
     }
 

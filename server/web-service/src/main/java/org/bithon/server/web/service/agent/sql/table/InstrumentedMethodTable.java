@@ -16,41 +16,37 @@
 
 package org.bithon.server.web.service.agent.sql.table;
 
-import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.discovery.declaration.ServiceResponse;
-import org.bithon.server.discovery.declaration.cmd.CommandArgs;
-import org.bithon.server.discovery.declaration.cmd.IAgentCommandApi;
+import org.bithon.agent.rpc.brpc.cmd.IInstrumentationCommand;
+import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
  * @date 4/4/23 10:39 pm
  */
 public class InstrumentedMethodTable extends AbstractBaseTable {
-    private final IAgentCommandApi impl;
+    private final AgentServiceProxyFactory proxyFactory;
 
-    public InstrumentedMethodTable(IAgentCommandApi impl) {
-        this.impl = impl;
+    public InstrumentedMethodTable(AgentServiceProxyFactory proxyFactory) {
+        this.proxyFactory = proxyFactory;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    protected List<IAgentCommandApi.IObjectArrayConvertable> getData(SqlExecutionContext executionContext) {
-        String appId = (String) executionContext.get("appId");
-        Preconditions.checkNotNull(appId, "'appId' is missed in the query filter");
-
-        ServiceResponse<IAgentCommandApi.InstrumentedMethodRecord> methodList = impl.getInstrumentedMethod(new CommandArgs<>(appId));
-        if (methodList.getError() != null) {
-            throw new RuntimeException(methodList.getError().toString());
-        }
-
-        return (List<IAgentCommandApi.IObjectArrayConvertable>) (List<?>) methodList.getRows();
+    public List<Object[]> getData(SqlExecutionContext executionContext) {
+        return proxyFactory.create(IAgentProxyApi.class,
+                                   executionContext.getParameters(),
+                                   IInstrumentationCommand.class)
+                           .getInstrumentedMethods()
+                           .stream()
+                           .map(IInstrumentationCommand.InstrumentedMethod::toObjects)
+                           .collect(Collectors.toList());
     }
 
     @Override
     protected Class getRecordClazz() {
-        return IAgentCommandApi.InstrumentedMethodRecord.class;
+        return IInstrumentationCommand.InstrumentedMethod.class;
     }
 }

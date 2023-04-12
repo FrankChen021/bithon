@@ -16,14 +16,19 @@
 
 package org.bithon.component.brpc.message.in;
 
+import org.bithon.component.brpc.exception.BadRequestException;
 import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.serializer.Serializer;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 
+/**
+ * @author frankchen
+ */
 public class ServiceResponseMessageIn extends ServiceMessageIn {
     private long serverResponseAt;
     private CodedInputStream returning;
@@ -56,7 +61,7 @@ public class ServiceResponseMessageIn extends ServiceMessageIn {
         return serverResponseAt;
     }
 
-    public Object getReturning(Type type) throws IOException {
+    public Object getReturningAsObject(Type type) throws IOException {
         if (returning != null) {
             int serializer = this.returning.readInt32();
             return Serializer.getSerializer(serializer).deserialize(this.returning, type);
@@ -64,7 +69,24 @@ public class ServiceResponseMessageIn extends ServiceMessageIn {
         return null;
     }
 
+    public byte[] getReturnAsRaw() throws IOException {
+        if (returning != null) {
+            return returning.readRawBytes(returning.getBytesUntilLimit());
+        }
+        return new byte[0];
+    }
+
     public String getException() {
         return exception;
+    }
+
+    public static ServiceResponseMessageIn from(InputStream inputStream) throws IOException {
+        CodedInputStream is = CodedInputStream.newInstance(inputStream);
+        is.pushLimit(inputStream.available());
+        int messageType = is.readInt32();
+        if (messageType == ServiceMessageType.SERVER_RESPONSE) {
+            return (ServiceResponseMessageIn) new ServiceResponseMessageIn().decode(is);
+        }
+        throw new BadRequestException("messageType [%x] is not a valid ServiceResponseMessageIn message", messageType);
     }
 }

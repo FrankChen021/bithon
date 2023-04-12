@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 public @interface BrpcMethod {
     /**
-     * service name
+     * Overridden service name
      */
     String name() default "";
 
@@ -45,5 +45,5 @@ public @interface BrpcMethod {
      */
     int messageType() default ServiceMessageType.CLIENT_REQUEST_V2;
 
-    Serializer serializer() default Serializer.BINARY;
+    Serializer serializer() default Serializer.PROTOBUF;
 }
