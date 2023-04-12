@@ -17,6 +17,7 @@
 package org.bithon.agent.instrumentation.aop.advice;
 
 import org.bithon.agent.instrumentation.aop.interceptor.IInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.installer.InstallerRecorder;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.description.annotation.AnnotationList;
 import org.bithon.shaded.net.bytebuddy.description.field.FieldDescription;
@@ -155,6 +156,8 @@ public class AdviceAnnotation {
                               @Nonnull Assigner assigner,
                               @Nonnull Advice.ArgumentHandler argumentHandler,
                               @Nonnull Sort sort) {
+            InstallerRecorder.INSTANCE.addInterceptedMethod(name, instrumentedType, instrumentedMethod);
+
             return new Target.ForStackManipulation(new JavaConstantValue(JavaConstant.Simple.ofLoaded(name)));
         }
     }
