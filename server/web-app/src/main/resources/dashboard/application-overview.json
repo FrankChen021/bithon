@@ -45,8 +45,8 @@
         "qps",
         {"name": "totalCount",      "format": "compact_number"},
         {"name": "errorCount",      "format": "compact_number"},
-        {"name": "errorRate",       "title": "errorRate(%)"},
-        {"name": "avgResponseTime", "format": "millisecond"}
+        {"name": "errorRate",       "format": "percentage"},
+        {"name": "avgResponseTime", "format": "nanosecond"}
       ],
       "query": {
         "dataSource": "http-incoming-metrics",
@@ -75,8 +75,8 @@
         "qps",
         {"name": "requestCount",    "format": "compact_number", "title": "totalCount"},
         {"name": "errorCount",      "format": "compact_number"},
-        {"name": "errorRate",       "title": "errorRate(%)"},
-        {"name": "avgResponseTime", "format": "millisecond"}
+        {"name": "errorRate",       "format": "percentage"},
+        {"name": "avgResponseTime", "format": "nanosecond"}
       ],
       "query": {
         "dataSource": "http-outgoing-metrics",
