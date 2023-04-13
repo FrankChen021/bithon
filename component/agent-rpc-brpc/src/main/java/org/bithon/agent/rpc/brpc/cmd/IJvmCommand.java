@@ -100,4 +100,17 @@ public interface IJvmCommand {
     }
 
     List<ClassInfo> getLoadedClassList();
+
+    class VMOption {
+        public String name;
+        public String value;
+        public boolean isWriteable;
+        public String origin;
+
+        public Object[] getObjects() {
+            return new Object[]{name, value, isWriteable, origin};
+        }
+    }
+
+    List<VMOption> getVMOptions();
 }

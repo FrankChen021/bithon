@@ -16,12 +16,14 @@
 
 package org.bithon.agent.controller.cmd;
 
+import com.sun.management.HotSpotDiagnosticMXBean;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -81,6 +83,25 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
                          return classInfo;
                      })
                      .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<VMOption> getVMOptions() {
+        HotSpotDiagnosticMXBean bean = ManagementFactory.getPlatformMXBean(HotSpotDiagnosticMXBean.class);
+        if (bean != null) {
+            return bean.getDiagnosticOptions().stream()
+                       .map((option) -> {
+                           IJvmCommand.VMOption op = new IJvmCommand.VMOption();
+                           op.name = option.getName();
+                           op.value = option.getValue();
+                           op.isWriteable = option.isWriteable();
+                           op.origin = option.getOrigin().toString();
+                           return op;
+                       })
+                       .collect(Collectors.toList());
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     private static ThreadInfo toThreadInfo(ThreadMXBean threadMxBean,
