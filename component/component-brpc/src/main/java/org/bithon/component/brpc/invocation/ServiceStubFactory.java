@@ -17,7 +17,7 @@
 package org.bithon.component.brpc.invocation;
 
 import org.bithon.component.brpc.IServiceController;
-import org.bithon.component.brpc.channel.IChannelWriter;
+import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.commons.utils.Preconditions;
 
@@ -51,16 +51,16 @@ public class ServiceStubFactory {
 
     public static <T> T create(String clientAppName,
                                Headers headers,
-                               IChannelWriter channelWriter,
+                               IBrpcChannel channel,
                                Class<T> serviceInterface,
                                InvocationManager invocationManager) {
-        return create(clientAppName, headers, channelWriter, serviceInterface, 5000, invocationManager);
+        return create(clientAppName, headers, channel, serviceInterface, 5000, invocationManager);
     }
 
     @SuppressWarnings("unchecked")
     public static <T> T create(String clientAppName,
                                Headers headers,
-                               IChannelWriter channelWriter,
+                               IBrpcChannel channel,
                                Class<T> serviceInterface,
                                int timeout,
                                InvocationManager invocationManager) {
@@ -68,7 +68,7 @@ public class ServiceStubFactory {
                                           new Class[]{serviceInterface, IServiceController.class},
                                           new ServiceInvocationStub(clientAppName,
                                                                     headers,
-                                                                    channelWriter,
+                                                                    channel,
                                                                     invocationManager,
                                                                     timeout));
     }
@@ -77,7 +77,7 @@ public class ServiceStubFactory {
      * Service stub that proxies a remote service
      */
     static class ServiceInvocationStub implements InvocationHandler {
-        private final IChannelWriter channelWriter;
+        private final IBrpcChannel channel;
         private final InvocationManager invocationManager;
         private final String appName;
         private final Headers headers;
@@ -86,14 +86,14 @@ public class ServiceStubFactory {
 
         public ServiceInvocationStub(String appName,
                                      Headers headers,
-                                     IChannelWriter channelWriter,
+                                     IBrpcChannel channel,
                                      InvocationManager invocationManager,
                                      int timeout) {
             Preconditions.checkIfTrue(timeout > 0, "timeout must be greater than zero.");
 
             this.appName = appName;
             this.headers = headers;
-            this.channelWriter = channelWriter;
+            this.channel = channel;
             this.invocationManager = invocationManager;
             this.timeout = timeout;
             this.defaultTimeout = timeout;
@@ -116,14 +116,14 @@ public class ServiceStubFactory {
                 return null;
             }
             if (getPeerMethod.equals(method)) {
-                return channelWriter.getRemoteAddress();
+                return channel.getRemoteAddress();
             }
             if (getChannelMethod.equals(method)) {
-                return this.channelWriter;
+                return this.channel;
             }
             return invocationManager.invoke(appName,
                                             headers,
-                                            channelWriter,
+                                            channel,
                                             timeout,
                                             method,
                                             args);

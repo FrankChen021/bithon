@@ -25,7 +25,7 @@ import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.server.collector.cmd.api.permission.PermissionConfiguration;
 import org.bithon.server.collector.cmd.api.permission.PermissionRule;
-import org.bithon.server.collector.cmd.service.AgentCommandService;
+import org.bithon.server.collector.cmd.service.AgentServer;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
@@ -57,11 +57,11 @@ import java.util.stream.Collectors;
 public class AgentProxyApi implements IAgentProxyApi {
 
     private final ObjectMapper objectMapper;
-    private final AgentCommandService commandService;
+    private final AgentServer commandService;
     private final PermissionConfiguration permissionConfiguration;
 
     public AgentProxyApi(ObjectMapper objectMapper,
-                         AgentCommandService commandService,
+                         AgentServer commandService,
                          PermissionConfiguration permissionConfiguration) {
         this.objectMapper = objectMapper;
         this.commandService = commandService;
@@ -70,7 +70,7 @@ public class AgentProxyApi implements IAgentProxyApi {
 
     @Override
     public ServiceResponse<AgentInstanceRecord> getAgentInstanceList() {
-        return ServiceResponse.success(commandService.getServerChannel()
+        return ServiceResponse.success(commandService.getBrpcServer()
                                                      .getSessions()
                                                      .stream()
                                                      .map((session) -> {
@@ -128,7 +128,7 @@ public class AgentProxyApi implements IAgentProxyApi {
         ServiceResponseMessageOut.Builder responseBuilder = ServiceResponseMessageOut.builder()
                                                                                      .txId(fromClient.getTransactionId());
         try {
-            responseBuilder.returningRaw(commandService.getServerChannel()
+            responseBuilder.returningRaw(commandService.getBrpcServer()
                                                        .getSession(agentId)
                                                        .getLowLevelInvoker()
                                                        .invoke(toTarget, 30_000));

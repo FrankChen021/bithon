@@ -16,7 +16,7 @@
 
 package org.bithon.component.brpc.invocation;
 
-import org.bithon.component.brpc.channel.IChannelWriter;
+import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 
 /**
@@ -25,15 +25,15 @@ import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
  */
 public class LowLevelInvoker {
 
-    private final IChannelWriter channelWriter;
+    private final IBrpcChannel channel;
     private final InvocationManager invocationManager;
 
-    public LowLevelInvoker(IChannelWriter channelWriter, InvocationManager invocationManager) {
-        this.channelWriter = channelWriter;
+    public LowLevelInvoker(IBrpcChannel channel, InvocationManager invocationManager) {
+        this.channel = channel;
         this.invocationManager = invocationManager;
     }
 
     public byte[] invoke(ServiceRequestMessageOut serviceRequest, int timeout) throws Throwable {
-        return invocationManager.invoke(channelWriter, serviceRequest, timeout);
+        return invocationManager.invoke(channel, serviceRequest, timeout);
     }
 }

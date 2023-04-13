@@ -38,7 +38,7 @@ import java.io.IOException;
  * @author frankchen
  */
 @ChannelHandler.Sharable
-public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
+class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ServiceMessageChannelHandler.class);
 
     private final IServiceInvocationExecutor executor;
@@ -49,14 +49,17 @@ public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
     /**
      * Instantiate an instance which calls the service in worker threads
      */
-    public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry, InvocationManager invocationManager) {
+    ServiceMessageChannelHandler(ServiceRegistry serviceRegistry,
+                                 InvocationManager invocationManager) {
         this(serviceRegistry, ServiceInvocationRunnable::run, invocationManager);
     }
 
     /**
      * Instantiate an instance which calls the service in specified executor.
      */
-    public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry, IServiceInvocationExecutor executor, InvocationManager invocationManager) {
+    public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry,
+                                        IServiceInvocationExecutor executor,
+                                        InvocationManager invocationManager) {
         this.serviceRegistry = serviceRegistry;
         this.executor = executor;
         this.invocationManager = invocationManager;

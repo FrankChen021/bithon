@@ -23,8 +23,8 @@ import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.rpc.brpc.ApplicationType;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
-import org.bithon.component.brpc.channel.ClientChannel;
-import org.bithon.component.brpc.channel.ClientChannelBuilder;
+import org.bithon.component.brpc.channel.BrpcClient;
+import org.bithon.component.brpc.channel.BrpcClientBuilder;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
 import org.bithon.component.brpc.exception.CalleeSideException;
@@ -49,7 +49,7 @@ import java.util.stream.Stream;
 public class BrpcAgentController implements IAgentController {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(BrpcAgentController.class);
 
-    private final ClientChannel channel;
+    private final BrpcClient brpcClient;
     private ISettingFetcher fetcher;
     private Runnable refreshListener;
 
@@ -60,7 +60,7 @@ public class BrpcAgentController implements IAgentController {
         }).collect(Collectors.toList());
 
         AppInstance appInstance = AppInstance.getInstance();
-        channel = ClientChannelBuilder.builder()
+        brpcClient = BrpcClientBuilder.builder()
                                       .endpointProvider(new RoundRobinEndPointProvider(endpoints))
                                       .workerThreads(2)
                                       .applicationName(appInstance.getQualifiedAppName())
@@ -70,15 +70,15 @@ public class BrpcAgentController implements IAgentController {
 
         if (appInstance.getPort() > 0) {
             // Set the default the appId
-            channel.setHeader(Headers.HEADER_APP_ID, appInstance.getHostAndPort());
-            channel.setHeader(Headers.HEADER_VERSION, AgentBuildVersion.getString());
+            brpcClient.setHeader(Headers.HEADER_APP_ID, appInstance.getHostAndPort());
+            brpcClient.setHeader(Headers.HEADER_VERSION, AgentBuildVersion.getString());
         }
 
         // Update appId once the port is configured,
         // so that the management API in the server side can find this agent by appId correctly
         appInstance.addListener((port) -> {
-            channel.setHeader(Headers.HEADER_APP_ID, AppInstance.getInstance().getHostAndPort());
-            channel.setHeader(Headers.HEADER_VERSION, AgentBuildVersion.getString());
+            brpcClient.setHeader(Headers.HEADER_APP_ID, AppInstance.getInstance().getHostAndPort());
+            brpcClient.setHeader(Headers.HEADER_VERSION, AgentBuildVersion.getString());
 
             if (refreshListener != null) {
                 try {
@@ -94,7 +94,7 @@ public class BrpcAgentController implements IAgentController {
     public Map<String, String> getAgentConfiguration(String appName, String env, long lastModifiedSince) {
         if (fetcher == null) {
             try {
-                fetcher = channel.getRemoteService(ISettingFetcher.class);
+                fetcher = brpcClient.getRemoteService(ISettingFetcher.class);
             } catch (ServiceInvocationException e) {
                 LOG.warn("Unable to get remote ISettingFetcher service: {}", e.getMessage());
                 return null;
@@ -131,7 +131,7 @@ public class BrpcAgentController implements IAgentController {
     @Override
     public void attachCommands(Object... commands) {
         for (Object cmd : commands) {
-            channel.bindService(cmd);
+            brpcClient.bindService(cmd);
         }
     }
 }

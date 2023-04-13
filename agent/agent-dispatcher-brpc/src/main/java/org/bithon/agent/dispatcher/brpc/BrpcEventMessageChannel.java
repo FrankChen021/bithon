@@ -24,9 +24,9 @@ import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import org.bithon.agent.rpc.brpc.event.IEventCollector;
 import org.bithon.component.brpc.IServiceController;
-import org.bithon.component.brpc.channel.ClientChannel;
-import org.bithon.component.brpc.channel.ClientChannelBuilder;
-import org.bithon.component.brpc.channel.IChannelWriter;
+import org.bithon.component.brpc.channel.BrpcClient;
+import org.bithon.component.brpc.channel.BrpcClientBuilder;
+import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
 import org.bithon.component.brpc.exception.CallerSideException;
@@ -46,7 +46,7 @@ import java.util.stream.Stream;
 public class BrpcEventMessageChannel implements IMessageChannel {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(BrpcEventMessageChannel.class);
 
-    private final ClientChannel clientChannel;
+    private final BrpcClient brpcClient;
     private final DispatcherConfig dispatcherConfig;
     private IEventCollector eventCollector;
     private BrpcMessageHeader header;
@@ -56,11 +56,11 @@ public class BrpcEventMessageChannel implements IMessageChannel {
             String[] parts = hostAndPort.split(":");
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
-        this.clientChannel = ClientChannelBuilder.builder()
-                                                 .endpointProvider(new RoundRobinEndPointProvider(endpoints))
-                                                 .maxRetry(3)
-                                                 .retryInterval(Duration.ofMillis(200))
-                                                 .build();
+        this.brpcClient = BrpcClientBuilder.builder()
+                                           .endpointProvider(new RoundRobinEndPointProvider(endpoints))
+                                           .maxRetry(3)
+                                           .retryInterval(Duration.ofMillis(200))
+                                           .build();
 
         this.dispatcherConfig = dispatcherConfig;
 
@@ -87,14 +87,14 @@ public class BrpcEventMessageChannel implements IMessageChannel {
     public void sendMessage(Object message) {
         if (this.eventCollector == null) {
             try {
-                this.eventCollector = clientChannel.getRemoteService(IEventCollector.class);
+                this.eventCollector = brpcClient.getRemoteService(IEventCollector.class);
             } catch (ServiceInvocationException e) {
                 LOG.warn("Unable to get remote service: {}", e.getMessage());
                 return;
             }
         }
 
-        IChannelWriter channel = ((IServiceController) eventCollector).getChannel();
+        IBrpcChannel channel = ((IServiceController) eventCollector).getChannel();
         if (channel.getConnectionLifeTime() > dispatcherConfig.getClient().getMaxLifeTime()) {
             LOG.info("Disconnect for event-channel load balancing...");
             try {
@@ -124,6 +124,6 @@ public class BrpcEventMessageChannel implements IMessageChannel {
 
     @Override
     public void close() {
-        clientChannel.close();
+        brpcClient.close();
     }
 }

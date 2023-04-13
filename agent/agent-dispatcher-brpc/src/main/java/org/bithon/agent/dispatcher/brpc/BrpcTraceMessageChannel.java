@@ -24,9 +24,9 @@ import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.bithon.component.brpc.IServiceController;
-import org.bithon.component.brpc.channel.ClientChannel;
-import org.bithon.component.brpc.channel.ClientChannelBuilder;
-import org.bithon.component.brpc.channel.IChannelWriter;
+import org.bithon.component.brpc.channel.BrpcClient;
+import org.bithon.component.brpc.channel.BrpcClientBuilder;
+import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
 import org.bithon.component.brpc.exception.CallerSideException;
@@ -47,7 +47,7 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(BrpcTraceMessageChannel.class);
 
     private final DispatcherConfig dispatcherConfig;
-    private final ClientChannel clientChannel;
+    private final BrpcClient brpcClient;
     private ITraceCollector traceCollector;
     private BrpcMessageHeader header;
 
@@ -57,11 +57,11 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
             String[] parts = hostAndPort.split(":");
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
-        this.clientChannel = ClientChannelBuilder.builder()
-                                                 .endpointProvider(new RoundRobinEndPointProvider(endpoints))
-                                                 .maxRetry(3)
-                                                 .retryInterval(Duration.ofMillis(200))
-                                                 .build();
+        this.brpcClient = BrpcClientBuilder.builder()
+                                           .endpointProvider(new RoundRobinEndPointProvider(endpoints))
+                                           .maxRetry(3)
+                                           .retryInterval(Duration.ofMillis(200))
+                                           .build();
 
         this.dispatcherConfig = dispatcherConfig;
 
@@ -88,7 +88,7 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
     public void sendMessage(Object message) {
         if (this.traceCollector == null) {
             try {
-                this.traceCollector = this.clientChannel.getRemoteService(ITraceCollector.class);
+                this.traceCollector = this.brpcClient.getRemoteService(ITraceCollector.class);
             } catch (ServiceInvocationException e) {
                 LOG.warn("Unable to get remote ITraceCollector service: {}", e.getMessage());
                 return;
@@ -102,7 +102,7 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
             return;
         }
 
-        IChannelWriter channel = ((IServiceController) traceCollector).getChannel();
+        IBrpcChannel channel = ((IServiceController) traceCollector).getChannel();
         if (channel.getConnectionLifeTime() > dispatcherConfig.getClient().getMaxLifeTime()) {
             LOG.info("Disconnect trace-channel for client-side load balancing...");
             try {
@@ -129,6 +129,6 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
 
     @Override
     public void close() {
-        this.clientChannel.close();
+        this.brpcClient.close();
     }
 }
