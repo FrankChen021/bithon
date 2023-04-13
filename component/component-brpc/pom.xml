@@ -29,6 +29,7 @@
       <version>1.0-SNAPSHOT</version>
     </dependency>
 
+    <!-- Some common code such as logger, utils -->
     <dependency>
       <groupId>org.bithon</groupId>
       <artifactId>component-commons</artifactId>

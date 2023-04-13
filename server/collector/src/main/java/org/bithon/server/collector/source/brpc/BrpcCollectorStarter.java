@@ -56,7 +56,11 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
     private ApplicationContext applicationContext;
     private boolean isRunning;
 
-    @SuppressWarnings("unchecked")
+    static {
+        // Make sure the underlying netty use JDK direct memory region so that the memory can be tracked
+        System.setProperty("org.bithon.shaded.io.netty.maxDirectMemory", "0");
+    }
+
     @Override
     public void start() {
         BrpcCollectorConfig config = applicationContext.getBean(BrpcCollectorConfig.class);

@@ -25,6 +25,12 @@ import org.bithon.agent.controller.IAgentControllerFactory;
  * @date 2021/1/16 4:40 下午
  */
 public class BrpcAgentControllerFactory implements IAgentControllerFactory {
+
+    static {
+        // Make sure the underlying netty use JDK direct memory region so that the memory can be tracked
+        System.setProperty("org.bithon.shaded.io.netty.maxDirectMemory", "0");
+    }
+
     @Override
     public IAgentController createController(AgentControllerConfig config) {
         return new BrpcAgentController(config);

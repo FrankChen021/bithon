@@ -27,7 +27,7 @@ import org.bithon.component.brpc.exception.TimeoutException;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
-import org.bithon.shaded.io.netty.util.internal.StringUtil;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -181,7 +181,7 @@ public class InvocationManager {
             return;
         }
 
-        if (!StringUtil.isNullOrEmpty(response.getException())) {
+        if (StringUtils.hasText(response.getException())) {
             inflightRequest.exception = new CalleeSideException(response.getException());
         } else {
             try {

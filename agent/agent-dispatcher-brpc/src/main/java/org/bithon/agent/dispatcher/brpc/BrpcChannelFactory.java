@@ -27,6 +27,12 @@ import org.bithon.agent.observability.dispatcher.config.DispatcherConfig;
  * @date 2021/6/27 20:01
  */
 public class BrpcChannelFactory implements IMessageChannelFactory {
+
+    static {
+        // Make sure the underlying netty use JDK direct memory region so that the memory can be tracked
+        System.setProperty("org.bithon.shaded.io.netty.maxDirectMemory", "0");
+    }
+
     @Override
     public IMessageChannel createMetricChannel(DispatcherConfig dispatcherConfig) {
         return new BrpcMetricMessageChannel(dispatcherConfig);
