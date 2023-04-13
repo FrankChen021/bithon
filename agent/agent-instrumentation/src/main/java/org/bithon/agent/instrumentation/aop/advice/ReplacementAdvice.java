@@ -22,6 +22,8 @@ import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
 /**
+ * Replace the returning of target method
+ *
  * @author frank.chen021@outlook.com
  * @date 22/2/22 11:25 PM
  */
@@ -30,11 +32,12 @@ public class ReplacementAdvice {
      * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit
-    public static void onExecute(@AdviceAnnotation.Interceptor IInterceptor interceptor,
+    public static void onExecute(@AdviceAnnotation.InterceptorName String name,
+                                 @AdviceAnnotation.Interceptor IInterceptor interceptor,
                                  @Advice.AllArguments Object[] args,
                                  @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning) {
         if (interceptor != null) {
-            returning = ((ReplaceInterceptor) interceptor).execute(args);
+            returning = ((ReplaceInterceptor) interceptor).execute(args, returning);
         }
     }
 }

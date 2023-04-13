@@ -55,7 +55,7 @@ public class DynamicInterceptorInstaller {
      */
     public void installOne(AopDescriptor descriptor) {
         new AgentBuilder.Default()
-            .ignore(ElementMatchers.nameStartsWith("org.bithon.shaded."))
+            .ignore(ElementMatchers.nameStartsWith("org.bithon.shaded.net.bytebuddy."))
             .disableClassFormatChanges()
             .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
@@ -72,7 +72,7 @@ public class DynamicInterceptorInstaller {
         ElementMatcher<? super TypeDescription> typeMatcher = new NameMatcher<>(new StringSetMatcher(new HashSet<>(descriptors.keySet())));
 
         new AgentBuilder.Default()
-            .ignore(ElementMatchers.nameStartsWith("org.bithon.shaded."))
+            .ignore(ElementMatchers.nameStartsWith("org.bithon.shaded.net.bytebuddy."))
             .disableClassFormatChanges()
             .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)

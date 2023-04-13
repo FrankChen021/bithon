@@ -26,6 +26,7 @@
     <module>guice</module>
     <module>mysql-5.x-6.x</module>
     <module>mysql-8.x</module>
+    <module>netty4</module>
     <module>quartz2</module>
     <module>jersey</module>
     <module>jdk-thread</module>
@@ -186,6 +187,12 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-httpclient-netty3</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-netty4</artifactId>
       <version>${project.version}</version>
     </dependency>
 

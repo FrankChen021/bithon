@@ -18,14 +18,8 @@ package org.bithon.agent.observability.event;
 
 import org.bithon.agent.observability.dispatcher.Dispatcher;
 import org.bithon.agent.observability.dispatcher.Dispatchers;
-import org.bithon.agent.observability.tracing.context.ITraceContext;
-import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -35,25 +29,20 @@ import java.util.Map;
 public class ExceptionCollector {
 
     public static void collect(Throwable throwable) {
-        collect(throwable, null);
+        collect(throwable, Collections.emptyMap());
     }
+
     public static void collect(Throwable throwable, Map<String, String> extraArgs) {
-        StringWriter stackTrace = new StringWriter(512);
-        throwable.printStackTrace(new PrintWriter(stackTrace));
+        collect(ExceptionBuilder.builder(extraArgs)
+                                .exceptionClass(throwable.getClass())
+                                .message(throwable.getMessage() == null ? "" : throwable.getMessage())
+                                .stack(throwable));
+    }
 
-        Map<String, Object> exceptionArgs = new HashMap<>(extraArgs == null ? Collections.emptyMap() : extraArgs);
-        exceptionArgs.put("exceptionClass", throwable.getClass().getName());
-        exceptionArgs.put("message", throwable.getMessage() == null ? "" : throwable.getMessage());
-        exceptionArgs.put("stack", stackTrace.toString());
-        exceptionArgs.put("thread", Thread.currentThread().getName());
-        ITraceContext traceContext = TraceContextHolder.current();
-        if (traceContext != null && traceContext.traceMode().equals(TraceMode.TRACE)) {
-            exceptionArgs.put("traceId", traceContext.traceId());
-        }
-
-
-        EventMessage exceptionEvent = new EventMessage("exception", exceptionArgs);
+    public static void collect(ExceptionBuilder builder) {
+        EventMessage exceptionEvent = new EventMessage("exception", builder.build());
         Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
         dispatcher.sendMessage(dispatcher.getMessageConverter().from(exceptionEvent));
     }
+
 }

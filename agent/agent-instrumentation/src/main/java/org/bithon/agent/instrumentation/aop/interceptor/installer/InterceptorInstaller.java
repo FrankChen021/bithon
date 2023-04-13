@@ -74,7 +74,7 @@ public class InterceptorInstaller {
         new AgentBuilder
                 .Default()
                 .assureReadEdgeFromAndTo(inst, IBithonObject.class)
-                .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(ElementMatchers.nameStartsWith("org.bithon.shaded.").or(ElementMatchers.isSynthetic())))
+                .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(ElementMatchers.nameStartsWith("org.bithon.shaded.net.bytebuddy.").or(ElementMatchers.isSynthetic())))
                 .type(new NameMatcher<>(new StringSetMatcher(types)))
                 .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule, ProtectionDomain protectionDomain) -> {
                     //
@@ -233,8 +233,10 @@ public class InterceptorInstaller {
                     }
                     builder = builder.method(pointCutDescriptor.getMethodMatcher())
                                      .intercept(Advice.withCustomMapping()
+                                                      .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(pointCutDescriptor.getInterceptorClassName()))
                                                       .bind(AdviceAnnotation.Interceptor.class, new AdviceAnnotation.InterceptorResolver(typeDescription, fieldName))
-                                                      .to(ReplacementAdvice.class).wrap(StubMethod.INSTANCE));
+                                                      .to(ReplacementAdvice.class)
+                                                      .wrap(StubMethod.INSTANCE));
                     break;
 
                 default:
