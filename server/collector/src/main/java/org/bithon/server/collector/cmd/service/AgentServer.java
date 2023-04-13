@@ -16,7 +16,7 @@
 
 package org.bithon.server.collector.cmd.service;
 
-import org.bithon.component.brpc.channel.ServerChannel;
+import org.bithon.component.brpc.channel.BrpcServer;
 import org.springframework.stereotype.Service;
 
 /**
@@ -24,15 +24,15 @@ import org.springframework.stereotype.Service;
  * @date 2021/7/2 5:20 下午
  */
 @Service
-public class AgentCommandService {
+public class AgentServer {
 
-    private ServerChannel serverChannel;
+    private BrpcServer brpcServer;
 
-    public ServerChannel getServerChannel() {
-        return serverChannel;
+    public BrpcServer getBrpcServer() {
+        return brpcServer;
     }
 
-    public void setServerChannel(ServerChannel serverChannel) {
-        this.serverChannel = serverChannel;
+    public void setBrpcServer(BrpcServer brpcServer) {
+        this.brpcServer = brpcServer;
     }
 }

@@ -18,15 +18,17 @@ package org.bithon.component.brpc.endpoint;
 
 import java.util.Collection;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RoundRobinEndPointProvider implements IEndPointProvider {
-    final EndPoint[] endpoints;
-    int index;
+    private final EndPoint[] endpoints;
+    private final AtomicInteger index;
 
     public RoundRobinEndPointProvider(EndPoint... endpoints) {
         this.endpoints = endpoints;
 
-        index = ThreadLocalRandom.current().nextInt(endpoints.length);
+        // Use a random value as start
+        index = new AtomicInteger(ThreadLocalRandom.current().nextInt(endpoints.length));
     }
 
     public RoundRobinEndPointProvider(Collection<EndPoint> endpoints) {
@@ -35,6 +37,6 @@ public class RoundRobinEndPointProvider implements IEndPointProvider {
 
     @Override
     public EndPoint getEndpoint() {
-        return endpoints[index++ % endpoints.length];
+        return endpoints[index.getAndIncrement() % endpoints.length];
     }
 }

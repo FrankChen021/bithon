@@ -56,8 +56,8 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * @author frankchen
  */
-public class ClientChannel implements IChannelWriter, Closeable {
-    private static final ILogAdaptor LOG = LoggerFactory.getLogger(ClientChannel.class);
+public class BrpcClient implements IBrpcChannel, Closeable {
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(BrpcClient.class);
     private final Bootstrap bootstrap;
     private final AtomicReference<Channel> channel = new AtomicReference<>();
     private final IEndPointProvider endPointProvider;
@@ -81,15 +81,15 @@ public class ClientChannel implements IChannelWriter, Closeable {
     private final InvocationManager invocationManager;
 
     /**
-     * It's better to use {@link ClientChannelBuilder} to instantiate the instance
+     * It's better to use {@link BrpcClientBuilder} to instantiate the instance
      *
      * @param nWorkerThreads if it's 0, worker threads will be default to Runtime.getRuntime().availableProcessors() * 2
      */
-    public ClientChannel(IEndPointProvider endPointProvider,
-                         int nWorkerThreads,
-                         int maxRetry,
-                         Duration retryInterval,
-                         String appName) {
+    public BrpcClient(IEndPointProvider endPointProvider,
+                      int nWorkerThreads,
+                      int maxRetry,
+                      Duration retryInterval,
+                      String appName) {
         this.endPointProvider = endPointProvider;
         this.maxRetry = maxRetry;
         this.retryInterval = retryInterval;
@@ -233,12 +233,12 @@ public class ClientChannel implements IChannelWriter, Closeable {
     class ClientChannelManager extends ChannelInboundHandlerAdapter {
         @Override
         public void channelActive(ChannelHandlerContext ctx) {
-            ClientChannel.this.channel.getAndSet(ctx.channel());
+            BrpcClient.this.channel.getAndSet(ctx.channel());
         }
 
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-            ClientChannel.this.channel.getAndSet(null);
+            BrpcClient.this.channel.getAndSet(null);
             super.channelInactive(ctx);
         }
     }

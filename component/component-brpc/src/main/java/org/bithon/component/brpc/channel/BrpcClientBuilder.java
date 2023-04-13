@@ -25,7 +25,7 @@ import java.time.Duration;
  * @author frank.chen021@outlook.com
  * @date 2022/12/10 14:10
  */
-public class ClientChannelBuilder {
+public class BrpcClientBuilder {
     private IEndPointProvider endpointProvider;
     private int workerThreads = 1;
 
@@ -34,41 +34,41 @@ public class ClientChannelBuilder {
 
     private String appName;
 
-    public static ClientChannelBuilder builder() {
-        return new ClientChannelBuilder();
+    public static BrpcClientBuilder builder() {
+        return new BrpcClientBuilder();
     }
 
-    public ClientChannelBuilder endpointProvider(String host, int port) {
+    public BrpcClientBuilder endpointProvider(String host, int port) {
         this.endpointProvider = new SingleEndPointProvider(host, port);
         return this;
     }
 
-    public ClientChannelBuilder endpointProvider(IEndPointProvider endPointProvider) {
+    public BrpcClientBuilder endpointProvider(IEndPointProvider endPointProvider) {
         this.endpointProvider = endPointProvider;
         return this;
     }
 
-    public ClientChannelBuilder workerThreads(int nWorkerThreads) {
+    public BrpcClientBuilder workerThreads(int nWorkerThreads) {
         this.workerThreads = nWorkerThreads;
         return this;
     }
 
-    public ClientChannelBuilder maxRetry(int maxRetry) {
+    public BrpcClientBuilder maxRetry(int maxRetry) {
         this.maxRetry = maxRetry;
         return this;
     }
 
-    public ClientChannelBuilder retryInterval(Duration retryInterval) {
+    public BrpcClientBuilder retryInterval(Duration retryInterval) {
         this.retryInterval = retryInterval;
         return this;
     }
 
-    public ClientChannelBuilder applicationName(String appName) {
+    public BrpcClientBuilder applicationName(String appName) {
         this.appName = appName;
         return this;
     }
 
-    public ClientChannel build() {
-        return new ClientChannel(endpointProvider, workerThreads, maxRetry, retryInterval, appName);
+    public BrpcClient build() {
+        return new BrpcClient(endpointProvider, workerThreads, maxRetry, retryInterval, appName);
     }
 }

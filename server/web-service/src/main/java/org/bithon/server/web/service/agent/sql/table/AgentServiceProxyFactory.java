@@ -22,7 +22,7 @@ import feign.Feign;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
-import org.bithon.component.brpc.channel.IChannelWriter;
+import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.invocation.InvocationManager;
 import org.bithon.component.brpc.message.Headers;
@@ -136,7 +136,7 @@ public class AgentServiceProxyFactory {
                         // The agent's Brpc services MUST return type of Collection
                         return (Collection<?>) brpcServiceInvoker.invoke("bithon-webservice",
                                                                          Headers.EMPTY,
-                                                                         new ProxyChannel(proxyServer, context),
+                                                                         new BrpcChannelOverHttp(proxyServer, context),
                                                                          30_000,
                                                                          agentServiceMethod,
                                                                          args);
@@ -172,12 +172,12 @@ public class AgentServiceProxyFactory {
         }
     }
 
-    class ProxyChannel implements IChannelWriter {
+    class BrpcChannelOverHttp implements IBrpcChannel {
         private final IDiscoveryClient.HostAndPort proxyHost;
         private final Map<String, Object> context;
 
-        public ProxyChannel(IDiscoveryClient.HostAndPort proxyHost,
-                            Map<String, Object> context) {
+        public BrpcChannelOverHttp(IDiscoveryClient.HostAndPort proxyHost,
+                                   Map<String, Object> context) {
             this.proxyHost = proxyHost;
             this.context = context;
         }

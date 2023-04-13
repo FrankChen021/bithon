@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
 /**
  * @author frankchen
  */
-public class ServerChannel implements Closeable {
+public class BrpcServer implements Closeable {
 
     private final NioEventLoopGroup bossGroup;
     private final NioEventLoopGroup workerGroup;
@@ -66,11 +66,11 @@ public class ServerChannel implements Closeable {
 
     private final InvocationManager invocationManager;
 
-    public ServerChannel() {
+    public BrpcServer() {
         this(Runtime.getRuntime().availableProcessors());
     }
 
-    public ServerChannel(int nThreadCount) {
+    public BrpcServer(int nThreadCount) {
         this.bossGroup = new NioEventLoopGroup(1, NamedThreadFactory.of("brpc-server"));
         this.workerGroup = new NioEventLoopGroup(nThreadCount, NamedThreadFactory.of("brpc-s-worker"));
 
@@ -84,12 +84,12 @@ public class ServerChannel implements Closeable {
      * 1. only those methods defined in interface will be bound
      * 2. methods name can be the same, but the methods with same name must use {@link BrpcMethod} to give alias name to each method
      */
-    public ServerChannel bindService(Object impl) {
+    public BrpcServer bindService(Object impl) {
         serviceRegistry.addService(impl);
         return this;
     }
 
-    public ServerChannel start(int port) {
+    public BrpcServer start(int port) {
 
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         serverBootstrap
@@ -221,14 +221,14 @@ public class ServerChannel implements Closeable {
         public <T> T getRemoteService(Class<T> serviceClass, int timeout) {
             return ServiceStubFactory.create(null,
                                              Headers.EMPTY,
-                                             new Server2ClientChannelWriter(channel),
+                                             new Server2ClientChannel(channel),
                                              serviceClass,
                                              timeout,
                                              invocationManager);
         }
 
         public LowLevelInvoker getLowLevelInvoker() {
-            return new LowLevelInvoker(new Server2ClientChannelWriter(channel), invocationManager);
+            return new LowLevelInvoker(new Server2ClientChannel(channel), invocationManager);
         }
     }
 
@@ -289,10 +289,10 @@ public class ServerChannel implements Closeable {
         }
     }
 
-    private static class Server2ClientChannelWriter implements IChannelWriter {
+    private static class Server2ClientChannel implements IBrpcChannel {
         private final Channel channel;
 
-        public Server2ClientChannelWriter(Channel channel) {
+        public Server2ClientChannel(Channel channel) {
             this.channel = channel;
         }
 

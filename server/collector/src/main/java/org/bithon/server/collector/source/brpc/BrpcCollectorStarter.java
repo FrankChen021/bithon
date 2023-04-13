@@ -23,8 +23,8 @@ import org.bithon.agent.rpc.brpc.event.IEventCollector;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
-import org.bithon.component.brpc.channel.ServerChannel;
-import org.bithon.server.collector.cmd.service.AgentCommandService;
+import org.bithon.component.brpc.channel.BrpcServer;
+import org.bithon.server.collector.cmd.service.AgentServer;
 import org.bithon.server.collector.config.AgentConfigurationService;
 import org.bithon.server.collector.config.BrpcSettingFetcher;
 import org.bithon.server.sink.common.service.UriNormalizer;
@@ -56,7 +56,11 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
     private ApplicationContext applicationContext;
     private boolean isRunning;
 
-    @SuppressWarnings("unchecked")
+    static {
+        // Make sure the underlying netty use JDK direct memory region so that the memory can be tracked
+        System.setProperty("org.bithon.shaded.io.netty.maxDirectMemory", "0");
+    }
+
     @Override
     public void start() {
         BrpcCollectorConfig config = applicationContext.getBean(BrpcCollectorConfig.class);
@@ -105,9 +109,9 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
         }
 
         serviceGroups.forEach((port, serviceGroup) -> {
-            ServerChannel channel = new ServerChannel();
+            BrpcServer channel = new BrpcServer();
             if (serviceGroup.isCtrl) {
-                applicationContext.getBean(AgentCommandService.class).setServerChannel(channel);
+                applicationContext.getBean(AgentServer.class).setBrpcServer(channel);
             }
             serviceGroup.channel = channel;
             serviceGroup.start(port);
@@ -153,7 +157,7 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
     static class ServiceGroup {
         private final List<ServiceProvider> services = new ArrayList<>();
         private boolean isCtrl;
-        private ServerChannel channel;
+        private BrpcServer channel;
         private int port;
 
         public void start(Integer port) {

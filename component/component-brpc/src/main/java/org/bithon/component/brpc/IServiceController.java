@@ -16,9 +16,15 @@
 
 package org.bithon.component.brpc;
 
-import org.bithon.component.brpc.channel.IChannelWriter;
+import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
 
+/**
+ * A controller on {@link BrpcService}
+ *
+ *
+ * @author frankchen
+ */
 public interface IServiceController {
     void debug(boolean on);
 
@@ -31,5 +37,5 @@ public interface IServiceController {
 
     EndPoint getPeer();
 
-    IChannelWriter getChannel();
+    IBrpcChannel getChannel();
 }

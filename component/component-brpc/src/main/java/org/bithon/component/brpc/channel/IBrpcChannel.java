@@ -23,14 +23,14 @@ import java.io.IOException;
 /**
  * @author frankchen
  */
-public interface IChannelWriter {
+public interface IBrpcChannel {
 
     default void connect() {}
 
     default void disconnect() {}
 
     /**
-     * how long this connection has been set up in millisecond
+     * How long this connection has been set up in millisecond
      */
     long getConnectionLifeTime();
 

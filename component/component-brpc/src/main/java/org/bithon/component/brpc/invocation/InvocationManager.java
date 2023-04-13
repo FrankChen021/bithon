@@ -17,7 +17,7 @@
 package org.bithon.component.brpc.invocation;
 
 import org.bithon.component.brpc.ServiceRegistryItem;
-import org.bithon.component.brpc.channel.IChannelWriter;
+import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.CallerSideException;
@@ -27,7 +27,7 @@ import org.bithon.component.brpc.exception.TimeoutException;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
-import org.bithon.shaded.io.netty.util.internal.StringUtil;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -58,7 +58,7 @@ public class InvocationManager {
 
     public Object invoke(String appName,
                          Headers headers,
-                         IChannelWriter channelWriter,
+                         IBrpcChannel channel,
                          long timeoutMillisecond,
                          Method method,
                          Object[] args) throws Throwable {
@@ -77,19 +77,19 @@ public class InvocationManager {
                                                                           .args(args)
                                                                           .build();
 
-        return invoke(channelWriter,
+        return invoke(channel,
                       serviceRequest,
                       method.getGenericReturnType(),
                       timeoutMillisecond);
     }
 
-    public byte[] invoke(IChannelWriter channelWriter,
+    public byte[] invoke(IBrpcChannel channelWriter,
                          ServiceRequestMessageOut serviceRequest,
                          long timeoutMillisecond) throws Throwable {
         return (byte[]) invoke(channelWriter, serviceRequest, null, timeoutMillisecond);
     }
 
-    private Object invoke(IChannelWriter channelWriter,
+    private Object invoke(IBrpcChannel channelWriter,
                           ServiceRequestMessageOut serviceRequest,
                           Type returnObjectType,
                           long timeoutMillisecond) throws Throwable {
@@ -181,7 +181,7 @@ public class InvocationManager {
             return;
         }
 
-        if (!StringUtil.isNullOrEmpty(response.getException())) {
+        if (StringUtils.hasText(response.getException())) {
             inflightRequest.exception = new CalleeSideException(response.getException());
         } else {
             try {
