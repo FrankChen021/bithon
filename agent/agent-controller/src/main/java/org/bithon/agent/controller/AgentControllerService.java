@@ -74,7 +74,7 @@ public class AgentControllerService implements IAgentService {
         //
         // Start fetcher
         //
-        DynamicConfigurationManager.createInstance(AppInstance.getInstance().getQualifiedAppName(),
+        DynamicConfigurationManager.createInstance(AppInstance.getInstance().getAppName(),
                                                    controller);
     }
 

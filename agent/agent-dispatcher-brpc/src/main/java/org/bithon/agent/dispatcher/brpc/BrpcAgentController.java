@@ -63,7 +63,7 @@ public class BrpcAgentController implements IAgentController {
         brpcClient = BrpcClientBuilder.builder()
                                       .endpointProvider(new RoundRobinEndPointProvider(endpoints))
                                       .workerThreads(2)
-                                      .applicationName(appInstance.getQualifiedAppName())
+                                      .applicationName(appInstance.getAppName())
                                       .maxRetry(3)
                                       .retryInterval(Duration.ofSeconds(2))
                                       .build();

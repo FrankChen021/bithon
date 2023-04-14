@@ -34,7 +34,7 @@ public class AppInstance {
 
     private static final AppInstance INSTANCE = new AppInstance(ConfigurationManager.getInstance().getConfig(AppConfiguration.class));
 
-    private final String qualifiedAppName;
+    private final String appName;
     private final String hostIp;
 
     private final List<IAppInstanceChangedListener> listeners = Collections.synchronizedList(new ArrayList<>());
@@ -48,7 +48,7 @@ public class AppInstance {
             appName = appName + "-" + appConfiguration.getEnv();
         }
 
-        this.qualifiedAppName = appName;
+        this.appName = appName;
         this.port = appConfiguration.getPort();
 
         if (StringUtils.isEmpty(appConfiguration.getInstance())) {
@@ -68,8 +68,8 @@ public class AppInstance {
         return INSTANCE;
     }
 
-    public String getQualifiedAppName() {
-        return qualifiedAppName;
+    public String getAppName() {
+        return appName;
     }
 
     public int getPort() {
