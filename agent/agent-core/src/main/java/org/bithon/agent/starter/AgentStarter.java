@@ -27,6 +27,8 @@ import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
@@ -117,11 +119,19 @@ public class AgentStarter {
     private AopDebugger createAopDebugger() {
         boolean isDebug = ConfigurationManager.getInstance().getConfig(AopConfig.class).isDebug();
 
-        String appName = ConfigurationManager.getInstance().getConfig(ConfigurationManager.BITHON_APPLICATION_NAME, String.class);
-        String env = ConfigurationManager.getInstance().getConfig(ConfigurationManager.BITHON_APPLICATION_ENV, String.class);
+        String appName = Preconditions.checkNotNull(ConfigurationManager.getInstance()
+                                                                        .getConfig(ConfigurationManager.BITHON_APPLICATION_NAME, String.class),
+                                                    "application.name is not configured.");
+
+        String env = ConfigurationManager.getInstance()
+                                         .getConfig(ConfigurationManager.BITHON_APPLICATION_ENV, String.class);
+        if (StringUtils.hasText(env)) {
+            // Compatibility
+            appName += "-" + env;
+        }
         File targetDirectory = AgentDirectory.getSubDirectory(AgentDirectory.TMP_DIR
                                                               + separator
-                                                              + appName + "-" + env
+                                                              + appName
                                                               + separator
                                                               + "classes");
 
