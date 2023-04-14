@@ -24,13 +24,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @author Frank Chen
- * @date 1/3/23 8:18 pm
+ * @author frank.chen021@outlook.com
+ * @date 2023/4/2 16:20
  */
-public class ThreadTable extends AbstractBaseTable {
+public class JVMOptionTable extends AbstractBaseTable {
     private final AgentServiceProxyFactory proxyFactory;
 
-    public ThreadTable(AgentServiceProxyFactory proxyFactory) {
+    public JVMOptionTable(AgentServiceProxyFactory proxyFactory) {
         this.proxyFactory = proxyFactory;
     }
 
@@ -39,14 +39,14 @@ public class ThreadTable extends AbstractBaseTable {
         return proxyFactory.create(IAgentProxyApi.class,
                                    executionContext.getParameters(),
                                    IJvmCommand.class)
-                           .dumpThreads()
+                           .getVMOptions()
                            .stream()
-                           .map(IJvmCommand.ThreadInfo::toObjects)
+                           .map(IJvmCommand.VMOption::getObjects)
                            .collect(Collectors.toList());
     }
 
     @Override
     protected Class<?> getRecordClazz() {
-        return IJvmCommand.ThreadInfo.class;
+        return IJvmCommand.VMOption.class;
     }
 }

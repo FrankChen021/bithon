@@ -25,6 +25,7 @@ import org.bithon.server.web.service.agent.sql.table.ClassTable;
 import org.bithon.server.web.service.agent.sql.table.ConfigurationTable;
 import org.bithon.server.web.service.agent.sql.table.InstanceTable;
 import org.bithon.server.web.service.agent.sql.table.InstrumentedMethodTable;
+import org.bithon.server.web.service.agent.sql.table.JVMOptionTable;
 import org.bithon.server.web.service.agent.sql.table.LoggerTable;
 import org.bithon.server.web.service.agent.sql.table.ThreadTable;
 import org.springframework.context.ApplicationContext;
@@ -42,12 +43,13 @@ public class AgentSchema extends AbstractSchema {
         AgentServiceProxyFactory agentServiceProxyFactory = new AgentServiceProxyFactory(serviceInvoker.getDiscoveryClient(),
                                                                                          serviceInvoker.getExecutor(),
                                                                                          applicationContext);
-        this.tableMap = ImmutableMap.of("instance", new InstanceTable(serviceInvoker),
-                                        "loaded_class", new ClassTable(agentServiceProxyFactory),
-                                        "thread", new ThreadTable(agentServiceProxyFactory),
-                                        "configuration", new ConfigurationTable(agentServiceProxyFactory),
+        this.tableMap = ImmutableMap.of("configuration", new ConfigurationTable(agentServiceProxyFactory),
+                                        "instance", new InstanceTable(serviceInvoker),
                                         "instrumented_method", new InstrumentedMethodTable(agentServiceProxyFactory),
-                                        "logger", new LoggerTable(agentServiceProxyFactory)
+                                        "loaded_class", new ClassTable(agentServiceProxyFactory),
+                                        "logger", new LoggerTable(agentServiceProxyFactory),
+                                        "thread", new ThreadTable(agentServiceProxyFactory),
+                                        "vm_option", new JVMOptionTable(agentServiceProxyFactory)
         );
     }
 

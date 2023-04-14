@@ -111,6 +111,12 @@
         <Bug pattern="UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
 
+    <!-- Agent RPC -->
+    <Match>
+        <Class name="org.bithon.agent.rpc.brpc.cmd.IJvmCommand$VMOption"/>
+        <Bug pattern="UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD" />
+    </Match>
+
     <Bug pattern="EI_EXPOSE_STATIC_REP2" />
     <Bug pattern="MS_EXPOSE_REP" />
     <Bug pattern="AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION"/>
