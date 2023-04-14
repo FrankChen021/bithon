@@ -19,6 +19,7 @@ package org.bithon.server.collector.cmd.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
+import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
@@ -39,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -75,10 +77,17 @@ public class AgentProxyApi implements IAgentProxyApi {
                                                      .stream()
                                                      .map((session) -> {
                                                          AgentInstanceRecord instance = new AgentInstanceRecord();
-                                                         instance.setAppName(session.getAppName());
-                                                         instance.setAgentId(session.getAppId());
-                                                         instance.setEndpoint(session.getEndpoint().toString());
-                                                         instance.setAgentVersion(session.getClientVersion());
+                                                         instance.setAppName(session.getRemoteApplicationName());
+                                                         instance.setAgentId(session.getRemoteAttribute(Headers.HEADER_APP_ID, session.getRemoteEndpoint()));
+                                                         instance.setEndpoint(session.getRemoteEndpoint());
+                                                         instance.setAgentVersion(session.getRemoteAttribute(Headers.HEADER_VERSION));
+
+                                                         long start = 0;
+                                                         try {
+                                                             start = Long.parseLong(session.getRemoteAttribute(Headers.HEADER_START_TIME, "0"));
+                                                         } catch (NumberFormatException ignored) {
+                                                         }
+                                                         instance.setStartAt(new Timestamp(start).toLocalDateTime());
                                                          return instance;
                                                      })
                                                      .collect(Collectors.toList()));
