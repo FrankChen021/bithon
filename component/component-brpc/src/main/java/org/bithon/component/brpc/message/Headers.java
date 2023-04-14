@@ -27,9 +27,11 @@ public class Headers extends HashMap<String, String> {
     /**
      * Version-Git Commit-Timestamp
      */
-    public static final String HEADER_VERSION = "Version";
+    public static final String HEADER_VERSION = "version";
 
     public static final String HEADER_APP_ID = "appId";
+    public static final String HEADER_START_TIME = "startTime";
 
     public static final Headers EMPTY = new Headers();
+
 }

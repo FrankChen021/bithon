@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 /**
  * An API that proxies remote services on agents over HTTP.
@@ -45,9 +46,10 @@ public interface IAgentProxyApi {
         public String agentId;
         public String endpoint;
         public String agentVersion;
+        public LocalDateTime startAt;
 
         public Object[] toObjectArray() {
-            return new Object[]{appName, agentId, endpoint, agentVersion};
+            return new Object[]{appName, agentId, endpoint, agentVersion, startAt};
         }
     }
 

@@ -231,7 +231,7 @@ public class BrpcRpcTest {
             List<BrpcServer.Session> clients = brpcServer.getSessions();
             Assert.assertEquals(1, clients.size());
 
-            String appId = clients.get(0).getAppId();
+            String appId = clients.get(0).getRemoteAttribute(Headers.HEADER_APP_ID);
             IExampleService clientService = brpcServer.getRemoteService(appId, IExampleService.class);
 
             //

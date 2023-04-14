@@ -28,7 +28,6 @@ import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.io.netty.bootstrap.ServerBootstrap;
 import org.bithon.shaded.io.netty.buffer.PooledByteBufAllocator;
 import org.bithon.shaded.io.netty.channel.Channel;
@@ -48,6 +47,8 @@ import org.bithon.shaded.io.netty.util.internal.StringUtil;
 import java.io.Closeable;
 import java.net.SocketAddress;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -140,7 +141,7 @@ public class BrpcServer implements Closeable {
     public Session getSession(String remoteAppId) {
         return sessionManager.getSessions()
                              .stream()
-                             .filter(s -> remoteAppId.equals(s.getAppId()))
+                             .filter(s -> remoteAppId.equals(s.getRemoteAttribute(Headers.HEADER_APP_ID, s.getRemoteEndpoint())))
                              .findFirst()
                              .orElseThrow(() -> new SessionNotFoundException("Can't find any connected remote application [%s] on this server.", remoteAppId));
     }
@@ -159,7 +160,7 @@ public class BrpcServer implements Closeable {
     public <T> List<T> getRemoteServices(String appName, Class<T> serviceClass) {
         return sessionManager.getSessions()
                              .stream()
-                             .filter(s -> appName.equals(s.getAppName()))
+                             .filter(s -> appName.equals(s.getRemoteApplicationName()))
                              .map(s -> s.getRemoteService(serviceClass, 5_000))
                              .collect(Collectors.toList());
     }
@@ -170,52 +171,43 @@ public class BrpcServer implements Closeable {
         /**
          * Socket endpoint of client
          */
-        private final EndPoint endpoint;
+        private final String remoteEndpoint;
         private final InvocationManager invocationManager;
-        private String appName;
+        private String remoteApplicationName;
 
         /**
-         * a unique id for client
+         * Attributes from remote side
          */
-        private String appId;
-
-        private String clientVersion;
+        private Map<String, String> remoteAttribute = Collections.emptyMap();
 
         private Session(Channel channel, InvocationManager invocationManager) {
             this.channel = channel;
-            this.endpoint = EndPoint.of(channel.remoteAddress());
+            this.remoteEndpoint = EndPoint.of(channel.remoteAddress()).toString();
             this.invocationManager = invocationManager;
-
-            // appId default to endpoint at first
-            this.appId = this.endpoint.toString();
         }
 
-        public String getAppName() {
-            return appName;
+        public String getRemoteApplicationName() {
+            return remoteApplicationName;
         }
 
         public Channel getChannel() {
             return channel;
         }
 
-        public EndPoint getEndpoint() {
-            return endpoint;
+        public String getRemoteEndpoint() {
+            return remoteEndpoint;
         }
 
-        public String getAppId() {
-            return appId;
+        public void setRemoteAttribute(Map<String, String> attributes) {
+            this.remoteAttribute = Collections.unmodifiableMap(new HashMap<>(attributes));
         }
 
-        public void setAppId(String appId) {
-            this.appId = appId;
+        public String getRemoteAttribute(String name) {
+            return this.remoteAttribute.get(name);
         }
 
-        public String getClientVersion() {
-            return clientVersion;
-        }
-
-        public void setClientVersion(String clientVersion) {
-            this.clientVersion = clientVersion;
+        public String getRemoteAttribute(String name, String defaultValue) {
+            return this.remoteAttribute.getOrDefault(name, defaultValue);
         }
 
         public <T> T getRemoteService(Class<T> serviceClass, int timeout) {
@@ -261,22 +253,14 @@ public class BrpcServer implements Closeable {
 
             Session session = sessions.get(ctx.channel().id().asLongText());
             if (session != null) {
-
                 // Update appName
                 ServiceRequestMessageIn request = (ServiceRequestMessageIn) msg;
                 if (!StringUtil.isNullOrEmpty(request.getAppName())) {
-                    session.appName = request.getAppName();
+                    session.remoteApplicationName = request.getAppName();
                 }
 
-                String appId = request.getHeaders().get(Headers.HEADER_APP_ID);
-                if (!StringUtils.isEmpty(appId)) {
-                    session.setAppId(appId);
-                }
-
-                String buildId = request.getHeaders().get(Headers.HEADER_VERSION);
-                if (!StringUtils.isEmpty(buildId)) {
-                    session.setClientVersion(buildId);
-                }
+                // Update additional attributes
+                session.setRemoteAttribute(request.getHeaders());
             }
 
             super.channelRead(ctx, msg);

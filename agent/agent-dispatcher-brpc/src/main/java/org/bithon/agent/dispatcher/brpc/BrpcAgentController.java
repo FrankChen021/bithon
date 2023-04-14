@@ -34,6 +34,7 @@ import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
+import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +73,7 @@ public class BrpcAgentController implements IAgentController {
             // Set the default the appId
             brpcClient.setHeader(Headers.HEADER_APP_ID, appInstance.getHostAndPort());
             brpcClient.setHeader(Headers.HEADER_VERSION, AgentBuildVersion.getString());
+            brpcClient.setHeader(Headers.HEADER_START_TIME, String.valueOf(ManagementFactory.getRuntimeMXBean().getStartTime()));
         }
 
         // Update appId once the port is configured,
@@ -79,6 +81,7 @@ public class BrpcAgentController implements IAgentController {
         appInstance.addListener((port) -> {
             brpcClient.setHeader(Headers.HEADER_APP_ID, AppInstance.getInstance().getHostAndPort());
             brpcClient.setHeader(Headers.HEADER_VERSION, AgentBuildVersion.getString());
+            brpcClient.setHeader(Headers.HEADER_START_TIME, String.valueOf(ManagementFactory.getRuntimeMXBean().getStartTime()));
 
             if (refreshListener != null) {
                 try {
