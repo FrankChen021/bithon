@@ -43,6 +43,6 @@ public class BrpcSettingFetcher implements ISettingFetcher {
             // Compatibility with old agent protocol
             appName += "-" + env;
         }
-        return configurationService.getSettings(header.getAppName(), 0);
+        return configurationService.getSettings(appName, 0);
     }
 }
