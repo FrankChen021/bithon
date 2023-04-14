@@ -113,7 +113,7 @@
 
     <!-- Agent RPC -->
     <Match>
-        <Class name="org.bithon.agent.rpc.brpc.cmd.IJvmCommand"/>
+        <Class name="org.bithon.agent.rpc.brpc.cmd.IJvmCommand$VMOption"/>
         <Bug pattern="UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
 
