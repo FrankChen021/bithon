@@ -63,7 +63,7 @@ public class BrpcAgentController implements IAgentController {
         brpcClient = BrpcClientBuilder.builder()
                                       .endpointProvider(new RoundRobinEndPointProvider(endpoints))
                                       .workerThreads(2)
-                                      .applicationName(appInstance.getQualifiedAppName())
+                                      .applicationName(appInstance.getAppName())
                                       .maxRetry(3)
                                       .retryInterval(Duration.ofSeconds(2))
                                       .build();
@@ -91,7 +91,7 @@ public class BrpcAgentController implements IAgentController {
     }
 
     @Override
-    public Map<String, String> getAgentConfiguration(String appName, String env, long lastModifiedSince) {
+    public Map<String, String> getAgentConfiguration(String appName, long lastModifiedSince) {
         if (fetcher == null) {
             try {
                 fetcher = brpcClient.getRemoteService(ISettingFetcher.class);
@@ -103,8 +103,8 @@ public class BrpcAgentController implements IAgentController {
 
         AppInstance appInstance = AppInstance.getInstance();
         BrpcMessageHeader header = BrpcMessageHeader.newBuilder()
-                                                    .setAppName(appInstance.getAppName())
-                                                    .setEnv(appInstance.getEnv())
+                                                    .setAppName(appName)
+                                                    .setEnv("")
                                                     .setInstanceName(appInstance.getHostAndPort())
                                                     .setHostIp(appInstance.getHostIp())
                                                     .setPort(appInstance.getPort())

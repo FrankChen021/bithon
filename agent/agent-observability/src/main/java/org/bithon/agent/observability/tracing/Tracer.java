@@ -68,7 +68,7 @@ public class Tracer {
                         ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
                                                                                             .getDynamicConfig("tracing.samplingConfigs.default",
                                                                                                               TraceSamplingConfig.class));
-                        INSTANCE = new Tracer(appInstance.getQualifiedAppName(), appInstance.getHostAndPort())
+                        INSTANCE = new Tracer(appInstance.getAppName(), appInstance.getHostAndPort())
                             .propagator(new DefaultPropagator(sampler))
                             .traceIdGenerator(new UUIDGenerator())
                             .spanIdGenerator(new DefaultSpanIdGenerator())

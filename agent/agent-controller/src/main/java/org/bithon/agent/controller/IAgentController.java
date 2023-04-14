@@ -25,7 +25,6 @@ import java.util.Map;
 public interface IAgentController {
 
     Map<String, String> getAgentConfiguration(String appName,
-                                              String env,
                                               long lastModifiedSince);
 
     /**

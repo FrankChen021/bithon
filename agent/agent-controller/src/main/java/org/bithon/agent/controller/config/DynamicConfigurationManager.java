@@ -48,15 +48,14 @@ public class DynamicConfigurationManager {
     private static DynamicConfigurationManager INSTANCE = null;
 
     private final String appName;
-    private final String env;
+
     private final IAgentController controller;
     private final List<IConfigurationChangedListener> listeners;
 
     private final PeriodicTask updateConfigTask;
 
-    private DynamicConfigurationManager(String appName, String env, IAgentController controller) {
+    private DynamicConfigurationManager(String appName, IAgentController controller) {
         this.appName = appName;
-        this.env = env;
         this.controller = controller;
         this.listeners = Collections.synchronizedList(new ArrayList<>());
         this.updateConfigTask = new UpdateConfigurationTask();
@@ -68,8 +67,8 @@ public class DynamicConfigurationManager {
         this.controller.refreshListener(updateConfigTask::runImmediately);
     }
 
-    public static void createInstance(String appName, String env, IAgentController controller) {
-        INSTANCE = new DynamicConfigurationManager(appName, env, controller);
+    public static void createInstance(String appName, IAgentController controller) {
+        INSTANCE = new DynamicConfigurationManager(appName, controller);
         INSTANCE.updateConfigTask.start();
     }
 
@@ -96,10 +95,10 @@ public class DynamicConfigurationManager {
 
         @Override
         protected void onRun() throws Exception {
-            log.info("Fetch configuration for {}-{}", appName, env);
+            log.info("Fetch configuration for {}-{}", appName);
 
             // Get configuration from remote server
-            Map<String, String> configurations = controller.getAgentConfiguration(appName, env, lastModifiedAt);
+            Map<String, String> configurations = controller.getAgentConfiguration(appName, lastModifiedAt);
             if (CollectionUtils.isEmpty(configurations)) {
                 return;
             }

@@ -35,21 +35,25 @@ public class AppInstance {
     private static final AppInstance INSTANCE = new AppInstance(ConfigurationManager.getInstance().getConfig(AppConfiguration.class));
 
     private final String appName;
-    private final String qualifiedAppName;
     private final String hostIp;
-    private final String env;
+
     private final List<IAppInstanceChangedListener> listeners = Collections.synchronizedList(new ArrayList<>());
     private int port;
     private String hostAndPort;
 
     private AppInstance(AppConfiguration appConfiguration) {
-        this.appName = appConfiguration.getName();
-        this.qualifiedAppName = appName + "-" + appConfiguration.getEnv();
-        this.env = appConfiguration.getEnv();
+        String appName = appConfiguration.getName();
+        if (StringUtils.hasText(appConfiguration.getEnv())) {
+            // Compatibility
+            appName = appName + "-" + appConfiguration.getEnv();
+        }
+
+        this.appName = appName;
         this.port = appConfiguration.getPort();
 
         if (StringUtils.isEmpty(appConfiguration.getInstance())) {
-            NetworkUtils.IpAddress ipAddress = NetworkUtils.getIpAddress();
+            // If the bithon.application.instance is not configured, construct the instance by a non loop-back IP
+            NetworkUtils.IpAddress ipAddress = NetworkUtils.getHostIpAddress();
             InetAddress address = null != ipAddress.getInetAddress()
                                   ? ipAddress.getInetAddress()
                                   : ipAddress.getLocalInetAddress();
@@ -65,8 +69,8 @@ public class AppInstance {
         return INSTANCE;
     }
 
-    public String getQualifiedAppName() {
-        return qualifiedAppName;
+    public String getAppName() {
+        return appName;
     }
 
     public int getPort() {
@@ -88,9 +92,6 @@ public class AppInstance {
         }
     }
 
-    public String getAppName() {
-        return appName;
-    }
 
     public String getHostIp() {
         return hostIp;
@@ -100,8 +101,11 @@ public class AppInstance {
         return hostAndPort;
     }
 
+    /**
+     * Kept for backward compatibility
+     */
     public String getEnv() {
-        return env;
+        return "";
     }
 
     public void addListener(IAppInstanceChangedListener listener) {
