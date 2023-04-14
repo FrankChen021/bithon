@@ -52,7 +52,8 @@ public class AppInstance {
         this.port = appConfiguration.getPort();
 
         if (StringUtils.isEmpty(appConfiguration.getInstance())) {
-            NetworkUtils.IpAddress ipAddress = NetworkUtils.getIpAddress();
+            // If the bithon.application.instance is not configured, construct the instance by a non loop-back IP
+            NetworkUtils.IpAddress ipAddress = NetworkUtils.getHostIpAddress();
             InetAddress address = null != ipAddress.getInetAddress()
                                   ? ipAddress.getInetAddress()
                                   : ipAddress.getLocalInetAddress();

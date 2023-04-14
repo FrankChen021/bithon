@@ -29,7 +29,7 @@ import java.util.List;
  */
 public class NetworkUtils {
 
-    public static NetworkUtils.IpAddress getIpAddress() {
+    public static NetworkUtils.IpAddress getHostIpAddress() {
         List<InetAddress> localIPs = new ArrayList<>();
         List<InetAddress> netIPs = new ArrayList<>();
         try {
