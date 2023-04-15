@@ -50,7 +50,7 @@ public interface IAgentProxyApi {
         public LocalDateTime startAt;
 
         public Object[] toObjectArray() {
-            return new Object[]{appName, instance, endpoint, collector,agentVersion, startAt};
+            return new Object[]{appName, instance, endpoint, collector, agentVersion, startAt};
         }
     }
 
@@ -61,8 +61,9 @@ public interface IAgentProxyApi {
 
     /**
      * Proxy Brpc services provided at agent side to allow them to be used over HTTP.
+     *
      * @param instance the target client instance that the request will be sent to.
-     * @param token For WRITE operations(the method name does not start with 'get' or 'dump'), the token is required.
+     * @param token    For WRITE operations(the method name does not start with 'get' or 'dump'), the token is required.
      */
     @PostMapping("/api/agent/service/proxy")
     byte[] proxy(@RequestParam(name = INSTANCE_FIELD) String instance,
