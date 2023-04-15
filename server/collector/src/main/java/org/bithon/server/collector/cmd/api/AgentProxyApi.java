@@ -78,10 +78,10 @@ public class AgentProxyApi implements IAgentProxyApi {
                                                      .map((session) -> {
                                                          AgentInstanceRecord instance = new AgentInstanceRecord();
                                                          instance.setAppName(session.getRemoteApplicationName());
-                                                         instance.setAgentId(session.getRemoteAttribute(Headers.HEADER_APP_ID, session.getRemoteEndpoint()));
+                                                         instance.setInstance(session.getRemoteAttribute(Headers.HEADER_APP_ID, session.getRemoteEndpoint()));
                                                          instance.setEndpoint(session.getRemoteEndpoint());
+                                                         instance.setCollector(session.getLocalEndpoint());
                                                          instance.setAgentVersion(session.getRemoteAttribute(Headers.HEADER_VERSION));
-
                                                          long start = 0;
                                                          try {
                                                              start = Long.parseLong(session.getRemoteAttribute(Headers.HEADER_START_TIME, "0"));
@@ -94,7 +94,7 @@ public class AgentProxyApi implements IAgentProxyApi {
     }
 
     @Override
-    public byte[] proxy(@RequestParam(name = "agentId") String agentId,
+    public byte[] proxy(@RequestParam(name = INSTANCE_FIELD) String instance,
                         @RequestParam(name = "token") String token,
                         @RequestBody byte[] body) throws IOException {
         //
@@ -138,7 +138,7 @@ public class AgentProxyApi implements IAgentProxyApi {
                                                                                      .txId(fromClient.getTransactionId());
         try {
             responseBuilder.returningRaw(commandService.getBrpcServer()
-                                                       .getSession(agentId)
+                                                       .getSession(instance)
                                                        .getLowLevelInvoker()
                                                        .invoke(toTarget, 30_000));
         } catch (Throwable e) {

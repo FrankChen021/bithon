@@ -35,6 +35,7 @@ import org.apache.calcite.util.NlsString;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
+import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.agent.sql.AgentSchema;
 import org.bithon.server.web.service.common.output.IOutputFormatter;
@@ -151,7 +152,8 @@ public class AgentDiagnosisApi {
             }
 
             String identifier = ((SqlIdentifier) identifierNode).getSimple();
-            if (!"agentId".equalsIgnoreCase(identifier) && !"_token".equalsIgnoreCase(identifier)) {
+            if (!IAgentProxyApi.INSTANCE_FIELD.equalsIgnoreCase(identifier)
+                && !"_token".equalsIgnoreCase(identifier)) {
                 return super.visit(call);
             }
 

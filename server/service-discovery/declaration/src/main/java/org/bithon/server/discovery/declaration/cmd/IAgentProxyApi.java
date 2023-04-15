@@ -43,26 +43,30 @@ public interface IAgentProxyApi {
     @Data
     class AgentInstanceRecord {
         public String appName;
-        public String agentId;
+        public String instance;
         public String endpoint;
+        public String collector;
         public String agentVersion;
         public LocalDateTime startAt;
 
         public Object[] toObjectArray() {
-            return new Object[]{appName, agentId, endpoint, agentVersion, startAt};
+            return new Object[]{appName, instance, endpoint, collector, agentVersion, startAt};
         }
     }
 
     @GetMapping("/api/agent/service/instances")
     ServiceResponse<AgentInstanceRecord> getAgentInstanceList();
 
+    String INSTANCE_FIELD = "instance";
+
     /**
      * Proxy Brpc services provided at agent side to allow them to be used over HTTP.
-     * @param agentId the target agent that the request will be sent to.
-     * @param token For WRITE operations(the method name does not start with 'get' or 'dump'), the token is required.
+     *
+     * @param instance the target client instance that the request will be sent to.
+     * @param token    For WRITE operations(the method name does not start with 'get' or 'dump'), the token is required.
      */
     @PostMapping("/api/agent/service/proxy")
-    byte[] proxy(@RequestParam(name = "agentId") String agentId,
+    byte[] proxy(@RequestParam(name = INSTANCE_FIELD) String instance,
                  @RequestParam(name = "token") String token,
                  @RequestBody byte[] body) throws IOException;
 }

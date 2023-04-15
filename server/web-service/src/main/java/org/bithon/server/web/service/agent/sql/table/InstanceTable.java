@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
  * @author Frank Chen
  * @date 1/3/23 8:18 pm
  */
-@SuppressWarnings({"unchecked"})
 public class InstanceTable extends AbstractBaseTable {
     private final IAgentProxyApi impl;
 
