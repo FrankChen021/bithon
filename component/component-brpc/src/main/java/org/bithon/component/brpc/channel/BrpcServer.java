@@ -168,11 +168,13 @@ public class BrpcServer implements Closeable {
     public static class Session {
         private final Channel channel;
 
+        private final String localEndpoint;
         /**
          * Socket endpoint of client
          */
         private final String remoteEndpoint;
         private final InvocationManager invocationManager;
+
         private String remoteApplicationName;
 
         /**
@@ -183,6 +185,7 @@ public class BrpcServer implements Closeable {
         private Session(Channel channel, InvocationManager invocationManager) {
             this.channel = channel;
             this.remoteEndpoint = EndPoint.of(channel.remoteAddress()).toString();
+            this.localEndpoint = EndPoint.of(channel.localAddress()).toString();
             this.invocationManager = invocationManager;
         }
 
@@ -196,6 +199,10 @@ public class BrpcServer implements Closeable {
 
         public String getRemoteEndpoint() {
             return remoteEndpoint;
+        }
+
+        public String getLocalEndpoint() {
+            return localEndpoint;
         }
 
         public void setRemoteAttribute(Map<String, String> attributes) {
