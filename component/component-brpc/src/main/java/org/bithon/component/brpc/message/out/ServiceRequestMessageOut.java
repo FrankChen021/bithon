@@ -19,6 +19,7 @@ package org.bithon.component.brpc.message.out;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.serializer.Serializer;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
 
 import java.io.IOException;
@@ -74,12 +75,10 @@ public class ServiceRequestMessageOut extends ServiceMessageOut {
         out.writeStringNoTag(this.serviceName);
         out.writeStringNoTag(this.methodName);
 
-        if (this.appName == null) {
-            out.write((byte) 0);
-        } else {
-            out.write((byte) 1);
-            out.writeStringNoTag(this.appName);
-        }
+        // A flag that marks that appName field exists
+        // This is a legacy flag kept for compatibility
+        out.write((byte) 1);
+        out.writeStringNoTag(this.appName);
 
         Serializer serializer = getSerializer();
         out.writeInt32NoTag(serializer.getType());
@@ -166,6 +165,7 @@ public class ServiceRequestMessageOut extends ServiceMessageOut {
         }
 
         public ServiceRequestMessageOut build() {
+            Preconditions.checkArgumentNotNull("appName", request.appName);
             return request;
         }
 

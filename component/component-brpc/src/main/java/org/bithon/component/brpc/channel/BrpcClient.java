@@ -32,6 +32,8 @@ import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.io.netty.bootstrap.Bootstrap;
 import org.bithon.shaded.io.netty.channel.Channel;
 import org.bithon.shaded.io.netty.channel.ChannelHandlerContext;
@@ -59,8 +61,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public class BrpcClient implements IBrpcChannel, Closeable {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(BrpcClient.class);
     private final Bootstrap bootstrap;
-    private final AtomicReference<Channel> channel = new AtomicReference<>();
-    private final IEndPointProvider endPointProvider;
+    private final AtomicReference<Channel> channelRef = new AtomicReference<>();
+    private final IEndPointProvider endpointProvider;
     private final ServiceRegistry serviceRegistry = new ServiceRegistry();
     private NioEventLoopGroup bossGroup;
     private final Duration retryInterval;
@@ -85,12 +87,13 @@ public class BrpcClient implements IBrpcChannel, Closeable {
      *
      * @param nWorkerThreads if it's 0, worker threads will be default to Runtime.getRuntime().availableProcessors() * 2
      */
-    public BrpcClient(IEndPointProvider endPointProvider,
+    public BrpcClient(IEndPointProvider endpointProvider,
                       int nWorkerThreads,
                       int maxRetry,
                       Duration retryInterval,
                       String appName) {
-        this.endPointProvider = endPointProvider;
+        Preconditions.checkIfTrue(StringUtils.hasText("appName"), "appName can't be blank.");
+        this.endpointProvider = Preconditions.checkArgumentNotNull("endpointProvider", endpointProvider);
         this.maxRetry = maxRetry;
         this.retryInterval = retryInterval;
         this.appName = appName;
@@ -118,7 +121,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
 
     @Override
     public void writeAsync(Object obj) {
-        Channel ch = channel.get();
+        Channel ch = channelRef.get();
         if (ch == null) {
             throw new ChannelException("Client channel is closed");
         }
@@ -130,14 +133,14 @@ public class BrpcClient implements IBrpcChannel, Closeable {
         if (bossGroup == null) {
             throw new IllegalStateException("client channel has been shutdown");
         }
-        if (channel.get() == null) {
+        if (channelRef.get() == null) {
             doConnect(maxRetry);
         }
     }
 
     @Override
     public synchronized void disconnect() {
-        Channel ch = channel.getAndSet(null);
+        Channel ch = channelRef.getAndSet(null);
         if (ch != null) {
             ch.flush().disconnect();
         }
@@ -151,19 +154,19 @@ public class BrpcClient implements IBrpcChannel, Closeable {
 
     @Override
     public boolean isActive() {
-        Channel ch = channel.get();
+        Channel ch = channelRef.get();
         return ch != null && ch.isActive();
     }
 
     @Override
     public boolean isWritable() {
-        Channel ch = channel.get();
+        Channel ch = channelRef.get();
         return ch != null && ch.isWritable();
     }
 
     @Override
     public EndPoint getRemoteAddress() {
-        Channel ch = channel.get();
+        Channel ch = channelRef.get();
         return ch != null ? EndPoint.of(ch.remoteAddress()) : null;
     }
 
@@ -176,13 +179,13 @@ public class BrpcClient implements IBrpcChannel, Closeable {
             }
         }
         this.bossGroup = null;
-        this.channel.getAndSet(null);
+        this.channelRef.getAndSet(null);
     }
 
     private void doConnect(int maxRetry) {
         EndPoint endpoint = null;
         for (int i = 0; i < maxRetry; i++) {
-            endpoint = endPointProvider.getEndpoint();
+            endpoint = endpointProvider.getEndpoint();
             try {
                 Future<?> connectFuture = bootstrap.connect(endpoint.getHost(), endpoint.getPort());
                 connectFuture.await(200, TimeUnit.MILLISECONDS);
@@ -233,12 +236,12 @@ public class BrpcClient implements IBrpcChannel, Closeable {
     class ClientChannelManager extends ChannelInboundHandlerAdapter {
         @Override
         public void channelActive(ChannelHandlerContext ctx) {
-            BrpcClient.this.channel.getAndSet(ctx.channel());
+            BrpcClient.this.channelRef.getAndSet(ctx.channel());
         }
 
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-            BrpcClient.this.channel.getAndSet(null);
+            BrpcClient.this.channelRef.getAndSet(null);
             super.channelInactive(ctx);
         }
     }
