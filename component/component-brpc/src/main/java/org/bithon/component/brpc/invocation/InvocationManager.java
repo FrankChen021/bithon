@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Manage inflight requests from a service client to a service provider
+ * Manage in-flight requests from a service client to a service provider
  * <p>
  * Note: the concept 'client' here is a relative concept.
  * It could be a network client, which connects to an RPC server,
@@ -182,7 +182,18 @@ public class InvocationManager {
         }
 
         if (StringUtils.hasText(response.getException())) {
-            inflightRequest.exception = new CalleeSideException(response.getException());
+            String exceptionClassName = "";
+            int separator = response.getException().indexOf(' ');
+            if (separator > 0) {
+                exceptionClassName = response.getException().substring(0, separator);
+                if (!exceptionClassName.endsWith("Exception")) {
+                    // According to exception class name convention, it MUST end with 'Exception',
+                    // Clear the invalid name
+                    exceptionClassName = "";
+                }
+            }
+
+            inflightRequest.exception = new CalleeSideException(exceptionClassName, response.getException());
         } else {
             try {
                 inflightRequest.returnObject = inflightRequest.returnObjectType == null ?

@@ -24,6 +24,8 @@ import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
 import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
+import org.bithon.component.brpc.exception.CalleeSideException;
+import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.brpc.invocation.InvocationManager;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
@@ -46,6 +48,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -140,6 +143,16 @@ public class AgentServiceProxyFactory {
                                                                          30_000,
                                                                          agentServiceMethod,
                                                                          args);
+                    } catch (CalleeSideException e) {
+                        if (SessionNotFoundException.class.getName().equals(e.getExceptionClass())) {
+                            // We're issuing broadcast invocation on all proxy servers,
+                            // but there will be only one proxy server that connects to the target agent instance,
+                            // for any other proxy servers, a SessionNotFoundException is thrown,
+                            // We need to ignore such exception
+                            return Collections.emptyList();
+                        } else {
+                            throw e;
+                        }
                     } catch (RuntimeException e) {
                         throw e;
                     } catch (Throwable e) {
@@ -219,15 +232,15 @@ public class AgentServiceProxyFactory {
                                                                              .encoder(applicationContext.getBean(Encoder.class))
                                                                              .decoder(applicationContext.getBean(Decoder.class))
                                                                              .errorDecoder((methodKey, response) -> {
-                                                                                   try {
-                                                                                       ServiceResponse.Error error = applicationContext.getBean(ObjectMapper.class).readValue(response.body().asInputStream(), ServiceResponse.Error.class);
-                                                                                       return new HttpMappableException(response.status(), "Exception from remote [%s]: %s", proxyHost, error.getMessage());
-                                                                                   } catch (IOException ignored) {
-                                                                                   }
+                                                                                 try {
+                                                                                     ServiceResponse.Error error = applicationContext.getBean(ObjectMapper.class).readValue(response.body().asInputStream(), ServiceResponse.Error.class);
+                                                                                     return new HttpMappableException(response.status(), "Exception from remote [%s]: %s", proxyHost, error.getMessage());
+                                                                                 } catch (IOException ignored) {
+                                                                                 }
 
-                                                                                   // Delegate to default decoder
-                                                                                   return new ErrorDecoder.Default().decode(methodKey, response);
-                                                                               })
+                                                                                 // Delegate to default decoder
+                                                                                 return new ErrorDecoder.Default().decode(methodKey, response);
+                                                                             })
                                                                              .target(IAgentProxyApi.class, "http://" + proxyHost.getHost() + ":" + proxyHost.getPort());
 
                                               try {

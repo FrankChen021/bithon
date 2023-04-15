@@ -18,6 +18,7 @@ package org.bithon.component.brpc.message.out;
 
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.serializer.Serializer;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
 import org.bithon.shaded.io.netty.channel.Channel;
 
@@ -30,7 +31,7 @@ public class ServiceResponseMessageOut extends ServiceMessageOut {
     private long serverResponseAt;
     private Object returning;
     private byte[] returningRaw;
-    private String exception;
+    private Throwable throwable;
 
     public static Builder builder() {
         return new Builder();
@@ -48,11 +49,12 @@ public class ServiceResponseMessageOut extends ServiceMessageOut {
 
         out.writeInt64NoTag(serverResponseAt);
 
-        if (this.exception == null) {
+        if (this.throwable == null) {
             out.writeRawByte(0);
         } else {
             out.writeRawByte(1);
-            out.writeStringNoTag(this.exception);
+            out.writeStringNoTag(StringUtils.format("%s %s", this.throwable.getClass().getName(),
+                                                    this.throwable.getMessage()));
         }
 
         if (this.returning == null) {
@@ -88,8 +90,8 @@ public class ServiceResponseMessageOut extends ServiceMessageOut {
             return this;
         }
 
-        public Builder exception(String exception) {
-            response.exception = exception;
+        public Builder exception(Throwable throwable) {
+            response.throwable = throwable;
             return this;
         }
 

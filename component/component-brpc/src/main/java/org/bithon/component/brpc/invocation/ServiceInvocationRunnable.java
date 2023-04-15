@@ -110,7 +110,7 @@ public class ServiceInvocationRunnable implements Runnable {
                                      .serverResponseAt(System.currentTimeMillis())
                                      .txId(serviceRequest.getTransactionId())
                                      .serializer(serviceRequest.getSerializer())
-                                     .exception(cause.getMessage())
+                                     .exception(cause)
                                      .send(channel);
         }
     }
