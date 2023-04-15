@@ -144,7 +144,7 @@ public class AgentServiceProxyFactory {
                                                                          agentServiceMethod,
                                                                          args);
                     } catch (CalleeSideException e) {
-                        if (e.getExceptionClass().equals(SessionNotFoundException.class.getName())) {
+                        if (SessionNotFoundException.class.getName().equals(e.getExceptionClass())) {
                             // We're issuing broadcast invocation on all proxy servers,
                             // but there will be only one proxy server that connects to the target agent instance,
                             // for any other proxy servers, a SessionNotFoundException is thrown,
