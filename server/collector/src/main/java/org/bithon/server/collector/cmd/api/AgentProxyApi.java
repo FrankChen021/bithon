@@ -142,7 +142,7 @@ public class AgentProxyApi implements IAgentProxyApi {
                                                        .getLowLevelInvoker()
                                                        .invoke(toTarget, 30_000));
         } catch (Throwable e) {
-            responseBuilder.exception(e.getMessage());
+            responseBuilder.exception(e);
         } finally {
             responseBuilder.serverResponseAt(System.currentTimeMillis());
         }
