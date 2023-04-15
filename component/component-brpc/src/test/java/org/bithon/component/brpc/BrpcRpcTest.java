@@ -25,6 +25,7 @@ import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.example.ExampleServiceImpl;
 import org.bithon.component.brpc.example.IExampleService;
 import org.bithon.component.brpc.example.protobuf.WebRequestMetrics;
+import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.ServiceNotFoundException;
 import org.bithon.component.brpc.message.Headers;
@@ -145,8 +146,9 @@ public class BrpcRpcTest {
             try {
                 exampleService.div(6, 0);
                 Assert.fail();
-            } catch (ServiceInvocationException e) {
+            } catch (CalleeSideException e) {
                 System.out.println("Exception Occurred when calling RPC:" + e.getMessage());
+                Assert.assertEquals(ArithmeticException.class.getName(), e.getExceptionClass());
                 Assert.assertTrue(e.getMessage().contains("/ by zero"));
             }
         }
@@ -183,7 +185,7 @@ public class BrpcRpcTest {
     }
 
     @Test
-    public void testConcurrent() {
+    public void testConcurrency() {
         try (BrpcClient ch = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 

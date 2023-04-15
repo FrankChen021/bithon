@@ -22,8 +22,14 @@ package org.bithon.component.brpc.exception;
  * @author frank.chen021@outlook.com
  */
 public class CalleeSideException extends ServiceInvocationException {
+    private final String exceptionClass;
 
-    public CalleeSideException(CharSequence message) {
+    public CalleeSideException(String exceptionClass, CharSequence message) {
         super(message);
+        this.exceptionClass = exceptionClass;
+    }
+
+    public String getExceptionClass() {
+        return exceptionClass;
     }
 }
