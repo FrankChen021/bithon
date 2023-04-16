@@ -19,6 +19,7 @@ package org.bithon.server.storage.jdbc.tracing;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
@@ -43,8 +44,8 @@ import org.jooq.impl.DSL;
 
 import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 /**
@@ -136,8 +137,38 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public List<Histogram> getTraceDistribution(List<IFilter> filters, Timestamp start, Timestamp end) {
-        return Collections.emptyList();
+    public List<Map<String, Object>> getTraceDistribution(List<IFilter> filters, Timestamp start, Timestamp end, int interval) {
+        BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
+
+        String timeBucket = StringUtils.format("UNIX_TIMESTAMP(\"%s\")/ %d * %d", "timestamp", interval, interval);
+        StringBuilder sqlBuilder = new StringBuilder(StringUtils.format("SELECT %s AS \"_timestamp\", count(1) AS \"count\", min(\"%s\") AS \"minResponse\", avg(\"%s\") AS \"avgResponse\", max(\"%s\") AS \"maxResponse\" FROM %s",
+                                                                        timeBucket,
+                                                                        summaryTable.COSTTIMEMS.getName(),
+                                                                        summaryTable.COSTTIMEMS.getName(),
+                                                                        summaryTable.COSTTIMEMS.getName(),
+                                                                        summaryTable.getQualifiedName()));
+        sqlBuilder.append(StringUtils.format(" WHERE \"%s\" >= '%s' AND \"%s\" < '%s'",
+                                             summaryTable.TIMESTAMP.getName(),
+                                             DateTime.toYYYYMMDDhhmmss(start.getTime()),
+                                             summaryTable.TIMESTAMP.getName(),
+                                             DateTime.toYYYYMMDDhhmmss(end.getTime())));
+
+        String moreFilter = SQLFilterBuilder.build(traceSpanSchema, filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
+        if (StringUtils.hasText(moreFilter)) {
+            sqlBuilder.append(" AND ");
+            sqlBuilder.append(moreFilter);
+        }
+
+        // build tag query
+        SelectConditionStep<Record1<String>> tagQuery = buildTagQuery(start, end, filters);
+        if (tagQuery != null) {
+            sqlBuilder.append(" AND ");
+            sqlBuilder.append(dslContext.renderInlined(summaryTable.TRACEID.in(tagQuery)));
+        }
+
+        sqlBuilder.append(StringUtils.format(" GROUP BY \"_timestamp\" ORDER BY \"_timestamp\"", timeBucket));
+
+        return dslContext.fetch(sqlBuilder.toString()).intoMaps();
     }
 
     @Override

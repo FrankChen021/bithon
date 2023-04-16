@@ -158,10 +158,13 @@ public class TraceService {
     }
 
     @Deprecated
-    public List<ITraceReader.Histogram> getTraceDistributionV2(List<IFilter> filters,
-                                                               TimeSpan start,
-                                                               TimeSpan end) {
-        return traceReader.getTraceDistribution(filters, start.toTimestamp(), end.toTimestamp());
+    public List<Map<String, Object>> getTraceDistributionV2(List<IFilter> filters,
+                                                            TimeSpan start,
+                                                            TimeSpan end) {
+        return traceReader.getTraceDistribution(filters,
+                                                start.toTimestamp(),
+                                                end.toTimestamp(),
+                                                getTimeBucket(start.getMilliseconds(), end.getMilliseconds()).length);
     }
 
     static class Bucket {

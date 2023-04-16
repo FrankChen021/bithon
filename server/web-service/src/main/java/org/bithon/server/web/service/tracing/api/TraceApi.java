@@ -23,7 +23,6 @@ import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
-import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
@@ -81,7 +80,7 @@ public class TraceApi {
 
     @Deprecated
     @PostMapping("/api/trace/getTraceDistribution/v2")
-    public List<ITraceReader.Histogram> getTraceDistributionV2(@Valid @RequestBody GetTraceDistributionRequest request) {
+    public List<Map<String, Object>> getTraceDistributionV2(@Valid @RequestBody GetTraceDistributionRequest request) {
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
 
