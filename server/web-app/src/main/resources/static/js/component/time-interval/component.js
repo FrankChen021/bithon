@@ -14,9 +14,13 @@ class TimeInterval {
             {id: "6h", value: 6, unit: "hour", text: "Last 6h"},
             {id: "12h", value: 12, unit: "hour", text: "Last 12h"},
             {id: "24h", value: 24, unit: "hour", text: "Last 24h"},
+            {id: "P2D", value: 48, unit: "hour", text: "Last 2d"},
+            {id: "P3D", value: 72, unit: "hour", text: "Last 3d"},
+            {id: "P5D", value: 120, unit: "hour", text: "Last 5d"},
+            {id: "P7D", value: 144, unit: "hour", text: "Last 7d"},
             {id: "today", value: "today", unit: "day", text: "Today"},
             {id: "yesterday", value: "yesterday", unit: "day", text: "Yesterday"},
-            {id: "custom", value: "", text: "Customer"}
+            {id: "input", value: "", text: "Customization"}
             // {id: "user", value: "user", text: "Customer", start, end}
         ];
 
@@ -33,6 +37,8 @@ class TimeInterval {
                 text: parts[0] + '~' + parts[1]
             });
             defaultIntervalId = "user";
+        } else {
+            defaultIntervalId = '5m';
         }
 
         if (includeAll) {
@@ -41,15 +47,11 @@ class TimeInterval {
 
         this._control = $('<select id="intervalSelector" class="form-control"></select>');
         this._viewModel.forEach(model => {
-            const option = $(`<option id="${model.id}" value="${model.value}" data-unit="${model.unit}">${model.text}</option>`);
-            this._control.append(option);
+            const option = this.#addIntervalOption(model.id, model.value, model.unit, model.text, model.id === defaultIntervalId);
             if (model.id === defaultIntervalId) {
                 option.attr('selected', true);
             }
         });
-        if (this.getSelectedIndex() === 0) {
-            this._control.find(`option[id="5m"]`).attr('selected', true);
-        }
 
         this._control.on('focus', () => {
             this._prevSelectIndex = this.getSelectedIndex();
@@ -57,8 +59,8 @@ class TimeInterval {
             const selectedIndex = this.getSelectedIndex();
             const selectedModel = this._viewModel[selectedIndex];
 
-            if (selectedModel.id === 'custom') {
-                this.openCustomerDateSelectorDialog(this.#toInterval(this._prevSelectIndex));
+            if (selectedModel.id === 'input') {
+                this.#openCustomerDateSelectorDialog(this._prevSelectIndex, selectedIndex);
             } else {
                 $.each(this._listeners, (index, listener) => {
                     listener(selectedModel);
@@ -67,10 +69,13 @@ class TimeInterval {
         });
 
         // trigger the change event to load default value
-        this._control.change();
+        //this._control.focus();
+        this.vBuiltInIntervalCount = this._viewModel.length;
+        this.vUserInputOption = this._control.find(`option[id='input']`);
     }
 
-    openCustomerDateSelectorDialog(prevInterval) {
+    #openCustomerDateSelectorDialog(preIndex, currIndex) {
+        const prevInterval = this.#toInterval(preIndex);
         bootbox.dialog({
             centerVertical: true,
             size: 'xl',
@@ -96,27 +101,32 @@ class TimeInterval {
                         //
                         // update the UI
                         //
-                        // check if there's a user item
-                        const displayStart = new Date(startTimestamp).format('MM-dd hh:mm');
-                        const displayEnd = new Date(endTimestamp).format('MM-dd hh:mm');
-                        if (this._control[0].lastChild.id !== 'user') {
-                            // no user item
-                            this._control.append(`<option id="user" value="user">${displayStart} ~ ${displayEnd}</option>`);
+                        let index = preIndex;
 
-                            this._viewModel.push({id: "user", value: "user"});
-                        } else {
-                            // change user item
-                            this._control[0].lastChild.innerText = `${displayStart} ~ ${displayEnd}`;
+                        // check if there's a user item
+                        const displayStart = new Date(startTimestamp).format('MM-dd hh:mm:ss');
+                        const displayEnd = new Date(endTimestamp).format('MM-dd hh:mm:ss');
+                        if (this._viewModel[preIndex].id !== 'user') {
+                            if (this._viewModel.length - this.vBuiltInIntervalCount < 10) {
+                                $(`<option id="user" value="user"></option>`).insertBefore(this.vUserInputOption);
+                                this._viewModel.splice(this._viewModel.length - 1, 0, {id: "user", value: "user"});
+
+                                index = this._viewModel.length - 2;
+                            } else {
+                                // Only allow to append 10 items, if the number exceeds, change the last one
+                                index = this._viewModel.length - 2;
+                            }
                         }
 
+                        // Change UI displayed content
+                        this._control[0].children[index].innerText = `${displayStart} ~ ${displayEnd}`;
+
                         // save value to view model
-                        const s = moment(startTimestamp).local().toISOString(true);
-                        const e = moment(endTimestamp).local().toISOString(true);
-                        this._viewModel[this._viewModel.length - 1].start = s;
-                        this._viewModel[this._viewModel.length - 1].end = e;
+                        this._viewModel[index].start = moment(startTimestamp).local().toISOString(true);
+                        this._viewModel[index].end = moment(endTimestamp).local().toISOString(true);
 
                         // change the selection
-                        this._control[0].selectedIndex = this._viewModel.length - 1;
+                        this._control[0].selectedIndex = index;
                         this._control.change();
 
                         return true;
@@ -146,7 +156,8 @@ class TimeInterval {
                             keepOpen: true
                         },
                         hooks: {
-                            inputFormat: (context, date) => formatDateTime(date.truncate(60000), 'yyyy-MM-dd hh:mm:ss'),
+                            // truncate millisecond
+                            inputFormat: (context, date) => formatDateTime(date.truncate(1000), 'yyyy-MM-dd hh:mm:ss'),
                             //inputParse: (context, value) => {}
                         }
                     });
@@ -162,7 +173,8 @@ class TimeInterval {
                             keepOpen: true
                         },
                         hooks: {
-                            inputFormat: (context, date) => formatDateTime(date.truncate(60000), 'yyyy-MM-dd hh:mm:ss'),
+                            // truncate millisecond
+                            inputFormat: (context, date) => formatDateTime(date.truncate(1000), 'yyyy-MM-dd hh:mm:ss'),
                             //inputParse: (context, value) => {}
                         }
                     });
@@ -251,6 +263,37 @@ class TimeInterval {
             '        <div class="alert alert-warning" id="dateTimePickAlert" style="display:none" role="alert"></div>\n' +
             '    </div>\n' +
             '</form>';
+    }
+
+    #addIntervalOption(id, value, unit, text) {
+        const option = $(`<option id="${id}" value="${value}" data-unit="${unit}">${text}</option>`);
+        this._control.append(option);
+        return option;
+    }
+
+    setInternal(startTimestamp, endTimestamp) {
+        const displayStart = new Date(startTimestamp).format('MM-dd hh:mm:ss');
+        const displayEnd = new Date(endTimestamp).format('MM-dd hh:mm:ss');
+
+        if (this._viewModel.length - this.vBuiltInIntervalCount < 10) {
+            $(`<option id="user">${displayStart} ~ ${displayEnd}</option>`).insertBefore(this.vUserInputOption);
+            this._viewModel.splice(this._viewModel.length - 1,  0,{id: "user", value: "user"});
+        } else {
+            // If the user inputs reaches the limit, change the last one
+            // Remember that the last editable one is actually index - 1
+        }
+        const index = this._viewModel.length - 2;
+
+        // Change view model
+        this._viewModel[index].start = moment(startTimestamp).utc().local().toISOString(true);
+        this._viewModel[index].end = moment(endTimestamp).utc().local().toISOString(true);
+
+        // Change UI displayed content
+        this._control[0].children[index].innerText = `${displayStart} ~ ${displayEnd}`;
+
+        // Change UI selection
+        this._control[0].selectedIndex = index;
+        this._control.change();
     }
 }
 

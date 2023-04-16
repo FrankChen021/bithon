@@ -269,7 +269,13 @@ class TracePage {
 
     #onClickChart(e) {
         const startTimestamp = this._data.startTimestamp + this._data.interval * e.dataIndex;
-        const endTimestamp = endTimestamp + this._data.interval;
+        const endTimestamp = startTimestamp + this._data.interval;
+
+        const startISO8601 = moment(startTimestamp).utc().local().toISOString(true);
+        const endISO8601 = moment(endTimestamp).utc().local().toISOString(true);
+        if (startISO8601 === this.mInterval.start && endISO8601 === this.mInterval.end) {
+            return;
+        }
 
         this.vIntervalSelector.setInternal(startTimestamp, endTimestamp);
     }
