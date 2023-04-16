@@ -98,7 +98,7 @@ public class TimeSeriesQueryResult {
         return new TimeSeriesQueryResult(bucketCount,
                                          startSecond * 1000,
                                          endSecond * 1000,
-                                         bucketCount,
+                                         interval * 1000L,
                                          map.values());
     }
 }
