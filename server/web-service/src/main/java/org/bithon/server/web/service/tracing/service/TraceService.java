@@ -23,6 +23,7 @@ import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Conditional;
@@ -31,6 +32,8 @@ import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -157,14 +160,16 @@ public class TraceService {
                                         pageNumber, pageSize);
     }
 
-    @Deprecated
-    public List<Map<String, Object>> getTraceDistributionV2(List<IFilter> filters,
-                                                            TimeSpan start,
-                                                            TimeSpan end) {
-        return traceReader.getTraceDistribution(filters,
-                                                start.toTimestamp(),
-                                                end.toTimestamp(),
-                                                getTimeBucket(start.getMilliseconds(), end.getMilliseconds()).length);
+    public TimeSeriesQueryResult getTraceDistributionV2(List<IFilter> filters,
+                                                        TimeSpan start,
+                                                        TimeSpan end) {
+        int bucketInSecond = getTimeBucket(start.getMilliseconds(), end.getMilliseconds()).length;
+        List<Map<String, Object>> dataPoints = traceReader.getTraceDistribution(filters,
+                                                                                start.toTimestamp(),
+                                                                                end.toTimestamp(),
+                                                                                bucketInSecond);
+        List<String> metrics = Arrays.asList("count", "minResponse", "avgResponse", "maxResponse");
+        return TimeSeriesQueryResult.build(start, end, bucketInSecond, dataPoints, "_timestamp", Collections.emptyList(), metrics);
     }
 
     static class Bucket {

@@ -26,6 +26,7 @@ import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.tracing.service.TraceService;
 import org.bithon.server.web.service.tracing.service.TraceTopoBuilder;
 import org.springframework.context.annotation.Conditional;
@@ -80,7 +81,7 @@ public class TraceApi {
 
     @Deprecated
     @PostMapping("/api/trace/getTraceDistribution/v2")
-    public List<Map<String, Object>> getTraceDistributionV2(@Valid @RequestBody GetTraceDistributionRequest request) {
+    public TimeSeriesQueryResult getTraceDistributionV2(@Valid @RequestBody GetTraceDistributionRequest request) {
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
 
@@ -111,14 +112,14 @@ public class TraceApi {
         }
 
         return new GetTraceListResponse(
-            traceService.getTraceListSize(request.getFilters(), start, end),
-            traceService.getTraceList(request.getFilters(),
-                                      start,
-                                      end,
-                                      request.getOrderBy(),
-                                      request.getOrder(),
-                                      request.getPageNumber(),
-                                      request.getPageSize())
+                traceService.getTraceListSize(request.getFilters(), start, end),
+                traceService.getTraceList(request.getFilters(),
+                                          start,
+                                          end,
+                                          request.getOrderBy(),
+                                          request.getOrder(),
+                                          request.getPageNumber(),
+                                          request.getPageSize())
         );
     }
 
