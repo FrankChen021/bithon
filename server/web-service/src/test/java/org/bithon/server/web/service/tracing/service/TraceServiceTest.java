@@ -25,10 +25,6 @@ import org.junit.Test;
  */
 public class TraceServiceTest {
 
-    private long fromSecond(int second) {
-        return second * 1000L;
-    }
-
     private long fromMinute(int minute) {
         return minute * 60L * 1000;
     }
@@ -36,11 +32,11 @@ public class TraceServiceTest {
     @Test
     public void testTimeBucketLessThan1Minute() {
         long start = System.currentTimeMillis();
-        long end = System.currentTimeMillis() + fromSecond(40);
+        long end = System.currentTimeMillis() + 40_000;
 
         TraceService.Bucket bucket = TraceService.getTimeBucket(start, end);
-        Assert.assertEquals(12, bucket.getNums());
-        Assert.assertEquals(5, bucket.getLength());
+        Assert.assertEquals(1, bucket.getNums());
+        Assert.assertEquals(60, bucket.getLength());
     }
 
     @Test
@@ -49,8 +45,8 @@ public class TraceServiceTest {
         long end = System.currentTimeMillis() + fromMinute(1);
 
         TraceService.Bucket bucket = TraceService.getTimeBucket(start, end);
-        Assert.assertEquals(12, bucket.getNums());
-        Assert.assertEquals(5, bucket.getLength());
+        Assert.assertEquals(1, bucket.getNums());
+        Assert.assertEquals(60, bucket.getLength());
     }
 
     @Test

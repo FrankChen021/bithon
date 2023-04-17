@@ -65,7 +65,7 @@ public class TraceService {
     static Bucket getTimeBucket(long startTimestamp, long endTimestamp) {
         int seconds = (int) ((endTimestamp - startTimestamp) / 1000);
         if (seconds <= 60) {
-            return new Bucket(12, 5);
+            return new Bucket(1, 60);
         }
 
         int minute = (int) ((endTimestamp - startTimestamp) / 1000 / 60);
