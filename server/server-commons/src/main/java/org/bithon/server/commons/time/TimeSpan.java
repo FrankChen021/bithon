@@ -39,6 +39,9 @@ public class TimeSpan {
 
     private final long milliseconds;
 
+    public static TimeSpan now() {
+        return new TimeSpan(System.currentTimeMillis());
+    }
     public static TimeSpan nowInMinute() {
         return new TimeSpan(DateTimeUtils.align2Minute());
     }

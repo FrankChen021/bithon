@@ -22,6 +22,7 @@ import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.io.netty.channel.Channel;
 
 import java.io.IOException;
@@ -101,11 +102,11 @@ public class ServiceInvocationRunnable implements Runnable {
             }
         } catch (ServiceInvocationException e) {
             Throwable cause = e.getCause() != null ? e.getCause() : e;
-            LoggerFactory.getLogger(ServiceInvocationRunnable.class).warn("[Client={}] Service Invocation on {}#{}",
-                                                                          channel.remoteAddress().toString(),
-                                                                          serviceRequest.getServiceName(),
-                                                                          serviceRequest.getMethodName(),
-                                                                          cause);
+            LoggerFactory.getLogger(ServiceInvocationRunnable.class).error(StringUtils.format("[Client=%s] Service Invocation on %s#%s",
+                                                                                              channel.remoteAddress().toString(),
+                                                                                              serviceRequest.getServiceName(),
+                                                                                              serviceRequest.getMethodName()),
+                                                                           cause);
             ServiceResponseMessageOut.builder()
                                      .serverResponseAt(System.currentTimeMillis())
                                      .txId(serviceRequest.getTransactionId())
