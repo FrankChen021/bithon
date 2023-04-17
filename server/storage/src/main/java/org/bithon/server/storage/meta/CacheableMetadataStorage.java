@@ -18,6 +18,7 @@ package org.bithon.server.storage.meta;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.PeriodicTask;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.IExpirationRunnable;
 
 import javax.annotation.PreDestroy;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -174,7 +176,9 @@ public class CacheableMetadataStorage implements IMetaStorage {
         protected void onRun() {
             log.info("Loading all application instances...");
 
-            Collection<Instance> instances = delegate.getApplicationInstances(0);
+            // The metadata API retrieves data by the latest 24H, it SHOULD be optimized by reading corresponding data source
+            // Since it has not been changed yet, here we simply keep the instance updated in 24H
+            Collection<Instance> instances = delegate.getApplicationInstances(TimeSpan.now().before(1, TimeUnit.DAYS).getMilliseconds());
 
             // do not use stream API to collect map because the instances may contain duplicated items of same instance ip
             Set<String> applicationCache = new HashSet<>();
