@@ -42,7 +42,6 @@ import org.bithon.shaded.io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.bithon.shaded.io.netty.channel.socket.nio.NioSocketChannel;
 import org.bithon.shaded.io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import org.bithon.shaded.io.netty.handler.codec.LengthFieldPrepender;
-import org.bithon.shaded.io.netty.util.internal.StringUtil;
 
 import java.io.Closeable;
 import java.net.SocketAddress;
@@ -175,15 +174,16 @@ public class BrpcServer implements Closeable {
         private final String remoteEndpoint;
         private final InvocationManager invocationManager;
 
-        private String remoteApplicationName;
+        private final String remoteApplicationName;
 
         /**
          * Attributes from remote side
          */
         private Map<String, String> remoteAttribute = Collections.emptyMap();
 
-        private Session(Channel channel, InvocationManager invocationManager) {
+        private Session(String applicationName, Channel channel, InvocationManager invocationManager) {
             this.channel = channel;
+            this.remoteApplicationName = applicationName;
             this.remoteEndpoint = EndPoint.of(channel.remoteAddress()).toString();
             this.localEndpoint = EndPoint.of(channel.localAddress()).toString();
             this.invocationManager = invocationManager;
@@ -191,10 +191,6 @@ public class BrpcServer implements Closeable {
 
         public String getRemoteApplicationName() {
             return remoteApplicationName;
-        }
-
-        public Channel getChannel() {
-            return channel;
         }
 
         public String getRemoteEndpoint() {
@@ -218,7 +214,7 @@ public class BrpcServer implements Closeable {
         }
 
         public <T> T getRemoteService(Class<T> serviceClass, int timeout) {
-            return ServiceStubFactory.create(null,
+            return ServiceStubFactory.create("brpc-server",
                                              Headers.EMPTY,
                                              new Server2ClientChannel(channel),
                                              serviceClass,
@@ -231,6 +227,12 @@ public class BrpcServer implements Closeable {
         }
     }
 
+    /**
+     * Theoretically, Session is a concept at both client and server side.
+     * However, for the client, each client just has one session, it's not important to provide Session at the client side.
+     * In contrast, one server manages multiple clients,
+     * So session is used wrap a connected channel to help the server side to call services implemented at the client side.
+     */
     @ChannelHandler.Sharable
     private static class SessionManager extends ChannelInboundHandlerAdapter {
         private final InvocationManager invocationManager;
@@ -246,29 +248,20 @@ public class BrpcServer implements Closeable {
         }
 
         @Override
-        public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            sessions.computeIfAbsent(ctx.channel().id().asLongText(), key -> new Session(ctx.channel(), invocationManager));
-            super.channelActive(ctx);
-        }
-
-        @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
             if (!(msg instanceof ServiceRequestMessageIn)) {
                 super.channelRead(ctx, msg);
                 return;
             }
 
-            Session session = sessions.get(ctx.channel().id().asLongText());
-            if (session != null) {
-                // Update appName
-                ServiceRequestMessageIn request = (ServiceRequestMessageIn) msg;
-                if (!StringUtil.isNullOrEmpty(request.getAppName())) {
-                    session.remoteApplicationName = request.getAppName();
-                }
+            ServiceRequestMessageIn request = (ServiceRequestMessageIn) msg;
 
-                // Update additional attributes
-                session.setRemoteAttribute(request.getHeaders());
-            }
+            // Create a session only if the ServiceRequestMessageIn has been successfully decoded
+            Session session = sessions.computeIfAbsent(ctx.channel().id().asLongText(),
+                                                       key -> new Session(request.getApplicationName(), ctx.channel(), invocationManager));
+
+            // Update additional attributes
+            session.setRemoteAttribute(request.getHeaders());
 
             super.channelRead(ctx, msg);
         }

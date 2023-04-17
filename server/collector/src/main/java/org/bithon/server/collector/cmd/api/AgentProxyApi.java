@@ -109,10 +109,10 @@ public class AgentProxyApi implements IAgentProxyApi {
         if (!fromClient.getMethodName().startsWith("get") && !fromClient.getMethodName().startsWith("dump")) {
             Optional<PermissionRule> applicationRule = permissionConfiguration.getRules()
                                                                               .stream()
-                                                                              .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(fromClient.getAppName()))
+                                                                              .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(fromClient.getApplicationName()))
                                                                               .findFirst();
             if (!applicationRule.isPresent()) {
-                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(), "Application [%s] does not define a permission rule.", fromClient.getAppName());
+                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(), "Application [%s] does not define a permission rule.", fromClient.getApplicationName());
             }
 
             if (!applicationRule.get().getToken().equals(token)) {
@@ -122,7 +122,7 @@ public class AgentProxyApi implements IAgentProxyApi {
 
         // Turn the input request stream to the request that is going to send to remote
         ServiceRequestMessageOut toTarget = ServiceRequestMessageOut.builder()
-                                                                    .applicationName(fromClient.getAppName())
+                                                                    .applicationName(fromClient.getApplicationName())
                                                                     .headers(fromClient.getHeaders())
                                                                     .isOneway(false)
                                                                     .messageType(fromClient.getMessageType())

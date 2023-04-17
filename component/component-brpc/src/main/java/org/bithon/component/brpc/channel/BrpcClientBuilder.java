@@ -32,7 +32,7 @@ public class BrpcClientBuilder {
     private int maxRetry = 30;
     private Duration retryInterval = Duration.ofMillis(100);
 
-    private String appName;
+    private String appName = "brpc-client";
 
     public static BrpcClientBuilder builder() {
         return new BrpcClientBuilder();

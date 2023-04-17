@@ -87,7 +87,7 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
         return methodName;
     }
 
-    public String getAppName() {
+    public String getApplicationName() {
         return appName;
     }
 
