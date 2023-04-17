@@ -23,7 +23,12 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.setting.SettingJdbcReader;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
+import org.bithon.server.storage.setting.ISettingReader;
+
+import java.sql.Timestamp;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -44,8 +49,25 @@ public class SettingStorage extends SettingJdbcStorage {
     @Override
     public void initialize() {
         // Apply ReplacingMergeTree to this table
-        new TableCreator(config, this.dslContext).useReplacingMergeTree(Tables.BITHON_META_SCHEMA.TIMESTAMP.getName())
+        new TableCreator(config, this.dslContext).useReplacingMergeTree(Tables.BITHON_AGENT_SETTING.UPDATEDAT.getName())
                                                  .partitionByExpression(null)
                                                  .createIfNotExist(Tables.BITHON_AGENT_SETTING);
+    }
+
+    @Override
+    public ISettingReader createReader() {
+        return new SettingJdbcReader(this.dslContext) {
+            @Override
+            public Map<String, String> getSettings(String appName, long since) {
+                String sql = dslContext.select(Tables.BITHON_AGENT_SETTING.SETTINGNAME, Tables.BITHON_AGENT_SETTING.SETTING)
+                                       .from(Tables.BITHON_AGENT_SETTING)
+                                       .getSQL() + " FINAL WHERE ";
+
+                sql += dslContext.renderInlined(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName)
+                                                                                   .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.ge(new Timestamp(since).toLocalDateTime())));
+
+                return dslContext.fetch(sql).intoMap(Tables.BITHON_AGENT_SETTING.SETTINGNAME, Tables.BITHON_AGENT_SETTING.SETTING);
+            }
+        };
     }
 }
