@@ -48,17 +48,9 @@ public class TimeSeriesMetric {
     public TimeSeriesMetric(List<String> tags, int size, IMetricSpec metricSpec) {
         this.tags = tags;
 
-        // by using double[] or long[], the empty slots are default to zero
-//        if (metricSpec == null || metricSpec.getValueType() instanceof DoubleValueType) {
-            this.values = new double[size + 1];
-            this.valueSetter = (index, number) -> ((double[]) values)[index] = number == null ? 0 : ((Number) number).doubleValue();
-            this.valueGetter = (index) -> ((double[]) values)[index];
-//        } else {
-//            this.values = new long[size + 1];
-//            this.valueSetter = (index, number) -> ((long[]) values)[index] = number == null ? 0 : ((Number) number).longValue();
-//            this.valueGetter = (index) -> ((long[]) values)[index];
-//        }
-
+        this.values = new double[size + 1];
+        this.valueSetter = (index, number) -> ((double[]) values)[index] = number == null ? 0 : ((Number) number).doubleValue();
+        this.valueGetter = (index) -> ((double[]) values)[index];
     }
 
     public void set(int index, Object value) {

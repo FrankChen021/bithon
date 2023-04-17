@@ -79,8 +79,7 @@ public class TraceApi {
                                         profileEvents);
     }
 
-    @Deprecated
-    @PostMapping("/api/trace/getTraceDistribution/v2")
+    @PostMapping("/api/trace/getTraceDistribution")
     public TimeSeriesQueryResult getTraceDistributionV2(@Valid @RequestBody GetTraceDistributionRequest request) {
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());

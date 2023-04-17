@@ -112,7 +112,7 @@ class TracePage {
     #refreshChart() {
         const interval = this.#getInterval();
         this.vChartComponent.load({
-            url: apiHost + '/api/trace/getTraceDistribution/v2',
+            url: apiHost + '/api/trace/getTraceDistribution',
             ajaxData: JSON.stringify({
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
@@ -218,7 +218,9 @@ class TracePage {
                     const option = this.vChartComponent.getChartOption();
                     const start = option.timestamp.start;
                     const interval = option.timestamp.interval;
-                    let tooltip = moment(start + dataIndex * interval).local().format('yyyy-MM-DD HH:mm:ss');
+                    let tooltip = moment(start + dataIndex * interval).local().format('MM-DD HH:mm:ss')
+                        + '<br/>'
+                        + moment(start + dataIndex * interval + interval).local().format('MM-DD HH:mm:ss');
                     series.forEach(s => {
                         const formatter = this.columns[s.seriesName].formatter;
                         const text = formatter === undefined ? s.data : formatter(s.data);

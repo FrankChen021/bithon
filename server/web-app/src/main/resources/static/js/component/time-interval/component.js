@@ -13,7 +13,7 @@ class TimeInterval {
             {id: "3h", value: 3, unit: "hour", text: "Last 3h"},
             {id: "6h", value: 6, unit: "hour", text: "Last 6h"},
             {id: "12h", value: 12, unit: "hour", text: "Last 12h"},
-            {id: "24h", value: 24, unit: "hour", text: "Last 24h"},
+            {id: "24h", value: 24, unit: "hour", text: "Last 1d"},
             {id: "P2D", value: 48, unit: "hour", text: "Last 2d"},
             {id: "P3D", value: 72, unit: "hour", text: "Last 3d"},
             {id: "P5D", value: 120, unit: "hour", text: "Last 5d"},
