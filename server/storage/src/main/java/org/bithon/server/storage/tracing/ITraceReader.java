@@ -23,6 +23,7 @@ import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -39,9 +40,10 @@ public interface ITraceReader {
                                  int pageNumber,
                                  int pageSize);
 
-    List<Histogram> getTraceDistribution(List<IFilter> filters,
-                                         Timestamp start,
-                                         Timestamp end);
+    List<Map<String, Object>> getTraceDistribution(List<IFilter> filters,
+                                                   Timestamp start,
+                                                   Timestamp end,
+                                                   int interval);
 
     int getTraceListSize(List<IFilter> filters, Timestamp start, Timestamp end);
 

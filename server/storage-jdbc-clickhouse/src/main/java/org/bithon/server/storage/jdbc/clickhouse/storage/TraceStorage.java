@@ -22,30 +22,20 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.time.DateTime;
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
+import org.bithon.server.storage.jdbc.clickhouse.ClickHouseSqlDialect;
 import org.bithon.server.storage.jdbc.jooq.Tables;
-import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
-import org.bithon.server.storage.jdbc.tracing.TraceJdbcReader;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
-import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
-import org.bithon.server.storage.metrics.IFilter;
-import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
-import org.jooq.Record1;
-import org.jooq.SelectConditionStep;
 
 import java.sql.Timestamp;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -59,12 +49,18 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @JsonCreator
     public TraceStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseJooqContextHolder dslContextHolder,
+                        @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseSqlDialect sqlDialect,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceSinkConfig traceConfig,
                         @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config,
                         @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
-        super(dslContextHolder.getDslContext(), objectMapper, storageConfig, traceConfig, schemaManager);
+        super(dslContextHolder.getDslContext(),
+              objectMapper,
+              storageConfig,
+              traceConfig,
+              schemaManager,
+              sqlDialect);
         this.config = config;
     }
 
@@ -102,56 +98,6 @@ public class TraceStorage extends TraceJdbcStorage {
             @Override
             protected boolean isTransactionSupported() {
                 return false;
-            }
-        };
-    }
-
-    @Override
-    public ITraceReader createReader() {
-        return new TraceJdbcReader(this.dslContext, this.objectMapper, traceSpanSchema, this.traceTagIndexSchema, this.traceStorageConfig) {
-            @Override
-            public List<Histogram> getTraceDistribution(List<IFilter> filters, Timestamp start, Timestamp end) {
-                BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
-
-                StringBuilder sqlBuilder = new StringBuilder(StringUtils.format("SELECT arrayJoin(histogram(100)(%s)) AS histogram FROM %s",
-                                                                                summaryTable.COSTTIMEMS.getName(),
-                                                                                summaryTable.getQualifiedName()));
-                sqlBuilder.append(StringUtils.format(" WHERE %s >= '%s' AND %s < '%s'",
-                                                     summaryTable.TIMESTAMP.getName(),
-                                                     DateTime.toYYYYMMDDhhmmss(start.getTime()),
-                                                     summaryTable.TIMESTAMP.getName(),
-                                                     DateTime.toYYYYMMDDhhmmss(end.getTime())));
-
-                String moreFilter = SQLFilterBuilder.build(traceSpanSchema, filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
-                if (StringUtils.hasText(moreFilter)) {
-                    sqlBuilder.append(" AND ");
-                    sqlBuilder.append(moreFilter);
-                }
-
-                // build tag query
-                SelectConditionStep<Record1<String>> tagQuery = buildTagQuery(start, end, filters);
-                if (tagQuery != null) {
-                    sqlBuilder.append(" AND ");
-                    sqlBuilder.append(dslContext.renderInlined(summaryTable.TRACEID.in(tagQuery)));
-                }
-
-                String finalSqlBuilder = "SELECT histogram.1 AS lower, histogram.2 AS upper, histogram.3 AS height FROM (" + sqlBuilder + " )";
-
-                List<Histogram> histograms = dslContext.fetch(finalSqlBuilder).into(Histogram.class);
-
-                //
-                // convert to height to percentage.
-                // The final value is multiplied 100 times
-                // so the value is in range [1, 10000]
-                //
-                double total = 0;
-                for (Histogram histogram : histograms) {
-                    total += histogram.getHeight();
-                }
-                for (Histogram histogram : histograms) {
-                    histogram.setHeight((int) (histogram.getHeight() / total * 10000));
-                }
-                return histograms.stream().filter(histogram -> histogram.getHeight() > 0).collect(Collectors.toList());
             }
         };
     }

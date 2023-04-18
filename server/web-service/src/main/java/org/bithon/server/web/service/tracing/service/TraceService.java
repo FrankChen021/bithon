@@ -23,6 +23,7 @@ import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Conditional;
@@ -31,6 +32,8 @@ import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -50,26 +53,43 @@ public class TraceService {
     }
 
     /**
+     * For test only
+     */
+    static Bucket getTimeBucket(long startTimestamp, long endTimestamp) {
+        return getTimeBucket(startTimestamp, endTimestamp, 60);
+    }
+
+    /**
      * Requirement
-     * 1. At most 60 buckets
-     * 2. The minimal length of each bucket is 1 minute
-     * <p>
+     * 1. The minimal length of each bucket is 1 minute
      *
+     * <p>
+     * @param bucketCount the count of buckets
      * @param startTimestamp in millisecond
      * @param endTimestamp   in millisecond
      * @return the length of a bucket in second
      */
-    static Bucket getTimeBucket(long startTimestamp, long endTimestamp) {
+    static Bucket getTimeBucket(long startTimestamp, long endTimestamp, int bucketCount) {
         int seconds = (int) ((endTimestamp - startTimestamp) / 1000);
         if (seconds <= 60) {
-            return new Bucket(12, 5);
+            return new Bucket(1, 60);
         }
 
         int minute = (int) ((endTimestamp - startTimestamp) / 1000 / 60);
         int hour = (int) Math.ceil(minute / 60.0);
 
-        // after 3 hour, the step is 6 hour
-        int step = hour <= 3 ? 1 : 6;
+        int[] steps = {1, 5, 10, 15, 30, 60, 150, 180, 360, 720, 1440};
+        int stepIndex = 0;
+        int step = 1;
+        while (minute / step > bucketCount) {
+            stepIndex++;
+            if (stepIndex < steps.length) {
+                step = steps[stepIndex];
+            } else {
+                // if exceeding the predefined steps, increase 1 day at least
+                step += 1440;
+            }
+        }
 
         int m = hour % step;
         int hourPerStep = (hour / step + (m > 0 ? 1 : 0));
@@ -157,11 +177,17 @@ public class TraceService {
                                         pageNumber, pageSize);
     }
 
-    @Deprecated
-    public List<ITraceReader.Histogram> getTraceDistributionV2(List<IFilter> filters,
-                                                               TimeSpan start,
-                                                               TimeSpan end) {
-        return traceReader.getTraceDistribution(filters, start.toTimestamp(), end.toTimestamp());
+    public TimeSeriesQueryResult getTraceDistribution(List<IFilter> filters,
+                                                      TimeSpan start,
+                                                      TimeSpan end,
+                                                      int bucketCount) {
+        int bucketInSecond = getTimeBucket(start.getMilliseconds(), end.getMilliseconds(), bucketCount).length;
+        List<Map<String, Object>> dataPoints = traceReader.getTraceDistribution(filters,
+                                                                                start.toTimestamp(),
+                                                                                end.toTimestamp(),
+                                                                                bucketInSecond);
+        List<String> metrics = Arrays.asList("count", "minResponse", "avgResponse", "maxResponse");
+        return TimeSeriesQueryResult.build(start, end, bucketInSecond, dataPoints, "_timestamp", Collections.emptyList(), metrics);
     }
 
     static class Bucket {

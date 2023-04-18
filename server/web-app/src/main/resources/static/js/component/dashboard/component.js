@@ -52,6 +52,10 @@ class Dashboard {
             if (name === 'application') {
                 g_SelectedApp = value;
 
+                // Reset the instanceName
+                this.vFilter.resetFilter('instanceName');
+
+                // Update URL
                 let url = `/web/metrics/${this._dashboardName}?appName=${value}`;
                 if (g_MetricSelectedInterval !== undefined) {
                     url += `&interval=${g_MetricSelectedInterval}`;
@@ -101,7 +105,10 @@ class Dashboard {
             this.refreshDashboard();
 
             let url = `/web/metrics/${this._dashboardName}?appName=${g_SelectedApp}`;
-            if (g_MetricSelectedInterval !== undefined) {
+            if (g_SelectedInstance !== undefined && g_SelectedInstance !== null) {
+                url += `&instanceName=${g_SelectedInstance}`;
+            }
+            if (g_MetricSelectedInterval !== undefined && g_MetricSelectedInterval !== null) {
                 url += `&interval=${g_MetricSelectedInterval}`;
             }
             window.history.pushState('', '', url);

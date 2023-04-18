@@ -29,11 +29,15 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.utils.DefaultSqlDialect;
+import org.bithon.server.storage.jdbc.utils.H2SqlDialect;
+import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
 
 import java.sql.Timestamp;
 
@@ -45,13 +49,13 @@ import java.sql.Timestamp;
 @JsonTypeName("jdbc")
 public class TraceJdbcStorage implements ITraceStorage {
 
-
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
     protected final TraceStorageConfig traceStorageConfig;
     protected final TraceSinkConfig traceSinkConfig;
     protected final DataSourceSchema traceSpanSchema;
     protected final DataSourceSchema traceTagIndexSchema;
+    protected final ISqlDialect sqlDialect;
 
     @JsonCreator
     public TraceJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder,
@@ -59,20 +63,22 @@ public class TraceJdbcStorage implements ITraceStorage {
                             @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
                             @JacksonInject(useInput = OptBoolean.FALSE) TraceSinkConfig traceSinkConfig,
                             @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
-        this(dslContextHolder.getDslContext(), objectMapper, storageConfig, traceSinkConfig, schemaManager);
+        this(dslContextHolder.getDslContext(), objectMapper, storageConfig, traceSinkConfig, schemaManager, null);
     }
 
     public TraceJdbcStorage(DSLContext dslContext,
                             ObjectMapper objectMapper,
                             TraceStorageConfig storageConfig,
                             TraceSinkConfig traceSinkConfig,
-                            DataSourceSchemaManager schemaManager) {
+                            DataSourceSchemaManager schemaManager,
+                            ISqlDialect sqlDialect) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
         this.traceStorageConfig = storageConfig;
         this.traceSinkConfig = traceSinkConfig;
         this.traceSpanSchema = schemaManager.getDataSourceSchema("trace_span_summary");
         this.traceTagIndexSchema = schemaManager.getDataSourceSchema("trace_span_tag_index");
+        this.sqlDialect = sqlDialect == null ? (dslContext.dialect() == SQLDialect.H2 ? H2SqlDialect.INSTANCE : DefaultSqlDialect.INSTANCE) : sqlDialect;
     }
 
     @Override
@@ -106,7 +112,8 @@ public class TraceJdbcStorage implements ITraceStorage {
                                    this.objectMapper,
                                    this.traceSpanSchema,
                                    this.traceTagIndexSchema,
-                                   this.traceStorageConfig);
+                                   this.traceStorageConfig,
+                                   this.sqlDialect);
     }
 
     @Override
@@ -137,5 +144,4 @@ public class TraceJdbcStorage implements ITraceStorage {
             }
         };
     }
-
 }

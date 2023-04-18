@@ -23,10 +23,10 @@ import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
-import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.tracing.service.TraceService;
 import org.bithon.server.web.service.tracing.service.TraceTopoBuilder;
 import org.springframework.context.annotation.Conditional;
@@ -79,15 +79,12 @@ public class TraceApi {
                                         profileEvents);
     }
 
-    @Deprecated
-    @PostMapping("/api/trace/getTraceDistribution/v2")
-    public List<ITraceReader.Histogram> getTraceDistributionV2(@Valid @RequestBody GetTraceDistributionRequest request) {
-        TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
-        TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
-
-        return traceService.getTraceDistributionV2(request.getFilters(),
-                                                   start,
-                                                   end);
+    @PostMapping("/api/trace/getTraceDistribution")
+    public TimeSeriesQueryResult getTraceDistribution(@Valid @RequestBody GetTraceDistributionRequest request) {
+        return traceService.getTraceDistribution(request.getFilters(),
+                                                 TimeSpan.fromISO8601(request.getStartTimeISO8601()),
+                                                 TimeSpan.fromISO8601(request.getEndTimeISO8601()),
+                                                 request.getBucketCount());
     }
 
     @PostMapping("/api/trace/getTraceList")
@@ -112,14 +109,14 @@ public class TraceApi {
         }
 
         return new GetTraceListResponse(
-            traceService.getTraceListSize(request.getFilters(), start, end),
-            traceService.getTraceList(request.getFilters(),
-                                      start,
-                                      end,
-                                      request.getOrderBy(),
-                                      request.getOrder(),
-                                      request.getPageNumber(),
-                                      request.getPageSize())
+                traceService.getTraceListSize(request.getFilters(), start, end),
+                traceService.getTraceList(request.getFilters(),
+                                          start,
+                                          end,
+                                          request.getOrderBy(),
+                                          request.getOrder(),
+                                          request.getPageNumber(),
+                                          request.getPageSize())
         );
     }
 

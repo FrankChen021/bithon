@@ -41,6 +41,7 @@ import org.bithon.server.web.service.datasource.api.GeneralQueryResponse;
 import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryRequest;
+import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.datasource.api.UpdateTTLRequest;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.validation.annotation.Validated;
@@ -77,7 +78,7 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public DataSourceService.TimeSeriesQueryResult timeseries(TimeSeriesQueryRequest request) {
+    public TimeSeriesQueryResult timeseries(TimeSeriesQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         TimeSpan start = TimeSpan.fromISO8601(request.getInterval().getStartISO8601());
@@ -106,7 +107,7 @@ public class DataSourceApi implements IDataSourceApi {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         Query query = this.dataSourceService.convertToQuery(schema, request, true);
-        DataSourceService.TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
+        TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
         return GeneralQueryResponse.builder()
                                    .data(result.getMetrics())
                                    .startTimestamp(result.getStartTimestamp())
