@@ -75,6 +75,10 @@ public interface ITraceSpan {
 
     ITraceSpan method(Executable method);
 
+    /**
+     * @param clazz Non null
+     * @param method Non null
+     */
     ITraceSpan method(String clazz, String method);
 
     ITraceSpan clazz(String clazz);

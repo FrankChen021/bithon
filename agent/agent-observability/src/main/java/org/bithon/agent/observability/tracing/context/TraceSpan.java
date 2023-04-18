@@ -145,6 +145,7 @@ class TraceSpan implements ITraceSpan {
 
     @Override
     public TraceSpan method(String clazz, String method) {
+        this.clazz = clazz;
         this.method = method;
         return this;
     }
