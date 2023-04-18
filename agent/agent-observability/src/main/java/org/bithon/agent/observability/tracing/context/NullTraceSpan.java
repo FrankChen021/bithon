@@ -111,7 +111,7 @@ public class NullTraceSpan implements ITraceSpan {
     }
 
     @Override
-    public ITraceSpan method(String method) {
+    public ITraceSpan method(String clazz, String method) {
         return this;
     }
 
