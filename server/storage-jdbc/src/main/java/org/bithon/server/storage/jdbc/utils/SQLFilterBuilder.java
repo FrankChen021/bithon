@@ -88,28 +88,12 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
 
     @Override
     public String visit(StringEqualMatcher matcher) {
-        StringBuilder sb = new StringBuilder(64);
-        sb.append("\"");
-        sb.append(fieldName);
-        sb.append("\"");
-        sb.append("=");
-        sb.append('\'');
-        sb.append(matcher.getPattern());
-        sb.append('\'');
-        return sb.toString();
+        return StringUtils.format("\"%s\" = '%s'", fieldName, matcher.getPattern());
     }
 
     @Override
     public String visit(StringNotEqualMatcher matcher) {
-        StringBuilder sb = new StringBuilder(64);
-        sb.append("\"");
-        sb.append(fieldName);
-        sb.append("\"");
-        sb.append("<>");
-        sb.append('\'');
-        sb.append(matcher.getPattern());
-        sb.append('\'');
-        return sb.toString();
+        return StringUtils.format("\"%s\" <> '%s'", fieldName, matcher.getPattern());
     }
 
     @Override
@@ -157,9 +141,17 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
 
     @Override
     public String visit(InMatcher inMatcher) {
-        return null;
-    }
+        if (inMatcher.getPattern().size() == 1) {
+            return StringUtils.format("\"%s\" = '%s'", fieldName, inMatcher.getPattern().iterator().next());
+        }
 
+        return StringUtils.format("\"%s\" in (%s)",
+                                  fieldName,
+                                  inMatcher.getPattern()
+                                           .stream()
+                                           .map((item) -> "'" + item + "'")
+                                           .collect(Collectors.joining(",")));
+    }
 
     /**
      * use qualified name because there might be an aggregated field with the same name
