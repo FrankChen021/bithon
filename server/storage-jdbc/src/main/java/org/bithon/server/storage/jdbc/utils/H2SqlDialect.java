@@ -24,7 +24,7 @@ import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions
  * @date 17/4/23 11:20 pm
  */
 public class H2SqlDialect implements ISqlDialect {
-    public static ISqlDialect INSTANCE = new H2SqlDialect();
+    public static final ISqlDialect INSTANCE = new H2SqlDialect();
 
     @Override
     public boolean groupByUseRawExpression() {

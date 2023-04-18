@@ -21,7 +21,7 @@ package org.bithon.server.storage.jdbc.utils;
  * @date 17/4/23 11:23 pm
  */
 public class DefaultSqlDialect implements ISqlDialect {
-    public static ISqlDialect INSTANCE = new DefaultSqlDialect();
+    public static final ISqlDialect INSTANCE = new DefaultSqlDialect();
 
     @Override
     public boolean groupByUseRawExpression() {
