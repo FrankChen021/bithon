@@ -214,8 +214,8 @@
           "generation": {
             "dimension": "generation",
             "matcher": {
-              "type": "equal",
-              "pattern": "new"
+              "type": "in",
+              "pattern": ["new", "ZGC Cycles", "ZGC Pauses"]
             }
           }
         }
