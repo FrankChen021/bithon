@@ -60,8 +60,7 @@ public class ServerCallInterceptor implements ServerInterceptor {
                                      .currentSpan()
                                      .component("grpc-server")
                                      .kind(SpanKind.SERVER)
-                                     .clazz(call.getMethodDescriptor().getServiceName())
-                                     .method(call.getMethodDescriptor().getBareMethodName())
+                                     .method(call.getMethodDescriptor().getServiceName(), call.getMethodDescriptor().getBareMethodName())
                                      .tag("uri", "grpc://" + call.getMethodDescriptor().getFullMethodName())
                                      .start();
 

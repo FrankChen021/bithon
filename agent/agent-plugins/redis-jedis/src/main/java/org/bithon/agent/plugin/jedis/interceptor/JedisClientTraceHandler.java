@@ -56,7 +56,7 @@ public class JedisClientTraceHandler extends AroundInterceptor {
         Client redisClient = aopContext.getTargetAs();
         String uri = "redis://" + redisClient.getHost() + ":" + redisClient.getPort();
 
-        aopContext.setUserContext(span.method(command)
+        aopContext.setUserContext(span.method(aopContext.getTargetClass().getName(), command)
                                       .kind(SpanKind.CLIENT)
                                       .tag(Tags.TARGET, uri)
                                       .start());

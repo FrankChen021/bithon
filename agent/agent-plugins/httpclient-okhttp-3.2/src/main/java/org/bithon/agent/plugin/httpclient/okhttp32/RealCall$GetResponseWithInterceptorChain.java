@@ -81,8 +81,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
         if (span != null) {
             aopContext.setUserContext(span.kind(SpanKind.CLIENT)
                                           .tag(Tags.CLIENT_TYPE, "okhttp3")
-                                          .clazz(aopContext.getTargetClass().getName())
-                                          .method("execute")
+                                          .method(aopContext.getTargetClass().getName(), "execute")
                                           .tag(Tags.HTTP_METHOD, request.method())
                                           .tag(Tags.HTTP_URI, request.url().toString())
                                           .start());

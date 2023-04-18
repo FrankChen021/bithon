@@ -49,8 +49,7 @@ public class ClientCallInterceptor implements ClientInterceptor {
         // Not sure when the other methods will be called,
         // so, it's better to create a new tracing context for this gRPC client call
         ITraceSpan span = TraceSpanFactory.newAsyncSpan("grpc-client")
-                                          .clazz(ClientInterceptor.class.getName())
-                                          .method("interceptCall")
+                                          .method(ClientInterceptor.class.getName(), "interceptCall")
                                           .tag("remote.address", this.target)
                                           .kind(SpanKind.CLIENT)
                                           .start();
