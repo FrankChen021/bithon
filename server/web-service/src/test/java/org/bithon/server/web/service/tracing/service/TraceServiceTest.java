@@ -85,8 +85,10 @@ public class TraceServiceTest {
         long end = System.currentTimeMillis() + fromMinute(61);
 
         TraceService.Bucket bucket = TraceService.getTimeBucket(start, end);
-        Assert.assertEquals(31, bucket.getNums());
-        Assert.assertEquals(120, bucket.getLength());
+
+        // After 60 minutes, the step is 12, so there should be 12 + 1 buckets in total
+        Assert.assertEquals(12 + 1, bucket.getNums());
+        Assert.assertEquals(300, bucket.getLength());
     }
 
     @Test
@@ -95,8 +97,12 @@ public class TraceServiceTest {
         long end = System.currentTimeMillis() + fromMinute(360);
 
         TraceService.Bucket bucket = TraceService.getTimeBucket(start, end);
-        Assert.assertEquals(60, bucket.getNums());
-        Assert.assertEquals(360, bucket.getLength());
+
+        // 10 minute per bucket
+        Assert.assertEquals(60 * 10, bucket.getLength());
+
+        // 36 buckets
+        Assert.assertEquals(36, bucket.getNums());
     }
 
     @Test
@@ -105,7 +111,8 @@ public class TraceServiceTest {
         long end = System.currentTimeMillis() + fromMinute(361);
 
         TraceService.Bucket bucket = TraceService.getTimeBucket(start, end);
-        Assert.assertEquals(31, bucket.getNums());
-        Assert.assertEquals(720, bucket.getLength());
+
+        Assert.assertEquals(600, bucket.getLength());
+        Assert.assertEquals(36 + 1, bucket.getNums());
     }
 }

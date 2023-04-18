@@ -28,6 +28,7 @@ import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanSummaryRecord;
+import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
@@ -60,17 +61,20 @@ public class TraceJdbcReader implements ITraceReader {
     private final TraceStorageConfig traceStorageConfig;
     private final DataSourceSchema traceSpanSchema;
     private final DataSourceSchema traceTagIndexSchema;
+    private final ISqlDialect sqlDialect;
 
     public TraceJdbcReader(DSLContext dslContext,
                            ObjectMapper objectMapper,
                            DataSourceSchema traceSpanSchema,
                            DataSourceSchema traceTagIndexSchema,
-                           TraceStorageConfig traceStorageConfig) {
+                           TraceStorageConfig traceStorageConfig,
+                           ISqlDialect sqlDialect) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
         this.traceStorageConfig = traceStorageConfig;
         this.traceSpanSchema = traceSpanSchema;
         this.traceTagIndexSchema = traceTagIndexSchema;
+        this.sqlDialect = sqlDialect;
     }
 
     @Override
@@ -140,7 +144,7 @@ public class TraceJdbcReader implements ITraceReader {
     public List<Map<String, Object>> getTraceDistribution(List<IFilter> filters, Timestamp start, Timestamp end, int interval) {
         BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
 
-        String timeBucket = StringUtils.format("UNIX_TIMESTAMP(\"%s\")/ %d * %d", "timestamp", interval, interval);
+        String timeBucket = sqlDialect.timeFloor("timestamp", interval);
         StringBuilder sqlBuilder = new StringBuilder(StringUtils.format("SELECT %s AS \"_timestamp\", count(1) AS \"count\", min(\"%s\") AS \"minResponse\", avg(\"%s\") AS \"avgResponse\", max(\"%s\") AS \"maxResponse\" FROM %s",
                                                                         timeBucket,
                                                                         summaryTable.COSTTIMEMS.getName(),

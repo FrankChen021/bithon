@@ -25,6 +25,9 @@ import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
+import org.bithon.server.storage.jdbc.utils.DefaultSqlDialect;
+import org.bithon.server.storage.jdbc.utils.H2SqlDialect;
+import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
@@ -76,9 +79,9 @@ public class MetricJdbcStorage implements IMetricStorage {
 
     protected ISqlDialect getSqlDialect() {
         if (dslContext.dialect() == SQLDialect.H2) {
-            return MetricJdbcReader.H2SqlDialect.INSTANCE;
+            return H2SqlDialect.INSTANCE;
         } else {
-            return MetricJdbcReader.DefaultSqlDialect.INSTANCE;
+            return DefaultSqlDialect.INSTANCE;
         }
     }
 

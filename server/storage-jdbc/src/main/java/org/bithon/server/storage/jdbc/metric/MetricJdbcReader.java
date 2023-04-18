@@ -24,8 +24,8 @@ import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.SelectExpression;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.datasource.query.ast.StringNode;
+import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.IMetricReader;
@@ -222,81 +222,5 @@ public class MetricJdbcReader implements IMetricReader {
             }
             return mapObject;
         }).collect(Collectors.toList());
-    }
-
-    static class DefaultSqlDialect implements ISqlDialect {
-        public static ISqlDialect INSTANCE = new DefaultSqlDialect();
-
-        @Override
-        public boolean groupByUseRawExpression() {
-            return false;
-        }
-
-        @Override
-        public boolean allowSameAggregatorExpression() {
-            return true;
-        }
-
-        @Override
-        public String stringAggregator(String field) {
-            throw new RuntimeException("string agg is not supported.");
-        }
-
-        @Override
-        public String firstAggregator(String field, String name, long window) {
-            throw new RuntimeException("last agg is not supported.");
-        }
-
-        @Override
-        public String lastAggregator(String field, long window) {
-            throw new RuntimeException("last agg is not supported.");
-        }
-    }
-
-    static class H2SqlDialect implements ISqlDialect {
-        public static ISqlDialect INSTANCE = new H2SqlDialect();
-
-        @Override
-        public boolean groupByUseRawExpression() {
-            return true;
-        }
-
-        @Override
-        public boolean allowSameAggregatorExpression() {
-            return true;
-        }
-
-        @Override
-        public String stringAggregator(String field) {
-            return StringUtils.format("group_concat(\"%s\")", field);
-        }
-
-        @Override
-        public String firstAggregator(String field, String name, long window) {
-            return StringUtils.format(
-                "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\") AS \"%s\"",
-                field,
-                this.timeFloor("timestamp", window),
-                name);
-        }
-
-        @Override
-        public String lastAggregator(String field, long window) {
-            // NOTE: use FIRST_VALUE since LAST_VALUE returns wrong result
-            return StringUtils.format(
-                "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC)",
-                field,
-                this.timeFloor("timestamp", window));
-        }
-
-        @Override
-        public boolean useWindowFunctionAsAggregator(String aggregator) {
-            return SimpleAggregateExpressions.FirstAggregateExpression.TYPE.equals(aggregator)
-                   || SimpleAggregateExpressions.LastAggregateExpression.TYPE.equals(aggregator);
-        }
-
-        /*
-         * NOTE, H2 does not support timestamp comparison, we have to use ISO8601 format
-         */
     }
 }

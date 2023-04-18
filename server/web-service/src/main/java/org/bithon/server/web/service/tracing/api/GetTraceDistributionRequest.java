@@ -19,7 +19,10 @@ package org.bithon.server.web.service.tracing.api;
 import lombok.Data;
 import org.bithon.server.storage.metrics.IFilter;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,5 +38,10 @@ public class GetTraceDistributionRequest {
     @NotBlank
     private String endTimeISO8601;
 
+    @NotNull
     private List<IFilter> filters = Collections.emptyList();
+
+    @Min(30)
+    @Max(60)
+    private int bucketCount = 30;
 }

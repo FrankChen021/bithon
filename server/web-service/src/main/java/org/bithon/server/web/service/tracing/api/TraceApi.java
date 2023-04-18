@@ -80,13 +80,11 @@ public class TraceApi {
     }
 
     @PostMapping("/api/trace/getTraceDistribution")
-    public TimeSeriesQueryResult getTraceDistributionV2(@Valid @RequestBody GetTraceDistributionRequest request) {
-        TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
-        TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
-
-        return traceService.getTraceDistributionV2(request.getFilters(),
-                                                   start,
-                                                   end);
+    public TimeSeriesQueryResult getTraceDistribution(@Valid @RequestBody GetTraceDistributionRequest request) {
+        return traceService.getTraceDistribution(request.getFilters(),
+                                                 TimeSpan.fromISO8601(request.getStartTimeISO8601()),
+                                                 TimeSpan.fromISO8601(request.getEndTimeISO8601()),
+                                                 request.getBucketCount());
     }
 
     @PostMapping("/api/trace/getTraceList")

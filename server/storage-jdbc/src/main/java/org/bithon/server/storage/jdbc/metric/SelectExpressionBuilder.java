@@ -36,6 +36,7 @@ import org.bithon.server.storage.datasource.query.ast.Table;
 import org.bithon.server.storage.datasource.query.ast.Where;
 import org.bithon.server.storage.datasource.query.parser.FieldExpressionVisitorAdaptor2;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
+import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.Interval;

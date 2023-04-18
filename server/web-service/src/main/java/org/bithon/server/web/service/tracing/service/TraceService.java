@@ -53,16 +53,23 @@ public class TraceService {
     }
 
     /**
+     * For test only
+     */
+    static Bucket getTimeBucket(long startTimestamp, long endTimestamp) {
+        return getTimeBucket(startTimestamp, endTimestamp, 60);
+    }
+
+    /**
      * Requirement
-     * 1. At most 60 buckets
-     * 2. The minimal length of each bucket is 1 minute
-     * <p>
+     * 1. The minimal length of each bucket is 1 minute
      *
+     * <p>
+     * @param bucketCount the count of buckets
      * @param startTimestamp in millisecond
      * @param endTimestamp   in millisecond
      * @return the length of a bucket in second
      */
-    static Bucket getTimeBucket(long startTimestamp, long endTimestamp) {
+    static Bucket getTimeBucket(long startTimestamp, long endTimestamp, int bucketCount) {
         int seconds = (int) ((endTimestamp - startTimestamp) / 1000);
         if (seconds <= 60) {
             return new Bucket(1, 60);
@@ -71,8 +78,18 @@ public class TraceService {
         int minute = (int) ((endTimestamp - startTimestamp) / 1000 / 60);
         int hour = (int) Math.ceil(minute / 60.0);
 
-        // after 3 hour, the step is 6 hour
-        int step = hour <= 3 ? 1 : 6;
+        int[] steps = {1, 5, 10, 15, 30, 60, 150, 180, 360, 720, 1440};
+        int stepIndex = 0;
+        int step = 1;
+        while (minute / step > bucketCount) {
+            stepIndex++;
+            if (stepIndex < steps.length) {
+                step = steps[stepIndex];
+            } else {
+                // if exceeding the predefined steps, increase 1 day at least
+                step += 1440;
+            }
+        }
 
         int m = hour % step;
         int hourPerStep = (hour / step + (m > 0 ? 1 : 0));
@@ -160,10 +177,11 @@ public class TraceService {
                                         pageNumber, pageSize);
     }
 
-    public TimeSeriesQueryResult getTraceDistributionV2(List<IFilter> filters,
-                                                        TimeSpan start,
-                                                        TimeSpan end) {
-        int bucketInSecond = getTimeBucket(start.getMilliseconds(), end.getMilliseconds()).length;
+    public TimeSeriesQueryResult getTraceDistribution(List<IFilter> filters,
+                                                      TimeSpan start,
+                                                      TimeSpan end,
+                                                      int bucketCount) {
+        int bucketInSecond = getTimeBucket(start.getMilliseconds(), end.getMilliseconds(), bucketCount).length;
         List<Map<String, Object>> dataPoints = traceReader.getTraceDistribution(filters,
                                                                                 start.toTimestamp(),
                                                                                 end.toTimestamp(),
