@@ -15,11 +15,12 @@ class AppSelector {
         this.mSelectionChangedListener = [];
         this.mLastQuery = {};
         this.mQueryCache = [];
-        this.mQueryVariablepPrefix = option.queryVariablePrefix || '';
+        this.mQueryVariablePrefix = option.queryVariablePrefix || '';
 
         this.mFilterNames = [];
-
         this.mSelectedFilters = {};
+
+        this.vSuppressChangeEvent = false;
     }
 
     createAppSelector() {
@@ -82,6 +83,16 @@ class AppSelector {
         }
     }
 
+    /**
+     * reset a given filter without triggering the filter change event
+     */
+    resetFilter(dimensionName) {
+        const filterName = this.mQueryVariablePrefix + dimensionName;
+        this.vSuppressChangeEvent = true;
+        this.vParent.find(`select[id="${filterName}"]`).val(null).trigger('change');
+        this.vSuppressChangeEvent = false;
+    }
+
     getFilterName() {
         return this.mFilterNames;
     }
@@ -89,10 +100,10 @@ class AppSelector {
     #createDimensionFilter(dimensionIndex, dimensionName, displayText) {
         this.mFilterNames.push(dimensionName);
 
-        const filterName = this.mQueryVariablepPrefix + dimensionName;
+        const filterName = this.mQueryVariablePrefix + dimensionName;
 
         // create selector
-        const appendedSelect = this.vParent.append(`<li class="nav-item"><select style="width:150px"></select></li>`).find('select').last();
+        const appendedSelect = this.vParent.append(`<li class="nav-item"><select id="${filterName}" style="width:150px"></select></li>`).find('select').last();
 
         // bind query params if applicable
         const queryValue = window.queryParams[filterName];
@@ -164,9 +175,11 @@ class AppSelector {
         if (name === 'instanceName') {
             g_SelectedInstance = value;
         }
-        $.each(this.mSelectionChangedListener, (index, listener) => {
-            listener(name, value);
-        });
+        if (!this.vSuppressChangeEvent) {
+            $.each(this.mSelectionChangedListener, (index, listener) => {
+                listener(name, value);
+            });
+        }
     }
 
     #getApplicationOptions() {
@@ -242,7 +255,7 @@ class AppSelector {
 
                 for (let p = 0; p < dimensionIndex; p++) {
                     const dim = this.mSchema.dimensionsSpec[p];
-                    const dimFilter = this.mSelectedFilters[this.mQueryVariablepPrefix + dim.alias];
+                    const dimFilter = this.mSelectedFilters[this.mQueryVariablePrefix + dim.alias];
                     if (dimFilter != null) {
                         filters.push({
                             // use name instead of alias to query dimensions

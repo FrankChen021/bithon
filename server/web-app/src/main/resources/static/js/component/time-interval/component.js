@@ -4,16 +4,16 @@ class TimeInterval {
         this._listeners = [];
 
         this._viewModel = [
-            {id: "1m", value: 1, unit: "minute", text: "Last 1m"},
-            {id: "3m", value: 3, unit: "minute", text: "Last 3m"},
-            {id: "5m", value: 5, unit: "minute", text: "Last 5m"},
-            {id: "15m", value: 15, unit: "minute", text: "Last 15m"},
-            {id: "30m", value: 30, unit: "minute", text: "Last 30m"},
-            {id: "1h", value: 1, unit: "hour", text: "Last 1h"},
-            {id: "3h", value: 3, unit: "hour", text: "Last 3h"},
-            {id: "6h", value: 6, unit: "hour", text: "Last 6h"},
-            {id: "12h", value: 12, unit: "hour", text: "Last 12h"},
-            {id: "24h", value: 24, unit: "hour", text: "Last 1d"},
+            {id: "P1M", value: 1, unit: "minute", text: "Last 1m"},
+            {id: "P3M", value: 3, unit: "minute", text: "Last 3m"},
+            {id: "P5M", value: 5, unit: "minute", text: "Last 5m"},
+            {id: "P15M", value: 15, unit: "minute", text: "Last 15m"},
+            {id: "P30M", value: 30, unit: "minute", text: "Last 30m"},
+            {id: "P1H", value: 1, unit: "hour", text: "Last 1h"},
+            {id: "P3H", value: 3, unit: "hour", text: "Last 3h"},
+            {id: "P6H", value: 6, unit: "hour", text: "Last 6h"},
+            {id: "P12H", value: 12, unit: "hour", text: "Last 12h"},
+            {id: "P1D", value: 24, unit: "hour", text: "Last 1d"},
             {id: "P2D", value: 48, unit: "hour", text: "Last 2d"},
             {id: "P3D", value: 72, unit: "hour", text: "Last 3d"},
             {id: "P5D", value: 120, unit: "hour", text: "Last 5d"},
@@ -37,8 +37,6 @@ class TimeInterval {
                 text: parts[0] + '~' + parts[1]
             });
             defaultIntervalId = "user";
-        } else {
-            defaultIntervalId = '5m';
         }
 
         if (includeAll) {
@@ -47,11 +45,15 @@ class TimeInterval {
 
         this._control = $('<select id="intervalSelector" class="form-control"></select>');
         this._viewModel.forEach(model => {
-            const option = this.#addIntervalOption(model.id, model.value, model.unit, model.text, model.id === defaultIntervalId);
+            const option = this.#addIntervalOption(model.id, model.value, model.unit, model.text);
             if (model.id === defaultIntervalId) {
                 option.attr('selected', true);
             }
         });
+        if (this.getSelectedIndex() === 0) {
+            // If the given interval is not in the predefined list, set it the a default one
+            this._control.find('option[id="P5M"]').attr('selected', true);
+        }
 
         this._control.on('focus', () => {
             this._prevSelectIndex = this.getSelectedIndex();
@@ -68,8 +70,6 @@ class TimeInterval {
             }
         });
 
-        // trigger the change event to load default value
-        //this._control.focus();
         this.vBuiltInIntervalCount = this._viewModel.length;
         this.vUserInputOption = this._control.find(`option[id='input']`);
     }

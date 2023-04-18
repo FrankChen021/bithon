@@ -84,11 +84,14 @@
     <script>
         function redirect(url) {
             url += '/?';
-            if (g_SelectedApp !== undefined && g_SelectedApp != null) {
+            if (g_SelectedApp !== undefined && g_SelectedApp !== null) {
                 url += 'appName=' + g_SelectedApp;
             }
-            if (g_SelectedInstance !== undefined && g_SelectedInstance != null) {
+            if (g_SelectedInstance !== undefined && g_SelectedInstance !== null) {
                 url += `&instanceName=${g_SelectedInstance}`;
+            }
+            if (g_MetricSelectedInterval !== undefined && g_MetricSelectedInterval !== null) {
+                url += `&interval=${g_MetricSelectedInterval}`;
             }
             window.location = url;
         }
