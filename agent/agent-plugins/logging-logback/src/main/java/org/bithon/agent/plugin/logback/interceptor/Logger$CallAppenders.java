@@ -60,7 +60,7 @@ public class Logger$CallAppenders extends BeforeInterceptor {
 
         EventMessage exceptionEvent = new EventMessage("exception", exceptionArgs);
         Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
-        dispatcher.sendMessage(dispatcher.getMessageConverter().from(exceptionEvent));
+        dispatcher.send(dispatcher.getMessageConverter().from(exceptionEvent));
     }
 
     static class StackTraceBuilder {

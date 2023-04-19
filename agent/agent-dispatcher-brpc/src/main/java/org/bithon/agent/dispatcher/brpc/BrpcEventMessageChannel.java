@@ -110,12 +110,8 @@ public class BrpcEventMessageChannel implements IMessageChannel {
         }
 
         try {
-            if (message instanceof BrpcEventMessage) {
-                eventCollector.sendEvent(header, (BrpcEventMessage) message);
-            } else if (message instanceof List) {
-                //noinspection unchecked
-                eventCollector.sendEvent2(header, (List<BrpcEventMessage>) message);
-            }
+            //noinspection unchecked
+            eventCollector.sendEvent2(header, (List<BrpcEventMessage>) message);
         } catch (CallerSideException e) {
             //suppress client exception
             LOG.error("Failed to send event: {}", e.getMessage());

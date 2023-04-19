@@ -32,7 +32,8 @@ public class TraceContextHolder {
     }
 
     public static ITraceContext current() {
-        return HOLDER.get();
+        ITraceContext ctx = HOLDER.get();
+        return ctx == null || ctx.finished() ? null : ctx;
     }
 
     public static String currentTraceId() {

@@ -41,6 +41,7 @@ public class PropagationTraceContext implements ITraceContext {
     private final ISpanIdGenerator spanIdGenerator;
     private final Stack<ITraceSpan> spanStack = new Stack<>();
     private final String traceId;
+    private boolean finished = false;
 
     public PropagationTraceContext(String traceId, ISpanIdGenerator spanIdGenerator) {
         this.traceId = traceId;
@@ -95,11 +96,17 @@ public class PropagationTraceContext implements ITraceContext {
             // TODO: error
             spanStack.clear();
         }
+        this.finished = true;
     }
 
     @Override
     public <T> void propagate(T injectedTo, PropagationSetter<T> setter) {
         Tracer.get().propagator().inject(this, injectedTo, setter);
+    }
+
+    @Override
+    public boolean finished() {
+        return this.finished;
     }
 
     private void onSpanCreated(ITraceSpan span) {

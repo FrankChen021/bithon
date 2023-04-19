@@ -30,7 +30,7 @@ import java.util.concurrent.Executors;
 public class BlockingQueueTest {
 
     static class QueueTestDelegation {
-        private final BlockingQueue queue = new BlockingQueue();
+        private final IMessageQueue queue = new BatchMessageQueue(new BlockingQueue(), 128);
         private long elapsed = 0;
         private Object takenObject;
 
@@ -41,7 +41,7 @@ public class BlockingQueueTest {
         void take(int maxElement, int timeout) {
             long s = System.currentTimeMillis();
             try {
-                takenObject = queue.take(maxElement, timeout);
+                takenObject = queue.take(timeout);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

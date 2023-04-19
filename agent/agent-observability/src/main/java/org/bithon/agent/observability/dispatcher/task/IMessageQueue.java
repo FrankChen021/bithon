@@ -16,29 +16,23 @@
 
 package org.bithon.agent.observability.dispatcher.task;
 
-import java.util.Collection;
+import java.time.Duration;
 
 /**
  * @author frankchen
  */
 public interface IMessageQueue {
 
-    void offer(Object item);
+    boolean offer(Object items);
 
-    void offerAll(Collection<Object> items);
+    boolean offer(Object items, Duration wait) throws InterruptedException;
 
     long size();
 
     /**
      * Wait for at most {timeout} milliseconds to take at most maxElement elements from current queue
-     * @param maxElement how many elements to take from this queue
-     * @param timeout how long should we wait for taking maxElement elements from this queue
-     * @return null if no elements got within specified timeout
-     *         A collection that contains at most maxElement elements if maxElement > 1
-     *         An object if maxElement == 1
-     * @throws InterruptedException
+     * @param timeout How long should we wait for taking maxElement elements from this queue in milliseconds.
+     *                If <= 0, no wait
      */
-    Object take(int maxElement, long timeout) throws InterruptedException;
-
-    Object take(int maxElement);
+    Object take(long timeout) throws InterruptedException;
 }

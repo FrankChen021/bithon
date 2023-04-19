@@ -29,6 +29,7 @@ import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -80,13 +81,13 @@ public class Dispatcher {
     /**
      * will be replaced by {@link #send(Collection)} once underlying send method on channel is refactor to have the same interface
      */
-    public void sendMessage(Object message) {
+    public void send(Object message) {
         if (task != null && message != null) {
             task.accept(message);
         }
     }
 
-    public void send(Collection<Object> message) {
+    public void send(List<Object> message) {
         if (task != null && message != null) {
             task.accept(message);
         }

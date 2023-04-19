@@ -26,7 +26,11 @@ public class DispatcherConfig {
 
     private Map<String, Boolean> messageDebug = Collections.emptyMap();
 
-    private int queueSize = 4096;
+    /**
+     * A size of the queue of message list that contains the messages to be sent.
+     * Considering to set it to a proper size that matches the concurrency of your target application.
+     */
+    private int queueSize = 1024;
 
     public int getQueueSize() {
         return queueSize;

@@ -51,4 +51,6 @@ public interface ITraceContext {
     void finish();
 
     <T> void propagate(T injectedTo, PropagationSetter<T> setter);
+
+    boolean finished();
 }

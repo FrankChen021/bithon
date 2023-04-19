@@ -41,6 +41,8 @@ class TraceContext implements ITraceContext {
     private final ISpanIdGenerator spanIdGenerator;
     private ITraceReporter reporter;
 
+    private boolean finished = false;
+
     public TraceContext(String traceId,
                         ISpanIdGenerator spanIdGenerator) {
         this.traceId = traceId;
@@ -101,6 +103,9 @@ class TraceContext implements ITraceContext {
             return;
         }
 
+        // Mark the context as FINISHED first to prevent user code to access spans in the implementation of 'report' below
+        this.finished = true;
+
         try {
             this.reporter.report(this.spans);
         } catch (Throwable e) {
@@ -149,5 +154,10 @@ class TraceContext implements ITraceContext {
         Tracer.get()
               .propagator()
               .inject(this, injectedTo, setter);
+    }
+
+    @Override
+    public boolean finished() {
+        return this.finished;
     }
 }
