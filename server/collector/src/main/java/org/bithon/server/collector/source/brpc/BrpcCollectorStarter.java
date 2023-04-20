@@ -109,11 +109,11 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
         }
 
         serviceGroups.forEach((port, serviceGroup) -> {
-            BrpcServer channel = new BrpcServer();
+            BrpcServer brpcServer = new BrpcServer();
             if (serviceGroup.isCtrl) {
-                applicationContext.getBean(AgentServer.class).setBrpcServer(channel);
+                applicationContext.getBean(AgentServer.class).setBrpcServer(brpcServer);
             }
-            serviceGroup.channel = channel;
+            serviceGroup.brpcServer = brpcServer;
             serviceGroup.start(port);
         });
 
@@ -157,14 +157,14 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
     static class ServiceGroup {
         private final List<ServiceProvider> services = new ArrayList<>();
         private boolean isCtrl;
-        private BrpcServer channel;
+        private BrpcServer brpcServer;
         private int port;
 
         public void start(Integer port) {
             for (ServiceProvider service : services) {
-                channel.bindService(service.getImplementation());
+                brpcServer.bindService(service.getImplementation());
             }
-            channel.start(port);
+            brpcServer.start(port);
             this.port = port;
         }
 
@@ -176,7 +176,7 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
             // close channel first
             log.info("Closing channel hosting on {}", port);
             try {
-                channel.close();
+                brpcServer.close();
             } catch (Exception ignored) {
             }
 
