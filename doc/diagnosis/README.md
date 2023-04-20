@@ -27,18 +27,39 @@ it gets the right connection to the target application instance from its connect
 But if the collector is deployed without network load balancer, that's to say it's deployed as a single instance, there's no need of deployment of Alibaba Nacos,
 because this collector has all connections to the target applications.
 
+# Get all tables
 
-# User manual
+Bithon allows users to get insight into the application by using standard SQL grammar. All information that we can access are organized in TABLE.
+You can even use SQL to get all supported tables.
 
-Following list describes the features that the Bithon supports now.
+```sql
+SELECT * FROM INFORMATION_SCHEMA.tables
+```
+
+An example output is shown as follows. 
+
+| TABLE_CATALOG | TABLE_SCHEMA | TABLE_NAME    | TABLE_TYPE | IS_JOINABLE | IS_BROADCAST |
+|---------------|--------------|---------------|------------|-------------|--------------|  
+| agent         | agent        | configuration | TABLE      | NO          | NO           |
+
+It tells that there's a table `configuration` under `agent` database. So we can use SQL like `SELECT * FROM agent.configuration` for further SELECT or UPDATE operation.
+
+# Diagnosis User manual
+
+Following list describes the features that the Bithon supports now based on built-in tables that can be got from above.
 1. query instances
 2. query running threads(including call stack)
 3. query logger level
 4. update logger level
 5. query instrumented methods
 6. query loaded classes
+7. query agent configuration
+8. query VM options
 
 ## Query instances
+
+This is the most common use SQL that it shows all the application instances that are connecting to Bithon.
+We will use the `instance` column that it outputs for further operations.
 
 ### SQL
 
@@ -48,9 +69,9 @@ SELECT * FROM agent.instance
 
 ### Output example
 
-| appName        | appId               | endpoint        | agentVersion                                                                        |
-|----------------|---------------------|-----------------|-------------------------------------------------------------------------------------|
-| bithon-web-dev | 192.168.50.151:9897 | 127.0.0.1:55000 | 1.0-SNAPSHOT@ab9fca6d44b6f19fc751b383a3ebe3aa44cbddb1@2023-04-08T13:38:16.532+08:00 |
+| appName        | instance            | endpoint        | collector         | agentVersion                                                                        | startAt                 |
+|----------------|---------------------|-----------------|-------------------|-------------------------------------------------------------------------------------|-------------------------|
+| bithon-web-dev | 192.168.50.151:9897 | 127.0.0.1:55000 | 192.169.50.1:9899 | 1.0-SNAPSHOT@ab9fca6d44b6f19fc751b383a3ebe3aa44cbddb1@2023-04-08T13:38:16.532+08:00 | 2023-04-17T09:29:14.629 |
 
 
 ### Field Explanation
@@ -58,18 +79,32 @@ SELECT * FROM agent.instance
 | Field        | Explanation                                                                                                         |
 |--------------|---------------------------------------------------------------------------------------------------------------------|
 | appName      | The application name of an target application, also the value of `-Dbithon.application.name` JVM parameter.         |
-| appId        | The instance id of target application.                                                                              |
+| instance     | The instance id of target application.                                                                              |
 | endpoint     | The real endpoint of the target application that connects to the Bithon collector                                   |
+| collector    | The endpoint of Bithon collector that the agent is connecting to                                                    |
 | agentVersion | The version of the agent that the target application loads. It's in the format as: <VERSION>@<CommitId>@<Timestamp> |
+| startAt      | The timestamp when the target application starts                                                                    |
 
+### NOTE
+The diagnosis SQL supports standard SQL grammar. We can also use more filters or aggregators to get more information. For example
+
+```sql
+# Count the instance number per appName
+SELECT appName, count(1) FROM agent.instance GROUP BY appName ORDER BY appName
+ 
+ # Get all instances whose application name starts with 'bithon-'
+SELECT * FROM agent.instance WHERE appName like 'bithon-%' 
+```
 
 ## Query running threads(including call stack)
 
 ### SQL
 
 ```sql
-SELECT * FROM agent.thread WHERE appId = '<THE TARGET APPLICATION ID>'
+SELECT * FROM agent.thread WHERE instance = '<THE TARGET INSTANCE>'
 ```
+
+We need to use the `instance` that we get from above to execute above query on a specific application instance.
 
 ### Field Explanation
 
@@ -101,7 +136,7 @@ SELECT * FROM agent.thread WHERE appId = '<THE TARGET APPLICATION ID>'
 ### SQL
 
 ```sql
-SELECT * FROM agent.logger WHERE appId = '192.168.50.151:9897'
+SELECT * FROM agent.logger WHERE instance = '192.168.50.151:9897'
 ```
 
 ### Output field Explanation
@@ -122,13 +157,13 @@ We can also change the configured logging level during application running by us
 ### SQL
 
 ```sql
-UPDATE agent.logger SET level = 'DEBUG' where appId = '192.168.50.151:9897' AND name = 'org.bithon' AND _token = '525'
+UPDATE agent.logger SET level = 'DEBUG' where instance = '192.168.50.151:9897' AND name = 'org.bithon' AND _token = '525'
 ```
 
 > NOTE:
-> 1. The SQL must provide `appId` and `name` filter in the `WHERE` clause.
+> 1. The SQL must provide `instance` and `name` filter in the `WHERE` clause.
 > 2. Only `level` can be UPDATED
-> 3. A token is needed and it's configured per-application basis. See 
+> 3. A token is needed, and it's configured at Bithon server side per-application basis. See [Permission Control](../configuration/server/configuration-collector.md) section for more information.
 
 ## Query instrumented methods
 
@@ -138,7 +173,7 @@ To do this, we can use the following SQL to check.
 ### SQL
 
 ```sql
-SELECT * FROM agent.instrumented_method WHERE appId = '192.168.50.151:9897'
+SELECT * FROM agent.instrumented_method WHERE instance = '192.168.50.151:9897'
 ```
 
 ### Output fields explanation
@@ -156,7 +191,7 @@ SELECT * FROM agent.instrumented_method WHERE appId = '192.168.50.151:9897'
 ### SQL
 
 ```sql
-SELECT * FROM agent.load_class WHERE appId = '192.168.50.151:9897'
+SELECT * FROM agent.load_class WHERE instance = '192.168.50.151:9897'
 ```
 ### Output fields explanation
 
@@ -168,3 +203,48 @@ SELECT * FROM agent.load_class WHERE appId = '192.168.50.151:9897'
 | isInterface  | 1 if the target class is an interface.                      |
 | isAnnotation | 1 if the target class is an annotation.                     |
 | isEnum       | 1 if the target class is an enum class.                     |
+
+## Query agent configuration
+
+Following SQL shows how can I get the effective configuration for the agent running in given application instance.
+
+### SQL
+
+```sql
+SELECT * FROM agent.configuration WHERE instance = '192.168.50.151:9897'
+```
+
+### Output example
+
+This returned configuration is displayed in YAML format. For example:
+
+```yaml
+---
+application:
+  name: "bithon-kafka-to-css"
+  env: "live"
+controller:
+  servers: "10.180.128.197:9899"
+  client: "org.bithon.agent.dispatcher.brpc.BrpcAgentControllerFactory"
+dispatchers:
+  metric:
+    client:
+      factory: "org.bithon.agent.dispatcher.brpc.BrpcChannelFactory"
+      maxLifeTime: 300000
+    servers: "10.180.128.197:9898"
+  tracing:
+    client:
+      factory: "org.bithon.agent.dispatcher.brpc.BrpcChannelFactory"
+      maxLifeTime: 300000
+    servers: "10.180.128.197:9895"
+    batchSize: 2000
+    flushTime: 3000
+    queueSize: 8192
+  event:
+    client:
+      factory: "org.bithon.agent.dispatcher.brpc.BrpcChannelFactory"
+      maxLifeTime: 300000
+    servers: "10.180.128.197:9896"
+    batchSize: 500
+    flushTime: 5000
+```
