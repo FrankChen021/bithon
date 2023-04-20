@@ -28,6 +28,7 @@ import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.shaded.io.netty.bootstrap.ServerBootstrap;
 import org.bithon.shaded.io.netty.buffer.PooledByteBufAllocator;
 import org.bithon.shaded.io.netty.channel.Channel;
@@ -147,10 +148,10 @@ public class BrpcServer implements Closeable {
 
     public Session getSession(String remoteAppId) {
         return sessionManager.getSessions()
-                .stream()
-                .filter(s -> remoteAppId.equals(s.getRemoteAttribute(Headers.HEADER_APP_ID, s.getRemoteEndpoint())))
-                .findFirst()
-                .orElseThrow(() -> new SessionNotFoundException("Can't find any connected remote application [%s] on this server.", remoteAppId));
+                             .stream()
+                             .filter(s -> remoteAppId.equals(s.getRemoteAttribute(Headers.HEADER_APP_ID, s.getRemoteEndpoint())))
+                             .findFirst()
+                             .orElseThrow(() -> new SessionNotFoundException("Can't find any connected remote application [%s] on this server.", remoteAppId));
     }
 
     public <T> T getRemoteService(String remoteAppId, Class<T> serviceClass) {
@@ -166,10 +167,10 @@ public class BrpcServer implements Closeable {
 
     public <T> List<T> getRemoteServices(String appName, Class<T> serviceClass) {
         return sessionManager.getSessions()
-                .stream()
-                .filter(s -> appName.equals(s.getRemoteApplicationName()))
-                .map(s -> s.getRemoteService(serviceClass, 5_000))
-                .collect(Collectors.toList());
+                             .stream()
+                             .filter(s -> appName.equals(s.getRemoteApplicationName()))
+                             .map(s -> s.getRemoteService(serviceClass, 5_000))
+                             .collect(Collectors.toList());
     }
 
     public static class Session {
@@ -183,6 +184,7 @@ public class BrpcServer implements Closeable {
         private final InvocationManager invocationManager;
 
         private final String remoteApplicationName;
+        private final long sessionStartTimestamp;
 
         /**
          * Attributes from remote side
@@ -190,6 +192,7 @@ public class BrpcServer implements Closeable {
         private Map<String, String> remoteAttribute = Collections.emptyMap();
 
         private Session(String applicationName, Channel channel, InvocationManager invocationManager) {
+            this.sessionStartTimestamp = System.currentTimeMillis();
             this.channel = channel;
             this.remoteApplicationName = applicationName;
             this.remoteEndpoint = EndPoint.of(channel.remoteAddress()).toString();
@@ -223,15 +226,15 @@ public class BrpcServer implements Closeable {
 
         public <T> T getRemoteService(Class<T> serviceClass, int timeout) {
             return ServiceStubFactory.create("brpc-server",
-                    Headers.EMPTY,
-                    new Server2ClientChannel(channel),
-                    serviceClass,
-                    timeout,
-                    invocationManager);
+                                             Headers.EMPTY,
+                                             new Server2ClientChannel(channel, sessionStartTimestamp),
+                                             serviceClass,
+                                             timeout,
+                                             invocationManager);
         }
 
         public LowLevelInvoker getLowLevelInvoker() {
-            return new LowLevelInvoker(new Server2ClientChannel(channel), invocationManager);
+            return new LowLevelInvoker(new Server2ClientChannel(channel, sessionStartTimestamp), invocationManager);
         }
     }
 
@@ -266,7 +269,7 @@ public class BrpcServer implements Closeable {
 
             // Create a session only if the ServiceRequestMessageIn has been successfully decoded
             Session session = sessions.computeIfAbsent(ctx.channel().id().asLongText(),
-                    key -> new Session(request.getApplicationName(), ctx.channel(), invocationManager));
+                                                       key -> new Session(request.getApplicationName(), ctx.channel(), invocationManager));
 
             // Update additional attributes
             session.setRemoteAttribute(request.getHeaders());
@@ -282,12 +285,21 @@ public class BrpcServer implements Closeable {
 
         @Override
         public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
-            if (evt instanceof IdleStateEvent) {
-                if (IdleState.WRITER_IDLE.equals(((IdleStateEvent) evt).state())) {
-                    ctx.channel().close();
+            if (!(evt instanceof IdleStateEvent)) {
+                return;
+            }
 
-                    // Since above call is async, we remove the session immediately to reflect the timeout at application side
-                    sessions.remove(ctx.channel().id().asLongText());
+            if (IdleState.WRITER_IDLE.equals(((IdleStateEvent) evt).state())) {
+                ctx.channel().close();
+
+                // Since the above call is async, we remove the session immediately to reflect the timeout at application side
+                Session session = sessions.remove(ctx.channel().id().asLongText());
+                if (session != null) {
+                    LoggerFactory.getLogger(BrpcServer.class)
+                                 .info("Close idle connection: {} -> {}, session life time: {}ms",
+                                       session.remoteEndpoint,
+                                       session.localEndpoint,
+                                       System.currentTimeMillis() - session.sessionStartTimestamp);
                 }
             }
         }
@@ -295,15 +307,17 @@ public class BrpcServer implements Closeable {
 
     private static class Server2ClientChannel implements IBrpcChannel {
         private final Channel channel;
+        private final long sessionStartTimestamp;
 
-        public Server2ClientChannel(Channel channel) {
+        public Server2ClientChannel(Channel channel, long sessionStartTimestamp) {
             this.channel = channel;
+            this.sessionStartTimestamp = sessionStartTimestamp;
         }
 
         @Override
         public long getConnectionLifeTime() {
-            // not support for a server channel now
-            return 0;
+            // Treat session start timestamp as the timestamp when the connection is established
+            return System.currentTimeMillis() - sessionStartTimestamp;
         }
 
         @Override
