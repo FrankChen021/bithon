@@ -108,8 +108,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
                           @Override
                           public void initChannel(SocketChannel ch) {
                               ChannelPipeline pipeline = ch.pipeline();
-                              pipeline.addLast("frameDecoder",
-                                               new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
+                              pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
                               pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
                               pipeline.addLast("decoder", new ServiceMessageInDecoder());
                               pipeline.addLast("encoder", new ServiceMessageOutEncoder(invocationManager));
@@ -242,6 +241,9 @@ public class BrpcClient implements IBrpcChannel, Closeable {
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
             BrpcClient.this.channelRef.getAndSet(null);
+
+            // Reset the connection timestamp so that we know that the connection is not connected
+            BrpcClient.this.connectionTimestamp = 0;
             super.channelInactive(ctx);
         }
     }

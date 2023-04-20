@@ -163,7 +163,7 @@ public class InvocationManager {
             }
 
             if (!inflightRequest.responseReceived) {
-                throw new TimeoutException(channelWriter.getRemoteAddress().toString(),
+                throw new TimeoutException(remoteEndpoint.toString(),
                                            serviceRequest.getServiceName(),
                                            serviceRequest.getMethodName(),
                                            timeoutMillisecond);

@@ -43,11 +43,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BrpcRpcTest {
 
     static BrpcServer brpcServer;
+    static int idleSeconds = 10;
 
     @BeforeClass
     public static void setup() {
         brpcServer = new BrpcServer().bindService(new ExampleServiceImpl())
-                                     .start(8070);
+                                     .start(8070, idleSeconds);
     }
 
     @AfterClass
@@ -441,6 +442,29 @@ public class BrpcRpcTest {
 
             // test map
             Assert.assertEquals(5000_000, exampleService.createList(5000_000).size());
+        }
+    }
+
+    @Test
+    public void testServerSideIdle() {
+        try (BrpcClient ch = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
+
+            IExampleService exampleService = ch.getRemoteService(IExampleService.class);
+
+            // Wait for server side idle
+            try {
+                Thread.sleep((idleSeconds + 1) * 1000L);
+            } catch (InterruptedException ignored) {
+            }
+            // after idle timeout, the session SHOULD be cleared
+            Assert.assertEquals(0, brpcServer.getSessions().size());
+
+            // The client side channel SHOULD be de-active
+            Assert.assertFalse(ch.isActive());
+
+            // after the connection closed,the client will re-connect to the server once it founds that the connection is closed
+            Assert.assertEquals(5, exampleService.createList(5).size());
+            Assert.assertEquals(1, brpcServer.getSessions().size());
         }
     }
 }
