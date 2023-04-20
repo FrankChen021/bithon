@@ -37,7 +37,7 @@ public class AgentConfigurationService {
         this.settingReader = storage.createReader();
     }
 
-    public Map<String, String> getSettings(String appName, long since) {
-        return settingReader.getSettings(appName, since);
+    public Map<String, String> getSettings(String appName, String env, long since) {
+        return settingReader.getSettings(appName + "-" + env, since);
     }
 }

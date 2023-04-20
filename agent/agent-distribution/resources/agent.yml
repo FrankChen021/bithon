@@ -1,6 +1,7 @@
 
 application:
   name:
+  env:
 
 controller:
   servers: 127.0.0.1:9899

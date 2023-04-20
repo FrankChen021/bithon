@@ -18,7 +18,6 @@ package org.bithon.server.collector.config;
 
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
-import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.Map;
 
@@ -28,21 +27,15 @@ import java.util.Map;
  */
 public class BrpcSettingFetcher implements ISettingFetcher {
 
-    private final AgentConfigurationService configurationService;
+    private final AgentConfigurationService settingService;
 
-    public BrpcSettingFetcher(AgentConfigurationService configurationService) {
-        this.configurationService = configurationService;
+    public BrpcSettingFetcher(AgentConfigurationService settingService) {
+        this.settingService = settingService;
     }
 
     @Override
     public Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince) {
         // Always fetch all configuration by setting 'since' parameter to 0
-        String appName = header.getAppName();
-        String env = header.getEnv();
-        if (StringUtils.hasText(env)) {
-            // Compatibility with old agent protocol
-            appName += "-" + env;
-        }
-        return configurationService.getSettings(appName, 0);
+        return settingService.getSettings(header.getAppName(), header.getEnv(), 0);
     }
 }

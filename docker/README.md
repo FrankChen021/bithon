@@ -33,7 +33,7 @@ DOCKER_BUILDKIT=1 docker build -t bithon/server:{TAG} -f docker/Dockerfile-serve
 
 - Run with JVM arguments.
     ```bash
-    docker run -p 9895:9895 -p 9896:9896 -p 9897:9897 -p 9898:9898 -p 9899:9899 -e JAVA_OPTS="-Xmx4g" -itd bithon/server:{TAG} 
+    docker run -p 9895:9895 -p 9896:9896 -p 9897:9897 -p 9898:9898 -p 9899:9899 -e JAVA_OPTS="-Xmx4g -Dbithon.application.env=test" -itd bithon/server:{TAG} 
     ```
 
 - Run with extra JVM arguments in a file.
@@ -42,6 +42,7 @@ DOCKER_BUILDKIT=1 docker build -t bithon/server:{TAG} -f docker/Dockerfile-serve
     It contains some JVM arguments in multiple lines which will be passed to the application running in docker.
 
     ```bash
+    -Dbithon.application.env=test
     -Xms=2g
     -Xmx=4G
     ```
@@ -55,5 +56,5 @@ DOCKER_BUILDKIT=1 docker build -t bithon/server:{TAG} -f docker/Dockerfile-serve
     By default, the process inside the docker will first download agent from [https://repo1.maven.org/](https://repo1.maven.org/).
     If this site is not available for you, you can change this site by specifying an extra environment argument when starting the docker as follows 
     ```bash
-    docker run -p 9895:9895 -p 9896:9896 -p 9897:9897 -p 9898:9898 -p 9899:9899 -e AGENT_URI="YOUR_AGENT_URI" -itd bithon/server:{TAG} 
+    docker run -p 9895:9895 -p 9896:9896 -p 9897:9897 -p 9898:9898 -p 9899:9899 -e AGENT_URI="YOUR_AGENT_URI" -e JAVA_OPTS="-Dbithon.application.env=test" -itd bithon/server:{TAG} 
     ```

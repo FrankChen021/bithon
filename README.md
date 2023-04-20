@@ -94,13 +94,14 @@ Once the application has started, visit [http://localhost:9897/web/home](http://
 Attach agent to your java agent by adding following VM arguments.
 
 ```bash
--javaagent:<YOUR_PROJECT_DIRECTORY>/agent/agent-distribution/target/agent-distribution/agent-main.jar -Dbithon.application.name=<YOUR_APPLICATION_NAME>
+-javaagent:<YOUR_PROJECT_DIRECTORY>/agent/agent-distribution/target/agent-distribution/agent-main.jar -Dbithon.application.name=<YOUR_APPLICATION_NAME> -Dbithon.application.env=<YOUR_APPLICATION_ENV>
 ```
 
-| Variable               | Description                                                                                                                                                                                                        |
-|------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| YOUR_PROJECT_DIRECTORY | the directory where this project saves                                                                                                                                                                             |
-| YOUR_APPLICATION_NAME  | the name of your application. It could be any string. <br/> Good practice of application name is combining the name and its deployed environment,  for example, `bithon-webserver-dev` or `bithon-webserver-prod`. |
+| Variable               | Description                                                                                                              |
+|------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| YOUR_PROJECT_DIRECTORY | the directory where this project saves                                                                                   |
+| YOUR_APPLICATION_NAME  | the name of your application. It could be any string                                                                     |
+| YOUR_APPLICATION_ENV   | the name of your environment to label your application. It could be any string. Usually it could be `dev`, `test`, `prd` |
 
 By default, the agent connects collector running at local(127.0.0.1). 
 Collector address could be changed in file `agent/agent-main/src/main/resources/agent.yml`.

@@ -26,9 +26,7 @@ import org.bithon.agent.configuration.validation.NotBlank;
 @ConfigurationProperties(prefix = "application", dynamic = false)
 public class AppConfiguration {
 
-    /**
-     * Kept for backward compatibility
-     */
+    @NotBlank(message = "'bithon.application.env' should not be blank")
     private String env;
 
     @NotBlank(message = "'bithon.application.name' should not be blank")
