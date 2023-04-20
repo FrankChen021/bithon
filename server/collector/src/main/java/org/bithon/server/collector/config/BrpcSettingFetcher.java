@@ -27,15 +27,15 @@ import java.util.Map;
  */
 public class BrpcSettingFetcher implements ISettingFetcher {
 
-    private final AgentConfigurationService settingService;
+    private final AgentConfigurationService configurationService;
 
-    public BrpcSettingFetcher(AgentConfigurationService settingService) {
-        this.settingService = settingService;
+    public BrpcSettingFetcher(AgentConfigurationService configurationService) {
+        this.configurationService = configurationService;
     }
 
     @Override
     public Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince) {
         // Always fetch all configuration by setting 'since' parameter to 0
-        return settingService.getSettings(header.getAppName(), header.getEnv(), 0);
+        return configurationService.getConfiguration(header.getAppName(), header.getEnv(), 0);
     }
 }

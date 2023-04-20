@@ -16,6 +16,7 @@
 
 package org.bithon.server.collector.config;
 
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.setting.ISettingReader;
 import org.bithon.server.storage.setting.ISettingStorage;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -37,7 +38,10 @@ public class AgentConfigurationService {
         this.settingReader = storage.createReader();
     }
 
-    public Map<String, String> getSettings(String appName, String env, long since) {
-        return settingReader.getSettings(appName + "-" + env, since);
+    public Map<String, String> getConfiguration(String appName, String env, long since) {
+        if (StringUtils.hasText(env)) {
+            appName += "-" + env;
+        }
+        return settingReader.getSettings(appName, since);
     }
 }
