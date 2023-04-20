@@ -7,7 +7,7 @@ previous commands went away.
 
 # Rationale
 
-Bithon's agent set up a bi-direction TCP channel to its collector. 
+Bithon's agent set up a bidirectional TCP channel to its collector. 
 Each instance of collectors can get information from this channel or update information through this channel.
 
 Over this channel, all messages are in protobuf or SMILE encoded JSON text. Which one is used is dependent on the implementations.
@@ -46,17 +46,20 @@ It tells that there's a table `configuration` under `agent` database. So we can 
 
 # Diagnosis User manual
 
-Following list describes the features that the Bithon supports now based on built-in tables that can be got from above.
-1. query instances
-2. query running threads(including call stack)
-3. query logger level
-4. update logger level
-5. query instrumented methods
-6. query loaded classes
-7. query agent configuration
-8. query VM options
+The Following table shows all the built-in tables that Bithon supports now.
 
-## Query instances
+| Table Name                                            | SELECT  | UPDATE  | Description                                                                     |
+|-------------------------------------------------------|---------|---------|---------------------------------------------------------------------------------|
+| [agent.instance](#agentinstance)                      | &check; |         | The connected target applications to Bithon collector                           |
+| [agent.configuration](#agentconfiguration)            | &check; |         | Effective configurations of agent                                               |
+| [agent.instrumented_method](#agentinstrumentedmethod) | &check; |         | All intercepted methods of target application for observability and diagnosis   |
+| [agent.loaded_class](#agentloadedclass)               | &check; |         | All classes that are loaded into the target application.                        |
+| [agent.logger](#agentlogger)                          | &check; | &check; | Logging levels of all loggers of target application                             |
+| [agent.thread](#agentthread)                          | &check; |         | Snapshot of threads  running in the target application when the SQL is executed |
+| [agent.vm_option](#agentvmoption)                     | &check; |         | Diagnostic VM options of target Java application.                               |
+
+
+## agent.instance
 
 This is the most common use SQL that it shows all the application instances that are connecting to Bithon.
 We will use the `instance` column that it outputs for further operations.
@@ -96,115 +99,7 @@ SELECT appName, count(1) FROM agent.instance GROUP BY appName ORDER BY appName
 SELECT * FROM agent.instance WHERE appName like 'bithon-%' 
 ```
 
-## Query running threads(including call stack)
-
-### SQL
-
-```sql
-SELECT * FROM agent.thread WHERE instance = '<THE TARGET INSTANCE>'
-```
-
-We need to use the `instance` that we get from above to execute above query on a specific application instance.
-
-### Field Explanation
-
-| Field         | Explanation                                                                                                                                                                                                                                                                   |
-|---------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| threadId      | Id of a running thread                                                                                                                                                                                                                                                        |
-| name          | Name of a running thread                                                                                                                                                                                                                                                      |
-| daemon        | Whether the thread is running as a daemon thread                                                                                                                                                                                                                              |
-| priority      | The priority of a thread                                                                                                                                                                                                                                                      |
-| state         | State of a running thread                                                                                                                                                                                                                                                     |
-| cpuTime       | The total CPU time in nanoseconds for a thread if CPU time measurement is enabled; -1 otherwise.<br/>Whether the CPU time measurement is enabled is determined by the JVM implementation. See `ManagementFactory.getThreadMXBean().isThreadCpuTimeSupported()` for more info. |
-| userTime      | The user-level CPU time for a thread if CPU time measurement is enabled; -1 otherwise.                                                                                                                                                                                        |
-| blockedTime   | The approximate accumulated elapsed time in milliseconds that a thread entered the BLOCKED state; -1 if thread contention monitoring is disabled.                                                                                                                             |
-| blockedCount  | The total number of times that the thread entered the BLOCKED state.                                                                                                                                                                                                          |
-| waitedTime    | The approximate accumulated elapsed time in milliseconds that a thread has been in the WAITING or TIMED_WAITING state; -1 if thread contention monitoring is disabled.                                                                                                        |
-| waitedCount   | The total number of times that the thread was in the WAITING or TIMED_WAITING state.                                                                                                                                                                                          |
-| lockName      | The string representation of the object on which the thread is blocked if any; null otherwise.                                                                                                                                                                                |
-| lockOwnerId   | The thread ID of the owner thread of the object this thread is blocked on; -1 if this thread is not blocked or if the object is not owned by any thread.                                                                                                                      |
-| lockOwnerName | The name of the thread that owns the object this thread is blocked on; null if this thread is not blocked or if the object is not owned by any thread.                                                                                                                        |
-| inNative      | 1 if the thread is executing native code; 0 otherwise.                                                                                                                                                                                                                        |
-| suspended     | 1 if the thread is suspended; 0 otherwise.                                                                                                                                                                                                                                    |
-| stack         | The stack trace of one thread.                                                                                                                                                                                                                                                |
-
-## Query logger level
-
-> NOTE: This only works for application based on SpringBoot 1.5 and above.
-> 
-
-### SQL
-
-```sql
-SELECT * FROM agent.logger WHERE instance = '192.168.50.151:9897'
-```
-
-### Output field Explanation
-
-| Field          | Explanation                                                                                                             |
-|----------------|-------------------------------------------------------------------------------------------------------------------------|
-| name           | The name of a logger.                                                                                                   |
-| level          | The configured logging level of corresponding logger. <br/> Can be one of: OFF, TRACE, DEBUG, INFO, WARN, ERROR, FATAL. |
-| effectiveLevel | The effective logging level of a logger.                                                                                |
-
-## Set logger level
-
-> NOTE: This only works for application based on SpringBoot 1.5 and above.
->
-
-We can also change the configured logging level during application running by using `UPDATE` statement.
-
-### SQL
-
-```sql
-UPDATE agent.logger SET level = 'DEBUG' where instance = '192.168.50.151:9897' AND name = 'org.bithon' AND _token = '525'
-```
-
-> NOTE:
-> 1. The SQL must provide `instance` and `name` filter in the `WHERE` clause.
-> 2. Only `level` can be UPDATED
-> 3. A token is needed, and it's configured at Bithon server side per-application basis. See [Permission Control](../configuration/server/configuration-collector.md) section for more information.
-
-## Query instrumented methods
-
-During agent plugin development and agent debugging, we need to know whether our interceptors have been successfully installed.
-To do this, we can use the following SQL to check.
-
-### SQL
-
-```sql
-SELECT * FROM agent.instrumented_method WHERE instance = '192.168.50.151:9897'
-```
-
-### Output fields explanation
-
-| Field      | Explanation                                                                          |
-|------------|--------------------------------------------------------------------------------------|
-| clazzName  | The class of the target method.                                                      |
-| isStatic   | Whether the target method is a static method.                                        |
-| returnType | The return type of target method.                                                    |
-| methodName | The name of intercepted method. `<ctor>` represents constructor of the target class. |
-| parameters | The parameters of intercepted method.                                                |
-
-## Query loaded classes
-
-### SQL
-
-```sql
-SELECT * FROM agent.load_class WHERE instance = '192.168.50.151:9897'
-```
-### Output fields explanation
-
-| Field        | Explanation                                                 |
-|--------------|-------------------------------------------------------------|
-| name         | The name of loaded class.                                   |
-| classLoader  | The class name of class loader that loads the target class. |
-| isSynthetic  | 1 if the target class is a synthetic class.                 |
-| isInterface  | 1 if the target class is an interface.                      |
-| isAnnotation | 1 if the target class is an annotation.                     |
-| isEnum       | 1 if the target class is an enum class.                     |
-
-## Query agent configuration
+## agent.configuration
 
 Following SQL shows how can I get the effective configuration for the agent running in given application instance.
 
@@ -248,3 +143,131 @@ dispatchers:
     batchSize: 500
     flushTime: 5000
 ```
+
+## agent.instrumented_method
+
+During agent plugin development and agent debugging, we need to know whether our interceptors have been successfully installed.
+To do this, we can use the following SQL to check.
+
+### SQL
+
+```sql
+SELECT * FROM agent.instrumented_method WHERE instance = '192.168.50.151:9897'
+```
+
+### Output fields explanation
+
+| Field      | Explanation                                                                          |
+|------------|--------------------------------------------------------------------------------------|
+| clazzName  | The class of the target method.                                                      |
+| isStatic   | Whether the target method is a static method.                                        |
+| returnType | The return type of target method.                                                    |
+| methodName | The name of intercepted method. `<ctor>` represents constructor of the target class. |
+| parameters | The parameters of intercepted method.                                                |
+
+## agent.loaded_class
+
+### SQL
+
+```sql
+SELECT * FROM agent.loaded_class WHERE instance = '192.168.50.151:9897'
+```
+### Output fields explanation
+
+| Field        | Explanation                                                 |
+|--------------|-------------------------------------------------------------|
+| name         | The name of loaded class.                                   |
+| classLoader  | The class name of class loader that loads the target class. |
+| isSynthetic  | 1 if the target class is a synthetic class.                 |
+| isInterface  | 1 if the target class is an interface.                      |
+| isAnnotation | 1 if the target class is an annotation.                     |
+| isEnum       | 1 if the target class is an enum class.                     |
+
+## agent.logger
+
+> NOTE: This only works for application based on SpringBoot 1.5 and above.
+>
+
+### SQL
+
+```sql
+SELECT * FROM agent.logger WHERE instance = '192.168.50.151:9897'
+```
+
+### Output field Explanation
+
+| Field          | Explanation                                                                                                             |
+|----------------|-------------------------------------------------------------------------------------------------------------------------|
+| name           | The name of a logger.                                                                                                   |
+| level          | The configured logging level of corresponding logger. <br/> Can be one of: OFF, TRACE, DEBUG, INFO, WARN, ERROR, FATAL. |
+| effectiveLevel | The effective logging level of a logger.                                                                                |
+
+## Set logger level
+
+> NOTE: This only works for application based on SpringBoot 1.5 and above.
+>
+
+We can also change the configured logging level during application running by using `UPDATE` statement.
+
+### SQL
+
+```sql
+UPDATE agent.logger SET level = 'DEBUG' where instance = '192.168.50.151:9897' AND name = 'org.bithon' AND _token = '525'
+```
+
+> NOTE:
+> 1. The SQL must provide `instance` and `name` filter in the `WHERE` clause.
+> 2. Only `level` can be UPDATED
+> 3. A token is needed, and it's configured at Bithon server side per-application basis. See [Permission Control](../configuration/server/configuration-collector.md) section for more information.
+
+
+## agent.thread
+
+### SQL
+
+```sql
+SELECT * FROM agent.thread WHERE instance = '<THE TARGET INSTANCE>'
+```
+
+### Field Explanation
+
+| Field         | Explanation                                                                                                                                                                                                                                                                   |
+|---------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| threadId      | Id of a running thread                                                                                                                                                                                                                                                        |
+| name          | Name of a running thread                                                                                                                                                                                                                                                      |
+| daemon        | Whether the thread is running as a daemon thread                                                                                                                                                                                                                              |
+| priority      | The priority of a thread                                                                                                                                                                                                                                                      |
+| state         | State of a running thread                                                                                                                                                                                                                                                     |
+| cpuTime       | The total CPU time in nanoseconds for a thread if CPU time measurement is enabled; -1 otherwise.<br/>Whether the CPU time measurement is enabled is determined by the JVM implementation. See `ManagementFactory.getThreadMXBean().isThreadCpuTimeSupported()` for more info. |
+| userTime      | The user-level CPU time for a thread if CPU time measurement is enabled; -1 otherwise.                                                                                                                                                                                        |
+| blockedTime   | The approximate accumulated elapsed time in milliseconds that a thread entered the BLOCKED state; -1 if thread contention monitoring is disabled.                                                                                                                             |
+| blockedCount  | The total number of times that the thread entered the BLOCKED state.                                                                                                                                                                                                          |
+| waitedTime    | The approximate accumulated elapsed time in milliseconds that a thread has been in the WAITING or TIMED_WAITING state; -1 if thread contention monitoring is disabled.                                                                                                        |
+| waitedCount   | The total number of times that the thread was in the WAITING or TIMED_WAITING state.                                                                                                                                                                                          |
+| lockName      | The string representation of the object on which the thread is blocked if any; null otherwise.                                                                                                                                                                                |
+| lockOwnerId   | The thread ID of the owner thread of the object this thread is blocked on; -1 if this thread is not blocked or if the object is not owned by any thread.                                                                                                                      |
+| lockOwnerName | The name of the thread that owns the object this thread is blocked on; null if this thread is not blocked or if the object is not owned by any thread.                                                                                                                        |
+| inNative      | 1 if the thread is executing native code; 0 otherwise.                                                                                                                                                                                                                        |
+| suspended     | 1 if the thread is suspended; 0 otherwise.                                                                                                                                                                                                                                    |
+| stack         | The stack trace of one thread.                                                                                                                                                                                                                                                |
+
+## agent.vm_option
+
+This table reflects all the available diagnostic [VM options](https://docs.oracle.com/javase/8/docs/jre/api/management/extension/com/sun/management/VMOption.html) of target Java application. 
+
+```sql
+SELECT * FROM agent.vm_option WHERE instance = '<THE TARGET INSTANCE>'
+```
+### Field Explanation
+
+| Field      | Explanation                                                                                                        |
+|------------|--------------------------------------------------------------------------------------------------------------------|
+| name       | The name of VM option                                                                                              |
+| value      | Returns the value of this VM option at the time when this VMOption was created. The value could have been changed. |
+| isWritable | Tests if this VM option is writeable. If this VM option is writeable, it can be set by the `UPDATE` SQL.           |
+| origin     | The origin of the value of this VM option. That is, where the value of this VM option came from.                   |
+
+
+### Example
+
+![img.png](vm_option.png)
