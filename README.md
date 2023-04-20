@@ -56,7 +56,7 @@ and then execute following command to build the project.
 mvn clean install -DskipTests
 ```
 
-After the first build, we don't need to build the dependencies anymore unless there're changes in these dependencies.
+After the first build, we don't need to build the dependencies anymore unless there are changes in these dependencies.
 
 # Run
 
@@ -155,6 +155,7 @@ If the target application run under JDK 11 and above, following arguments should
 | Quartz                 | 2.x         |             | &check; | &check; |
 | Redis - Jedis          | 2.9         |             | &check; |         |
 | Redis - Lettuce        | 5.1.2       |             | &check; |         |
+| Spring Boot            | 1.5         | 3.0+        |         | &check; |
 | Spring Bean            | 4.3.12      |             |         | &check; |
 | Spring Open Feign      | 10.12       |             |         | &check; |
 | Spring Rest Template   | 4.3.12      |             |         | &check; |
@@ -181,7 +182,7 @@ For more information, check the [development doc](doc/dev/development.md).
 
 # User Doc
 1. [Configuration](doc/configuration/configuration.md)
-2. [Profiling](doc/profile/README.md)
-3SDK
+2. [Diagnosis](doc/diagnosis/README.md)
+3. SDK
    1. [Metrics](doc/sdk/metrics.md)
    2. [Tracing](doc/sdk/tracing.md)
