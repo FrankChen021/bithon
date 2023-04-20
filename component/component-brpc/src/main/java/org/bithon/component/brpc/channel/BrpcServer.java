@@ -42,6 +42,9 @@ import org.bithon.shaded.io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.bithon.shaded.io.netty.channel.socket.nio.NioSocketChannel;
 import org.bithon.shaded.io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import org.bithon.shaded.io.netty.handler.codec.LengthFieldPrepender;
+import org.bithon.shaded.io.netty.handler.timeout.IdleState;
+import org.bithon.shaded.io.netty.handler.timeout.IdleStateEvent;
+import org.bithon.shaded.io.netty.handler.timeout.IdleStateHandler;
 
 import java.io.Closeable;
 import java.net.SocketAddress;
@@ -90,6 +93,10 @@ public class BrpcServer implements Closeable {
     }
 
     public BrpcServer start(int port) {
+        return start(port, 180);
+    }
+
+    public BrpcServer start(int port, int idleTimeout) {
 
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         serverBootstrap
@@ -108,6 +115,7 @@ public class BrpcServer implements Closeable {
                         pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
                         pipeline.addLast("decoder", new ServiceMessageInDecoder());
                         pipeline.addLast("encoder", new ServiceMessageOutEncoder(invocationManager));
+                        pipeline.addLast(new IdleStateHandler(0, idleTimeout, 0));
                         pipeline.addLast(sessionManager);
                         pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry, invocationManager));
                     }
@@ -139,10 +147,10 @@ public class BrpcServer implements Closeable {
 
     public Session getSession(String remoteAppId) {
         return sessionManager.getSessions()
-                             .stream()
-                             .filter(s -> remoteAppId.equals(s.getRemoteAttribute(Headers.HEADER_APP_ID, s.getRemoteEndpoint())))
-                             .findFirst()
-                             .orElseThrow(() -> new SessionNotFoundException("Can't find any connected remote application [%s] on this server.", remoteAppId));
+                .stream()
+                .filter(s -> remoteAppId.equals(s.getRemoteAttribute(Headers.HEADER_APP_ID, s.getRemoteEndpoint())))
+                .findFirst()
+                .orElseThrow(() -> new SessionNotFoundException("Can't find any connected remote application [%s] on this server.", remoteAppId));
     }
 
     public <T> T getRemoteService(String remoteAppId, Class<T> serviceClass) {
@@ -158,10 +166,10 @@ public class BrpcServer implements Closeable {
 
     public <T> List<T> getRemoteServices(String appName, Class<T> serviceClass) {
         return sessionManager.getSessions()
-                             .stream()
-                             .filter(s -> appName.equals(s.getRemoteApplicationName()))
-                             .map(s -> s.getRemoteService(serviceClass, 5_000))
-                             .collect(Collectors.toList());
+                .stream()
+                .filter(s -> appName.equals(s.getRemoteApplicationName()))
+                .map(s -> s.getRemoteService(serviceClass, 5_000))
+                .collect(Collectors.toList());
     }
 
     public static class Session {
@@ -215,11 +223,11 @@ public class BrpcServer implements Closeable {
 
         public <T> T getRemoteService(Class<T> serviceClass, int timeout) {
             return ServiceStubFactory.create("brpc-server",
-                                             Headers.EMPTY,
-                                             new Server2ClientChannel(channel),
-                                             serviceClass,
-                                             timeout,
-                                             invocationManager);
+                    Headers.EMPTY,
+                    new Server2ClientChannel(channel),
+                    serviceClass,
+                    timeout,
+                    invocationManager);
         }
 
         public LowLevelInvoker getLowLevelInvoker() {
@@ -258,7 +266,7 @@ public class BrpcServer implements Closeable {
 
             // Create a session only if the ServiceRequestMessageIn has been successfully decoded
             Session session = sessions.computeIfAbsent(ctx.channel().id().asLongText(),
-                                                       key -> new Session(request.getApplicationName(), ctx.channel(), invocationManager));
+                    key -> new Session(request.getApplicationName(), ctx.channel(), invocationManager));
 
             // Update additional attributes
             session.setRemoteAttribute(request.getHeaders());
@@ -270,6 +278,18 @@ public class BrpcServer implements Closeable {
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
             sessions.remove(ctx.channel().id().asLongText());
             super.channelInactive(ctx);
+        }
+
+        @Override
+        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
+            if (evt instanceof IdleStateEvent) {
+                if (IdleState.WRITER_IDLE.equals(((IdleStateEvent) evt).state())) {
+                    ctx.channel().close();
+
+                    // Since above call is async, we remove the session immediately to reflect the timeout at application side
+                    sessions.remove(ctx.channel().id().asLongText());
+                }
+            }
         }
     }
 
