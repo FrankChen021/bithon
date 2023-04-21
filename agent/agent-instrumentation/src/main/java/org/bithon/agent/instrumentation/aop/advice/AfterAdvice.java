@@ -74,6 +74,7 @@ public class AfterAdvice {
         aopContext.setReturning(returning);
 
         try {
+            interceptor.hit();
             ((AfterInterceptor) interceptor).after(aopContext);
         } catch (Throwable e) {
             LOG.error(String.format(Locale.ENGLISH, "Exception occurred when executing onExit of [%s] for [%s]: %s",

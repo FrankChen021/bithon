@@ -46,6 +46,7 @@ public class ConstructorAfterAdvice {
         if (interceptor == null) {
             return;
         }
+        interceptor.hit();
 
         try {
             ((AfterInterceptor) interceptor).after(new AopContextImpl(method, target, args));

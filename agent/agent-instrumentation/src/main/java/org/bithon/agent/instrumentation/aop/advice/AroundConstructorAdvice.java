@@ -53,6 +53,7 @@ public class AroundConstructorAdvice {
         if (interceptor == null) {
             return false;
         }
+        interceptor.hit();
 
         AopContextImpl aopContext = new AopContextImpl(method, target, args);
 

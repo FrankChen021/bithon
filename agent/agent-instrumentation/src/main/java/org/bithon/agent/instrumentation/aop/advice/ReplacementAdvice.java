@@ -38,8 +38,11 @@ public class ReplacementAdvice {
                                  @Advice.AllArguments Object[] args,
                                  @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning) {
         AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getSupplier(index).get();
-        if (interceptor != null) {
-            returning = ((ReplaceInterceptor) interceptor).execute(args, returning);
+        if (interceptor == null) {
+            return;
         }
+
+        interceptor.hit();
+        returning = ((ReplaceInterceptor) interceptor).execute(args, returning);
     }
 }

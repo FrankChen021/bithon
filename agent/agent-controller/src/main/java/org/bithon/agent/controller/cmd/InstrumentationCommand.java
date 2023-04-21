@@ -46,7 +46,7 @@ public class InstrumentationCommand implements IInstrumentationCommand, IAgentCo
                                                   InstrumentedMethod m = new InstrumentedMethod();
                                                   m.interceptor = (method.getInterceptor());
                                                   m.classLoader = clazzLoaderId;
-                                                  m.hitCount = supplier.isInitialized() ? 0 : supplier.get().getHitCount();
+                                                  m.hitCount = supplier.isInitialized() ? supplier.get().getHitCount() : 0;
                                                   m.clazzName = (type);
                                                   m.returnType = (method.getReturnType());
                                                   m.methodName = (method.getMethodName());

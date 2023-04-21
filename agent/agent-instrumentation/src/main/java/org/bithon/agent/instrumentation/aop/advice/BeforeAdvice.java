@@ -51,6 +51,7 @@ public class BeforeAdvice {
         if (interceptor == null) {
             return;
         }
+        interceptor.hit();
 
         AopContextImpl aopContext = new AopContextImpl(method, target, args);
         try {
