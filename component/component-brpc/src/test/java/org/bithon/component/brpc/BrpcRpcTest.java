@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BrpcRpcTest {
 
     static BrpcServer brpcServer;
-    static int idleSeconds = 10;
+    static int idleSeconds = 5;
 
     @BeforeClass
     public static void setup() {

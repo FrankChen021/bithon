@@ -21,10 +21,8 @@ import feign.Contract;
 import feign.Feign;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
-import feign.codec.ErrorDecoder;
 import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
-import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.brpc.invocation.InvocationManager;
 import org.bithon.component.brpc.message.Headers;
@@ -33,10 +31,10 @@ import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.discovery.client.ErrorResponseDecoder;
 import org.bithon.server.discovery.client.IDiscoveryClient;
 import org.bithon.server.discovery.client.ServiceInvocationExecutor;
 import org.bithon.server.discovery.declaration.DiscoverableService;
-import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
@@ -56,7 +54,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
- * A factory that creates proxy to call Agent side BRPC service over an HTTP-based proxy server
+ * A factory that creates a proxy to call Agent side BRPC service over an HTTP-based proxy server
  *
  * @author frank.chen021@outlook.com
  * @date 2023/4/9 16:27
@@ -136,23 +134,21 @@ public class AgentServiceProxyFactory {
             for (IDiscoveryClient.HostAndPort proxyServer : proxyServerList) {
                 futures.add(executor.submit(() -> {
                     try {
-                        // The agent's Brpc services MUST return type of Collection
+                        // The agent's Brpc services MUST return a type of Collection
                         return (Collection<?>) brpcServiceInvoker.invoke("bithon-webservice",
                                                                          Headers.EMPTY,
                                                                          new BrpcChannelOverHttp(proxyServer, context),
                                                                          30_000,
                                                                          agentServiceMethod,
                                                                          args);
-                    } catch (CalleeSideException e) {
-                        if (SessionNotFoundException.class.getName().equals(e.getExceptionClass())) {
+                    } catch (HttpMappableException e) {
+                        if (SessionNotFoundException.class.getName().equals(e.getException())) {
                             // We're issuing broadcast invocation on all proxy servers,
-                            // but there will be only one proxy server that connects to the target agent instance,
-                            // for any other proxy servers, a SessionNotFoundException is thrown,
-                            // We need to ignore such exception
+                            // but there will be only one proxy server that connects to the target agent instance.
+                            // For any other proxy servers, a SessionNotFoundException is thrown, we need to ignore such exception
                             return Collections.emptyList();
-                        } else {
-                            throw e;
                         }
+                        throw e;
                     } catch (RuntimeException e) {
                         throw e;
                     } catch (Throwable e) {
@@ -220,7 +216,7 @@ public class AgentServiceProxyFactory {
             ServiceRequestMessageOut serviceRequest = (ServiceRequestMessageOut) obj;
             final long txId = serviceRequest.getTransactionId();
 
-            // Turn the message into byte array to send over HTTP
+            // Turn the message into a byte array to send over HTTP
             final byte[] message = serviceRequest.toByteArray();
 
             // The underlying call on remote HTTP endpoint is synchronous,
@@ -231,16 +227,7 @@ public class AgentServiceProxyFactory {
                                                                              .contract(applicationContext.getBean(Contract.class))
                                                                              .encoder(applicationContext.getBean(Encoder.class))
                                                                              .decoder(applicationContext.getBean(Decoder.class))
-                                                                             .errorDecoder((methodKey, response) -> {
-                                                                                 try {
-                                                                                     ServiceResponse.Error error = applicationContext.getBean(ObjectMapper.class).readValue(response.body().asInputStream(), ServiceResponse.Error.class);
-                                                                                     return new HttpMappableException(response.status(), "Exception from remote [%s]: %s", proxyHost, error.getMessage());
-                                                                                 } catch (IOException ignored) {
-                                                                                 }
-
-                                                                                 // Delegate to default decoder
-                                                                                 return new ErrorDecoder.Default().decode(methodKey, response);
-                                                                             })
+                                                                             .errorDecoder(new ErrorResponseDecoder(applicationContext.getBean(ObjectMapper.class)))
                                                                              .target(IAgentProxyApi.class, "http://" + proxyHost.getHost() + ":" + proxyHost.getPort());
 
                                               try {

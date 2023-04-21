@@ -116,7 +116,7 @@ public class BrpcServer implements Closeable {
                         pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
                         pipeline.addLast("decoder", new ServiceMessageInDecoder());
                         pipeline.addLast("encoder", new ServiceMessageOutEncoder(invocationManager));
-                        pipeline.addLast(new IdleStateHandler(0, idleTimeout, 0));
+                        pipeline.addLast(new IdleStateHandler(idleTimeout, 0, 0));
                         pipeline.addLast(sessionManager);
                         pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry, invocationManager));
                     }
@@ -289,7 +289,7 @@ public class BrpcServer implements Closeable {
                 return;
             }
 
-            if (IdleState.WRITER_IDLE.equals(((IdleStateEvent) evt).state())) {
+            if (IdleState.READER_IDLE.equals(((IdleStateEvent) evt).state())) {
                 ctx.channel().close();
 
                 // Since the above call is async, we remove the session immediately to reflect the timeout at application side
