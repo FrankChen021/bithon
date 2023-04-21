@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.aop.interceptor;
+package org.bithon.agent.instrumentation.aop.interceptor.declaration;
 
 import java.lang.reflect.Method;
 
@@ -22,28 +22,26 @@ import java.lang.reflect.Method;
  * @author frank.chen021@outlook.com
  * @date 2021/7/11 11:27
  */
-public interface IDynamicInterceptor extends IInterceptor {
+public abstract class IDynamicInterceptor extends AbstractInterceptor {
 
     /**
      * @return context
      */
-    Object onMethodEnter(
-        Method method,
-        Object target,
-        Object[] args
-    );
+    public abstract Object onMethodEnter(Method method,
+                                         Object target,
+                                         Object[] args);
 
     /**
      * only be called when the returning value of {@link #onMethodEnter(Method, Object, Object[])} is NOT NULL
      *
      * @param context the returning value of {@link #onMethodEnter(Method, Object, Object[])}
      */
-    default Object onMethodExit(Method method,
-                                Object target,
-                                Object[] args,
-                                Object returning,
-                                Throwable exception,
-                                Object context) {
+    public Object onMethodExit(Method method,
+                               Object target,
+                               Object[] args,
+                               Object returning,
+                               Throwable exception,
+                               Object context) {
         return returning;
     }
 }

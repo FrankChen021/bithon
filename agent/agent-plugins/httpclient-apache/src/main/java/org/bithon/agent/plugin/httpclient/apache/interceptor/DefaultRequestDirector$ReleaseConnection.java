@@ -22,7 +22,7 @@ import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.impl.client.DefaultRequestDirector;
 import org.apache.http.impl.conn.ConnectionShutdownException;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.component.commons.logging.ILogAdaptor;

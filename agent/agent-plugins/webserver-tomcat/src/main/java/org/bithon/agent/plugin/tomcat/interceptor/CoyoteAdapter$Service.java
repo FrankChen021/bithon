@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.tomcat.interceptor;
 import org.apache.coyote.Request;
 import org.apache.coyote.Response;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;

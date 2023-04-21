@@ -17,8 +17,9 @@
 package org.bithon.agent.instrumentation.aop.advice;
 
 import org.bithon.agent.instrumentation.aop.context.AopContextImpl;
-import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
-import org.bithon.agent.instrumentation.aop.interceptor.IInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AbstractInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
@@ -41,17 +42,18 @@ public class BeforeAdvice {
     @Advice.OnMethodEnter
     public static void onEnter(
             @AdviceAnnotation.InterceptorName String name,
-            @AdviceAnnotation.Interceptor IInterceptor interceptor,
+            @AdviceAnnotation.InterceptorIndex int index,
             @AdviceAnnotation.TargetMethod Method method,
             @Advice.This(optional = true) Object target,
             @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args
     ) {
+        AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getSupplier(index).get();
         if (interceptor == null) {
             return;
         }
+        interceptor.hit();
 
         AopContextImpl aopContext = new AopContextImpl(method, target, args);
-
         try {
             ((BeforeInterceptor) interceptor).before(aopContext);
         } catch (Throwable e) {

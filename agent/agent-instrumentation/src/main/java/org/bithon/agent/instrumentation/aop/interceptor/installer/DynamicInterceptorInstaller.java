@@ -16,6 +16,7 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.installer;
 
+import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.agent.instrumentation.aop.advice.AdviceAnnotation;
 import org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice;
@@ -27,6 +28,8 @@ import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
+import org.bithon.shaded.net.bytebuddy.implementation.FieldAccessor;
+import org.bithon.shaded.net.bytebuddy.jar.asm.Opcodes;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 import org.bithon.shaded.net.bytebuddy.matcher.NameMatcher;
@@ -90,6 +93,10 @@ public class DynamicInterceptorInstaller {
                     return builder;
                 }
 
+                builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME, Object.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_VOLATILE)
+                                 .implement(IBithonObject.class)
+                                 .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
+
                 return install(descriptor, builder, classLoader);
             }).with(InstrumentationHelper.getAopDebugger().withTypes(new HashSet<>(descriptors.keySet())))
             .installOn(InstrumentationHelper.getInstance());
@@ -103,15 +110,11 @@ public class DynamicInterceptorInstaller {
                                            DynamicType.Builder<?> builder,
                                            ClassLoader classLoader) {
 
-        InterceptorManager.InterceptorEntry entry = InterceptorManager.getOrCreateInterceptor(descriptor.interceptorName, classLoader, true);
-        if (entry == null) {
-            LOG.info("Skipped to install dynamic interceptor for [{}], index={}, name={}", descriptor.targetClass, descriptor.interceptorName);
-            return builder;
-        }
-        LOG.info("Dynamic interceptor installed for [{}], index={}, name={}", descriptor.targetClass, entry.index, descriptor.interceptorName);
+        int interceptorIndex = InterceptorManager.INSTANCE.getOrCreateSupplier(descriptor.interceptorName, classLoader);
+        LOG.info("Dynamic interceptor installed for [{}], index={}, name={}", descriptor.targetClass, interceptorIndex, descriptor.interceptorName);
         return builder.visit(InterceptorInstaller.newInstaller(Advice.withCustomMapping()
                                                                      .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(descriptor.interceptorName))
-                                                                     .bind(AdviceAnnotation.InterceptorIndex.class, new AdviceAnnotation.InterceptorIndexResolver(entry.index))
+                                                                     .bind(AdviceAnnotation.InterceptorIndex.class, new AdviceAnnotation.InterceptorIndexResolver(interceptorIndex))
                                                                      .to(DynamicAopAdvice.class),
                                                                descriptor.methodMatcher));
     }

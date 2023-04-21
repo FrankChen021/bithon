@@ -16,17 +16,13 @@
 
 package org.bithon.agent.instrumentation.aop.advice;
 
-import org.bithon.agent.instrumentation.aop.interceptor.IInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.installer.InstallerRecorder;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
-import org.bithon.shaded.net.bytebuddy.description.annotation.AnnotationList;
-import org.bithon.shaded.net.bytebuddy.description.field.FieldDescription;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.constant.JavaConstantValue;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.constant.MethodConstant;
-import org.bithon.shaded.net.bytebuddy.jar.asm.Opcodes;
 import org.bithon.shaded.net.bytebuddy.utility.JavaConstant;
 
 import javax.annotation.Nonnull;
@@ -50,17 +46,6 @@ public class AdviceAnnotation {
     }
 
     /**
-     * Custom annotation used on Advice classes to reference the {@link org.bithon.agent.instrumentation.aop.interceptor.IInterceptor} object
-     *
-     * @author frank.chen021@outlook.com
-     * @date 18/2/22 8:01 PM
-     */
-    @Retention(RetentionPolicy.RUNTIME)
-    @java.lang.annotation.Target(ElementType.PARAMETER)
-    public @interface Interceptor {
-    }
-
-    /**
      * DO NOT USE on Advice which is used for re-transformation.
      * See <a href="https://github.com/raphw/byte-buddy/issues/1210">this issue</a> on GitHub for more details
      * <p>
@@ -72,54 +57,6 @@ public class AdviceAnnotation {
     @Retention(RetentionPolicy.RUNTIME)
     @java.lang.annotation.Target(ElementType.PARAMETER)
     public @interface TargetMethod {
-    }
-
-    /**
-     * Resolve the {@link Interceptor} annotation
-     *
-     * @author frank.chen021@outlook.com
-     * @date 19/2/22 3:47 PM
-     */
-    public static class InterceptorResolver extends FieldDescription.InDefinedShape.AbstractBase {
-        private static final TypeDescription.Generic INTERCEPTOR_TYPE = new TypeDescription.ForLoadedType(IInterceptor.class).asGenericType();
-
-        private final TypeDescription declaringType;
-        private final String fieldName;
-
-        public InterceptorResolver(@Nonnull TypeDescription declaringType,
-                                   String fieldName) {
-            this.declaringType = declaringType;
-            this.fieldName = fieldName;
-        }
-
-        @Nonnull
-        @Override
-        public TypeDescription getDeclaringType() {
-            return declaringType;
-        }
-
-        @Nonnull
-        @Override
-        public TypeDescription.Generic getType() {
-            return INTERCEPTOR_TYPE;
-        }
-
-        @Override
-        public int getModifiers() {
-            return Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC;
-        }
-
-        @Nonnull
-        @Override
-        public String getName() {
-            return fieldName;
-        }
-
-        @Nonnull
-        @Override
-        public AnnotationList getDeclaredAnnotations() {
-            return new AnnotationList.Empty();
-        }
     }
 
     /**

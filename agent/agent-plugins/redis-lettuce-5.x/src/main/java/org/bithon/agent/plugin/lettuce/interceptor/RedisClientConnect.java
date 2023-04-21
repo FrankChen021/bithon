@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.lettuce.interceptor;
 import io.lettuce.core.RedisURI;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.utils.HostAndPort;
 import org.bithon.component.commons.utils.ReflectionUtils;
 

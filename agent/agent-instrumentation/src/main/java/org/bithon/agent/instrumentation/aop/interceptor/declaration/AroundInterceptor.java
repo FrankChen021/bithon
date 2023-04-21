@@ -14,15 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.aop.interceptor;
+package org.bithon.agent.instrumentation.aop.interceptor.declaration;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/3/18 23:26
+ * @date 2023/3/18 23:25
  */
-public abstract class AfterInterceptor implements IInterceptor {
+public abstract class AroundInterceptor extends AbstractInterceptor {
+
+    public InterceptionDecision before(AopContext aopContext) throws Exception {
+        return InterceptionDecision.CONTINUE;
+    }
+
+    /**
+     * Called after execution of target intercepted method
+     * If {@link #before(AopContext)} returns {@link InterceptionDecision#SKIP_LEAVE}, call of this method will be skipped
+     */
     public void after(AopContext aopContext) throws Exception {
     }
 }

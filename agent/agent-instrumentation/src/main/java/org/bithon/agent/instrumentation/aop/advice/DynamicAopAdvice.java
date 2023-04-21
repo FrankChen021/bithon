@@ -16,8 +16,9 @@
 
 package org.bithon.agent.instrumentation.aop.advice;
 
-import org.bithon.agent.instrumentation.aop.interceptor.IDynamicInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AbstractInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.IDynamicInterceptor;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
@@ -53,21 +54,23 @@ public class DynamicAopAdvice {
             @Advice.Local("context") Object context,
             @Advice.Local("interceptor") Object interceptor
     ) {
-        interceptor = InterceptorManager.getInterceptor(index);
-        if (interceptor != null) {
-            Object[] newArgs = args;
-
-            try {
-                context = ((IDynamicInterceptor) interceptor).onMethodEnter(method, target, newArgs);
-            } catch (Throwable t) {
-                LOG.error(String.format(Locale.ENGLISH, "Failed to execute interceptor [%s]", name), t);
-                return;
-            }
-
-            // This assignment must be kept since it tells byte-buddy that args might have been re-written
-            // so that byte-buddy re-map the args to original function input argument
-            args = newArgs;
+        interceptor = InterceptorManager.INSTANCE.getSupplier(index).get();
+        if (interceptor == null) {
+            return;
         }
+        ((AbstractInterceptor) interceptor).hit();
+
+        Object[] newArgs = args;
+        try {
+            context = ((IDynamicInterceptor) interceptor).onMethodEnter(method, target, newArgs);
+        } catch (Throwable t) {
+            LOG.error(String.format(Locale.ENGLISH, "Failed to execute interceptor [%s]", name), t);
+            return;
+        }
+
+        // This assignment must be kept since it tells byte-buddy that args might have been re-written
+        // so that byte-buddy re-map the args to original function input argument
+        args = newArgs;
     }
 
     /**

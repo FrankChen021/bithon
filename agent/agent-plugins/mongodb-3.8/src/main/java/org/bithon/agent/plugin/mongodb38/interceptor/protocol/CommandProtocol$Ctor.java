@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.mongodb38.interceptor.protocol;
 import com.mongodb.MongoNamespace;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 import org.bson.BsonDocument;
 import org.bson.FieldNameValidator;

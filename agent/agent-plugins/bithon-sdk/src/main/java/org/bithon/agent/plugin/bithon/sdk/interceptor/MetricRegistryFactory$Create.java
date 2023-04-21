@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.bithon.sdk.interceptor;
 
-import org.bithon.agent.instrumentation.aop.interceptor.ReplaceInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.ReplaceInterceptor;
 import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;
 import org.bithon.agent.observability.dispatcher.IMessageConverter;
 import org.bithon.agent.observability.metric.collector.IMetricCollector2;

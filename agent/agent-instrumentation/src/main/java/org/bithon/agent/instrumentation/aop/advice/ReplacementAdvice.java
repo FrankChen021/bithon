@@ -16,8 +16,9 @@
 
 package org.bithon.agent.instrumentation.aop.advice;
 
-import org.bithon.agent.instrumentation.aop.interceptor.IInterceptor;
-import org.bithon.agent.instrumentation.aop.interceptor.ReplaceInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AbstractInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.ReplaceInterceptor;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -33,11 +34,15 @@ public class ReplacementAdvice {
      */
     @Advice.OnMethodExit
     public static void onExecute(@AdviceAnnotation.InterceptorName String name,
-                                 @AdviceAnnotation.Interceptor IInterceptor interceptor,
+                                 @AdviceAnnotation.InterceptorIndex int index,
                                  @Advice.AllArguments Object[] args,
                                  @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning) {
-        if (interceptor != null) {
-            returning = ((ReplaceInterceptor) interceptor).execute(args, returning);
+        AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getSupplier(index).get();
+        if (interceptor == null) {
+            return;
         }
+
+        interceptor.hit();
+        returning = ((ReplaceInterceptor) interceptor).execute(args, returning);
     }
 }

@@ -17,7 +17,7 @@
 package org.bithon.agent.plugin.netty4;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.event.ExceptionBuilder;
 import org.bithon.agent.observability.event.ExceptionCollector;
 import org.bithon.component.commons.utils.StringUtils;

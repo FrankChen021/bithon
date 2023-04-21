@@ -22,7 +22,7 @@ import com.mongodb.internal.connection.DefaultServerConnection;
 import com.mongodb.internal.connection.LegacyProtocol;
 import com.mongodb.session.SessionContext;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
 
 /**

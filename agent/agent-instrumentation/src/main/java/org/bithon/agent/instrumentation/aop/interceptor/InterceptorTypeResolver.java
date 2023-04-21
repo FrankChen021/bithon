@@ -16,6 +16,10 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor;
 
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.ReplaceInterceptor;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.instrumentation.loader.JarClassLoader;
 import org.bithon.shaded.net.bytebuddy.jar.asm.ClassReader;
@@ -28,6 +32,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Read the class file and determine which base interceptor the class inherits from
+ *
  * @author frank.chen021@outlook.com
  * @date 2023/3/19 15:45
  */

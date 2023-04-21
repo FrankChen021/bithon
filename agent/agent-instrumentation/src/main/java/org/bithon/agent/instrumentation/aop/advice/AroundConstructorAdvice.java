@@ -17,9 +17,10 @@
 package org.bithon.agent.instrumentation.aop.advice;
 
 import org.bithon.agent.instrumentation.aop.context.AopContextImpl;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
-import org.bithon.agent.instrumentation.aop.interceptor.IInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AbstractInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
@@ -42,15 +43,17 @@ public class AroundConstructorAdvice {
     @Advice.OnMethodEnter
     public static boolean onEnter(
             @AdviceAnnotation.InterceptorName String name,
-            @AdviceAnnotation.Interceptor IInterceptor interceptor,
+            @AdviceAnnotation.InterceptorIndex int index,
             @AdviceAnnotation.TargetMethod Method method,
             @Advice.This(optional = true) Object target,
             @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
             @Advice.Local("context") Object context
     ) {
+        AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getSupplier(index).get();
         if (interceptor == null) {
             return false;
         }
+        interceptor.hit();
 
         AopContextImpl aopContext = new AopContextImpl(method, target, args);
 
@@ -87,22 +90,21 @@ public class AroundConstructorAdvice {
      * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit
-    public static void onExit(
-            @AdviceAnnotation.Interceptor IInterceptor interceptor,
-            @Advice.This Object target,
-            @Advice.Enter boolean shouldExecute,
-            @Advice.Local("context") Object context) {
+    public static void onExit(@AdviceAnnotation.InterceptorIndex int index,
+                              @Advice.This Object target,
+                              @Advice.Enter boolean shouldExecute,
+                              @Advice.Local("context") Object context) {
         if (!shouldExecute || context == null) {
+            return;
+        }
+        AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getSupplier(index).get();
+        if (interceptor == null) {
             return;
         }
 
         AopContextImpl aopContext = (AopContextImpl) context;
         aopContext.setTarget(target);
         aopContext.onAfterTargetMethodInvocation();
-
-        if (interceptor == null) {
-            return;
-        }
 
         try {
             ((AroundInterceptor) interceptor).after(aopContext);
