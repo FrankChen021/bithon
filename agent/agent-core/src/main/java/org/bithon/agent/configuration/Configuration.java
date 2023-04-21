@@ -332,13 +332,11 @@ public class Configuration {
                                      e.getMessage());
         }
 
-        if (!clazz.isPrimitive() && !clazz.equals(String.class)) {
-            String violation = Validator.validate(value);
-            if (violation != null) {
-                throw new AgentException("Invalid configuration for type of [%s]: %s",
-                                         clazz.getSimpleName(),
-                                         violation);
-            }
+        String violation = Validator.validate(value);
+        if (violation != null) {
+            throw new AgentException("Invalid configuration for type of [%s]: %s",
+                                     clazz.getSimpleName(),
+                                     violation);
         }
 
         return value;
