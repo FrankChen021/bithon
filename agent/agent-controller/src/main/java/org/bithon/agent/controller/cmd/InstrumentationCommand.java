@@ -17,6 +17,7 @@
 package org.bithon.agent.controller.cmd;
 
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptorSupplier;
 import org.bithon.agent.instrumentation.aop.interceptor.installer.InstallerRecorder;
 import org.bithon.agent.rpc.brpc.cmd.IInstrumentationCommand;
 
@@ -37,11 +38,11 @@ public class InstrumentationCommand implements IInstrumentationCommand, IAgentCo
                                   .forEach((type, methods) -> {
                                       for (InstallerRecorder.InstrumentedMethod method : methods) {
 
-                                          Map<String, InterceptorManager.InterceptorSupplier> interceptorSuppliers = InterceptorManager.INSTANCE.getSuppliers(method.getInterceptor());
+                                          Map<String, InterceptorSupplier> interceptorSuppliers = InterceptorManager.INSTANCE.getSuppliers(method.getInterceptor());
                                           if (interceptorSuppliers != null) {
-                                              for (Map.Entry<String, InterceptorManager.InterceptorSupplier> entry : interceptorSuppliers.entrySet()) {
+                                              for (Map.Entry<String, InterceptorSupplier> entry : interceptorSuppliers.entrySet()) {
                                                   String clazzLoaderId = entry.getKey();
-                                                  InterceptorManager.InterceptorSupplier supplier = entry.getValue();
+                                                  InterceptorSupplier supplier = entry.getValue();
 
                                                   InstrumentedMethod m = new InstrumentedMethod();
                                                   m.interceptor = (method.getInterceptor());
