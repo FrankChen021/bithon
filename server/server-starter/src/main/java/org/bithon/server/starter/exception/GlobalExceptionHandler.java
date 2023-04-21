@@ -16,12 +16,11 @@
 
 package org.bithon.server.starter.exception;
 
-import lombok.Builder;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.exception.BadRequestException;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.exception.HttpResponseMapping;
+import org.bithon.server.commons.exception.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -83,11 +82,4 @@ public class GlobalExceptionHandler {
                                                 .build());
     }
 
-    @Data
-    @Builder
-    public static class ErrorResponse {
-        private String path;
-        private String message;
-        private String exception;
-    }
 }

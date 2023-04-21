@@ -21,6 +21,11 @@ package org.bithon.component.brpc.exception;
  * @date 24/2/23 11:43 pm
  */
 public class SessionNotFoundException extends ServiceInvocationException {
+
+    public SessionNotFoundException(String message) {
+        super(message);
+    }
+
     public SessionNotFoundException(String messageFormat, Object... args) {
         super(messageFormat, args);
     }

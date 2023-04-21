@@ -28,6 +28,7 @@ import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.server.collector.cmd.api.permission.PermissionConfiguration;
 import org.bithon.server.collector.cmd.api.permission.PermissionRule;
 import org.bithon.server.collector.cmd.service.AgentServer;
+import org.bithon.server.commons.exception.ErrorResponse;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
@@ -157,15 +158,15 @@ public class AgentProxyApi implements IAgentProxyApi {
      * Handle exception thrown in this REST controller.
      */
     @ExceptionHandler(ServiceInvocationException.class)
-    ResponseEntity<ServiceResponse> handleException(HttpServletRequest request, ServiceInvocationException exception) {
+    ResponseEntity<ErrorResponse> handleException(HttpServletRequest request, ServiceInvocationException exception) {
         int statusCode = exception instanceof SessionNotFoundException ? HttpStatus.NOT_FOUND.value() : HttpStatus.INTERNAL_SERVER_ERROR.value();
 
         return ResponseEntity.status(statusCode)
-                             .body(ServiceResponse.error(ServiceResponse.Error.builder()
-                                                                              .uri(request.getRequestURI())
-                                                                              .exception(exception.getClass().getName())
-                                                                              .message(exception.getMessage())
-                                                                              .build()));
+                             .body(ErrorResponse.builder()
+                                                .path(request.getRequestURI())
+                                                .exception(exception.getClass().getName())
+                                                .message(exception.getMessage())
+                                                .build());
     }
 
 }
