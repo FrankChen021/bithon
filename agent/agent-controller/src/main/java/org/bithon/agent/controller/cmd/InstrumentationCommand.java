@@ -34,40 +34,38 @@ public class InstrumentationCommand implements IInstrumentationCommand, IAgentCo
     public List<InstrumentedMethod> getInstrumentedMethods() {
         List<InstrumentedMethod> returning = new ArrayList<>();
 
-        InstallerRecorder.INSTANCE.getInstrumentedMethods()
-                                  .forEach((type, methods) -> {
-                                      for (InstallerRecorder.InstrumentedMethod method : methods) {
+        for (InstallerRecorder.InstrumentedMethod method : InstallerRecorder.INSTANCE.getInstrumentedMethods()) {
+            Map<String, InterceptorSupplier> interceptorSuppliers = InterceptorManager.INSTANCE.getSuppliers(method.getInterceptor());
 
-                                          Map<String, InterceptorSupplier> interceptorSuppliers = InterceptorManager.INSTANCE.getSuppliers(method.getInterceptor());
-                                          if (interceptorSuppliers != null) {
-                                              for (Map.Entry<String, InterceptorSupplier> entry : interceptorSuppliers.entrySet()) {
-                                                  String clazzLoaderId = entry.getKey();
-                                                  InterceptorSupplier supplier = entry.getValue();
+            if (!interceptorSuppliers.isEmpty()) {
+                for (Map.Entry<String, InterceptorSupplier> entry : interceptorSuppliers.entrySet()) {
+                    String clazzLoaderId = entry.getKey();
+                    InterceptorSupplier supplier = entry.getValue();
 
-                                                  InstrumentedMethod m = new InstrumentedMethod();
-                                                  m.interceptor = (method.getInterceptor());
-                                                  m.clazzLoader = clazzLoaderId;
-                                                  m.hitCount = supplier.isInitialized() ? supplier.get().getHitCount() : 0;
-                                                  m.clazzName = (type);
-                                                  m.returnType = (method.getReturnType());
-                                                  m.methodName = (method.getMethodName());
-                                                  m.isStatic = (method.isStatic());
-                                                  m.parameters = (method.getParameters());
-
-                                                  returning.add(m);
-                                              }
-                                          } else {
-                                              InstrumentedMethod m = new InstrumentedMethod();
-                                              m.interceptor = (method.getInterceptor());
-                                              m.clazzName = (type);
-                                              m.returnType = (method.getReturnType());
-                                              m.methodName = (method.getMethodName());
-                                              m.isStatic = (method.isStatic());
-                                              m.parameters = (method.getParameters());
-                                              returning.add(m);
-                                          }
-                                      }
-                                  });
+                    InstrumentedMethod m = new InstrumentedMethod();
+                    m.interceptor = method.getInterceptor();
+                    m.clazzLoader = clazzLoaderId;
+                    m.hitCount = supplier.isInitialized() ? supplier.get().getHitCount() : 0;
+                    m.clazzName = method.getType();
+                    m.returnType = method.getReturnType();
+                    m.methodName = method.getMethodName();
+                    m.isStatic = method.isStatic();
+                    m.parameters = method.getParameters();
+                    returning.add(m);
+                }
+            } else {
+                InstrumentedMethod m = new InstrumentedMethod();
+                m.interceptor = method.getInterceptor();
+                m.clazzLoader = null;
+                m.hitCount = 0;
+                m.clazzName = method.getType();
+                m.returnType = method.getReturnType();
+                m.methodName = method.getMethodName();
+                m.isStatic = method.isStatic();
+                m.parameters = method.getParameters();
+                returning.add(m);
+            }
+        }
         return returning;
     }
 }

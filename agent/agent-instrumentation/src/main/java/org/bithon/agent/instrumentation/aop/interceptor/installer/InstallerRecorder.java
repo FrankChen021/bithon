@@ -22,10 +22,10 @@ import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author Frank Chen
@@ -36,22 +36,29 @@ public class InstallerRecorder {
     public static final InstallerRecorder INSTANCE = new InstallerRecorder();
 
     public static class InstrumentedMethod {
+        private final String interceptor;
+        private final String type;
         private final String returnType;
         private final String methodName;
         private final boolean isStatic;
         private final String parameters;
-        private final String interceptor;
 
-        public InstrumentedMethod(String returnType,
-                                  String methodName,
-                                  boolean aStatic,
-                                  String parameters,
-                                  String interceptor) {
+
+        public InstrumentedMethod(String interceptor, String type, String returnType, String methodName, boolean aStatic, String parameters) {
+            this.interceptor = interceptor;
             this.returnType = returnType;
             this.methodName = methodName;
             this.isStatic = aStatic;
             this.parameters = parameters;
-            this.interceptor = interceptor;
+            this.type = type;
+        }
+
+        public String getInterceptor() {
+            return interceptor;
+        }
+
+        public String getType() {
+            return type;
         }
 
         public String getReturnType() {
@@ -70,23 +77,47 @@ public class InstallerRecorder {
             return parameters;
         }
 
-        public String getInterceptor() {
-            return interceptor;
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            InstrumentedMethod that = (InstrumentedMethod) o;
+            return isStatic == that.isStatic
+                    && Objects.equals(interceptor, that.interceptor)
+                    && Objects.equals(type, that.type)
+                    && Objects.equals(returnType, that.returnType)
+                    && Objects.equals(methodName, that.methodName)
+                    && Objects.equals(parameters, that.parameters);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(interceptor, type, returnType, methodName, isStatic, parameters);
         }
     }
 
-    private final Map<String, List<InstrumentedMethod>> instrumentedMethods = Collections.synchronizedMap(new HashMap<>());
+    /**
+     * key - interceptor name
+     * val - instrumented method
+     */
+    private final Set<InstrumentedMethod> instrumentedMethods = Collections.synchronizedSet(new HashSet<>());
 
     /**
      * A snapshot of instrumented methods
      */
-    public Map<String, List<InstrumentedMethod>> getInstrumentedMethods() {
-        return new LinkedHashMap<>(instrumentedMethods);
+    public List<InstrumentedMethod> getInstrumentedMethods() {
+        return new ArrayList<>(instrumentedMethods);
     }
 
-    public void addInterceptedMethod(String interceptor,
-                                     TypeDescription instrumentedType,
-                                     MethodDescription instrumentedMethod) {
+    /**
+     * An interceptor can be applied to the same class which are loaded into two different class loaders.
+     * For the given parameters of this method, in above case, actually they're the same
+     */
+    public void addInterceptedMethod(String interceptor, TypeDescription instrumentedType, MethodDescription instrumentedMethod) {
         StringBuilder parameters = new StringBuilder(32);
         for (ParameterDescription parameter : instrumentedMethod.getParameters()) {
             if (parameters.length() > 0) {
@@ -101,11 +132,12 @@ public class InstallerRecorder {
             parameters.append(str);
         }
 
-        instrumentedMethods.computeIfAbsent(instrumentedType.getName(), v -> Collections.synchronizedList(new ArrayList<>()))
-                           .add(new InstrumentedMethod(instrumentedMethod.getReturnType().getTypeName(),
-                                                       instrumentedMethod.isConstructor() ? "<ctor>" : instrumentedMethod.getName(),
-                                                       instrumentedMethod.isStatic(),
-                                                       parameters.toString(),
-                                                       interceptor));
+        InstrumentedMethod method = new InstrumentedMethod(interceptor,
+                                                           instrumentedType.getName(),
+                                                           instrumentedMethod.getReturnType().getTypeName(),
+                                                           instrumentedMethod.isConstructor() ? "<ctor>" : instrumentedMethod.getName(),
+                                                           instrumentedMethod.isStatic(),
+                                                           parameters.toString());
+        this.instrumentedMethods.add(method);
     }
 }

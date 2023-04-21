@@ -88,7 +88,8 @@ public class InterceptorManager {
     }
 
     /**
-     * Take a snapshot of suppliers
+     * Take a snapshot of suppliers.
+     * @return if target interceptor does not exist, an empty map, instead of null, is returned
      */
     public Map<String, InterceptorSupplier> getSuppliers(String interceptorClazz) {
         return Collections.unmodifiableMap(new HashMap<>(this.interceptorMaps.getOrDefault(interceptorClazz, Collections.emptyMap())));
