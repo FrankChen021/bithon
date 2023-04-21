@@ -35,7 +35,7 @@ public class InterceptorManager {
 
     private static final ILogger LOG = LoggerFactory.getLogger(InterceptorManager.class);
 
-    private static InterceptorLazySupplier[] ARRAY_INTERCEPTORS = new InterceptorLazySupplier[32];
+    private static InterceptorLazySupplier[] ARRAY_INTERCEPTORS = new InterceptorLazySupplier[64];
     private static final Map<String, InterceptorLazySupplier> INTERCEPTORS = new ConcurrentHashMap<>();
 
     private static int INDEX = 0;
