@@ -50,7 +50,7 @@ public class InterceptorManager {
 
     private static final ILogger LOG = LoggerFactory.getLogger(InterceptorManager.class);
 
-    private static IInterceptor[] ARRAY_INTERCEPTORS = new IInterceptor[4];
+    private static IInterceptor[] ARRAY_INTERCEPTORS = new IInterceptor[32];
     private static final Map<String, InterceptorEntry> INTERCEPTORS = new ConcurrentHashMap<>();
     private static final ReentrantLock INTERCEPTOR_INSTANTIATION_LOCK = new ReentrantLock();
 
@@ -59,8 +59,8 @@ public class InterceptorManager {
     /**
      * Get interceptor by given index.
      */
-    public static IDynamicInterceptor getInterceptor(int index) {
-        return (IDynamicInterceptor) ARRAY_INTERCEPTORS[index];
+    public static IInterceptor getInterceptor(int index) {
+        return ARRAY_INTERCEPTORS[index];
     }
 
     /**

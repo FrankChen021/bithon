@@ -20,6 +20,7 @@ package org.bithon.agent.instrumentation.aop.advice;
 import org.bithon.agent.instrumentation.aop.context.AopContextImpl;
 import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.IInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
@@ -37,10 +38,11 @@ public class ConstructorAfterAdvice {
 
     @Advice.OnMethodExit
     public static void onExit(@AdviceAnnotation.InterceptorName String name,
-                              @AdviceAnnotation.Interceptor IInterceptor interceptor,
+                              @AdviceAnnotation.InterceptorIndex int index,
                               @AdviceAnnotation.TargetMethod Constructor<?> method,
                               @Advice.This Object target,
                               @Advice.AllArguments Object[] args) {
+        IInterceptor interceptor = InterceptorManager.getInterceptor(index);
         if (interceptor == null) {
             return;
         }

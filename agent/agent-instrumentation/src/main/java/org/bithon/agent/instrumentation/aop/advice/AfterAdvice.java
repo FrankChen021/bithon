@@ -19,6 +19,7 @@ package org.bithon.agent.instrumentation.aop.advice;
 import org.bithon.agent.instrumentation.aop.context.AopContextImpl;
 import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.IInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
@@ -57,7 +58,7 @@ public class AfterAdvice {
      * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit(onThrowable = Throwable.class)
-    public static void onExit(@AdviceAnnotation.Interceptor IInterceptor interceptor,
+    public static void onExit(@AdviceAnnotation.InterceptorIndex int index,
                               @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning,
                               @Advice.Thrown Throwable exception,
                               @Advice.Local("context") Object context) {
@@ -67,6 +68,7 @@ public class AfterAdvice {
         aopContext.setException(exception);
         aopContext.setReturning(returning);
 
+        IInterceptor interceptor = InterceptorManager.getInterceptor(index);
         if (interceptor == null) {
             return;
         }

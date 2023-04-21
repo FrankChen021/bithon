@@ -16,6 +16,7 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.installer;
 
+import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.agent.instrumentation.aop.advice.AdviceAnnotation;
 import org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice;
@@ -27,6 +28,8 @@ import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
+import org.bithon.shaded.net.bytebuddy.implementation.FieldAccessor;
+import org.bithon.shaded.net.bytebuddy.jar.asm.Opcodes;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 import org.bithon.shaded.net.bytebuddy.matcher.NameMatcher;
@@ -89,6 +92,10 @@ public class DynamicInterceptorInstaller {
                     LOG.error("Can't find BeanAopDescriptor for [{}]", typeDescription.getTypeName());
                     return builder;
                 }
+
+                builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME, Object.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_VOLATILE)
+                                 .implement(IBithonObject.class)
+                                 .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
 
                 return install(descriptor, builder, classLoader);
             }).with(InstrumentationHelper.getAopDebugger().withTypes(new HashSet<>(descriptors.keySet())))
