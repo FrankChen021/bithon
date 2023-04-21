@@ -136,7 +136,7 @@ public class AgentServiceProxyFactory {
             for (IDiscoveryClient.HostAndPort proxyServer : proxyServerList) {
                 futures.add(executor.submit(() -> {
                     try {
-                        // The agent's Brpc services MUST return type of Collection
+                        // The agent's Brpc services MUST return a type of Collection
                         return (Collection<?>) brpcServiceInvoker.invoke("bithon-webservice",
                                                                          Headers.EMPTY,
                                                                          new BrpcChannelOverHttp(proxyServer, context),
@@ -146,8 +146,8 @@ public class AgentServiceProxyFactory {
                     } catch (CalleeSideException e) {
                         if (SessionNotFoundException.class.getName().equals(e.getExceptionClass())) {
                             // We're issuing broadcast invocation on all proxy servers,
-                            // but there will be only one proxy server that connects to the target agent instance,
-                            // for any other proxy servers, a SessionNotFoundException is thrown,
+                            // but there will be only one proxy server that connects to the target agent instance.
+                            // For any other proxy servers, a SessionNotFoundException is thrown,
                             // We need to ignore such exception
                             return Collections.emptyList();
                         } else {
@@ -220,7 +220,7 @@ public class AgentServiceProxyFactory {
             ServiceRequestMessageOut serviceRequest = (ServiceRequestMessageOut) obj;
             final long txId = serviceRequest.getTransactionId();
 
-            // Turn the message into byte array to send over HTTP
+            // Turn the message into a byte array to send over HTTP
             final byte[] message = serviceRequest.toByteArray();
 
             // The underlying call on remote HTTP endpoint is synchronous,

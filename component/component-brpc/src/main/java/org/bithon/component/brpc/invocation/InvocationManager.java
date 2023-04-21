@@ -94,7 +94,7 @@ public class InvocationManager {
                           Type returnObjectType,
                           long timeoutMillisecond) throws Throwable {
         //
-        // make sure channel has been established
+        // make sure a channel has been established
         //
         channelWriter.connect();
 
@@ -188,7 +188,7 @@ public class InvocationManager {
                 exceptionClassName = response.getException().substring(0, separator);
                 if (!exceptionClassName.endsWith("Exception")) {
                     // According to exception class name convention, it MUST end with 'Exception',
-                    // Clear the invalid name
+                    // Clears the invalid name
                     exceptionClassName = "";
                 }
             }
@@ -256,7 +256,7 @@ public class InvocationManager {
         Object returnObject;
 
         /**
-         * indicate whether this request has response.
+         * Indicate whether this request has a response.
          * This is required so that {@link #returnObject} might be null
          */
         boolean responseReceived;
