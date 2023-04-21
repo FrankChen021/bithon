@@ -37,7 +37,7 @@ public class ReplacementAdvice {
                                  @AdviceAnnotation.InterceptorIndex int index,
                                  @Advice.AllArguments Object[] args,
                                  @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning) {
-        IInterceptor interceptor = InterceptorManager.getInterceptor(index);
+        IInterceptor interceptor = InterceptorManager.getInterceptor(index).get();
         if (interceptor != null) {
             returning = ((ReplaceInterceptor) interceptor).execute(args, returning);
         }

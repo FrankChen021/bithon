@@ -110,15 +110,11 @@ public class DynamicInterceptorInstaller {
                                            DynamicType.Builder<?> builder,
                                            ClassLoader classLoader) {
 
-        InterceptorManager.InterceptorEntry entry = InterceptorManager.getOrCreateInterceptor(descriptor.interceptorName, classLoader, true);
-        if (entry == null) {
-            LOG.info("Skipped to install dynamic interceptor for [{}], index={}, name={}", descriptor.targetClass, descriptor.interceptorName);
-            return builder;
-        }
-        LOG.info("Dynamic interceptor installed for [{}], index={}, name={}", descriptor.targetClass, entry.index, descriptor.interceptorName);
+        int interceptorIndex = InterceptorManager.getOrCreateInterceptorSupplier(descriptor.interceptorName, classLoader);
+        LOG.info("Dynamic interceptor installed for [{}], index={}, name={}", descriptor.targetClass, interceptorIndex, descriptor.interceptorName);
         return builder.visit(InterceptorInstaller.newInstaller(Advice.withCustomMapping()
                                                                      .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(descriptor.interceptorName))
-                                                                     .bind(AdviceAnnotation.InterceptorIndex.class, new AdviceAnnotation.InterceptorIndexResolver(entry.index))
+                                                                     .bind(AdviceAnnotation.InterceptorIndex.class, new AdviceAnnotation.InterceptorIndexResolver(interceptorIndex))
                                                                      .to(DynamicAopAdvice.class),
                                                                descriptor.methodMatcher));
     }

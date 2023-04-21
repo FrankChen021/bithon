@@ -42,10 +42,11 @@ public class ConstructorAfterAdvice {
                               @AdviceAnnotation.TargetMethod Constructor<?> method,
                               @Advice.This Object target,
                               @Advice.AllArguments Object[] args) {
-        IInterceptor interceptor = InterceptorManager.getInterceptor(index);
+        IInterceptor interceptor = InterceptorManager.getInterceptor(index).get();
         if (interceptor == null) {
             return;
         }
+
         try {
             ((AfterInterceptor) interceptor).after(new AopContextImpl(method, target, args));
         } catch (Throwable e) {

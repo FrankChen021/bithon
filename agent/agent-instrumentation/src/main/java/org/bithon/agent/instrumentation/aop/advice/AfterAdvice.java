@@ -63,15 +63,15 @@ public class AfterAdvice {
                               @Advice.Thrown Throwable exception,
                               @Advice.Local("context") Object context) {
 
+        IInterceptor interceptor = InterceptorManager.getInterceptor(index).get();
+        if (interceptor == null) {
+            return;
+        }
+
         AopContextImpl aopContext = (AopContextImpl) context;
         aopContext.onAfterTargetMethodInvocation();
         aopContext.setException(exception);
         aopContext.setReturning(returning);
-
-        IInterceptor interceptor = InterceptorManager.getInterceptor(index);
-        if (interceptor == null) {
-            return;
-        }
 
         try {
             ((AfterInterceptor) interceptor).after(aopContext);

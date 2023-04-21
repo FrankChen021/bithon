@@ -49,7 +49,10 @@ public class AroundAdvice {
         @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
         @Advice.Local("context") Object context
     ) {
-        IInterceptor interceptor = InterceptorManager.getInterceptor(index);
+        IInterceptor interceptor = InterceptorManager.getInterceptor(index).get();
+        if (interceptor == null) {
+            return false;
+        }
 
         AopContextImpl aopContext = new AopContextImpl(method, target, args);
 
@@ -94,12 +97,16 @@ public class AroundAdvice {
             return;
         }
 
+        IInterceptor interceptor = InterceptorManager.getInterceptor(index).get();
+        if (interceptor == null) {
+            return;
+        }
+
         AopContextImpl aopContext = (AopContextImpl) context;
         aopContext.onAfterTargetMethodInvocation();
         aopContext.setException(exception);
         aopContext.setReturning(returning);
 
-        IInterceptor interceptor = InterceptorManager.getInterceptor(index);
         try {
             ((AroundInterceptor) interceptor).after(aopContext);
         } catch (Throwable e) {

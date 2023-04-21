@@ -47,13 +47,12 @@ public class BeforeAdvice {
             @Advice.This(optional = true) Object target,
             @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args
     ) {
-        IInterceptor interceptor = InterceptorManager.getInterceptor(index);
+        IInterceptor interceptor = InterceptorManager.getInterceptor(index).get();
         if (interceptor == null) {
             return;
         }
 
         AopContextImpl aopContext = new AopContextImpl(method, target, args);
-
         try {
             ((BeforeInterceptor) interceptor).before(aopContext);
         } catch (Throwable e) {
