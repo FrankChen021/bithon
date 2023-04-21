@@ -17,6 +17,7 @@
 package org.bithon.server.collector.cmd.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.brpc.message.Headers;
@@ -97,6 +98,10 @@ public class AgentProxyApi implements IAgentProxyApi {
     public byte[] proxy(@RequestParam(name = INSTANCE_FIELD) String instance,
                         @RequestParam(name = "token") String token,
                         @RequestBody byte[] body) throws IOException {
+
+        // Get the session first
+        BrpcServer.Session agentSession = commandService.getBrpcServer().getSession(instance);
+
         //
         // Parse input request stream
         //
@@ -105,11 +110,11 @@ public class AgentProxyApi implements IAgentProxyApi {
         ServiceRequestMessageIn fromClient = ServiceRequestMessageIn.from(input);
 
         // Verify if the given token matches
-        // By default, if a method that starts with 'get' or 'dump' will be seen as a READ method that requires no permission check.
+        // By default if a method that starts with 'get' or 'dump' will be seen as a READ method that requires no permission check.
         if (!fromClient.getMethodName().startsWith("get") && !fromClient.getMethodName().startsWith("dump")) {
             Optional<PermissionRule> applicationRule = permissionConfiguration.getRules()
                                                                               .stream()
-                                                                              .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(fromClient.getApplicationName()))
+                                                                              .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(agentSession.getRemoteApplicationName()))
                                                                               .findFirst();
             if (!applicationRule.isPresent()) {
                 throw new HttpMappableException(HttpStatus.FORBIDDEN.value(), "Application [%s] does not define a permission rule.", fromClient.getApplicationName());
@@ -137,10 +142,7 @@ public class AgentProxyApi implements IAgentProxyApi {
         ServiceResponseMessageOut.Builder responseBuilder = ServiceResponseMessageOut.builder()
                                                                                      .txId(fromClient.getTransactionId());
         try {
-            responseBuilder.returningRaw(commandService.getBrpcServer()
-                                                       .getSession(instance)
-                                                       .getLowLevelInvoker()
-                                                       .invoke(toTarget, 30_000));
+            responseBuilder.returningRaw(agentSession.getLowLevelInvoker().invoke(toTarget, 30_000));
         } catch (Throwable e) {
             responseBuilder.exception(e);
         } finally {
