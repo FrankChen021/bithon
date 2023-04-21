@@ -30,7 +30,7 @@ public interface IInstrumentationCommand {
 
     class InstrumentedMethod {
         public String interceptor;
-        public String classLoader;
+        public String clazzLoader;
         public long hitCount;
         public String clazzName;
         public String returnType;
@@ -43,7 +43,7 @@ public interface IInstrumentationCommand {
          * The sequence of the values in the array MUST be in accordance with the sequence of fields
          */
         public Object[] toObjects() {
-            return new Object[]{interceptor, classLoader, hitCount, clazzName, returnType, methodName, isStatic, parameters};
+            return new Object[]{interceptor, clazzLoader, hitCount, clazzName, returnType, methodName, isStatic, parameters};
         }
     }
 
