@@ -16,8 +16,8 @@
 
 package org.bithon.agent.instrumentation.aop.advice;
 
-import org.bithon.agent.instrumentation.aop.interceptor.IDynamicInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.IDynamicInterceptor;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
@@ -53,7 +53,7 @@ public class DynamicAopAdvice {
             @Advice.Local("context") Object context,
             @Advice.Local("interceptor") Object interceptor
     ) {
-        interceptor = InterceptorManager.getInterceptor(index);
+        interceptor = InterceptorManager.INSTANCE.getSupplier(index);
         if (interceptor != null) {
             Object[] newArgs = args;
 

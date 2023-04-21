@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.grpc.client.interceptor;
 import io.grpc.internal.ManagedChannelImplBuilder;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.instrumentation.bytecode.ClassCopier;
 import org.bithon.agent.plugin.grpc.ShadedGrpcList;
 import org.bithon.component.commons.logging.LoggerFactory;

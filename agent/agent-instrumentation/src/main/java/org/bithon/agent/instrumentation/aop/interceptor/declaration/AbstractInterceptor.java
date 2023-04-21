@@ -14,24 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.aop.interceptor;
+package org.bithon.agent.instrumentation.aop.interceptor.declaration;
 
-import org.bithon.agent.instrumentation.aop.context.AopContext;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/3/18 23:25
+ * @date 2023/3/18 23:29
  */
-public abstract class AroundInterceptor implements IInterceptor {
+public abstract class AbstractInterceptor {
+    private final LongAdder hitCount = new LongAdder();
 
-    public InterceptionDecision before(AopContext aopContext) throws Exception {
-        return InterceptionDecision.CONTINUE;
+    public long getHitCount() {
+        return hitCount.sum();
     }
 
-    /**
-     * Called after execution of target intercepted method
-     * If {@link #before(AopContext)} returns {@link InterceptionDecision#SKIP_LEAVE}, call of this method will be skipped
-     */
-    public void after(AopContext aopContext) throws Exception {
+    public void hit() {
+        hitCount.increment();
     }
 }

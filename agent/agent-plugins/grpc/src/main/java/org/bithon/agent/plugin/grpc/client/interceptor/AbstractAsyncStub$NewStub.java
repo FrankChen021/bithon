@@ -20,7 +20,7 @@ import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.stub.AbstractStub;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.installer.DynamicInterceptorInstaller;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;

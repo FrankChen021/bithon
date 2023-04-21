@@ -18,8 +18,8 @@ package org.bithon.agent.plugin.apache.ozone.interceptor;
 
 import org.apache.hadoop.hdds.protocol.datanode.proto.ContainerProtos;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 

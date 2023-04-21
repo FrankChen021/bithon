@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import sun.net.www.protocol.http.HttpURLConnection;
 
 import java.net.Proxy;

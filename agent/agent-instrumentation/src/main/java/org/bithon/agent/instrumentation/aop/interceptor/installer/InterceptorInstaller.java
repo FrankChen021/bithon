@@ -156,8 +156,8 @@ public class InterceptorInstaller {
 
         private void install(MethodPointCutDescriptor descriptor) {
             AdviceAnnotation.InterceptorNameResolver nameResolver = new AdviceAnnotation.InterceptorNameResolver(descriptor.getInterceptorClassName());
-            AdviceAnnotation.InterceptorIndexResolver indexResolver = new AdviceAnnotation.InterceptorIndexResolver(InterceptorManager.getOrCreateInterceptorSupplier(descriptor.getInterceptorClassName(),
-                                                                                                                                                                      classLoader));
+            AdviceAnnotation.InterceptorIndexResolver indexResolver = new AdviceAnnotation.InterceptorIndexResolver(InterceptorManager.INSTANCE.getOrCreateSupplier(descriptor.getInterceptorClassName(),
+                                                                                                                                                                    classLoader));
             switch (descriptor.getInterceptorType()) {
                 case BEFORE:
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()

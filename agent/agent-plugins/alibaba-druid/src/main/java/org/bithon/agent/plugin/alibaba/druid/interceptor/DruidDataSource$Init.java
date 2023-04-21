@@ -18,8 +18,8 @@ package org.bithon.agent.plugin.alibaba.druid.interceptor;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSourceManager;
 
 /**

@@ -14,11 +14,16 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.aop.interceptor;
+package org.bithon.agent.instrumentation.aop.interceptor.declaration;
+
+import org.bithon.agent.instrumentation.aop.context.AopContext;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/3/18 23:29
+ * @date 2023/3/18 23:26
  */
-public interface IInterceptor {
+public abstract class AfterInterceptor extends AbstractInterceptor {
+
+    public void after(AopContext aopContext) throws Exception {
+    }
 }

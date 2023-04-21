@@ -17,7 +17,7 @@
 package org.bithon.agent.plugin.apache.kafka.producer.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.agent.plugin.apache.kafka.producer.metrics.ProducerMetricRegistry;

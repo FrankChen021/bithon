@@ -63,7 +63,7 @@ public abstract class PluginResolver {
 
         resolveInterceptorType(descriptors.getAllDescriptor());
 
-        // Resolve interceptor type
+        // Resolve an interceptor type
         return descriptors;
     }
 

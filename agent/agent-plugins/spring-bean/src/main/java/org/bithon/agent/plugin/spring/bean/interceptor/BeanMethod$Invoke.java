@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.spring.bean.interceptor;
 
-import org.bithon.agent.instrumentation.aop.interceptor.IDynamicInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.IDynamicInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 
@@ -34,14 +34,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 18:46
  */
-public class BeanMethod$Invoke implements IDynamicInterceptor {
+public class BeanMethod$Invoke extends IDynamicInterceptor {
 
     @Override
-    public Object onMethodEnter(
-        final Method method,
-        final Object target,
-        final Object[] args
-    ) {
+    public Object onMethodEnter(final Method method,
+                                final Object target,
+                                final Object[] args) {
         ITraceSpan span = TraceSpanFactory.newSpan("");
         if (span == null) {
             return null;

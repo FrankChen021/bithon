@@ -110,7 +110,7 @@ public class DynamicInterceptorInstaller {
                                            DynamicType.Builder<?> builder,
                                            ClassLoader classLoader) {
 
-        int interceptorIndex = InterceptorManager.getOrCreateInterceptorSupplier(descriptor.interceptorName, classLoader);
+        int interceptorIndex = InterceptorManager.INSTANCE.getOrCreateSupplier(descriptor.interceptorName, classLoader);
         LOG.info("Dynamic interceptor installed for [{}], index={}, name={}", descriptor.targetClass, interceptorIndex, descriptor.interceptorName);
         return builder.visit(InterceptorInstaller.newInstaller(Advice.withCustomMapping()
                                                                      .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(descriptor.interceptorName))

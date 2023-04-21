@@ -17,7 +17,7 @@
 package org.bithon.agent.plugin.tomcat.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.event.ExceptionCollector;
 

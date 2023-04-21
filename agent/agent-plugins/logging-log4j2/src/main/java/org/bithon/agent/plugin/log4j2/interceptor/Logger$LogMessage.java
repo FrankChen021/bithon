@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.log4j2.interceptor;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.spi.StandardLevel;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.event.ExceptionCollector;
 
 /**

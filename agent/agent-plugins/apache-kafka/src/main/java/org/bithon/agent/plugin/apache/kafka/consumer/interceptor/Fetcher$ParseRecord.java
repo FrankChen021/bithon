@@ -20,7 +20,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.record.Record;
 import org.apache.kafka.common.record.RecordBatch;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.agent.plugin.apache.kafka.consumer.metrics.ConsumerMetricRegistry;

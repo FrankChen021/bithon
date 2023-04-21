@@ -17,9 +17,9 @@
 package org.bithon.agent.instrumentation.aop.advice;
 
 import org.bithon.agent.instrumentation.aop.context.AopContextImpl;
-import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
-import org.bithon.agent.instrumentation.aop.interceptor.IInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AbstractInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
@@ -63,7 +63,7 @@ public class AfterAdvice {
                               @Advice.Thrown Throwable exception,
                               @Advice.Local("context") Object context) {
 
-        IInterceptor interceptor = InterceptorManager.getInterceptor(index).get();
+        AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getSupplier(index).get();
         if (interceptor == null) {
             return;
         }

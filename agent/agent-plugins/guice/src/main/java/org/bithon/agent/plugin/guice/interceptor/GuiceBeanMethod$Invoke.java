@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.guice.interceptor;
 
-import org.bithon.agent.instrumentation.aop.interceptor.IDynamicInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.IDynamicInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 
@@ -30,7 +30,7 @@ import java.lang.reflect.Method;
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 18:46
  */
-public class GuiceBeanMethod$Invoke implements IDynamicInterceptor {
+public class GuiceBeanMethod$Invoke extends IDynamicInterceptor {
 
     @Override
     public Object onMethodEnter(

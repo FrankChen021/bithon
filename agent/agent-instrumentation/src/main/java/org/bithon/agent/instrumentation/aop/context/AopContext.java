@@ -17,6 +17,8 @@
 package org.bithon.agent.instrumentation.aop.context;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 
 import java.lang.reflect.Executable;
 
@@ -102,7 +104,7 @@ public abstract class AopContext {
 
     /**
      * the returning object of intercepted method
-     * Note: only available in {@link org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor#after(AopContext)}
+     * Note: only available in {@link AfterInterceptor#after(AopContext)}
      */
     public Object getReturning() {
         return returning;
@@ -125,7 +127,7 @@ public abstract class AopContext {
 
     /**
      * Exception thrown by intercepted method
-     * Note: only available in {@link org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor#after(AopContext)}
+     * Note: only available in {@link AfterInterceptor#after(AopContext)}
      */
     public Throwable getException() {
         return exception;
@@ -137,21 +139,21 @@ public abstract class AopContext {
 
     /**
      * How long the execution of intercepted method takes in nanoseconds
-     * Note: Only available in {@link org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor#after}
+     * Note: Only available in {@link AfterInterceptor#after}
      */
     public long getExecutionTime() {
         return endNanoTime - startNanoTime;
     }
 
     /**
-     * The timestamp that after {@link org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor#before(AopContext)} and before the intercepted method
+     * The timestamp that after {@link BeforeInterceptor#before(AopContext)} and before the intercepted method
      */
     public long getStartTimestamp() {
         return startTimestamp;
     }
 
     /**
-     * The timestamp that after the intercepted method and before the {@link org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor#after(AopContext)}
+     * The timestamp that after the intercepted method and before the {@link AfterInterceptor#after(AopContext)}
      */
     public long getEndTimestamp() {
         return endTimestamp;

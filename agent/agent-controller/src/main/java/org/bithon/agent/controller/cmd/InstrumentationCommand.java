@@ -16,11 +16,13 @@
 
 package org.bithon.agent.controller.cmd;
 
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
 import org.bithon.agent.instrumentation.aop.interceptor.installer.InstallerRecorder;
 import org.bithon.agent.rpc.brpc.cmd.IInstrumentationCommand;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -34,14 +36,35 @@ public class InstrumentationCommand implements IInstrumentationCommand, IAgentCo
         InstallerRecorder.INSTANCE.getInstrumentedMethods()
                                   .forEach((type, methods) -> {
                                       for (InstallerRecorder.InstrumentedMethod method : methods) {
-                                          InstrumentedMethod m = new InstrumentedMethod();
-                                          m.clazzName = (type);
-                                          m.returnType = (method.getReturnType());
-                                          m.methodName = (method.getMethodName());
-                                          m.isStatic = (method.isStatic());
-                                          m.parameters = (method.getParameters());
-                                          m.interceptor = (method.getInterceptor());
-                                          returning.add(m);
+
+                                          Map<String, InterceptorManager.InterceptorSupplier> interceptorSuppliers = InterceptorManager.INSTANCE.getSuppliers(method.getInterceptor());
+                                          if (interceptorSuppliers != null) {
+                                              for (Map.Entry<String, InterceptorManager.InterceptorSupplier> entry : interceptorSuppliers.entrySet()) {
+                                                  String clazzLoaderId = entry.getKey();
+                                                  InterceptorManager.InterceptorSupplier supplier = entry.getValue();
+
+                                                  InstrumentedMethod m = new InstrumentedMethod();
+                                                  m.interceptor = (method.getInterceptor());
+                                                  m.classLoader = clazzLoaderId;
+                                                  m.hitCount = supplier.isInitialized() ? 0 : supplier.get().getHitCount();
+                                                  m.clazzName = (type);
+                                                  m.returnType = (method.getReturnType());
+                                                  m.methodName = (method.getMethodName());
+                                                  m.isStatic = (method.isStatic());
+                                                  m.parameters = (method.getParameters());
+
+                                                  returning.add(m);
+                                              }
+                                          } else {
+                                              InstrumentedMethod m = new InstrumentedMethod();
+                                              m.interceptor = (method.getInterceptor());
+                                              m.clazzName = (type);
+                                              m.returnType = (method.getReturnType());
+                                              m.methodName = (method.getMethodName());
+                                              m.isStatic = (method.isStatic());
+                                              m.parameters = (method.getParameters());
+                                              returning.add(m);
+                                          }
                                       }
                                   });
         return returning;

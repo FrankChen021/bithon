@@ -14,15 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.aop.interceptor;
-
-import org.bithon.agent.instrumentation.aop.context.AopContext;
+package org.bithon.agent.instrumentation.aop.interceptor.declaration;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/3/18 23:25
+ * @date 2023/3/18 23:26
  */
-public abstract class BeforeInterceptor implements IInterceptor {
-    public void before(AopContext aopContext) throws Exception {
+public abstract class ReplaceInterceptor extends AbstractInterceptor {
+    /**
+     * Replacement of a target method.
+     * Will be executed only when the interceptor is defined as replacement
+     *
+     * @param returning the returning object of target method
+     */
+    public Object execute(Object[] args, Object returning) {
+        return returning;
     }
 }

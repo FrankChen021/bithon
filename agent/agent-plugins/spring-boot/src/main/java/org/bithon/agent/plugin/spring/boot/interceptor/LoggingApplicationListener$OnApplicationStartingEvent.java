@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.spring.boot.interceptor;
 
 import org.bithon.agent.controller.AgentControllerService;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.rpc.brpc.cmd.ILoggingCommand;
 import org.bithon.component.commons.logging.LoggerConfiguration;
 import org.bithon.component.commons.logging.LoggerFactory;

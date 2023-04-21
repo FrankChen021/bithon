@@ -77,11 +77,11 @@ public class InstallerRecorder {
 
     private final Map<String, List<InstrumentedMethod>> instrumentedMethods = Collections.synchronizedMap(new HashMap<>());
 
+    /**
+     * A snapshot of instrumented methods
+     */
     public Map<String, List<InstrumentedMethod>> getInstrumentedMethods() {
         return new LinkedHashMap<>(instrumentedMethods);
-    }
-
-    public InstallerRecorder() {
     }
 
     public void addInterceptedMethod(String interceptor,
