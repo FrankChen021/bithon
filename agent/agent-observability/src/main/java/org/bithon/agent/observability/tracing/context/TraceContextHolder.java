@@ -16,8 +16,6 @@
 
 package org.bithon.agent.observability.tracing.context;
 
-import org.bithon.agent.observability.tracing.context.impl.TracingContext;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/17 11:18 下午
@@ -39,7 +37,7 @@ public class TraceContextHolder {
 
     public static String currentTraceId() {
         ITraceContext ctx = HOLDER.get();
-        return (ctx instanceof TracingContext) ? ctx.traceId() : null;
+        return ctx == null ? null : (ctx.traceMode().equals(TraceMode.TRACING) ? ctx.traceId() : null);
     }
 
     public static ITraceSpan currentSpan() {
