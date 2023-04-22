@@ -22,6 +22,9 @@ package org.bithon.agent.observability.tracing.context;
  */
 public class TraceSpanFactory {
 
+    /**
+     * Create a span based on current span on current thread
+     */
     public static ITraceSpan newSpan(String name) {
         ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null || traceContext.traceMode().equals(TraceMode.LOGGING)) {

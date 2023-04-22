@@ -23,6 +23,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.plugin.spring.webflux.config.GatewayFilterConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -66,7 +67,7 @@ public class BeforeGatewayFilter$Filter extends AroundInterceptor {
 
         HttpServerContext ctx = (HttpServerContext) ((IBithonObject) nativeRequest).getInjectedObject();
         ITraceContext traceContext = ctx.getTraceContext();
-        if (traceContext == null) {
+        if (traceContext == null || traceContext.traceMode().equals(TraceMode.LOGGING)) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
