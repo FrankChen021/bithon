@@ -55,14 +55,14 @@ public class DynamicInterceptorInstaller {
      */
     public void installOne(AopDescriptor descriptor) {
         new AgentBuilder.Default()
-                .ignore(ElementMatchers.nameStartsWith("org.bithon.shaded.net.bytebuddy."))
-                .disableClassFormatChanges()
-                .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
-                .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
-                .type(ElementMatchers.named(descriptor.targetClass))
-                .transform((builder, typeDescription, classLoader, javaModule, protectionDomain) -> install(descriptor, builder, classLoader))
-                .with(InstrumentationHelper.getAopDebugger().withTypes(new HashSet<>(Collections.singletonList(descriptor.targetClass))))
-                .installOn(InstrumentationHelper.getInstance());
+            .ignore(ElementMatchers.nameStartsWith("org.bithon.shaded.net.bytebuddy."))
+            .disableClassFormatChanges()
+            .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
+            .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+            .type(ElementMatchers.named(descriptor.targetClass))
+            .transform((builder, typeDescription, classLoader, javaModule, protectionDomain) -> install(descriptor, builder, classLoader))
+            .with(InstrumentationHelper.getAopDebugger().withTypes(new HashSet<>(Collections.singletonList(descriptor.targetClass))))
+            .installOn(InstrumentationHelper.getInstance());
     }
 
     /**
@@ -72,27 +72,27 @@ public class DynamicInterceptorInstaller {
         ElementMatcher<? super TypeDescription> typeMatcher = new NameMatcher<>(new StringSetMatcher(new HashSet<>(descriptors.keySet())));
 
         new AgentBuilder.Default()
-                .ignore(ElementMatchers.nameStartsWith("org.bithon.shaded.net.bytebuddy."))
-                .disableClassFormatChanges()
-                .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
-                .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
-                .type(typeMatcher)
-                .transform((DynamicType.Builder<?> builder,
-                            TypeDescription typeDescription,
-                            ClassLoader classLoader,
-                            JavaModule javaModule,
-                            ProtectionDomain protectionDomain) -> {
+            .ignore(ElementMatchers.nameStartsWith("org.bithon.shaded.net.bytebuddy."))
+            .disableClassFormatChanges()
+            .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
+            .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+            .type(typeMatcher)
+            .transform((DynamicType.Builder<?> builder,
+                        TypeDescription typeDescription,
+                        ClassLoader classLoader,
+                        JavaModule javaModule,
+                        ProtectionDomain protectionDomain) -> {
 
-                    AopDescriptor descriptor = descriptors.get(typeDescription.getTypeName());
-                    if (descriptor == null) {
-                        // this must be an error
-                        LOG.error("Can't find BeanAopDescriptor for [{}]", typeDescription.getTypeName());
-                        return builder;
-                    }
+                AopDescriptor descriptor = descriptors.get(typeDescription.getTypeName());
+                if (descriptor == null) {
+                    // this must be an error
+                    LOG.error("Can't find BeanAopDescriptor for [{}]", typeDescription.getTypeName());
+                    return builder;
+                }
 
-                    return install(descriptor, builder, classLoader);
-                }).with(InstrumentationHelper.getAopDebugger().withTypes(new HashSet<>(descriptors.keySet())))
-                .installOn(InstrumentationHelper.getInstance());
+                return install(descriptor, builder, classLoader);
+            }).with(InstrumentationHelper.getAopDebugger().withTypes(new HashSet<>(descriptors.keySet())))
+            .installOn(InstrumentationHelper.getInstance());
     }
 
     /**
