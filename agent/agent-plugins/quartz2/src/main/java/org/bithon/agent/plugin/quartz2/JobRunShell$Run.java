@@ -58,7 +58,7 @@ public class JobRunShell$Run extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         } else {
             // create a traceable context
-            context = TraceContextFactory.create(TraceMode.TRACE,
+            context = TraceContextFactory.create(TraceMode.TRACING,
                                                  Tracer.get().traceIdGenerator().newTraceId());
         }
 

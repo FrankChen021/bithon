@@ -67,7 +67,7 @@ public class W3CTraceContextExtractor implements ITraceContextExtractor {
             return null;
         }
 
-        return TraceContextFactory.create(isSampled(ids[3]) ? TraceMode.TRACE : TraceMode.PROPAGATION, ids[1], ids[2])
+        return TraceContextFactory.create(isSampled(ids[3]) ? TraceMode.TRACING : TraceMode.LOGGING, ids[1], ids[2])
                                   .currentSpan()
                                   .parentApplication(getter.get(request, ITracePropagator.TRACE_HEADER_SRC_APPLICATION))
                                   .context();

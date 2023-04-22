@@ -47,7 +47,7 @@ public class ExceptionBuilder {
         map.put("thread", Thread.currentThread().getName());
 
         ITraceContext traceContext = TraceContextHolder.current();
-        if (traceContext != null && traceContext.traceMode().equals(TraceMode.TRACE)) {
+        if (traceContext != null && traceContext.traceMode().equals(TraceMode.TRACING)) {
             map.put("traceId", traceContext.traceId());
         }
     }

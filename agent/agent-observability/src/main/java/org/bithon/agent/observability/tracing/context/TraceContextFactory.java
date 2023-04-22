@@ -55,11 +55,11 @@ public class TraceContextFactory {
         //
         ITraceContext context;
         switch (traceMode) {
-            case TRACE:
+            case TRACING:
                 context = new TraceContext(traceId, Tracer.get().spanIdGenerator()).reporter(Tracer.get().reporter());
                 break;
-            case PROPAGATION:
-                context = new PropagationTraceContext(traceId, Tracer.get().spanIdGenerator());
+            case LOGGING:
+                context = new LoggingTraceContext(traceId, Tracer.get().spanIdGenerator());
                 break;
             default:
                 // actually never happen

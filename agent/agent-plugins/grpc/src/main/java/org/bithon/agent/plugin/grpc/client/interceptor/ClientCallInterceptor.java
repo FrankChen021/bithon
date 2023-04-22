@@ -26,7 +26,7 @@ import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.PropagationTraceContext;
+import org.bithon.agent.observability.tracing.context.LoggingTraceContext;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 
@@ -48,15 +48,15 @@ public class ClientCallInterceptor implements ClientInterceptor {
 
         // Not sure when the other methods will be called,
         // so, it's better to create a new tracing context for this gRPC client call
-        ITraceSpan span = TraceSpanFactory.newAsyncSpan("grpc-client")
-                                          .method(ClientInterceptor.class.getName(), "interceptCall")
-                                          .tag("remote.address", this.target)
-                                          .kind(SpanKind.CLIENT)
-                                          .start();
-
-        if (span == null || span.context() instanceof PropagationTraceContext) {
+        ITraceSpan span = TraceSpanFactory.newAsyncSpan("grpc-client");
+        if (span == null || span.context() instanceof LoggingTraceContext) {
             return result;
         }
+
+        span.method(ClientInterceptor.class.getName(), "interceptCall")
+            .tag("remote.address", this.target)
+            .kind(SpanKind.CLIENT)
+            .start();
 
         return new TracedClientCall<>(span, result);
     }

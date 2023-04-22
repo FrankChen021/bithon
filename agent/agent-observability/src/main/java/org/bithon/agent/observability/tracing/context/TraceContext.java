@@ -49,7 +49,7 @@ class TraceContext implements ITraceContext {
 
     @Override
     public TraceMode traceMode() {
-        return TraceMode.TRACE;
+        return TraceMode.TRACING;
     }
 
     @Override

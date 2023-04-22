@@ -79,7 +79,7 @@ public class HttpChannel$Handle extends AroundInterceptor {
                             .start();
 
                 // put the trace id in the header so that the applications have chance to know whether this request is being sampled
-                if (traceContext.traceMode().equals(TraceMode.TRACE)) {
+                if (traceContext.traceMode().equals(TraceMode.TRACING)) {
                     request.setAttribute("X-Bithon-TraceId", traceContext.traceId());
 
                     String traceIdHeader = traceConfig.getTraceIdInResponse();

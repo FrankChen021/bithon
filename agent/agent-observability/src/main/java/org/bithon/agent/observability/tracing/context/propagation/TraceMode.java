@@ -21,14 +21,13 @@ package org.bithon.agent.observability.tracing.context.propagation;
  * @date 2021/7/17 17:13
  */
 public enum TraceMode {
-    TRACE,
+    /**
+     * Trace current request
+     */
+    TRACING,
 
     /**
-     * Propagation the application information only
+     * Generate a unique trace id and print the id in the log for current request
      */
-    PROPAGATION
-
-    /**
-     * 
-     */
+    LOGGING
 }

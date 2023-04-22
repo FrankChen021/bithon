@@ -70,7 +70,7 @@ public class HttpServerExchangeDispatch extends BeforeInterceptor {
                         .kind(SpanKind.SERVER)
                         .start();
 
-            if (traceContext.traceMode().equals(TraceMode.TRACE)) {
+            if (traceContext.traceMode().equals(TraceMode.TRACING)) {
                 ServletRequestContext servletRequestContext = exchange.getAttachment(ServletRequestContext.ATTACHMENT_KEY);
                 servletRequestContext.getServletRequest().setAttribute("X-Bithon-TraceId", traceContext.traceId());
 

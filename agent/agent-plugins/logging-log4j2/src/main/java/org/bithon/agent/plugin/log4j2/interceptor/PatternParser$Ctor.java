@@ -55,7 +55,7 @@ public class PatternParser$Ctor extends AfterInterceptor {
         public void onSpanStarted(ITraceSpan span) {
             ThreadContext.put("bTxId", span.traceId());
             ThreadContext.put("bSpanId", span.spanId());
-            ThreadContext.put("bMode", span.context().traceMode() == TraceMode.TRACE ? "T" : "P");
+            ThreadContext.put("bMode", span.context().traceMode() == TraceMode.TRACING ? "T" : "P");
         }
 
         @Override
@@ -67,7 +67,7 @@ public class PatternParser$Ctor extends AfterInterceptor {
             } else {
                 ThreadContext.put("bTxId", span.traceId());
                 ThreadContext.put("bSpanId", span.spanId());
-                ThreadContext.put("bMode", span.context().traceMode() == TraceMode.TRACE ? "T" : "P");
+                ThreadContext.put("bMode", span.context().traceMode() == TraceMode.TRACING ? "T" : "P");
             }
         }
     }

@@ -26,7 +26,7 @@ public class TraceSpanFactory {
 
     public static ITraceSpan newSpan(String name) {
         ITraceContext traceContext = TraceContextHolder.current();
-        if (traceContext == null || traceContext.traceMode().equals(TraceMode.PROPAGATION)) {
+        if (traceContext == null || traceContext.traceMode().equals(TraceMode.LOGGING)) {
             return null;
         }
 
@@ -41,7 +41,7 @@ public class TraceSpanFactory {
 
     /**
      * This method copies the current trace context so that it can be used in another thread.
-     * Even current trace mode is {@link TraceMode#PROPAGATION}, it's still copied.
+     * Even current trace mode is {@link TraceMode#LOGGING}, it's still copied.
      *
      */
     public static ITraceSpan newAsyncSpan(String name) {

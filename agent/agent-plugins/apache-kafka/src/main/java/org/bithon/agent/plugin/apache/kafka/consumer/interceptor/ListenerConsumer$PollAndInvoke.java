@@ -54,7 +54,7 @@ public class ListenerConsumer$PollAndInvoke extends AroundInterceptor {
         }
 
         // create a traceable context
-        context = TraceContextFactory.create(TraceMode.TRACE,
+        context = TraceContextFactory.create(TraceMode.TRACING,
                                              Tracer.get().traceIdGenerator().newTraceId());
 
         aopContext.setUserContext(context.currentSpan()

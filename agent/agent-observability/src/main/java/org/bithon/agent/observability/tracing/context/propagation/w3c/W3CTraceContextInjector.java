@@ -53,6 +53,6 @@ public class W3CTraceContextInjector implements ITraceContextInjector {
      * trace-flags      = 2HEXDIGLC   ; 8 bit flags. 1 for sampled
      */
     private String formatTraceParent(TraceMode traceMode, String traceId, String parentId) {
-        return "00-" + traceId + "-" + parentId + (traceMode == TraceMode.TRACE ? "-01" : "-00");
+        return "00-" + traceId + "-" + parentId + (traceMode == TraceMode.TRACING ? "-01" : "-00");
     }
 }

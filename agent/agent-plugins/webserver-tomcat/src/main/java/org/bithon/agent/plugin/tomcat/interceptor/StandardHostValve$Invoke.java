@@ -82,7 +82,7 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
         TraceContextHolder.set(traceContext);
 
         // Put the trace id in the header so that the applications have chance to know whether this request is being sampled
-        if (traceContext.traceMode().equals(TraceMode.TRACE)) {
+        if (traceContext.traceMode().equals(TraceMode.TRACING)) {
             //
             // Here, we do not use request.getRequest().setAttribute()
             // This is because request.getRequest returns an instance of javax.servlet.HttpServletRequest or jakarta.servlet.HttpServletRequest depending on the tomcat server

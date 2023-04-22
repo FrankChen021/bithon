@@ -115,7 +115,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
                                 .start();
 
                     // put the trace id in the header so that the applications have chance to know whether this request is being sampled
-                    if (traceContext.traceMode().equals(TraceMode.TRACE)) {
+                    if (traceContext.traceMode().equals(TraceMode.TRACING)) {
                         request.requestHeaders().set("X-Bithon-TraceId", traceContext.traceId());
 
                         // Add trace id to response

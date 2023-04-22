@@ -51,7 +51,7 @@ public class DelegatingErrorHandlingRunnable$Run extends AroundInterceptor {
         }
 
         // create a traceable context
-        TraceContextHolder.set(TraceContextFactory.create(TraceMode.TRACE,
+        TraceContextHolder.set(TraceContextFactory.create(TraceMode.TRACING,
                                                           Tracer.get().traceIdGenerator().newTraceId()));
 
         return InterceptionDecision.CONTINUE;
