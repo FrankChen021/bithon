@@ -18,6 +18,8 @@ package org.bithon.agent.observability.tracing.context;
 
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.observability.tracing.Tracer;
+import org.bithon.agent.observability.tracing.context.impl.LoggingTraceContext;
+import org.bithon.agent.observability.tracing.context.impl.TracingContext;
 import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 
 import java.util.regex.Pattern;
@@ -56,7 +58,7 @@ public class TraceContextFactory {
         ITraceContext context;
         switch (samplingMode) {
             case FULL:
-                context = new TraceContext(traceId, Tracer.get().spanIdGenerator()).reporter(Tracer.get().reporter());
+                context = new TracingContext(traceId, Tracer.get().spanIdGenerator()).reporter(Tracer.get().reporter());
                 break;
             case NONE:
                 context = new LoggingTraceContext(traceId, Tracer.get().spanIdGenerator());
