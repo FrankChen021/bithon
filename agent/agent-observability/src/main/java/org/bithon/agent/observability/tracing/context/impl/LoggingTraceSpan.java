@@ -16,6 +16,7 @@
 
 package org.bithon.agent.observability.tracing.context.impl;
 
+import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -148,7 +149,8 @@ class LoggingTraceSpan implements ITraceSpan {
 
     @Override
     public ITraceSpan newChildSpan(String name) {
-        return traceContext.newSpan(this.spanId, traceContext.spanIdGenerator().newSpanId())
-                           .component(name);
+        throw new AgentException("Can't create span under LOGGING mode.\n" +
+                                         "This MUST be a bug of agent, pls contact the maintainer to resolve it.\n" +
+                                         "In most of cases, TraceSpanFactory.newSpan SHOULD be called instead of call this method to avoid such exception.");
     }
 }
