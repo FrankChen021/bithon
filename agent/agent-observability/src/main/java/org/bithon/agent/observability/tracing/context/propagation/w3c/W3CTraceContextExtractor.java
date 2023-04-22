@@ -21,7 +21,7 @@ import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationGetter;
-import org.bithon.agent.observability.tracing.context.TraceMode;
+import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 
 /**
  * @author frank.chen021@outlook.com
@@ -67,11 +67,10 @@ public class W3CTraceContextExtractor implements ITraceContextExtractor {
             return null;
         }
 
-        return TraceContextFactory.create(isSampled(ids[3]) ? TraceMode.TRACING : TraceMode.LOGGING, ids[1], ids[2])
+        return TraceContextFactory.create(isSampled(ids[3]) ? SamplingMode.FULL : SamplingMode.NONE, ids[1], ids[2])
                                   .currentSpan()
                                   .parentApplication(getter.get(request, ITracePropagator.TRACE_HEADER_SRC_APPLICATION))
                                   .context();
-
     }
 
     private boolean isSampled(String id) {

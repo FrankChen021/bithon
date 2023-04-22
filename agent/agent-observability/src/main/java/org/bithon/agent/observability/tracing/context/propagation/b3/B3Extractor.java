@@ -20,7 +20,7 @@ import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationGetter;
-import org.bithon.agent.observability.tracing.context.TraceMode;
+import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 
 /**
  * Transplanted from brave to support trace propagation from systems such as zipkin
@@ -49,8 +49,8 @@ public class B3Extractor implements ITraceContextExtractor {
             return null;
         }
 
-        String traceId = getter.get(request, TRACE_ID);
-        if (traceId == null) {
+        String b3TraceId = getter.get(request, TRACE_ID);
+        if (b3TraceId == null) {
             return null;
         }
 
@@ -64,8 +64,8 @@ public class B3Extractor implements ITraceContextExtractor {
             return null;
         }
 
-        return TraceContextFactory.create(TraceMode.TRACING,
-                                          traceId,
+        return TraceContextFactory.create(SamplingMode.FULL,
+                                          b3TraceId,
                                           parentSpanId,
                                           spanId);
     }

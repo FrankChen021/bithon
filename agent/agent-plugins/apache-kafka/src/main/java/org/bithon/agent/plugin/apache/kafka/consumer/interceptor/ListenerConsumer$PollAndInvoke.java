@@ -27,10 +27,8 @@ import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
-import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 import org.bithon.component.commons.tracing.SpanKind;
 
 /**
@@ -47,9 +45,7 @@ public class ListenerConsumer$PollAndInvoke extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        SamplingMode mode = sampler.decideSamplingMode(null);
-
-        ITraceContext context = TraceContextFactory.create(mode == SamplingMode.FULL ? TraceMode.TRACING : TraceMode.LOGGING,
+        ITraceContext context = TraceContextFactory.create(sampler.decideSamplingMode(null),
                                                            Tracer.get().traceIdGenerator().newTraceId());
 
         aopContext.setUserContext(context.currentSpan()

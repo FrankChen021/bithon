@@ -28,8 +28,8 @@ import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.observability.tracing.context.TraceMode;
+import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.plugin.spring.webflux.config.ResponseConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.bithon.component.commons.logging.ILogAdaptor;
@@ -100,7 +100,6 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
                                                          .extract(request, (req, key) -> req.requestHeaders().get(key));
 
                 if (traceContext != null) {
-
                     traceContext.currentSpan()
                                 .component("webflux")
                                 .tag(Tags.REMOTE_ADDR, request.remoteAddress())

@@ -20,6 +20,7 @@ import org.bithon.component.commons.tracing.SpanKind;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author frank.chen021@outlook.com
@@ -95,6 +96,11 @@ class LoggingTraceSpan implements ITraceSpan {
 
     @Override
     public ITraceSpan tag(Throwable exception) {
+        return this;
+    }
+
+    @Override
+    public ITraceSpan tag(Consumer<ITraceSpan> config) {
         return this;
     }
 

@@ -21,7 +21,7 @@ import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationGetter;
-import org.bithon.agent.observability.tracing.context.TraceMode;
+import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 import org.bithon.component.commons.utils.StringUtils;
 
 /**
@@ -41,8 +41,8 @@ public class PinpointExtractor implements ITraceContextExtractor {
 
     @Override
     public <R> ITraceContext extract(R request, PropagationGetter<R> getter) {
-        String traceId = getter.get(request, TRACE_ID);
-        if (StringUtils.isEmpty(traceId)) {
+        String pinpointTraceId = getter.get(request, TRACE_ID);
+        if (StringUtils.isEmpty(pinpointTraceId)) {
             return null;
         }
 
@@ -56,8 +56,8 @@ public class PinpointExtractor implements ITraceContextExtractor {
             spanId = Tracer.get().spanIdGenerator().newSpanId();
         }
 
-        return TraceContextFactory.create(TraceMode.TRACING,
-                                          traceId,
+        return TraceContextFactory.create(SamplingMode.FULL,
+                                          pinpointTraceId,
                                           parentSpanId,
                                           spanId);
     }

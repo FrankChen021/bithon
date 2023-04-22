@@ -82,7 +82,7 @@ public interface ITraceSpan {
     }
 
     /**
-     * @param clazz Non null
+     * @param clazz  Non null
      * @param method Non null
      */
     ITraceSpan method(String clazz, String method);
@@ -112,9 +112,5 @@ public interface ITraceSpan {
     default <T> ITraceSpan propagate(T injectedTo, PropagationSetter<T> setter) {
         context().propagate(injectedTo, setter);
         return this;
-    }
-
-    default boolean isNull() {
-        return false;
     }
 }
