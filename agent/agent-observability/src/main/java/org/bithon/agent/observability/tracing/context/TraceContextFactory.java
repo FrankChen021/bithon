@@ -66,7 +66,7 @@ public class TraceContextFactory {
             default:
                 // actually never happen
                 // just a branch to make the code readable
-                throw new AgentException("Unknown trace mode:%s", samplingMode);
+                throw new AgentException("Unknown sampling mode:%s", samplingMode);
         }
 
         Thread currentThread = Thread.currentThread();
