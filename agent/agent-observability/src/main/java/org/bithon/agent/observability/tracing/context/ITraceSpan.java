@@ -19,7 +19,7 @@ package org.bithon.agent.observability.tracing.context;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
 import org.bithon.component.commons.tracing.SpanKind;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.Executable;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -73,7 +73,7 @@ public interface ITraceSpan {
 
     String method();
 
-    default ITraceSpan method(Method method) {
+    default ITraceSpan method(Executable method) {
         return method(method.getDeclaringClass().getName(), method.getName());
     }
 
