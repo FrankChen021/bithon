@@ -21,6 +21,7 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextListener;
+import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
 
 import java.util.List;
 
@@ -54,6 +55,7 @@ public class PatternParser$Ctor extends AfterInterceptor {
         public void onSpanStarted(ITraceSpan span) {
             ThreadContext.put("bTxId", span.traceId());
             ThreadContext.put("bSpanId", span.spanId());
+            ThreadContext.put("bMode", span.context().traceMode() == TraceMode.TRACE ? "T" : "P");
         }
 
         @Override
@@ -61,9 +63,11 @@ public class PatternParser$Ctor extends AfterInterceptor {
             if (span.context().currentSpan() == null) {
                 ThreadContext.remove("bTxId");
                 ThreadContext.remove("bSpanId");
+                ThreadContext.remove("bMode");
             } else {
                 ThreadContext.put("bTxId", span.traceId());
                 ThreadContext.put("bSpanId", span.spanId());
+                ThreadContext.put("bMode", span.context().traceMode() == TraceMode.TRACE ? "T" : "P");
             }
         }
     }

@@ -20,6 +20,7 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextListener;
+import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
 import org.slf4j.MDC;
 
 /**
@@ -54,6 +55,7 @@ public class PatternLayout$Ctor extends AfterInterceptor {
         public void onSpanStarted(ITraceSpan span) {
             MDC.put("bTxId", span.traceId());
             MDC.put("bSpanId", span.spanId());
+            MDC.put("bMode", span.context().traceMode() == TraceMode.TRACE ? "T" : "P");
         }
 
         @Override
@@ -61,9 +63,11 @@ public class PatternLayout$Ctor extends AfterInterceptor {
             if (span.context().currentSpan() == null) {
                 MDC.remove("bTxId");
                 MDC.remove("bSpanId");
+                MDC.remove("bMode");
             } else {
                 MDC.put("bTxId", span.traceId());
                 MDC.put("bSpanId", span.spanId());
+                MDC.put("bMode", span.context().traceMode() == TraceMode.TRACE ? "T" : "P");
             }
         }
     }
