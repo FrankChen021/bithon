@@ -39,13 +39,12 @@ public class BeforeAdvice {
      * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodEnter
-    public static void onEnter(
-            @AdviceAnnotation.InterceptorName String name,
-            @AdviceAnnotation.InterceptorIndex int index,
-            @Advice.Origin Class<?> clazz,
-            @Advice.Origin("#m") String method,
-            @Advice.This(optional = true) Object target,
-            @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args
+    public static void onEnter(@AdviceAnnotation.InterceptorName String name,
+                               @AdviceAnnotation.InterceptorIndex int index,
+                               @Advice.Origin Class<?> clazz,
+                               @Advice.Origin("#m") String method,
+                               @Advice.This(optional = true) Object target,
+                               @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args
     ) {
         AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getSupplier(index).get();
         if (interceptor == null) {

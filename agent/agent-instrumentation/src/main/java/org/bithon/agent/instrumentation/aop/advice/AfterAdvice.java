@@ -39,14 +39,12 @@ public class AfterAdvice {
      * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class.
      */
     @Advice.OnMethodEnter
-    public static void onEnter(
-        @AdviceAnnotation.InterceptorName String name,
-        @Advice.This(optional = true) Object target,
-        @Advice.Origin Class<?> clazz,
-        @Advice.Origin("#m") String method,
-        @Advice.AllArguments Object[] args,
-        @Advice.Local("context") Object context
-    ) {
+    public static void onEnter(@AdviceAnnotation.InterceptorName String name,
+                               @Advice.This(optional = true) Object target,
+                               @Advice.Origin Class<?> clazz,
+                               @Advice.Origin("#m") String method,
+                               @Advice.AllArguments Object[] args,
+                               @Advice.Local("context") Object context) {
         AopContextImpl aopContext = new AopContextImpl(clazz, method, target, args);
         aopContext.onBeforeTargetMethodInvocation();
 

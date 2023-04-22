@@ -40,20 +40,20 @@ public class AroundAdvice {
      * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodEnter
-    public static boolean onEnter(
-        @AdviceAnnotation.InterceptorName String name,
-        @AdviceAnnotation.InterceptorIndex int index,
-        @Advice.Origin Class<?> clazz,
-        @Advice.Origin("#m") String method,
-        @Advice.This(optional = true) Object target,
-        @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
-        @Advice.Local("context") Object context
+    public static boolean onEnter(@AdviceAnnotation.InterceptorName String name,
+                                  @AdviceAnnotation.InterceptorIndex int index,
+                                  @Advice.Origin Class<?> clazz,
+                                  @Advice.Origin("#m") String method,
+                                  @Advice.This(optional = true) Object target,
+                                  @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
+                                  @Advice.Local("context") Object context,
+                                  @Advice.Local("interceptor") Object interceptor
     ) {
-        AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getSupplier(index).get();
+        interceptor = InterceptorManager.INSTANCE.getSupplier(index).get();
         if (interceptor == null) {
             return false;
         }
-        interceptor.hit();
+        ((AbstractInterceptor) interceptor).hit();
 
         AopContextImpl aopContext = new AopContextImpl(clazz, method, target, args);
 
@@ -89,17 +89,12 @@ public class AroundAdvice {
      * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit(onThrowable = Throwable.class)
-    public static void onExit(@AdviceAnnotation.InterceptorIndex int index,
-                              @Advice.Enter boolean shouldExecute,
+    public static void onExit(@Advice.Enter boolean shouldExecute,
                               @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning,
                               @Advice.Thrown Throwable exception,
-                              @Advice.Local("context") Object context) {
-        if (!shouldExecute || context == null) {
-            return;
-        }
-
-        AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getSupplier(index).get();
-        if (interceptor == null) {
+                              @Advice.Local("context") Object context,
+                              @Advice.Local("interceptor") Object interceptor) {
+        if (!shouldExecute || context == null || interceptor == null) {
             return;
         }
 
