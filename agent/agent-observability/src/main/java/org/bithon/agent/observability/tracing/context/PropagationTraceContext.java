@@ -102,6 +102,11 @@ public class PropagationTraceContext implements ITraceContext {
         Tracer.get().propagator().inject(this, injectedTo, setter);
     }
 
+    @Override
+    public ITraceContext copy() {
+        return new PropagationTraceContext(this.traceId, this.spanIdGenerator).reporter(this.noopTraceReporter);
+    }
+
     private void onSpanCreated(ITraceSpan span) {
         spanStack.push(span);
     }

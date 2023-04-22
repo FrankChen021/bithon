@@ -67,14 +67,9 @@ public class TraceContextFactory {
                 throw new AgentException("Unknown trace mode:%s", traceMode);
         }
 
-        //
-        // set necessary status
-        //
-        ITraceSpan span = context.newSpan(parentSpanId, spanId)
-                                 .tag("thread", Thread.currentThread().getName());
-        if (upstreamTraceId != null) {
-            span.tag("upstreamTraceId", upstreamTraceId);
-        }
-        return context;
+        return context.newSpan(parentSpanId, spanId)
+                      .tag("thread", Thread.currentThread().getName())
+                      .tag("upstreamTraceId", upstreamTraceId)
+                      .context();
     }
 }

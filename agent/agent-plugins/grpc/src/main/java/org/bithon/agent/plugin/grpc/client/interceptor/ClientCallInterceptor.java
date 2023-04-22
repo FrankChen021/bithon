@@ -54,7 +54,7 @@ public class ClientCallInterceptor implements ClientInterceptor {
                                           .kind(SpanKind.CLIENT)
                                           .start();
 
-        if (span.isNull() || span.context() instanceof PropagationTraceContext) {
+        if (span == null || span.context() instanceof PropagationTraceContext) {
             return result;
         }
 

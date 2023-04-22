@@ -16,6 +16,8 @@
 
 package org.bithon.agent.observability.tracing.context;
 
+import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/4/7 8:44 下午
@@ -24,7 +26,7 @@ public class TraceSpanFactory {
 
     public static ITraceSpan newSpan(String name) {
         ITraceContext traceContext = TraceContextHolder.current();
-        if (traceContext == null) {
+        if (traceContext == null || traceContext.traceMode().equals(TraceMode.PROPAGATION)) {
             return null;
         }
 
@@ -37,30 +39,26 @@ public class TraceSpanFactory {
         return parentSpan.newChildSpan(name);
     }
 
+    /**
+     * This method copies the current trace context so that it can be used in another thread.
+     * Even current trace mode is {@link TraceMode#PROPAGATION}, it's still copied.
+     *
+     */
     public static ITraceSpan newAsyncSpan(String name) {
         ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null) {
-            return NullTraceSpan.INSTANCE;
+            return null;
         }
 
         ITraceSpan parentSpan = traceContext.currentSpan();
         if (parentSpan == null) {
-            return NullTraceSpan.INSTANCE;
+            return null;
         }
 
-        //TODO: provide a 'clone' on TraceContext to eliminate this instanceOf checking
-        if (traceContext instanceof PropagationTraceContext) {
-            return new PropagationTraceContext(traceContext.traceId(),
-                                               traceContext.spanIdGenerator())
-                .reporter(traceContext.reporter())
-                .newSpan(parentSpan.parentSpanId(), parentSpan.spanId())
-                .component(name);
-        } else {
-            return new TraceContext(traceContext.traceId(),
-                                    traceContext.spanIdGenerator())
-                .reporter(traceContext.reporter())
-                .newSpan(parentSpan.spanId(), traceContext.spanIdGenerator().newSpanId())
-                .component(name);
-        }
+        return traceContext.copy()
+                           .reporter(traceContext.reporter())
+                           .newSpan(parentSpan.spanId(), traceContext.spanIdGenerator().newSpanId())
+                           .component(name);
+
     }
 }

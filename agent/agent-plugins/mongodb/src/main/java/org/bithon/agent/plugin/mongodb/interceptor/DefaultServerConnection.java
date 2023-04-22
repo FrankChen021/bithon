@@ -61,10 +61,12 @@ public class DefaultServerConnection {
             }
 
             // create a span and save it in user-context
-            aopContext.setUserContext(TraceSpanFactory.newSpan("mongodb")
-                                                      .method(aopContext.getTargetClass(), aopContext.getMethod())
-                                                      .kind(SpanKind.CLIENT)
-                                                      .start());
+            ITraceSpan span = TraceSpanFactory.newSpan("mongodb");
+            if (span != null) {
+                aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                                              .kind(SpanKind.CLIENT)
+                                              .start());
+            }
 
             return InterceptionDecision.CONTINUE;
         }
@@ -87,12 +89,13 @@ public class DefaultServerConnection {
             //
             // trace
             //
-            ((ITraceSpan) aopContext.getUserContextAs())
-                .tag(aopContext.getException())
-                .tag("server", hostAndPort)
-                .tag("database", command == null ? null : command.getDatabase())
-                .finish();
-
+            ITraceSpan span = aopContext.getUserContextAs();
+            if (span != null) {
+                span.tag(aopContext.getException())
+                    .tag("server", hostAndPort)
+                    .tag("database", command == null ? null : command.getDatabase())
+                    .finish();
+            }
 
             //
             // metric

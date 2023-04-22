@@ -55,11 +55,11 @@ public class ThreadPoolExecutor$Execute extends AroundInterceptor {
                                                 .method(aopContext.getTargetClass(), aopContext.getMethod())
                                                 .start());
 
-        // Change users' runnable
+        // Wrap the users' runnable
+        ITraceSpan taskRootSpan = TraceSpanFactory.newAsyncSpan("asyncTask");
         aopContext.getArgs()[0] = new ObservedTask(aopContext.getTargetAs(),
                                                    runnable,
-                                                   TraceSpanFactory.newAsyncSpan("asyncTask")
-                                                                         .method(runnable.getClass().getName(), "run"));
+                                                   taskRootSpan == null ? null : taskRootSpan.method(runnable.getClass().getName(), "run"));
 
         return InterceptionDecision.CONTINUE;
     }

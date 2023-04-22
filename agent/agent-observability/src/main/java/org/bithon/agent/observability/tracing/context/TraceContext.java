@@ -94,8 +94,8 @@ class TraceContext implements ITraceContext {
     public void finish() {
         if (!spanStack.isEmpty()) {
             LoggerFactory.getLogger(TraceContext.class).warn("TraceContext does not finish correctly. "
-                                                             + "[{}] spans are still remained in the stack. "
-                                                             + "Please adding -Dbithon.tracing.debug=true parameter to your application to turn on the span life time message to debug. Remained spans: \n{}",
+                                                                     + "[{}] spans are still remained in the stack. "
+                                                                     + "Please adding -Dbithon.tracing.debug=true parameter to your application to turn on the span life time message to debug. Remained spans: \n{}",
                                                              spans.size(),
                                                              spans);
             return;
@@ -149,5 +149,10 @@ class TraceContext implements ITraceContext {
         Tracer.get()
               .propagator()
               .inject(this, injectedTo, setter);
+    }
+
+    @Override
+    public ITraceContext copy() {
+        return new TraceContext(this.traceId, this.spanIdGenerator).reporter(this.reporter);
     }
 }

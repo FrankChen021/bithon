@@ -27,4 +27,8 @@ public enum TraceMode {
      * Propagation the application information only
      */
     PROPAGATION
+
+    /**
+     * 
+     */
 }

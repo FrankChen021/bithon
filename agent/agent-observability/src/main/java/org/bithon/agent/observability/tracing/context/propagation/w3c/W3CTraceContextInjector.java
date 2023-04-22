@@ -46,13 +46,13 @@ public class W3CTraceContextInjector implements ITraceContextInjector {
     }
 
     /**
-     * https://www.w3.org/TR/trace-context/#trace-id
+     * <a href="https://www.w3.org/TR/trace-context/#trace-id">Trace Id Specification</a>
      * version-format   = trace-id "-" parent-id "-" trace-flags
      * trace-id         = 32HEXDIGLC  ; 16 bytes array identifier. All zeroes forbidden
      * parent-id        = 16HEXDIGLC  ; 8 bytes array identifier. All zeroes forbidden
      * trace-flags      = 2HEXDIGLC   ; 8 bit flags. 1 for sampled
      */
     private String formatTraceParent(TraceMode traceMode, String traceId, String parentId) {
-        return "00-" + traceId + "-" + parentId + (traceMode == TraceMode.TRACE ? "-01" : "-10");
+        return "00-" + traceId + "-" + parentId + (traceMode == TraceMode.TRACE ? "-01" : "-00");
     }
 }

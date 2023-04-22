@@ -27,6 +27,7 @@ import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 
 /**
@@ -47,21 +48,15 @@ public class Channels$Write extends AroundInterceptor {
 
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
 
-        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpclient")
-                                                .method(aopContext.getTargetClass(), aopContext.getMethod())
-                                                .kind(SpanKind.CLIENT)
-                                                .tag(Tags.CLIENT_TYPE, "netty3")
-                                                .tag(Tags.HTTP_METHOD, httpRequest.getMethod().getName())
-                                                .propagate(httpRequest.headers(), (headersArgs, key, value) -> headersArgs.set(key, value))
-                                                .start();
-        //
-        // propagate tracing after span creation
-        //
-        if (span.isNull()) {
-            return InterceptionDecision.CONTINUE;
+        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpclient");
+        if (span != null) {
+            aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                                          .kind(SpanKind.CLIENT)
+                                          .tag(Tags.CLIENT_TYPE, "netty3")
+                                          .tag(Tags.HTTP_METHOD, httpRequest.getMethod().getName())
+                                          .propagate(httpRequest.headers(), HttpHeaders::set)
+                                          .start());
         }
-
-        aopContext.setUserContext(span);
 
         return super.before(aopContext);
     }

@@ -34,6 +34,9 @@ public class ObservedTask implements Runnable {
     private final Runnable task;
     private final ITraceSpan taskSpan;
 
+    /**
+     * @param taskSpan can be NULL
+     */
     public ObservedTask(ThreadPoolExecutor executor,
                         Runnable task,
                         ITraceSpan taskSpan) {
