@@ -77,7 +77,7 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
                                                                              .getURL());
         ITraceSpan span = TraceSpanFactory.newSpan("alibaba-druid");
         if (span != null) {
-            span.method(aopContext.getMethod())
+            span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)
                 .tag("db", connectionString)
                 .start();
@@ -96,7 +96,7 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
                 context.span.tag(Tags.SQL, getExecutingSql(aopContext))
                             .tag(aopContext.getException());
 
-                if (DruidPlugin.METHOD_EXECUTE_BATCH.equals(aopContext.getMethod().getName())) {
+                if (DruidPlugin.METHOD_EXECUTE_BATCH.equals(aopContext.getMethod())) {
                     if (aopContext.getReturning() != null) {
                         context.span.tag("rows", Integer.toString(((int[]) aopContext.getReturning()).length));
                     }
@@ -108,9 +108,9 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
 
         if (context.uri != null && isSQLMetricEnabled) {
 
-            String methodName = aopContext.getMethod().getName();
+            String methodName = aopContext.getMethod();
 
-            // check if metrics provider for this driver exists
+            // check if the metrics provider for this driver exists
             Boolean isQuery = null;
             if (DruidPlugin.METHOD_EXECUTE_UPDATE.equals(methodName)
                 || DruidPlugin.METHOD_EXECUTE_BATCH.equals(methodName)) {

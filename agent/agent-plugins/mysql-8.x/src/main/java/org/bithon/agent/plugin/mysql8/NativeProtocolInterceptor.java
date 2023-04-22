@@ -37,7 +37,7 @@ public class NativeProtocolInterceptor extends AfterInterceptor {
     @Override
     public void after(AopContext aopContext) throws Exception {
 
-        String methodName = aopContext.getMethod().getName();
+        String methodName = aopContext.getMethod();
         Object nativeProtocol = aopContext.getTarget();
 
         Object session = ReflectionUtils.getFieldValue(nativeProtocol, "session");

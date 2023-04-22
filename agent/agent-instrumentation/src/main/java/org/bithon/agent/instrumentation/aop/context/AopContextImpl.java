@@ -16,18 +16,17 @@
 
 package org.bithon.agent.instrumentation.aop.context;
 
-import java.lang.reflect.Executable;
-
 /**
  * @author Frank Chen
  * @date 28/12/22 10:29 am
  */
 public class AopContextImpl extends AopContext {
 
-    public AopContextImpl(Executable method,
+    public AopContextImpl(Class<?> targetClass,
+                          String method,
                           Object target,
                           Object[] args) {
-        super(method, target, args);
+        super(targetClass, method, target, args);
     }
 
     public void setException(Throwable throwable) {

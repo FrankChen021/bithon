@@ -25,7 +25,6 @@ import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
-import java.lang.reflect.Method;
 import java.util.Locale;
 
 
@@ -40,12 +39,12 @@ public class BeforeAdvice {
      * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodEnter
-    public static void onEnter(
-            @AdviceAnnotation.InterceptorName String name,
-            @AdviceAnnotation.InterceptorIndex int index,
-            @AdviceAnnotation.TargetMethod Method method,
-            @Advice.This(optional = true) Object target,
-            @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args
+    public static void onEnter(@AdviceAnnotation.InterceptorName String name,
+                               @AdviceAnnotation.InterceptorIndex int index,
+                               @Advice.Origin Class<?> clazz,
+                               @Advice.Origin("#m") String method,
+                               @Advice.This(optional = true) Object target,
+                               @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args
     ) {
         AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getSupplier(index).get();
         if (interceptor == null) {
@@ -53,13 +52,13 @@ public class BeforeAdvice {
         }
         interceptor.hit();
 
-        AopContextImpl aopContext = new AopContextImpl(method, target, args);
+        AopContextImpl aopContext = new AopContextImpl(clazz, method, target, args);
         try {
             ((BeforeInterceptor) interceptor).before(aopContext);
         } catch (Throwable e) {
             LOG.error(String.format(Locale.ENGLISH, "Exception occurred when executing onEnter of [%s] for [%s]: %s",
-                                    interceptor.getClass().getSimpleName(),
-                                    method.getDeclaringClass().getSimpleName(),
+                                    name,
+                                    clazz,
                                     e.getMessage()),
                       e);
 

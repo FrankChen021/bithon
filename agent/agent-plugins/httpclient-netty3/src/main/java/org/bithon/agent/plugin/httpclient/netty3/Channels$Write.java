@@ -48,7 +48,7 @@ public class Channels$Write extends AroundInterceptor {
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
 
         final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpclient")
-                                                .method(aopContext.getMethod())
+                                                .method(aopContext.getTargetClass(), aopContext.getMethod())
                                                 .kind(SpanKind.CLIENT)
                                                 .tag(Tags.CLIENT_TYPE, "netty3")
                                                 .tag(Tags.HTTP_METHOD, httpRequest.getMethod().getName())

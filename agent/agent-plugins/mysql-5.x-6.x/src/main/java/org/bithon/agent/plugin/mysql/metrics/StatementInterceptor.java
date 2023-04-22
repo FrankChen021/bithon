@@ -54,7 +54,7 @@ public class StatementInterceptor extends AroundInterceptor {
         }
 
         boolean isQuery = true;
-        String methodName = aopContext.getMethod().getName();
+        String methodName = aopContext.getMethod();
         if (MySqlPlugin.METHOD_EXECUTE_UPDATE.equals(methodName) || MySqlPlugin.METHOD_EXECUTE_UPDATE_INTERNAL.equals(
             methodName)) {
             isQuery = false;

@@ -50,7 +50,7 @@ public class ResourceJavaMethodDispatcher$Ctor extends AfterInterceptor {
             }
             try {
                 if (span != null) {
-                    span.method(m)
+                    span.method(m.getDeclaringClass(), m.getName())
                         .start();
                 }
                 return rawInvoker.invoke(m, o, parameters);

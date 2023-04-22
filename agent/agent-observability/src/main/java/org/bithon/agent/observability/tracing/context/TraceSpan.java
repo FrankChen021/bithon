@@ -19,7 +19,6 @@ package org.bithon.agent.observability.tracing.context;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 
-import java.lang.reflect.Executable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -134,13 +133,6 @@ class TraceSpan implements ITraceSpan {
     @Override
     public String method() {
         return method;
-    }
-
-    @Override
-    public TraceSpan method(Executable method) {
-        this.method = method.getName();
-        this.clazz = method.getDeclaringClass().getName();
-        return this;
     }
 
     @Override

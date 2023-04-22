@@ -43,7 +43,7 @@ public class XceiverClientGrpc$SendCommand extends AroundInterceptor {
 
         ContainerProtos.ContainerCommandRequestProto request = aopContext.getArgAs(0);
 
-        aopContext.setUserContext(span.method(aopContext.getMethod())
+        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                       .tag("request", request.getCmdType().name())
                                       .start());
 

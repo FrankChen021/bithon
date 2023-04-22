@@ -40,7 +40,7 @@ public class PreparedStatementTraceInterceptor extends AroundInterceptor {
         }
 
         // create a span and save it in user-context
-        aopContext.setUserContext(span.method(aopContext.getMethod())
+        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
                                       .start());
 

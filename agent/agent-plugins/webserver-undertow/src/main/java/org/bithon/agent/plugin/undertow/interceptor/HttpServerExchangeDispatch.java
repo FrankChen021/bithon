@@ -66,7 +66,7 @@ public class HttpServerExchangeDispatch extends BeforeInterceptor {
                                                   .getRequest()
                                                   .forEach((header) -> span.tag("http.header." + header,
                                                                                 exchange.getRequestHeaders().getFirst(header))))
-                        .method(aopContext.getMethod())
+                        .method(aopContext.getTargetClass(), aopContext.getMethod())
                         .kind(SpanKind.SERVER)
                         .start();
 

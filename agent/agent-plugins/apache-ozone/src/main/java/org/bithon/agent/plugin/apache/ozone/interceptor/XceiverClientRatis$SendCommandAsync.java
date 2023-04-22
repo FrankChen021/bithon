@@ -46,7 +46,7 @@ public class XceiverClientRatis$SendCommandAsync extends AroundInterceptor {
         IBithonObject bithonObject = aopContext.getTargetAs();
         DatanodeDetails dn = (DatanodeDetails) bithonObject.getInjectedObject();
 
-        aopContext.setUserContext(span.method(aopContext.getMethod())
+        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                       .tag("request", request.getCmdType().name())
                                       .tag("datanode.host", dn == null ? null : dn.getHostName())
                                       .tag("datanode.ip", dn == null ? null : dn.getIpAddress())

@@ -84,7 +84,7 @@ public class AroundGatewayFilter$Filter extends AroundInterceptor {
 
         aopContext.setUserContext(traceContext.currentSpan()
                                               .newChildSpan("filter")
-                                              .method(aopContext.getMethod())
+                                              .method(aopContext.getTargetClass(), aopContext.getMethod())
                                               .start());
 
         return InterceptionDecision.CONTINUE;

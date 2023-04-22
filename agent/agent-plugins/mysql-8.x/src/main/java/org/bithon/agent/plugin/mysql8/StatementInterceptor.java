@@ -49,7 +49,7 @@ public class StatementInterceptor extends AroundInterceptor {
 
         SQLMetrics metric = metricRegistry.getOrCreateMetrics(connectionString);
         boolean isQuery = true;
-        String methodName = aopContext.getMethod().getName();
+        String methodName = aopContext.getMethod();
         if (MySql8Plugin.METHOD_EXECUTE_UPDATE.equals(methodName)
             || MySql8Plugin.METHOD_EXECUTE_UPDATE_INTERNAL.equals(methodName)) {
             isQuery = false;

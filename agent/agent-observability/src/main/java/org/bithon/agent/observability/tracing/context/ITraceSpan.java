@@ -73,7 +73,13 @@ public interface ITraceSpan {
 
     String method();
 
-    ITraceSpan method(Executable method);
+    default ITraceSpan method(Executable method) {
+        return method(method.getDeclaringClass().getName(), method.getName());
+    }
+
+    default ITraceSpan method(Class<?> clazz, String method) {
+        return method(clazz.getName(), method);
+    }
 
     /**
      * @param clazz Non null
@@ -98,8 +104,8 @@ public interface ITraceSpan {
     ITraceSpan start();
 
     /**
-     * finish a span.
-     * The implementation should guarantee that multiple call on this method is safe.
+     * Finish a span.
+     * The implementation should guarantee that multiple calls on this method are safe.
      */
     void finish();
 

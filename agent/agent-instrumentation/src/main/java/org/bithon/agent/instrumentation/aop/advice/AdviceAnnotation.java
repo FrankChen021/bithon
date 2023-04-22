@@ -22,7 +22,6 @@ import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.constant.JavaConstantValue;
-import org.bithon.shaded.net.bytebuddy.implementation.bytecode.constant.MethodConstant;
 import org.bithon.shaded.net.bytebuddy.utility.JavaConstant;
 
 import javax.annotation.Nonnull;
@@ -43,40 +42,6 @@ public class AdviceAnnotation {
     @Retention(RetentionPolicy.RUNTIME)
     @java.lang.annotation.Target(ElementType.PARAMETER)
     public @interface InterceptorIndex {
-    }
-
-    /**
-     * DO NOT USE on Advice which is used for re-transformation.
-     * See <a href="https://github.com/raphw/byte-buddy/issues/1210">this issue</a> on GitHub for more details
-     * <p>
-     * Work with {@link TargetMethodResolver}
-     *
-     * @author frank.chen021@outlook.com
-     * @date 22/2/22 8:21 PM
-     */
-    @Retention(RetentionPolicy.RUNTIME)
-    @java.lang.annotation.Target(ElementType.PARAMETER)
-    public @interface TargetMethod {
-    }
-
-    /**
-     * Resolve {@link TargetMethod} annotation
-     * <p>
-     * See <a href="https://github.com/raphw/byte-buddy/issues/1210">this issue</a> on GitHub for more details
-     *
-     * @author frank.chen021@outlook.com
-     * @date 22/2/22 8:30 PM
-     */
-    public static class TargetMethodResolver implements Advice.OffsetMapping {
-        @Nonnull
-        @Override
-        public Target resolve(@Nonnull TypeDescription instrumentedType,
-                              MethodDescription instrumentedMethod,
-                              @Nonnull Assigner assigner,
-                              @Nonnull Advice.ArgumentHandler argumentHandler,
-                              @Nonnull Sort sort) {
-            return new Target.ForStackManipulation(MethodConstant.of(instrumentedMethod.asDefined()).cached());
-        }
     }
 
     public static class InterceptorNameResolver implements Advice.OffsetMapping {

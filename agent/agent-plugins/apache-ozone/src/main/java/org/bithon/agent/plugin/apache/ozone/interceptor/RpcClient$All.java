@@ -37,7 +37,7 @@ public class RpcClient$All extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setUserContext(span.method(aopContext.getMethod()).start());
+        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod()).start());
 
         return InterceptionDecision.CONTINUE;
     }

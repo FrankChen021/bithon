@@ -163,7 +163,6 @@ public class InterceptorInstaller {
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
                                                                .bind(AdviceAnnotation.InterceptorName.class, nameResolver)
                                                                .bind(AdviceAnnotation.InterceptorIndex.class, indexResolver)
-                                                               .bind(AdviceAnnotation.TargetMethod.class, new AdviceAnnotation.TargetMethodResolver())
                                                                .to(BeforeAdvice.class),
                                                          descriptor.getMethodMatcher()));
                     break;
@@ -174,7 +173,6 @@ public class InterceptorInstaller {
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
                                                                .bind(AdviceAnnotation.InterceptorName.class, nameResolver)
                                                                .bind(AdviceAnnotation.InterceptorIndex.class, indexResolver)
-                                                               .bind(AdviceAnnotation.TargetMethod.class, new AdviceAnnotation.TargetMethodResolver())
                                                                .to(adviceClazz),
                                                          descriptor.getMethodMatcher()));
                 }
@@ -187,7 +185,6 @@ public class InterceptorInstaller {
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
                                                                .bind(AdviceAnnotation.InterceptorName.class, nameResolver)
                                                                .bind(AdviceAnnotation.InterceptorIndex.class, indexResolver)
-                                                               .bind(AdviceAnnotation.TargetMethod.class, new AdviceAnnotation.TargetMethodResolver())
                                                                .to(adviceClazz),
                                                          descriptor.getMethodMatcher()));
                 }

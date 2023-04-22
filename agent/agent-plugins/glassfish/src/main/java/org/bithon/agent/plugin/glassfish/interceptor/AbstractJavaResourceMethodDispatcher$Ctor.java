@@ -28,7 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Enhance all REST APIs that comply with JAX-RS standard implemented by glassfish under Eclipse.
+ * Enhance all REST APIs that comply with the JAX-RS standard implemented by glassfish under Eclipse.
  * <p>
  * Hook to ctor of {@link org.glassfish.jersey.server.model.internal.AbstractJavaResourceMethodDispatcher} to enhance the {@link java.lang.reflect.InvocationHandler}
  * The reason that we don't intercept the {@link InvocationHandler#invoke(Object, Method, Object[])} is that {@link java.lang.reflect.InvocationHandler} is an interface,
@@ -51,7 +51,7 @@ public class AbstractJavaResourceMethodDispatcher$Ctor extends AfterInterceptor 
             }
             try {
                 if (span != null) {
-                    span.method(method).start();
+                    span.method(method.getDeclaringClass(), method.getName()).start();
                 }
                 return rawInvoker.invoke(proxy, method, args);
             } catch (Exception e) {

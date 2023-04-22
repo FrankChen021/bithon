@@ -75,7 +75,7 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
                     .tag((span) -> traceConfig.getHeaders()
                                               .getRequest()
                                               .forEach((header) -> span.tag("http.header." + header, request.getHeader(header))))
-                    .method(aopContext.getMethod())
+                    .method(aopContext.getTargetClass(), aopContext.getMethod())
                     .kind(SpanKind.SERVER)
                     .start();
 
