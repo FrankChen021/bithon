@@ -43,14 +43,6 @@
         <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice"/>
-        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice"/>
-        <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
-    </Match>
-    <Match>
         <Class name="org.bithon.agent.instrumentation.aop.advice.AroundConstructorAdvice"/>
         <Bug pattern="DLS_DEAD_LOCAL_STORE" />
     </Match>
