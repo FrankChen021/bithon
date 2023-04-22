@@ -43,7 +43,7 @@ public class RedisAsyncCommandComplete extends AfterInterceptor {
             asyncContext.getStartTime() != null) {
             AsyncCommand asyncCommand = (AsyncCommand) aopContext.getTarget();
 
-            boolean fail = "cancel".equalsIgnoreCase(aopContext.getMethod().getName()) || asyncCommand.getOutput()
+            boolean fail = "cancel".equalsIgnoreCase(aopContext.getMethod()) || asyncCommand.getOutput()
                                                                                                       .hasError();
 
             //TODO: read/write

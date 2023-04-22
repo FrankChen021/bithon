@@ -39,7 +39,7 @@ public class OnCommand extends AroundInterceptor {
         String hostAndPort = jedis.getClient().getHost() + ":" + jedis.getClient().getPort();
         //String db = jedis.getDB();
 
-        String command = aopContext.getMethod().getName().toUpperCase(Locale.ENGLISH);
+        String command = aopContext.getMethod().toUpperCase(Locale.ENGLISH);
 
         InterceptorContext.set("redis-command", new JedisContext(metricRegistry.getOrCreateMetrics(hostAndPort, command)));
 

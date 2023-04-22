@@ -24,7 +24,6 @@ import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
-import java.lang.reflect.Method;
 import java.util.Locale;
 
 /**
@@ -48,7 +47,8 @@ public class DynamicAopAdvice {
     public static void onEnter(
             @AdviceAnnotation.InterceptorName String name,
             @AdviceAnnotation.InterceptorIndex int index,
-            @Advice.Origin Method method,
+            @Advice.Origin Class<?> clazz,
+            @Advice.Origin("#m") String method,
             @Advice.This(optional = true) Object target,
             @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
             @Advice.Local("context") Object context,
@@ -62,7 +62,7 @@ public class DynamicAopAdvice {
 
         Object[] newArgs = args;
         try {
-            context = ((IDynamicInterceptor) interceptor).onMethodEnter(method, target, newArgs);
+            context = ((IDynamicInterceptor) interceptor).onMethodEnter(clazz, method, target, newArgs);
         } catch (Throwable t) {
             LOG.error(String.format(Locale.ENGLISH, "Failed to execute interceptor [%s]", name), t);
             return;
@@ -77,7 +77,8 @@ public class DynamicAopAdvice {
      * This method is only used for byte-buddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit(onThrowable = Throwable.class)
-    public static void onExit(@Advice.Origin Method method,
+    public static void onExit(@Advice.Origin Class<?> clazz,
+                              @Advice.Origin("#m") String method,
                               @Advice.This Object target,
                               @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning,
                               @Advice.AllArguments Object[] args,
@@ -88,7 +89,7 @@ public class DynamicAopAdvice {
             return;
         }
         try {
-            returning = ((IDynamicInterceptor) interceptor).onMethodExit(method, target, args, returning, exception, context);
+            returning = ((IDynamicInterceptor) interceptor).onMethodExit(clazz, method, target, args, returning, exception, context);
         } catch (Throwable t) {
             LOG.error(String.format(Locale.ENGLISH, "Failed to execute exit interceptor [%s]", interceptor.getClass().getName()), t);
         }

@@ -18,7 +18,6 @@ package org.bithon.agent.observability.tracing.context;
 
 import org.bithon.component.commons.tracing.SpanKind;
 
-import java.lang.reflect.Executable;
 import java.util.Collections;
 import java.util.Map;
 
@@ -117,11 +116,6 @@ class PropagationTraceSpan implements ITraceSpan {
     @Override
     public String method() {
         return null;
-    }
-
-    @Override
-    public ITraceSpan method(Executable method) {
-        return this;
     }
 
     @Override

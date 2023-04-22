@@ -72,7 +72,7 @@ public class BeforeGatewayFilter$Filter extends AroundInterceptor {
 
         ITraceSpan span = traceContext.currentSpan()
                                       .newChildSpan("filter")
-                                      .method(aopContext.getMethod())
+                                      .method(aopContext.getTargetClass(), aopContext.getMethod())
                                       .start();
 
         // replace the input argument

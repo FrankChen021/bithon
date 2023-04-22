@@ -52,7 +52,7 @@ public class ThreadPoolExecutor$Execute extends AroundInterceptor {
 
         aopContext.setUserContext(currentContext.currentSpan()
                                                 .newChildSpan("threadPool")
-                                                .method(aopContext.getMethod())
+                                                .method(aopContext.getTargetClass(), aopContext.getMethod())
                                                 .start());
 
         // Change users' runnable

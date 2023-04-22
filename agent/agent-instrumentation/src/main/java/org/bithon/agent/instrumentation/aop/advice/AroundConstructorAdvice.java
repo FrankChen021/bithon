@@ -26,7 +26,6 @@ import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
-import java.lang.reflect.Method;
 import java.util.Locale;
 
 
@@ -44,7 +43,8 @@ public class AroundConstructorAdvice {
     public static boolean onEnter(
             @AdviceAnnotation.InterceptorName String name,
             @AdviceAnnotation.InterceptorIndex int index,
-            @AdviceAnnotation.TargetMethod Method method,
+            @Advice.Origin Class<?> clazz,
+            @Advice.Origin("#m") String method,
             @Advice.This(optional = true) Object target,
             @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
             @Advice.Local("context") Object context
@@ -55,7 +55,7 @@ public class AroundConstructorAdvice {
         }
         interceptor.hit();
 
-        AopContextImpl aopContext = new AopContextImpl(method, target, args);
+        AopContextImpl aopContext = new AopContextImpl(clazz, method, target, args);
 
         boolean skipAfterMethod = true;
         try {
@@ -64,7 +64,7 @@ public class AroundConstructorAdvice {
             LOG.error(
                     String.format(Locale.ENGLISH, "Exception occurred when executing onEnter of [%s] for [%s]: %s",
                                   interceptor.getClass().getSimpleName(),
-                                  method.getDeclaringClass().getSimpleName(),
+                                  clazz.getSimpleName(),
                                   e.getMessage()),
                     e);
 

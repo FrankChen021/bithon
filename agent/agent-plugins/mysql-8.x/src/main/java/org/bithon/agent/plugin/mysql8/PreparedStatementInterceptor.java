@@ -45,7 +45,7 @@ public class PreparedStatementInterceptor extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        String methodName = aopContext.getMethod().getName();
+        String methodName = aopContext.getMethod();
         String connectionString = aopContext.getUserContextAs();
 
         SQLMetrics metric = metricRegistry.getOrCreateMetrics(connectionString);

@@ -25,7 +25,6 @@ import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 
-import java.lang.reflect.Constructor;
 import java.util.Locale;
 
 
@@ -39,7 +38,8 @@ public class ConstructorAfterAdvice {
     @Advice.OnMethodExit
     public static void onExit(@AdviceAnnotation.InterceptorName String name,
                               @AdviceAnnotation.InterceptorIndex int index,
-                              @AdviceAnnotation.TargetMethod Constructor<?> method,
+                              @Advice.Origin Class<?> clazz,
+                              @Advice.Origin("#m") String method,
                               @Advice.This Object target,
                               @Advice.AllArguments Object[] args) {
         AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getSupplier(index).get();
@@ -49,7 +49,7 @@ public class ConstructorAfterAdvice {
         interceptor.hit();
 
         try {
-            ((AfterInterceptor) interceptor).after(new AopContextImpl(method, target, args));
+            ((AfterInterceptor) interceptor).after(new AopContextImpl(clazz, method, target, args));
         } catch (Throwable e) {
             LOG.error(String.format(Locale.ENGLISH,
                                     "Exception occurs when executing onConstruct on interceptor [%s]: %s",

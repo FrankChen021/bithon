@@ -45,7 +45,7 @@ public class DefaultServerConnection$ExecuteProtocol extends AroundInterceptor {
         // create a span and save it in user-context
         ITraceSpan span = TraceSpanFactory.newSpan("mongodb");
         if (span != null) {
-            aopContext.setUserContext(span.method(aopContext.getMethod())
+            aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                           .kind(SpanKind.CLIENT)
                                           .start());
         }

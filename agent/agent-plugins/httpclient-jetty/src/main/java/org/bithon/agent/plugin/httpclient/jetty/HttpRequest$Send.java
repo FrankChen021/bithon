@@ -51,7 +51,7 @@ public class HttpRequest$Send extends BeforeInterceptor {
         HttpRequest httpRequest = aopContext.getTargetAs();
 
         final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpclient")
-                                                .method(aopContext.getMethod())
+                                                .method(aopContext.getTargetClass(), aopContext.getMethod())
                                                 .kind(SpanKind.CLIENT)
                                                 .tag(Tags.CLIENT_TYPE, "jetty")
                                                 .tag(Tags.HTTP_URI, httpRequest.getURI().toString())

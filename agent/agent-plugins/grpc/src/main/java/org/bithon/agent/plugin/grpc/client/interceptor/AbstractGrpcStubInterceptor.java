@@ -21,8 +21,6 @@ import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 
-import java.lang.reflect.Method;
-
 /**
  * @author Frank Chen
  * @date 13/12/22 6:06 pm
@@ -36,23 +34,24 @@ public class AbstractGrpcStubInterceptor extends IDynamicInterceptor {
     }
 
     @Override
-    public Object onMethodEnter(
-        final Method method,
-        final Object target,
-        final Object[] args
+    public Object onMethodEnter(final Class<?> clazz,
+                                final String method,
+                                final Object target,
+                                final Object[] args
     ) {
         ITraceSpan span = TraceSpanFactory.newSpan(component);
         if (span == null) {
             return null;
         }
 
-        return span.method(method)
+        return span.method(clazz, method)
                    .kind(SpanKind.CLIENT)
                    .start();
     }
 
     @Override
-    public Object onMethodExit(final Method method,
+    public Object onMethodExit(final Class<?> clazz,
+                               final String method,
                                final Object target,
                                final Object[] args,
                                final Object returning,

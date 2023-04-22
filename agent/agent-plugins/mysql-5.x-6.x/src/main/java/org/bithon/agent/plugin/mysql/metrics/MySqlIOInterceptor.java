@@ -41,7 +41,7 @@ public class MySqlIOInterceptor extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) throws SQLException {
-        String methodName = aopContext.getMethod().getName();
+        String methodName = aopContext.getMethod();
 
         MysqlIO mysqlIO = aopContext.getTargetAs();
 

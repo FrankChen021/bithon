@@ -21,14 +21,13 @@ import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * NOTE:
- * Any update of class/package name of this class must be manually reflected to {@link BeanMethodInterceptorFactory#INTERCEPTOR_CLASS_NAME},
+ * Any update on class/package name of this class must be manually reflected to {@link BeanMethodInterceptorFactory#INTERCEPTOR_CLASS_NAME},
  * or the Bean interception WON'T WORK
  *
  * @author frank.chen021@outlook.com
@@ -37,7 +36,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BeanMethod$Invoke extends IDynamicInterceptor {
 
     @Override
-    public Object onMethodEnter(final Method method,
+    public Object onMethodEnter(final Class<?> clazz,
+                                final String method,
                                 final Object target,
                                 final Object[] args) {
         ITraceSpan span = TraceSpanFactory.newSpan("");
@@ -45,13 +45,14 @@ public class BeanMethod$Invoke extends IDynamicInterceptor {
             return null;
         }
 
-        return span.component(AnnotationHelper.getComponentName(method.getDeclaringClass()))
-                   .method(method)
+        return span.component(AnnotationHelper.getComponentName(clazz))
+                   .method(clazz, method)
                    .start();
     }
 
     @Override
-    public Object onMethodExit(final Method method,
+    public Object onMethodExit(final Class<?> clazz,
+                               final String method,
                                final Object target,
                                final Object[] args,
                                final Object returning,

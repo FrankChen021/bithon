@@ -60,7 +60,7 @@ public class ListenerConsumer$PollAndInvoke extends AroundInterceptor {
         aopContext.setUserContext(context.currentSpan()
                                          .component("kafka")
                                          .kind(SpanKind.CONSUMER)
-                                         .method(aopContext.getMethod())
+                                         .method(aopContext.getTargetClass(), aopContext.getMethod())
                                          .start());
 
         TraceContextHolder.set(context);

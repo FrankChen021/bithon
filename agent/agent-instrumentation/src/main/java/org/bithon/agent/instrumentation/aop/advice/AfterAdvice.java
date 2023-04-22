@@ -25,7 +25,6 @@ import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
-import java.lang.reflect.Method;
 import java.util.Locale;
 
 
@@ -42,12 +41,13 @@ public class AfterAdvice {
     @Advice.OnMethodEnter
     public static void onEnter(
         @AdviceAnnotation.InterceptorName String name,
-        @AdviceAnnotation.TargetMethod Method method,
         @Advice.This(optional = true) Object target,
+        @Advice.Origin Class<?> clazz,
+        @Advice.Origin("#m") String method,
         @Advice.AllArguments Object[] args,
         @Advice.Local("context") Object context
     ) {
-        AopContextImpl aopContext = new AopContextImpl(method, target, args);
+        AopContextImpl aopContext = new AopContextImpl(clazz, method, target, args);
         aopContext.onBeforeTargetMethodInvocation();
 
         // assign the context so that the leave method can access this object

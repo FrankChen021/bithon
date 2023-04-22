@@ -49,7 +49,7 @@ public class HttpClient$WriteRequests extends BeforeInterceptor {
         /*
          * starts a span which will be finished after HttpClient.parseHttp
          */
-        span.method(aopContext.getMethod())
+        span.method(aopContext.getTargetClass(), aopContext.getMethod())
             .kind(SpanKind.CLIENT)
             .tag(Tags.CLIENT_TYPE, "jdk")
             .tag(Tags.HTTP_URI, clientContext.getUrl())

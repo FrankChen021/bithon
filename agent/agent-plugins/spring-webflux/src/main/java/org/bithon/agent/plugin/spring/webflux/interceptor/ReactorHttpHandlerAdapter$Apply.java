@@ -110,7 +110,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
                                 .tag((span) -> traceConfig.getHeaders()
                                                           .getRequest()
                                                           .forEach((header) -> span.tag("http.header." + header, request.requestHeaders().get(header))))
-                                .method(aopContext.getMethod())
+                                .method(aopContext.getTargetClass(), aopContext.getMethod())
                                 .kind(SpanKind.SERVER)
                                 .start();
 

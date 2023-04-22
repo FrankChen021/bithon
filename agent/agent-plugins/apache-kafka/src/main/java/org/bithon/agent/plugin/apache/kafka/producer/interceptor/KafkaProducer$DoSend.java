@@ -70,7 +70,7 @@ public class KafkaProducer$DoSend extends AroundInterceptor {
 
         String cluster = ((KafkaPluginContext) ((IBithonObject) aopContext.getTarget()).getInjectedObject()).clusterSupplier.get();
 
-        aopContext.setUserContext(span.method(aopContext.getMethod())
+        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                       .kind(SpanKind.PRODUCER)
                                       .tag("uri", "kafka://" + cluster)
                                       .tag("kafka.topic", record.topic())

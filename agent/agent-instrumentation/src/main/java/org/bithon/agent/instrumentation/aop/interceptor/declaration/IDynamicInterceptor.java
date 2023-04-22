@@ -27,7 +27,8 @@ public abstract class IDynamicInterceptor extends AbstractInterceptor {
     /**
      * @return context
      */
-    public abstract Object onMethodEnter(Method method,
+    public abstract Object onMethodEnter(Class<?> clazz,
+                                         String method,
                                          Object target,
                                          Object[] args);
 
@@ -36,7 +37,8 @@ public abstract class IDynamicInterceptor extends AbstractInterceptor {
      *
      * @param context the returning value of {@link #onMethodEnter(Method, Object, Object[])}
      */
-    public Object onMethodExit(Method method,
+    public Object onMethodExit(Class<?> clazz,
+                               String method,
                                Object target,
                                Object[] args,
                                Object returning,

@@ -19,7 +19,6 @@ package org.bithon.agent.observability.tracing.context;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
 import org.bithon.component.commons.tracing.SpanKind;
 
-import java.lang.reflect.Executable;
 import java.util.Map;
 
 /**
@@ -103,11 +102,6 @@ public class NullTraceSpan implements ITraceSpan {
     @Override
     public String method() {
         return null;
-    }
-
-    @Override
-    public ITraceSpan method(Executable method) {
-        return this;
     }
 
     @Override

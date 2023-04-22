@@ -20,18 +20,18 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 
-import java.lang.reflect.Executable;
-
 /**
  * NOTE: This class is injected into boostrap class loader,
- * it's better not use any classes out of standard JDK or there will be NoClassDefFoundError exception thrown when installing interceptors
+ * it's better not use any classes out of standard JDK,
+ * or there will be NoClassDefFoundError exception thrown when installing interceptors
  *
  * @author frankchen
  */
 public abstract class AopContext {
 
+    protected final Class<?> targetClass;
+    protected final String method;
     protected Object target;
-    private final Executable method;
     private final Object[] args;
     private Object userContext;
     private Object returning;
@@ -42,9 +42,11 @@ public abstract class AopContext {
     protected long startTimestamp;
     protected long endTimestamp;
 
-    public AopContext(Executable method,
+    public AopContext(Class<?> targetClass,
+                      String method,
                       Object target,
                       Object[] args) {
+        this.targetClass = targetClass;
         this.target = target;
         this.method = method;
         this.args = args;
@@ -55,7 +57,7 @@ public abstract class AopContext {
     }
 
     public Class<?> getTargetClass() {
-        return this.method.getDeclaringClass();
+        return this.targetClass;
     }
 
     /**
@@ -76,7 +78,7 @@ public abstract class AopContext {
      * if the intercepted method is a constructor, instance of {@link java.lang.reflect.Constructor} is returned
      * or instance of {@link java.lang.reflect.Method} is returned
      */
-    public Executable getMethod() {
+    public String getMethod() {
         return method;
     }
 

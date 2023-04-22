@@ -65,7 +65,7 @@ public class JobRunShell$Run extends AroundInterceptor {
         aopContext.setUserContext(context.currentSpan()
                                          .component("quartz")
                                          .kind(SpanKind.TIMER)
-                                         .method(aopContext.getMethod())
+                                         .method(aopContext.getTargetClass(), aopContext.getMethod())
                                          .start());
 
         TraceContextHolder.set(context);
