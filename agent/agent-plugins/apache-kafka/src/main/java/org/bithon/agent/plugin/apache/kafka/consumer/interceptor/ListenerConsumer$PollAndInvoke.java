@@ -27,7 +27,7 @@ import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
 import org.bithon.agent.observability.tracing.sampler.SamplingMode;
@@ -47,15 +47,10 @@ public class ListenerConsumer$PollAndInvoke extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceContext context;
         SamplingMode mode = sampler.decideSamplingMode(null);
-        if (mode == SamplingMode.NONE) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
 
-        // create a traceable context
-        context = TraceContextFactory.create(TraceMode.TRACING,
-                                             Tracer.get().traceIdGenerator().newTraceId());
+        ITraceContext context = TraceContextFactory.create(mode == SamplingMode.FULL ? TraceMode.TRACING : TraceMode.LOGGING,
+                                                           Tracer.get().traceIdGenerator().newTraceId());
 
         aopContext.setUserContext(context.currentSpan()
                                          .component("kafka")

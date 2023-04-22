@@ -21,7 +21,7 @@ import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationGetter;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 
 /**
  * @author frank.chen021@outlook.com

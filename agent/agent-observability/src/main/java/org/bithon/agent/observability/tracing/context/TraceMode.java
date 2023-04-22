@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.tracing.context.propagation;
+package org.bithon.agent.observability.tracing.context;
 
 /**
  * @author frank.chen021@outlook.com

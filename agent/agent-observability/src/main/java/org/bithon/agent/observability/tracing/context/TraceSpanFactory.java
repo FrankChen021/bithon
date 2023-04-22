@@ -16,8 +16,6 @@
 
 package org.bithon.agent.observability.tracing.context;
 
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/4/7 8:44 下午

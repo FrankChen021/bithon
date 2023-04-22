@@ -24,7 +24,7 @@ import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
 import org.bithon.agent.observability.tracing.sampler.SamplingMode;
@@ -46,12 +46,9 @@ public class DelegatingErrorHandlingRunnable$Run extends AroundInterceptor {
     @Override
     public InterceptionDecision before(AopContext aopContext) {
         SamplingMode mode = sampler.decideSamplingMode(null);
-        if (mode == SamplingMode.NONE) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
 
         // create a traceable context
-        TraceContextHolder.set(TraceContextFactory.create(TraceMode.TRACING,
+        TraceContextHolder.set(TraceContextFactory.create(mode == SamplingMode.FULL ? TraceMode.TRACING : TraceMode.LOGGING,
                                                           Tracer.get().traceIdGenerator().newTraceId()));
 
         return InterceptionDecision.CONTINUE;

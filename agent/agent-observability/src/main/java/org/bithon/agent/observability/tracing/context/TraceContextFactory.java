@@ -18,7 +18,6 @@ package org.bithon.agent.observability.tracing.context;
 
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.observability.tracing.Tracer;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
 
 import java.util.regex.Pattern;
 
@@ -67,8 +66,10 @@ public class TraceContextFactory {
                 throw new AgentException("Unknown trace mode:%s", traceMode);
         }
 
+        Thread currentThread = Thread.currentThread();
         return context.newSpan(parentSpanId, spanId)
-                      .tag("thread", Thread.currentThread().getName())
+                      .tag("thread.name", currentThread.getName())
+                      .tag("thread.id", currentThread.getId())
                       .tag("upstreamTraceId", upstreamTraceId)
                       .context();
     }

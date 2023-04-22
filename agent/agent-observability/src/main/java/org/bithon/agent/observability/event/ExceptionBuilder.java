@@ -18,7 +18,7 @@ package org.bithon.agent.observability.event;
 
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

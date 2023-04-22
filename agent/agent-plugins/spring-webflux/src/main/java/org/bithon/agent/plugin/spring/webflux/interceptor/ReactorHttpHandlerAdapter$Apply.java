@@ -29,7 +29,7 @@ import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.plugin.spring.webflux.config.ResponseConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.bithon.component.commons.logging.ILogAdaptor;
