@@ -39,7 +39,7 @@ public class LogPatternInjector {
         }
 
         /*
-         * we deem that a log pattern without message pattern is not a valid pattern
+         * we assume that a log pattern without the message pattern is not a valid pattern
          */
         if (messageIndex == -1) {
             return userPattern;
@@ -51,7 +51,7 @@ public class LogPatternInjector {
             && newPattern.charAt(newPattern.length() - 1) != ' ') {
             newPattern.append(' ');
         }
-        newPattern.append("[bTxId:%X{bTxId}, bSpanId:%X{bSpanId}] ");
+        newPattern.append("[bTxId: %X{bTxId}, bSpanId: %X{bSpanId}, bMode: %X{bMode}] ");
         newPattern.append(userPattern.substring(messageIndex));
 
         return newPattern.toString();
