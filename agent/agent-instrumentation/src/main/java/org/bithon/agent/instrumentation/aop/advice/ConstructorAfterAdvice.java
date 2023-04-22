@@ -53,7 +53,7 @@ public class ConstructorAfterAdvice {
         } catch (Throwable e) {
             LOG.error(String.format(Locale.ENGLISH,
                                     "Exception occurs when executing onConstruct on interceptor [%s]: %s",
-                                    interceptor.getClass().getName(),
+                                    name,
                                     e.getMessage()),
                       e);
         }

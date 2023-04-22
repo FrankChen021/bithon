@@ -57,7 +57,7 @@ public class BeforeAdvice {
             ((BeforeInterceptor) interceptor).before(aopContext);
         } catch (Throwable e) {
             LOG.error(String.format(Locale.ENGLISH, "Exception occurred when executing onEnter of [%s] for [%s]: %s",
-                                    interceptor.getClass().getSimpleName(),
+                                    name,
                                     clazz,
                                     e.getMessage()),
                       e);

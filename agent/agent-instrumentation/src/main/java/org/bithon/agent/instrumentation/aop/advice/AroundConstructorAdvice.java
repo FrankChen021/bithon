@@ -19,7 +19,6 @@ package org.bithon.agent.instrumentation.aop.advice;
 import org.bithon.agent.instrumentation.aop.context.AopContextImpl;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.AbstractInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
@@ -47,21 +46,21 @@ public class AroundConstructorAdvice {
                                   @Advice.Origin("#m") String method,
                                   @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
                                   @Advice.Local("context") Object context,
-                                  @Advice.Local("interceptor") Object interceptor) {
-        interceptor = InterceptorManager.INSTANCE.getSupplier(index).get();
+                                  @Advice.Local("interceptor") AroundInterceptor interceptor) {
+        interceptor = (AroundInterceptor) InterceptorManager.INSTANCE.getSupplier(index).get();
         if (interceptor == null) {
             return false;
         }
-        ((AbstractInterceptor) interceptor).hit();
+        interceptor.hit();
 
         AopContextImpl aopContext = new AopContextImpl(clazz, method, null, args);
 
         boolean skipAfterMethod = true;
         try {
-            skipAfterMethod = ((AroundInterceptor) interceptor).before(aopContext) == InterceptionDecision.SKIP_LEAVE;
+            skipAfterMethod = interceptor.before(aopContext) == InterceptionDecision.SKIP_LEAVE;
         } catch (Throwable e) {
             LOG.error(String.format(Locale.ENGLISH, "Exception occurred when executing onEnter of [%s] for [%s]: %s",
-                                    interceptor.getClass().getSimpleName(),
+                                    name,
                                     clazz.getSimpleName(),
                                     e.getMessage()),
                       e);
@@ -89,11 +88,11 @@ public class AroundConstructorAdvice {
      * Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit
-    public static void onExit(@AdviceAnnotation.InterceptorIndex int index,
+    public static void onExit(@AdviceAnnotation.InterceptorName String name,
                               @Advice.This Object target,
                               @Advice.Enter boolean shouldExecute,
                               @Advice.Local("context") Object context,
-                              @Advice.Local("interceptor") Object interceptor) {
+                              @Advice.Local("interceptor") AroundInterceptor interceptor) {
         if (!shouldExecute || context == null || interceptor == null) {
             return;
         }
@@ -106,10 +105,10 @@ public class AroundConstructorAdvice {
         aopContext.setTarget(target);
 
         try {
-            ((AroundInterceptor) interceptor).after(aopContext);
+            interceptor.after(aopContext);
         } catch (Throwable e) {
             LOG.error(String.format(Locale.ENGLISH, "Exception occurred when executing onExit of [%s] for [%s]: %s",
-                                    interceptor.getClass().getSimpleName(),
+                                    name,
                                     aopContext.getTargetClass().getSimpleName(),
                                     e.getMessage()),
                       e);
