@@ -19,9 +19,7 @@ package org.bithon.agent.plugin.thread.interceptor;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.agent.plugin.thread.utils.ObservedTask;
 
@@ -42,18 +40,11 @@ public class ThreadPoolExecutor$Execute extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceContext currentContext = TraceContextHolder.current();
-        if (currentContext == null) {
-            aopContext.getArgs()[0] = new ObservedTask(aopContext.getTargetAs(),
-                                                       runnable,
-                                                       null);
-            return InterceptionDecision.SKIP_LEAVE;
+        ITraceSpan span = TraceSpanFactory.newSpan("threadPool");
+        if (span != null) {
+            aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                                          .start());
         }
-
-        aopContext.setUserContext(currentContext.currentSpan()
-                                                .newChildSpan("threadPool")
-                                                .method(aopContext.getTargetClass(), aopContext.getMethod())
-                                                .start());
 
         // Wrap the users' runnable
         ITraceSpan taskRootSpan = TraceSpanFactory.newAsyncSpan("asyncTask");
@@ -67,6 +58,8 @@ public class ThreadPoolExecutor$Execute extends AroundInterceptor {
     @Override
     public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getUserContextAs();
-        span.finish();
+        if (span != null) {
+            span.finish();
+        }
     }
 }
