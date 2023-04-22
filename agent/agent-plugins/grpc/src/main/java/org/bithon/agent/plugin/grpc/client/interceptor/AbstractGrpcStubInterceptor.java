@@ -16,7 +16,9 @@
 
 package org.bithon.agent.plugin.grpc.client.interceptor;
 
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.IDynamicInterceptor;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -25,7 +27,7 @@ import org.bithon.component.commons.tracing.SpanKind;
  * @author Frank Chen
  * @date 13/12/22 6:06 pm
  */
-public class AbstractGrpcStubInterceptor extends IDynamicInterceptor {
+public class AbstractGrpcStubInterceptor extends AroundInterceptor {
 
     private final String component;
 
@@ -34,31 +36,23 @@ public class AbstractGrpcStubInterceptor extends IDynamicInterceptor {
     }
 
     @Override
-    public Object onMethodEnter(final Class<?> clazz,
-                                final String method,
-                                final Object target,
-                                final Object[] args
-    ) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceSpan span = TraceSpanFactory.newSpan(component);
         if (span == null) {
-            return null;
+            return InterceptionDecision.SKIP_LEAVE;
         }
 
-        return span.method(clazz, method)
-                   .kind(SpanKind.CLIENT)
-                   .start();
+        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                                      .kind(SpanKind.CLIENT)
+                                      .start());
+
+        return InterceptionDecision.CONTINUE;
     }
 
     @Override
-    public Object onMethodExit(final Class<?> clazz,
-                               final String method,
-                               final Object target,
-                               final Object[] args,
-                               final Object returning,
-                               final Throwable exception,
-                               final Object context) {
-        ((ITraceSpan) context).tag(exception).finish();
-        return returning;
+    public void after(AopContext aopContext) {
+        ITraceSpan span = aopContext.getUserContextAs();
+        span.tag(aopContext.getException()).finish();
     }
 
     public static class BlockingStubInterceptor extends AbstractGrpcStubInterceptor {

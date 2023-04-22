@@ -16,7 +16,9 @@
 
 package org.bithon.agent.plugin.spring.bean.interceptor;
 
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.IDynamicInterceptor;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 
@@ -26,40 +28,30 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * NOTE:
- * Any update on class/package name of this class must be manually reflected to {@link BeanMethodInterceptorFactory#INTERCEPTOR_CLASS_NAME},
- * or the Bean interception WON'T WORK
  *
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 18:46
  */
-public class BeanMethod$Invoke extends IDynamicInterceptor {
+public class BeanMethod$Invoke extends AroundInterceptor {
 
     @Override
-    public Object onMethodEnter(final Class<?> clazz,
-                                final String method,
-                                final Object target,
-                                final Object[] args) {
+    public InterceptionDecision before(AopContext aopContext) {
         ITraceSpan span = TraceSpanFactory.newSpan("");
         if (span == null) {
-            return null;
+            return InterceptionDecision.SKIP_LEAVE;
         }
 
-        return span.component(AnnotationHelper.getComponentName(clazz))
-                   .method(clazz, method)
-                   .start();
+        aopContext.setUserContext(span.component(AnnotationHelper.getComponentName(aopContext.getTargetClass()))
+                                      .method(aopContext.getTargetClass(), aopContext.getMethod())
+                                      .start());
+
+        return InterceptionDecision.CONTINUE;
     }
 
     @Override
-    public Object onMethodExit(final Class<?> clazz,
-                               final String method,
-                               final Object target,
-                               final Object[] args,
-                               final Object returning,
-                               final Throwable exception,
-                               final Object context) {
-        ((ITraceSpan) context).tag(exception).finish();
-        return returning;
+    public void after(AopContext aopContext) {
+        ITraceSpan span = aopContext.getUserContextAs();
+        span.tag(aopContext.getException()).finish();
     }
 
     public static class AnnotationHelper {
