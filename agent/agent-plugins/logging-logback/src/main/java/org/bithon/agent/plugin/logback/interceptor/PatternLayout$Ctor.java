@@ -55,7 +55,7 @@ public class PatternLayout$Ctor extends AfterInterceptor {
         public void onSpanStarted(ITraceSpan span) {
             MDC.put("bTxId", span.traceId());
             MDC.put("bSpanId", span.spanId());
-            MDC.put("bMode", span.context().traceMode() == TraceMode.TRACING ? "T" : "P");
+            MDC.put("bMode", span.context().traceMode() == TraceMode.TRACING ? "T" : "L");
         }
 
         @Override
@@ -67,7 +67,7 @@ public class PatternLayout$Ctor extends AfterInterceptor {
             } else {
                 MDC.put("bTxId", span.traceId());
                 MDC.put("bSpanId", span.spanId());
-                MDC.put("bMode", span.context().traceMode() == TraceMode.TRACING ? "T" : "P");
+                MDC.put("bMode", span.context().traceMode() == TraceMode.TRACING ? "T" : "L");
             }
         }
     }
