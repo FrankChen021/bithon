@@ -27,7 +27,7 @@ import org.bithon.agent.observability.dispatcher.Dispatchers;
 import org.bithon.agent.observability.event.EventMessage;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -54,7 +54,7 @@ public class Logger$CallAppenders extends BeforeInterceptor {
         exceptionArgs.put("stack", StackTraceBuilder.build(exception));
         exceptionArgs.put("thread", Thread.currentThread().getName());
         ITraceContext traceContext = TraceContextHolder.current();
-        if (traceContext != null && traceContext.traceMode().equals(TraceMode.TRACE)) {
+        if (traceContext != null && traceContext.traceMode().equals(TraceMode.TRACING)) {
             exceptionArgs.put("traceId", traceContext.traceId());
         }
 

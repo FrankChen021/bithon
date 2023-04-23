@@ -14,17 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.tracing.context.propagation;
+package org.bithon.agent.observability.tracing.context;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/7/17 17:13
  */
 public enum TraceMode {
-    TRACE,
+    /**
+     * Trace current request
+     */
+    TRACING,
 
     /**
-     * Propagation the application information only
+     * Generate a unique trace id and print the id in the log for current request.
+     * The trace id will be also duplicated across threads for this request.
      */
-    PROPAGATION
+    LOGGING
 }

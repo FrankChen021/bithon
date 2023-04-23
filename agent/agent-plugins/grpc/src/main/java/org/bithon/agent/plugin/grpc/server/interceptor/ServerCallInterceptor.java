@@ -29,6 +29,7 @@ import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.component.commons.tracing.SpanKind;
 
@@ -52,7 +53,7 @@ public class ServerCallInterceptor implements ServerInterceptor {
                                                              ServerCallHandler<REQ, RSP> next) {
         ITraceContext context = this.contextExtractor.extract(headers,
                                                               (request, key) -> request.get(Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER)));
-        if (context == null) {
+        if (context == null || !context.traceMode().equals(TraceMode.TRACING)) {
             return next.startCall(call, headers);
         }
 

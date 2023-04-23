@@ -27,7 +27,7 @@ import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.plugin.jetty.context.RequestContext;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
@@ -71,15 +71,16 @@ public class HttpChannel$Handle extends AroundInterceptor {
                             .tag(Tags.HTTP_URI, request.getRequestURI())
                             .tag(Tags.HTTP_METHOD, request.getMethod())
                             .tag(Tags.HTTP_VERSION, request.getHttpVersion().toString())
-                            .tag((span) -> traceConfig.getHeaders()
-                                                      .getRequest()
-                                                      .forEach((header) -> span.tag("http.header." + header, request.getHeader(header))))
+                            .configIfTrue(!traceConfig.getHeaders().getRequest().isEmpty(),
+                                          (span) -> traceConfig.getHeaders()
+                                                               .getRequest()
+                                                               .forEach((header) -> span.tag("http.header." + header, request.getHeader(header))))
                             .method(aopContext.getTargetClass(), aopContext.getMethod())
                             .kind(SpanKind.SERVER)
                             .start();
 
                 // put the trace id in the header so that the applications have chance to know whether this request is being sampled
-                if (traceContext.traceMode().equals(TraceMode.TRACE)) {
+                if (traceContext.traceMode().equals(TraceMode.TRACING)) {
                     request.setAttribute("X-Bithon-TraceId", traceContext.traceId());
 
                     String traceIdHeader = traceConfig.getTraceIdInResponse();

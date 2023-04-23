@@ -60,8 +60,15 @@ public interface ITraceSpan {
 
     ITraceSpan tag(Throwable exception);
 
-    default ITraceSpan tag(Consumer<ITraceSpan> config) {
+    default ITraceSpan config(Consumer<ITraceSpan> config) {
         config.accept(this);
+        return this;
+    }
+
+    default ITraceSpan configIfTrue(boolean expression, Consumer<ITraceSpan> config) {
+        if (expression) {
+            config.accept(this);
+        }
         return this;
     }
 
@@ -82,7 +89,7 @@ public interface ITraceSpan {
     }
 
     /**
-     * @param clazz Non null
+     * @param clazz  Non null
      * @param method Non null
      */
     ITraceSpan method(String clazz, String method);
@@ -112,9 +119,5 @@ public interface ITraceSpan {
     default <T> ITraceSpan propagate(T injectedTo, PropagationSetter<T> setter) {
         context().propagate(injectedTo, setter);
         return this;
-    }
-
-    default boolean isNull() {
-        return false;
     }
 }

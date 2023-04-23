@@ -41,19 +41,15 @@ public class AbstractJavaResourceMethodDispatcher$Ctor extends AfterInterceptor 
     // TODO: check the method does not return the CompletionStage/
     @Override
     public void after(AopContext aopContext) {
-        InvocationHandler rawInvoker = aopContext.getArgAs(1);
+        InvocationHandler delegate = aopContext.getArgAs(1);
 
         InvocationHandler enhancedInvoker = (proxy, method, args) -> {
-            ITraceSpan span = null;
-            try {
-                span = TraceSpanFactory.newSpan("endpoint");
-            } catch (Exception ignored) {
-            }
+            ITraceSpan span = TraceSpanFactory.newSpan("endpoint");
             try {
                 if (span != null) {
                     span.method(method.getDeclaringClass(), method.getName()).start();
                 }
-                return rawInvoker.invoke(proxy, method, args);
+                return delegate.invoke(proxy, method, args);
             } catch (Exception e) {
                 if (span != null) {
                     span.tag(e instanceof InvocationTargetException ? ((InvocationTargetException) e).getTargetException() : e);

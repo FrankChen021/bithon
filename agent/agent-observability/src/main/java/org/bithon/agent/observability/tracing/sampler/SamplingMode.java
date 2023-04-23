@@ -22,6 +22,11 @@ package org.bithon.agent.observability.tracing.sampler;
  */
 public enum SamplingMode {
     FULL,
+
+    /**
+     * Not used now.
+     */
     SIMPLIFIED,
+
     NONE
 }

@@ -14,11 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.tracing.context;
+package org.bithon.agent.observability.tracing.context.impl;
 
 import org.bithon.agent.observability.tracing.Tracer;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.TraceContextListener;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
 import org.bithon.agent.observability.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -32,7 +35,7 @@ import java.util.Stack;
  * @author frank.chen021@outlook.com
  * @date 2021/2/5 8:48 下午
  */
-class TraceContext implements ITraceContext {
+public class TracingContext implements ITraceContext {
 
     private final Stack<ITraceSpan> spanStack = new Stack<>();
     private final List<ITraceSpan> spans = new ArrayList<>();
@@ -41,15 +44,15 @@ class TraceContext implements ITraceContext {
     private final ISpanIdGenerator spanIdGenerator;
     private ITraceReporter reporter;
 
-    public TraceContext(String traceId,
-                        ISpanIdGenerator spanIdGenerator) {
+    public TracingContext(String traceId,
+                          ISpanIdGenerator spanIdGenerator) {
         this.traceId = traceId;
         this.spanIdGenerator = spanIdGenerator;
     }
 
     @Override
     public TraceMode traceMode() {
-        return TraceMode.TRACE;
+        return TraceMode.TRACING;
     }
 
     @Override
@@ -85,7 +88,7 @@ class TraceContext implements ITraceContext {
 
     @Override
     public ITraceSpan newSpan(String parentSpanId, String spanId) {
-        ITraceSpan span = new TraceSpan(spanId, parentSpanId, this);
+        ITraceSpan span = new TracingSpan(spanId, parentSpanId, this);
         this.onSpanCreated(span);
         return span;
     }
@@ -93,18 +96,18 @@ class TraceContext implements ITraceContext {
     @Override
     public void finish() {
         if (!spanStack.isEmpty()) {
-            LoggerFactory.getLogger(TraceContext.class).warn("TraceContext does not finish correctly. "
-                                                             + "[{}] spans are still remained in the stack. "
-                                                             + "Please adding -Dbithon.tracing.debug=true parameter to your application to turn on the span life time message to debug. Remained spans: \n{}",
-                                                             spans.size(),
-                                                             spans);
+            LoggerFactory.getLogger(TracingContext.class).warn("TraceContext does not finish correctly. "
+                                                                     + "[{}] spans are still remained in the stack. "
+                                                                     + "Please adding -Dbithon.tracing.debug=true parameter to your application to turn on the span life time message to debug. Remained spans: \n{}",
+                                                               spans.size(),
+                                                               spans);
             return;
         }
 
         try {
             this.reporter.report(this.spans);
         } catch (Throwable e) {
-            LoggerFactory.getLogger(TraceContext.class).error("Exception occurred when finish a context", e);
+            LoggerFactory.getLogger(TracingContext.class).error("Exception occurred when finish a context", e);
         } finally {
             // Clear to allow this method to re-enter
             this.spans.clear();
@@ -116,11 +119,11 @@ class TraceContext implements ITraceContext {
         spans.add(span);
     }
 
-    void onSpanStarted(TraceSpan span) {
+    void onSpanStarted(TracingSpan span) {
         TraceContextListener.getInstance().onSpanStarted(span);
     }
 
-    void onSpanFinished(TraceSpan span) {
+    void onSpanFinished(TracingSpan span) {
 
         if (spanStack.isEmpty()) {
             // TODO: internal error
@@ -149,5 +152,10 @@ class TraceContext implements ITraceContext {
         Tracer.get()
               .propagator()
               .inject(this, injectedTo, setter);
+    }
+
+    @Override
+    public ITraceContext copy() {
+        return new TracingContext(this.traceId, this.spanIdGenerator).reporter(this.reporter);
     }
 }

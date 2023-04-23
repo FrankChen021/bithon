@@ -17,7 +17,6 @@
 package org.bithon.agent.observability.tracing.context;
 
 import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
 import org.bithon.agent.observability.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
 import org.bithon.component.commons.time.Clock;
@@ -51,4 +50,6 @@ public interface ITraceContext {
     void finish();
 
     <T> void propagate(T injectedTo, PropagationSetter<T> setter);
+
+    ITraceContext copy();
 }

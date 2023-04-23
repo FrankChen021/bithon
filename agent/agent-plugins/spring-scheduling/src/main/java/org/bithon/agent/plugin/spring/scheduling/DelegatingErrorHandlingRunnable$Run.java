@@ -24,16 +24,16 @@ import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
-import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 
 /**
  * {@link org.springframework.scheduling.support.DelegatingErrorHandlingRunnable#run()}
  * <p>
  * This class wraps the actual schedule runnable, we need to set up tracing context here,
  * so that the exception handling in {@link org.springframework.scheduling.support.DelegatingErrorHandlingRunnable#run()} can access the tracing context.
+ * <p>
+ * The span is actually created in {@link ScheduledMethodRunnable$Run}
  *
  * @author Frank Chen
  * @date 28/12/22 11:08 am
@@ -45,13 +45,7 @@ public class DelegatingErrorHandlingRunnable$Run extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        SamplingMode mode = sampler.decideSamplingMode(null);
-        if (mode == SamplingMode.NONE) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-
-        // create a traceable context
-        TraceContextHolder.set(TraceContextFactory.create(TraceMode.TRACE,
+        TraceContextHolder.set(TraceContextFactory.create(sampler.decideSamplingMode(null),
                                                           Tracer.get().traceIdGenerator().newTraceId()));
 
         return InterceptionDecision.CONTINUE;

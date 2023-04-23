@@ -28,12 +28,15 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 public class ObservedTask implements Runnable {
     /**
-     * The executor that runs the the runnable object
+     * The executor that runs the runnable object
      */
     private final ThreadPoolExecutor executor;
     private final Runnable task;
     private final ITraceSpan taskSpan;
 
+    /**
+     * @param taskSpan can be NULL
+     */
     public ObservedTask(ThreadPoolExecutor executor,
                         Runnable task,
                         ITraceSpan taskSpan) {
@@ -70,7 +73,9 @@ public class ObservedTask implements Runnable {
             throw e;
         } finally {
             // Set the thread at the end because the thread name might be updated in the users' runnable
-            taskSpan.tag("thread", Thread.currentThread().getName())
+            Thread currentThread = Thread.currentThread();
+            taskSpan.tag("thread.name", currentThread.getName())
+                    .tag("thread.id", currentThread.getId())
                     .tag(exception)
                     .finish();
             taskSpan.context().finish();

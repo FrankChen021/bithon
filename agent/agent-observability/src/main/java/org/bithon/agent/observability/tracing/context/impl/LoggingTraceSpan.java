@@ -14,39 +14,57 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.tracing.context;
+package org.bithon.agent.observability.tracing.context.impl;
 
-import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
+import org.bithon.agent.instrumentation.expt.AgentException;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.component.commons.tracing.SpanKind;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 22/10/21 9:16 pm
+ * @date 2021/7/17 16:34
  */
-public class NullTraceSpan implements ITraceSpan {
+class LoggingTraceSpan implements ITraceSpan {
 
-    public static final ITraceSpan INSTANCE = new NullTraceSpan() {
-        @Override
-        public <T> ITraceSpan propagate(T injectedTo, PropagationSetter<T> setter) {
-            return this;
-        }
-    };
+    private final LoggingTraceContext traceContext;
+    private final String spanId;
+    private final String parentSpanId;
+
+    public LoggingTraceSpan(LoggingTraceContext traceContext, String parentSpanId, String spanId) {
+        this.traceContext = traceContext;
+        this.spanId = spanId;
+        this.parentSpanId = parentSpanId;
+    }
+
+    @Override
+    public ITraceSpan start() {
+        traceContext.onSpanStarted(this);
+        return this;
+    }
+
+    @Override
+    public void finish() {
+        traceContext.onSpanFinished(this);
+    }
 
     @Override
     public ITraceContext context() {
-        return null;
+        return traceContext;
     }
 
     @Override
     public String spanId() {
-        return null;
+        return spanId;
     }
 
     @Override
     public String parentSpanId() {
-        return null;
+        return parentSpanId;
     }
 
     @Override
@@ -71,7 +89,7 @@ public class NullTraceSpan implements ITraceSpan {
 
     @Override
     public Map<String, String> tags() {
-        return null;
+        return Collections.emptyMap();
     }
 
     @Override
@@ -81,6 +99,11 @@ public class NullTraceSpan implements ITraceSpan {
 
     @Override
     public ITraceSpan tag(Throwable exception) {
+        return this;
+    }
+
+    @Override
+    public ITraceSpan config(Consumer<ITraceSpan> config) {
         return this;
     }
 
@@ -126,21 +149,8 @@ public class NullTraceSpan implements ITraceSpan {
 
     @Override
     public ITraceSpan newChildSpan(String name) {
-        return this;
-    }
-
-    @Override
-    public ITraceSpan start() {
-        return this;
-    }
-
-    @Override
-    public void finish() {
-
-    }
-
-    @Override
-    public boolean isNull() {
-        return true;
+        throw new AgentException("Can't create span under LOGGING mode.\n" +
+                                         "This MUST be a bug of agent, pls contact the maintainer to resolve it.\n" +
+                                         "In most of cases, TraceSpanFactory.newSpan SHOULD be called instead of call this method to avoid such exception.");
     }
 }

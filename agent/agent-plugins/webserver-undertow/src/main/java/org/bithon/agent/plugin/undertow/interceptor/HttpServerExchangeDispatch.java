@@ -28,8 +28,8 @@ import org.bithon.agent.observability.metric.domain.web.HttpIncomingMetricsRegis
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
@@ -62,15 +62,16 @@ public class HttpServerExchangeDispatch extends BeforeInterceptor {
                         .tag(Tags.HTTP_URI, exchange.getRequestURI())
                         .tag(Tags.HTTP_METHOD, exchange.getRequestMethod().toString())
                         .tag(Tags.HTTP_VERSION, exchange.getProtocol().toString())
-                        .tag((span) -> traceConfig.getHeaders()
-                                                  .getRequest()
-                                                  .forEach((header) -> span.tag("http.header." + header,
-                                                                                exchange.getRequestHeaders().getFirst(header))))
+                        .configIfTrue(!traceConfig.getHeaders().getRequest().isEmpty(),
+                                      (span) -> traceConfig.getHeaders()
+                                                       .getRequest()
+                                                       .forEach((header) -> span.tag("http.header." + header,
+                                                                                     exchange.getRequestHeaders().getFirst(header))))
                         .method(aopContext.getTargetClass(), aopContext.getMethod())
                         .kind(SpanKind.SERVER)
                         .start();
 
-            if (traceContext.traceMode().equals(TraceMode.TRACE)) {
+            if (traceContext.traceMode().equals(TraceMode.TRACING)) {
                 ServletRequestContext servletRequestContext = exchange.getAttachment(ServletRequestContext.ATTACHMENT_KEY);
                 servletRequestContext.getServletRequest().setAttribute("X-Bithon-TraceId", traceContext.traceId());
 

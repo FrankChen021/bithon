@@ -17,34 +17,27 @@
 package org.bithon.agent.plugin.jedis.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
-import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.Field;
 
 /**
+ * {@link redis.clients.util.RedisOutputStream#RedisOutputStream(OutputStream out, int size)}
+ *
  * @author frankchen
  * @date Dec 27, 2020 11:14:08 PM
  */
-public class RedisOutputStream$Ctor extends AfterInterceptor {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(RedisOutputStream$Ctor.class);
+public class RedisOutputStream$Ctor extends BeforeInterceptor {
 
     @Override
-    public void after(AopContext aopContext) {
+    public void before(AopContext aopContext) {
         OutputStream os = aopContext.getArgAs(0);
-
-        try {
-            Field outputStreamField = ReflectionUtils.getField(aopContext.getTarget().getClass(), "out");
-            outputStreamField.setAccessible(true);
-            outputStreamField.set(aopContext.getTarget(), new OutputStreamDecorator(os));
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            log.error("Unable to set OutputStream for RedisOutputStream: {}", e.getMessage());
+        if (os != null) {
+            aopContext.getArgs()[0] = new OutputStreamDecorator(os);
         }
     }
 
@@ -64,7 +57,7 @@ public class RedisOutputStream$Ctor extends AfterInterceptor {
                     ctx.getMetrics().addRequestBytes(len);
                 } else {
                     // log the stack trace to help get known which command is not instrumented
-                    log.warn("Redis command is not instrumented.", new RuntimeException());
+                    LoggerFactory.getLogger(RedisOutputStream$Ctor.class).warn("Redis command is not instrumented.", new RuntimeException());
                 }
             } catch (Throwable ignored) {
             }

@@ -26,10 +26,8 @@ import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
-import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 import org.bithon.component.commons.tracing.SpanKind;
 
 /**
@@ -44,15 +42,8 @@ public class BrpcMethodInterceptor extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceContext context;
-        SamplingMode mode = sampler.decideSamplingMode(null);
-        if (mode == SamplingMode.NONE) {
-            return InterceptionDecision.SKIP_LEAVE;
-        } else {
-            // create a traceable context
-            context = TraceContextFactory.create(TraceMode.TRACE,
-                                                 Tracer.get().traceIdGenerator().newTraceId());
-        }
+        ITraceContext context = TraceContextFactory.create(sampler.decideSamplingMode(null),
+                                                           Tracer.get().traceIdGenerator().newTraceId());
 
         aopContext.setUserContext(context.currentSpan()
                                          .component("brpc")

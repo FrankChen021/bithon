@@ -18,10 +18,10 @@ package org.bithon.agent.observability.tracing.context.propagation.w3c;
 
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextInjector;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
 import org.bithon.component.commons.logging.LoggerFactory;
 
 /**
@@ -46,13 +46,13 @@ public class W3CTraceContextInjector implements ITraceContextInjector {
     }
 
     /**
-     * https://www.w3.org/TR/trace-context/#trace-id
+     * <a href="https://www.w3.org/TR/trace-context/#trace-id">Trace Id Specification</a>
      * version-format   = trace-id "-" parent-id "-" trace-flags
      * trace-id         = 32HEXDIGLC  ; 16 bytes array identifier. All zeroes forbidden
      * parent-id        = 16HEXDIGLC  ; 8 bytes array identifier. All zeroes forbidden
      * trace-flags      = 2HEXDIGLC   ; 8 bit flags. 1 for sampled
      */
     private String formatTraceParent(TraceMode traceMode, String traceId, String parentId) {
-        return "00-" + traceId + "-" + parentId + (traceMode == TraceMode.TRACE ? "-01" : "-10");
+        return "00-" + traceId + "-" + parentId + (traceMode == TraceMode.TRACING ? "-01" : "-00");
     }
 }

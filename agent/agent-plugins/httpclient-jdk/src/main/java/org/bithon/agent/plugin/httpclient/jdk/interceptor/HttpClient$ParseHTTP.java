@@ -22,8 +22,9 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
-import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
 import sun.net.ProgressSource;
@@ -51,7 +52,7 @@ public class HttpClient$ParseHTTP extends AfterInterceptor {
     public void after(AopContext aopContext) {
         MessageHeader responseHeader = (MessageHeader) aopContext.getArgs()[0];
         String statusLine = responseHeader.getValue(0);
-        Integer statusCode = parseStatusCode(statusLine);
+        int statusCode = parseStatusCode(statusLine);
 
         IBithonObject bithonObject = aopContext.getTargetAs();
         HttpClientContext clientContext = (HttpClientContext) bithonObject.getInjectedObject();
@@ -70,26 +71,26 @@ public class HttpClient$ParseHTTP extends AfterInterceptor {
                                        clientContext.getReceiveBytes().get());
         }
 
-        ITraceSpan span = TraceContextHolder.currentSpan();
-        if (span == null) {
+        ITraceContext ctx = TraceContextHolder.current();
+        if (ctx == null || !ctx.traceMode().equals(TraceMode.TRACING)) {
             return;
         }
-
-        // Record configured response headers in tracing logs
-        if (!traceConfig.getHeaders().getResponse().isEmpty()) {
-            Map<String, List<String>> headers = responseHeader.getHeaders();
-            traceConfig.getHeaders()
-                       .getResponse()
-                       .forEach((name) -> {
-                           List<String> values = headers.get(name);
-                           if (values != null && !values.isEmpty()) {
-                               span.tag("http.response.header." + name, values.get(0));
-                           }
-                       });
-        }
-
-        span.tag(Tags.HTTP_STATUS, statusCode.toString())
-            .finish();
+        ctx.currentSpan()
+           .configIfTrue(!traceConfig.getHeaders().getResponse().isEmpty(),
+                         (s) -> {
+                      // Record configured response headers in tracing logs
+                      Map<String, List<String>> headers = responseHeader.getHeaders();
+                      traceConfig.getHeaders()
+                                 .getResponse()
+                                 .forEach((name) -> {
+                                     List<String> values = headers.get(name);
+                                     if (values != null && !values.isEmpty()) {
+                                         s.tag("http.response.header." + name, values.get(0));
+                                     }
+                                 });
+                  })
+           .tag(Tags.HTTP_STATUS, Integer.toString(statusCode))
+           .finish();
     }
 
     /**

@@ -14,8 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.tracing.context;
+package org.bithon.agent.observability.tracing.context.impl;
 
+import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 
@@ -26,9 +28,9 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/2/5 8:49 下午
  */
-class TraceSpan implements ITraceSpan {
+class TracingSpan implements ITraceSpan {
 
-    private final TraceContext traceContext;
+    private final TracingContext tracingContext;
     private final String spanId;
     private final String parentSpanId;
     private final Map<String, String> tags = new HashMap<>();
@@ -44,21 +46,21 @@ class TraceSpan implements ITraceSpan {
     private String clazz;
     private String method;
 
-    public TraceSpan(String spanId, String parentSpanId, TraceContext traceContext) {
+    public TracingSpan(String spanId, String parentSpanId, TracingContext tracingContext) {
         this.spanId = spanId;
         this.parentSpanId = parentSpanId;
-        this.traceContext = traceContext;
+        this.tracingContext = tracingContext;
         this.endTime = 0;
     }
 
     @Override
     public ITraceContext context() {
-        return traceContext;
+        return tracingContext;
     }
 
     @Override
     public String traceId() {
-        return traceContext.traceId();
+        return tracingContext.traceId();
     }
 
     @Override
@@ -77,7 +79,7 @@ class TraceSpan implements ITraceSpan {
     }
 
     @Override
-    public TraceSpan kind(SpanKind kind) {
+    public TracingSpan kind(SpanKind kind) {
         this.kind = kind;
         return this;
     }
@@ -88,7 +90,7 @@ class TraceSpan implements ITraceSpan {
     }
 
     @Override
-    public TraceSpan component(String component) {
+    public TracingSpan component(String component) {
         this.component = component;
         return this;
     }
@@ -99,7 +101,7 @@ class TraceSpan implements ITraceSpan {
     }
 
     @Override
-    public TraceSpan tag(String name, String value) {
+    public TracingSpan tag(String name, String value) {
         if (value != null) {
             tags.put(name, value);
         }
@@ -107,7 +109,7 @@ class TraceSpan implements ITraceSpan {
     }
 
     @Override
-    public TraceSpan tag(Throwable exception) {
+    public TracingSpan tag(Throwable exception) {
         if (exception != null) {
             tags.put("exception", exception.toString());
         }
@@ -120,7 +122,7 @@ class TraceSpan implements ITraceSpan {
     }
 
     @Override
-    public TraceSpan parentApplication(String sourceApp) {
+    public TracingSpan parentApplication(String sourceApp) {
         this.parentApplication = sourceApp;
         return this;
     }
@@ -136,7 +138,7 @@ class TraceSpan implements ITraceSpan {
     }
 
     @Override
-    public TraceSpan method(String clazz, String method) {
+    public TracingSpan method(String clazz, String method) {
         this.clazz = clazz;
         this.method = method;
         return this;
@@ -160,15 +162,15 @@ class TraceSpan implements ITraceSpan {
 
     @Override
     public ITraceSpan newChildSpan(String name) {
-        return traceContext.newSpan(this.spanId,
-                                    traceContext.spanIdGenerator().newSpanId())
-                           .component(name);
+        return tracingContext.newSpan(this.spanId,
+                                      tracingContext.spanIdGenerator().newSpanId())
+                             .component(name);
     }
 
     @Override
-    public TraceSpan start() {
-        this.startTime = traceContext.clock().currentMicroseconds();
-        this.traceContext.onSpanStarted(this);
+    public TracingSpan start() {
+        this.startTime = tracingContext.clock().currentMicroseconds();
+        this.tracingContext.onSpanStarted(this);
         return this;
     }
 
@@ -179,9 +181,9 @@ class TraceSpan implements ITraceSpan {
         }
         this.endTime = context().clock().currentMicroseconds();
         try {
-            this.traceContext.onSpanFinished(this);
+            this.tracingContext.onSpanFinished(this);
         } catch (Throwable t) {
-            LoggerFactory.getLogger(TraceSpan.class).error("Exception occurred when finish a span", t);
+            LoggerFactory.getLogger(TracingSpan.class).error("Exception occurred when finish a span", t);
         }
     }
 
