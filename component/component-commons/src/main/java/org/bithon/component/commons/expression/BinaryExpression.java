@@ -16,6 +16,9 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/4/7 20:17
@@ -43,25 +46,25 @@ public abstract class BinaryExpression implements IExpression {
     }
 
     protected final String operator;
-    protected final IExpression left;
-    protected final IExpression right;
+    protected final IExpression leftExpression;
+    protected final IExpression rightExpression;
 
-    protected BinaryExpression(String operator, IExpression left, IExpression right) {
+    protected BinaryExpression(String operator, IExpression leftExpression, IExpression rightExpression) {
         this.operator = operator;
-        this.left = left;
-        this.right = right;
+        this.leftExpression = leftExpression;
+        this.rightExpression = rightExpression;
     }
 
     public String getOperator() {
         return operator;
     }
 
-    public IExpression getLeft() {
-        return left;
+    public IExpression getLeftExpression() {
+        return leftExpression;
     }
 
-    public IExpression getRight() {
-        return right;
+    public IExpression getRightExpression() {
+        return rightExpression;
     }
 
     @Override
@@ -74,16 +77,50 @@ public abstract class BinaryExpression implements IExpression {
         return visitor.visit(this);
     }
 
+    @Override
+    public Object evaluate(IEvaluationContext context) {
+        Object left = leftExpression.evaluate(context);
+        Object right = rightExpression.evaluate(context);
+
+        if (left == null || right == null) {
+            return matchesNull(left, right);
+        }
+
+        if (left instanceof Number) {
+            if (right instanceof Number) {
+                return matches((Number) left, (Number) right);
+            } else {
+                return matches((Number) left, Long.parseLong(right.toString()));
+            }
+        }
+
+        return matches(left.toString(), right.toString());
+    }
+
+    protected abstract boolean matchesNull(Object left, Object right);
+
+    protected abstract boolean matches(Number left, Number right);
+
+    protected abstract boolean matches(String left, String right);
+
     public static class EQ extends BinaryExpression {
         public EQ(IExpression left, IExpression right) {
             super("=", left, right);
         }
 
         @Override
-        public Object evaluate(EvaluationContext context) {
-            Object leftValue = left.evaluate(context);
-            Object rightValue = right.evaluate(context);
-            return leftValue.equals(rightValue);
+        protected boolean matchesNull(Object left, Object right) {
+            return left == null && right == null;
+        }
+
+        @Override
+        protected boolean matches(Number left, Number right) {
+            return left.longValue() == right.longValue();
+        }
+
+        @Override
+        protected boolean matches(String left, String right) {
+            return left.equals(right);
         }
     }
 
@@ -93,8 +130,19 @@ public abstract class BinaryExpression implements IExpression {
         }
 
         @Override
-        public Object evaluate(EvaluationContext context) {
-            return null;
+        protected boolean matchesNull(Object left, Object right) {
+            return false;
+        }
+
+        @Override
+        protected boolean matches(Number left, Number right) {
+            // might be not correct if these two numbers are the type of double
+            return left.longValue() > right.longValue();
+        }
+
+        @Override
+        protected boolean matches(String left, String right) {
+            return left.compareTo(right) > 0;
         }
     }
 
@@ -104,8 +152,19 @@ public abstract class BinaryExpression implements IExpression {
         }
 
         @Override
-        public Object evaluate(EvaluationContext context) {
-            return null;
+        protected boolean matchesNull(Object left, Object right) {
+            return false;
+        }
+
+        @Override
+        protected boolean matches(Number left, Number right) {
+            // might be not correct if these two numbers are the type of double
+            return left.longValue() >= right.longValue();
+        }
+
+        @Override
+        protected boolean matches(String left, String right) {
+            return left.compareTo(right) >= 0;
         }
     }
 
@@ -115,8 +174,19 @@ public abstract class BinaryExpression implements IExpression {
         }
 
         @Override
-        public Object evaluate(EvaluationContext context) {
-            return null;
+        protected boolean matchesNull(Object left, Object right) {
+            return false;
+        }
+
+        @Override
+        protected boolean matches(Number left, Number right) {
+            // might be not correct if these two numbers are the type of double
+            return left.longValue() < right.longValue();
+        }
+
+        @Override
+        protected boolean matches(String left, String right) {
+            return left.compareTo(right) < 0;
         }
     }
 
@@ -126,8 +196,19 @@ public abstract class BinaryExpression implements IExpression {
         }
 
         @Override
-        public Object evaluate(EvaluationContext context) {
-            return null;
+        protected boolean matchesNull(Object left, Object right) {
+            return false;
+        }
+
+        @Override
+        protected boolean matches(Number left, Number right) {
+            // might be not correct if these two numbers are the type of double
+            return left.longValue() <= right.longValue();
+        }
+
+        @Override
+        protected boolean matches(String left, String right) {
+            return left.compareTo(right) <= 0;
         }
     }
 
@@ -137,8 +218,51 @@ public abstract class BinaryExpression implements IExpression {
         }
 
         @Override
-        public Object evaluate(EvaluationContext context) {
-            return null;
+        protected boolean matchesNull(Object left, Object right) {
+            return !(left == null && right == null);
+        }
+
+        @Override
+        protected boolean matches(Number left, Number right) {
+            return left.longValue() != right.longValue();
+        }
+
+        @Override
+        protected boolean matches(String left, String right) {
+            return !left.equals(right);
+        }
+    }
+
+    public static class DebuggableExpression implements IExpression {
+        private static final ILogAdaptor LOG = LoggerFactory.getLogger(DebuggableExpression.class);
+
+        private final String expression;
+        private final BinaryExpression delegate;
+
+        public DebuggableExpression(String expression, BinaryExpression delegate) {
+            this.expression = expression;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public String getType() {
+            return delegate.getType();
+        }
+
+        @Override
+        public Object evaluate(IEvaluationContext context) {
+            boolean ret = (boolean) delegate.evaluate(context);
+            LOG.info("Expression[{}] evaluates to be {}: left val={}, right val = {}",
+                     expression,
+                     ret,
+                     delegate.leftExpression.evaluate(context),
+                     delegate.rightExpression.evaluate(context));
+            return ret;
+        }
+
+        @Override
+        public <T> T accept(IExpressionVisitor<T> visitor) {
+            return delegate.accept(visitor);
         }
     }
 }

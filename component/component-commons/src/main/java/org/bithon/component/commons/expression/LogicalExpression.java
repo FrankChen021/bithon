@@ -96,7 +96,7 @@ public abstract class LogicalExpression implements IExpression {
         }
 
         @Override
-        public Object evaluate(EvaluationContext context) {
+        public Object evaluate(IEvaluationContext context) {
             for (IExpression expression : this.operands) {
                 boolean v = toBoolean(expression.evaluate(context));
                 if (!v) {
@@ -119,7 +119,7 @@ public abstract class LogicalExpression implements IExpression {
         }
 
         @Override
-        public Object evaluate(EvaluationContext context) {
+        public Object evaluate(IEvaluationContext context) {
             for (IExpression expression : this.operands) {
                 boolean v = toBoolean(expression.evaluate(context));
                 if (v) {
@@ -142,7 +142,7 @@ public abstract class LogicalExpression implements IExpression {
         }
 
         @Override
-        public Object evaluate(EvaluationContext context) {
+        public Object evaluate(IEvaluationContext context) {
             IExpression expression = operands.get(0);
             return !toBoolean(expression.evaluate(context));
         }

@@ -29,6 +29,11 @@ import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.bithon.component.commons.expression.BinaryExpression;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.server.datasource.ast.FilterExpressionBaseVisitor;
 import org.bithon.server.datasource.ast.FilterExpressionLexer;
 import org.bithon.server.datasource.ast.FilterExpressionParser;
@@ -37,7 +42,6 @@ import org.bithon.server.storage.datasource.spec.InvalidExpressionException;
 
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -51,7 +55,7 @@ public class ExpressionFilter implements IInputRowFilter {
     @Getter
     private final boolean debug;
 
-    private final IInputRowFilter delegation;
+    private final IExpression delegation;
 
     @VisibleForTesting
     public ExpressionFilter(String expression) {
@@ -96,10 +100,10 @@ public class ExpressionFilter implements IInputRowFilter {
 
     @Override
     public boolean shouldInclude(IInputRow inputRow) {
-        return delegation.shouldInclude(inputRow);
+        return (boolean) delegation.evaluate(inputRow::getCol);
     }
 
-    private static class Builder extends FilterExpressionBaseVisitor<IInputRowFilter> {
+    private static class Builder extends FilterExpressionBaseVisitor<IExpression> {
         private final boolean isDebug;
 
         private Builder(boolean isDebug) {
@@ -107,7 +111,7 @@ public class ExpressionFilter implements IInputRowFilter {
         }
 
         @Override
-        public IInputRowFilter visitFilterExpression(FilterExpressionParser.FilterExpressionContext ctx) {
+        public IExpression visitFilterExpression(FilterExpressionParser.FilterExpressionContext ctx) {
             if (ctx.getChildCount() == 3) {
 
                 // case 1: '(' expression ')'
@@ -117,18 +121,9 @@ public class ExpressionFilter implements IInputRowFilter {
 
                 // case 2: expression logicOperator expression
                 String logicOperator = ctx.getChild(1).getText().toUpperCase(Locale.ENGLISH);
-                switch (logicOperator) {
-                    case "OR":
-                        return new OrFilter(
-                            Arrays.asList(ctx.getChild(0).accept(this),
-                                          ctx.getChild(2).accept(this)));
-                    case "AND":
-                        return new AndFilter(
-                            Arrays.asList(ctx.getChild(0).accept(this),
-                                          ctx.getChild(2).accept(this)));
-                    default:
-                        throw new RuntimeException("unknown operator: " + logicOperator);
-                }
+                return LogicalExpression.create(logicOperator,
+                                                Arrays.asList(ctx.getChild(0).accept(this),
+                                                              ctx.getChild(2).accept(this)));
             }
 
             // expression or binaryExpression
@@ -136,7 +131,7 @@ public class ExpressionFilter implements IInputRowFilter {
         }
 
         @Override
-        public IInputRowFilter visitBinaryExpression(FilterExpressionParser.BinaryExpressionContext ctx) {
+        public IExpression visitBinaryExpression(FilterExpressionParser.BinaryExpressionContext ctx) {
             TerminalNode left = ctx.unaryExpression(0).getChild(TerminalNode.class, 0);
             String comparisonOperator = ctx.comparisonOperator().getText();
             TerminalNode right = ctx.unaryExpression(1).getChild(TerminalNode.class, 0);
@@ -146,45 +141,42 @@ public class ExpressionFilter implements IInputRowFilter {
                 throw new InvalidExpressionException(ctx.getText(), left.getSymbol().getStartIndex(), "left expression must be a variable");
             }
 
-            Function<IInputRow, Object> getRight;
+            IExpression rightExpression;
             switch (right.getSymbol().getType()) {
                 case FilterExpressionLexer.NUMBER_LITERAL: {
-                    final long rightVal = Long.parseLong(right.getText());
-                    getRight = inputRow -> rightVal;
+                    rightExpression = new LiteralExpression(Long.parseLong(right.getText()));
                     break;
                 }
                 case FilterExpressionLexer.STRING_LITERAL: {
-                    final String rightVal = getUnQuotedString(right.getSymbol());
-                    getRight = inputRow -> rightVal;
+                    rightExpression = new LiteralExpression(getUnQuotedString(right.getSymbol()));
                     break;
                 }
                 case FilterExpressionLexer.VARIABLE: {
-                    final String rightVal = right.getText();
-                    getRight = inputRow -> inputRow.getCol(rightVal);
+                    rightExpression = new IdentifierExpression(right.getText());
                     break;
                 }
                 default:
                     throw new RuntimeException("unexpected right expression type");
             }
 
-            BinaryExpressionFilter filter;
+            BinaryExpression binaryExpression;
             String varName = left.getText();
             switch (comparisonOperator) {
                 case "=":
-                    filter = new BinaryExpressionFilter.EQ(inputRow -> inputRow.getCol(varName), getRight);
+                    binaryExpression = new BinaryExpression.EQ(new IdentifierExpression(varName), rightExpression);
                     break;
                 case ">":
-                    filter = new BinaryExpressionFilter.GT(inputRow -> inputRow.getCol(varName), getRight);
+                    binaryExpression = new BinaryExpression.GT(new IdentifierExpression(varName), rightExpression);
                     break;
                 case "<>":
                 case "!=":
-                    filter = new BinaryExpressionFilter.NE(inputRow -> inputRow.getCol(varName), getRight);
+                    binaryExpression = new BinaryExpression.NE(new IdentifierExpression(varName), rightExpression);
                     break;
                 default:
                     throw new RuntimeException("not yet supported operator: " + comparisonOperator);
             }
 
-            return isDebug ? new BinaryExpressionFilter.DebuggableFilter(ctx.getText(), filter) : filter;
+            return isDebug ? new BinaryExpression.DebuggableExpression(ctx.getText(), binaryExpression) : binaryExpression;
         }
 
         private String getUnQuotedString(Token symbol) {

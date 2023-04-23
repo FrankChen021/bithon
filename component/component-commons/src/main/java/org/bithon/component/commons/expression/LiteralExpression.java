@@ -42,7 +42,7 @@ public class LiteralExpression implements IExpression {
     }
 
     @Override
-    public Object evaluate(EvaluationContext context) {
+    public Object evaluate(IEvaluationContext context) {
         return value;
     }
 }

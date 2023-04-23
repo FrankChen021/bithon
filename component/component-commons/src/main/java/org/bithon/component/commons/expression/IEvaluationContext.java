@@ -16,23 +16,10 @@
 
 package org.bithon.component.commons.expression;
 
-import java.util.Map;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/4/7 20:24
  */
-public class EvaluationContext {
-
-    public EvaluationContext(Object record) {
-
-    }
-
-    public EvaluationContext(Map<String, Object> record) {
-
-    }
-
-    public Object get(String name) {
-        return null;
-    }
+public interface IEvaluationContext {
+    Object get(String name);
 }
