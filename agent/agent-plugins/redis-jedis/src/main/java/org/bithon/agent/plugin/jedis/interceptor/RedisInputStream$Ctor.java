@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 
 /**
+ * {@link redis.clients.util.RedisInputStream#RedisInputStream}
  * @author frankchen
  * @date Dec 26, 2020 12:11:14 PM
  */

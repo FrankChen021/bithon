@@ -71,9 +71,10 @@ public class HttpChannel$Handle extends AroundInterceptor {
                             .tag(Tags.HTTP_URI, request.getRequestURI())
                             .tag(Tags.HTTP_METHOD, request.getMethod())
                             .tag(Tags.HTTP_VERSION, request.getHttpVersion().toString())
-                            .tag((span) -> traceConfig.getHeaders()
-                                                      .getRequest()
-                                                      .forEach((header) -> span.tag("http.header." + header, request.getHeader(header))))
+                            .configIfTrue(!traceConfig.getHeaders().getRequest().isEmpty(),
+                                          (span) -> traceConfig.getHeaders()
+                                                               .getRequest()
+                                                               .forEach((header) -> span.tag("http.header." + header, request.getHeader(header))))
                             .method(aopContext.getTargetClass(), aopContext.getMethod())
                             .kind(SpanKind.SERVER)
                             .start();

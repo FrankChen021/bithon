@@ -106,9 +106,10 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
                                 .tag(Tags.HTTP_URI, request.uri())
                                 .tag(Tags.HTTP_METHOD, request.method().name())
                                 .tag(Tags.HTTP_VERSION, request.version().text())
-                                .tag((span) -> traceConfig.getHeaders()
-                                                          .getRequest()
-                                                          .forEach((header) -> span.tag("http.header." + header, request.requestHeaders().get(header))))
+                                .configIfTrue(!traceConfig.getHeaders().getRequest().isEmpty(),
+                                              (span) -> traceConfig.getHeaders()
+                                                                   .getRequest()
+                                                                   .forEach((header) -> span.tag("http.header." + header, request.requestHeaders().get(header))))
                                 .method(aopContext.getTargetClass(), aopContext.getMethod())
                                 .kind(SpanKind.SERVER)
                                 .start();
@@ -192,7 +193,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
         traceContext.currentSpan()
                     .tag(Tags.HTTP_STATUS, String.valueOf(response.status().code()))
                     .tag(t)
-                    .tag((span -> {
+                    .config((span -> {
                         // extract headers in the response to tag
                         if (!CollectionUtils.isEmpty(responseConfigs.getHeaders())) {
                             HttpHeaders httpHeaders = response.responseHeaders();

@@ -103,7 +103,7 @@ class LoggingTraceSpan implements ITraceSpan {
     }
 
     @Override
-    public ITraceSpan tag(Consumer<ITraceSpan> config) {
+    public ITraceSpan config(Consumer<ITraceSpan> config) {
         return this;
     }
 

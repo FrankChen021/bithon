@@ -62,10 +62,11 @@ public class HttpServerExchangeDispatch extends BeforeInterceptor {
                         .tag(Tags.HTTP_URI, exchange.getRequestURI())
                         .tag(Tags.HTTP_METHOD, exchange.getRequestMethod().toString())
                         .tag(Tags.HTTP_VERSION, exchange.getProtocol().toString())
-                        .tag((span) -> traceConfig.getHeaders()
-                                                  .getRequest()
-                                                  .forEach((header) -> span.tag("http.header." + header,
-                                                                                exchange.getRequestHeaders().getFirst(header))))
+                        .configIfTrue(!traceConfig.getHeaders().getRequest().isEmpty(),
+                                      (span) -> traceConfig.getHeaders()
+                                                       .getRequest()
+                                                       .forEach((header) -> span.tag("http.header." + header,
+                                                                                     exchange.getRequestHeaders().getFirst(header))))
                         .method(aopContext.getTargetClass(), aopContext.getMethod())
                         .kind(SpanKind.SERVER)
                         .start();

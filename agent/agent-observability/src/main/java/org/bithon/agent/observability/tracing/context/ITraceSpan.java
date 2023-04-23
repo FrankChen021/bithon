@@ -60,8 +60,15 @@ public interface ITraceSpan {
 
     ITraceSpan tag(Throwable exception);
 
-    default ITraceSpan tag(Consumer<ITraceSpan> config) {
+    default ITraceSpan config(Consumer<ITraceSpan> config) {
         config.accept(this);
+        return this;
+    }
+
+    default ITraceSpan configIfTrue(boolean expression, Consumer<ITraceSpan> config) {
+        if (expression) {
+            config.accept(this);
+        }
         return this;
     }
 
