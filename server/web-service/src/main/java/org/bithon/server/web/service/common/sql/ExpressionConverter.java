@@ -31,9 +31,7 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
@@ -77,7 +75,7 @@ public class ExpressionConverter extends SqlBasicVisitor<IExpression> {
             if (newOperands.size() == 1) {
                 return newOperands.get(0);
             } else {
-                return new LogicalExpression(logicalExpression.getOperator(), newOperands);
+                return logicalExpression.copy(newOperands);
             }
         }
         return logicalExpression;
@@ -107,26 +105,26 @@ public class ExpressionConverter extends SqlBasicVisitor<IExpression> {
         }
         switch (operator.getKind()) {
             case AND:
+                return new LogicalExpression.AND(operands);
             case OR:
-                return new LogicalExpression(operator.getName().toUpperCase(Locale.ENGLISH), operands);
+                return new LogicalExpression.OR(operands);
             case NOT:
                 if (operands.size() != 1) {
                     throw new IllegalArgumentException("NOT operator should have exactly one operand");
                 }
-                return new LogicalExpression(operator.getName(), Collections.singletonList(operands.get(0)));
+                return new LogicalExpression.NOT(operands);
             case EQUALS:
+                return new BinaryExpression.EQ(operands.get(0), operands.get(1));
             case NOT_EQUALS:
+                return new BinaryExpression.NE(operands.get(0), operands.get(1));
             case GREATER_THAN:
+                return new BinaryExpression.GT(operands.get(0), operands.get(1));
             case GREATER_THAN_OR_EQUAL:
+                return new BinaryExpression.GTE(operands.get(0), operands.get(1));
             case LESS_THAN:
+                return new BinaryExpression.LT(operands.get(0), operands.get(1));
             case LESS_THAN_OR_EQUAL:
-                if (operands.size() != 2) {
-                    throw new IllegalArgumentException("Comparison operator should have exactly two operands");
-                }
-                String operatorName = operator.getName();
-                IExpression left = operands.get(0);
-                IExpression right = operands.get(1);
-                return new BinaryExpression(operatorName, left, right);
+                return new BinaryExpression.LTE(operands.get(0), operands.get(1));
             default:
                 throw new IllegalArgumentException("Unknown operator: " + operator);
         }
