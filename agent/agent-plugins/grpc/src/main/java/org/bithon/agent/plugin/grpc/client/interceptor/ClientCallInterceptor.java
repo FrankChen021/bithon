@@ -49,7 +49,7 @@ public class ClientCallInterceptor implements ClientInterceptor {
         // Not sure when the other methods will be called,
         // so, it's better to create a new tracing context for this gRPC client call
         ITraceSpan span = TraceSpanFactory.newAsyncSpan("grpc-client");
-        if (span == null || span.context().traceMode().equals(TraceMode.LOGGING)) {
+        if (span == null || !span.context().traceMode().equals(TraceMode.TRACING)) {
             return result;
         }
 

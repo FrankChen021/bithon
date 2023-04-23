@@ -53,7 +53,7 @@ public class ServerCallInterceptor implements ServerInterceptor {
                                                              ServerCallHandler<REQ, RSP> next) {
         ITraceContext context = this.contextExtractor.extract(headers,
                                                               (request, key) -> request.get(Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER)));
-        if (context == null || context.traceMode().equals(TraceMode.LOGGING)) {
+        if (context == null || !context.traceMode().equals(TraceMode.TRACING)) {
             return next.startCall(call, headers);
         }
 

@@ -19,7 +19,6 @@ package org.bithon.agent.plugin.jedis.interceptor;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
-import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.io.FilterOutputStream;
@@ -33,20 +32,11 @@ import java.io.OutputStream;
  * @date Dec 27, 2020 11:14:08 PM
  */
 public class RedisOutputStream$Ctor extends BeforeInterceptor {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(RedisOutputStream$Ctor.class);
 
     @Override
     public void before(AopContext aopContext) {
         OutputStream os = aopContext.getArgAs(0);
         if (os != null) {
-        /*
-        try {
-            Field outputStreamField = ReflectionUtils.getField(aopContext.getTarget().getClass(), "out");
-            outputStreamField.setAccessible(true);
-            outputStreamField.set(aopContext.getTarget(), new OutputStreamDecorator(os));
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            log.error("Unable to set OutputStream for RedisOutputStream: {}", e.getMessage());
-        }*/
             aopContext.getArgs()[0] = new OutputStreamDecorator(os);
         }
     }
@@ -67,7 +57,7 @@ public class RedisOutputStream$Ctor extends BeforeInterceptor {
                     ctx.getMetrics().addRequestBytes(len);
                 } else {
                     // log the stack trace to help get known which command is not instrumented
-                    log.warn("Redis command is not instrumented.", new RuntimeException());
+                    LoggerFactory.getLogger(RedisOutputStream$Ctor.class).warn("Redis command is not instrumented.", new RuntimeException());
                 }
             } catch (Throwable ignored) {
             }

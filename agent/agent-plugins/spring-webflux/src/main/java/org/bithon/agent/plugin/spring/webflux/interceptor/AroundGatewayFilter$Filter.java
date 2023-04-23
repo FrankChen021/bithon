@@ -72,7 +72,7 @@ public class AroundGatewayFilter$Filter extends AroundInterceptor {
 
         HttpServerContext ctx = (HttpServerContext) ((IBithonObject) nativeRequest).getInjectedObject();
         ITraceContext traceContext = ctx.getTraceContext();
-        if (traceContext == null || traceContext.traceMode().equals(TraceMode.LOGGING)) {
+        if (traceContext == null || !traceContext.traceMode().equals(TraceMode.TRACING)) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 

@@ -35,21 +35,12 @@ public class RedisInputStream$Ctor extends BeforeInterceptor {
     @Override
     public void before(AopContext aopContext) {
         InputStream is = aopContext.getArgAs(0);
-
         if (is != null) {
             aopContext.getArgs()[0] = new InputStreamDecorator(is);
         }
-        /*
-        try {
-            Field inputStreamField = ReflectionUtils.getField(aopContext.getTarget().getClass(), "in");
-            inputStreamField.setAccessible(true);
-            inputStreamField.set(aopContext.getTarget(), new InputStreamDecorator(is));
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            LoggerFactory.getLogger(RedisInputStream$Ctor.class).error("Unable to set InputStream for RedisInputStream: {}", e.getMessage());
-        }*/
     }
 
-    static class InputStreamDecorator extends FilterInputStream {
+    private static class InputStreamDecorator extends FilterInputStream {
         public InputStreamDecorator(InputStream in) {
             super(in);
         }
@@ -66,7 +57,6 @@ public class RedisInputStream$Ctor extends BeforeInterceptor {
                     ctx.getMetrics().addResponseBytes(size);
                 }
             } catch (Throwable ignored) {
-
             }
             return size;
         }

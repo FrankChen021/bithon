@@ -72,7 +72,7 @@ public class HttpClient$ParseHTTP extends AfterInterceptor {
         }
 
         ITraceContext ctx = TraceContextHolder.current();
-        if (ctx == null || ctx.traceMode().equals(TraceMode.LOGGING)) {
+        if (ctx == null || !ctx.traceMode().equals(TraceMode.TRACING)) {
             return;
         }
         ctx.currentSpan()
