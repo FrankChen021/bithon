@@ -40,9 +40,11 @@ public class EqualFilterTest {
         IInputRowFilter newFilter = om.readValue(json, IInputRowFilter.class);
 
         Assert.assertTrue(newFilter.shouldInclude(new InputRow(ImmutableMap.of("f1", 1))));
+
+        // Given object's f1 does not match the filter
         Assert.assertFalse(newFilter.shouldInclude(new InputRow(ImmutableMap.of("f1", 2))));
 
-        // field not exist
+        // The given object does not have a field 'f1' as defined in the filter
         Assert.assertFalse(newFilter.shouldInclude(new InputRow(ImmutableMap.of("f2", 2))));
     }
 }

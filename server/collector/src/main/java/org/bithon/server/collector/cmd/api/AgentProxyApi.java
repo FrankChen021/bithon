@@ -118,7 +118,9 @@ public class AgentProxyApi implements IAgentProxyApi {
                                                                               .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(agentSession.getRemoteApplicationName()))
                                                                               .findFirst();
             if (!applicationRule.isPresent()) {
-                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(), "Application [%s] does not define a permission rule.", fromClient.getApplicationName());
+                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
+                                                "No permission rule is defined for application [%s] to allow UPDATE operation.",
+                                                agentSession.getRemoteApplicationName());
             }
 
             if (!applicationRule.get().getToken().equals(token)) {

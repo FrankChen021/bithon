@@ -40,10 +40,9 @@ public class ExpressionDeserializerTest {
         m.addDeserializer(IExpression.class, new ExpressionDeserializer());
         om.registerModule(m);
 
-        IExpression expression = new LogicalExpression("AND",
-                                                       new BinaryExpression(">", new LiteralExpression(1), new LiteralExpression(2)),
-                                                       new LiteralExpression(true),
-                                                       new IdentifierExpression("a"));
+        IExpression expression = new LogicalExpression.AND(BinaryExpression.create(">", new LiteralExpression(1), new LiteralExpression(2)),
+                                                           new LiteralExpression(true),
+                                                           new IdentifierExpression("a"));
 
         String jsonText = om.writeValueAsString(expression);
 

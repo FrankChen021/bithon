@@ -24,7 +24,7 @@ public interface IExpression {
 
     String getType();
 
-    Object evaluate(EvaluationContext context);
+    Object evaluate(IEvaluationContext context);
 
     <T> T accept(IExpressionVisitor<T> visitor);
 }

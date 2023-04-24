@@ -20,7 +20,11 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,13 +58,13 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
             String type = typeNode.asText();
             switch (type) {
                 case "binary":
-                    return BinaryExpression.deserialize(jsonNode);
+                    return BinaryExpressionDeserializer.deserialize(jsonNode);
                 case "literal":
-                    return LiteralExpression.deserialize(jsonNode);
+                    return LiteralExpressionDeserializer.deserialize(jsonNode);
                 case "logical":
-                    return LogicalExpression.deserialize(jsonNode);
+                    return LogicalExpressionDeserializer.deserialize(jsonNode);
                 case "identifier":
-                    return IdentifierExpression.deserialize(jsonNode);
+                    return IdentifierExpressionDeserializer.deserialize(jsonNode);
                 default:
                     throw new RuntimeException("Unknown type " + type);
             }
@@ -70,7 +74,7 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
     /**
      * {@link org.bithon.component.commons.expression.BinaryExpression}
      */
-    static class BinaryExpression {
+    static class BinaryExpressionDeserializer {
         static IExpression deserialize(JsonNode jsonNode) throws IOException {
             JsonNode operator = jsonNode.get("operator");
             if (operator == null) {
@@ -79,16 +83,16 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
 
             JsonNode left = jsonNode.get("left");
             JsonNode right = jsonNode.get("right");
-            return new org.bithon.component.commons.expression.BinaryExpression(operator.asText(),
-                                                                                Expression.deserialize(left),
-                                                                                Expression.deserialize(right));
+            return BinaryExpression.create(operator.asText(),
+                                           Expression.deserialize(left),
+                                           Expression.deserialize(right));
         }
     }
 
     /**
      * {@link org.bithon.component.commons.expression.LogicalExpression}
      */
-    static class LogicalExpression {
+    static class LogicalExpressionDeserializer {
         static IExpression deserialize(JsonNode jsonNode) throws IOException {
 
             JsonNode operator = jsonNode.get("operator");
@@ -109,32 +113,31 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
                 expressionList.add(Expression.deserialize(operand));
             }
 
-            return new org.bithon.component.commons.expression.LogicalExpression(operator.asText(),
-                                                                                 expressionList);
+            return LogicalExpression.create(operator.asText(), expressionList);
         }
     }
 
     /**
      * {@link org.bithon.component.commons.expression.LiteralExpression}
      */
-    static class LiteralExpression {
+    static class LiteralExpressionDeserializer {
         static IExpression deserialize(JsonNode jsonNode) {
 
             JsonNode valueNode = jsonNode.get("value");
             if (valueNode.isTextual()) {
-                return new org.bithon.component.commons.expression.LiteralExpression(valueNode.asText());
+                return new LiteralExpression(valueNode.asText());
             }
 
             if (valueNode.isLong()) {
-                return new org.bithon.component.commons.expression.LiteralExpression(valueNode.asLong());
+                return new LiteralExpression(valueNode.asLong());
             }
 
             if (valueNode.isInt()) {
-                return new org.bithon.component.commons.expression.LiteralExpression(valueNode.asInt());
+                return new LiteralExpression(valueNode.asInt());
             }
 
             if (valueNode.isBoolean()) {
-                return new org.bithon.component.commons.expression.LiteralExpression(valueNode.asBoolean());
+                return new LiteralExpression(valueNode.asBoolean());
             }
             throw new UnsupportedOperationException("value is not type of any [String/Long/Int/Boolean]");
         }
@@ -143,14 +146,14 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
     /**
      * {@link org.bithon.component.commons.expression.IdentifierExpression}
      */
-    static class IdentifierExpression {
+    static class IdentifierExpressionDeserializer {
         static IExpression deserialize(JsonNode jsonNode) {
 
             JsonNode identifierNode = jsonNode.get("identifier");
             if (identifierNode == null) {
                 throw new RuntimeException("Missing 'identifier' field");
             }
-            return new org.bithon.component.commons.expression.IdentifierExpression(identifierNode.asText());
+            return new IdentifierExpression(identifierNode.asText());
         }
     }
 }

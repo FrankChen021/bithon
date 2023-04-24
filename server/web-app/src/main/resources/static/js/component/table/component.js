@@ -83,7 +83,9 @@ class TableComponent {
                     align: 'center',
                     visible: button.visible,
                     formatter: (cell, row, rowIndex, field) => {
-                        return `<a href="#" onclick="onTableComponentButtonClick('${option.tableId}', ${rowIndex}, ${buttonIndex})"><span class="fa fa-forward"></span></a>`;
+                        // href is not set, so a 'class' is needed to make default global css render it as an Anchor
+                        // style cursor is explicitly set
+                        return `<a class="non-exist" style="cursor: pointer" onclick="onTableComponentButtonClick('${option.tableId}', ${rowIndex}, ${buttonIndex})"><span class="fa fa-forward"></span></a>`;
                     }
                 }
             );
