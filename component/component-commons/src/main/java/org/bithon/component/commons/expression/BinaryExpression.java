@@ -73,11 +73,6 @@ public abstract class BinaryExpression implements IExpression {
     }
 
     @Override
-    public <T> T accept(IExpressionVisitor<T> visitor) {
-        return visitor.visit(this);
-    }
-
-    @Override
     public Object evaluate(IEvaluationContext context) {
         Object left = leftExpression.evaluate(context);
         Object right = rightExpression.evaluate(context);
@@ -109,6 +104,11 @@ public abstract class BinaryExpression implements IExpression {
         }
 
         @Override
+        public <T> T accept(IExpressionVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
+
+        @Override
         protected boolean matchesNull(Object left, Object right) {
             return left == null && right == null;
         }
@@ -127,6 +127,11 @@ public abstract class BinaryExpression implements IExpression {
     public static class GT extends BinaryExpression {
         public GT(IExpression left, IExpression right) {
             super(">", left, right);
+        }
+
+        @Override
+        public <T> T accept(IExpressionVisitor<T> visitor) {
+            return visitor.visit(this);
         }
 
         @Override
@@ -152,6 +157,11 @@ public abstract class BinaryExpression implements IExpression {
         }
 
         @Override
+        public <T> T accept(IExpressionVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
+
+        @Override
         protected boolean matchesNull(Object left, Object right) {
             return false;
         }
@@ -171,6 +181,11 @@ public abstract class BinaryExpression implements IExpression {
     public static class LT extends BinaryExpression {
         public LT(IExpression left, IExpression right) {
             super("<", left, right);
+        }
+
+        @Override
+        public <T> T accept(IExpressionVisitor<T> visitor) {
+            return visitor.visit(this);
         }
 
         @Override
@@ -196,6 +211,11 @@ public abstract class BinaryExpression implements IExpression {
         }
 
         @Override
+        public <T> T accept(IExpressionVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
+
+        @Override
         protected boolean matchesNull(Object left, Object right) {
             return false;
         }
@@ -215,6 +235,11 @@ public abstract class BinaryExpression implements IExpression {
     public static class NE extends BinaryExpression {
         public NE(IExpression left, IExpression right) {
             super("<>", left, right);
+        }
+
+        @Override
+        public <T> T accept(IExpressionVisitor<T> visitor) {
+            return visitor.visit(this);
         }
 
         @Override

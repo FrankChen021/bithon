@@ -43,6 +43,11 @@ import java.util.Locale;
  * @date 2023/4/24 00:15
  */
 public class FilterExpressionASTFactory {
+
+    public static IExpression create(String expression) {
+        return create(expression, false);
+    }
+
     public static IExpression create(String expression, boolean debug) {
         FilterExpressionLexer lexer = new FilterExpressionLexer(CharStreams.fromString(expression));
         lexer.getErrorListeners().clear();

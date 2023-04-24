@@ -33,7 +33,27 @@ public interface IExpressionVisitor<T> {
         return null;
     }
 
-    default T visit(BinaryExpression expression) {
+    default T visit(BinaryExpression.EQ expression) {
+        return null;
+    }
+
+    default T visit(BinaryExpression.GT expression) {
+        return null;
+    }
+
+    default T visit(BinaryExpression.GTE expression) {
+        return null;
+    }
+
+    default T visit(BinaryExpression.LT expression) {
+        return null;
+    }
+
+    default T visit(BinaryExpression.LTE expression) {
+        return null;
+    }
+
+    default T visit(BinaryExpression.NE expression) {
         return null;
     }
 }
