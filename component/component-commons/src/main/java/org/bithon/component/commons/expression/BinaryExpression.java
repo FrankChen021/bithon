@@ -45,26 +45,29 @@ public abstract class BinaryExpression implements IExpression {
         }
     }
 
+    /**
+     * Don't change these property names because they're used in manual deserializer
+     */
     protected final String operator;
-    protected final IExpression leftExpression;
-    protected final IExpression rightExpression;
+    protected final IExpression left;
+    protected final IExpression right;
 
-    protected BinaryExpression(String operator, IExpression leftExpression, IExpression rightExpression) {
+    protected BinaryExpression(String operator, IExpression left, IExpression right) {
         this.operator = operator;
-        this.leftExpression = leftExpression;
-        this.rightExpression = rightExpression;
+        this.left = left;
+        this.right = right;
     }
 
     public String getOperator() {
         return operator;
     }
 
-    public IExpression getLeftExpression() {
-        return leftExpression;
+    public IExpression getLeft() {
+        return left;
     }
 
-    public IExpression getRightExpression() {
-        return rightExpression;
+    public IExpression getRight() {
+        return right;
     }
 
     @Override
@@ -74,22 +77,22 @@ public abstract class BinaryExpression implements IExpression {
 
     @Override
     public Object evaluate(IEvaluationContext context) {
-        Object left = leftExpression.evaluate(context);
-        Object right = rightExpression.evaluate(context);
+        Object lValue = left.evaluate(context);
+        Object rValue = right.evaluate(context);
 
-        if (left == null || right == null) {
-            return matchesNull(left, right);
+        if (lValue == null || rValue == null) {
+            return matchesNull(lValue, rValue);
         }
 
-        if (left instanceof Number) {
-            if (right instanceof Number) {
-                return matches((Number) left, (Number) right);
+        if (lValue instanceof Number) {
+            if (rValue instanceof Number) {
+                return matches((Number) lValue, (Number) rValue);
             } else {
-                return matches((Number) left, Long.parseLong(right.toString()));
+                return matches((Number) lValue, Long.parseLong(rValue.toString()));
             }
         }
 
-        return matches(left.toString(), right.toString());
+        return matches(lValue.toString(), rValue.toString());
     }
 
     protected abstract boolean matchesNull(Object left, Object right);
@@ -280,8 +283,8 @@ public abstract class BinaryExpression implements IExpression {
             LOG.info("Expression[{}] evaluates to be {}: left val={}, right val = {}",
                      expression,
                      ret,
-                     delegate.leftExpression.evaluate(context),
-                     delegate.rightExpression.evaluate(context));
+                     delegate.left.evaluate(context),
+                     delegate.right.evaluate(context));
             return ret;
         }
 
