@@ -47,8 +47,9 @@ public class BrpcRpcTest {
 
     @BeforeClass
     public static void setup() {
-        brpcServer = new BrpcServer().bindService(new ExampleServiceImpl())
-                                     .start(8070, idleSeconds);
+        brpcServer = new BrpcServer("test")
+                .bindService(new ExampleServiceImpl())
+                .start(8070, idleSeconds);
     }
 
     @AfterClass
@@ -410,7 +411,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testCallNotRegisteredService() {
-        try (BrpcServer brpcServer = new BrpcServer().start(18070)) {
+        try (BrpcServer brpcServer = new BrpcServer("test").start(18070)) {
             try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 18070).build()) {
                 try {
                     // IExampleService is not registered at remote, ServiceNotFoundException should be thrown
