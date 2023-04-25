@@ -57,7 +57,7 @@ public class TraceSinkHandler extends AbstractThreadPoolMessageHandler<List<Trac
         this.mappingExtractor = TraceMappingFactory.create(applicationContext);
         this.sanitizerFactory = new SanitizerFactory(applicationContext.getBean(ObjectMapper.class),
                                                      sinkConfig);
-        this.tagIndexBuilder = new TagIndexGenerator(applicationContext.getBean(TraceStorageConfig.class).getIndexes());
+        this.tagIndexBuilder = new TagIndexGenerator(applicationContext.getBean(TraceStorageConfig.class));
     }
 
     @Override
