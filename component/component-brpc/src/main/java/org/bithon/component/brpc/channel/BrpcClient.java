@@ -62,7 +62,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(BrpcClient.class);
     private final Bootstrap bootstrap;
     private final AtomicReference<Channel> channelRef = new AtomicReference<>();
-    private final IEndPointProvider endpointProvider;
+    private final IEndPointProvider server;
     private final ServiceRegistry serviceRegistry = new ServiceRegistry();
     private NioEventLoopGroup bossGroup;
     private final Duration retryInterval;
@@ -83,23 +83,26 @@ public class BrpcClient implements IBrpcChannel, Closeable {
     private final InvocationManager invocationManager;
 
     /**
-     * It's better to use {@link BrpcClientBuilder} to instantiate the instance
+     * Use {@link BrpcClientBuilder} to create instance.
      *
      * @param nWorkerThreads if it's 0, worker threads will be default to Runtime.getRuntime().availableProcessors() * 2
      */
-    public BrpcClient(IEndPointProvider endpointProvider,
-                      int nWorkerThreads,
-                      int maxRetry,
-                      Duration retryInterval,
-                      String appName) {
+    BrpcClient(IEndPointProvider server,
+               int nWorkerThreads,
+               int maxRetry,
+               Duration retryInterval,
+               String appName,
+               String clientId) {
         Preconditions.checkIfTrue(StringUtils.hasText("appName"), "appName can't be blank.");
-        this.endpointProvider = Preconditions.checkArgumentNotNull("endpointProvider", endpointProvider);
+        Preconditions.checkIfTrue(maxRetry > 0, "maxRetry must be at least 1.");
+
+        this.server = Preconditions.checkArgumentNotNull("server", server);
         this.maxRetry = maxRetry;
         this.retryInterval = retryInterval;
         this.appName = appName;
 
         this.invocationManager = new InvocationManager();
-        this.bossGroup = new NioEventLoopGroup(nWorkerThreads, NamedThreadFactory.of("brpc-client"));
+        this.bossGroup = new NioEventLoopGroup(nWorkerThreads, NamedThreadFactory.of("brpc-c-worker-" + clientId));
         this.bootstrap = new Bootstrap();
         this.bootstrap.group(this.bossGroup)
                       .channel(NioSocketChannel.class)
@@ -182,29 +185,29 @@ public class BrpcClient implements IBrpcChannel, Closeable {
     }
 
     private void doConnect(int maxRetry) {
-        EndPoint endpoint = null;
+        EndPoint server = null;
         for (int i = 0; i < maxRetry; i++) {
-            endpoint = endpointProvider.getEndpoint();
+            server = this.server.getEndpoint();
             try {
-                Future<?> connectFuture = bootstrap.connect(endpoint.getHost(), endpoint.getPort());
+                Future<?> connectFuture = bootstrap.connect(server.getHost(), server.getPort());
                 connectFuture.await(200, TimeUnit.MILLISECONDS);
                 if (connectFuture.isSuccess()) {
                     connectionTimestamp = System.currentTimeMillis();
-                    LOG.info("Successfully connected to remote service at [{}:{}]", endpoint.getHost(), endpoint.getPort());
+                    LOG.info("Successfully connected to remote service at [{}:{}]", server.getHost(), server.getPort());
                     return;
                 }
                 int leftCount = maxRetry - i - 1;
                 if (leftCount > 0) {
                     LOG.warn("Unable to connect to remote service at [{}:{}]. Left retry count:{}",
-                             endpoint.getHost(),
-                             endpoint.getPort(),
+                             server.getHost(),
+                             server.getPort(),
                              maxRetry - i - 1);
                     Thread.sleep(retryInterval.toMillis());
                 }
             } catch (InterruptedException ignored) {
             }
         }
-        throw new CallerSideException("Unable to connect to remote service at [%s:%d]", endpoint.getHost(), endpoint.getPort());
+        throw new CallerSideException("Unable to connect to remote service at [%s:%d]", server.getHost(), server.getPort());
     }
 
     public void bindService(Object serviceImpl) {

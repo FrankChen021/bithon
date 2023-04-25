@@ -26,7 +26,7 @@ import java.time.Duration;
  * @date 2022/12/10 14:10
  */
 public class BrpcClientBuilder {
-    private IEndPointProvider endpointProvider;
+    private IEndPointProvider server;
     private int workerThreads = 1;
 
     private int maxRetry = 30;
@@ -34,17 +34,25 @@ public class BrpcClientBuilder {
 
     private String appName = "brpc-client";
 
+    /**
+     * The name that is used to set to threads of this client.
+     * Although the default name is the same as {@link #appName} above,
+     * it differs from it because one application might have more than 1 brpc clients to serve different needs,
+     * to mark the difference of these clients, this client id helps.
+     */
+    private String clientId = "brpc-client";
+
     public static BrpcClientBuilder builder() {
         return new BrpcClientBuilder();
     }
 
-    public BrpcClientBuilder endpointProvider(String host, int port) {
-        this.endpointProvider = new SingleEndPointProvider(host, port);
+    public BrpcClientBuilder server(String host, int port) {
+        this.server = new SingleEndPointProvider(host, port);
         return this;
     }
 
-    public BrpcClientBuilder endpointProvider(IEndPointProvider endPointProvider) {
-        this.endpointProvider = endPointProvider;
+    public BrpcClientBuilder server(IEndPointProvider server) {
+        this.server = server;
         return this;
     }
 
@@ -68,7 +76,17 @@ public class BrpcClientBuilder {
         return this;
     }
 
+    public BrpcClientBuilder clientId(String clientId) {
+        this.clientId = clientId;
+        return this;
+    }
+
     public BrpcClient build() {
-        return new BrpcClient(endpointProvider, workerThreads, maxRetry, retryInterval, appName);
+        return new BrpcClient(server,
+                              workerThreads,
+                              maxRetry,
+                              retryInterval,
+                              appName,
+                              clientId);
     }
 }

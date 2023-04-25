@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A controller that accepts and serves commands from remote server
+ * A controller that accepts and serves commands from a remote server
  *
  * @author frank.chen021@outlook.com
  * @date 2021/6/28 10:41 上午
@@ -62,9 +62,10 @@ public class BrpcAgentController implements IAgentController {
 
         AppInstance appInstance = AppInstance.getInstance();
         brpcClient = BrpcClientBuilder.builder()
-                                      .endpointProvider(new RoundRobinEndPointProvider(endpoints))
-                                      .workerThreads(2)
                                       .applicationName(appInstance.getQualifiedAppName())
+                                      .clientId("ctrl")
+                                      .server(new RoundRobinEndPointProvider(endpoints))
+                                      .workerThreads(2)
                                       .maxRetry(3)
                                       .retryInterval(Duration.ofSeconds(2))
                                       .build();

@@ -94,7 +94,8 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
         this.brpcClient = BrpcClientBuilder.builder()
-                                           .endpointProvider(new RoundRobinEndPointProvider(endpoints))
+                                           .clientId("metrics")
+                                           .server(new RoundRobinEndPointProvider(endpoints))
                                            .maxRetry(3)
                                            .retryInterval(Duration.ofMillis(100))
                                            .build();
@@ -165,7 +166,7 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
             LOG.warn("Failed to send metrics: []-[]", messageClass, method);
         } catch (InvocationTargetException e) {
             if (e.getTargetException() instanceof CallerSideException
-                || e.getTargetException() instanceof CalleeSideException) {
+                    || e.getTargetException() instanceof CalleeSideException) {
                 //suppress client exception
                 LOG.error("Failed to send metric: {}", e.getTargetException().getMessage());
             } else {

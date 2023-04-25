@@ -47,8 +47,9 @@ public class BrpcRpcTest {
 
     @BeforeClass
     public static void setup() {
-        brpcServer = new BrpcServer().bindService(new ExampleServiceImpl())
-                                     .start(8070, idleSeconds);
+        brpcServer = new BrpcServer("test")
+                .bindService(new ExampleServiceImpl())
+                .start(8070, idleSeconds);
     }
 
     @AfterClass
@@ -59,7 +60,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testBasicCases() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
+        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             IServiceController serviceController = (IServiceController) exampleService;
@@ -87,7 +88,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testNullArgument() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
+        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
             IExampleService service = ch.getRemoteService(IExampleService.class);
 
             // test the 2nd argument is null
@@ -109,7 +110,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testSendProtobufMessage() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
+        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             Assert.assertEquals("/1", exampleService.sendWebMetrics(WebRequestMetrics.newBuilder().setUri("/1").build()));
@@ -119,7 +120,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testMultipleSendMessageLite() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
+        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             Assert.assertEquals("/1-/2", exampleService.sendWebMetrics1(
@@ -141,7 +142,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testInvocationExceptionRaisedFromRemote() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
+        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             try {
@@ -157,7 +158,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testClientSideTimeout() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
+        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             exampleService.block(2);
@@ -187,7 +188,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testConcurrency() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
+        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             AtomicInteger v = new AtomicInteger();
@@ -215,7 +216,7 @@ public class BrpcRpcTest {
      */
     @Test
     public void testServerCallsClient() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
+        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
             ch.setHeader(Headers.HEADER_APP_ID, "app1");
 
             // bind a service at client side
@@ -243,7 +244,7 @@ public class BrpcRpcTest {
             Assert.assertEquals(5, clientService.div(100, 20));
 
             //
-            // test service exception thrown from client
+            // test service exception thrown from the client
             //
             try {
                 clientService.block(2);
@@ -259,7 +260,7 @@ public class BrpcRpcTest {
             long start = System.currentTimeMillis();
             clientService.sendOneway("server");
             long end = System.currentTimeMillis();
-            // since 'send' is a oneway method, its implementation blocking for 10 second won't affect server side running time
+            // since 'send' is a oneway method, its implementation blocking for 10 seconds won't affect server side running time
             Assert.assertTrue("isOneway failed", end - start < 1000);
 
             //wait for client execution completion
@@ -272,8 +273,8 @@ public class BrpcRpcTest {
 
     @Test
     public void testServerCallsMultipleDifferentClient() {
-        BrpcClient ch1 = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).applicationName("client1").build();
-        BrpcClient ch2 = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).applicationName("client2").build();
+        BrpcClient ch1 = BrpcClientBuilder.builder().server("127.0.0.1", 8070).applicationName("client1").build();
+        BrpcClient ch2 = BrpcClientBuilder.builder().server("127.0.0.1", 8070).applicationName("client2").build();
 
         // bind a service at client side
         ch1.bindService(new ExampleServiceImpl() {
@@ -318,8 +319,8 @@ public class BrpcRpcTest {
 
     @Test
     public void testServerCallsMultipleSameClient() {
-        BrpcClient ch1 = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).applicationName("client1").build();
-        BrpcClient ch2 = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).applicationName("client1").build();
+        BrpcClient ch1 = BrpcClientBuilder.builder().server("127.0.0.1", 8070).applicationName("client1").build();
+        BrpcClient ch2 = BrpcClientBuilder.builder().server("127.0.0.1", 8070).applicationName("client1").build();
 
         // bind a service at client side
         ch1.bindService(new ExampleServiceImpl() {
@@ -379,7 +380,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testJsonSerializer() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
+        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             // test map
@@ -394,7 +395,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testServiceWithZeroArgument() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
+        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             // test map
@@ -410,8 +411,8 @@ public class BrpcRpcTest {
 
     @Test
     public void testCallNotRegisteredService() {
-        try (BrpcServer brpcServer = new BrpcServer().start(18070)) {
-            try (BrpcClient ch = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 18070).build()) {
+        try (BrpcServer brpcServer = new BrpcServer("test").start(18070)) {
+            try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 18070).build()) {
                 try {
                     // IExampleService is not registered at remote, ServiceNotFoundException should be thrown
                     ch.getRemoteService(IExampleService.class);
@@ -425,7 +426,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testV1Compatibility() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
+        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             // test map
@@ -435,7 +436,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testLargeResponse() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
+        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             ((IServiceController) exampleService).setTimeout(1000_000);
@@ -447,7 +448,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testServerSideIdle() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().endpointProvider("127.0.0.1", 8070).build()) {
+        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
 
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
@@ -462,7 +463,7 @@ public class BrpcRpcTest {
             // The client side channel SHOULD be de-active
             Assert.assertFalse(ch.isActive());
 
-            // after the connection closed,the client will re-connect to the server once it founds that the connection is closed
+            // after the connection closed, the client will re-connect to the server once it founds that the connection is closed
             Assert.assertEquals(5, exampleService.createList(5).size());
             Assert.assertEquals(1, brpcServer.getSessions().size());
         }

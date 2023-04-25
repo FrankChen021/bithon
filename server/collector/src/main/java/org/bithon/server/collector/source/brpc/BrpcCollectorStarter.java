@@ -109,7 +109,8 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
         }
 
         serviceGroups.forEach((port, serviceGroup) -> {
-            BrpcServer brpcServer = new BrpcServer();
+            // Create a server with the first service name as the server id
+            BrpcServer brpcServer = new BrpcServer(serviceGroup.services.get(0).name);
             if (serviceGroup.isCtrl) {
                 applicationContext.getBean(AgentServer.class).setBrpcServer(brpcServer);
             }
