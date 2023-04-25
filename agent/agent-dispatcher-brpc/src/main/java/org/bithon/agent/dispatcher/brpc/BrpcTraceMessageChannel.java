@@ -58,7 +58,8 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
         this.brpcClient = BrpcClientBuilder.builder()
-                                           .endpointProvider(new RoundRobinEndPointProvider(endpoints))
+                                           .clientId("trace")
+                                           .server(new RoundRobinEndPointProvider(endpoints))
                                            .maxRetry(3)
                                            .retryInterval(Duration.ofMillis(200))
                                            .build();
