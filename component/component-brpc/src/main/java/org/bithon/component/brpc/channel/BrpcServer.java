@@ -85,8 +85,8 @@ public class BrpcServer implements Closeable {
     /**
      * bind current service provider to this channel
      * NOTE:
-     * 1. only those methods defined in interface will be bound
-     * 2. methods name can be the same, but the methods with same name must use {@link BrpcMethod} to give alias name to each method
+     * 1. only those methods defined in the interface will be bound
+     * 2. method name can be the same, but the methods with same name must use {@link BrpcMethod} to give alias name to each method
      */
     public BrpcServer bindService(Object impl) {
         serviceRegistry.addService(impl);
@@ -240,9 +240,9 @@ public class BrpcServer implements Closeable {
 
     /**
      * Theoretically, Session is a concept at both client and server side.
-     * However, for the client, each client just has one session, it's not important to provide Session at the client side.
+     * However, for the client, each client just has one session, it's not important to provide a session on the client side.
      * In contrast, one server manages multiple clients,
-     * So session is used wrap a connected channel to help the server side to call services implemented at the client side.
+     * So session is used to wrap a connected channel to help the server side to call services implemented on the client side.
      */
     @ChannelHandler.Sharable
     private static class SessionManager extends ChannelInboundHandlerAdapter {
