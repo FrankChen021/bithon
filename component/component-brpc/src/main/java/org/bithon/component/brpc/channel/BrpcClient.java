@@ -59,7 +59,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author frankchen
  */
 public class BrpcClient implements IBrpcChannel, Closeable {
-    private final ILogAdaptor LOG = LoggerFactory.getLogger(BrpcClient.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(BrpcClient.class);
     private final Bootstrap bootstrap;
     private final AtomicReference<Channel> channelRef = new AtomicReference<>();
     private final IEndPointProvider server;
