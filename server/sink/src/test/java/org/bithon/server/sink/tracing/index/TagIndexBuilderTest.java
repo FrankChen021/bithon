@@ -18,6 +18,7 @@ package org.bithon.server.sink.tracing.index;
 
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.storage.tracing.index.TagIndex;
 import org.bithon.server.storage.tracing.index.TagIndexConfig;
 import org.junit.Assert;
@@ -34,9 +35,15 @@ import java.util.List;
  */
 public class TagIndexBuilderTest {
 
+    private TraceStorageConfig newStorageConfig(TagIndexConfig tagIndexConfig) {
+        TraceStorageConfig config = new TraceStorageConfig();
+        config.setIndexes(tagIndexConfig);
+        return config;
+    }
+
     @Test
     public void testEmptyConfig() {
-        TagIndexGenerator builder = new TagIndexGenerator(new TagIndexConfig());
+        TagIndexGenerator builder = new TagIndexGenerator(newStorageConfig(new TagIndexConfig()));
         Collection<TagIndex> indexes = builder.generate(Collections.singletonList(TraceSpan.builder()
                                                                                            .startTime(1000)
                                                                                            .appName("bithon-test")
@@ -50,7 +57,7 @@ public class TagIndexBuilderTest {
         TagIndexConfig indexConfig = new TagIndexConfig();
         indexConfig.setMap(new LinkedHashMap<>(ImmutableMap.of("status", 1)));
 
-        TagIndexGenerator builder = new TagIndexGenerator(indexConfig);
+        TagIndexGenerator builder = new TagIndexGenerator(newStorageConfig(indexConfig));
         Collection<TagIndex> indexes = builder.generate(Collections.singletonList(TraceSpan.builder()
                                                                                            .startTime(1000)
                                                                                            .appName("bithon-test")
@@ -65,7 +72,7 @@ public class TagIndexBuilderTest {
         TagIndexConfig indexConfig = new TagIndexConfig();
         indexConfig.setMap(new LinkedHashMap<>(ImmutableMap.of("status", 1)));
 
-        TagIndexGenerator builder = new TagIndexGenerator(indexConfig);
+        TagIndexGenerator builder = new TagIndexGenerator(newStorageConfig(indexConfig));
         List<TagIndex> indexes = builder.generate(Collections.singletonList(TraceSpan.builder()
                                                                                      .startTime(1000)
                                                                                      .appName("bithon-test")
