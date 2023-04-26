@@ -50,13 +50,14 @@ public class HttpClientFinalizer$Send extends AroundInterceptor {
         HttpClientContext httpClientContext = new HttpClientContext();
         bithonObject.setInjectedObject(httpClientContext);
 
-        ITraceSpan span = TraceSpanFactory.newSpan("webflux-httpClient");
+        ITraceSpan span = TraceSpanFactory.newSpan("httpclient");
         if (span != null) {
-            // span will be finished in ResponseConnection interceptor
+            // Span will be finished in ResponseConnection interceptor
             httpClientContext.setSpan(span.kind(SpanKind.CLIENT)
                                           .method(aopContext.getTargetClass(), aopContext.getMethod())
-                                          .tag(Tags.HTTP_URI, httpClient.configuration().uri())
-                                          .tag(Tags.HTTP_METHOD, httpClient.configuration().method().name())
+                                          .tag(Tags.Http.URL, httpClient.configuration().uri())
+                                          .tag(Tags.Http.METHOD, httpClient.configuration().method().name())
+                                          .tag(Tags.CLIENT_TYPE, "webflux")
                                           .start());
         }
 

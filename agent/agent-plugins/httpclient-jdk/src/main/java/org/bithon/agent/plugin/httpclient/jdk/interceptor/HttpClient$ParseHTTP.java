@@ -32,6 +32,7 @@ import sun.net.www.MessageHeader;
 import sun.net.www.protocol.http.HttpURLConnection;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -78,23 +79,21 @@ public class HttpClient$ParseHTTP extends AfterInterceptor {
         ctx.currentSpan()
            .configIfTrue(!traceConfig.getHeaders().getResponse().isEmpty(),
                          (s) -> {
-                      // Record configured response headers in tracing logs
-                      Map<String, List<String>> headers = responseHeader.getHeaders();
-                      traceConfig.getHeaders()
-                                 .getResponse()
-                                 .forEach((name) -> {
-                                     List<String> values = headers.get(name);
-                                     if (values != null && !values.isEmpty()) {
-                                         s.tag("http.response.header." + name, values.get(0));
-                                     }
-                                 });
-                  })
-           .tag(Tags.HTTP_STATUS, Integer.toString(statusCode))
+                             // Record configured response headers in tracing logs
+                             Map<String, List<String>> headers = responseHeader.getHeaders();
+                             for (String name : traceConfig.getHeaders().getResponse()) {
+                                 List<String> values = headers.get(name);
+                                 if (values != null && !values.isEmpty()) {
+                                     s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + name.toLowerCase(Locale.ENGLISH), values.get(0));
+                                 }
+                             }
+                         })
+           .tag(Tags.Http.STATUS, Integer.toString(statusCode))
            .finish();
     }
 
     /**
-     * eg:
+     * Eg:
      * HTTP/1.0 200 OK
      * HTTP/1.0 401 Unauthorized
      * It will return 200 and 401 respectively. Returns -1 if no code can be discerned

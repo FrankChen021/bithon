@@ -19,9 +19,8 @@ package org.bithon.agent.observability.event;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceMode;
+import org.bithon.component.commons.exception.ExceptionUtils;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,9 +62,7 @@ public class ExceptionBuilder {
     }
 
     public ExceptionBuilder stack(Throwable throwable) {
-        StringWriter stackTrace = new StringWriter(512);
-        throwable.printStackTrace(new PrintWriter(stackTrace));
-        map.put("stack", stackTrace.toString());
+        map.put("stack", ExceptionUtils.getStackTrace(throwable));
         return this;
     }
 

@@ -45,6 +45,7 @@ import reactor.netty.http.server.HttpServerResponse;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
@@ -60,10 +61,10 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
     private static final String X_FORWARDED_FOR = "X-Forwarded-For";
 
     private final HttpIncomingMetricsRegistry metricRegistry = HttpIncomingMetricsRegistry.get();
-    private HttpIncomingFilter requestFilter;
-    private TraceConfig traceConfig;
-    private ResponseConfigs responseConfigs;
-    private String xforwardTagName;
+    private final HttpIncomingFilter requestFilter;
+    private final TraceConfig traceConfig;
+    private final ResponseConfigs responseConfigs;
+    private final String xforwardTagName;
 
     public ReactorHttpHandlerAdapter$Apply() {
         requestFilter = new HttpIncomingFilter();
@@ -102,19 +103,19 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
                 if (traceContext != null) {
                     traceContext.currentSpan()
                                 .component("webflux")
-                                .tag(Tags.REMOTE_ADDR, request.remoteAddress())
-                                .tag(Tags.HTTP_URI, request.uri())
-                                .tag(Tags.HTTP_METHOD, request.method().name())
-                                .tag(Tags.HTTP_VERSION, request.version().text())
+                                .tag(Tags.Net.PEER_ADDR, request.remoteAddress())
+                                .tag(Tags.Http.URL, request.uri())
+                                .tag(Tags.Http.METHOD, request.method().name())
+                                .tag(Tags.Http.VERSION, request.version().text())
                                 .configIfTrue(!traceConfig.getHeaders().getRequest().isEmpty(),
                                               (span) -> traceConfig.getHeaders()
                                                                    .getRequest()
-                                                                   .forEach((header) -> span.tag("http.header." + header, request.requestHeaders().get(header))))
+                                                                   .forEach((header) -> span.tag(Tags.Http.REQUEST_HEADER_PREFIX + header.toLowerCase(Locale.ENGLISH), request.requestHeaders().get(header))))
                                 .method(aopContext.getTargetClass(), aopContext.getMethod())
                                 .kind(SpanKind.SERVER)
                                 .start();
 
-                    // put the trace id in the header so that the applications have chance to know whether this request is being sampled
+                    // Put the trace id in the header so that the applications have a chance to know whether this request is being sampled
                     if (traceContext.traceMode().equals(TraceMode.TRACING)) {
                         request.requestHeaders().set("X-Bithon-TraceId", traceContext.traceId());
 
@@ -191,7 +192,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
         }
 
         traceContext.currentSpan()
-                    .tag(Tags.HTTP_STATUS, String.valueOf(response.status().code()))
+                    .tag(Tags.Http.STATUS, String.valueOf(response.status().code()))
                     .tag(t)
                     .config((span -> {
                         // extract headers in the response to tag

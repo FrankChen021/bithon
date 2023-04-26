@@ -53,7 +53,7 @@ public class HttpClient$WriteRequests extends BeforeInterceptor {
             .kind(SpanKind.CLIENT)
             .tag(Tags.CLIENT_TYPE, "jdk")
             .tag(Tags.HTTP_URI, clientContext.getUrl())
-            .tag(Tags.HTTP_METHOD, clientContext.getMethod())
+            .tag(Tags.Http.METHOD, clientContext.getMethod())
             .propagate(headers, (headersArgs, key, value) -> headersArgs.set(key, value))
             .start();
     }

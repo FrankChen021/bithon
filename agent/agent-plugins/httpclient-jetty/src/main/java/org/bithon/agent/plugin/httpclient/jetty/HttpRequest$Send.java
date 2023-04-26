@@ -33,6 +33,7 @@ import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.util.Callback;
 
 import java.nio.ByteBuffer;
+import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
@@ -56,8 +57,8 @@ public class HttpRequest$Send extends BeforeInterceptor {
             span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)
                 .tag(Tags.CLIENT_TYPE, "jetty")
-                .tag(Tags.HTTP_URI, httpRequest.getURI().toString())
-                .tag(Tags.HTTP_METHOD, httpRequest.getMethod())
+                .tag(Tags.Http.URL, httpRequest.getURI().toString())
+                .tag(Tags.Http.METHOD, httpRequest.getMethod())
                 .propagate(httpRequest.getHeaders(), HttpFields::put)
                 .start();
         }
@@ -124,17 +125,17 @@ public class HttpRequest$Send extends BeforeInterceptor {
                 //
                 try {
                     if (span != null) {
-                        traceConfig.getHeaders()
-                                   .getResponse()
-                                   .forEach((name) -> {
-                                       String val = result.getResponse().getHeaders().get(name);
-                                       if (val != null) {
-                                           span.tag("http.response.header." + name, val);
-                                       }
-                                   });
-
                         span.tag(result.getFailure())
-                            .tag(Tags.HTTP_STATUS, String.valueOf(result.getResponse().getStatus()))
+                            .tag(Tags.Http.STATUS, String.valueOf(result.getResponse().getStatus()))
+                            .configIfTrue(!traceConfig.getHeaders().getResponse().isEmpty(),
+                                          (s) -> {
+                                              for (String name : traceConfig.getHeaders().getResponse()) {
+                                                  String val = result.getResponse().getHeaders().get(name);
+                                                  if (val != null) {
+                                                      s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + name.toLowerCase(Locale.ENGLISH), val);
+                                                  }
+                                              }
+                                          })
                             .finish();
                         span.context().finish();
                     }

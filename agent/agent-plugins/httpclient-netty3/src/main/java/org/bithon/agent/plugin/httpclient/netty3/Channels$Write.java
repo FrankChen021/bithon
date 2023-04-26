@@ -53,7 +53,7 @@ public class Channels$Write extends AroundInterceptor {
             aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                           .kind(SpanKind.CLIENT)
                                           .tag(Tags.CLIENT_TYPE, "netty3")
-                                          .tag(Tags.HTTP_METHOD, httpRequest.getMethod().getName())
+                                          .tag(Tags.Http.METHOD, httpRequest.getMethod().getName())
                                           .propagate(httpRequest.headers(), HttpHeaders::set)
                                           .start());
         }

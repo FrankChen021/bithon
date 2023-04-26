@@ -82,8 +82,8 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
             aopContext.setUserContext(span.kind(SpanKind.CLIENT)
                                           .tag(Tags.CLIENT_TYPE, "okhttp3")
                                           .method(aopContext.getTargetClass().getName(), "execute")
-                                          .tag(Tags.HTTP_METHOD, request.method())
-                                          .tag(Tags.HTTP_URI, request.url().toString())
+                                          .tag(Tags.Http.METHOD, request.method())
+                                          .tag(Tags.Http.URL, request.url().toString())
                                           .start());
 
             // Propagate the tracing context if we can modify the header
@@ -111,18 +111,18 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
             //
             // Record configured response headers in tracing logs
             //
-            List<String> responseHeaders = traceConfig.getHeaders().getResponse();
-            if (!responseHeaders.isEmpty()) {
-                responseHeaders.forEach((name) -> {
-                    String value = response.header(name);
-                    if (StringUtils.hasText(value)) {
-                        span.tag("http.response.header." + name, value);
-                    }
-                });
-            }
-
+            final List<String> responseHeaders = traceConfig.getHeaders().getResponse();
             span.tag(aopContext.getException())
-                .tag(Tags.HTTP_STATUS, response.code())
+                .tag(Tags.Http.STATUS, response.code())
+                .configIfTrue(!responseHeaders.isEmpty(),
+                              (s) -> {
+                                  for (String name : responseHeaders) {
+                                      String value = response.header(name);
+                                      if (StringUtils.hasText(value)) {
+                                          s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + name.toLowerCase(Locale.ENGLISH), value);
+                                      }
+                                  }
+                              })
                 .finish();
         }
 

@@ -66,7 +66,7 @@ public class HttpChannel$OnCompleted extends AroundInterceptor {
         if (traceContext != null) {
             ITraceSpan span = traceContext.currentSpan();
             if (span != null) {
-                span.tag(Tags.HTTP_STATUS, Integer.toString(httpChannel.getResponse().getStatus())).finish();
+                span.tag(Tags.Http.STATUS, Integer.toString(httpChannel.getResponse().getStatus())).finish();
             }
             traceContext.finish();
         }

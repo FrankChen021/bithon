@@ -18,8 +18,10 @@ package org.bithon.agent.observability.tracing.context.impl;
 
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.component.commons.exception.ExceptionUtils;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.tracing.Tags;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -109,9 +111,11 @@ class TracingSpan implements ITraceSpan {
     }
 
     @Override
-    public TracingSpan tag(Throwable exception) {
-        if (exception != null) {
-            tags.put("exception", exception.toString());
+    public TracingSpan tag(Throwable throwable) {
+        if (throwable != null) {
+            tags.put(Tags.Exception.TYPE, throwable.getClass().getName());
+            tags.put(Tags.Exception.MESSAGE, throwable.getMessage());
+            tags.put(Tags.Exception.STACKTRACE, ExceptionUtils.getStackTrace(throwable));
         }
         return this;
     }
@@ -190,13 +194,13 @@ class TracingSpan implements ITraceSpan {
     @Override
     public String toString() {
         return "TraceSpan[name=" + this.component +
-               ", traceId=" + this.traceId() +
-               ", spanId=" + this.spanId +
-               ", parentId=" + this.parentSpanId +
-               ", clazz=" + this.clazz +
-               ", method=" + this.method +
-               ", kind=" + this.kind +
-               ", cost=" + (this.endTime - this.startTime) + "(micro seconds)" +
-               "]";
+                ", traceId=" + this.traceId() +
+                ", spanId=" + this.spanId +
+                ", parentId=" + this.parentSpanId +
+                ", clazz=" + this.clazz +
+                ", method=" + this.method +
+                ", kind=" + this.kind +
+                ", cost=" + (this.endTime - this.startTime) + "(micro seconds)" +
+                "]";
     }
 }

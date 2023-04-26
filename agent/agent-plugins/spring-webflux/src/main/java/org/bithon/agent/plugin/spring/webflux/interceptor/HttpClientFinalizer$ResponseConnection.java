@@ -69,7 +69,7 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
                 // tracing
                 final ITraceSpan httpClientSpan = httpClientContext.getSpan();
                 if (httpClientSpan != null) {
-                    httpClientSpan.tag(Tags.HTTP_STATUS, String.valueOf(httpClientResponse.status().code()))
+                    httpClientSpan.tag(Tags.Http.STATUS, String.valueOf(httpClientResponse.status().code()))
                                   .tag(Tags.HTTP_URI, uri)
                                   .finish();
                 }
@@ -118,7 +118,7 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
             final ITraceSpan httpClientSpan = httpClientContext.getSpan();
             if (httpClientSpan != null) {
                 if (statusCode != null) {
-                    httpClientSpan.tag(Tags.HTTP_STATUS, String.valueOf(statusCode));
+                    httpClientSpan.tag(Tags.Http.STATUS, String.valueOf(statusCode));
                 }
                 httpClientSpan.tag(throwable)
                               .tag(Tags.HTTP_URI, uri)
