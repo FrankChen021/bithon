@@ -145,4 +145,12 @@ public class Tags {
         public static final String KAFKA_CLIENT_ID = "messaging.kafka.client_id";
         public static final String KAFKA_SOURCE_PARTITION = "messaging.kafka.source.partition";
     }
+
+    /**
+     * https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/span-general/#general-thread-attributes
+     */
+    public static class Thread {
+        public static final String ID = "thread.id";
+        public static final String NAME = "thread.name";
+    }
 }

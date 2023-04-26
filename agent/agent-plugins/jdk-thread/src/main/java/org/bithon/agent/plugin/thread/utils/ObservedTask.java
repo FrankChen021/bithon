@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.thread.utils;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
+import org.bithon.component.commons.tracing.Tags;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -74,8 +75,8 @@ public class ObservedTask implements Runnable {
         } finally {
             // Set the thread at the end because the thread name might be updated in the users' runnable
             Thread currentThread = Thread.currentThread();
-            taskSpan.tag("thread.name", currentThread.getName())
-                    .tag("thread.id", currentThread.getId())
+            taskSpan.tag(Tags.Thread.NAME, currentThread.getName())
+                    .tag(Tags.Thread.ID, currentThread.getId())
                     .tag(exception)
                     .finish();
             taskSpan.context().finish();
