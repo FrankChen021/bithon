@@ -41,7 +41,7 @@ public class SqlLifecycle$Initialize extends BeforeInterceptor {
             if (query != null && !ctx.currentSpan().tags().containsKey("query")) {
                 ctx.currentSpan()
                    .tag("query_id", context == null ? null : (String) context.getOrDefault("queryId", null))
-                   .tag(Tags.SQL, query.toString());
+                   .tag(Tags.Database.STATEMENT, query.toString());
             }
         }
     }

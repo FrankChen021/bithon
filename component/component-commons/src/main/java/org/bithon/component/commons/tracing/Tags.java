@@ -53,7 +53,7 @@ public class Tags {
         public static final String ROUTE = "http.route";
 
         /**
-         * The full request target as passed in a HTTP request line or equivalent.
+         * The full request target as passed in an HTTP request line or equivalent.
          */
         public static final String TARGET = "http.target";
 
@@ -68,12 +68,10 @@ public class Tags {
         public static final String PEER_PORT = "net.sock.peer.port";
     }
 
-    public static final String SQL = "sql";
-
     /**
-     *  redis://127.0.0.1:6379
-     *  mongodb://127.0.0.1:8000
-     *  mysql://127.0.0.1:3309
+     * redis://127.0.0.1:6379
+     * mongodb://127.0.0.1:8000
+     * mysql://127.0.0.1:3309
      */
     public static final String REMOTE_TARGET = "target";
 
@@ -91,5 +89,41 @@ public class Tags {
          * The dynamic type of the exception should be preferred over the static type in languages that support it.
          */
         public static final String TYPE = "exception.type";
+    }
+
+    /**
+     * https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/database/#connection-level-attributes
+     */
+    public static class Database {
+        public static final String PREFIX = "db.";
+
+        /**
+         * The name of database, such as mysql, db2, sqlite, etc.
+         * <p>
+         * Connection level
+         */
+        public static final String SYSTEM = "db.system";
+
+        public static final String CONNECTION_STRING = "db.connection_string";
+
+        public static final String USER = "db.user";
+
+        /**
+         * database name
+         */
+        public static final String NAME = "db.name";
+
+        /**
+         * The statement(SQL) that is being executed
+         */
+        public static final String STATEMENT = "db.statement";
+
+        /**
+         * The type of statement such as select/delete/update
+         */
+        public static final String OPERATION = "db.operation";
+
+        public static final String REDIS_DB_INDEX = "db.redis.database_index";
+        public static final String MONGODB_DB_COLLECTION = "db.mongodb.collection";
     }
 }
