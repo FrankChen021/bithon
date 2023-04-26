@@ -28,6 +28,7 @@ import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.agent.plugin.apache.kafka.producer.KafkaProducerTracingConfig;
 import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.nio.ByteBuffer;
@@ -73,9 +74,9 @@ public class KafkaProducer$DoSend extends AroundInterceptor {
         aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                       .kind(SpanKind.PRODUCER)
                                       .tag("uri", "kafka://" + cluster)
-                                      .tag("kafka.topic", record.topic())
-                                      .tag("kafka.partition", record.partition())
-                                      .tag("kafka.messageSize", size)
+                                      .tag(Tags.Messaging.KAFKA_TOPIC, record.topic())
+                                      .tag(Tags.Messaging.KAFKA_SOURCE_PARTITION, record.partition())
+                                      .tag(Tags.Messaging.BYTES, size)
                                       .start());
 
         return InterceptionDecision.CONTINUE;

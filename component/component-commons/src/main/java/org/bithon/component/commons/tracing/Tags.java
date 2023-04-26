@@ -126,4 +126,23 @@ public class Tags {
         public static final String REDIS_DB_INDEX = "db.redis.database_index";
         public static final String MONGODB_DB_COLLECTION = "db.mongodb.collection";
     }
+
+    /**
+     * https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/messaging/
+     */
+    public static class Messaging {
+        public static final String SYSTEM = "messaging.system";
+        public static final String COUNT = "messaging.batch.message_count";
+        public static final String BYTES = "messaging.message.payload_size_bytes";
+
+        /**
+         * This is custom tag name
+         * The spec uses different tag name for producer and consumer, it's complicated.
+         */
+        public static final String KAFKA_TOPIC = "messaging.kafka.topic";
+
+        public static final String KAFKA_CONSUMER_GROUP = "messaging.kafka.consumer.group";
+        public static final String KAFKA_CLIENT_ID = "messaging.kafka.client_id";
+        public static final String KAFKA_SOURCE_PARTITION = "messaging.kafka.source.partition";
+    }
 }
