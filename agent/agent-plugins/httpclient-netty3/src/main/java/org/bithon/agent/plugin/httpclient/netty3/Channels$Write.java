@@ -108,7 +108,7 @@ public class Channels$Write extends AroundInterceptor {
             //
             if (span != null) {
                 span.tag(channelFuture.getCause())
-                    .tag(Tags.HTTP_URI, uri)
+                    .tag(Tags.Http.URL, uri)
                     .finish();
                 span.context().finish();
             }

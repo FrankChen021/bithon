@@ -70,7 +70,7 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
                 final ITraceSpan httpClientSpan = httpClientContext.getSpan();
                 if (httpClientSpan != null) {
                     httpClientSpan.tag(Tags.Http.STATUS, String.valueOf(httpClientResponse.status().code()))
-                                  .tag(Tags.HTTP_URI, uri)
+                                  .tag(Tags.Http.URL, uri)
                                   .finish();
                 }
 
@@ -121,7 +121,7 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
                     httpClientSpan.tag(Tags.Http.STATUS, String.valueOf(statusCode));
                 }
                 httpClientSpan.tag(throwable)
-                              .tag(Tags.HTTP_URI, uri)
+                              .tag(Tags.Http.URL, uri)
                               .finish();
             }
 
@@ -144,7 +144,7 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
             final ITraceSpan httpClientSpan = httpClientContext.getSpan();
             if (httpClientSpan != null) {
                 httpClientSpan.tag("exception", "Timeout")
-                              .tag(Tags.HTTP_URI, uri)
+                              .tag(Tags.Http.URL, uri)
                               .finish();
             }
 
