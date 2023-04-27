@@ -25,4 +25,4 @@ bithon:
             parameters: ["query_id"]
         - type: name
           args:
-            names: ["query_id"]
+            names: ["query_id", "clickhouse.query_id"]
