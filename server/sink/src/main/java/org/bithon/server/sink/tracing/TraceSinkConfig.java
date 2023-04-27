@@ -24,6 +24,7 @@ import org.bithon.server.sink.tracing.mapping.TraceIdMappingConfig;
 import org.bithon.server.sink.tracing.sanitization.SanitizerConfig;
 import org.bithon.server.storage.datasource.input.filter.AndFilter;
 import org.bithon.server.storage.datasource.input.filter.IInputRowFilter;
+import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -41,6 +42,9 @@ import java.util.Map;
 @Configuration(proxyBeanMethods = false)
 @ConfigurationProperties(prefix = "bithon.sinks.tracing")
 public class TraceSinkConfig {
+
+    private List<Map<String, String>> transformers;
+
     /**
      * Map<String, String>
      * key: prop name
@@ -71,5 +75,29 @@ public class TraceSinkConfig {
             }
         }
         return filterList.isEmpty() ? null : new AndFilter(filterList);
+    }
+
+    @Nullable
+    public ITransformer createTransformers(ObjectMapper om) {
+        if (CollectionUtils.isEmpty(transformers)) {
+            return null;
+        }
+
+        final List<ITransformer> transformerList = new ArrayList<>(transformers.size());
+        for (Map<String, String> transformer : transformers) {
+            try {
+                transformerList.add(om.readValue(om.writeValueAsBytes(transformer), ITransformer.class));
+            } catch (IOException ignored) {
+            }
+        }
+        if (transformerList.isEmpty()) {
+            return null;
+        }
+
+        return inputRow -> {
+            for (ITransformer transformer : transformerList) {
+                transformer.transform(inputRow);
+            }
+        };
     }
 }

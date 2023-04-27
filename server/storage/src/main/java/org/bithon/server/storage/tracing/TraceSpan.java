@@ -57,6 +57,11 @@ public class TraceSpan implements IInputRow {
 
     public String appName;
     public String instanceName;
+    /**
+     * -1 - Unspecified
+     *  0 - Java
+     */
+    public int appType = -1;
     public String traceId;
     public String spanId;
     public String kind;
