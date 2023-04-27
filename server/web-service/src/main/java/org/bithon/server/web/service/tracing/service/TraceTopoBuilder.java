@@ -144,7 +144,11 @@ public class TraceTopoBuilder {
         user.setAppName("user");
         for (TraceSpan root : spans) {
             if ("SERVER".equals(root.kind)) {
-                String userAgent = root.getTag("http.header.User-Agent");
+                String userAgent = root.getTag(Tags.Http.REQUEST_HEADER_PREFIX + "user-agent");
+                if (StringUtils.isEmpty(userAgent)) {
+                    // Compatible with old tags
+                    userAgent = root.getTag("http.header.User-Agent");
+                }
                 if (StringUtils.hasText(userAgent)) {
                     // Use the user agent as the name of the USER node
                     user.setAppName(userAgent);
@@ -190,9 +194,9 @@ public class TraceTopoBuilder {
         for (TraceSpanBo childSpan : (List<TraceSpanBo>) childSpans) {
 
             if (parentSpan.getAppName().equals(childSpan.getAppName())
-                && Objects.equals(parentSpan.getInstanceName(), childSpan.getInstanceName())
-                && !SpanKind.SERVER.name().equals(childSpan.getKind())
-                && !SpanKind.CONSUMER.name().equals(childSpan.getKind())) {
+                    && Objects.equals(parentSpan.getInstanceName(), childSpan.getInstanceName())
+                    && !SpanKind.SERVER.name().equals(childSpan.getKind())
+                    && !SpanKind.CONSUMER.name().equals(childSpan.getKind())) {
                 // The instance of childSpan is the same as the parentSpan,
                 // no need to create a link, but just recursively search next level,
                 //
