@@ -95,12 +95,19 @@ public class TraceSpanTransformer implements ITransformer {
         }
 
         // Normalize URL
-        if (SpanKind.CLIENT.name().equals(span.getKind())) {
+        if (SpanKind.CLIENT.name().equals(span.getKind()) && "httpclient".equals(span.getName())) {
             // For the http.uri tag, if it's from the HttpClient, get the path only to normalize
             try {
                 URL url = new URL(uri);
-                uri = url.getPath();
+                String path = url.getPath();
+                String query = url.getQuery();
 
+                tags.remove(Tags.Http.URL);
+                tags.put(Tags.Http.TARGET, query == null ? path : (path + "?" + query));
+                tags.put(Tags.Net.PEER, url.getHost() + ":" + url.getPort());
+
+                // Use the path to normalize
+                uri = path;
             } catch (MalformedURLException ignored) {
             }
         }
