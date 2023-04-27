@@ -69,7 +69,7 @@ public class HttpRequestExecutor$Execute extends AroundInterceptor {
         // create a span and save it in user-context
         aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
-                                      .tag(Tags.CLIENT_TYPE, "apache")
+                                      .tag(Tags.Http.CLIENT, "apache")
                                       .tag(Tags.Http.URL, uri)
                                       .tag(Tags.Http.METHOD, httpRequest.getRequestLine().getMethod())
                                       .propagate(httpRequest, HttpMessage::setHeader)

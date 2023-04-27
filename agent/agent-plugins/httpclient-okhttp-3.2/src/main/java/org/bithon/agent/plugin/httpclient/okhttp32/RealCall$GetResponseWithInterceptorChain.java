@@ -80,7 +80,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
         ITraceSpan span = TraceSpanFactory.newSpan("httpclient");
         if (span != null) {
             aopContext.setUserContext(span.kind(SpanKind.CLIENT)
-                                          .tag(Tags.CLIENT_TYPE, "okhttp3")
+                                          .tag(Tags.Http.CLIENT, "okhttp3")
                                           .method(aopContext.getTargetClass().getName(), "execute")
                                           .tag(Tags.Http.METHOD, request.method())
                                           .tag(Tags.Http.URL, request.url().toString())

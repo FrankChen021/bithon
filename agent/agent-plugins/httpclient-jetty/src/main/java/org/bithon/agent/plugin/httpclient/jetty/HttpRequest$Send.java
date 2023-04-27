@@ -56,7 +56,7 @@ public class HttpRequest$Send extends BeforeInterceptor {
         if (span != null) {
             span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)
-                .tag(Tags.CLIENT_TYPE, "jetty")
+                .tag(Tags.Http.CLIENT, "jetty")
                 .tag(Tags.Http.URL, httpRequest.getURI().toString())
                 .tag(Tags.Http.METHOD, httpRequest.getMethod())
                 .propagate(httpRequest.getHeaders(), HttpFields::put)

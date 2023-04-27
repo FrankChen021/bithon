@@ -51,7 +51,7 @@ public class HttpClient$WriteRequests extends BeforeInterceptor {
          */
         span.method(aopContext.getTargetClass(), aopContext.getMethod())
             .kind(SpanKind.CLIENT)
-            .tag(Tags.CLIENT_TYPE, "jdk")
+            .tag(Tags.Http.CLIENT, "jdk")
             .tag(Tags.Http.URL, clientContext.getUrl())
             .tag(Tags.Http.METHOD, clientContext.getMethod())
             .propagate(headers, MessageHeader::set)

@@ -29,6 +29,7 @@ import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.tracing.Tags;
 
 /**
  * @author Frank Chen
@@ -54,7 +55,7 @@ public class ClientCallInterceptor implements ClientInterceptor {
         }
 
         span.method(ClientInterceptor.class.getName(), "interceptCall")
-            .tag("remote.address", this.target)
+            .tag(Tags.Net.PEER, this.target)
             .kind(SpanKind.CLIENT)
             .start();
 

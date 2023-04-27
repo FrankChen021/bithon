@@ -79,7 +79,7 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
         if (span != null) {
             span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)
-                .tag("db", connectionString)
+                .tag(Tags.Database.CONNECTION_STRING, connectionString)
                 .start();
         }
 

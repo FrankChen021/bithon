@@ -69,7 +69,7 @@ public class HttpChannel$Handle extends AroundInterceptor {
 
                 traceContext.currentSpan()
                             .component("jetty")
-                            .tag(Tags.Net.PEER_ADDR, request.getRemoteAddr())
+                            .tag(Tags.Net.PEER_ADDR, request.getRemoteAddr() + ":" + request.getRemotePort())
                             .tag(Tags.Http.URL, request.getRequestURI())
                             .tag(Tags.Http.METHOD, request.getMethod())
                             .tag(Tags.Http.VERSION, request.getHttpVersion().toString())

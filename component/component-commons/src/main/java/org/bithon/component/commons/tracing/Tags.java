@@ -25,6 +25,12 @@ public class Tags {
      * https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/http/#common-attributes
      */
     public static class Http {
+        /**
+         * Non-standard name
+         * The type name of http client
+         */
+        public static final String CLIENT = "http.client";
+
         public static final String VERSION = "http.version";
 
         public static final String METHOD = "http.method";
@@ -64,8 +70,16 @@ public class Tags {
 
     public static class Net {
         public static final String VERSION = "net.protocol.version";
+
+        /**
+         * Not an OpenTelemetry standard, it's net.peer.name + net.peer.port
+         */
+        public static final String PEER = "net.peer";
+
+        public static final String PEER_NAME = "net.peer.name";
+        public static final String PEER_PORT = "net.peer.port";
+
         public static final String PEER_ADDR = "net.sock.peer.addr";
-        public static final String PEER_PORT = "net.sock.peer.port";
     }
 
     /**
@@ -74,8 +88,6 @@ public class Tags {
      * mysql://127.0.0.1:3309
      */
     public static final String REMOTE_TARGET = "target";
-
-    public static final String CLIENT_TYPE = "client.type";
 
     /**
      * See <a href="https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/exceptions/">Exception</a>
@@ -125,6 +137,9 @@ public class Tags {
 
         public static final String REDIS_DB_INDEX = "db.redis.database_index";
         public static final String MONGODB_DB_COLLECTION = "db.mongodb.collection";
+
+        // Non standard
+        public static final String MONGODB_DB_COMMAND = "db.mongodb.command";
     }
 
     /**
