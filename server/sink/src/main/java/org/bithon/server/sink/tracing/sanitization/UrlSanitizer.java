@@ -18,6 +18,7 @@ package org.bithon.server.sink.tracing.sanitization;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.tracing.TraceSpan;
 
@@ -25,11 +26,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The tracing at the agent side will catch information from the uri and user specified header.
+ * The tracing at the agent side will catch information from the uri and user-specified header.
  * But there might be some sensitive information in the information above for some specific applications
  * <p>
  * So, this class is used to sanitize the sensitive information according to user's configuration.
@@ -67,7 +67,7 @@ public class UrlSanitizer implements ISanitizer {
         }
 
         // write back the query parameters to uri
-        String uriText = span.getTag("http.uri");
+        String uriText = span.getTag(Tags.Http.URL);
         if (StringUtils.isBlank(uriText)) {
             // compatibility
             uriText = span.getTag("uri");
@@ -97,14 +97,8 @@ public class UrlSanitizer implements ISanitizer {
                                    uri.getFragment());
 
             // for backward compatibility
-            if (span.getTags().containsKey("uri")) {
-                // original tag is unmodifiable
-                Map<String, String> newTags = new HashMap<>(span.getTags());
-                newTags.remove("uri");
-                span.setTags(newTags);
-            }
-
-            span.setTag("http.uri", modified.toString());
+            span.getTags().remove("uri");
+            span.setTag(Tags.Http.URL, modified.toString());
         } catch (URISyntaxException ignored) {
         }
     }

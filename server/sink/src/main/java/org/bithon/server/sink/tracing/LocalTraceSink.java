@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.sink.common.service.UriNormalizer;
 import org.bithon.server.sink.tracing.transform.TraceSpanTransformer;
 import org.bithon.server.storage.datasource.input.IInputRow;
@@ -75,6 +76,7 @@ public class LocalTraceSink implements ITraceMessageSink {
          * There are too many spans, suppress exception logs to avoid too many logs
          */
         private long lastLogTimestamp = System.currentTimeMillis();
+        private String lastException;
 
         ExceptionSafeTransformer(ITransformer delegate) {
             this.delegate = delegate;
@@ -86,10 +88,15 @@ public class LocalTraceSink implements ITraceMessageSink {
                 delegate.transform(inputRow);
             } catch (Exception e) {
                 long now = System.currentTimeMillis();
-                if (now - lastLogTimestamp >= 5_000) {
-                    lastLogTimestamp = now;
-                    log.error("Fail to transform span [{}], message: {}", inputRow, e.getMessage());
+                if (now - lastLogTimestamp < 5_000) {
+                    return;
                 }
+
+                log.error(StringUtils.format("Fail to transform, message [%s], Span [%s]", e.getMessage(), inputRow),
+                          e.getClass().getName().equals(this.lastException) ? null : e);
+
+                this.lastLogTimestamp = now;
+                this.lastException = e.getClass().getName();
             }
         }
     }
