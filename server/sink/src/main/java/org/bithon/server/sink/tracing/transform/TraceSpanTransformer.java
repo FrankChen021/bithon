@@ -19,6 +19,7 @@ package org.bithon.server.sink.tracing.transform;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.sink.common.service.UriNormalizer;
@@ -28,6 +29,8 @@ import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.util.CollectionUtils;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Map;
 
 /**
@@ -54,13 +57,14 @@ public class TraceSpanTransformer implements ITransformer {
         transformIntoJavaStyleMethod(span);
         transformClickHouseSpans(span);
 
-        //
-        // standardize tag names
-        //
         Map<String, String> tags = span.getTags();
         if (CollectionUtils.isEmpty(tags)) {
             return;
         }
+
+        //
+        // Standardize tag names
+        //
         String httpStatus = tags.remove("clickhouse.http_status");
         if (httpStatus != null) {
             tags.put(Tags.Http.STATUS, httpStatus);
@@ -77,7 +81,10 @@ public class TraceSpanTransformer implements ITransformer {
             status = tags.getOrDefault("status", "");
         }
         if ("".equals(status)) {
-            status = tags.containsKey("exception") ? "500" : "200";
+            status = tags.containsKey("exception")
+                    || tags.containsKey(Tags.Exception.MESSAGE)
+                    || tags.containsKey(Tags.Exception.STACKTRACE)
+                    || tags.containsKey(Tags.Exception.TYPE) ? "500" : "200";
         }
         span.setStatus(status);
 
@@ -88,6 +95,15 @@ public class TraceSpanTransformer implements ITransformer {
         }
 
         // Normalize URL
+        if (SpanKind.CLIENT.name().equals(span.getKind())) {
+            // For the http.uri tag, if it's from the HttpClient, get the path only to normalize
+            try {
+                URL url = new URL(uri);
+                uri = url.getPath();
+
+            } catch (MalformedURLException ignored) {
+            }
+        }
         span.setNormalizedUri(normalizer.normalize(span.getAppName(), uri).getUri());
     }
 
