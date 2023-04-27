@@ -48,7 +48,7 @@ you can cherry-pick these PRs to your own branch.
    </opentelemetry_span_log>
    ```
 
-   > NOTE: You can change the TTL setting according to your own case. But since the records in this table will be exported via URL engine as below, the TTL in above example is long enough.   
+   > NOTE: You can change the TTL setting according to your own case. But since the records in this table will be exported via URL engine as below, the TTL in the above example is long enough.   
 
 3. create a materialized view to export span logs from ClickHouse to Bithon
    
@@ -87,6 +87,6 @@ you can cherry-pick these PRs to your own branch.
 > if `appName` field is not 'clickhouse', you should configure the application name to bithon-server under 
 > `collector-http.tracing.clickHouseApplications` path.
 > 
-> The above example creates the MV under `system` database, this is not mandate, you can change it to any database.
+> The above example creates the MV under `system` database, this is not mandatory, you can change it to any database.
 > 
 > If the compression is enabled for the URL engine(the 'gzip' parameter), make sure your ClickHouse contains this PR: [Fix compression support in URL engine](https://github.com/ClickHouse/ClickHouse/pull/34524). 

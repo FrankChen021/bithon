@@ -179,8 +179,8 @@ public class BrpcMessageConverter implements IMessageConverter {
             try {
                 BrpcGenericMeasurement.Builder measurement = BrpcGenericMeasurement.newBuilder();
                 // although dimensions are defined as List<String>
-                // but it could also store Object
-                // we use Object.toString here to get right value
+                // but it could also store an object,
+                // we use Object.toString here to get the right value
                 for (Object dimension : metricSet.getDimensions()) {
                     measurement.addDimension(dimension.toString());
                 }
@@ -212,8 +212,8 @@ public class BrpcMessageConverter implements IMessageConverter {
             try {
                 BrpcGenericMeasurement.Builder measurementBuilder = BrpcGenericMeasurement.newBuilder();
                 // although dimensions are defined as List<String>
-                // but it could also store Object
-                // we use Object.toString here to get right value
+                // but it could also store Object,
+                // we use Object.toString here to get the right value
                 for (Object dimension : measurement.getDimensions()) {
                     measurementBuilder.addDimension(dimension == null ? "" : dimension.toString());
                 }
