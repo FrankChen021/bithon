@@ -21,5 +21,5 @@ package org.bithon.server.storage.common;
  * @date 2023/4/26 22:48
  */
 public class ApplicationType {
-    public final static int JAVA = 0;
+    public static final int JAVA = 0;
 }
