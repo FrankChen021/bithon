@@ -22,7 +22,6 @@ import lombok.Getter;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
-import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -50,25 +49,9 @@ public class SplitterTransformer implements ITransformer {
                                @JsonProperty("splitter") String splitter,
                                @JsonProperty("names") String... names) {
         this.field = Preconditions.checkArgumentNotNull("field", field);
-
-        int dotSeparatorIndex = this.field.indexOf('.');
-        if (dotSeparatorIndex >= 0) {
-            final String container = this.field.substring(0, dotSeparatorIndex);
-            final String nested = this.field.substring(dotSeparatorIndex + 1);
-            valueExtractor = inputRow -> {
-                Object v = inputRow.getCol(container);
-                if (v instanceof Map) {
-                    Object nestValue = ((Map<?, ?>) v).get(nested);
-                    return nestValue == null ? null : nestValue.toString();
-                }
-                return null;
-            };
-        } else {
-            valueExtractor = inputRow -> inputRow.getColAsString(field);
-        }
-
-        this.names = names;
         this.splitter = Preconditions.checkArgumentNotNull("splitter", splitter);
+        this.names = names;
+        this.valueExtractor = InputRowAccessorFactory.createGetter(this.field);
     }
 
     @Override
