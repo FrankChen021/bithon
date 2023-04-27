@@ -35,6 +35,7 @@ import org.bithon.server.commons.matcher.StringRegexMatcher;
 import org.bithon.server.commons.matcher.StringStartsWithMatcher;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.IColumnSpec;
+import org.bithon.server.storage.datasource.typing.IValueType;
 import org.bithon.server.storage.datasource.typing.StringValueType;
 import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
@@ -50,11 +51,12 @@ import java.util.stream.Stream;
  */
 public class SQLFilterBuilder implements IMatcherVisitor<String> {
 
-    private final DataSourceSchema schema;
+    private final String tableName;
     private final String fieldName;
-    private final IColumnSpec columnSpec;
+    private final IValueType valueType;
 
     public SQLFilterBuilder(DataSourceSchema schema, IFilter filter) {
+        IColumnSpec columnSpec;
         if (IFilter.TYPE_DIMENSION.equals(filter.getType())) {
             String nameType = ((DimensionFilter) filter).getNameType();
             if ("name".equals(nameType)) {
@@ -73,7 +75,14 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
 
             this.fieldName = filter.getName();
         }
-        this.schema = schema;
+        this.valueType = columnSpec.getValueType();
+        this.tableName = "bithon_" + schema.getName().replaceAll("-", "_");
+    }
+
+    public SQLFilterBuilder(String table, String fieldName, IValueType valueType) {
+        this.valueType = valueType;
+        this.fieldName = fieldName;
+        this.tableName = table;
     }
 
     public static String build(DataSourceSchema schema, Collection<IFilter> filters) {
@@ -158,10 +167,8 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
      */
     @Override
     public String visit(GreaterThanMatcher matcher) {
-        String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
-
         String pattern;
-        if (columnSpec.getValueType() instanceof StringValueType) {
+        if (valueType instanceof StringValueType) {
             pattern = "\"%s\".\"%s\" > '%s'";
         } else {
             pattern = "\"%s\".\"%s\" > %s";
@@ -171,10 +178,8 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
 
     @Override
     public String visit(GreaterThanOrEqualMatcher matcher) {
-        String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
-
         String pattern;
-        if (columnSpec.getValueType() instanceof StringValueType) {
+        if (valueType instanceof StringValueType) {
             pattern = "\"%s\".\"%s\" >= '%s'";
         } else {
             pattern = "\"%s\".\"%s\" >= %s";
@@ -184,13 +189,11 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
 
     @Override
     public String visit(LessThanMatcher matcher) {
-        String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
         return StringUtils.format("\"%s\".\"%s\" < %s", tableName, fieldName, matcher.getValue().toString());
     }
 
     @Override
     public String visit(LessThanOrEqualMatcher matcher) {
-        String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
         return StringUtils.format("\"%s\".\"%s\" <= %s", tableName, fieldName, matcher.getValue().toString());
     }
 }

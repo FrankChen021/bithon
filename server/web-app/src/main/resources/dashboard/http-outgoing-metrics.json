@@ -22,7 +22,8 @@
           "method",
           "path",
           "statusCode",
-          "qps"
+          "qps",
+          "requestCount"
         ],
         "query": {
           "type": "timeseries",
@@ -32,12 +33,20 @@
             "method",
             "path",
             "statusCode",
-            "qps"
+            "qps",
+            "requestCount"
           ],
           "orderBy": {
             "name": "qps",
             "order": "desc"
           }
+        },
+        "tracing": {
+          "dimensionMaps": {
+            "path": "url",
+            "statusCode": "status"
+          },
+          "more": "name= 'httpclient' AND kind = 'CLIENT'"
         }
       }
     },

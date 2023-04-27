@@ -4,6 +4,7 @@ class TracePage {
         this.mQueryParams = queryParams;
         this.mInterval = null;
         this.metricFilters = [];
+        this.moreFilter = '';
 
         // View
         this.vChartComponent = new ChartComponent({
@@ -45,7 +46,7 @@ class TracePage {
             // reset the metric filter
             this.metricFilters = [];
 
-            // get new interval
+            // get a new interval
             this.mInterval = this.vIntervalSelector.getInterval();
 
             // refresh the page
@@ -76,7 +77,15 @@ class TracePage {
             }
         );
 
-        // Model
+        //
+        // Process additional tags filter
+        this.moreFilter = window.queryParams['more'];
+        if (this.moreFilter !== undefined && this.moreFilter !== '') {
+            this.moreFilter = atob(this.moreFilter);
+        }
+        $("#filter-input").val(this.moreFilter);
+
+        // Model for distribution chart
         this.columns = {
             "minResponse": {chartType: 'line', fill: false, yAxis: 0, formatter: (v) => microFormat(v, 2)},
             "maxResponse": {chartType: 'line', fill: false, yAxis: 0, formatter: (v) => microFormat(v, 2)},
@@ -98,7 +107,6 @@ class TracePage {
     }
 
     #refreshPage() {
-        //
         // refresh the list
         //
         this.vTraceList.refresh();
@@ -116,7 +124,8 @@ class TracePage {
             ajaxData: JSON.stringify({
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                filters: this.#getFilters()
+                filters: this.#getFilters(),
+                expression: this.moreFilter
             }),
             processResult: (data) => {
                 this._data = data;
@@ -225,7 +234,7 @@ class TracePage {
                         const formatter = this.columns[s.seriesName].formatter;
                         const text = formatter === undefined ? s.data : formatter(s.data);
                         //Concat the tooltip
-                        //marker can be seen as the style of legend of this series
+                        //marker can be seen as the style of this series's legend
                         tooltip += `<br />${s.marker}${s.seriesName}: ${text}`;
                     });
                     return tooltip;

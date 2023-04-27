@@ -41,6 +41,11 @@ public class GetTraceDistributionRequest {
     @NotNull
     private List<IFilter> filters = Collections.emptyList();
 
+    /**
+     * Filter expression
+     */
+    private String expression;
+
     @Min(30)
     @Max(60)
     private int bucketCount = 30;

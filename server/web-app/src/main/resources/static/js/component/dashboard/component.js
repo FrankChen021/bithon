@@ -410,7 +410,8 @@ class Dashboard {
      *          "0":    ["status", "200"],
      *          "default": "tags.clickhouse.exceptionCode"
      *        }
-     *      }
+     *      },
+     *      "more": "name = 'httpclient' AND kind = 'CLIENT'"
      *    }
      *  }
      */
@@ -463,6 +464,10 @@ class Dashboard {
                 }
             }
         });
+
+        if (tracingSpec.more !== undefined) {
+            url += '&more=' + btoa(tracingSpec.more);
+        }
 
         window.open(url);
     }

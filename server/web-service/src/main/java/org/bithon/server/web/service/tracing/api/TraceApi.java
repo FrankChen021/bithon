@@ -82,6 +82,7 @@ public class TraceApi {
     @PostMapping("/api/trace/getTraceDistribution")
     public TimeSeriesQueryResult getTraceDistribution(@Valid @RequestBody GetTraceDistributionRequest request) {
         return traceService.getTraceDistribution(request.getFilters(),
+                                                 request.getExpression(),
                                                  TimeSpan.fromISO8601(request.getStartTimeISO8601()),
                                                  TimeSpan.fromISO8601(request.getEndTimeISO8601()),
                                                  request.getBucketCount());

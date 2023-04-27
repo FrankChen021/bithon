@@ -16,7 +16,16 @@
 
 package org.bithon.server.web.service.tracing.service;
 
+import org.bithon.component.commons.expression.BinaryExpression;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.common.expression.FilterExpressionASTFactory;
+import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceStorage;
@@ -64,7 +73,8 @@ public class TraceService {
      * 1. The minimal length of each bucket is 1 minute
      *
      * <p>
-     * @param bucketCount the count of buckets
+     *
+     * @param bucketCount    the count of buckets
      * @param startTimestamp in millisecond
      * @param endTimestamp   in millisecond
      * @return the length of a bucket in second
@@ -178,9 +188,68 @@ public class TraceService {
     }
 
     public TimeSeriesQueryResult getTraceDistribution(List<IFilter> filters,
+                                                      String filterExpression,
                                                       TimeSpan start,
                                                       TimeSpan end,
                                                       int bucketCount) {
+        if (StringUtils.hasText(filterExpression)) {
+            IExpression expressionAST = FilterExpressionASTFactory.create(filterExpression);
+            expressionAST.accept(new IExpressionVisitor<Void>() {
+                @Override
+                public Void visit(LogicalExpression expression) {
+                    if (expression instanceof LogicalExpression.OR) {
+                        throw new UnsupportedOperationException("OR operator is not supported now.");
+                    }
+                    for (IExpression operand : expression.getOperands()) {
+                        operand.accept(this);
+                    }
+                    return null;
+                }
+
+                @Override
+                public Void visit(BinaryExpression.EQ expression) {
+                    IExpression left = expression.getLeft();
+                    if (!(left instanceof IdentifierExpression)) {
+                        throw new UnsupportedOperationException("Expression at left side must be a field");
+                    }
+
+                    IExpression right = expression.getRight();
+                    if (!(right instanceof LiteralExpression)) {
+                        throw new UnsupportedOperationException("Expression at right side must be a constant");
+                    }
+
+                    filters.add(new DimensionFilter(((IdentifierExpression) left).getIdentifier(),
+                                                    new StringEqualMatcher((String) ((LiteralExpression) right).getValue())));
+                    return null;
+                }
+
+                @Override
+                public Void visit(BinaryExpression.GT expression) {
+                    return IExpressionVisitor.super.visit(expression);
+                }
+
+                @Override
+                public Void visit(BinaryExpression.GTE expression) {
+                    return IExpressionVisitor.super.visit(expression);
+                }
+
+                @Override
+                public Void visit(BinaryExpression.LT expression) {
+                    return IExpressionVisitor.super.visit(expression);
+                }
+
+                @Override
+                public Void visit(BinaryExpression.LTE expression) {
+                    return IExpressionVisitor.super.visit(expression);
+                }
+
+                @Override
+                public Void visit(BinaryExpression.NE expression) {
+                    return IExpressionVisitor.super.visit(expression);
+                }
+            });
+        }
+
         int bucketInSecond = getTimeBucket(start.getMilliseconds(), end.getMilliseconds(), bucketCount).length;
         List<Map<String, Object>> dataPoints = traceReader.getTraceDistribution(filters,
                                                                                 start.toTimestamp(),
