@@ -19,6 +19,8 @@ package org.bithon.server.storage.datasource.input.flatten;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.component.commons.utils.ReflectionUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 import java.util.Map;
@@ -51,32 +53,38 @@ public class TreePathFlattener implements IFlattener {
                              @JsonProperty("nodes") String[] nodes) {
         this.field = field;
         this.nodes = path == null ? nodes : path.split("\\.");
+        Preconditions.checkIfTrue(this.nodes != null && this.nodes.length > 0, "nodes can't be empty");
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
     public void flatten(IInputRow inputRow) {
         Object obj = inputRow.getCol(nodes[0]);
-        if (!(obj instanceof Map)) {
-            // error
+        if (obj == null) {
             return;
         }
 
         if (nodes.length > 1) {
-            Map map = (Map) obj;
             for (int i = 1; i < nodes.length - 1; i++) {
-                obj = map.get(nodes[i]);
-                if (!(obj instanceof Map)) {
+                String prop = nodes[i];
+                obj = getValue(obj, prop);
+                if (obj == null) {
                     return;
                 }
-                map = (Map) obj;
             }
 
-            obj = map.get(nodes[nodes.length - 1]);
+            obj = getValue(obj, nodes[nodes.length - 1]);
         }
 
         if (obj != null) {
             inputRow.updateColumn(field, obj);
+        }
+    }
+
+    private Object getValue(Object v, String property) {
+        if (v instanceof Map) {
+            return ((Map<?, ?>) v).get(property);
+        } else {
+            return ReflectionUtils.getFieldValue(v, property);
         }
     }
 }
