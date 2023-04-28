@@ -17,7 +17,6 @@
 package org.bithon.server.storage.datasource.input.flatten;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.input.IInputRow;
@@ -36,25 +35,22 @@ public class TreePathFlattener implements IFlattener {
     @Getter
     private final String field;
 
-    /**
-     * dot separated path such as a.b.c
-     */
-    @Getter
-    private final String path;
-
-    /**
-     * runtime property that holds the splitted {@link #path}
-     */
-    @JsonIgnore
     @Getter
     private final String[] nodes;
 
+    /**
+     * For test only
+     */
+    public TreePathFlattener(String field, String path) {
+        this(field, path, null);
+    }
+
     @JsonCreator
     public TreePathFlattener(@JsonProperty("field") String field,
-                             @JsonProperty("path") String path) {
+                             @JsonProperty("path") String path,
+                             @JsonProperty("nodes") String[] nodes) {
         this.field = field;
-        this.path = path;
-        this.nodes = path.split("\\.");
+        this.nodes = path == null ? nodes : path.split("\\.");
     }
 
     @SuppressWarnings("rawtypes")
