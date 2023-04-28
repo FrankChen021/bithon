@@ -73,10 +73,10 @@ public class TraceSpan implements IInputRow {
     public String appName;
     public String instanceName;
     /**
-     * -1 - Unspecified
-     * 0 - Java
+     * Unspecified
+     *  JAVA
      */
-    public int appType = -1;
+    public String appType = "Unspecified";
     public String traceId;
     public String spanId;
     public String kind;
@@ -126,21 +126,21 @@ public class TraceSpan implements IInputRow {
     @Override
     public String toString() {
         return "TraceSpan{" +
-                "appName='" + appName + '\'' +
-                ", instanceName='" + instanceName + '\'' +
-                ", traceId='" + traceId + '\'' +
-                ", spanId='" + spanId + '\'' +
-                ", kind='" + kind + '\'' +
-                ", parentSpanId='" + parentSpanId + '\'' +
-                ", parentApplication='" + parentApplication + '\'' +
-                ", tags=" + tags +
-                ", costTime=" + costTime +
-                ", startTime=" + startTime +
-                ", endTime=" + endTime +
-                ", name='" + name + '\'' +
-                ", clazz='" + clazz + '\'' +
-                ", method='" + method + '\'' +
-                '}';
+               "appName='" + appName + '\'' +
+               ", instanceName='" + instanceName + '\'' +
+               ", traceId='" + traceId + '\'' +
+               ", spanId='" + spanId + '\'' +
+               ", kind='" + kind + '\'' +
+               ", parentSpanId='" + parentSpanId + '\'' +
+               ", parentApplication='" + parentApplication + '\'' +
+               ", tags=" + tags +
+               ", costTime=" + costTime +
+               ", startTime=" + startTime +
+               ", endTime=" + endTime +
+               ", name='" + name + '\'' +
+               ", clazz='" + clazz + '\'' +
+               ", method='" + method + '\'' +
+               '}';
     }
 
     @Override

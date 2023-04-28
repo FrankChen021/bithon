@@ -115,7 +115,7 @@ public class TraceSpanTransformer implements ITransformer {
     }
 
     private void transformIntoJavaStyleMethod(TraceSpan span) {
-        if (span.appType == ApplicationType.JAVA) {
+        if (ApplicationType.JAVA.equals(span.appType)) {
             return;
         }
 

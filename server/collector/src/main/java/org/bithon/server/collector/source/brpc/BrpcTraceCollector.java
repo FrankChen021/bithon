@@ -60,7 +60,7 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
         TraceSpan traceSpan = new TraceSpan();
         traceSpan.setAppName(header.getAppName());
         traceSpan.setInstanceName(header.getInstanceName());
-        traceSpan.setAppType(header.getAppTypeValue());
+        traceSpan.setAppType(header.getAppType().name());
         traceSpan.setKind(spanBody.getKind());
         traceSpan.setName(spanBody.getName());
         traceSpan.setTraceId(spanBody.getTraceId());
