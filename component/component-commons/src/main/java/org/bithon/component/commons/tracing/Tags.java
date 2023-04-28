@@ -150,6 +150,7 @@ public class Tags {
         public static final String COUNT = "messaging.batch.message_count";
         public static final String BYTES = "messaging.message.payload_size_bytes";
 
+        public static final String KAFKA_HEADER_PREFIX = "message.kafka.header.";
         /**
          * This is custom tag name
          * The spec uses different tag name for producer and consumer, it's complicated.

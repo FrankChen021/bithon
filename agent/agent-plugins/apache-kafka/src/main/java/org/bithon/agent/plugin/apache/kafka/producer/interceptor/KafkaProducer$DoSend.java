@@ -55,7 +55,7 @@ public class KafkaProducer$DoSend extends AroundInterceptor {
         for (String key : tracingConfig.getHeaders()) {
             Header header = record.headers().lastHeader(key);
             if (header != null) {
-                span.tag("kafka.header." + key, new String(header.value(), StandardCharsets.UTF_8));
+                span.tag(Tags.Messaging.KAFKA_HEADER_PREFIX + key, new String(header.value(), StandardCharsets.UTF_8));
             }
         }
 
