@@ -14,9 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.input.transformer;
-
-import org.bithon.server.storage.datasource.input.IInputRow;
+package org.bithon.server.storage.datasource.input;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -27,22 +25,21 @@ import java.util.function.Function;
  * @date 2023/4/26 22:09
  */
 public class InputRowAccessorFactory {
-    public static Function<IInputRow, String> createGetter(String name) {
-        int dotSeparatorIndex = name.indexOf('.');
-        if (dotSeparatorIndex >= 0) {
-            final String container = name.substring(0, dotSeparatorIndex);
-            final String nested = name.substring(dotSeparatorIndex + 1);
-            return inputRow -> {
-                Object v = inputRow.getCol(container);
-                if (v instanceof Map) {
-                    Object nestValue = ((Map<?, ?>) v).get(nested);
-                    return nestValue == null ? null : nestValue.toString();
-                }
-                return null;
-            };
-        } else {
-            return inputRow -> inputRow.getColAsString(name);
+    public static Function<IInputRow, Object> createGetter(String name) {
+        int firstDotIndex = name.indexOf('.');
+        if (firstDotIndex < 0) {
+            return inputRow -> inputRow.getCol(name);
         }
+
+        final String container = name.substring(0, firstDotIndex);
+        final String nested = name.substring(firstDotIndex + 1);
+        return inputRow -> {
+            Object v = inputRow.getCol(container);
+            if (v instanceof Map) {
+                return ((Map<?, ?>) v).get(nested);
+            }
+            return null;
+        };
     }
 
     public static BiConsumer<IInputRow, String> createSetter(String name) {

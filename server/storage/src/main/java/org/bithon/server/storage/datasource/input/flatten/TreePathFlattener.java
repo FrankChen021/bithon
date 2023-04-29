@@ -20,10 +20,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.component.commons.utils.ReflectionUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.storage.datasource.input.InputRowAccessorFactory;
 
-import java.util.Map;
+import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -38,53 +38,22 @@ public class TreePathFlattener implements IFlattener {
     private final String field;
 
     @Getter
-    private final String[] nodes;
-
-    /**
-     * For test only
-     */
-    public TreePathFlattener(String field, String path) {
-        this(field, path, null);
-    }
+    private final String path;
+    private final Function<IInputRow, Object> valueGetter;
 
     @JsonCreator
     public TreePathFlattener(@JsonProperty("field") String field,
-                             @JsonProperty("path") String path,
-                             @JsonProperty("nodes") String[] nodes) {
-        this.field = field;
-        this.nodes = path == null ? nodes : path.split("\\.");
-        Preconditions.checkIfTrue(this.nodes != null && this.nodes.length > 0, "nodes can't be empty");
+                             @JsonProperty("path") String path) {
+        this.field = Preconditions.checkArgumentNotNull("field", field);
+        this.path = Preconditions.checkArgumentNotNull("path", path);
+        this.valueGetter = InputRowAccessorFactory.createGetter(this.path);
     }
 
     @Override
     public void flatten(IInputRow inputRow) {
-        Object obj = inputRow.getCol(nodes[0]);
-        if (obj == null) {
-            return;
-        }
-
-        if (nodes.length > 1) {
-            for (int i = 1; i < nodes.length - 1; i++) {
-                String prop = nodes[i];
-                obj = getValue(obj, prop);
-                if (obj == null) {
-                    return;
-                }
-            }
-
-            obj = getValue(obj, nodes[nodes.length - 1]);
-        }
-
+        Object obj = valueGetter.apply(inputRow);
         if (obj != null) {
             inputRow.updateColumn(field, obj);
-        }
-    }
-
-    private Object getValue(Object v, String property) {
-        if (v instanceof Map) {
-            return ((Map<?, ?>) v).get(property);
-        } else {
-            return ReflectionUtils.getFieldValue(v, property);
         }
     }
 }
