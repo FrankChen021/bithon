@@ -152,17 +152,15 @@ public class TraceSpanTransformer implements ITransformer {
      * For old ClickHouse spans, the 'kind' is missing, add kind to spans
      */
     private void transformClickHouseSpans(TraceSpan span) {
-        if (!StringUtils.isEmpty(span.getKind())) {
-            return;
-        }
-
-        if ("00".equals(span.getParentSpanId()) || "".equals(span.getParentSpanId())) {
-            span.setParentSpanId("");
-            span.setKind("SERVER");
-        } else if ("HTTPHandler".equals(span.getClazz()) && "handleRequest".equals(span.getMethod())) {
-            span.setKind("SERVER");
-        } else if ("TCPHandler".equals(span.getMethod())) {
-            span.setKind("SERVER");
+        if (StringUtils.isEmpty(span.getKind())) {
+            if ("00".equals(span.getParentSpanId()) || "".equals(span.getParentSpanId())) {
+                span.setParentSpanId("");
+                span.setKind("SERVER");
+            } else if ("HTTPHandler".equals(span.getClazz()) && "handleRequest".equals(span.getMethod())) {
+                span.setKind("SERVER");
+            } else if ("TCPHandler".equals(span.getMethod())) {
+                span.setKind("SERVER");
+            }
         }
 
         Map<String, String> tags = span.getTags();
@@ -179,6 +177,16 @@ public class TraceSpanTransformer implements ITransformer {
         String threadId = tags.remove("clickhouse.thread_id");
         if (threadId != null) {
             tags.put(Tags.Thread.ID, threadId);
+        }
+
+        String exception = tags.remove("clickhouse.exception");
+        if (exception != null) {
+            tags.put(Tags.Exception.MESSAGE, exception);
+        }
+
+        String exceptionCode = tags.remove("clickhouse.exception_code");
+        if (exceptionCode != null) {
+            tags.put(Tags.Exception.CODE, exceptionCode);
         }
     }
 }

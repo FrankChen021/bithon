@@ -93,6 +93,9 @@ public class Tags {
      * See <a href="https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/exceptions/">Exception</a>
      */
     public static class Exception {
+        // Not a standard
+        public static final String CODE = "exception.code";
+
         public static final String MESSAGE = "exception.message";
         public static final String STACKTRACE = "exception.stacktrace";
 
