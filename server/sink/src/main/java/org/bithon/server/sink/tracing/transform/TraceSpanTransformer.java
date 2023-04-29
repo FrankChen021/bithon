@@ -188,5 +188,10 @@ public class TraceSpanTransformer implements ITransformer {
         if (exceptionCode != null) {
             tags.put(Tags.Exception.CODE, exceptionCode);
         }
+
+        String sql = tags.remove("clickhouse.query");
+        if (sql != null) {
+            tags.put(Tags.Database.STATEMENT, sql);
+        }
     }
 }
