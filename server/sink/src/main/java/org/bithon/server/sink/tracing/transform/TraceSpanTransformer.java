@@ -65,16 +65,6 @@ public class TraceSpanTransformer implements ITransformer {
         //
         // Standardize tag names
         //
-        String httpStatus = tags.remove("clickhouse.http_status");
-        if (httpStatus != null) {
-            tags.put(Tags.Http.STATUS, httpStatus);
-        }
-
-        String uri = tags.remove("clickhouse.uri");
-        if (uri != null) {
-            tags.put(Tags.Http.URL, uri);
-        }
-
         String status = tags.getOrDefault("http.status", "");
         if ("".equals(status)) {
             // compatibility
@@ -88,7 +78,7 @@ public class TraceSpanTransformer implements ITransformer {
         }
         span.setStatus(status);
 
-        uri = tags.getOrDefault(Tags.Http.URL, "");
+        String uri = tags.getOrDefault(Tags.Http.URL, "");
         if ("".equals(uri)) {
             // compatibility
             uri = tags.getOrDefault("uri", "");
