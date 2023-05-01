@@ -85,7 +85,7 @@ public class TraceJdbcWriter implements ITraceWriter {
                                                                     Tables.BITHON_TRACE_SPAN.STARTTIMEUS,
                                                                     Tables.BITHON_TRACE_SPAN.ENDTIMEUS,
                                                                     Tables.BITHON_TRACE_SPAN.COSTTIMEMS,
-                                                                    Tables.BITHON_TRACE_SPAN.TAGS,
+                                                                    Tables.BITHON_TRACE_SPAN.ATTRIBUTES,
                                                                     Tables.BITHON_TRACE_SPAN.NORMALIZEDURL,
                                                                     Tables.BITHON_TRACE_SPAN.STATUS)
                                                         .values((LocalDateTime) null,
@@ -107,12 +107,12 @@ public class TraceJdbcWriter implements ITraceWriter {
                                                         ));
 
         for (TraceSpan span : traceSpans) {
-            String tags;
-            try {
-                tags = span.getTags() == null ? "{}" : objectMapper.writeValueAsString(span.tags);
-            } catch (IOException ignored) {
-                tags = "{}";
-            }
+//            String tags;
+//            try {
+//                tags = span.getTags() == null ? "{}" : objectMapper.writeValueAsString(span.tags);
+//            } catch (IOException ignored) {
+//                tags = "{}";
+//            }
             step.bind(new Timestamp(span.startTime / 1000),
                       span.appName,
                       span.instanceName,
@@ -126,7 +126,7 @@ public class TraceJdbcWriter implements ITraceWriter {
                       span.startTime,
                       span.endTime,
                       span.costTime,
-                      tags,
+                      span.getTags(),
                       span.getNormalizedUri(),
                       span.getStatus());
         }

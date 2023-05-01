@@ -21,12 +21,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
-import org.jooq.DSLContext;
-import org.jooq.DataType;
-import org.jooq.Field;
-import org.jooq.Index;
-import org.jooq.SortField;
-import org.jooq.Table;
+import org.jooq.*;
 import org.jooq.impl.SQLDataType;
 
 import java.util.HashMap;
@@ -105,15 +100,15 @@ public class TableCreator {
 
             String tableName = config.getLocalTableName(table.getName());
             createTableStatement.append(StringUtils.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n%s %s)",
-                                                           config.getDatabase(),
-                                                           tableName,
-                                                           config.getOnClusterExpression(),
-                                                           getFieldText(table),
-                                                           getIndexText()));
+                    config.getDatabase(),
+                    tableName,
+                    config.getOnClusterExpression(),
+                    getFieldText(table),
+                    getIndexText()));
 
             // replace macro in the template to suit for ReplicatedMergeTree
             fullEngine = fullEngine.replaceAll("\\{database}", config.getDatabase())
-                                   .replaceAll("\\{table}", tableName);
+                    .replaceAll("\\{table}", tableName);
 
             if (replacingMergeTreeVersion != null) {
                 // Insert the version field for ReplacingMergeTree
@@ -193,15 +188,15 @@ public class TableCreator {
         if (config.isOnDistributedTable()) {
             StringBuilder sb = new StringBuilder(128);
             sb.append(StringUtils.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n",
-                                         config.getDatabase(),
-                                         table.getName(),
-                                         config.getOnClusterExpression()));
+                    config.getDatabase(),
+                    table.getName(),
+                    config.getOnClusterExpression()));
             sb.append(getFieldText(table));
             sb.append(StringUtils.format(") ENGINE=Distributed('%s', '%s', '%s', murmurHash2_64(%s));",
-                                         config.getCluster(),
-                                         config.getDatabase(),
-                                         table.getName() + "_local",
-                                         "bithon_topo_metrics".equals(table.getName()) ? "srcEndpoint" : "appName"));
+                    config.getCluster(),
+                    config.getDatabase(),
+                    table.getName() + "_local",
+                    "bithon_topo_metrics".equals(table.getName()) ? "srcEndpoint" : "appName"));
 
             log.info("CreateIfNotExists {}", table.getName());
             dslContext.execute(sb.toString());
@@ -216,6 +211,8 @@ public class TableCreator {
             String typeName = dataType.getTypeName();
             if (dataType.equals(SQLDataType.TIMESTAMP) || dataType.equals(SQLDataType.LOCALDATETIME)) {
                 typeName = "timestamp(3,0)";
+            } else if (dataType.equals(SQLDataType.OTHER)) {
+                typeName = "Map(String, String)";
             } else {
                 if (dataType.hasPrecision()) {
                     typeName = dataType.getTypeName() + "(" + dataType.precision() + ", " + dataType.scale() + ")";

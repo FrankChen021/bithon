@@ -269,6 +269,7 @@ public class TraceJdbcReader implements ITraceReader {
         return tagQuery;
     }
 
+    @SuppressWarnings("unchecked")
     private TraceSpan toTraceSpan(BithonTraceSpanRecord record) {
         TraceSpan span = new TraceSpan();
         span.appName = record.getAppname();
@@ -285,14 +286,21 @@ public class TraceJdbcReader implements ITraceReader {
         span.clazz = record.getClazz();
         span.status = record.getStatus();
         span.normalizedUri = record.getNormalizedurl();
-        try {
-            span.tags = objectMapper.readValue(record.getTags(), TraceSpan.TagMap.class);
-        } catch (JsonProcessingException ignored) {
+        if(record.getAttributes() == null) {
+            // Compatible with old data
+            try {
+                span.tags = objectMapper.readValue(record.getTags(), new TypeReference<TreeMap<String, String>>() {
+                });
+            } catch (JsonProcessingException ignored) {
+            }
+        } else {
+            span.tags = (Map<String, String>) record.getAttributes();
         }
         span.name = record.getName();
         return span;
     }
 
+    @SuppressWarnings("unchecked")
     private TraceSpan toTraceSpan(BithonTraceSpanSummaryRecord record) {
         TraceSpan span = new TraceSpan();
         span.appName = record.getAppname();
@@ -309,9 +317,15 @@ public class TraceJdbcReader implements ITraceReader {
         span.clazz = record.getClazz();
         span.status = record.getStatus();
         span.normalizedUri = record.getNormalizedurl();
-        try {
-            span.tags = objectMapper.readValue(record.getTags(), TraceSpan.TagMap.class);
-        } catch (JsonProcessingException ignored) {
+        if(record.getAttributes() == null) {
+            // Compatible with old data
+            try {
+                span.tags = objectMapper.readValue(record.getTags(), new TypeReference<TreeMap<String, String>>() {
+                });
+            } catch (JsonProcessingException ignored) {
+            }
+        } else {
+            span.tags = (Map<String, String>) record.getAttributes();
         }
         span.name = record.getName();
         return span;
