@@ -286,7 +286,7 @@ public class TraceJdbcReader implements ITraceReader {
         span.clazz = record.getClazz();
         span.status = record.getStatus();
         span.normalizedUri = record.getNormalizedurl();
-        if(record.getAttributes() == null) {
+        if (StringUtils.hasText(record.getTags())) {
             // Compatible with old data
             try {
                 span.tags = objectMapper.readValue(record.getTags(), new TypeReference<TreeMap<String, String>>() {
@@ -317,7 +317,7 @@ public class TraceJdbcReader implements ITraceReader {
         span.clazz = record.getClazz();
         span.status = record.getStatus();
         span.normalizedUri = record.getNormalizedurl();
-        if(record.getAttributes() == null) {
+        if (StringUtils.hasText(record.getTags())) {
             // Compatible with old data
             try {
                 span.tags = objectMapper.readValue(record.getTags(), new TypeReference<TreeMap<String, String>>() {

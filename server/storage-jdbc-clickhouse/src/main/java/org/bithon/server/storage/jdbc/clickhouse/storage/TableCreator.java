@@ -21,7 +21,12 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
-import org.jooq.*;
+import org.jooq.DSLContext;
+import org.jooq.DataType;
+import org.jooq.Field;
+import org.jooq.Index;
+import org.jooq.SortField;
+import org.jooq.Table;
 import org.jooq.impl.SQLDataType;
 
 import java.util.HashMap;
@@ -75,12 +80,12 @@ public class TableCreator {
 
     public void createIfNotExist(Table<?> table) {
         //
-        // create local table
+        // Create local table
         //
         {
             //
-            // NOTE: for ReplacingMergeTree, version is not specified on CREATE table DDL
-            // that means the last record will be kept
+            // NOTE: for ReplacingMergeTree, if the version is not specified on CREATE table DDL,
+            // the last record will be kept
             //
             String fullEngine = config.getEngine();
             if (replacingMergeTreeVersion != null && !config.getTableEngine().contains("Replacing")) {
@@ -146,13 +151,15 @@ public class TableCreator {
                 createTableStatement.append("\nORDER BY(");
                 for (Index idx : table.getIndexes()) {
                     if (idx.getFields().size() == 1 && this.secondaryIndexes.containsKey(idx.getFields().get(0).getName())) {
-                        // index on single column, and is marked as secondary index, no need to put this column in the ORDER-BY expression as primary key
+                        // index on single column,
+                        // and is marked as secondary index,
+                        // no need to put this column in the ORDER-BY expression as the primary key
                         continue;
                     }
 
                     if (replacingMergeTreeVersion != null) {
                         if (!idx.getUnique()) {
-                            // For replacing merge tree, use unique key as order key only,
+                            // For replacing merge tree, use unique key as the order key only,
                             // So if it's not the unique key, skip it
                             continue;
                         }

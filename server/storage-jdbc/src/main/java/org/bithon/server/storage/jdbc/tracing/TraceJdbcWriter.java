@@ -32,7 +32,6 @@ import org.jooq.Table;
 import org.jooq.TransactionalRunnable;
 import org.springframework.dao.DuplicateKeyException;
 
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -107,12 +106,6 @@ public class TraceJdbcWriter implements ITraceWriter {
                                                         ));
 
         for (TraceSpan span : traceSpans) {
-//            String tags;
-//            try {
-//                tags = span.getTags() == null ? "{}" : objectMapper.writeValueAsString(span.tags);
-//            } catch (IOException ignored) {
-//                tags = "{}";
-//            }
             step.bind(new Timestamp(span.startTime / 1000),
                       span.appName,
                       span.instanceName,
