@@ -24,8 +24,8 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetrics;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingUriFilter;
@@ -81,8 +81,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
         if (span != null) {
             aopContext.setUserContext(span.kind(SpanKind.CLIENT)
                                           .tag(Tags.CLIENT_TYPE, "okhttp3")
-                                          .clazz(aopContext.getTargetClass().getName())
-                                          .method("execute")
+                                          .method(aopContext.getTargetClass().getName(), "execute")
                                           .tag(Tags.HTTP_METHOD, request.method())
                                           .tag(Tags.HTTP_URI, request.url().toString())
                                           .start());

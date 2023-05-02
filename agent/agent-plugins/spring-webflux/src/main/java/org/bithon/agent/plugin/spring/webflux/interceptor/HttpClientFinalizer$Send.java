@@ -18,10 +18,10 @@ package org.bithon.agent.plugin.spring.webflux.interceptor;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
-import org.bithon.agent.observability.tracing.context.ITraceContext;
-import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.agent.plugin.spring.webflux.context.HttpClientContext;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
@@ -45,36 +45,32 @@ public class HttpClientFinalizer$Send extends AroundInterceptor {
         HttpClient httpClient = aopContext.getTargetAs();
         IBithonObject bithonObject = aopContext.getTargetAs();
 
-        // span will be finished in ResponseConnection interceptor
+        // span will be finished in ResponseConnection interceptor,
         // so we need an extra object to pass the context
         HttpClientContext httpClientContext = new HttpClientContext();
         bithonObject.setInjectedObject(httpClientContext);
 
-        ITraceContext traceContext = TraceContextHolder.current();
-        if (traceContext != null) {
+        ITraceSpan span = TraceSpanFactory.newSpan("webflux-httpClient");
+        if (span != null) {
             // span will be finished in ResponseConnection interceptor
-            httpClientContext.setSpan(traceContext.currentSpan()
-                                                  .newChildSpan("webflux-httpClient")
-                                                  .kind(SpanKind.CLIENT)
-                                                  .method(aopContext.getMethod())
-                                                  .tag(Tags.HTTP_URI, httpClient.configuration().uri())
-                                                  .tag(Tags.HTTP_METHOD, httpClient.configuration().method().name())
-                                                  .start());
+            httpClientContext.setSpan(span.kind(SpanKind.CLIENT)
+                                          .method(aopContext.getTargetClass(), aopContext.getMethod())
+                                          .tag(Tags.HTTP_URI, httpClient.configuration().uri())
+                                          .tag(Tags.HTTP_METHOD, httpClient.configuration().method().name())
+                                          .start());
         }
 
         //noinspection unchecked
         BiFunction<? super HttpClientRequest, ? super NettyOutbound, ? extends Publisher<Void>> originalSender
-            = (BiFunction<? super HttpClientRequest, ? super NettyOutbound, ? extends Publisher<Void>>) aopContext.getArgs()[0];
+                = (BiFunction<? super HttpClientRequest, ? super NettyOutbound, ? extends Publisher<Void>>) aopContext.getArgs()[0];
 
         //replace the Publisher to propagate trace
         aopContext.getArgs()[0] = (BiFunction<HttpClientRequest, NettyOutbound, Publisher<Void>>) (httpClientRequest, nettyOutbound) -> {
             Publisher<Void> publisher = originalSender.apply(httpClientRequest, nettyOutbound);
 
             // propagate trace along this HTTP
-            if (traceContext != null) {
-                traceContext.propagate(httpClientRequest, (request, key, value) -> {
-                    request.requestHeaders().set(key, value);
-                });
+            if (span != null) {
+                span.context().propagate(httpClientRequest, (request, key, value) -> request.requestHeaders().set(key, value));
             }
 
             return publisher;

@@ -18,8 +18,8 @@ package org.bithon.agent.plugin.mysql8;
 
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.observability.utils.MiscUtils;
@@ -49,7 +49,7 @@ public class StatementInterceptor extends AroundInterceptor {
 
         SQLMetrics metric = metricRegistry.getOrCreateMetrics(connectionString);
         boolean isQuery = true;
-        String methodName = aopContext.getMethod().getName();
+        String methodName = aopContext.getMethod();
         if (MySql8Plugin.METHOD_EXECUTE_UPDATE.equals(methodName)
             || MySql8Plugin.METHOD_EXECUTE_UPDATE_INTERNAL.equals(methodName)) {
             isQuery = false;

@@ -36,13 +36,13 @@ public class NamedThreadFactory implements ThreadFactory {
     public NamedThreadFactory(String namePrefix, boolean isDeamon) {
         final SecurityManager s = System.getSecurityManager();
         this.group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
-        this.namePrefix = namePrefix + "-thread-";
+        this.namePrefix = namePrefix;
         this.isDaemon = isDeamon;
     }
 
     @Override
     public Thread newThread(Runnable r) {
-        final Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
+        final Thread t = new Thread(group, r, namePrefix + "-" + threadNumber.getAndIncrement(), 0);
         if (t.getPriority() != Thread.NORM_PRIORITY) {
             t.setPriority(Thread.NORM_PRIORITY);
         }

@@ -60,8 +60,15 @@ public interface ITraceSpan {
 
     ITraceSpan tag(Throwable exception);
 
-    default ITraceSpan tag(Consumer<ITraceSpan> config) {
+    default ITraceSpan config(Consumer<ITraceSpan> config) {
         config.accept(this);
+        return this;
+    }
+
+    default ITraceSpan configIfTrue(boolean expression, Consumer<ITraceSpan> config) {
+        if (expression) {
+            config.accept(this);
+        }
         return this;
     }
 
@@ -73,9 +80,19 @@ public interface ITraceSpan {
 
     String method();
 
-    ITraceSpan method(Executable method);
+    default ITraceSpan method(Executable method) {
+        return method(method.getDeclaringClass().getName(), method.getName());
+    }
 
-    ITraceSpan method(String method);
+    default ITraceSpan method(Class<?> clazz, String method) {
+        return method(clazz.getName(), method);
+    }
+
+    /**
+     * @param clazz  Non null
+     * @param method Non null
+     */
+    ITraceSpan method(String clazz, String method);
 
     ITraceSpan clazz(String clazz);
 
@@ -94,17 +111,13 @@ public interface ITraceSpan {
     ITraceSpan start();
 
     /**
-     * finish a span.
-     * The implementation should guarantee that multiple call on this method is safe.
+     * Finish a span.
+     * The implementation should guarantee that multiple calls on this method are safe.
      */
     void finish();
 
     default <T> ITraceSpan propagate(T injectedTo, PropagationSetter<T> setter) {
         context().propagate(injectedTo, setter);
         return this;
-    }
-
-    default boolean isNull() {
-        return false;
     }
 }

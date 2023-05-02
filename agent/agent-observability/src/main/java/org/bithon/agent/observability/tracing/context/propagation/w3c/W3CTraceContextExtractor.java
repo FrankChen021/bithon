@@ -21,7 +21,7 @@ import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationGetter;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
+import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 
 /**
  * @author frank.chen021@outlook.com
@@ -67,19 +67,14 @@ public class W3CTraceContextExtractor implements ITraceContextExtractor {
             return null;
         }
 
-        ITraceContext context = TraceContextFactory.create(toTraceMode(ids[3]), ids[1], ids[2]);
-
-        context.currentSpan()
-               .parentApplication(getter.get(request, ITracePropagator.TRACE_HEADER_SRC_APPLICATION));
-        return context;
+        return TraceContextFactory.create(isSampled(ids[3]) ? SamplingMode.FULL : SamplingMode.NONE, ids[1], ids[2])
+                                  .currentSpan()
+                                  .parentApplication(getter.get(request, ITracePropagator.TRACE_HEADER_SRC_APPLICATION))
+                                  .context();
     }
 
-    private TraceMode toTraceMode(String id) {
+    private boolean isSampled(String id) {
         int flag = id.charAt(0) - '0' * 16 + (id.charAt(1) - '0');
-        if ((flag & SAMPLED_FLAG) == SAMPLED_FLAG) {
-            return TraceMode.TRACE;
-        } else {
-            return TraceMode.PROPAGATION;
-        }
+        return (flag & SAMPLED_FLAG) == SAMPLED_FLAG;
     }
 }

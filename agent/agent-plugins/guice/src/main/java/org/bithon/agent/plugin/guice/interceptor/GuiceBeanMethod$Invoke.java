@@ -16,45 +16,36 @@
 
 package org.bithon.agent.plugin.guice.interceptor;
 
-import org.bithon.agent.instrumentation.aop.interceptor.IDynamicInterceptor;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 
-import java.lang.reflect.Method;
-
 /**
- * NOTE:
- * Any update of class/package name of this class must be manually reflected to {@link BeanMethodInterceptorFactory#INTERCEPTOR_CLASS_NAME},
- * or the Bean interception WON'T WORK
+ *
  *
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 18:46
  */
-public class GuiceBeanMethod$Invoke implements IDynamicInterceptor {
+public class GuiceBeanMethod$Invoke extends AroundInterceptor {
 
     @Override
-    public Object onMethodEnter(
-        final Method method,
-        final Object target,
-        final Object[] args
-    ) {
-        ITraceSpan span = TraceSpanFactory.newSpan("guiceBean");
+    public InterceptionDecision before(AopContext aopContext) {
+        ITraceSpan span = TraceSpanFactory.newSpan("guice-bean");
         if (span == null) {
-            return null;
+            return InterceptionDecision.SKIP_LEAVE;
         }
 
-        return span.method(method)
-                   .start();
+        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                                      .start());
+
+        return InterceptionDecision.CONTINUE;
     }
 
     @Override
-    public Object onMethodExit(final Method method,
-                               final Object target,
-                               final Object[] args,
-                               final Object returning,
-                               final Throwable exception,
-                               final Object context) {
-        ((ITraceSpan) context).tag(exception).finish();
-        return returning;
+    public void after(AopContext aopContext) {
+        ITraceSpan span = aopContext.getUserContextAs();
+        span.tag(aopContext.getException()).finish();
     }
 }

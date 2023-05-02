@@ -17,7 +17,7 @@
 package org.bithon.agent.plugin.glassfish.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -28,7 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Enhance all REST APIs that comply with JAX-RS standard implemented by glassfish under Eclipse.
+ * Enhance all REST APIs that comply with the JAX-RS standard implemented by glassfish under Eclipse.
  * <p>
  * Hook to ctor of {@link org.glassfish.jersey.server.model.internal.AbstractJavaResourceMethodDispatcher} to enhance the {@link java.lang.reflect.InvocationHandler}
  * The reason that we don't intercept the {@link InvocationHandler#invoke(Object, Method, Object[])} is that {@link java.lang.reflect.InvocationHandler} is an interface,
@@ -41,19 +41,15 @@ public class AbstractJavaResourceMethodDispatcher$Ctor extends AfterInterceptor 
     // TODO: check the method does not return the CompletionStage/
     @Override
     public void after(AopContext aopContext) {
-        InvocationHandler rawInvoker = aopContext.getArgAs(1);
+        InvocationHandler delegate = aopContext.getArgAs(1);
 
         InvocationHandler enhancedInvoker = (proxy, method, args) -> {
-            ITraceSpan span = null;
-            try {
-                span = TraceSpanFactory.newSpan("endpoint");
-            } catch (Exception ignored) {
-            }
+            ITraceSpan span = TraceSpanFactory.newSpan("endpoint");
             try {
                 if (span != null) {
-                    span.method(method).start();
+                    span.method(method.getDeclaringClass(), method.getName()).start();
                 }
-                return rawInvoker.invoke(proxy, method, args);
+                return delegate.invoke(proxy, method, args);
             } catch (Exception e) {
                 if (span != null) {
                     span.tag(e instanceof InvocationTargetException ? ((InvocationTargetException) e).getTargetException() : e);

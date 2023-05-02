@@ -21,36 +21,33 @@ import org.bithon.component.commons.utils.StringUtils;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Function;
 
 /**
  * AND/OR
  *
  * @author frankchen
  */
-public class LogicalExpression implements IExpression {
-    private final String operator;
-    private final List<IExpression> operands;
-    private final Function<EvaluationContext, Object> evaluator;
+public abstract class LogicalExpression implements IExpression {
 
-    public LogicalExpression(String operator, IExpression... operands) {
-        this(operator, Arrays.asList(operands));
+    public static LogicalExpression create(String operator, List<IExpression> expressions) {
+        switch (operator) {
+            case "AND":
+                return new AND(expressions);
+            case "OR":
+                return new OR(expressions);
+            case "NOT":
+                return new NOT(expressions);
+            default:
+                throw new UnsupportedOperationException("Unsupported operator " + operator);
+        }
     }
 
-    public LogicalExpression(String operator, List<IExpression> operands) {
+    protected final String operator;
+    protected final List<IExpression> operands;
+
+    protected LogicalExpression(String operator, List<IExpression> operands) {
         this.operator = operator.toUpperCase(Locale.ENGLISH);
         this.operands = operands;
-
-        switch (this.operator) {
-            case "AND":
-                this.evaluator = this::and;
-                break;
-            case "OR":
-                this.evaluator = this::or;
-                break;
-            default:
-                throw new UnsupportedOperationException("Unsupported logic operator " + this.operator);
-        }
     }
 
     public String getOperator() {
@@ -71,32 +68,9 @@ public class LogicalExpression implements IExpression {
         return visitor.visit(this);
     }
 
-    @Override
-    public Object evaluate(EvaluationContext context) {
-        return this.evaluator.apply(context);
-    }
+    public abstract LogicalExpression copy(List<IExpression> expressionList);
 
-    private Object and(EvaluationContext context) {
-        for (IExpression expression : this.operands) {
-            boolean v = toBoolean(expression.evaluate(context));
-            if (!v) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private Object or(EvaluationContext context) {
-        for (IExpression expression : this.operands) {
-            boolean v = toBoolean(expression.evaluate(context));
-            if (v) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean toBoolean(Object value) {
+    private static boolean toBoolean(Object value) {
         if (value == null) {
             throw new RuntimeException("value is null");
         }
@@ -110,5 +84,72 @@ public class LogicalExpression implements IExpression {
             return "true".equals(value);
         }
         throw new RuntimeException(StringUtils.format("value [%s] can not be cast to type of Boolean.", value));
+    }
+
+    public static class AND extends LogicalExpression {
+        public AND(List<IExpression> operands) {
+            super("AND", operands);
+        }
+
+        public AND(IExpression... expressions) {
+            super("AND", Arrays.asList(expressions));
+        }
+
+        @Override
+        public Object evaluate(IEvaluationContext context) {
+            for (IExpression expression : this.operands) {
+                boolean v = toBoolean(expression.evaluate(context));
+                if (!v) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public LogicalExpression copy(List<IExpression> expressionList) {
+            return new AND(expressionList);
+        }
+    }
+
+    public static class OR extends LogicalExpression {
+
+        public OR(List<IExpression> operands) {
+            super("OR", operands);
+        }
+
+        @Override
+        public Object evaluate(IEvaluationContext context) {
+            for (IExpression expression : this.operands) {
+                boolean v = toBoolean(expression.evaluate(context));
+                if (v) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public LogicalExpression copy(List<IExpression> expressionList) {
+            return new OR(expressionList);
+        }
+    }
+
+    public static class NOT extends LogicalExpression {
+
+        public NOT(List<IExpression> operands) {
+            super("NOT", operands);
+        }
+
+        @Override
+        public Object evaluate(IEvaluationContext context) {
+            IExpression expression = operands.get(0);
+            return !toBoolean(expression.evaluate(context));
+        }
+
+        @Override
+        public LogicalExpression copy(List<IExpression> expressionList) {
+            return new NOT(expressionList);
+        }
     }
 }

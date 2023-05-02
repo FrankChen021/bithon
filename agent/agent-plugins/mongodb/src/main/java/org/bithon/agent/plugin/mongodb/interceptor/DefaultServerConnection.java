@@ -20,9 +20,9 @@ import com.mongodb.async.SingleResultCallback;
 import com.mongodb.connection.Connection;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
-import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
@@ -61,10 +61,12 @@ public class DefaultServerConnection {
             }
 
             // create a span and save it in user-context
-            aopContext.setUserContext(TraceSpanFactory.newSpan("mongodb")
-                                                      .method(aopContext.getMethod())
-                                                      .kind(SpanKind.CLIENT)
-                                                      .start());
+            ITraceSpan span = TraceSpanFactory.newSpan("mongodb");
+            if (span != null) {
+                aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                                              .kind(SpanKind.CLIENT)
+                                              .start());
+            }
 
             return InterceptionDecision.CONTINUE;
         }
@@ -87,12 +89,13 @@ public class DefaultServerConnection {
             //
             // trace
             //
-            ((ITraceSpan) aopContext.getUserContextAs())
-                .tag(aopContext.getException())
-                .tag("server", hostAndPort)
-                .tag("database", command == null ? null : command.getDatabase())
-                .finish();
-
+            ITraceSpan span = aopContext.getUserContextAs();
+            if (span != null) {
+                span.tag(aopContext.getException())
+                    .tag("server", hostAndPort)
+                    .tag("database", command == null ? null : command.getDatabase())
+                    .finish();
+            }
 
             //
             // metric

@@ -22,7 +22,6 @@ import feign.Feign;
 import feign.FeignException;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
-import feign.codec.ErrorDecoder;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.declaration.DiscoverableService;
@@ -32,7 +31,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.HttpStatus;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -184,16 +182,7 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
                                       .contract(applicationContext.getBean(Contract.class))
                                       .encoder(applicationContext.getBean(Encoder.class))
                                       .decoder(applicationContext.getBean(Decoder.class))
-                                      .errorDecoder((methodKey, response) -> {
-                                          try {
-                                              ServiceResponse.Error error = objectMapper.readValue(response.body().asInputStream(), ServiceResponse.Error.class);
-                                              return new HttpMappableException(response.status(), "Exception from remote [%s]: %s", hostAndPort, error.getMessage());
-                                          } catch (IOException ignored) {
-                                          }
-
-                                          // Delegate to default decoder
-                                          return new ErrorDecoder.Default().decode(methodKey, response);
-                                      })
+                                      .errorDecoder(new ErrorResponseDecoder(objectMapper))
                                       .target(type, "http://" + hostAndPort.getHost() + ":" + hostAndPort.getPort());
 
             InvocationHandler handler = Proxy.getInvocationHandler(proxyObject);

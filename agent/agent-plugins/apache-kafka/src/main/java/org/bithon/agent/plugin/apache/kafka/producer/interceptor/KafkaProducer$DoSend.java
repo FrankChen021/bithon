@@ -21,8 +21,8 @@ import org.apache.kafka.common.header.Header;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
@@ -70,7 +70,7 @@ public class KafkaProducer$DoSend extends AroundInterceptor {
 
         String cluster = ((KafkaPluginContext) ((IBithonObject) aopContext.getTarget()).getInjectedObject()).clusterSupplier.get();
 
-        aopContext.setUserContext(span.method(aopContext.getMethod())
+        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                       .kind(SpanKind.PRODUCER)
                                       .tag("uri", "kafka://" + cluster)
                                       .tag("kafka.topic", record.topic())

@@ -18,7 +18,7 @@ package org.bithon.agent.instrumentation.aop.interceptor.installer;
 
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.agent.instrumentation.aop.advice.AdviceAnnotation;
-import org.bithon.agent.instrumentation.aop.advice.DynamicAopAdvice;
+import org.bithon.agent.instrumentation.aop.advice.AroundAdvice;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
@@ -96,23 +96,18 @@ public class DynamicInterceptorInstaller {
     }
 
     /**
-     *
      * @param classLoader The class loader that's going to load the target type
      */
     private DynamicType.Builder<?> install(AopDescriptor descriptor,
                                            DynamicType.Builder<?> builder,
                                            ClassLoader classLoader) {
 
-        InterceptorManager.InterceptorEntry entry = InterceptorManager.getOrCreateInterceptor(descriptor.interceptorName, classLoader, true);
-        if (entry == null) {
-            LOG.info("Skipped to install dynamic interceptor for [{}], index={}, name={}", descriptor.targetClass, descriptor.interceptorName);
-            return builder;
-        }
-        LOG.info("Dynamic interceptor installed for [{}], index={}, name={}", descriptor.targetClass, entry.index, descriptor.interceptorName);
+        int interceptorIndex = InterceptorManager.INSTANCE.getOrCreateSupplier(descriptor.interceptorName, classLoader);
+        LOG.info("Dynamic interceptor installed for [{}], index={}, name={}", descriptor.targetClass, interceptorIndex, descriptor.interceptorName);
         return builder.visit(InterceptorInstaller.newInstaller(Advice.withCustomMapping()
                                                                      .bind(AdviceAnnotation.InterceptorName.class, new AdviceAnnotation.InterceptorNameResolver(descriptor.interceptorName))
-                                                                     .bind(AdviceAnnotation.InterceptorIndex.class, new AdviceAnnotation.InterceptorIndexResolver(entry.index))
-                                                                     .to(DynamicAopAdvice.class),
+                                                                     .bind(AdviceAnnotation.InterceptorIndex.class, new AdviceAnnotation.InterceptorIndexResolver(interceptorIndex))
+                                                                     .to(AroundAdvice.class),
                                                                descriptor.methodMatcher));
     }
 

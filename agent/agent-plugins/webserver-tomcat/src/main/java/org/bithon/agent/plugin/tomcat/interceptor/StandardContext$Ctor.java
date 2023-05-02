@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.tomcat.interceptor;
 
 import org.apache.catalina.core.StandardContext;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.component.commons.logging.LoggerFactory;
 

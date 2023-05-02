@@ -60,6 +60,9 @@ public class ServiceResponse<T> {
     @Getter
     private final List<T> rows;
 
+    /**
+     * In some cases, we want to return the error object while at the interface level(for example at HTTP side), the response is successful
+     */
     @Getter
     private final Error error;
 

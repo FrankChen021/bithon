@@ -14,25 +14,28 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.tracing.context;
+package org.bithon.agent.observability.tracing.context.impl;
 
+import org.bithon.agent.instrumentation.expt.AgentException;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.component.commons.tracing.SpanKind;
 
-import java.lang.reflect.Executable;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/7/17 16:34
  */
-class PropagationTraceSpan implements ITraceSpan {
+class LoggingTraceSpan implements ITraceSpan {
 
-    private final PropagationTraceContext traceContext;
+    private final LoggingTraceContext traceContext;
     private final String spanId;
     private final String parentSpanId;
 
-    public PropagationTraceSpan(PropagationTraceContext traceContext, String parentSpanId, String spanId) {
+    public LoggingTraceSpan(LoggingTraceContext traceContext, String parentSpanId, String spanId) {
         this.traceContext = traceContext;
         this.spanId = spanId;
         this.parentSpanId = parentSpanId;
@@ -100,6 +103,11 @@ class PropagationTraceSpan implements ITraceSpan {
     }
 
     @Override
+    public ITraceSpan config(Consumer<ITraceSpan> config) {
+        return this;
+    }
+
+    @Override
     public String parentApplication() {
         return null;
     }
@@ -120,12 +128,7 @@ class PropagationTraceSpan implements ITraceSpan {
     }
 
     @Override
-    public ITraceSpan method(Executable method) {
-        return this;
-    }
-
-    @Override
-    public ITraceSpan method(String method) {
+    public ITraceSpan method(String clazz, String method) {
         return this;
     }
 
@@ -146,7 +149,8 @@ class PropagationTraceSpan implements ITraceSpan {
 
     @Override
     public ITraceSpan newChildSpan(String name) {
-        return traceContext.newSpan(this.spanId, traceContext.spanIdGenerator().newSpanId())
-                           .component(name);
+        throw new AgentException("Can't create span under LOGGING mode.\n" +
+                                         "This MUST be a bug of agent, pls contact the maintainer to resolve it.\n" +
+                                         "In most of cases, TraceSpanFactory.newSpan SHOULD be called instead of call this method to avoid such exception.");
     }
 }

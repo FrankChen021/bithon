@@ -14,17 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.tracing.context.propagation;
+package org.bithon.component.commons.expression;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/7/17 17:13
+ * @date 2023/4/7 20:24
  */
-public enum TraceMode {
-    TRACE,
-
-    /**
-     * Propagation the application information only
-     */
-    PROPAGATION
+public interface IEvaluationContext {
+    Object get(String name);
 }

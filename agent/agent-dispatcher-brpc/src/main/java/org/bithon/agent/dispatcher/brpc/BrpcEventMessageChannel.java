@@ -57,7 +57,8 @@ public class BrpcEventMessageChannel implements IMessageChannel {
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
         this.brpcClient = BrpcClientBuilder.builder()
-                                           .endpointProvider(new RoundRobinEndPointProvider(endpoints))
+                                           .clientId("event")
+                                           .server(new RoundRobinEndPointProvider(endpoints))
                                            .maxRetry(3)
                                            .retryInterval(Duration.ofMillis(200))
                                            .build();
@@ -66,7 +67,7 @@ public class BrpcEventMessageChannel implements IMessageChannel {
 
         AppInstance appInstance = AppInstance.getInstance();
         this.header = BrpcMessageHeader.newBuilder()
-                                       .setAppName(appInstance.getAppName())
+                                       .setAppName(appInstance.getQualifiedAppName())
                                        .setEnv(appInstance.getEnv())
                                        .setInstanceName(appInstance.getHostAndPort())
                                        .setHostIp(appInstance.getHostIp())
@@ -74,7 +75,7 @@ public class BrpcEventMessageChannel implements IMessageChannel {
                                        .setAppType(ApplicationType.JAVA)
                                        .build();
         appInstance.addListener(port -> this.header = BrpcMessageHeader.newBuilder()
-                                                                       .setAppName(appInstance.getAppName())
+                                                                       .setAppName(appInstance.getQualifiedAppName())
                                                                        .setEnv(appInstance.getEnv())
                                                                        .setInstanceName(appInstance.getHostAndPort())
                                                                        .setHostIp(appInstance.getHostIp())

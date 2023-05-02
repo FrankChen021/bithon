@@ -24,6 +24,8 @@ import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
+ * A wrapper to {@link RejectedExecutionHandler} to support tracing and metrics
+ *
  * @author frank.chen021@outlook.com
  * @date 2023/3/23 21:07
  */
@@ -56,7 +58,7 @@ public class ObservedExecutionHandler implements RejectedExecutionHandler {
     private ITraceSpan before() {
         ITraceSpan span = TraceSpanFactory.newSpan("threadPool");
         if (span != null) {
-            span.method(delegate.getClass().getName() + ".rejectedExecution");
+            span.method(delegate.getClass().getName(), "rejectedExecution");
         }
         return span;
     }

@@ -22,8 +22,8 @@ import com.mongodb.internal.connection.LegacyProtocol;
 import com.mongodb.session.SessionContext;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
@@ -45,7 +45,7 @@ public class DefaultServerConnection$ExecuteProtocol extends AroundInterceptor {
         // create a span and save it in user-context
         ITraceSpan span = TraceSpanFactory.newSpan("mongodb");
         if (span != null) {
-            aopContext.setUserContext(span.method(aopContext.getMethod())
+            aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                           .kind(SpanKind.CLIENT)
                                           .start());
         }

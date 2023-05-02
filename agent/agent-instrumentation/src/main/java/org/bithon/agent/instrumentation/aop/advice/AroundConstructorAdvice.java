@@ -17,15 +17,14 @@
 package org.bithon.agent.instrumentation.aop.advice;
 
 import org.bithon.agent.instrumentation.aop.context.AopContextImpl;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
-import org.bithon.agent.instrumentation.aop.interceptor.IInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
-import java.lang.reflect.Method;
 import java.util.Locale;
 
 
@@ -37,33 +36,34 @@ public class AroundConstructorAdvice {
     public static final ILogger LOG = LoggerFactory.getLogger(AroundConstructorAdvice.class);
 
     /**
-     * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
+     * This method is only used for bytebuddy method advice.
+     * Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodEnter
-    public static boolean onEnter(
-            @AdviceAnnotation.InterceptorName String name,
-            @AdviceAnnotation.Interceptor IInterceptor interceptor,
-            @AdviceAnnotation.TargetMethod Method method,
-            @Advice.This(optional = true) Object target,
-            @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
-            @Advice.Local("context") Object context
-    ) {
+    public static boolean onEnter(@AdviceAnnotation.InterceptorName String name,
+                                  @AdviceAnnotation.InterceptorIndex int index,
+                                  @Advice.Origin Class<?> clazz,
+                                  @Advice.Origin("#m") String method,
+                                  @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
+                                  @Advice.Local("context") Object context,
+                                  @Advice.Local("interceptor") AroundInterceptor interceptor) {
+        interceptor = (AroundInterceptor) InterceptorManager.INSTANCE.getSupplier(index).get();
         if (interceptor == null) {
             return false;
         }
+        interceptor.hit();
 
-        AopContextImpl aopContext = new AopContextImpl(method, target, args);
+        AopContextImpl aopContext = new AopContextImpl(clazz, method, null, args);
 
         boolean skipAfterMethod = true;
         try {
-            skipAfterMethod = ((AroundInterceptor) interceptor).before(aopContext) == InterceptionDecision.SKIP_LEAVE;
+            skipAfterMethod = interceptor.before(aopContext) == InterceptionDecision.SKIP_LEAVE;
         } catch (Throwable e) {
-            LOG.error(
-                    String.format(Locale.ENGLISH, "Exception occurred when executing onEnter of [%s] for [%s]: %s",
-                                  interceptor.getClass().getSimpleName(),
-                                  method.getDeclaringClass().getSimpleName(),
-                                  e.getMessage()),
-                    e);
+            LOG.error(String.format(Locale.ENGLISH, "Exception occurred when executing onEnter of [%s] for [%s]: %s",
+                                    name,
+                                    clazz.getSimpleName(),
+                                    e.getMessage()),
+                      e);
 
             // continue to execute
         }
@@ -84,31 +84,31 @@ public class AroundConstructorAdvice {
     }
 
     /**
-     * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
+     * This method is only used for bytebuddy method advice.
+     * Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit
-    public static void onExit(
-            @AdviceAnnotation.Interceptor IInterceptor interceptor,
-            @Advice.This Object target,
-            @Advice.Enter boolean shouldExecute,
-            @Advice.Local("context") Object context) {
-        if (!shouldExecute || context == null) {
+    public static void onExit(@AdviceAnnotation.InterceptorName String name,
+                              @Advice.This Object target,
+                              @Advice.Enter boolean shouldExecute,
+                              @Advice.Local("context") Object context,
+                              @Advice.Local("interceptor") AroundInterceptor interceptor) {
+        if (!shouldExecute || context == null || interceptor == null) {
             return;
         }
 
         AopContextImpl aopContext = (AopContextImpl) context;
-        aopContext.setTarget(target);
         aopContext.onAfterTargetMethodInvocation();
 
-        if (interceptor == null) {
-            return;
-        }
+        // For interceptors on ctor, the target object is only available in the 'exit',
+        // We need to update it to the context before calling the 'after' method
+        aopContext.setTarget(target);
 
         try {
-            ((AroundInterceptor) interceptor).after(aopContext);
+            interceptor.after(aopContext);
         } catch (Throwable e) {
             LOG.error(String.format(Locale.ENGLISH, "Exception occurred when executing onExit of [%s] for [%s]: %s",
-                                    interceptor.getClass().getSimpleName(),
+                                    name,
                                     aopContext.getTargetClass().getSimpleName(),
                                     e.getMessage()),
                       e);

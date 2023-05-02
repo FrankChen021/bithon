@@ -20,16 +20,16 @@ import io.netty.handler.codec.http.HttpHeaders;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
 import org.bithon.agent.plugin.spring.webflux.config.ResponseConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.bithon.component.commons.logging.ILogAdaptor;
@@ -100,22 +100,22 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
                                                          .extract(request, (req, key) -> req.requestHeaders().get(key));
 
                 if (traceContext != null) {
-
                     traceContext.currentSpan()
                                 .component("webflux")
                                 .tag(Tags.REMOTE_ADDR, request.remoteAddress())
                                 .tag(Tags.HTTP_URI, request.uri())
                                 .tag(Tags.HTTP_METHOD, request.method().name())
                                 .tag(Tags.HTTP_VERSION, request.version().text())
-                                .tag((span) -> traceConfig.getHeaders()
-                                                          .getRequest()
-                                                          .forEach((header) -> span.tag("http.header." + header, request.requestHeaders().get(header))))
-                                .method(aopContext.getMethod())
+                                .configIfTrue(!traceConfig.getHeaders().getRequest().isEmpty(),
+                                              (span) -> traceConfig.getHeaders()
+                                                                   .getRequest()
+                                                                   .forEach((header) -> span.tag("http.header." + header, request.requestHeaders().get(header))))
+                                .method(aopContext.getTargetClass(), aopContext.getMethod())
                                 .kind(SpanKind.SERVER)
                                 .start();
 
                     // put the trace id in the header so that the applications have chance to know whether this request is being sampled
-                    if (traceContext.traceMode().equals(TraceMode.TRACE)) {
+                    if (traceContext.traceMode().equals(TraceMode.TRACING)) {
                         request.requestHeaders().set("X-Bithon-TraceId", traceContext.traceId());
 
                         // Add trace id to response
@@ -193,7 +193,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
         traceContext.currentSpan()
                     .tag(Tags.HTTP_STATUS, String.valueOf(response.status().code()))
                     .tag(t)
-                    .tag((span -> {
+                    .config((span -> {
                         // extract headers in the response to tag
                         if (!CollectionUtils.isEmpty(responseConfigs.getHeaders())) {
                             HttpHeaders httpHeaders = response.responseHeaders();

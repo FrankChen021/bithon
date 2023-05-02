@@ -20,15 +20,15 @@ import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
@@ -72,22 +72,23 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
                     .tag(Tags.HTTP_URI, request.getRequestURI())
                     .tag(Tags.HTTP_METHOD, request.getMethod())
                     .tag(Tags.HTTP_VERSION, request.getProtocol())
-                    .tag((span) -> traceConfig.getHeaders()
-                                              .getRequest()
-                                              .forEach((header) -> span.tag("http.header." + header, request.getHeader(header))))
-                    .method(aopContext.getMethod())
+                    .configIfTrue(!traceConfig.getHeaders().getRequest().isEmpty(),
+                                  (span) -> traceConfig.getHeaders()
+                                                       .getRequest()
+                                                       .forEach((header) -> span.tag("http.header." + header, request.getHeader(header))))
+                    .method(aopContext.getTargetClass(), aopContext.getMethod())
                     .kind(SpanKind.SERVER)
                     .start();
 
         TraceContextHolder.set(traceContext);
 
-        // Put the trace id in the header so that the applications have chance to know whether this request is being sampled
-        if (traceContext.traceMode().equals(TraceMode.TRACE)) {
+        // Put the trace id in the header so that the applications have a chance to know whether this request is being sampled
+        if (traceContext.traceMode().equals(TraceMode.TRACING)) {
             //
             // Here, we do not use request.getRequest().setAttribute()
-            // This is because request.getRequest returns an instance of javax.servlet.HttpServletRequest or jakarta.servlet.HttpServletRequest depending on the tomcat server
+            // This is because request.getRequest returns an instance of javax.servlet.HttpServletRequest or jakarta.servlet.HttpServletRequest depending on the tomcat server,
             // However, this plugin is compiled with tomcat 8 which returns javax.servlet.HttpServletRequest
-            // On tomcat 10, this request.getRequest() call fails
+            // On tomcat 10, which requires jakarta.servlet.HttpServletRequest, this request.getRequest() call fails
             //
             request.setAttribute("X-Bithon-TraceId", traceContext.traceId());
 

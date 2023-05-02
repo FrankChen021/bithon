@@ -20,7 +20,7 @@ import com.mongodb.connection.ConnectionId;
 import com.mongodb.internal.connection.InternalStreamConnection;
 import com.mongodb.internal.connection.ResponseBuffers;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;

@@ -17,14 +17,14 @@ Reference:
 
 # Demon
 
-A demo distributed services is provided by this [demo repo](https://github.com/FrankChen021/bithon-demo) with a docker-compose file.
+A demo is provided by this [demo repo](https://github.com/FrankChen021/bithon-demo) with a docker-compose file.
 You can follow the README on that demo repo to start the demo within just 3 steps.
 
 # Build
 
 ## 1. clone source code
 
-After clone this project, remember to clone the submodules.
+After cloning this project, remember to clone the submodules by following command
 
 ```bash
 git submodule update --init
@@ -42,21 +42,21 @@ For example
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-8.jdk/Contents/Home
 ```
 
-## 3. build project
+## 3. build the project
 
-For the first time to build this project, use following command to build dependencies first: 
+For the first time to build this project, use the following command to build dependencies first: 
 
 ```bash
 mvn clean install --activate-profiles shaded,jooq
 ```
 
-and then execute following command to build the project. 
+and then execute the following command to build the project. 
 
 ```bash
 mvn clean install -DskipTests
 ```
 
-After the first build, we don't need to build the dependencies anymore unless there're changes in these dependencies.
+After the first build, we don't need to build the dependencies anymore unless there are changes in these dependencies.
 
 # Run
 
@@ -91,16 +91,17 @@ Once the application has started, visit [http://localhost:9897/web/home](http://
 
 ## 2. Attach agent to your java application
 
-Attach agent to your java agent by adding following VM arguments.
+Attach agent to your java agent by adding the following VM arguments.
 
 ```bash
--javaagent:<YOUR_PROJECT_DIRECTORY>/agent/agent-distribution/target/agent-distribution/agent-main.jar -Dbithon.application.name=<YOUR_APPLICATION_NAME>
+-javaagent:<YOUR_PROJECT_DIRECTORY>/agent/agent-distribution/target/agent-distribution/agent-main.jar -Dbithon.application.name=<YOUR_APPLICATION_NAME> -Dbithon.application.env=<YOUR_APPLICATION_ENV>
 ```
 
-| Variable               | Description                                                                                                                                                                                                        |
-|------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| YOUR_PROJECT_DIRECTORY | the directory where this project saves                                                                                                                                                                             |
-| YOUR_APPLICATION_NAME  | the name of your application. It could be any string. <br/> Good practice of application name is combining the name and its deployed environment,  for example, `bithon-webserver-dev` or `bithon-webserver-prod`. |
+| Variable               | Description                                                                                                              |
+|------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| YOUR_PROJECT_DIRECTORY | the directory where this project saves                                                                                   |
+| YOUR_APPLICATION_NAME  | the name of your application. It could be any string                                                                     |
+| YOUR_APPLICATION_ENV   | the name of your environment to label your application. It could be any string. Usually it could be `dev`, `test`, `prd` |
 
 By default, the agent connects collector running at local(127.0.0.1). 
 Collector address could be changed in file `agent/agent-main/src/main/resources/agent.yml`.
@@ -108,7 +109,7 @@ Make sure to re-build the project after changing the configuration file above.
 
 # JDKs Compatibility
 
-Following matrix lists the JDKs that have been tested on macOS. And in theory, this matrix works both for Windows and Linux.
+The following matrix lists the JDKs that have been tested on macOS. And in theory, this matrix works both for Windows and Linux.
 
 | JDK           | Supported | 
 |---------------|-----------|
@@ -125,7 +126,7 @@ Following matrix lists the JDKs that have been tested on macOS. And in theory, t
 
 ## JDK 11 and above
 
-If the target application run under JDK 11 and above, following arguments should be added to JVM command to allow the agent to use Java Reflection on corresponding packages.
+If the target application runs under JDK 11 and above, the following arguments should be added to JVM command to allow the agent to use Java Reflection on corresponding packages.
 
 ```text
 --add-exports=java.base/jdk.internal.misc=ALL-UNNAMED --add-exports=java.base/sun.net.www=ALL-UNNAMED
@@ -155,6 +156,7 @@ If the target application run under JDK 11 and above, following arguments should
 | Quartz                 | 2.x         |             | &check; | &check; |
 | Redis - Jedis          | 2.9         |             | &check; |         |
 | Redis - Lettuce        | 5.1.2       |             | &check; |         |
+| Spring Boot            | 1.5         | 3.0+        |         | &check; |
 | Spring Bean            | 4.3.12      |             |         | &check; |
 | Spring Open Feign      | 10.12       |             |         | &check; |
 | Spring Rest Template   | 4.3.12      |             |         | &check; |
@@ -166,10 +168,17 @@ If the target application run under JDK 11 and above, following arguments should
 | HTTP Server - Undertow | 1.4.12      |             | &check; | &check; |
 
 
+# User Doc
+1. [Configuration](doc/configuration/configuration.md)
+2. [Diagnosis](doc/diagnosis/README.md)
+3. [Logging](doc/logging/README.md)
+4. SDK
+   1. [Metrics](doc/sdk/metrics.md)
+   2. [Tracing](doc/sdk/tracing.md)
 
 # Contribution
 
-To develop for this project, intellij is recommended. 
+To develop for this project, intellij is recommended.
 
 A code style template file(`dev/bithon_intellij_code_style`) must be imported into intellij for coding.
 
@@ -178,10 +187,3 @@ For more information, check the [development doc](doc/dev/development.md).
 # License
 
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
-
-# User Doc
-1. [Configuration](doc/configuration/configuration.md)
-2. [Profiling](doc/profile/README.md)
-3SDK
-   1. [Metrics](doc/sdk/metrics.md)
-   2. [Tracing](doc/sdk/tracing.md)

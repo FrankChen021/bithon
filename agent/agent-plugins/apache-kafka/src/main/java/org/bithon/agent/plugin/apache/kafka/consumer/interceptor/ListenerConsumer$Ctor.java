@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.apache.kafka.consumer.interceptor;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.component.commons.utils.ReflectionUtils;
 import org.springframework.kafka.listener.ContainerProperties;

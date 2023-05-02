@@ -17,19 +17,21 @@
 package org.bithon.agent.instrumentation.aop.context;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
-
-import java.lang.reflect.Executable;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 
 /**
  * NOTE: This class is injected into boostrap class loader,
- * it's better not use any classes out of standard JDK or there will be NoClassDefFoundError exception thrown when installing interceptors
+ * it's better not use any classes out of standard JDK,
+ * or there will be NoClassDefFoundError exception thrown when installing interceptors
  *
  * @author frankchen
  */
 public abstract class AopContext {
 
+    protected final Class<?> targetClass;
+    protected final String method;
     protected Object target;
-    private final Executable method;
     private final Object[] args;
     private Object userContext;
     private Object returning;
@@ -40,9 +42,11 @@ public abstract class AopContext {
     protected long startTimestamp;
     protected long endTimestamp;
 
-    public AopContext(Executable method,
+    public AopContext(Class<?> targetClass,
+                      String method,
                       Object target,
                       Object[] args) {
+        this.targetClass = targetClass;
         this.target = target;
         this.method = method;
         this.args = args;
@@ -53,7 +57,7 @@ public abstract class AopContext {
     }
 
     public Class<?> getTargetClass() {
-        return this.method.getDeclaringClass();
+        return this.targetClass;
     }
 
     /**
@@ -74,7 +78,7 @@ public abstract class AopContext {
      * if the intercepted method is a constructor, instance of {@link java.lang.reflect.Constructor} is returned
      * or instance of {@link java.lang.reflect.Method} is returned
      */
-    public Executable getMethod() {
+    public String getMethod() {
         return method;
     }
 
@@ -102,7 +106,7 @@ public abstract class AopContext {
 
     /**
      * the returning object of intercepted method
-     * Note: only available in {@link org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor#after(AopContext)}
+     * Note: only available in {@link AfterInterceptor#after(AopContext)}
      */
     public Object getReturning() {
         return returning;
@@ -125,7 +129,7 @@ public abstract class AopContext {
 
     /**
      * Exception thrown by intercepted method
-     * Note: only available in {@link org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor#after(AopContext)}
+     * Note: only available in {@link AfterInterceptor#after(AopContext)}
      */
     public Throwable getException() {
         return exception;
@@ -137,21 +141,21 @@ public abstract class AopContext {
 
     /**
      * How long the execution of intercepted method takes in nanoseconds
-     * Note: Only available in {@link org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor#after}
+     * Note: Only available in {@link AfterInterceptor#after}
      */
     public long getExecutionTime() {
         return endNanoTime - startNanoTime;
     }
 
     /**
-     * The timestamp that after {@link org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor#before(AopContext)} and before the intercepted method
+     * The timestamp that after {@link BeforeInterceptor#before(AopContext)} and before the intercepted method
      */
     public long getStartTimestamp() {
         return startTimestamp;
     }
 
     /**
-     * The timestamp that after the intercepted method and before the {@link org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor#after(AopContext)}
+     * The timestamp that after the intercepted method and before the {@link AfterInterceptor#after(AopContext)}
      */
     public long getEndTimestamp() {
         return endTimestamp;

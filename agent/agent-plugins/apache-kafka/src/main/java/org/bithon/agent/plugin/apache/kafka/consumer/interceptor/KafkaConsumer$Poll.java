@@ -19,8 +19,8 @@ package org.bithon.agent.plugin.apache.kafka.consumer.interceptor;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
@@ -42,7 +42,7 @@ public class KafkaConsumer$Poll extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setUserContext(span.method(aopContext.getMethod())
+        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                       .start());
         return InterceptionDecision.CONTINUE;
     }

@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.jersey.interceptor;
 
 import com.sun.jersey.spi.container.JavaMethodInvoker;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -28,7 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Enhance all REST APIs that comply with JAX-RS standard implemented by Sun.
+ * Enhance all REST APIs that comply with the JAX-RS standard implemented by Sun.
  * <p>
  * Hook to ctor of {@link com.sun.jersey.server.impl.model.method.dispatch.ResourceJavaMethodDispatcher} to enhance the {@link JavaMethodInvoker}
  * The reason that we don't intercept the {@link JavaMethodInvoker#invoke(Method, Object, Object...)} is that {@link JavaMethodInvoker} is an interface,
@@ -45,12 +45,12 @@ public class ResourceJavaMethodDispatcher$Ctor extends AfterInterceptor {
         JavaMethodInvoker enhancedInvoker = (m, o, parameters) -> {
             ITraceSpan span = null;
             try {
-                span = TraceSpanFactory.newSpan("");
+                span = TraceSpanFactory.newSpan("jersey");
             } catch (Exception ignored) {
             }
             try {
                 if (span != null) {
-                    span.method(m)
+                    span.method(m.getDeclaringClass(), m.getName())
                         .start();
                 }
                 return rawInvoker.invoke(m, o, parameters);

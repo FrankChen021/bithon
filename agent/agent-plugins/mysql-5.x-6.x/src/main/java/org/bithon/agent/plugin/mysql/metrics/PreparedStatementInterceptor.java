@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.mysql.metrics;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.observability.utils.MiscUtils;
 import org.bithon.agent.plugin.mysql.MySqlPlugin;
@@ -53,7 +53,7 @@ public class PreparedStatementInterceptor extends AroundInterceptor {
             return;
         }
 
-        String methodName = aopContext.getMethod().getName();
+        String methodName = aopContext.getMethod();
         boolean isQuery = true;
         if (MySqlPlugin.METHOD_EXECUTE_UPDATE.equals(methodName) ||
             MySqlPlugin.METHOD_EXECUTE_UPDATE_INTERNAL.equals(methodName)) {

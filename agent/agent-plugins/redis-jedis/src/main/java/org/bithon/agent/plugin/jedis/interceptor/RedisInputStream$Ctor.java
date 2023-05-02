@@ -17,36 +17,30 @@
 package org.bithon.agent.plugin.jedis.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
-import org.bithon.component.commons.logging.LoggerFactory;
-import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 
 /**
+ * {@link redis.clients.util.RedisInputStream#RedisInputStream(InputStream in, int size)}
+ *
  * @author frankchen
  * @date Dec 26, 2020 12:11:14 PM
  */
-public class RedisInputStream$Ctor extends AfterInterceptor {
+public class RedisInputStream$Ctor extends BeforeInterceptor {
 
     @Override
-    public void after(AopContext aopContext) {
+    public void before(AopContext aopContext) {
         InputStream is = aopContext.getArgAs(0);
-
-        try {
-            Field inputStreamField = ReflectionUtils.getField(aopContext.getTarget().getClass(), "in");
-            inputStreamField.setAccessible(true);
-            inputStreamField.set(aopContext.getTarget(), new InputStreamDecorator(is));
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            LoggerFactory.getLogger(RedisInputStream$Ctor.class).error("Unable to set InputStream for RedisInputStream: {}", e.getMessage());
+        if (is != null) {
+            aopContext.getArgs()[0] = new InputStreamDecorator(is);
         }
     }
 
-    static class InputStreamDecorator extends FilterInputStream {
+    private static class InputStreamDecorator extends FilterInputStream {
         public InputStreamDecorator(InputStream in) {
             super(in);
         }
@@ -63,7 +57,6 @@ public class RedisInputStream$Ctor extends AfterInterceptor {
                     ctx.getMetrics().addResponseBytes(size);
                 }
             } catch (Throwable ignored) {
-
             }
             return size;
         }

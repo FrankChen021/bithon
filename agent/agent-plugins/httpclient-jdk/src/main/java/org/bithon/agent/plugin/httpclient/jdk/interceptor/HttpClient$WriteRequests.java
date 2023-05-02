@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -49,7 +49,7 @@ public class HttpClient$WriteRequests extends BeforeInterceptor {
         /*
          * starts a span which will be finished after HttpClient.parseHttp
          */
-        span.method(aopContext.getMethod())
+        span.method(aopContext.getTargetClass(), aopContext.getMethod())
             .kind(SpanKind.CLIENT)
             .tag(Tags.CLIENT_TYPE, "jdk")
             .tag(Tags.HTTP_URI, clientContext.getUrl())

@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.mysql.trace;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
@@ -40,7 +40,7 @@ public class PreparedStatementTraceInterceptor extends AroundInterceptor {
         }
 
         // create a span and save it in user-context
-        aopContext.setUserContext(span.method(aopContext.getMethod())
+        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
                                       .start());
 

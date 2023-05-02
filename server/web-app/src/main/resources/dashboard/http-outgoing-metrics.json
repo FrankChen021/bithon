@@ -130,8 +130,8 @@
             {
               "dimension": "statusCode",
               "matcher": {
-                "type": "gt",
-                "value": "200"
+                "type": "gte",
+                "value": "400"
               }
             }
           ]

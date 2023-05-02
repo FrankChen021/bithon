@@ -33,7 +33,7 @@ public class PermissionRule {
     private String token;
 
     /**
-     * Because Spring Configuration does not support jackson's polymorphism,
+     * Because Spring Configuration doesn't support jackson's polymorphism,
      * we need to do it manually.
      * <p>
      * Also, because the configuration can be changed dynamically,

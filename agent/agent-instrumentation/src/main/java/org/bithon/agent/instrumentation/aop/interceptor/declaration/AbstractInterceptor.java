@@ -14,20 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.aop.interceptor;
+package org.bithon.agent.instrumentation.aop.interceptor.declaration;
+
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/3/18 23:26
+ * @date 2023/3/18 23:29
  */
-public abstract class ReplaceInterceptor implements IInterceptor {
-    /**
-     * Replacement of a target method.
-     * Will be executed only when the interceptor is defined as replacement
-     *
-     * @param returning the returning object of target method
-     */
-    public Object execute(Object[] args, Object returning) {
-        return returning;
+public abstract class AbstractInterceptor {
+    private final LongAdder hitCount = new LongAdder();
+
+    public long getHitCount() {
+        return hitCount.sum();
+    }
+
+    public void hit() {
+        hitCount.increment();
     }
 }

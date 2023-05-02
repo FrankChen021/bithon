@@ -19,18 +19,16 @@ package org.bithon.agent.plugin.quartz2;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
-import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -52,20 +50,13 @@ public class JobRunShell$Run extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceContext context;
-        SamplingMode mode = sampler.decideSamplingMode(null);
-        if (mode == SamplingMode.NONE) {
-            return InterceptionDecision.SKIP_LEAVE;
-        } else {
-            // create a traceable context
-            context = TraceContextFactory.create(TraceMode.TRACE,
-                                                 Tracer.get().traceIdGenerator().newTraceId());
-        }
+        ITraceContext context = TraceContextFactory.create(sampler.decideSamplingMode(null),
+                                                           Tracer.get().traceIdGenerator().newTraceId());
 
         aopContext.setUserContext(context.currentSpan()
                                          .component("quartz")
                                          .kind(SpanKind.TIMER)
-                                         .method(aopContext.getMethod())
+                                         .method(aopContext.getTargetClass(), aopContext.getMethod())
                                          .start());
 
         TraceContextHolder.set(context);

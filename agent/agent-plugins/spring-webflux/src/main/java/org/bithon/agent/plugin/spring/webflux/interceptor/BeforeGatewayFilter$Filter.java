@@ -19,10 +19,11 @@ package org.bithon.agent.plugin.spring.webflux.interceptor;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.plugin.spring.webflux.config.GatewayFilterConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -66,13 +67,13 @@ public class BeforeGatewayFilter$Filter extends AroundInterceptor {
 
         HttpServerContext ctx = (HttpServerContext) ((IBithonObject) nativeRequest).getInjectedObject();
         ITraceContext traceContext = ctx.getTraceContext();
-        if (traceContext == null) {
+        if (traceContext == null || !traceContext.traceMode().equals(TraceMode.TRACING)) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         ITraceSpan span = traceContext.currentSpan()
                                       .newChildSpan("filter")
-                                      .method(aopContext.getMethod())
+                                      .method(aopContext.getTargetClass(), aopContext.getMethod())
                                       .start();
 
         // replace the input argument
@@ -97,7 +98,7 @@ public class BeforeGatewayFilter$Filter extends AroundInterceptor {
         FilterUtils.extractAttributesAsTraceTags(exchange, this.configs, aopContext.getTargetClass(), span);
 
         if (aopContext.hasException()) {
-            // this exception might be thrown from this filter or from the chains of the filter.
+            // This exception might be thrown from this filter or from the chains of the filter.
             // For the 1st case, the span is not closed, so we have to finish it
             // For the 2nd case, the span is closed before entering the filter chain. It's safe to call the finish method once more
             span.tag(aopContext.getException()).finish();

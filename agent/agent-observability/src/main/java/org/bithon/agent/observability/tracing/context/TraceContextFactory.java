@@ -18,7 +18,9 @@ package org.bithon.agent.observability.tracing.context;
 
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.observability.tracing.Tracer;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
+import org.bithon.agent.observability.tracing.context.impl.LoggingTraceContext;
+import org.bithon.agent.observability.tracing.context.impl.TracingContext;
+import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 
 import java.util.regex.Pattern;
 
@@ -29,18 +31,18 @@ import java.util.regex.Pattern;
 public class TraceContextFactory {
     static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-zA-Z]{32}");
 
-    public static ITraceContext create(TraceMode traceMode, String traceId) {
-        return create(traceMode, traceId, null);
+    public static ITraceContext create(SamplingMode samplingMode, String traceId) {
+        return create(samplingMode, traceId, null);
     }
 
-    public static ITraceContext create(TraceMode traceMode, String traceId, String parentSpanId) {
-        return create(traceMode,
+    public static ITraceContext create(SamplingMode samplingMode, String traceId, String parentSpanId) {
+        return create(samplingMode,
                       traceId,
                       parentSpanId,
                       Tracer.get().spanIdGenerator().newSpanId());
     }
 
-    public static ITraceContext create(TraceMode traceMode, String traceId, String parentSpanId, String spanId) {
+    public static ITraceContext create(SamplingMode samplingMode, String traceId, String parentSpanId, String spanId) {
         //
         // check compatibility of trace id
         //
@@ -54,27 +56,24 @@ public class TraceContextFactory {
         // create trace context
         //
         ITraceContext context;
-        switch (traceMode) {
-            case TRACE:
-                context = new TraceContext(traceId, Tracer.get().spanIdGenerator()).reporter(Tracer.get().reporter());
+        switch (samplingMode) {
+            case FULL:
+                context = new TracingContext(traceId, Tracer.get().spanIdGenerator()).reporter(Tracer.get().reporter());
                 break;
-            case PROPAGATION:
-                context = new PropagationTraceContext(traceId, Tracer.get().spanIdGenerator());
+            case NONE:
+                context = new LoggingTraceContext(traceId, Tracer.get().spanIdGenerator());
                 break;
             default:
                 // actually never happen
                 // just a branch to make the code readable
-                throw new AgentException("Unknown trace mode:%s", traceMode);
+                throw new AgentException("Unknown sampling mode:%s", samplingMode);
         }
 
-        //
-        // set necessary status
-        //
-        ITraceSpan span = context.newSpan(parentSpanId, spanId)
-                                 .tag("thread", Thread.currentThread().getName());
-        if (upstreamTraceId != null) {
-            span.tag("upstreamTraceId", upstreamTraceId);
-        }
-        return context;
+        Thread currentThread = Thread.currentThread();
+        return context.newSpan(parentSpanId, spanId)
+                      .tag("thread.name", currentThread.getName())
+                      .tag("thread.id", currentThread.getId())
+                      .tag("upstreamTraceId", upstreamTraceId)
+                      .context();
     }
 }

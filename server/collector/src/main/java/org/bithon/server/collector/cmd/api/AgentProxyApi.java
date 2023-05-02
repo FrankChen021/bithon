@@ -17,6 +17,7 @@
 package org.bithon.server.collector.cmd.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.brpc.message.Headers;
@@ -27,6 +28,7 @@ import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.server.collector.cmd.api.permission.PermissionConfiguration;
 import org.bithon.server.collector.cmd.api.permission.PermissionRule;
 import org.bithon.server.collector.cmd.service.AgentServer;
+import org.bithon.server.commons.exception.ErrorResponse;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
@@ -97,6 +99,10 @@ public class AgentProxyApi implements IAgentProxyApi {
     public byte[] proxy(@RequestParam(name = INSTANCE_FIELD) String instance,
                         @RequestParam(name = "token") String token,
                         @RequestBody byte[] body) throws IOException {
+
+        // Get the session first
+        BrpcServer.Session agentSession = commandService.getBrpcServer().getSession(instance);
+
         //
         // Parse input request stream
         //
@@ -105,14 +111,16 @@ public class AgentProxyApi implements IAgentProxyApi {
         ServiceRequestMessageIn fromClient = ServiceRequestMessageIn.from(input);
 
         // Verify if the given token matches
-        // By default, if a method that starts with 'get' or 'dump' will be seen as a READ method that requires no permission check.
+        // By default if a method that starts with 'get' or 'dump' will be seen as a READ method that requires no permission check.
         if (!fromClient.getMethodName().startsWith("get") && !fromClient.getMethodName().startsWith("dump")) {
             Optional<PermissionRule> applicationRule = permissionConfiguration.getRules()
                                                                               .stream()
-                                                                              .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(fromClient.getApplicationName()))
+                                                                              .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(agentSession.getRemoteApplicationName()))
                                                                               .findFirst();
             if (!applicationRule.isPresent()) {
-                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(), "Application [%s] does not define a permission rule.", fromClient.getApplicationName());
+                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
+                                                "No permission rule is defined for application [%s] to allow UPDATE operation.",
+                                                agentSession.getRemoteApplicationName());
             }
 
             if (!applicationRule.get().getToken().equals(token)) {
@@ -137,10 +145,7 @@ public class AgentProxyApi implements IAgentProxyApi {
         ServiceResponseMessageOut.Builder responseBuilder = ServiceResponseMessageOut.builder()
                                                                                      .txId(fromClient.getTransactionId());
         try {
-            responseBuilder.returningRaw(commandService.getBrpcServer()
-                                                       .getSession(instance)
-                                                       .getLowLevelInvoker()
-                                                       .invoke(toTarget, 30_000));
+            responseBuilder.returningRaw(agentSession.getLowLevelInvoker().invoke(toTarget, 30_000));
         } catch (Throwable e) {
             responseBuilder.exception(e);
         } finally {
@@ -155,15 +160,15 @@ public class AgentProxyApi implements IAgentProxyApi {
      * Handle exception thrown in this REST controller.
      */
     @ExceptionHandler(ServiceInvocationException.class)
-    ResponseEntity<ServiceResponse> handleException(HttpServletRequest request, ServiceInvocationException exception) {
+    ResponseEntity<ErrorResponse> handleException(HttpServletRequest request, ServiceInvocationException exception) {
         int statusCode = exception instanceof SessionNotFoundException ? HttpStatus.NOT_FOUND.value() : HttpStatus.INTERNAL_SERVER_ERROR.value();
 
         return ResponseEntity.status(statusCode)
-                             .body(ServiceResponse.error(ServiceResponse.Error.builder()
-                                                                              .uri(request.getRequestURI())
-                                                                              .exception(exception.getClass().getName())
-                                                                              .message(exception.getMessage())
-                                                                              .build()));
+                             .body(ErrorResponse.builder()
+                                                .path(request.getRequestURI())
+                                                .exception(exception.getClass().getName())
+                                                .message(exception.getMessage())
+                                                .build());
     }
 
 }

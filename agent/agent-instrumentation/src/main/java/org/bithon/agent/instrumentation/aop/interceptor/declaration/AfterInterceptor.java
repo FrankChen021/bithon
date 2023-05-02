@@ -14,25 +14,16 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.commons.expression;
+package org.bithon.agent.instrumentation.aop.interceptor.declaration;
 
-import java.util.Map;
+import org.bithon.agent.instrumentation.aop.context.AopContext;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/4/7 20:24
+ * @date 2023/3/18 23:26
  */
-public class EvaluationContext {
+public abstract class AfterInterceptor extends AbstractInterceptor {
 
-    public EvaluationContext(Object record) {
-
-    }
-
-    public EvaluationContext(Map<String, Object> record) {
-
-    }
-
-    public Object get(String name) {
-        return null;
+    public void after(AopContext aopContext) throws Exception {
     }
 }

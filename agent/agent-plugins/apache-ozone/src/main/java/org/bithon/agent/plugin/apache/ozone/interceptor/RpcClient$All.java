@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.apache.ozone.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 
@@ -37,7 +37,7 @@ public class RpcClient$All extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setUserContext(span.method(aopContext.getMethod()).start());
+        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod()).start());
 
         return InterceptionDecision.CONTINUE;
     }

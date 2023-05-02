@@ -46,7 +46,7 @@ public class TraceSinkConfig {
      * key: prop name
      * val: prop values
      * <p>
-     * The props must be comply with {@link IInputRowFilter}
+     * The props must be complied with {@link IInputRowFilter}
      */
     private List<Map<String, String>> filters;
 

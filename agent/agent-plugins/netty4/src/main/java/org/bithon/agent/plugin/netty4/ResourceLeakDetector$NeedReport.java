@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.netty4;
 
-import org.bithon.agent.instrumentation.aop.interceptor.ReplaceInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.ReplaceInterceptor;
 
 /**
  * Interceptor of {@link io.netty.util.ResourceLeakDetector#needReport()}

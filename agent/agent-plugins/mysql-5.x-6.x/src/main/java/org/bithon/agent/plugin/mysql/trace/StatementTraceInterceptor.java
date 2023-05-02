@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.mysql.trace;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
@@ -42,7 +42,7 @@ public class StatementTraceInterceptor extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setUserContext(span.method(aopContext.getMethod())
+        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
                                       //TODO: connection uri
                                       .start());

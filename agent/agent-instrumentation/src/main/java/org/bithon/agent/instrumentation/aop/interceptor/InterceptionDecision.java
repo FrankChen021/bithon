@@ -16,6 +16,8 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor;
 
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/17 11:34 下午
@@ -24,7 +26,7 @@ public enum InterceptionDecision {
     CONTINUE,
 
     /**
-     * Whether SKIP call of {@link org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor#after}
+     * Whether SKIP call of {@link AroundInterceptor#after}
      * It's very useful when implement interceptors for tracing
      */
     SKIP_LEAVE

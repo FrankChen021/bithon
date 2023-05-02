@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.mysql8;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.observability.utils.MiscUtils;
@@ -45,7 +45,7 @@ public class PreparedStatementInterceptor extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        String methodName = aopContext.getMethod().getName();
+        String methodName = aopContext.getMethod();
         String connectionString = aopContext.getUserContextAs();
 
         SQLMetrics metric = metricRegistry.getOrCreateMetrics(connectionString);

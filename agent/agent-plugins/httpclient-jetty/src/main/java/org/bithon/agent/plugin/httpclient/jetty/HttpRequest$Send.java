@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.httpclient.jetty;
 
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.BeforeInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
@@ -29,6 +29,7 @@ import org.eclipse.jetty.client.HttpRequest;
 import org.eclipse.jetty.client.api.Response;
 import org.eclipse.jetty.client.api.Result;
 import org.eclipse.jetty.http.HttpField;
+import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.util.Callback;
 
 import java.nio.ByteBuffer;
@@ -50,14 +51,16 @@ public class HttpRequest$Send extends BeforeInterceptor {
     public void before(AopContext aopContext) {
         HttpRequest httpRequest = aopContext.getTargetAs();
 
-        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpclient")
-                                                .method(aopContext.getMethod())
-                                                .kind(SpanKind.CLIENT)
-                                                .tag(Tags.CLIENT_TYPE, "jetty")
-                                                .tag(Tags.HTTP_URI, httpRequest.getURI().toString())
-                                                .tag(Tags.HTTP_METHOD, httpRequest.getMethod())
-                                                .propagate(httpRequest.getHeaders(), (headersArgs, key, value) -> headersArgs.put(key, value))
-                                                .start();
+        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpclient");
+        if (span != null) {
+            span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                .kind(SpanKind.CLIENT)
+                .tag(Tags.CLIENT_TYPE, "jetty")
+                .tag(Tags.HTTP_URI, httpRequest.getURI().toString())
+                .tag(Tags.HTTP_METHOD, httpRequest.getMethod())
+                .propagate(httpRequest.getHeaders(), HttpFields::put)
+                .start();
+        }
 
         final long startAt = System.nanoTime();
 
@@ -107,21 +110,20 @@ public class HttpRequest$Send extends BeforeInterceptor {
                 //
                 if (result.isFailed()) {
                     metricRegistry.addExceptionRequest(result.getRequest().getURI().toString(),
-                            result.getRequest().getMethod(),
-                            System.nanoTime() - startAt);
+                                                       result.getRequest().getMethod(),
+                                                       System.nanoTime() - startAt);
                 } else {
                     metricRegistry.addRequest(result.getRequest().getURI().toString(),
-                            result.getRequest().getMethod(),
-                            result.getResponse().getStatus(),
-                            System.nanoTime() - startAt);
+                                              result.getRequest().getMethod(),
+                                              result.getResponse().getStatus(),
+                                              System.nanoTime() - startAt);
                 }
 
                 //
                 // trace
                 //
                 try {
-                    if (!span.isNull()) {
-
+                    if (span != null) {
                         traceConfig.getHeaders()
                                    .getResponse()
                                    .forEach((name) -> {

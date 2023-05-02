@@ -18,8 +18,8 @@ package org.bithon.agent.plugin.alibaba.druid.interceptor;
 
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AroundInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
@@ -77,7 +77,7 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
                                                                              .getURL());
         ITraceSpan span = TraceSpanFactory.newSpan("alibaba-druid");
         if (span != null) {
-            span.method(aopContext.getMethod())
+            span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)
                 .tag("db", connectionString)
                 .start();
@@ -96,7 +96,7 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
                 context.span.tag(Tags.SQL, getExecutingSql(aopContext))
                             .tag(aopContext.getException());
 
-                if (DruidPlugin.METHOD_EXECUTE_BATCH.equals(aopContext.getMethod().getName())) {
+                if (DruidPlugin.METHOD_EXECUTE_BATCH.equals(aopContext.getMethod())) {
                     if (aopContext.getReturning() != null) {
                         context.span.tag("rows", Integer.toString(((int[]) aopContext.getReturning()).length));
                     }
@@ -108,9 +108,9 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
 
         if (context.uri != null && isSQLMetricEnabled) {
 
-            String methodName = aopContext.getMethod().getName();
+            String methodName = aopContext.getMethod();
 
-            // check if metrics provider for this driver exists
+            // check if the metrics provider for this driver exists
             Boolean isQuery = null;
             if (DruidPlugin.METHOD_EXECUTE_UPDATE.equals(methodName)
                 || DruidPlugin.METHOD_EXECUTE_BATCH.equals(methodName)) {

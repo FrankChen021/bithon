@@ -14,24 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.aop.interceptor;
-
-import org.bithon.agent.instrumentation.aop.context.AopContext;
+package org.bithon.agent.observability.tracing.context;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/3/18 23:25
+ * @date 2021/7/17 17:13
  */
-public abstract class AroundInterceptor implements IInterceptor {
-
-    public InterceptionDecision before(AopContext aopContext) throws Exception {
-        return InterceptionDecision.CONTINUE;
-    }
+public enum TraceMode {
+    /**
+     * Trace current request
+     */
+    TRACING,
 
     /**
-     * Called after execution of target intercepted method
-     * If {@link #before(AopContext)} returns {@link InterceptionDecision#SKIP_LEAVE}, call of this method will be skipped
+     * Generate a unique trace id and print the id in the log for current request.
+     * The trace id will be also duplicated across threads for this request.
      */
-    public void after(AopContext aopContext) throws Exception {
-    }
+    LOGGING
 }

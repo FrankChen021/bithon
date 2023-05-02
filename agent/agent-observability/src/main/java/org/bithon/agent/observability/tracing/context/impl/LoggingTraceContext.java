@@ -14,43 +14,44 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.tracing.context;
+package org.bithon.agent.observability.tracing.context.impl;
 
+import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.observability.tracing.Tracer;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.TraceContextListener;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
-import org.bithon.agent.observability.tracing.context.propagation.TraceMode;
 import org.bithon.agent.observability.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
 import org.bithon.component.commons.time.Clock;
 
-import java.util.Stack;
-
 /**
- *
- * trace context for logging and propagation
+ * trace context for logging
  *
  * @author frank.chen021@outlook.com
  * @date 2021/7/17 15:38
  */
-public class PropagationTraceContext implements ITraceContext {
+public class LoggingTraceContext implements ITraceContext {
 
-    private final ITraceReporter noopTraceReporter = spans -> {
-    };
+    //private final static ITraceReporter noopTraceReporter = spans -> {
+    //};
     private final Clock clock = new Clock();
 
     private final ISpanIdGenerator spanIdGenerator;
-    private final Stack<ITraceSpan> spanStack = new Stack<>();
+    private ITraceSpan rootSpan;
     private final String traceId;
     private boolean finished = false;
 
-    public PropagationTraceContext(String traceId, ISpanIdGenerator spanIdGenerator) {
+    public LoggingTraceContext(String traceId, ISpanIdGenerator spanIdGenerator) {
         this.traceId = traceId;
         this.spanIdGenerator = spanIdGenerator;
     }
 
     @Override
     public TraceMode traceMode() {
-        return TraceMode.PROPAGATION;
+        return TraceMode.LOGGING;
     }
 
     @Override
@@ -60,7 +61,7 @@ public class PropagationTraceContext implements ITraceContext {
 
     @Override
     public ITraceSpan currentSpan() {
-        return spanStack.isEmpty() ? null : spanStack.peek();
+        return rootSpan;
     }
 
     @Override
@@ -70,7 +71,7 @@ public class PropagationTraceContext implements ITraceContext {
 
     @Override
     public ITraceReporter reporter() {
-        return noopTraceReporter;
+        return null;
     }
 
     @Override
@@ -85,17 +86,15 @@ public class PropagationTraceContext implements ITraceContext {
 
     @Override
     public ITraceSpan newSpan(String parentSpanId, String spanId) {
-        PropagationTraceSpan span = new PropagationTraceSpan(this, parentSpanId, spanId);
-        this.onSpanCreated(span);
-        return span;
+        if (rootSpan != null) {
+            throw new AgentException("Can't create span");
+        }
+        rootSpan = new LoggingTraceSpan(this, parentSpanId, spanId);
+        return rootSpan;
     }
 
     @Override
     public void finish() {
-        if (!spanStack.isEmpty()) {
-            // TODO: error
-            spanStack.clear();
-        }
         this.finished = true;
     }
 
@@ -105,12 +104,13 @@ public class PropagationTraceContext implements ITraceContext {
     }
 
     @Override
-    public boolean finished() {
-        return this.finished;
+    public ITraceContext copy() {
+        return new LoggingTraceContext(this.traceId, this.spanIdGenerator);
     }
 
-    private void onSpanCreated(ITraceSpan span) {
-        spanStack.push(span);
+    @Override
+    public boolean finished() {
+        return this.finished;
     }
 
     void onSpanStarted(ITraceSpan span) {
@@ -118,25 +118,14 @@ public class PropagationTraceContext implements ITraceContext {
     }
 
     void onSpanFinished(ITraceSpan span) {
-        if (spanStack.isEmpty()) {
+
+        if (!rootSpan.equals(span)) {
             // TODO: internal error
             TraceContextListener.getInstance().onSpanFinished(span);
             return;
         }
 
-        if (!spanStack.peek().equals(span)) {
-            // TODO: internal error
-            TraceContextListener.getInstance().onSpanFinished(span);
-            return;
-        }
-
-        spanStack.pop();
-        if (spanStack.isEmpty()) {
-            // TODO: report span
-            TraceContextListener.getInstance().onSpanFinished(span);
-            return;
-        }
-
+        this.rootSpan = null;
         TraceContextListener.getInstance().onSpanFinished(span);
     }
 }

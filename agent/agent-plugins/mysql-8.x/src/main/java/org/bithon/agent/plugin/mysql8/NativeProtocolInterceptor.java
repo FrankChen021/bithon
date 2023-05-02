@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.mysql8;
 
 import com.mysql.cj.conf.HostInfo;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.observability.utils.MiscUtils;
@@ -37,7 +37,7 @@ public class NativeProtocolInterceptor extends AfterInterceptor {
     @Override
     public void after(AopContext aopContext) throws Exception {
 
-        String methodName = aopContext.getMethod().getName();
+        String methodName = aopContext.getMethod();
         Object nativeProtocol = aopContext.getTarget();
 
         Object session = ReflectionUtils.getFieldValue(nativeProtocol, "session");
