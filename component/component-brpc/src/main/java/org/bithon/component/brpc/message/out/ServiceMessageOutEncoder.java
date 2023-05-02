@@ -24,6 +24,7 @@ import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
 import org.bithon.shaded.io.netty.buffer.ByteBuf;
 import org.bithon.shaded.io.netty.buffer.ByteBufOutputStream;
 import org.bithon.shaded.io.netty.channel.ChannelFutureListener;
+import org.bithon.shaded.io.netty.channel.ChannelHandler;
 import org.bithon.shaded.io.netty.channel.ChannelHandlerContext;
 import org.bithon.shaded.io.netty.channel.ChannelPromise;
 import org.bithon.shaded.io.netty.handler.codec.EncoderException;
@@ -32,6 +33,7 @@ import org.bithon.shaded.io.netty.handler.codec.MessageToByteEncoder;
 /**
  * @author frankchen
  */
+@ChannelHandler.Sharable
 public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessageOut> {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ServiceMessageOutEncoder.class);
 
