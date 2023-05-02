@@ -46,8 +46,8 @@ public class TracingContext implements ITraceContext {
 
     private boolean finished = false;
 
-    public TraceContext(String traceId,
-                        ISpanIdGenerator spanIdGenerator) {
+    public TracingContext(String traceId,
+                          ISpanIdGenerator spanIdGenerator) {
         this.traceId = traceId;
         this.spanIdGenerator = spanIdGenerator;
     }
@@ -99,8 +99,8 @@ public class TracingContext implements ITraceContext {
     public void finish() {
         if (!spanStack.isEmpty()) {
             LoggerFactory.getLogger(TracingContext.class).warn("TraceContext does not finish correctly. "
-                                                                     + "[{}] spans are still remained in the stack. "
-                                                                     + "Please adding -Dbithon.tracing.debug=true parameter to your application to turn on the span life time message to debug. Remained spans: \n{}",
+                                                                       + "[{}] spans are still remained in the stack. "
+                                                                       + "Please adding -Dbithon.tracing.debug=true parameter to your application to turn on the span life time message to debug. Remained spans: \n{}",
                                                                spans.size(),
                                                                spans);
             return;

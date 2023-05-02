@@ -18,6 +18,8 @@ package org.bithon.agent.observability.dispatcher.task;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,6 +46,13 @@ public class BatchMessageQueue implements IMessageQueue {
 
     @Override
     public boolean offer(Object object) {
+        if (object == null) {
+            return false;
+        }
+        if (!(object instanceof Collection)) {
+            // A list is stored in the underlying queue
+            object = Collections.singletonList(object);
+        }
         return delegate.offer(object);
     }
 
@@ -71,7 +80,7 @@ public class BatchMessageQueue implements IMessageQueue {
     }
 
     @SuppressWarnings("unchecked")
-    private void fill(List<Object> batch, long timeout) {
+    private void fill(List<Object> thisBatch, long timeout) {
         if (taken == null) {
             try {
                 taken = (List<Object>) delegate.take(timeout);
@@ -83,13 +92,14 @@ public class BatchMessageQueue implements IMessageQueue {
             return;
         }
 
-        int maxFill = Math.min(this.batchSize, taken.size());
-        for (int i = 0; i < maxFill; i++) {
-            batch.add(taken.get(i));
+        int capacity = this.batchSize - thisBatch.size();
+        int maxElements = Math.min(capacity, taken.size());
+        for (int i = 0; i < maxElements; i++) {
+            thisBatch.add(taken.get(i));
         }
 
-        if (maxFill < taken.size()) {
-            taken.subList(maxFill, taken.size());
+        if (maxElements < taken.size()) {
+            taken = taken.subList(maxElements, taken.size());
         } else {
             taken = null;
         }

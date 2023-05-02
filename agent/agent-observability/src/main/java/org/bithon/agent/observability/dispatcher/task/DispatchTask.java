@@ -24,7 +24,6 @@ import org.bithon.component.commons.utils.StringUtils;
 
 import java.time.Duration;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -101,11 +100,7 @@ public class DispatchTask {
             return;
         }
 
-        if (!(message instanceof List) && bufferQueue instanceof BatchMessageQueue) {
-            bufferQueue.offer(Collections.singletonList(message));
-        } else {
-            bufferQueue.offer(message);
-        }
+        bufferQueue.offer(message);
     }
 
     public void accept(List<Object> messages) {
@@ -113,11 +108,11 @@ public class DispatchTask {
             return;
         }
 
-        // Since this accept method is not atomic, when the code goes here and below 'stop' is called and runs to complete,
+        // Since this 'accept' method is not atomic, when the code goes here and below 'stop' is called and runs to complete,
         // the message will be still added to the queue.
         //
         // To solve the problem, it requires some lock mechanism between this method and below 'stop' method,
-        // but because the underlying queue is already a concurrency supported structure,
+        // but because the underlying queue is already a concurrency-supported structure,
         // adding such lock to solve this edge case does not gain much
         //
         if (!bufferQueue.offer(messages)) {
@@ -134,7 +129,7 @@ public class DispatchTask {
         // stop receiving new messages and stop the task
         isRunning = false;
 
-        // Wait for send task to complete
+        // Wait for the send task to complete
         while (!isTaskEnd) {
             try {
                 Thread.sleep(50);
