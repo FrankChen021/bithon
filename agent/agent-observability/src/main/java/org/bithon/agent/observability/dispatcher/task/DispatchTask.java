@@ -17,17 +17,11 @@
 package org.bithon.agent.observability.dispatcher.task;
 
 import org.bithon.agent.observability.dispatcher.config.DispatcherConfig;
-import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
 
-import java.time.Duration;
 import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -38,7 +32,8 @@ public class DispatchTask {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(DispatchTask.class);
 
     private final Consumer<Object> underlyingSender;
-    private final IMessageQueue bufferQueue;
+    private final IMessageQueue queue;
+    private final DispatcherConfig.QueueFullStrategy queueFullStrategy;
     private volatile boolean isRunning = true;
     private volatile boolean isTaskEnd = false;
 
@@ -47,34 +42,25 @@ public class DispatchTask {
      */
     private final long flushTime;
 
-    private final ThreadPoolExecutor retryHandler;
-
     public DispatchTask(String taskName,
-                        IMessageQueue bufferQueue,
+                        IMessageQueue queue,
                         DispatcherConfig config,
                         Consumer<Object> underlyingSender) {
         this.flushTime = Math.max(10, config.getFlushTime());
         this.underlyingSender = underlyingSender;
-        this.bufferQueue = config.getBatchSize() > 0 ? new BatchMessageQueue(bufferQueue, config.getBatchSize()) : bufferQueue;
+        this.queue = config.getBatchSize() > 0 ? new BatchMessageQueue(queue, config.getBatchSize()) : queue;
+        this.queueFullStrategy = config.getQueueFullStrategy();
         new Thread(() -> {
             while (isRunning) {
                 dispatch(true);
             }
             isTaskEnd = true;
         }, taskName + "-sender").start();
-
-        this.retryHandler = new ThreadPoolExecutor(0,
-                                                   4,
-                                                   60L,
-                                                   TimeUnit.SECONDS,
-                                                   new LinkedBlockingQueue<>(32),
-                                                   NamedThreadFactory.of(taskName + "-queue"),
-                                                   new ThreadPoolExecutor.DiscardOldestPolicy());
     }
 
     private void dispatch(boolean waitIfEmpty) {
         try {
-            Object message = bufferQueue.take(waitIfEmpty ? this.flushTime : 0);
+            Object message = queue.take(waitIfEmpty ? this.flushTime : 0);
             if (message == null) {
                 return;
             }
@@ -85,9 +71,12 @@ public class DispatchTask {
                     return;
                 }
 
-                LOG.info("Sending message, size = {}, batch = {}",
-                         size,
-                         this.bufferQueue instanceof BatchMessageQueue ? ((BatchMessageQueue) this.bufferQueue).getBatchSize() : -1);
+                if (queue instanceof BatchMessageQueue) {
+                    LOG.info("Sending message, size = {}, max batch = {}", size, ((BatchMessageQueue) this.queue).getBatchSize());
+
+                } else {
+                    LOG.info("Sending message, size = {}", size);
+                }
             }
             this.underlyingSender.accept(message);
         } catch (Exception e) {
@@ -100,14 +89,6 @@ public class DispatchTask {
             return;
         }
 
-        bufferQueue.offer(message);
-    }
-
-    public void accept(List<Object> messages) {
-        if (!isRunning) {
-            return;
-        }
-
         // Since this 'accept' method is not atomic, when the code goes here and below 'stop' is called and runs to complete,
         // the message will be still added to the queue.
         //
@@ -115,13 +96,17 @@ public class DispatchTask {
         // but because the underlying queue is already a concurrency-supported structure,
         // adding such lock to solve this edge case does not gain much
         //
-        if (!bufferQueue.offer(messages)) {
-            retryHandler.execute(() -> {
-                try {
-                    bufferQueue.offer(messages, Duration.ofMillis(50));
-                } catch (InterruptedException ignored) {
-                }
-            });
+        if (DispatcherConfig.QueueFullStrategy.DISCARD.equals(this.queueFullStrategy)) {
+            // The return is ignored if the 'offer' fails to run
+            this.queue.offer(message);
+        } else if (DispatcherConfig.QueueFullStrategy.DISCARD_OLDEST.equals(this.queueFullStrategy)) {
+            // Discard the oldest in the queue
+            while (!queue.offer(message)) {
+                LOG.error("Failed offer element to the queue, capacity = {}. Discarding the oldest...", this.queue.capacity());
+                queue.pop();
+            }
+        } else {
+            throw new UnsupportedOperationException("Not supported now");
         }
     }
 
@@ -137,15 +122,8 @@ public class DispatchTask {
             }
         }
 
-        // Wait for thread pool to complete
-        this.retryHandler.shutdown();
-        try {
-            this.retryHandler.awaitTermination(1, TimeUnit.SECONDS);
-        } catch (InterruptedException ignored) {
-        }
-
         // flush all messages
-        while (bufferQueue.size() > 0) {
+        while (queue.size() > 0) {
             dispatch(false);
         }
     }

@@ -67,6 +67,11 @@ public class BatchMessageQueue implements IMessageQueue {
     }
 
     @Override
+    public long capacity() {
+        return delegate.capacity();
+    }
+
+    @Override
     public Object take(long timeout) {
         List<Object> batch = new ArrayList<>(this.batchSize);
 
@@ -77,6 +82,11 @@ public class BatchMessageQueue implements IMessageQueue {
         } while (batch.size() < batchSize && timeout > 0);
 
         return batch;
+    }
+
+    @Override
+    public Object pop() {
+        return delegate.pop();
     }
 
     @SuppressWarnings("unchecked")

@@ -26,8 +26,13 @@ public class DispatcherConfig {
 
     private Map<String, Boolean> messageDebug = Collections.emptyMap();
 
+    public enum QueueFullStrategy {
+        DISCARD,
+        DISCARD_OLDEST
+    }
+
     /**
-     * A size of the queue of message list that contains the messages to be sent.
+     * The upper limit of the message queue size.
      * Considering to set it to a proper size that matches the concurrency of your target application.
      */
     private int queueSize = 1024;
@@ -40,14 +45,22 @@ public class DispatcherConfig {
         this.queueSize = queueSize;
     }
 
+    private QueueFullStrategy queueFullStrategy = QueueFullStrategy.DISCARD_OLDEST;
+
     private String servers;
 
     private DispatcherClient client;
 
+    /**
+     * The size of a batch that messages are bundled to send.
+     * Can be zero.
+     */
     private int batchSize = 0;
 
     /**
-     * in milliseconds
+     * The time interval in milliseconds to flush messages.
+     * The dispatcher waits up to this configured time to prepare a batch to send,
+     * When the messages are sent is determined by this time and {@link #batchSize}, whichever first arrives.
      */
     private int flushTime = 10;
 
@@ -89,5 +102,13 @@ public class DispatcherConfig {
 
     public void setFlushTime(int flushTime) {
         this.flushTime = flushTime;
+    }
+
+    public QueueFullStrategy getQueueFullStrategy() {
+        return queueFullStrategy;
+    }
+
+    public void setQueueFullStrategy(QueueFullStrategy queueFullStrategy) {
+        this.queueFullStrategy = queueFullStrategy;
     }
 }

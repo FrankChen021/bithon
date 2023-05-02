@@ -27,7 +27,15 @@ public interface IMessageQueue {
 
     boolean offer(Object items, Duration wait) throws InterruptedException;
 
+    /**
+     * Number of elements in the queue
+     */
     long size();
+
+    /**
+     * Size limit of this queue
+     */
+    long capacity();
 
     /**
      * Wait for at most {timeout} milliseconds to take at most maxElement elements from current queue
@@ -35,4 +43,9 @@ public interface IMessageQueue {
      *                If <= 0, no wait
      */
     Object take(long timeout) throws InterruptedException;
+
+    /**
+     * Pop the first entry from the queue
+     */
+    Object pop();
 }

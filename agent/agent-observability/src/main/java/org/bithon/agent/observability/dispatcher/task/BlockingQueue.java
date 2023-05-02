@@ -26,13 +26,15 @@ import java.util.concurrent.TimeUnit;
  */
 public class BlockingQueue implements IMessageQueue {
     private final LinkedBlockingQueue<Object> queue;
+    private final int capacity;
 
     public BlockingQueue() {
         this(4096);
     }
 
-    public BlockingQueue(int queueSize) {
-        queue = new LinkedBlockingQueue<>(queueSize);
+    public BlockingQueue(int capacity) {
+        this.queue = new LinkedBlockingQueue<>(capacity);
+        this.capacity = capacity;
     }
 
     @Override
@@ -51,7 +53,17 @@ public class BlockingQueue implements IMessageQueue {
     }
 
     @Override
+    public long capacity() {
+        return this.capacity;
+    }
+
+    @Override
     public Object take(long timeout) throws InterruptedException {
         return timeout <= 0 ? queue.poll() : queue.poll(timeout, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public Object pop() {
+        return queue.poll();
     }
 }
