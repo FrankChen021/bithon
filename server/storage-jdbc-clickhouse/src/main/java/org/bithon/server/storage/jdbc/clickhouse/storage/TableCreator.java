@@ -105,15 +105,15 @@ public class TableCreator {
 
             String tableName = config.getLocalTableName(table.getName());
             createTableStatement.append(StringUtils.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n%s %s)",
-                    config.getDatabase(),
-                    tableName,
-                    config.getOnClusterExpression(),
-                    getFieldText(table),
-                    getIndexText()));
+                                                           config.getDatabase(),
+                                                           tableName,
+                                                           config.getOnClusterExpression(),
+                                                           getFieldText(table),
+                                                           getIndexText()));
 
             // replace macro in the template to suit for ReplicatedMergeTree
             fullEngine = fullEngine.replaceAll("\\{database}", config.getDatabase())
-                    .replaceAll("\\{table}", tableName);
+                                   .replaceAll("\\{table}", tableName);
 
             if (replacingMergeTreeVersion != null) {
                 // Insert the version field for ReplacingMergeTree
@@ -195,15 +195,15 @@ public class TableCreator {
         if (config.isOnDistributedTable()) {
             StringBuilder sb = new StringBuilder(128);
             sb.append(StringUtils.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n",
-                    config.getDatabase(),
-                    table.getName(),
-                    config.getOnClusterExpression()));
+                                         config.getDatabase(),
+                                         table.getName(),
+                                         config.getOnClusterExpression()));
             sb.append(getFieldText(table));
             sb.append(StringUtils.format(") ENGINE=Distributed('%s', '%s', '%s', murmurHash2_64(%s));",
-                    config.getCluster(),
-                    config.getDatabase(),
-                    table.getName() + "_local",
-                    "bithon_topo_metrics".equals(table.getName()) ? "srcEndpoint" : "appName"));
+                                         config.getCluster(),
+                                         config.getDatabase(),
+                                         table.getName() + "_local",
+                                         "bithon_topo_metrics".equals(table.getName()) ? "srcEndpoint" : "appName"));
 
             log.info("CreateIfNotExists {}", table.getName());
             dslContext.execute(sb.toString());
