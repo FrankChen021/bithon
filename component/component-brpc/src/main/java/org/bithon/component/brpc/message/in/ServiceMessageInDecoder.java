@@ -28,8 +28,11 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Decode input stream to incoming service message, either it's {@link ServiceRequestMessageIn}
+ * Decode input stream to an incoming service message, either it's {@link ServiceRequestMessageIn}
  * or {@link ServiceResponseMessageIn}
+ * <p>
+ * Note that the {@link ByteToMessageDecoder} DOES NOT allow its subclasses to be {@link org.bithon.shaded.io.netty.channel.ChannelHandler.Sharable}.
+ * However, {@link org.bithon.shaded.io.netty.handler.codec.MessageToByteEncoder} CAN BE shared
  *
  * @author frankchen
  */
@@ -43,7 +46,7 @@ public class ServiceMessageInDecoder extends ByteToMessageDecoder {
 
         CodedInputStream is = CodedInputStream.newInstance(new ByteBufInputStream(in));
 
-        // The CodedInputStream does not provide an API to get the length of unread data
+        // The CodedInputStream does not provide an API to get the length of unread data,
         // So, we need to set the limit first and then use getBytesUntilLimit() as a workaround
         is.pushLimit(in.readableBytes());
 

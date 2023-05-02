@@ -35,19 +35,19 @@ public interface IBrpcChannel {
     long getConnectionLifeTime();
 
     /**
-     * If underlying channel is active
+     * Check if the underlying channel is active
      */
     boolean isActive();
 
     boolean isWritable();
 
     /**
-     * Get remote address of underlying connected channel
+     * Get remote address of the underlying connected channel
      */
     EndPoint getRemoteAddress();
 
     /**
-     * Write the message without waiting for response
+     * Write the message without waiting for the response
      */
     void writeAsync(Object obj) throws IOException;
 }

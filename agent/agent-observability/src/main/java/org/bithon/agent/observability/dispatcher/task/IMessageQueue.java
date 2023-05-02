@@ -38,14 +38,14 @@ public interface IMessageQueue {
     long capacity();
 
     /**
-     * Wait for at most {timeout} milliseconds to take at most maxElement elements from current queue
-     * @param timeout How long should we wait for taking maxElement elements from this queue in milliseconds.
+     * Wait for at most given milliseconds to take an element from the current queue
+     * @param timeout The millisecond that we wait for taking 1 element from this.
      *                If <= 0, no wait
      */
     Object take(long timeout) throws InterruptedException;
 
     /**
-     * Pop the first entry from the queue
+     * Pop the first entry from the queue without waiting
      */
     Object pop();
 }

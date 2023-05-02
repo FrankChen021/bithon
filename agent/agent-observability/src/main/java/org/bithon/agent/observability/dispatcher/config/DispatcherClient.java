@@ -24,7 +24,7 @@ import org.bithon.agent.observability.dispatcher.channel.IMessageChannelFactory;
 public class DispatcherClient {
 
     /**
-     * must be sub-class of {@link IMessageChannelFactory}
+     * must be subclass of {@link IMessageChannelFactory}
      */
     private String factory;
 

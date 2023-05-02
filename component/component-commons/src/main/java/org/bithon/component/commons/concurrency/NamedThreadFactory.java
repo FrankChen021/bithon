@@ -33,11 +33,11 @@ public class NamedThreadFactory implements ThreadFactory {
         this(namePrefix, false);
     }
 
-    public NamedThreadFactory(String namePrefix, boolean isDeamon) {
+    public NamedThreadFactory(String namePrefix, boolean isDaemon) {
         final SecurityManager s = System.getSecurityManager();
         this.group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
         this.namePrefix = namePrefix;
-        this.isDaemon = isDeamon;
+        this.isDaemon = isDaemon;
     }
 
     @Override
