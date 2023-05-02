@@ -47,12 +47,17 @@ public class BatchMessageQueue implements IMessageQueue {
     @Override
     public boolean offer(Object object) {
         if (object == null) {
-            return false;
+            // Treat it as a success
+            return true;
         }
         if (!(object instanceof Collection)) {
             // A list is stored in the underlying queue
             object = Collections.singletonList(object);
+        } else if (((Collection<?>) object).isEmpty()) {
+            // Treat it as a success
+            return true;
         }
+
         return delegate.offer(object);
     }
 
