@@ -42,7 +42,6 @@ public interface IMessageConverter {
 
     Object from(long timestamp, int interval, SQLStatementMetrics metrics);
 
-    // tracing span message
     Object from(ITraceSpan span);
 
     Object from(EventMessage event);

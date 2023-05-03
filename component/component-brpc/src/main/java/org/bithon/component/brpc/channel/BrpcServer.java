@@ -76,7 +76,7 @@ public class BrpcServer implements Closeable {
 
     public BrpcServer(String serverId, int nWorkerThreads) {
         this.bossGroup = new NioEventLoopGroup(1, NamedThreadFactory.of("brpc-server-" + serverId));
-        this.workerGroup = new NioEventLoopGroup(nWorkerThreads, NamedThreadFactory.of("brpc-s-worker-" + serverId));
+        this.workerGroup = new NioEventLoopGroup(nWorkerThreads, NamedThreadFactory.of("brpc-s-work-" + serverId));
 
         this.invocationManager = new InvocationManager();
         this.sessionManager = new SessionManager(this.invocationManager);

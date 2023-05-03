@@ -21,6 +21,7 @@ import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import org.bithon.agent.rpc.brpc.event.IEventCollector;
 import org.bithon.component.commons.collection.IteratorableCollection;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.sink.event.IEventMessageSink;
 import org.bithon.server.storage.event.EventMessage;
 
@@ -56,6 +57,9 @@ public class BrpcEventCollector implements IEventCollector, AutoCloseable {
 
     @Override
     public void sendEvent2(BrpcMessageHeader header, List<BrpcEventMessage> messages) {
+        if (CollectionUtils.isEmpty(messages)) {
+            return;
+        }
         Iterator<EventMessage> iterator = new Iterator<EventMessage>() {
             private final Iterator<BrpcEventMessage> delegation = messages.iterator();
 

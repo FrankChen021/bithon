@@ -29,10 +29,11 @@ import java.util.function.Consumer;
  */
 public class DispatchTask {
 
-    private static final ILogAdaptor log = LoggerFactory.getLogger(DispatchTask.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(DispatchTask.class);
 
     private final Consumer<Object> underlyingSender;
     private final IMessageQueue queue;
+    private final DispatcherConfig.QueueFullStrategy queueFullStrategy;
     private volatile boolean isRunning = true;
     private volatile boolean isTaskEnd = false;
 
@@ -40,16 +41,15 @@ public class DispatchTask {
      * in millisecond
      */
     private final long flushTime;
-    private final int batchSize;
 
     public DispatchTask(String taskName,
                         IMessageQueue queue,
                         DispatcherConfig config,
                         Consumer<Object> underlyingSender) {
         this.flushTime = Math.max(10, config.getFlushTime());
-        this.batchSize = Math.max(1, config.getBatchSize());
         this.underlyingSender = underlyingSender;
-        this.queue = queue;
+        this.queue = config.getBatchSize() > 0 ? new BatchMessageQueue(queue, config.getBatchSize()) : queue;
+        this.queueFullStrategy = config.getQueueFullStrategy();
         new Thread(() -> {
             while (isRunning) {
                 dispatch(true);
@@ -58,35 +58,55 @@ public class DispatchTask {
         }, taskName + "-sender").start();
     }
 
-    private void dispatch(boolean wait) {
+    private void dispatch(boolean waitIfEmpty) {
         try {
-            Object message = wait ? queue.take(this.batchSize, this.flushTime) : queue.take(this.batchSize);
-            if (message != null) {
-                if (batchSize > 1 && message instanceof Collection) {
-                    int size = ((Collection) message).size();
-                    log.info("Sending message in batch, size = {}", size);
-                }
-                this.underlyingSender.accept(message);
+            Object message = queue.take(waitIfEmpty ? this.flushTime : 0);
+            if (message == null) {
+                return;
             }
+
+            if (message instanceof Collection) {
+                int size = ((Collection<?>) message).size();
+                if (size == 0) {
+                    return;
+                }
+
+                if (queue instanceof BatchMessageQueue) {
+                    LOG.info("Sending message, size = {}, max batch = {}", size, ((BatchMessageQueue) this.queue).getBatchSize());
+
+                } else {
+                    LOG.info("Sending message, size = {}", size);
+                }
+            }
+            this.underlyingSender.accept(message);
         } catch (Exception e) {
-            log.error(StringUtils.format("Failed to send message: %s", e.getMessage()), e);
+            LOG.error(StringUtils.format("Failed to send message: %s", e.getMessage()), e);
         }
     }
 
     public void accept(Object message) {
-        if (log.isDebugEnabled()) {
-            String className = message.getClass().getSimpleName();
-            className = className.replace("Entity", "");
-            log.debug("Entity : " + className + ", Got and Send : " + message);
+        if (!isRunning) {
+            return;
         }
-        if (isRunning) {
-            queue.offer(message);
-        }
-    }
 
-    public void accept(Collection<Object> messages) {
-        if (isRunning) {
-            queue.offerAll(messages);
+        // Since this 'accept' method is not atomic, when the code goes here and below 'stop' is called and runs to complete,
+        // the message will be still added to the queue.
+        //
+        // To solve the problem, it requires some lock mechanism between this method and below 'stop' method,
+        // but because the underlying queue is already a concurrency-supported structure,
+        // adding such lock to solve this edge case does not gain much
+        //
+        if (DispatcherConfig.QueueFullStrategy.DISCARD.equals(this.queueFullStrategy)) {
+            // The return is ignored if the 'offer' fails to run
+            this.queue.offer(message);
+        } else if (DispatcherConfig.QueueFullStrategy.DISCARD_OLDEST.equals(this.queueFullStrategy)) {
+            // Discard the oldest in the queue
+            while (!queue.offer(message)) {
+                LOG.error("Failed offer element to the queue, capacity = {}. Discarding the oldest...", this.queue.capacity());
+                queue.pop();
+            }
+        } else {
+            throw new UnsupportedOperationException("Not supported now");
         }
     }
 
@@ -94,6 +114,7 @@ public class DispatchTask {
         // stop receiving new messages and stop the task
         isRunning = false;
 
+        // Wait for the send task to complete
         while (!isTaskEnd) {
             try {
                 Thread.sleep(50);

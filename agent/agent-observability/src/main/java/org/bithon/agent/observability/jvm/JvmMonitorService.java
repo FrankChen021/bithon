@@ -40,14 +40,14 @@ public class JvmMonitorService implements IAgentService {
         // dispatch started message once the dispatcher is ready
         //
         Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT)
-                   .onReady((dispatcher) -> dispatcher.sendMessage(dispatcher.getMessageConverter()
-                                                                             .from(JvmEventMessageBuilder.buildJvmStartedEventMessage())));
+                   .onReady((dispatcher) -> dispatcher.send(dispatcher.getMessageConverter()
+                                                                      .from(JvmEventMessageBuilder.buildJvmStartedEventMessage())));
     }
 
     @Override
     public void stop() {
         // dispatch jvm stopped message
         Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
-        dispatcher.sendMessage(dispatcher.getMessageConverter().from(JvmEventMessageBuilder.buildStoppedEventMessage()));
+        dispatcher.send(dispatcher.getMessageConverter().from(JvmEventMessageBuilder.buildStoppedEventMessage()));
     }
 }

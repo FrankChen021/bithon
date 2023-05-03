@@ -36,11 +36,13 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.io.netty.bootstrap.Bootstrap;
 import org.bithon.shaded.io.netty.channel.Channel;
+import org.bithon.shaded.io.netty.channel.ChannelHandler;
 import org.bithon.shaded.io.netty.channel.ChannelHandlerContext;
 import org.bithon.shaded.io.netty.channel.ChannelInboundHandlerAdapter;
 import org.bithon.shaded.io.netty.channel.ChannelInitializer;
 import org.bithon.shaded.io.netty.channel.ChannelOption;
 import org.bithon.shaded.io.netty.channel.ChannelPipeline;
+import org.bithon.shaded.io.netty.channel.WriteBufferWaterMark;
 import org.bithon.shaded.io.netty.channel.nio.NioEventLoopGroup;
 import org.bithon.shaded.io.netty.channel.socket.SocketChannel;
 import org.bithon.shaded.io.netty.channel.socket.nio.NioSocketChannel;
@@ -102,11 +104,12 @@ public class BrpcClient implements IBrpcChannel, Closeable {
         this.appName = appName;
 
         this.invocationManager = new InvocationManager();
-        this.bossGroup = new NioEventLoopGroup(nWorkerThreads, NamedThreadFactory.of("brpc-c-worker-" + clientId));
+        this.bossGroup = new NioEventLoopGroup(nWorkerThreads, NamedThreadFactory.of("brpc-c-work-" + clientId));
         this.bootstrap = new Bootstrap();
         this.bootstrap.group(this.bossGroup)
                       .channel(NioSocketChannel.class)
                       .option(ChannelOption.SO_KEEPALIVE, true)
+                      .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(WriteBufferWaterMark.DEFAULT.low(), 1024 * 1024))
                       .handler(new ChannelInitializer<SocketChannel>() {
                           @Override
                           public void initChannel(SocketChannel ch) {
@@ -235,6 +238,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
         }
     }
 
+    @ChannelHandler.Sharable
     class ClientChannelManager extends ChannelInboundHandlerAdapter {
         @Override
         public void channelActive(ChannelHandlerContext ctx) {

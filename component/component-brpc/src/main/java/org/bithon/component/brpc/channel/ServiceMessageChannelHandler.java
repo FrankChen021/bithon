@@ -122,7 +122,7 @@ class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelWritabilityChanged(ChannelHandlerContext ctx) {
         if (ctx.channel().isWritable()) {
-            // set auto read to true if channel is writable.
+            // Set auto read to true if the channel is writable.
             ctx.channel().config().setAutoRead(true);
         } else {
             LOG.warn("channel is not writable, disable auto reading for back pressing");

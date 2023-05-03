@@ -14,14 +14,16 @@ dispatchers:
       # in milliseconds
       maxLifeTime: 300000
     servers: 127.0.0.1:9898
+    # No need to configure the metric client in batch because it's already batched. If doing so, there will be exceptions
   tracing:
     client:
       factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
       # in milliseconds
       maxLifeTime: 300000
     servers: 127.0.0.1:9895
-    batchSize: 2000
+    batchSize: 4096
     flushTime: 3000
+    # The default queue size is 4096, the size of queue is determined by the concurrency of target application
     queueSize: 8192
   event:
     client:
@@ -46,5 +48,5 @@ tracing:
     spring-scheduler:
       samplingRate: 1
     kafka-consumer:
-      samplingRate: 100
+      samplingRate: 1
   traceIdInResponse: "X-Bithon-TraceId"

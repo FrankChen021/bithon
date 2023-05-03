@@ -52,4 +52,6 @@ public interface ITraceContext {
     <T> void propagate(T injectedTo, PropagationSetter<T> setter);
 
     ITraceContext copy();
+
+    boolean finished();
 }

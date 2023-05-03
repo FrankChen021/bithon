@@ -42,6 +42,7 @@ public class LoggingTraceContext implements ITraceContext {
     private final ISpanIdGenerator spanIdGenerator;
     private ITraceSpan rootSpan;
     private final String traceId;
+    private boolean finished = false;
 
     public LoggingTraceContext(String traceId, ISpanIdGenerator spanIdGenerator) {
         this.traceId = traceId;
@@ -94,6 +95,7 @@ public class LoggingTraceContext implements ITraceContext {
 
     @Override
     public void finish() {
+        this.finished = true;
     }
 
     @Override
@@ -104,6 +106,11 @@ public class LoggingTraceContext implements ITraceContext {
     @Override
     public ITraceContext copy() {
         return new LoggingTraceContext(this.traceId, this.spanIdGenerator);
+    }
+
+    @Override
+    public boolean finished() {
+        return this.finished;
     }
 
     void onSpanStarted(ITraceSpan span) {

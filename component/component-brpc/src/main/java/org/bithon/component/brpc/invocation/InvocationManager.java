@@ -89,32 +89,32 @@ public class InvocationManager {
         return (byte[]) invoke(channelWriter, serviceRequest, null, timeoutMillisecond);
     }
 
-    private Object invoke(IBrpcChannel channelWriter,
+    private Object invoke(IBrpcChannel channel,
                           ServiceRequestMessageOut serviceRequest,
                           Type returnObjectType,
                           long timeoutMillisecond) throws Throwable {
         //
         // make sure a channel has been established
         //
-        channelWriter.connect();
+        channel.connect();
 
         //
         // Check channel status
         //
-        EndPoint remoteEndpoint = channelWriter.getRemoteAddress();
+        EndPoint remoteEndpoint = channel.getRemoteAddress();
         if (remoteEndpoint == null) {
             throw new CallerSideException("Failed to invoke %s#%s due to channel is empty",
                                           serviceRequest.getServiceName(),
                                           serviceRequest.getMethodName());
         }
 
-        if (!channelWriter.isActive()) {
+        if (!channel.isActive()) {
             throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not active",
                                           serviceRequest.getServiceName(),
                                           serviceRequest.getMethodName(),
                                           remoteEndpoint);
         }
-        if (!channelWriter.isWritable()) {
+        if (!channel.isWritable()) {
             throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not writable",
                                           serviceRequest.getServiceName(),
                                           serviceRequest.getMethodName(),
@@ -132,11 +132,11 @@ public class InvocationManager {
 
         for (int i = 0; i < 3; i++) {
             try {
-                channelWriter.writeAsync(serviceRequest);
+                channel.writeAsync(serviceRequest);
                 break;
             } catch (ChannelException e) {
                 if (i < 2) {
-                    channelWriter.connect();
+                    channel.connect();
                 }
             }
         }
