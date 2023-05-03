@@ -34,6 +34,8 @@ import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
 
+import java.util.Locale;
+
 /**
  * @author frankchen
  */
@@ -58,15 +60,15 @@ public class HttpServerExchangeDispatch extends BeforeInterceptor {
         if (traceContext != null) {
             traceContext.currentSpan()
                         .component("undertow")
-                        .tag(Tags.REMOTE_ADDR, exchange.getConnection().getPeerAddress())
-                        .tag(Tags.HTTP_URI, exchange.getRequestURI())
-                        .tag(Tags.HTTP_METHOD, exchange.getRequestMethod().toString())
-                        .tag(Tags.HTTP_VERSION, exchange.getProtocol().toString())
+                        .tag(Tags.Net.PEER_ADDR, exchange.getConnection().getPeerAddress())
+                        .tag(Tags.Http.URL, exchange.getRequestURI())
+                        .tag(Tags.Http.METHOD, exchange.getRequestMethod().toString())
+                        .tag(Tags.Http.VERSION, exchange.getProtocol().toString())
                         .configIfTrue(!traceConfig.getHeaders().getRequest().isEmpty(),
                                       (span) -> traceConfig.getHeaders()
-                                                       .getRequest()
-                                                       .forEach((header) -> span.tag("http.header." + header,
-                                                                                     exchange.getRequestHeaders().getFirst(header))))
+                                                           .getRequest()
+                                                           .forEach((header) -> span.tag(Tags.Http.REQUEST_HEADER_PREFIX + header.toLowerCase(Locale.ENGLISH),
+                                                                                         exchange.getRequestHeaders().getFirst(header))))
                         .method(aopContext.getTargetClass(), aopContext.getMethod())
                         .kind(SpanKind.SERVER)
                         .start();
@@ -87,7 +89,7 @@ public class HttpServerExchangeDispatch extends BeforeInterceptor {
                 update(httpExchange, startTime);
 
                 if (traceContext != null) {
-                    traceContext.currentSpan().tag(Tags.HTTP_STATUS, Integer.toString(httpExchange.getStatusCode())).finish();
+                    traceContext.currentSpan().tag(Tags.Http.STATUS, Integer.toString(httpExchange.getStatusCode())).finish();
                     traceContext.finish();
                 }
             } catch (Exception ignored) {

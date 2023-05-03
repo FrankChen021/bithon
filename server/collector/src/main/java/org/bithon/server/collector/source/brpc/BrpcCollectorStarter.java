@@ -27,7 +27,6 @@ import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.server.collector.cmd.service.AgentServer;
 import org.bithon.server.collector.config.AgentConfigurationService;
 import org.bithon.server.collector.config.BrpcSettingFetcher;
-import org.bithon.server.sink.common.service.UriNormalizer;
 import org.bithon.server.sink.event.IEventMessageSink;
 import org.bithon.server.sink.metrics.IMetricMessageSink;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
@@ -88,8 +87,7 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
 
                 case "tracing":
                     serviceDefinition = ITraceCollector.class;
-                    serviceImplementation = new BrpcTraceCollector(applicationContext.getBean("trace-sink-collector", ITraceMessageSink.class),
-                                                                   applicationContext.getBean(UriNormalizer.class));
+                    serviceImplementation = new BrpcTraceCollector(applicationContext.getBean("trace-sink-collector", ITraceMessageSink.class));
                     break;
 
                 case "ctrl":

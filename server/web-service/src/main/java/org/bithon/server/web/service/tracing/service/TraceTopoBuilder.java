@@ -138,13 +138,17 @@ public class TraceTopoBuilder {
         }
 
         //
-        // Step 3. create user node if necessary
+        // Step 3. Create user node if necessary
         //
         TraceSpanBo user = new TraceSpanBo();
         user.setAppName("user");
         for (TraceSpan root : spans) {
             if ("SERVER".equals(root.kind)) {
-                String userAgent = root.getTag("http.header.User-Agent");
+                String userAgent = root.getTag(Tags.Http.REQUEST_HEADER_PREFIX + "user-agent");
+                if (StringUtils.isEmpty(userAgent)) {
+                    // Compatible with old tags
+                    userAgent = root.getTag("http.header.User-Agent");
+                }
                 if (StringUtils.hasText(userAgent)) {
                     // Use the user agent as the name of the USER node
                     user.setAppName(userAgent);
@@ -173,7 +177,7 @@ public class TraceTopoBuilder {
             }
         }
 
-        // Step 3. set level/node property for each node
+        // Step 3. Set level/node property for each node
         Collection<TraceTopo.Node> topoNodes = nodes.values();
         topoNodes.forEach((node) -> {
             int nodeCount = this.nodeCountOfLevels.getOrDefault(node.getLevel(), 1);
@@ -183,18 +187,18 @@ public class TraceTopoBuilder {
     }
 
     /**
-     * Search spans that crosses two instances and then create a directed graph
+     * Search spans that cross two instances and then create a directed graph
      */
     private void buildLink(TraceSpanBo parentSpan, List<?> childSpans) {
         //noinspection unchecked
         for (TraceSpanBo childSpan : (List<TraceSpanBo>) childSpans) {
 
             if (parentSpan.getAppName().equals(childSpan.getAppName())
-                && Objects.equals(parentSpan.getInstanceName(), childSpan.getInstanceName())
-                && !SpanKind.SERVER.name().equals(childSpan.getKind())
-                && !SpanKind.CONSUMER.name().equals(childSpan.getKind())) {
+                    && Objects.equals(parentSpan.getInstanceName(), childSpan.getInstanceName())
+                    && !SpanKind.SERVER.name().equals(childSpan.getKind())
+                    && !SpanKind.CONSUMER.name().equals(childSpan.getKind())) {
                 // The instance of childSpan is the same as the parentSpan,
-                // no need to create a link, but just recursively search next level
+                // no need to create a link, but just recursively search next level,
                 //
                 // But if the childSpan is a SERVER/CONSUMER, it means the application itself sends a request/message to itself,
                 // in that case, we need to go to the 'else' case
@@ -206,13 +210,13 @@ public class TraceTopoBuilder {
                 buildLink(childSpan, childSpan.children);
             }
 
-            // this childSpan is a CLIENT termination,
-            // when there's no children, it means the next hop might be another system.
+            // This childSpan is a CLIENT termination.
+            // When there are no children, it means the next hop might be another system.
             // So, we need to create a link for this situation
             if (childSpan.children.size() == 0) {
                 String uriText = null;
                 if (SpanKind.CLIENT.name().equals(childSpan.getKind())) {
-                    uriText = childSpan.getTag(Tags.HTTP_URI);
+                    uriText = childSpan.getTag(Tags.Http.URL);
                 } else if (SpanKind.PRODUCER.name().equals(childSpan.getKind())) {
                     uriText = childSpan.getTag("uri");
                 }

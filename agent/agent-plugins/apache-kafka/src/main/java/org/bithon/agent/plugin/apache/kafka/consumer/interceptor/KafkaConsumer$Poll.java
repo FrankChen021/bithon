@@ -24,6 +24,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterc
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
+import org.bithon.component.commons.tracing.Tags;
 
 import java.time.Duration;
 
@@ -61,9 +62,10 @@ public class KafkaConsumer$Poll extends AroundInterceptor {
         ConsumerRecords<?, ?> records = aopContext.getReturningAs();
         ITraceSpan span = aopContext.getUserContextAs();
         span.tag(aopContext.getException())
-            .tag("kafka.groupId", kafkaPluginContext.groupId)
-            .tag("kafka.topics", topics)
-            .tag("kafka.records", records == null ? 0 : records.count())
+            .tag(Tags.Messaging.KAFKA_CONSUMER_GROUP, kafkaPluginContext.groupId)
+            .tag(Tags.Messaging.KAFKA_CLIENT_ID, kafkaPluginContext.clientId)
+            .tag(Tags.Messaging.KAFKA_TOPIC, topics)
+            .tag(Tags.Messaging.COUNT, records == null ? 0 : records.count())
             .finish();
     }
 }

@@ -31,6 +31,7 @@ import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.tracing.Tags;
 
 /**
  * @author frankchen
@@ -78,10 +79,10 @@ public class DefaultServerConnection$ExecuteProtocol extends AroundInterceptor {
         ITraceSpan span = aopContext.getUserContextAs();
         if (span != null) {
             span.tag(aopContext.getException())
-                .tag("server", hostAndPort)
-                .tag("database", command == null ? null : command.getDatabase())
-                .tag("collection", command == null ? null : command.getCollection())
-                .tag("command", command == null ? null : command.getCommand())
+                .tag(Tags.Net.PEER, hostAndPort)
+                .tag(Tags.Database.NAME, command == null ? null : command.getDatabase())
+                .tag(Tags.Database.MONGODB_DB_COLLECTION, command == null ? null : command.getCollection())
+                .tag(Tags.Database.MONGODB_DB_COMMAND, command == null ? null : command.getCommand())
                 .finish();
         }
 

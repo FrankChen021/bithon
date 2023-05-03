@@ -17,7 +17,6 @@
 package org.bithon.server.storage.jdbc.tracing;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.Preconditions;
@@ -47,7 +46,6 @@ import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * @author frank.chen021@outlook.com
@@ -288,8 +286,7 @@ public class TraceJdbcReader implements ITraceReader {
         span.status = record.getStatus();
         span.normalizedUri = record.getNormalizedurl();
         try {
-            span.tags = objectMapper.readValue(record.getTags(), new TypeReference<TreeMap<String, String>>() {
-            });
+            span.tags = objectMapper.readValue(record.getTags(), TraceSpan.TagMap.class);
         } catch (JsonProcessingException ignored) {
         }
         span.name = record.getName();
@@ -313,8 +310,7 @@ public class TraceJdbcReader implements ITraceReader {
         span.status = record.getStatus();
         span.normalizedUri = record.getNormalizedurl();
         try {
-            span.tags = objectMapper.readValue(record.getTags(), new TypeReference<TreeMap<String, String>>() {
-            });
+            span.tags = objectMapper.readValue(record.getTags(), TraceSpan.TagMap.class);
         } catch (JsonProcessingException ignored) {
         }
         span.name = record.getName();

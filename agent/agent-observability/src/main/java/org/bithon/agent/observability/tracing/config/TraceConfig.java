@@ -64,7 +64,7 @@ public class TraceConfig {
     }
 
     /**
-     * If this field is set, the trace id(if current request has) will be added to the header of response.
+     * If this field is set, the trace id(if the current request has) will be added to the header of response.
      * The header name is the value of this field, header value is the trace id.
      */
     private String traceIdInResponse;
@@ -78,7 +78,7 @@ public class TraceConfig {
     }
 
     /**
-     * Assigne a value so that user code won't check if it's null
+     * Assign a value so that user code won't check if it's null
      */
     private HeaderConfig headers = new HeaderConfig();
 

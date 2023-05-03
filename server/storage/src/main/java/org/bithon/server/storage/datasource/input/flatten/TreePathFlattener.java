@@ -17,12 +17,13 @@
 package org.bithon.server.storage.datasource.input.flatten;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.storage.datasource.input.InputRowAccessorFactory;
 
-import java.util.Map;
+import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -36,49 +37,21 @@ public class TreePathFlattener implements IFlattener {
     @Getter
     private final String field;
 
-    /**
-     * dot separated path such as a.b.c
-     */
     @Getter
     private final String path;
-
-    /**
-     * runtime property that holds the splitted {@link #path}
-     */
-    @JsonIgnore
-    @Getter
-    private final String[] nodes;
+    private final Function<IInputRow, Object> valueGetter;
 
     @JsonCreator
     public TreePathFlattener(@JsonProperty("field") String field,
                              @JsonProperty("path") String path) {
-        this.field = field;
-        this.path = path;
-        this.nodes = path.split("\\.");
+        this.field = Preconditions.checkArgumentNotNull("field", field);
+        this.path = Preconditions.checkArgumentNotNull("path", path);
+        this.valueGetter = InputRowAccessorFactory.createGetter(this.path);
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
     public void flatten(IInputRow inputRow) {
-        Object obj = inputRow.getCol(nodes[0]);
-        if (!(obj instanceof Map)) {
-            // error
-            return;
-        }
-
-        if (nodes.length > 1) {
-            Map map = (Map) obj;
-            for (int i = 1; i < nodes.length - 1; i++) {
-                obj = map.get(nodes[i]);
-                if (!(obj instanceof Map)) {
-                    return;
-                }
-                map = (Map) obj;
-            }
-
-            obj = map.get(nodes[nodes.length - 1]);
-        }
-
+        Object obj = valueGetter.apply(inputRow);
         if (obj != null) {
             inputRow.updateColumn(field, obj);
         }

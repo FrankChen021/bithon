@@ -25,6 +25,7 @@ import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.tracing.Tags;
 
 /**
  * @author frankchen
@@ -61,7 +62,7 @@ public class StatementTraceInterceptor extends AroundInterceptor {
 
             String sql;
             if ((sql = (String) InterceptorContext.get(ConnectionTraceInterceptor.KEY)) != null) {
-                span.tag("sql", sql);
+                span.tag(Tags.Database.STATEMENT, sql);
             }
         } finally {
             try {

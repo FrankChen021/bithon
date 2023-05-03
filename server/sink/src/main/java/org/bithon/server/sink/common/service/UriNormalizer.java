@@ -54,7 +54,7 @@ public class UriNormalizer {
             return new NormalizedResult(false, null);
         }
 
-        // strip parameters
+        // Strip parameters
         boolean striped = false;
         int paramStartIndex = path.indexOf('?');
         if (paramStartIndex > 0) {
@@ -63,14 +63,14 @@ public class UriNormalizer {
         }
 
         //
-        // 先使用domain的规则进行处理
+        // Use application level rules to normalize
         //
         if (applicationName != null && this.configs.getApplicationRules().containsKey(applicationName)) {
             path = normalize(this.configs.getApplicationRules().get(applicationName), path).getUri();
         }
 
         //
-        // 再使用全局规则进行处理
+        // Use global rules to normalize
         //
         NormalizedResult result = normalize(this.configs.getGlobalRules(), path);
         if (striped && !result.isNormalized()) {

@@ -79,7 +79,7 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
         if (span != null) {
             span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)
-                .tag("db", connectionString)
+                .tag(Tags.Database.CONNECTION_STRING, connectionString)
                 .start();
         }
 
@@ -93,12 +93,12 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
         UserContext context = aopContext.getUserContextAs();
         if (context.span != null) {
             try {
-                context.span.tag(Tags.SQL, getExecutingSql(aopContext))
+                context.span.tag(Tags.Database.STATEMENT, getExecutingSql(aopContext))
                             .tag(aopContext.getException());
 
                 if (DruidPlugin.METHOD_EXECUTE_BATCH.equals(aopContext.getMethod())) {
                     if (aopContext.getReturning() != null) {
-                        context.span.tag("rows", Integer.toString(((int[]) aopContext.getReturning()).length));
+                        context.span.tag(Tags.Database.PREFIX + "rows", Integer.toString(((int[]) aopContext.getReturning()).length));
                     }
                 }
             } finally {
@@ -113,7 +113,7 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
             // check if the metrics provider for this driver exists
             Boolean isQuery = null;
             if (DruidPlugin.METHOD_EXECUTE_UPDATE.equals(methodName)
-                || DruidPlugin.METHOD_EXECUTE_BATCH.equals(methodName)) {
+                    || DruidPlugin.METHOD_EXECUTE_BATCH.equals(methodName)) {
                 isQuery = false;
             } else if (DruidPlugin.METHOD_EXECUTE.equals(methodName)) {
                 /*

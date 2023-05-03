@@ -21,8 +21,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.storage.datasource.input.InputRowAccessorFactory;
 
-import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -43,42 +43,28 @@ public class SplitterTransformer implements ITransformer {
     @Getter
     private final String[] names;
 
-    private final Function<IInputRow, String> valueExtractor;
+    private final Function<IInputRow, Object> valueExtractor;
 
     @JsonCreator
     public SplitterTransformer(@JsonProperty("field") String field,
                                @JsonProperty("splitter") String splitter,
                                @JsonProperty("names") String... names) {
         this.field = Preconditions.checkArgumentNotNull("field", field);
-
-        int dotSeparatorIndex = this.field.indexOf('.');
-        if (dotSeparatorIndex >= 0) {
-            final String container = this.field.substring(0, dotSeparatorIndex);
-            final String nested = this.field.substring(dotSeparatorIndex + 1);
-            valueExtractor = inputRow -> {
-                Object v = inputRow.getCol(container);
-                if (v instanceof Map) {
-                    Object nestValue = ((Map<?, ?>) v).get(nested);
-                    return nestValue == null ? null : nestValue.toString();
-                }
-                return null;
-            };
-        } else {
-            valueExtractor = inputRow -> inputRow.getColAsString(field);
-        }
-
-        this.names = names;
         this.splitter = Preconditions.checkArgumentNotNull("splitter", splitter);
+        this.names = names;
+        this.valueExtractor = InputRowAccessorFactory.createGetter(this.field);
     }
 
     @Override
     public void transform(IInputRow row) {
-        String val = valueExtractor.apply(row);
-        if (val != null) {
-            String[] values = val.split(splitter);
-            for (int i = 0, len = Math.min(names.length, values.length); i < len; i++) {
-                row.updateColumn(names[i], values[i]);
-            }
+        Object val = valueExtractor.apply(row);
+        if (val == null) {
+            return;
+        }
+
+        String[] values = val.toString().split(splitter);
+        for (int i = 0, len = Math.min(names.length, values.length); i < len; i++) {
+            row.updateColumn(names[i], values[i]);
         }
     }
 }

@@ -52,8 +52,8 @@ public class Channels$Write extends AroundInterceptor {
         if (span != null) {
             aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                           .kind(SpanKind.CLIENT)
-                                          .tag(Tags.CLIENT_TYPE, "netty3")
-                                          .tag(Tags.HTTP_METHOD, httpRequest.getMethod().getName())
+                                          .tag(Tags.Http.CLIENT, "netty3")
+                                          .tag(Tags.Http.METHOD, httpRequest.getMethod().getName())
                                           .propagate(httpRequest.headers(), HttpHeaders::set)
                                           .start());
         }
@@ -108,7 +108,7 @@ public class Channels$Write extends AroundInterceptor {
             //
             if (span != null) {
                 span.tag(channelFuture.getCause())
-                    .tag(Tags.HTTP_URI, uri)
+                    .tag(Tags.Http.URL, uri)
                     .finish();
                 span.context().finish();
             }

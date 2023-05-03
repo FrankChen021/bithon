@@ -21,6 +21,7 @@ import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.context.impl.LoggingTraceContext;
 import org.bithon.agent.observability.tracing.context.impl.TracingContext;
 import org.bithon.agent.observability.tracing.sampler.SamplingMode;
+import org.bithon.component.commons.tracing.Tags;
 
 import java.util.regex.Pattern;
 
@@ -71,8 +72,8 @@ public class TraceContextFactory {
 
         Thread currentThread = Thread.currentThread();
         return context.newSpan(parentSpanId, spanId)
-                      .tag("thread.name", currentThread.getName())
-                      .tag("thread.id", currentThread.getId())
+                      .tag(Tags.Thread.NAME, currentThread.getName())
+                      .tag(Tags.Thread.ID, currentThread.getId())
                       .tag("upstreamTraceId", upstreamTraceId)
                       .context();
     }

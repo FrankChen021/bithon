@@ -14,18 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.source.http;
+package org.bithon.component.commons.exception;
 
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 28/4/22 4:29 PM
+ * @date 2023/4/26 13:51
  */
-@Data
-@Configuration
-@ConfigurationProperties(prefix = "collector-http.tracing")
-public class TraceHttpCollectorConfig {
+public class ExceptionUtils {
+    public static String getStackTrace(Throwable throwable) {
+        StringWriter stackTrace = new StringWriter(256);
+        try (PrintWriter pw = new PrintWriter(stackTrace)) {
+            throwable.printStackTrace();
+            return stackTrace.toString();
+        }
+    }
 }

@@ -102,6 +102,10 @@
         <Class name="org.bithon.component.commons.logging.LoggerConfiguration" />
         <Bug pattern="UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
+    <Match>
+        <Class name="org.bithon.component.commons.tracing.Tags$Exception" />
+        <Bug pattern="NM_CLASS_NOT_EXCEPTION" />
+    </Match>
 
     <!-- Agent RPC -->
     <Match>

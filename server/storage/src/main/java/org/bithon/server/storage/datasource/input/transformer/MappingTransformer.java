@@ -24,7 +24,15 @@ import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 /**
- * A transformer that maps a value of a field to another.
+ * A transformer that maps the value of a field to another.
+ * For example:
+ *  {
+ *      "field": "a",
+ *      "maps": {
+ *          "b": "c"
+ *      }
+ *  }
+ *  if the value of "a" is b, then its value will be changed to c
  *
  * @author frank.chen021@outlook.com
  */

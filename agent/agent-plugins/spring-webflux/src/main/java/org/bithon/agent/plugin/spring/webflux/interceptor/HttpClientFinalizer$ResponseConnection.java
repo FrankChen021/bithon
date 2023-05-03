@@ -49,7 +49,7 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
         String uri = httpClient.configuration().uri();
         String method = httpClient.configuration().method().name();
 
-        // injected by HttpClientFinalizer$Send's onMethodLeave
+        // The following object is injected in the onMethodLeave of HttpClientFinalizer$Send
         IBithonObject bithonObject = aopContext.getTargetAs();
         HttpClientContext httpClientContext = (HttpClientContext) bithonObject.getInjectedObject();
 
@@ -58,7 +58,7 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
             = (BiFunction<? super HttpClientResponse, ? super Connection, ? extends Publisher>) aopContext.getArgs()[0];
 
         //
-        //replace original publisher so that we can stop the span
+        // Replace the original publisher so that we can stop the span
         //
         //noinspection rawtypes
         aopContext.getArgs()[0] = (BiFunction<HttpClientResponse, Connection, Publisher>) (httpClientResponse, connection) -> {
@@ -69,8 +69,8 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
                 // tracing
                 final ITraceSpan httpClientSpan = httpClientContext.getSpan();
                 if (httpClientSpan != null) {
-                    httpClientSpan.tag(Tags.HTTP_STATUS, String.valueOf(httpClientResponse.status().code()))
-                                  .tag(Tags.HTTP_URI, uri)
+                    httpClientSpan.tag(Tags.Http.STATUS, String.valueOf(httpClientResponse.status().code()))
+                                  .tag(Tags.Http.URL, uri)
                                   .finish();
                 }
 
@@ -96,17 +96,16 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
 
         IBithonObject bithonObject = aopContext.getTargetAs();
 
-        // injected by HttpClientFinalizer$Send's onMethodLeave
+        // The following object is injected in the onMethodLeave of HttpClientFinalizer$Send
         HttpClientContext httpClientContext = (HttpClientContext) bithonObject.getInjectedObject();
 
         Flux<?> responseFlux = aopContext.getReturningAs();
 
         /**
          * Hook on exception
-         *
          * NOTE:
          *  we don't hook on complete instead we do the final thing in the replaced response handler injected above
-         *  because the runtime reports the response on the doOnNext is illegal accessed
+         *  because the runtime reports the response on the doOnNext is illegally accessed
          */
         Flux<?> replacedReturning = responseFlux.doOnError((throwable -> {
             Integer statusCode = null;
@@ -118,10 +117,10 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
             final ITraceSpan httpClientSpan = httpClientContext.getSpan();
             if (httpClientSpan != null) {
                 if (statusCode != null) {
-                    httpClientSpan.tag(Tags.HTTP_STATUS, String.valueOf(statusCode));
+                    httpClientSpan.tag(Tags.Http.STATUS, String.valueOf(statusCode));
                 }
                 httpClientSpan.tag(throwable)
-                              .tag(Tags.HTTP_URI, uri)
+                              .tag(Tags.Http.URL, uri)
                               .finish();
             }
 
@@ -138,13 +137,13 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
             }
         }));
 
-        // post process of Flux.timeout
+        // post-process of Flux.timeout
         ((IBithonObject) replacedReturning).setInjectedObject((Runnable) () -> {
             // tracing
             final ITraceSpan httpClientSpan = httpClientContext.getSpan();
             if (httpClientSpan != null) {
-                httpClientSpan.tag("exception", "Timeout")
-                              .tag(Tags.HTTP_URI, uri)
+                httpClientSpan.tag(Tags.Exception.MESSAGE, "Timeout")
+                              .tag(Tags.Http.URL, uri)
                               .finish();
             }
 

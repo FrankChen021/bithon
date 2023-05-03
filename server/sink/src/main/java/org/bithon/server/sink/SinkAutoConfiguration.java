@@ -33,6 +33,7 @@ import org.bithon.server.sink.metrics.transformer.UriNormalizationTransformer;
 import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.sink.tracing.metrics.MetricOverSpanInputSource;
+import org.bithon.server.sink.tracing.transform.TraceSpanTransformer;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.meta.IMetaStorage;
@@ -80,11 +81,14 @@ public class SinkAutoConfiguration {
                                          MetricInputSource.class,
                                          EventInputSource.class,
 
-                                         // transformers
+                                         // metric transformers
                                          UriNormalizationTransformer.class,
                                          ExtractHost.class,
                                          ConnectionStringTransformer.class,
-                                         ExtractPath.class
+                                         ExtractPath.class,
+
+                                         // tracing transformers
+                                         TraceSpanTransformer.class
                 );
             }
         };
@@ -98,7 +102,7 @@ public class SinkAutoConfiguration {
     }
 
     /**
-     * input source manager is responsible for hooking the processors on metrics and trace handlers.
+     * Input source manager is responsible for hooking the processors on metrics and trace handlers.
      * So all its dependencies like {@link LocalTraceSink} should be prepared.
      * <p>
      * If the sink is kafka, {@link LocalTraceSink} is initialized above

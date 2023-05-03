@@ -32,6 +32,7 @@ import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.tracing.Tags;
 
 /**
  * @author Frank Chen
@@ -122,7 +123,7 @@ public class ServerCallInterceptor implements ServerInterceptor {
             TraceContextHolder.set(rootSpan.context());
 
             // Overwrite the default thread name initialized in TraceContextFactory when its context is set up
-            rootSpan.tag("thread", Thread.currentThread().getName());
+            rootSpan.tag(Tags.Thread.NAME, Thread.currentThread().getName());
             try {
                 delegate().onHalfClose();
             } catch (Throwable t) {

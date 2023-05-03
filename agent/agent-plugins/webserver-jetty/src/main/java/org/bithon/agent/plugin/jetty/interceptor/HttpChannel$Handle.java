@@ -36,6 +36,8 @@ import org.eclipse.jetty.server.HttpChannel;
 import org.eclipse.jetty.server.HttpChannelState;
 import org.eclipse.jetty.server.Request;
 
+import java.util.Locale;
+
 /**
  * {@link org.eclipse.jetty.server.HttpChannel#handle()}
  *
@@ -67,19 +69,19 @@ public class HttpChannel$Handle extends AroundInterceptor {
 
                 traceContext.currentSpan()
                             .component("jetty")
-                            .tag("remote.address", request.getRemoteAddr())
-                            .tag(Tags.HTTP_URI, request.getRequestURI())
-                            .tag(Tags.HTTP_METHOD, request.getMethod())
-                            .tag(Tags.HTTP_VERSION, request.getHttpVersion().toString())
+                            .tag(Tags.Net.PEER_ADDR, request.getRemoteAddr() + ":" + request.getRemotePort())
+                            .tag(Tags.Http.URL, request.getRequestURI())
+                            .tag(Tags.Http.METHOD, request.getMethod())
+                            .tag(Tags.Http.VERSION, request.getHttpVersion().toString())
                             .configIfTrue(!traceConfig.getHeaders().getRequest().isEmpty(),
                                           (span) -> traceConfig.getHeaders()
                                                                .getRequest()
-                                                               .forEach((header) -> span.tag("http.header." + header, request.getHeader(header))))
+                                                               .forEach((header) -> span.tag(Tags.Http.REQUEST_HEADER_PREFIX + header.toLowerCase(Locale.ENGLISH), request.getHeader(header))))
                             .method(aopContext.getTargetClass(), aopContext.getMethod())
                             .kind(SpanKind.SERVER)
                             .start();
 
-                // put the trace id in the header so that the applications have chance to know whether this request is being sampled
+                // put the trace id in the header so that the applications have a chance to know whether this request is being sampled
                 if (traceContext.traceMode().equals(TraceMode.TRACING)) {
                     request.setAttribute("X-Bithon-TraceId", traceContext.traceId());
 

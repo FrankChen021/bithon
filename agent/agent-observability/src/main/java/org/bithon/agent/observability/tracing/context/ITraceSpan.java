@@ -20,6 +20,8 @@ import org.bithon.agent.observability.tracing.context.propagation.PropagationSet
 import org.bithon.component.commons.tracing.SpanKind;
 
 import java.lang.reflect.Executable;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -50,6 +52,24 @@ public interface ITraceSpan {
     Map<String, String> tags();
 
     ITraceSpan tag(String name, String value);
+
+    default ITraceSpan tag(String name, SocketAddress address) {
+        if (address != null) {
+            if (address instanceof InetSocketAddress) {
+                return tag(name, (InetSocketAddress) address);
+            } else {
+                tag(name, address.toString());
+            }
+        }
+        return this;
+    }
+
+    default ITraceSpan tag(String name, InetSocketAddress address) {
+        if (address != null) {
+            tag(name, address.getAddress().getHostAddress() + ":" + address.getPort());
+        }
+        return this;
+    }
 
     default ITraceSpan tag(String name, Object value) {
         if (value != null) {

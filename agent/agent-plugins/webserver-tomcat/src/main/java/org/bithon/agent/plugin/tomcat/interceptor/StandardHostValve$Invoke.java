@@ -33,6 +33,8 @@ import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
 
+import java.util.Locale;
+
 /**
  * {@link org.apache.catalina.core.StandardHostValve#invoke(Request, Response)}
  *
@@ -68,14 +70,14 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
 
         traceContext.currentSpan()
                     .component("tomcat")
-                    .tag(Tags.REMOTE_ADDR, request.getRemoteAddr())
-                    .tag(Tags.HTTP_URI, request.getRequestURI())
-                    .tag(Tags.HTTP_METHOD, request.getMethod())
-                    .tag(Tags.HTTP_VERSION, request.getProtocol())
+                    .tag(Tags.Net.PEER_ADDR, request.getRemoteAddr() + ":" + request.getRemotePort())
+                    .tag(Tags.Http.URL, request.getRequestURI())
+                    .tag(Tags.Http.METHOD, request.getMethod())
+                    .tag(Tags.Http.VERSION, request.getProtocol())
                     .configIfTrue(!traceConfig.getHeaders().getRequest().isEmpty(),
                                   (span) -> traceConfig.getHeaders()
                                                        .getRequest()
-                                                       .forEach((header) -> span.tag("http.header." + header, request.getHeader(header))))
+                                                       .forEach((header) -> span.tag(Tags.Http.REQUEST_HEADER_PREFIX + header.toLowerCase(Locale.ENGLISH), request.getHeader(header))))
                     .method(aopContext.getTargetClass(), aopContext.getMethod())
                     .kind(SpanKind.SERVER)
                     .start();
@@ -113,7 +115,7 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
         try {
             Response response = (Response) aopContext.getArgs()[1];
             traceContext.currentSpan()
-                        .tag(Tags.HTTP_STATUS, Integer.toString(response.getStatus()))
+                        .tag(Tags.Http.STATUS, Integer.toString(response.getStatus()))
                         .tag(aopContext.getException())
                         .finish();
         } finally {

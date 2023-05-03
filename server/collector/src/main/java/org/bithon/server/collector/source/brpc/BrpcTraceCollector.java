@@ -20,9 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
-import org.bithon.server.sink.common.service.UriNormalizer;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
-import org.bithon.server.sink.tracing.TraceSpanHelper;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -38,11 +36,9 @@ import java.util.stream.Collectors;
 public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
 
     private final ITraceMessageSink traceSink;
-    private final UriNormalizer uriNormalizer;
 
-    public BrpcTraceCollector(ITraceMessageSink traceSink, UriNormalizer uriNormalizer) {
+    public BrpcTraceCollector(ITraceMessageSink traceSink) {
         this.traceSink = traceSink;
-        this.uriNormalizer = uriNormalizer;
     }
 
     @Override
@@ -54,13 +50,17 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
 
         log.debug("Receiving trace message:{}", spans);
         traceSink.process("trace",
-                          spans.stream().map(spanBody -> toSpan(header, spanBody)).collect(Collectors.toList()));
+                          spans.stream()
+                               .map(span -> toSpan(header, span))
+                               .collect(Collectors.toList()));
     }
 
-    private TraceSpan toSpan(BrpcMessageHeader header, BrpcTraceSpanMessage spanBody) {
+    private TraceSpan toSpan(BrpcMessageHeader header,
+                             BrpcTraceSpanMessage spanBody) {
         TraceSpan traceSpan = new TraceSpan();
         traceSpan.setAppName(header.getAppName());
         traceSpan.setInstanceName(header.getInstanceName());
+        traceSpan.setAppType(header.getAppType().name());
         traceSpan.setKind(spanBody.getKind());
         traceSpan.setName(spanBody.getName());
         traceSpan.setTraceId(spanBody.getTraceId());
@@ -72,12 +72,9 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
         traceSpan.setStartTime(spanBody.getStartTime());
         traceSpan.setEndTime(spanBody.getEndTime());
         traceSpan.setCostTime(spanBody.getEndTime() - spanBody.getStartTime());
-        traceSpan.setTags(spanBody.getTagsMap());
+        traceSpan.setTags(new TraceSpan.TagMap(spanBody.getTagsMap()));
         traceSpan.setClazz(spanBody.getClazz());
         traceSpan.setMethod(spanBody.getMethod());
-
-        TraceSpanHelper.flatten(traceSpan, uriNormalizer);
-
         return traceSpan;
     }
 

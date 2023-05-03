@@ -28,6 +28,7 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Inherits from {@link IInputRow} to support extract metrics over span logs
@@ -41,6 +42,20 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TraceSpan implements IInputRow {
+
+    /**
+     * Explicitly define the tag map as HashMap so that deserialization won't use an unmodifiable version
+     */
+    public static class TagMap extends TreeMap<String, String> {
+        public TagMap() {
+
+        }
+
+        public TagMap(Map<String, String> map) {
+            super(map);
+        }
+    }
+
     private static Map<String, FieldAccessor> fieldAccessors = new HashMap<>();
 
     static {
@@ -57,12 +72,17 @@ public class TraceSpan implements IInputRow {
 
     public String appName;
     public String instanceName;
+    /**
+     * Unspecified
+     *  JAVA
+     */
+    public String appType = "Unspecified";
     public String traceId;
     public String spanId;
     public String kind;
     public String parentSpanId;
     public String parentApplication;
-    public Map<String, String> tags;
+    public TagMap tags;
     public long costTime;
     /**
      * in us
@@ -79,21 +99,12 @@ public class TraceSpan implements IInputRow {
     @JsonIgnore
     private Map<String, Object> properties;
 
-    public boolean containsTag(String name) {
-        return tags.containsKey(name);
-    }
-
     public String getTag(String name) {
         return tags.get(name);
     }
 
     public void setTag(String name, String value) {
-        try {
-            this.tags.put(name, value);
-        } catch (UnsupportedOperationException e) {
-            this.tags = new HashMap<>(this.tags);
-            this.tags.put(name, value);
-        }
+        this.tags.put(name, value);
     }
 
     public Map<String, String> getUriParameters() {

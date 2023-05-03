@@ -278,6 +278,9 @@
             let text = span.tags[propName];
             if (propName === 'sql'
                 ||
+                // Standard OpenTelemetry tag name
+                propName === 'db.statement'
+                ||
                 // temporary compatible with old span Druid span data
                 (span.method === 'doPost' && propName === 'query' && span.clazz.endsWith("SqlResource"))
                 ||

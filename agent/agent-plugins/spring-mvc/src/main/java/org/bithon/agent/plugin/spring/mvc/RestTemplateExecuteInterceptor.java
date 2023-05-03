@@ -46,7 +46,7 @@ public class RestTemplateExecuteInterceptor extends AroundInterceptor {
         }
 
         aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .tag(Tags.HTTP_URI, uri)
+                                      .tag(Tags.Http.URL, uri)
                                       .start());
 
         return InterceptionDecision.CONTINUE;

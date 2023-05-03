@@ -19,6 +19,7 @@ package org.bithon.server.storage.datasource.flatten;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.datasource.input.flatten.IFlattener;
@@ -35,7 +36,7 @@ import java.util.HashMap;
 public class TreePathFlattenerTest {
 
     @Test
-    public void test() throws JsonProcessingException {
+    public void testSerialization() throws JsonProcessingException {
         TreePathFlattener flattener = new TreePathFlattener("f1", "tags.name");
 
         // serialization and deserialization
@@ -101,5 +102,19 @@ public class TreePathFlattenerTest {
         newFlattener.flatten(row1);
 
         Assert.assertEquals(row1.getCol("tags"), row1.getCol("f1"));
+    }
+
+    @Test
+    public void testCompatibility() throws JsonProcessingException {
+        String oldFormat = StringUtils.format("{\"type\":\"tree\", \"field\": \"f1\", \"path\": \"tags.name\"}");
+
+        IFlattener newFlattener = new ObjectMapper().readValue(oldFormat, IFlattener.class);
+        IInputRow row1 = new InputRow(new HashMap<>(ImmutableMap.of(
+                "tags", ImmutableMap.of("name", "Frank")
+        )));
+        newFlattener.flatten(row1);
+
+        // 'tags.name' has been flattened as 'f1'
+        Assert.assertEquals("Frank", row1.getCol("f1"));
     }
 }

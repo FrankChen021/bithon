@@ -31,6 +31,7 @@ import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.tracing.Tags;
 
 /**
  * @author frankchen
@@ -92,8 +93,8 @@ public class DefaultServerConnection {
             ITraceSpan span = aopContext.getUserContextAs();
             if (span != null) {
                 span.tag(aopContext.getException())
-                    .tag("server", hostAndPort)
-                    .tag("database", command == null ? null : command.getDatabase())
+                    .tag(Tags.Net.PEER, hostAndPort)
+                    .tag(Tags.Database.NAME, command == null ? null : command.getDatabase())
                     .finish();
             }
 

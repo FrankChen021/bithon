@@ -52,6 +52,8 @@ public class SynchronousMethodHandler$Invoke extends AroundInterceptor {
 
         aopContext.setUserContext(span.kind(SpanKind.CLIENT)
                                       .method(invocationContext.methodMeta.method())
+                                      // DO NOT USE standard HTTP tag name,
+                                      // Because feign does not emit metrics which can't be associated with tracing log
                                       .tag("target", invocationContext.target.url())
                                       .start());
 

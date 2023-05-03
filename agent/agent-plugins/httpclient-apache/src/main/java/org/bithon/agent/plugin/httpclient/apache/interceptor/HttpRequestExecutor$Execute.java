@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.httpclient.apache.interceptor;
 
 import org.apache.http.Header;
 import org.apache.http.HttpClientConnection;
+import org.apache.http.HttpMessage;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestWrapper;
@@ -32,6 +33,8 @@ import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
+
+import java.util.Locale;
 
 /**
  * {@link org.apache.http.protocol.HttpRequestExecutor#execute(HttpRequest, HttpClientConnection, HttpContext)}
@@ -66,10 +69,10 @@ public class HttpRequestExecutor$Execute extends AroundInterceptor {
         // create a span and save it in user-context
         aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
-                                      .tag(Tags.CLIENT_TYPE, "apache")
-                                      .tag(Tags.HTTP_URI, uri)
-                                      .tag(Tags.HTTP_METHOD, httpRequest.getRequestLine().getMethod())
-                                      .propagate(httpRequest, (request, key, value) -> request.setHeader(key, value))
+                                      .tag(Tags.Http.CLIENT, "apache")
+                                      .tag(Tags.Http.URL, uri)
+                                      .tag(Tags.Http.METHOD, httpRequest.getRequestLine().getMethod())
+                                      .propagate(httpRequest, HttpMessage::setHeader)
                                       .start());
 
         return InterceptionDecision.CONTINUE;
@@ -79,24 +82,23 @@ public class HttpRequestExecutor$Execute extends AroundInterceptor {
     public void after(AopContext context) {
         ITraceSpan thisSpan = context.getUserContextAs();
         if (thisSpan == null) {
-            // in case of exception in above
+            // in case of exception in the above
             return;
         }
 
         HttpResponse response = context.getReturningAs();
         String status = response == null ? "-1" : (response.getStatusLine() == null ? "-1" : Integer.toString(response.getStatusLine().getStatusCode()));
-        thisSpan.tag(Tags.HTTP_STATUS, status)
-                .tag(context.getException());
-        if (response != null) {
-            traceConfig.getHeaders()
-                       .getResponse()
-                       .forEach((name) -> {
-                           Header header = response.getFirstHeader(name);
-                           if (header != null) {
-                               thisSpan.tag("http.response.header." + name, header.getValue());
-                           }
-                       });
-        }
-        thisSpan.finish();
+        thisSpan.tag(Tags.Http.STATUS, status)
+                .tag(context.getException())
+                .configIfTrue(response != null && !traceConfig.getHeaders().getResponse().isEmpty(),
+                              (s) -> {
+                                  for (String name : traceConfig.getHeaders().getResponse()) {
+                                      Header header = response.getFirstHeader(name);
+                                      if (header != null) {
+                                          s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + name.toLowerCase(Locale.ENGLISH), header.getValue());
+                                      }
+                                  }
+                              })
+                .finish();
     }
 }

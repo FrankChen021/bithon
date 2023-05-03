@@ -14,18 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.source.http;
-
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+package org.bithon.server.storage.common;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 28/4/22 4:29 PM
+ * @date 2023/4/26 22:48
  */
-@Data
-@Configuration
-@ConfigurationProperties(prefix = "collector-http.tracing")
-public class TraceHttpCollectorConfig {
+public class ApplicationType {
+    public static final String JAVA = "JAVA";
 }

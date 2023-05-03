@@ -24,17 +24,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.sink.common.service.UriNormalizer;
+import org.bithon.server.sink.tracing.transform.TraceSpanTransformer;
+import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.filter.IInputRowFilter;
+import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -64,16 +69,57 @@ public class LocalTraceSink implements ITraceMessageSink {
         }
     }
 
+    static class ExceptionSafeTransformer implements ITransformer {
+        private final ITransformer delegate;
+
+        /**
+         * There are too many spans, suppress exception logs to avoid too many logs
+         */
+        private long lastLogTimestamp = System.currentTimeMillis();
+        private String lastException;
+
+        ExceptionSafeTransformer(ITransformer delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void transform(IInputRow inputRow) throws TransformException {
+            try {
+                delegate.transform(inputRow);
+            } catch (Exception e) {
+                long now = System.currentTimeMillis();
+                if (now - lastLogTimestamp < 5_000) {
+                    return;
+                }
+
+                log.error(StringUtils.format("Fail to transform, message [%s], Span [%s]", e.getMessage(), inputRow),
+                          e.getClass().getName().equals(this.lastException) ? null : e);
+
+                this.lastLogTimestamp = now;
+                this.lastException = e.getClass().getName();
+            }
+        }
+    }
+
     private final List<ITraceMessageSink> sinks = Collections.synchronizedList(new ArrayList<>());
 
     private final ExecutorService executorService;
+
+    private final ITransformer transformer;
     private final IInputRowFilter filter;
 
     @JsonCreator
     public LocalTraceSink(@JacksonInject(useInput = OptBoolean.FALSE) TraceSinkConfig traceSinkConfig,
-                          @JacksonInject(useInput = OptBoolean.FALSE)ObjectMapper objectMapper,
+                          @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                           @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.filter = traceSinkConfig.createFilter(objectMapper);
+
+        ITransformer transformer = traceSinkConfig.createTransformers(objectMapper);
+        if (transformer == null) {
+            transformer = new TraceSpanTransformer(applicationContext.getBean(UriNormalizer.class));
+        }
+        this.transformer = new ExceptionSafeTransformer(transformer);
+
         this.executorService = Executors.newCachedThreadPool(NamedThreadFactory.of("trace-processor"));
         link(new SinkImpl(applicationContext));
     }
@@ -93,9 +139,22 @@ public class LocalTraceSink implements ITraceMessageSink {
         if (spans.isEmpty()) {
             return;
         }
-        if (this.filter != null) {
-            spans = spans.stream().filter(this.filter::shouldInclude).collect(Collectors.toList());
+
+        Iterator<TraceSpan> iterator = spans.iterator();
+        while (iterator.hasNext()) {
+            TraceSpan span = iterator.next();
+
+            // Transform first
+            this.transformer.transform(span);
+
+            // Post filter
+            if (this.filter != null) {
+                if (!this.filter.shouldInclude(span)) {
+                    iterator.remove();
+                }
+            }
         }
+
         if (spans.isEmpty()) {
             return;
         }

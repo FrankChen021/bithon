@@ -6,12 +6,12 @@
       "title": "Consumed Records",
       "width": 4,
       "type": "line",
+      "yAxis": [
+        { "format": "rate" }
+      ],
       "columns": [
         "consumedRecordsRate",
-        {
-          "name": "consumedRecords",
-          "yAxis": 1
-        }
+        { "name": "consumedRecords", "yAxis": 1}
       ],
       "query": {
         "type": "timeseries",
