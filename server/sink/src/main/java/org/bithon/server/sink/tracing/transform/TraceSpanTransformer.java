@@ -84,9 +84,11 @@ public class TraceSpanTransformer implements ITransformer {
             uri = tags.getOrDefault("uri", "");
         }
 
-        // Normalize URL
-        if (SpanKind.CLIENT.name().equals(span.getKind()) && "httpclient".equals(span.getName())) {
-            // For the http.uri tag, if it's from the HttpClient, get the path only to normalize
+        // For the http.uri tag, if it's from the HttpClient,
+        // related tags will be transformed so that tracing logs can be easily integrated with metrics
+        if (StringUtils.hasText(uri)
+            && SpanKind.CLIENT.name().equals(span.getKind())
+            && "httpclient".equals(span.getName())) {
             try {
                 URL url = new URL(uri);
                 String path = url.getPath();
@@ -101,7 +103,10 @@ public class TraceSpanTransformer implements ITransformer {
             } catch (MalformedURLException ignored) {
             }
         }
-        span.setNormalizedUri(normalizer.normalize(span.getAppName(), uri).getUri());
+
+        if (StringUtils.hasText(uri)) {
+            span.setNormalizedUri(normalizer.normalize(span.getAppName(), uri).getUri());
+        }
     }
 
     private void transformIntoJavaStyleMethod(TraceSpan span) {
