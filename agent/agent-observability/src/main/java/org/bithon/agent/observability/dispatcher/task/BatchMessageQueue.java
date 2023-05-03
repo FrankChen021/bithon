@@ -33,7 +33,7 @@ public class BatchMessageQueue implements IMessageQueue {
     private final IMessageQueue delegate;
 
     private final int batchSize;
-    private List<Object> taken;
+    private List<Object> fetched;
 
     public int getBatchSize() {
         return batchSize;
@@ -78,15 +78,15 @@ public class BatchMessageQueue implements IMessageQueue {
 
     @Override
     public Object take(long timeout) {
-        List<Object> batch = new ArrayList<>(this.batchSize);
+        List<Object> target = new ArrayList<>(this.batchSize);
 
         do {
             long start = System.currentTimeMillis();
-            fill(batch, timeout);
+            fetch(target, timeout);
             timeout -= System.currentTimeMillis() - start;
-        } while (batch.size() < batchSize && timeout > 0);
+        } while (target.size() < batchSize && timeout > 0);
 
-        return batch;
+        return target;
     }
 
     @Override
@@ -94,29 +94,35 @@ public class BatchMessageQueue implements IMessageQueue {
         return delegate.pop();
     }
 
+    /**
+     * Fetch items from underlying queue in given timeout
+     */
     @SuppressWarnings("unchecked")
-    private void fill(List<Object> thisBatch, long timeout) {
-        if (taken == null) {
+    private void fetch(List<Object> target, long timeout) {
+        if (fetched == null) {
+            // Only take an item from the queue if the previous 'take' process does not leave any items left
             try {
-                taken = (List<Object>) delegate.take(timeout);
+                fetched = (List<Object>) delegate.take(timeout);
             } catch (InterruptedException ignored) {
             }
         }
 
-        if (taken == null) {
+        if (fetched == null) {
+            // We don't get any item from the queue after the timeout
             return;
         }
 
-        int capacity = this.batchSize - thisBatch.size();
-        int maxElements = Math.min(capacity, taken.size());
+        int capacity = this.batchSize - target.size();
+        int maxElements = Math.min(capacity, fetched.size());
         for (int i = 0; i < maxElements; i++) {
-            thisBatch.add(taken.get(i));
+            target.add(fetched.get(i));
         }
 
-        if (maxElements < taken.size()) {
-            taken = taken.subList(maxElements, taken.size());
+        if (maxElements < fetched.size()) {
+            // We still have items left in the 'taken' list, keep it for next time
+            fetched = fetched.subList(maxElements, fetched.size());
         } else {
-            taken = null;
+            fetched = null;
         }
     }
 }
