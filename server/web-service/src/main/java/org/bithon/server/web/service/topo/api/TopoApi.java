@@ -58,17 +58,20 @@ import java.util.stream.Stream;
 @Conditional(WebServiceModuleEnabler.class)
 public class TopoApi {
 
-    private final IMetricReader metricReader;
-    private final DataSourceSchema topoSchema;
+    private final IMetricStorage metricStorage;
+    private final DataSourceSchemaManager schemaManager;
 
     public TopoApi(DataSourceSchemaManager schemaManager,
                    IMetricStorage metricStorage) {
-        this.topoSchema = schemaManager.getDataSourceSchema("topo-metrics");
-        this.metricReader = metricStorage.createMetricReader(topoSchema);
+        this.schemaManager = schemaManager;
+        this.metricStorage = metricStorage;
     }
 
     @PostMapping("/api/topo/getApplicationTopo")
     public Topo getTopo(@Valid @RequestBody GetTopoRequest request) {
+        DataSourceSchema topoSchema = schemaManager.getDataSourceSchema("topo-metrics");
+        IMetricReader metricReader = metricStorage.createMetricReader(topoSchema);
+
         // since the min granularity is minute, round down the timestamp to minute
         // and notice that the 'end' parameter is inclusive, so the round down has no impact on the query range
         TimeSpan start = new TimeSpan(TimeSpan.fromISO8601(request.getStartTimeISO8601()).getMilliseconds() / 60_000 * 60_000);
