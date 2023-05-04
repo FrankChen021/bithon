@@ -172,8 +172,8 @@ public class TraceJdbcReader implements ITraceReader {
                                                           int interval) {
         boolean isOnSummaryTable = isFilterOnRootSpan(filters);
 
-        String timeBucket = sqlDialect.timeFloor("timestamp", interval);
-        StringBuilder sqlBuilder = new StringBuilder(StringUtils.format("SELECT %s AS \"_timestamp\", count(1) AS \"count\", min(\"%s\") AS \"minResponse\", avg(\"%s\") AS \"avgResponse\", max(\"%s\") AS \"maxResponse\" FROM \"%s\"",
+        String timeBucket = sqlDialect.timeFloorExpression("timestamp", interval);
+        StringBuilder sqlBuilder = new StringBuilder(StringUtils.format("SELECT %s AS \"_timestamp\", count(1) AS \"count\", min(\"%s\") AS \"minResponse\", avg(\"%s\") AS \"avgResponse\", max(\"%s\") AS \"maxResponse\" FROM %s",
                                                                         timeBucket,
                                                                         Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS.getName(),
                                                                         Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS.getName(),
