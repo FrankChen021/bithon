@@ -19,6 +19,7 @@ class AppSelector {
 
         this.mFilterNames = [];
         this.mSelectedFilters = {};
+        this.mFilterSpecs = [];
 
         this.vSuppressChangeEvent = false;
     }
@@ -68,6 +69,7 @@ class AppSelector {
         this.mDataSource = schema.name;
         this.mSchema = schema;
 
+        const filterSpecs = [];
         // Note: the first two dimensions MUST be app/instance
         for (let index = 0; index < schema.dimensionsSpec.length; index++) {
             const dimension = schema.dimensionsSpec[index];
@@ -79,8 +81,18 @@ class AppSelector {
                 continue;
             }
 
-            this.#createDimensionFilter(index, dimension.alias, dimension.displayText);
+            filterSpecs.push({
+                filterType: 'select',
+                sourceType: 'datasource',
+                source: schema.name,
+                name: dimension.name,
+                alias: dimension.alias,
+                displayText: dimension.displayText,
+                onPreviousFilters: true
+            });
         }
+
+        this.createFilters(filterSpecs);
     }
 
     /**
@@ -97,10 +109,31 @@ class AppSelector {
         return this.mFilterNames;
     }
 
-    #createDimensionFilter(dimensionIndex, dimensionName, displayText) {
-        this.mFilterNames.push(dimensionName);
+    /**
+     * filterSpec:
+     * {
+     *    filterType: select
+     *    sourceType: datasource | inline
+     *    source: object
+     *    name:
+     *    alias:
+     *    displayText:
+     *    onPreviousFilters: true | false
+     * }
+     */
+    createFilters(filterSpecs) {
+        for (let index = 0; index < filterSpecs.length; index++) {
+            const filterSpec = filterSpecs[index];
 
-        const filterName = this.mQueryVariablePrefix + dimensionName;
+            const idx = this.mFilterSpecs.push(filterSpec) - 1;
+            this.#createDimensionFilter(idx, filterSpec);
+        }
+    }
+
+    #createDimensionFilter(dimensionIndex, filterSpec) {
+        this.mFilterNames.push(filterSpec.alias);
+
+        const filterName = this.mQueryVariablePrefix + filterSpec.alias;
 
         // create selector
         const appendedSelect = this.vParent.append(`<li class="nav-item"><select id="${filterName}" style="width:150px"></select></li>`).find('select').last();
@@ -117,8 +150,8 @@ class AppSelector {
             theme: 'bootstrap4',
             allowClear: true,
             dropdownAutoWidth: true,
-            placeholder: displayText,
-            ajax: this.getDimensionAjaxOptions(dimensionIndex, dimensionName),
+            placeholder: filterSpec.displayText,
+            ajax: this.getDimensionAjaxOptions(dimensionIndex),
         }).on('change', (event) => {
             let dimensionValue = null;
             if (event.target.selectedIndex == null || event.target.selectedIndex < 0) {
@@ -245,7 +278,9 @@ class AppSelector {
         return $request;
     }
 
-    getDimensionAjaxOptions(dimensionIndex, dimensionName) {
+    getDimensionAjaxOptions(filterIndex) {
+        const thisFilterSpec = this.mFilterSpecs[filterIndex];
+
         return {
             cache: true,
             type: 'POST',
@@ -253,15 +288,20 @@ class AppSelector {
             data: (params) => {
                 const filters = [];
 
-                for (let p = 0; p < dimensionIndex; p++) {
-                    const dim = this.mSchema.dimensionsSpec[p];
-                    const dimFilter = this.mSelectedFilters[this.mQueryVariablePrefix + dim.alias];
-                    if (dimFilter != null) {
-                        filters.push({
-                            // use name instead of alias to query dimensions
-                            dimension: dim.name,
-                            matcher: dimFilter.matcher
-                        });
+                // Use previous filters as input to get values of this filters
+                if (thisFilterSpec.onPreviousFilters) {
+                    for (let p = 0; p < filterIndex; p++) {
+                        const filterSpec = this.mFilterSpecs[p];
+
+                        // Get the filtered value from stored state
+                        const filter = this.mSelectedFilters[this.mQueryVariablePrefix + filterSpec.alias];
+                        if (filter != null) {
+                            filters.push({
+                                // use name instead of alias to query dimensions
+                                dimension: filter.dimension,
+                                matcher: filter.matcher
+                            });
+                        }
                     }
                 }
 
@@ -274,8 +314,8 @@ class AppSelector {
                 return {
                     search: params.term,
 
-                    dataSource: this.mDataSource,
-                    name: dimensionName,
+                    dataSource: thisFilterSpec.source,
+                    name: thisFilterSpec.alias,
                     filters: filters,
                     type: "alias",
                     startTimeISO8601: interval.start,
@@ -285,7 +325,7 @@ class AppSelector {
             dataType: "json",
             contentType: "application/json",
 
-            transport: (params, success, failure) => this.#getAndCache(dimensionName,
+            transport: (params, success, failure) => this.#getAndCache(thisFilterSpec.alias,
                 params,
                 success,
                 failure,
