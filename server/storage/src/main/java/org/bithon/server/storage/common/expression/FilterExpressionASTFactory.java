@@ -30,6 +30,8 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.debug.DebuggableExpression;
+import org.bithon.component.commons.expression.debug.DebuggableLogicExpression;
 import org.bithon.server.datasource.ast.FilterExpressionBaseVisitor;
 import org.bithon.server.datasource.ast.FilterExpressionLexer;
 import org.bithon.server.datasource.ast.FilterExpressionParser;
@@ -103,7 +105,12 @@ public class FilterExpressionASTFactory {
                 IExpression left = ctx.getChild(0).accept(this);
                 String logicOperator = ctx.getChild(1).getText().toUpperCase(Locale.ENGLISH);
                 IExpression right = ctx.getChild(2).accept(this);
-                return LogicalExpression.create(logicOperator, Arrays.asList(left, right));
+                LogicalExpression logicalExpression = LogicalExpression.create(logicOperator, Arrays.asList(left, right));
+                if (this.isDebug) {
+                    return new DebuggableLogicExpression(logicalExpression);
+                } else {
+                    return logicalExpression;
+                }
             }
 
             // expression or binaryExpression
@@ -112,63 +119,82 @@ public class FilterExpressionASTFactory {
 
         @Override
         public IExpression visitBinaryExpression(FilterExpressionParser.BinaryExpressionContext ctx) {
-            TerminalNode left = ctx.unaryExpression(0).getChild(TerminalNode.class, 0);
+            FilterExpressionParser.UnaryExpressionContext left = ctx.unaryExpression(0);
             String comparisonOperator = ctx.comparisonOperator().getText();
-            TerminalNode right = ctx.unaryExpression(1).getChild(TerminalNode.class, 0);
+            FilterExpressionParser.UnaryExpressionContext right = ctx.unaryExpression(1);
 
-            if (left.getSymbol().getType() != FilterExpressionLexer.VARIABLE) {
+            if (left.nameExpression() == null) {
                 // just for simplicity
-                throw new InvalidExpressionException(ctx.getText(), left.getSymbol().getStartIndex(), "left expression must be a variable");
+                throw new InvalidExpressionException(ctx.getText(), left.start.getStartIndex(), "left expression must be a name");
             }
 
-            IExpression rightExpression;
-            switch (right.getSymbol().getType()) {
-                case FilterExpressionLexer.NUMBER_LITERAL: {
-                    rightExpression = new LiteralExpression(Long.parseLong(right.getText()));
-                    break;
-                }
-                case FilterExpressionLexer.STRING_LITERAL: {
-                    rightExpression = new LiteralExpression(getUnQuotedString(right.getSymbol()));
-                    break;
-                }
-                case FilterExpressionLexer.VARIABLE: {
-                    rightExpression = new IdentifierExpression(right.getText());
-                    break;
-                }
-                default:
-                    throw new RuntimeException("unexpected right expression type");
-            }
+            IExpression leftExpression = new IdentifierExpression(left.getText());
+            IExpression rightExpression = right.accept(new UnaryExpressionVisitor());
 
             BinaryExpression binaryExpression;
-            String varName = left.getText();
             switch (comparisonOperator) {
                 case "=":
-                    binaryExpression = new BinaryExpression.EQ(new IdentifierExpression(varName), rightExpression);
+                    binaryExpression = new BinaryExpression.EQ(leftExpression, rightExpression);
                     break;
                 case ">":
-                    binaryExpression = new BinaryExpression.GT(new IdentifierExpression(varName), rightExpression);
+                    binaryExpression = new BinaryExpression.GT(leftExpression, rightExpression);
                     break;
                 case "<>":
                 case "!=":
-                    binaryExpression = new BinaryExpression.NE(new IdentifierExpression(varName), rightExpression);
+                    binaryExpression = new BinaryExpression.NE(leftExpression, rightExpression);
                     break;
                 default:
                     throw new RuntimeException("not yet supported operator: " + comparisonOperator);
             }
 
-            return isDebug ? new BinaryExpression.DebuggableExpression(ctx.getText(), binaryExpression) : binaryExpression;
-        }
-
-        private String getUnQuotedString(Token symbol) {
-            CharStream input = symbol.getInputStream();
-            if (input == null) {
-                return null;
+            if (isDebug) {
+                return new DebuggableExpression(binaryExpression);
             } else {
-                int n = input.size();
-                int s = symbol.getStartIndex() + 1; // +1 to skip the leading quoted character
-                int e = symbol.getStopIndex() - 1;  // -1 to skip the ending quoted character
-                return s < n && e < n ? input.getText(Interval.of(s, e)) : "<EOF>";
+                return binaryExpression;
             }
         }
+
     }
+
+    static String getUnQuotedString(Token symbol) {
+        CharStream input = symbol.getInputStream();
+        if (input == null) {
+            return null;
+        } else {
+            int n = input.size();
+
+            // +1 to skip the leading quoted character
+            int s = symbol.getStartIndex() + 1;
+
+            // -1 to skip the ending quoted character
+            int e = symbol.getStopIndex() - 1;
+            return s < n && e < n ? input.getText(Interval.of(s, e)) : "<EOF>";
+        }
+    }
+
+    /**
+     * Turn into UnaryExpression into customer AST
+     */
+    static class UnaryExpressionVisitor extends FilterExpressionBaseVisitor<IExpression> {
+        @Override
+        public IExpression visitLiteralExperssion(FilterExpressionParser.LiteralExperssionContext ctx) {
+            TerminalNode literalExpressionNode = ctx.getChild(TerminalNode.class, 0);
+            switch (literalExpressionNode.getSymbol().getType()) {
+                case FilterExpressionLexer.NUMBER_LITERAL: {
+                    return new LiteralExpression(Long.parseLong(literalExpressionNode.getText()));
+                }
+                case FilterExpressionLexer.STRING_LITERAL: {
+                    return new LiteralExpression(getUnQuotedString(literalExpressionNode.getSymbol()));
+                }
+                default:
+                    throw new RuntimeException("unexpected right expression type");
+            }
+        }
+
+        @Override
+        public IExpression visitNameExpression(FilterExpressionParser.NameExpressionContext ctx) {
+            return new IdentifierExpression(ctx.getText());
+        }
+    }
+
 }

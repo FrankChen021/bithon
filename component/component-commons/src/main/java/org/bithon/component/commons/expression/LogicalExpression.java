@@ -21,6 +21,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
  * AND/OR
@@ -66,6 +67,12 @@ public abstract class LogicalExpression implements IExpression {
     @Override
     public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public String toString() {
+        String separator = " " + this.operator + " ";
+        return this.operands.stream().map(Object::toString).collect(Collectors.joining(separator));
     }
 
     public abstract LogicalExpression copy(List<IExpression> expressionList);

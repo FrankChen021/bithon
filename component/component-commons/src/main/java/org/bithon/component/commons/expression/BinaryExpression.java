@@ -95,6 +95,14 @@ public abstract class BinaryExpression implements IExpression {
         return matches(lValue.toString(), rValue.toString());
     }
 
+    /**
+     * Override for debugging
+     */
+    @Override
+    public String toString() {
+        return this.left + " " + this.operator + " " + this.right;
+    }
+
     protected abstract boolean matchesNull(Object left, Object right);
 
     protected abstract boolean matches(Number left, Number right);
@@ -261,36 +269,4 @@ public abstract class BinaryExpression implements IExpression {
         }
     }
 
-    public static class DebuggableExpression implements IExpression {
-        private static final ILogAdaptor LOG = LoggerFactory.getLogger(DebuggableExpression.class);
-
-        private final String expression;
-        private final BinaryExpression delegate;
-
-        public DebuggableExpression(String expression, BinaryExpression delegate) {
-            this.expression = expression;
-            this.delegate = delegate;
-        }
-
-        @Override
-        public String getType() {
-            return delegate.getType();
-        }
-
-        @Override
-        public Object evaluate(IEvaluationContext context) {
-            boolean ret = (boolean) delegate.evaluate(context);
-            LOG.info("Expression[{}] evaluates to be {}: left val={}, right val = {}",
-                     expression,
-                     ret,
-                     delegate.left.evaluate(context),
-                     delegate.right.evaluate(context));
-            return ret;
-        }
-
-        @Override
-        public <T> T accept(IExpressionVisitor<T> visitor) {
-            return delegate.accept(visitor);
-        }
-    }
 }

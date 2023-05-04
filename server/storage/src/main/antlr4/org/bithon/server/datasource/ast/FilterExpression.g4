@@ -16,8 +16,25 @@ binaryExpression
   ;
 
 unaryExpression
+  : nameExpression
+  | literalExperssion
+  ;
+
+nameExpression
+  : qualifiedNameExpression
+  | simpleNameExpression
+  ;
+
+qualifiedNameExpression
+  : VARIABLE ('.' VARIABLE)+
+  ;
+
+simpleNameExpression
   : VARIABLE
-  | STRING_LITERAL | NUMBER_LITERAL
+  ;
+
+literalExperssion
+  : STRING_LITERAL | NUMBER_LITERAL
   ;
 
 logicOperator
