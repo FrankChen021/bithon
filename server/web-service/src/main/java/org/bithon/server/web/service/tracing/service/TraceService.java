@@ -28,6 +28,7 @@ import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.storage.tracing.index.TagIndexConfig;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.bithon.server.web.service.common.bucket.TimeBucket;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.springframework.beans.BeanUtils;
@@ -61,55 +62,6 @@ public class TraceService {
         this.traceReader = traceStorage.createReader();
         this.traceStorageConfig = traceStorageConfig;
         this.traceSpanSummarySchema = dataSourceSchemaManager.getDataSourceSchema("trace_span_summary");
-    }
-
-    /**
-     * For test only
-     */
-    static Bucket getTimeBucket(long startTimestamp, long endTimestamp) {
-        return getTimeBucket(startTimestamp, endTimestamp, 60);
-    }
-
-    /**
-     * Requirement
-     * 1. The minimal length of each bucket is 1 minute
-     *
-     * <p>
-     *
-     * @param bucketCount    the count of buckets
-     * @param startTimestamp in millisecond
-     * @param endTimestamp   in millisecond
-     * @return the length of a bucket in second
-     */
-    static Bucket getTimeBucket(long startTimestamp, long endTimestamp, int bucketCount) {
-        int seconds = (int) ((endTimestamp - startTimestamp) / 1000);
-        if (seconds <= 60) {
-            return new Bucket(1, 60);
-        }
-
-        int minute = (int) ((endTimestamp - startTimestamp) / 1000 / 60);
-        int hour = (int) Math.ceil(minute / 60.0);
-
-        int[] steps = {1, 5, 10, 15, 30, 60, 150, 180, 360, 720, 1440};
-        int stepIndex = 0;
-        int step = 1;
-        while (minute / step > bucketCount) {
-            stepIndex++;
-            if (stepIndex < steps.length) {
-                step = steps[stepIndex];
-            } else {
-                // if exceeding the predefined steps, increase 1 day at least
-                step += 1440;
-            }
-        }
-
-        int m = hour % step;
-        int hourPerStep = (hour / step + (m > 0 ? 1 : 0));
-
-        // the last 60 is the max bucket number
-        int length = hourPerStep * step * 3600 / 60;
-        int mod = seconds % length;
-        return new Bucket(seconds / length + (mod > 0 ? 1 : 0), length);
     }
 
     public List<TraceSpan> getTraceByParentSpanId(String parentSpanId) {
@@ -180,7 +132,11 @@ public class TraceService {
         FilterSplitter splitter = new FilterSplitter(this.traceStorageConfig);
         splitter.split(filters);
 
-        return traceReader.getTraceListSize(splitter.filters, splitter.indexedTagFilter, splitter.nonIndexedTagFilter, start, end);
+        return traceReader.getTraceListSize(splitter.filters,
+                                            splitter.indexedTagFilter,
+                                            splitter.nonIndexedTagFilter,
+                                            start,
+                                            end);
     }
 
     public List<TraceSpan> getTraceList(List<IFilter> filters,
@@ -218,15 +174,21 @@ public class TraceService {
         FilterSplitter splitter = new FilterSplitter(this.traceStorageConfig);
         splitter.split(filters);
 
-        int bucketInSecond = getTimeBucket(start.getMilliseconds(), end.getMilliseconds(), bucketCount).length;
+        int interval = TimeBucket.calculate(start.getMilliseconds(), end.getMilliseconds(), bucketCount).getLength();
         List<Map<String, Object>> dataPoints = traceReader.getTraceDistribution(splitter.filters,
                                                                                 splitter.indexedTagFilter,
                                                                                 splitter.nonIndexedTagFilter,
                                                                                 start.toTimestamp(),
                                                                                 end.toTimestamp(),
-                                                                                bucketInSecond);
+                                                                                interval);
         List<String> metrics = Arrays.asList("count", "minResponse", "avgResponse", "maxResponse");
-        return TimeSeriesQueryResult.build(start, end, bucketInSecond, dataPoints, "_timestamp", Collections.emptyList(), metrics);
+        return TimeSeriesQueryResult.build(start,
+                                           end,
+                                           interval,
+                                           dataPoints,
+                                           "_timestamp",
+                                           Collections.emptyList(),
+                                           metrics);
     }
 
     static class FilterSplitter {
@@ -263,32 +225,6 @@ public class TraceService {
                     nonIndexedTagFilter.add(filter);
                 }
             }
-        }
-    }
-
-
-    static class Bucket {
-        /**
-         * number of buckets
-         */
-        final int nums;
-
-        /**
-         * length of bucket in second
-         */
-        final int length;
-
-        public Bucket(int nums, int length) {
-            this.nums = nums;
-            this.length = length;
-        }
-
-        public int getNums() {
-            return nums;
-        }
-
-        public int getLength() {
-            return length;
         }
     }
 }

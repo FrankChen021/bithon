@@ -16,7 +16,6 @@
 
 package org.bithon.server.web.service.datasource.api.impl;
 
-import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.ExpirationConfig;
@@ -27,7 +26,6 @@ import org.bithon.server.storage.datasource.IColumnSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
@@ -40,7 +38,6 @@ import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
 import org.bithon.server.web.service.datasource.api.GeneralQueryResponse;
 import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
-import org.bithon.server.web.service.datasource.api.TimeSeriesQueryRequest;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.datasource.api.UpdateTTLRequest;
 import org.springframework.context.annotation.Conditional;
@@ -50,7 +47,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -75,31 +71,6 @@ public class DataSourceApi implements IDataSourceApi {
         this.metricStorage = metricStorage;
         this.schemaManager = schemaManager;
         this.dataSourceService = dataSourceService;
-    }
-
-    @Override
-    public TimeSeriesQueryResult timeseries(TimeSeriesQueryRequest request) {
-        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
-
-        TimeSpan start = TimeSpan.fromISO8601(request.getInterval().getStartISO8601());
-        TimeSpan end = TimeSpan.fromISO8601(request.getInterval().getEndISO8601());
-
-        List<ResultColumn> resultColumns = request.getAggregators()
-                                                  .stream()
-                                                  .map(QueryAggregator::toResultColumnExpression)
-                                                  .collect(Collectors.toList());
-        resultColumns.addAll(request.getMetrics().stream().map((metric) -> {
-            IMetricSpec spec = schema.getMetricSpecByName(metric);
-            return spec.getResultColumn();
-        }).collect(Collectors.toList()));
-
-        return dataSourceService.timeseriesQuery(Query.builder()
-                                                      .dataSource(schema)
-                                                      .resultColumns(resultColumns)
-                                                      .filters(CollectionUtils.emptyOrOriginal(request.getFilters()))
-                                                      .interval(Interval.ofDefault(start, end, request.getInterval().getStep()))
-                                                      .groupBy(CollectionUtils.emptyOrOriginal(request.getGroupBy()))
-                                                      .build());
     }
 
     @Override

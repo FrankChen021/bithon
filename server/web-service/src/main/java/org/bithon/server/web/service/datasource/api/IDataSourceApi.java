@@ -31,10 +31,6 @@ import java.util.Map;
  */
 public interface IDataSourceApi {
 
-    @Deprecated
-    @PostMapping("/api/datasource/timeseries/v2")
-    TimeSeriesQueryResult timeseries(@Validated @RequestBody TimeSeriesQueryRequest request);
-
     @PostMapping("/api/datasource/timeseries/v3")
     GeneralQueryResponse timeseriesV3(@Validated @RequestBody GeneralQueryRequest request);
 

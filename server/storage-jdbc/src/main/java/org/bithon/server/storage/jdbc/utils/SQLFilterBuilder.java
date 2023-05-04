@@ -136,7 +136,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
 
     @Override
     public String visit(StringContainsMatcher matcher) {
-        throw new RuntimeException("Not Supported Now");
+        return StringUtils.format("\"%s\" LIKE '%%%s%%'", fieldName, matcher.getPattern());
     }
 
     @Override

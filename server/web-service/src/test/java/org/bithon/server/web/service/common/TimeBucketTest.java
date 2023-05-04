@@ -14,8 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.tracing.service;
+package org.bithon.server.web.service.common;
 
+import org.bithon.server.web.service.common.bucket.TimeBucket;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -23,10 +24,14 @@ import org.junit.Test;
  * @author frank.chen021@outlook.com
  * @date 24/11/21 7:11 pm
  */
-public class TraceServiceTest {
+public class TimeBucketTest {
 
     private long fromMinute(int minute) {
         return minute * 60L * 1000;
+    }
+
+    static TimeBucket getTimeBucket(long startTimestamp, long endTimestamp) {
+        return TimeBucket.calculate(startTimestamp, endTimestamp, 60);
     }
 
     @Test
@@ -34,8 +39,8 @@ public class TraceServiceTest {
         long start = System.currentTimeMillis();
         long end = System.currentTimeMillis() + 40_000;
 
-        TraceService.Bucket bucket = TraceService.getTimeBucket(start, end);
-        Assert.assertEquals(1, bucket.getNums());
+        TimeBucket bucket = getTimeBucket(start, end);
+        Assert.assertEquals(1, bucket.getCount());
         Assert.assertEquals(60, bucket.getLength());
     }
 
@@ -44,8 +49,8 @@ public class TraceServiceTest {
         long start = System.currentTimeMillis();
         long end = System.currentTimeMillis() + fromMinute(1);
 
-        TraceService.Bucket bucket = TraceService.getTimeBucket(start, end);
-        Assert.assertEquals(1, bucket.getNums());
+        TimeBucket bucket = getTimeBucket(start, end);
+        Assert.assertEquals(1, bucket.getCount());
         Assert.assertEquals(60, bucket.getLength());
     }
 
@@ -54,8 +59,8 @@ public class TraceServiceTest {
         long start = System.currentTimeMillis();
         long end = System.currentTimeMillis() + fromMinute(5);
 
-        TraceService.Bucket bucket = TraceService.getTimeBucket(start, end);
-        Assert.assertEquals(5, bucket.getNums());
+        TimeBucket bucket = getTimeBucket(start, end);
+        Assert.assertEquals(5, bucket.getCount());
         Assert.assertEquals(60, bucket.getLength());
     }
 
@@ -64,8 +69,8 @@ public class TraceServiceTest {
         long start = System.currentTimeMillis();
         long end = System.currentTimeMillis() + fromMinute(59);
 
-        TraceService.Bucket bucket = TraceService.getTimeBucket(start, end);
-        Assert.assertEquals(59, bucket.getNums());
+        TimeBucket bucket = getTimeBucket(start, end);
+        Assert.assertEquals(59, bucket.getCount());
         Assert.assertEquals(60, bucket.getLength());
     }
 
@@ -74,8 +79,8 @@ public class TraceServiceTest {
         long start = System.currentTimeMillis();
         long end = System.currentTimeMillis() + fromMinute(60);
 
-        TraceService.Bucket bucket = TraceService.getTimeBucket(start, end);
-        Assert.assertEquals(60, bucket.getNums());
+        TimeBucket bucket = getTimeBucket(start, end);
+        Assert.assertEquals(60, bucket.getCount());
         Assert.assertEquals(60, bucket.getLength());
     }
 
@@ -84,10 +89,10 @@ public class TraceServiceTest {
         long start = System.currentTimeMillis();
         long end = System.currentTimeMillis() + fromMinute(61);
 
-        TraceService.Bucket bucket = TraceService.getTimeBucket(start, end);
+        TimeBucket bucket = getTimeBucket(start, end);
 
-        // After 60 minutes, the step is 12, so there should be 12 + 1 buckets in total
-        Assert.assertEquals(12 + 1, bucket.getNums());
+        // After 60 minutes, the step is 12, so there should be 12 + 1 bucket in total
+        Assert.assertEquals(12 + 1, bucket.getCount());
         Assert.assertEquals(300, bucket.getLength());
     }
 
@@ -96,13 +101,13 @@ public class TraceServiceTest {
         long start = System.currentTimeMillis();
         long end = System.currentTimeMillis() + fromMinute(360);
 
-        TraceService.Bucket bucket = TraceService.getTimeBucket(start, end);
+        TimeBucket bucket = getTimeBucket(start, end);
 
         // 10 minute per bucket
         Assert.assertEquals(60 * 10, bucket.getLength());
 
         // 36 buckets
-        Assert.assertEquals(36, bucket.getNums());
+        Assert.assertEquals(36, bucket.getCount());
     }
 
     @Test
@@ -110,9 +115,9 @@ public class TraceServiceTest {
         long start = System.currentTimeMillis();
         long end = System.currentTimeMillis() + fromMinute(361);
 
-        TraceService.Bucket bucket = TraceService.getTimeBucket(start, end);
+        TimeBucket bucket = getTimeBucket(start, end);
 
         Assert.assertEquals(600, bucket.getLength());
-        Assert.assertEquals(36 + 1, bucket.getNums());
+        Assert.assertEquals(36 + 1, bucket.getCount());
     }
 }

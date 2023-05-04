@@ -48,33 +48,6 @@ public class Interval {
         return new Interval(start, end, step);
     }
 
-    public static Interval ofDefault(TimeSpan start, TimeSpan end, Integer step) {
-        return new Interval(start, end, step == null ? calculateDefaultStep(start, end) : step);
-    }
-
-    /**
-     * TODO: interval should be consistent with retention rules
-     */
-    public static int calculateDefaultStep(TimeSpan start, TimeSpan end) {
-        long length = end.diff(start) / 1000;
-        if (length >= 7 * 24 * 3600) {
-            return 15 * 60;
-        }
-        if (length >= 3 * 24 * 3600) {
-            return 10 * 60;
-        }
-        if (length >= 24 * 3600) {
-            return 5 * 60;
-        }
-        if (length >= 12 * 3600) {
-            return 60;
-        }
-        if (length >= 6 * 3600) {
-            return 30;
-        }
-        return 10;
-    }
-
     public TimeSpan getStartTime() {
         return startTime;
     }

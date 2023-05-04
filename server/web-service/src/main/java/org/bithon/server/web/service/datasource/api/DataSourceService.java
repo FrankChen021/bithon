@@ -30,6 +30,7 @@ import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.bithon.server.web.service.common.bucket.TimeBucket;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
@@ -119,11 +120,22 @@ public class DataSourceService {
         TimeSpan start = TimeSpan.fromISO8601(query.getInterval().getStartISO8601());
         TimeSpan end = TimeSpan.fromISO8601(query.getInterval().getEndISO8601());
 
+        Integer step = null;
+        if (bucketTimestamp) {
+            if (query.getInterval().getBucketCount() == null) {
+                step = TimeBucket.calculate(start, end);
+            } else {
+                step = TimeBucket.calculate(start.getMilliseconds(),
+                                            end.getMilliseconds(),
+                                            query.getInterval().getBucketCount()).getLength();
+            }
+        }
+
         return builder.groupBy(new ArrayList<>(groupBy))
                       .resultColumns(resultColumnList)
                       .dataSource(schema)
                       .filters(CollectionUtils.emptyOrOriginal(query.getFilters()))
-                      .interval(Interval.of(start, end, bucketTimestamp ? Interval.calculateDefaultStep(start, end) : null))
+                      .interval(Interval.of(start, end, step))
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())
                       .resultFormat(query.getResultFormat() == null ? Query.ResultFormat.Object : query.getResultFormat())
