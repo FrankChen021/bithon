@@ -22,18 +22,26 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.typing.StringValueType;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseSqlDialect;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.tracing.TraceJdbcReader;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
+import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
+import org.bithon.server.storage.metrics.IFilter;
+import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
+import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
+import org.jooq.TableField;
 
 import java.sql.Timestamp;
 
@@ -98,6 +106,43 @@ public class TraceStorage extends TraceJdbcStorage {
             @Override
             protected boolean isTransactionSupported() {
                 return false;
+            }
+
+            /**
+             * The tag object is stored in
+             * @return
+             */
+            @Override
+            protected TableField getTagStoreField() {
+                return Tables.BITHON_TRACE_SPAN.ATTRIBUTES;
+            }
+
+            /**
+             * The map object is supported by ClickHouse JDBC, uses it directly
+             */
+            @Override
+            protected Object toTagStore(TraceSpan.TagMap tag) {
+                return tag;
+            }
+        };
+    }
+
+    @Override
+    public ITraceReader createReader() {
+        return new TraceJdbcReader(this.dslContext,
+                                   this.objectMapper,
+                                   this.traceSpanSchema,
+                                   this.traceTagIndexSchema,
+                                   this.traceStorageConfig,
+                                   this.sqlDialect) {
+
+            @Override
+            protected String getTagPredicate(IFilter filter) {
+                /*
+                 * Use map accessor expression to search in the map
+                 */
+                String tag = StringUtils.format("%s['%s']", Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName(), filter.getName().substring(SPAN_TAGS_PREFIX.length()));
+                return filter.getMatcher().accept(new SQLFilterBuilder(traceSpanSchema.getName(), tag, StringValueType.INSTANCE));
             }
         };
     }

@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.jdbc.tracing;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -29,6 +30,7 @@ import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.jooq.BatchBindStep;
 import org.jooq.DSLContext;
 import org.jooq.Table;
+import org.jooq.TableField;
 import org.jooq.TransactionalRunnable;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -65,6 +67,22 @@ public class TraceJdbcWriter implements ITraceWriter {
         return true;
     }
 
+    /**
+     * For a database that DOES NOT support the object type,
+     * the tags are still stored in the 'tags' field which is a JSON string
+     */
+    protected TableField getTagStoreField() {
+        return Tables.BITHON_TRACE_SPAN.TAGS;
+    }
+
+    protected Object toTagStore(TraceSpan.TagMap tag) {
+        try {
+            return objectMapper.writeValueAsString(tag);
+        } catch (JsonProcessingException ignored) {
+            return "{}";
+        }
+    }
+
     private void writeSpans(Collection<TraceSpan> traceSpans, Table<?> table) {
         if (traceSpans.isEmpty()) {
             return;
@@ -84,25 +102,40 @@ public class TraceJdbcWriter implements ITraceWriter {
                                                                     Tables.BITHON_TRACE_SPAN.STARTTIMEUS,
                                                                     Tables.BITHON_TRACE_SPAN.ENDTIMEUS,
                                                                     Tables.BITHON_TRACE_SPAN.COSTTIMEMS,
-                                                                    Tables.BITHON_TRACE_SPAN.ATTRIBUTES,
+                                                                    getTagStoreField(),
                                                                     Tables.BITHON_TRACE_SPAN.NORMALIZEDURL,
                                                                     Tables.BITHON_TRACE_SPAN.STATUS)
                                                         .values((LocalDateTime) null,
-                                                                null, //app name
-                                                                null, // instance
-                                                                null, //trace id
-                                                                null, // span id
-                                                                null, // parent id
-                                                                null, // name
-                                                                null, // class
-                                                                null, // method
-                                                                null, // kind
-                                                                null, // start time
-                                                                null, // end time
-                                                                null, // cost time
-                                                                null,   // tags
-                                                                null,   // normalized url
-                                                                null    // status
+                                                                //app name
+                                                                null,
+                                                                // instance
+                                                                null,
+                                                                //trace id
+                                                                null,
+                                                                // span id
+                                                                null,
+                                                                // parent id
+                                                                null,
+                                                                // name
+                                                                null,
+                                                                // class
+                                                                null,
+                                                                // method
+                                                                null,
+                                                                // kind
+                                                                null,
+                                                                // start time
+                                                                null,
+                                                                // end time
+                                                                null,
+                                                                // cost time
+                                                                null,
+                                                                // tags
+                                                                null,
+                                                                // normalized url
+                                                                null,
+                                                                // status
+                                                                null
                                                         ));
 
         for (TraceSpan span : traceSpans) {
@@ -119,7 +152,7 @@ public class TraceJdbcWriter implements ITraceWriter {
                       span.startTime,
                       span.endTime,
                       span.costTime,
-                      span.getTags(),
+                      toTagStore(span.getTags()),
                       span.getNormalizedUri(),
                       span.getStatus());
         }

@@ -45,6 +45,7 @@ import org.jooq.Field;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectSeekStep1;
+import org.jooq.TableField;
 import org.jooq.impl.DSL;
 
 import java.sql.Timestamp;
@@ -53,6 +54,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -62,12 +64,12 @@ import java.util.Map;
 public class TraceJdbcReader implements ITraceReader {
 
     public static final String SPAN_TAGS_PREFIX = "tags.";
-    private final DSLContext dslContext;
-    private final ObjectMapper objectMapper;
-    private final TraceStorageConfig traceStorageConfig;
-    private final DataSourceSchema traceSpanSchema;
-    private final DataSourceSchema traceTagIndexSchema;
-    private final ISqlDialect sqlDialect;
+    protected final DSLContext dslContext;
+    protected final ObjectMapper objectMapper;
+    protected final TraceStorageConfig traceStorageConfig;
+    protected final DataSourceSchema traceSpanSchema;
+    protected final DataSourceSchema traceTagIndexSchema;
+    protected final ISqlDialect sqlDialect;
 
     public TraceJdbcReader(DSLContext dslContext,
                            ObjectMapper objectMapper,
@@ -176,11 +178,6 @@ public class TraceJdbcReader implements ITraceReader {
         public abstract SelectConditionStep<Record1<String>> build(List<IFilter> filters);
     }
 
-    /**
-     * TODO:
-     *  1. If a given tag name is not in the index list, the query on that name should fall back to BITHON_TRACE_SPAN table to match
-     *  2. For multiple tags which are not in the same group, nested query should be applied
-     */
     static class TagConditionQueryBuilder extends NestQueryBuilder {
 
         private final TagIndexConfig indexConfig;
@@ -206,9 +203,6 @@ public class TraceJdbcReader implements ITraceReader {
                     continue;
                 }
 
-                // Remove this filter
-                i.remove();
-
                 String tagName = filter.getName().substring(SPAN_TAGS_PREFIX.length());
                 if (!StringUtils.hasText(tagName)) {
                     throw new RuntimeException(StringUtils.format("Wrong tag name [%s]", filter.getName()));
@@ -218,8 +212,13 @@ public class TraceJdbcReader implements ITraceReader {
 
                 int tagIndex = this.indexConfig.getColumnPos(tagName);
                 if (tagIndex == 0) {
-                    throw new RuntimeException(StringUtils.format("Can't search on tag [%s] because it is not configured in the index.", tagName));
+                    // this tag does not appear on the index, leave it to the tag matcher later
+                    continue;
                 }
+
+                // Remove this filter from the list
+                i.remove();
+
                 if (tagIndex > Tables.BITHON_TRACE_SPAN_TAG_INDEX.fieldsRow().size() - 2) {
                     throw new RuntimeException(StringUtils.format("Tag [%s] is configured to use wrong index [%d]. Should be in the range [1, %d]",
                                                                   tagName,
@@ -310,12 +309,16 @@ public class TraceJdbcReader implements ITraceReader {
     public List<Map<String, Object>> getTraceDistribution(List<IFilter> filters, Timestamp start, Timestamp end, int interval) {
         BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
 
-        SelectConditionStep<Record1<String>> tagQuery = new TagConditionQueryBuilder(this.traceStorageConfig.getIndexes(),
-                                                                                     this.traceTagIndexSchema).dslContext(this.dslContext)
-                                                                                                              .start(start.toLocalDateTime())
-                                                                                                              .end(end.toLocalDateTime())
-                                                                                                              .build(filters);
+        SelectConditionStep<Record1<String>> tagIndexQuery = this.traceStorageConfig.getIndexes() == null ?
+                null
+                :
+                new TagConditionQueryBuilder(this.traceStorageConfig.getIndexes(),
+                                             this.traceTagIndexSchema).dslContext(this.dslContext)
+                                                                      .start(start.toLocalDateTime())
+                                                                      .end(end.toLocalDateTime())
+                                                                      .build(filters);
 
+        // If the filters contain a filter that matches the ROOT kind, then the search is built upon the summary table
         boolean isOnRootSpan = filters.stream().anyMatch((filter) -> {
             if (!summaryTable.KIND.getName().equals(filter.getName())) {
                 return false;
@@ -346,17 +349,26 @@ public class TraceJdbcReader implements ITraceReader {
                                              summaryTable.TIMESTAMP.getName(),
                                              DateTime.toYYYYMMDDhhmmss(end.getTime())));
 
-        String extraSummaryFilter = SQLFilterBuilder.build(traceSpanSchema,
-                                                           filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
-        if (StringUtils.hasText(extraSummaryFilter)) {
+        String nonTagFilter = SQLFilterBuilder.build(traceSpanSchema,
+                                                     filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
+        if (StringUtils.hasText(nonTagFilter)) {
             sqlBuilder.append(" AND ");
-            sqlBuilder.append(extraSummaryFilter);
+            sqlBuilder.append(nonTagFilter);
         }
 
-        // Build the tag query
-        if (tagQuery != null) {
+        String extraTagFilter = filters.stream()
+                                       .filter(filter -> filter.getName().startsWith(SPAN_TAGS_PREFIX))
+                                       .map(this::getTagPredicate)
+                                       .collect(Collectors.joining(" AND "));
+        if (StringUtils.hasText(extraTagFilter)) {
             sqlBuilder.append(" AND ");
-            sqlBuilder.append(dslContext.renderInlined(summaryTable.TRACEID.in(tagQuery)));
+            sqlBuilder.append(extraTagFilter);
+        }
+
+        // Build the tag index sub query
+        if (tagIndexQuery != null) {
+            sqlBuilder.append(" AND ");
+            sqlBuilder.append(dslContext.renderInlined(summaryTable.TRACEID.in(tagIndexQuery)));
         }
 
         sqlBuilder.append(StringUtils.format(" GROUP BY \"_timestamp\" ORDER BY \"_timestamp\"", timeBucket));
@@ -364,6 +376,23 @@ public class TraceJdbcReader implements ITraceReader {
         String sql = sqlBuilder.toString();
         log.info("Get trace distribution: {}", sql);
         return dslContext.fetch(sql).intoMaps();
+    }
+
+    /**
+     * Get the SQL predicate expression for give tag filter.
+     * For the default implementation, ONLY the 'equal' filter is supported, and it's turned into a LIKE search.
+     *
+     */
+    protected String getTagPredicate(IFilter filter) {
+        if (!(filter.getMatcher() instanceof StringEqualMatcher)) {
+            throw new UnsupportedOperationException(StringUtils.format("[%s] matcher on tag field is not supported on this database.",
+                                                                       filter.getMatcher().getClass().getSimpleName()));
+        }
+
+        return StringUtils.format("\"%s\" LIKE '%%\"%s\":\"%s\"%%'",
+                                  Tables.BITHON_TRACE_SPAN.TAGS.getName(),
+                                  filter.getName().substring(SPAN_TAGS_PREFIX.length()),
+                                  ((StringEqualMatcher)filter.getMatcher()).getPattern());
     }
 
     @Override
@@ -419,11 +448,6 @@ public class TraceJdbcReader implements ITraceReader {
                          });
     }
 
-    /**
-     * TODO:
-     *  1. If a given tag name is not in the index list, the query on that name should fall back to BITHON_TRACE_SPAN table to match
-     *  2. For multiple tags which are not in the same group, nested query should be applied
-     */
     protected SelectConditionStep<Record1<String>> buildTagQuery(Timestamp start, Timestamp end, Collection<IFilter> filters) {
         SelectConditionStep<Record1<String>> tagQuery = null;
 
