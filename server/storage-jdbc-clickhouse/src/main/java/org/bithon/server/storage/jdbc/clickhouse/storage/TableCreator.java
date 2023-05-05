@@ -21,6 +21,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
+import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.jooq.DSLContext;
 import org.jooq.DataType;
 import org.jooq.Field;
@@ -108,7 +109,7 @@ public class TableCreator {
                                                            config.getDatabase(),
                                                            tableName,
                                                            config.getOnClusterExpression(),
-                                                           getFieldText(table),
+                                                           getFieldDeclarationExpression(table),
                                                            getIndexText()));
 
             // replace macro in the template to suit for ReplicatedMergeTree
@@ -198,7 +199,7 @@ public class TableCreator {
                                          config.getDatabase(),
                                          table.getName(),
                                          config.getOnClusterExpression()));
-            sb.append(getFieldText(table));
+            sb.append(getFieldDeclarationExpression(table));
             sb.append(StringUtils.format(") ENGINE=Distributed('%s', '%s', '%s', murmurHash2_64(%s));",
                                          config.getCluster(),
                                          config.getDatabase(),
@@ -210,15 +211,16 @@ public class TableCreator {
         }
     }
 
-    private String getFieldText(Table<?> table) {
+    private String getFieldDeclarationExpression(Table<?> table) {
+
         StringBuilder sb = new StringBuilder(128);
-        for (Field<?> f : table.fields()) {
-            DataType<?> dataType = f.getDataType();
+        for (Field<?> field : table.fields()) {
+            DataType<?> dataType = field.getDataType();
 
             String typeName = dataType.getTypeName();
             if (dataType.equals(SQLDataType.TIMESTAMP) || dataType.equals(SQLDataType.LOCALDATETIME)) {
                 typeName = "timestamp(3,0)";
-            } else if (dataType.equals(SQLDataType.OTHER)) {
+            } else if (useMapType(table, field)) {
                 typeName = "Map(String, String)";
             } else {
                 if (dataType.hasPrecision()) {
@@ -226,7 +228,7 @@ public class TableCreator {
                 }
             }
 
-            sb.append(StringUtils.format("`%s` %s ", f.getName(), typeName));
+            sb.append(StringUtils.format("`%s` %s ", field.getName(), typeName));
 
             Field<?> defaultValue = dataType.defaultValue();
             if (defaultValue != null) {
@@ -237,6 +239,11 @@ public class TableCreator {
         }
         sb.delete(sb.length() - 2, sb.length());
         return sb.toString();
+    }
+
+    private boolean useMapType(Table<?> table, Field<?> field) {
+        return Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName().equals(field.getName())
+                && (table.getName().equals(Tables.BITHON_TRACE_SPAN.getName()) || table.getName().equals(Tables.BITHON_TRACE_SPAN_SUMMARY.getName()));
     }
 
     private String getIndexText() {

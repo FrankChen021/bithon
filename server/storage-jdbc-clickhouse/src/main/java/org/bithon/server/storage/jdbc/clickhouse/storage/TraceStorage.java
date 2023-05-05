@@ -44,6 +44,7 @@ import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.jooq.TableField;
 
 import java.sql.Timestamp;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -109,19 +110,12 @@ public class TraceStorage extends TraceJdbcStorage {
             }
 
             /**
-             * The tag object is stored in
-             * @return
-             */
-            @Override
-            protected TableField getTagStoreField() {
-                return Tables.BITHON_TRACE_SPAN.ATTRIBUTES;
-            }
-
-            /**
              * The map object is supported by ClickHouse JDBC, uses it directly
              */
             @Override
             protected Object toTagStore(TraceSpan.TagMap tag) {
+                // TagMap is an instance of java.util.Map,
+                // can be directly returned since ClickHouse JDBC supports such type
                 return tag;
             }
         };
@@ -143,6 +137,11 @@ public class TraceStorage extends TraceJdbcStorage {
                  */
                 String tag = StringUtils.format("%s['%s']", Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName(), filter.getName().substring(SPAN_TAGS_PREFIX.length()));
                 return filter.getMatcher().accept(new SQLFilterBuilder(traceSpanSchema.getName(), tag, StringValueType.INSTANCE));
+            }
+
+            @Override
+            protected TraceSpan.TagMap toTagMap(Object attributes) {
+                return new TraceSpan.TagMap((Map<String, String>) attributes);
             }
         };
     }

@@ -95,10 +95,10 @@
                   <name>BOOLEAN</name>
                   <includeTypes>tinyint</includeTypes>
                 </forcedType>
-                <forcedType>
-                  <name>OTHER</name>
-                  <includeExpression>bithon_trace_span.*.attributes</includeExpression>
-                </forcedType>
+<!--                <forcedType>-->
+<!--                  <name>OTHER</name>-->
+<!--                  <includeExpression>bithon_trace_span.*.attributes</includeExpression>-->
+<!--                </forcedType>-->
               </forcedTypes>
               <!-- <unsignedTypes>false</unsignedTypes> -->
             </database>

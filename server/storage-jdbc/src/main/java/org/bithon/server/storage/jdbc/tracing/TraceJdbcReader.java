@@ -21,16 +21,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.utils.LockFreeCachedSupplier;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.typing.StringValueType;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
-import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
-import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanSummaryRecord;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.metrics.DimensionFilter;
@@ -42,10 +40,10 @@ import org.bithon.server.storage.tracing.index.TagIndexConfig;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.jooq.DSLContext;
 import org.jooq.Field;
+import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectSeekStep1;
-import org.jooq.TableField;
 import org.jooq.impl.DSL;
 
 import java.sql.Timestamp;
@@ -54,6 +52,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -87,8 +86,8 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end) {
-        SelectConditionStep<BithonTraceSpanRecord> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                                                                   .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId));
+        SelectConditionStep<Record> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN.getName())
+                                                    .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId));
         if (start != null) {
             sql = sql.and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start.toTimestamp().toLocalDateTime()));
         }
@@ -112,9 +111,13 @@ public class TraceJdbcReader implements ITraceReader {
                                         int pageNumber,
                                         int pageSize) {
         BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
-        SelectConditionStep<BithonTraceSpanSummaryRecord> listQuery = dslContext.selectFrom(summaryTable)
-                                                                                .where(summaryTable.TIMESTAMP.ge(start.toLocalDateTime()))
-                                                                                .and(summaryTable.TIMESTAMP.lt(end.toLocalDateTime()));
+
+        // NOTE:
+        // here use selectFrom(String) instead of use selectFrom(table)
+        // because we want to use the raw objects returned by underlying JDBC
+        SelectConditionStep<Record> listQuery = dslContext.selectFrom(summaryTable.getName())
+                                                          .where(summaryTable.TIMESTAMP.ge(start.toLocalDateTime()))
+                                                          .and(summaryTable.TIMESTAMP.lt(end.toLocalDateTime()));
 
         String moreFilter = SQLFilterBuilder.build(traceSpanSchema,
                                                    filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
@@ -145,7 +148,7 @@ public class TraceJdbcReader implements ITraceReader {
 
         return orderedListQuery.offset(pageNumber * pageSize)
                                .limit(pageSize)
-                               .fetch(r -> this.toTraceSpan((BithonTraceSpanSummaryRecord) r));
+                               .fetch(this::toTraceSpan);
     }
 
     abstract static class NestQueryBuilder {
@@ -248,63 +251,6 @@ public class TraceJdbcReader implements ITraceReader {
         }
     }
 
-    // TODO: httpclient span[http.status]--->status
-    //
-    static class TraceSpanTableQueryBuilder extends NestQueryBuilder {
-        @Override
-        public SelectConditionStep<Record1<String>> build(List<IFilter> filters) {
-            if (filters.isEmpty()) {
-                return null;
-            }
-
-            SelectConditionStep<Record1<String>> query = null;
-
-            Iterator<IFilter> iterator = filters.iterator();
-            while (iterator.hasNext()) {
-                IFilter filter = iterator.next();
-
-                boolean matches = false;
-                if ("name".equals(filter.getName())) {
-                    matches = true;
-                } else if ("kind".equals(filter.getName())) {
-                    if (filter.getMatcher() instanceof StringEqualMatcher) {
-                        String kindValue = ((StringEqualMatcher) filter.getMatcher()).getPattern();
-
-                        // RootSpan has been extracted into trace_span_summary table during ingestion
-                        // If the filter is on the root spans, it SHOULD query on the summary table
-                        matches = !SpanKind.isRootSpan(kindValue);
-                    }
-                }
-
-                if (!matches) {
-                    continue;
-                }
-
-                iterator.remove();
-                if (query == null) {
-                    query = dslContext.select(Tables.BITHON_TRACE_SPAN.TRACEID)
-                                      .from(Tables.BITHON_TRACE_SPAN)
-                                      .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
-                                      .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end));
-                }
-
-                query = query.and(filter.getMatcher().accept(new SQLFilterBuilder(Tables.BITHON_TRACE_SPAN.getName(),
-                                                                                  filter.getName(),
-                                                                                  StringValueType.INSTANCE)));
-            }
-
-            if (query != null) {
-                if (this.in != null) {
-                    return query.and(Tables.BITHON_TRACE_SPAN.TRACEID.in(this.in));
-                } else {
-                    return query;
-                }
-            } else {
-                return this.in;
-            }
-        }
-    }
-
     @Override
     public List<Map<String, Object>> getTraceDistribution(List<IFilter> filters, Timestamp start, Timestamp end, int interval) {
         BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
@@ -381,7 +327,6 @@ public class TraceJdbcReader implements ITraceReader {
     /**
      * Get the SQL predicate expression for give tag filter.
      * For the default implementation, ONLY the 'equal' filter is supported, and it's turned into a LIKE search.
-     *
      */
     protected String getTagPredicate(IFilter filter) {
         if (!(filter.getMatcher() instanceof StringEqualMatcher)) {
@@ -392,7 +337,7 @@ public class TraceJdbcReader implements ITraceReader {
         return StringUtils.format("\"%s\" LIKE '%%\"%s\":\"%s\"%%'",
                                   Tables.BITHON_TRACE_SPAN.TAGS.getName(),
                                   filter.getName().substring(SPAN_TAGS_PREFIX.length()),
-                                  ((StringEqualMatcher)filter.getMatcher()).getPattern());
+                                  ((StringEqualMatcher) filter.getMatcher()).getPattern());
     }
 
     @Override
@@ -423,9 +368,9 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public List<TraceSpan> getTraceByParentSpanId(String parentSpanId) {
-        return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
+        return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN.getName())
                          .where(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(parentSpanId))
-                         // fFor spans coming from the same application instance, sort them by the start time
+                         // For spans coming from the same application instance, sort them by the start time
                          .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(),
                                   Tables.BITHON_TRACE_SPAN.INSTANCENAME,
                                   Tables.BITHON_TRACE_SPAN.STARTTIMEUS)
@@ -486,63 +431,142 @@ public class TraceJdbcReader implements ITraceReader {
         return tagQuery;
     }
 
-    @SuppressWarnings("unchecked")
-    private TraceSpan toTraceSpan(BithonTraceSpanRecord record) {
+    static class TraceSpanRecordAccessor {
+        private static final Supplier<Integer> APP_NAME;
+        private static final Supplier<Integer> INSTANCE_NAME;
+        private static final Supplier<Integer> TRACE_ID;
+        private static final Supplier<Integer> SPAN_ID;
+        private static final Supplier<Integer> PARENT_SPAN_ID;
+        private static final Supplier<Integer> START_TIME;
+        private static final Supplier<Integer> COST_TIME;
+        private static final Supplier<Integer> END_TIME;
+        private static final Supplier<Integer> NAME;
+        private static final Supplier<Integer> KIND;
+        private static final Supplier<Integer> NORMALIZED_URL;
+        private static final Supplier<Integer> TAGS;
+        private static final Supplier<Integer> ATTRIBUTES;
+        private static final Supplier<Integer> CLAZZ;
+        private static final Supplier<Integer> METHOD;
+        private static final Supplier<Integer> STATUS;
+
+        static {
+            APP_NAME = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.APPNAME));
+            INSTANCE_NAME = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.INSTANCENAME));
+            TRACE_ID = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID));
+            SPAN_ID = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.SPANID));
+            PARENT_SPAN_ID = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.PARENTSPANID));
+            START_TIME = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS));
+            COST_TIME = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS));
+            END_TIME = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.ENDTIMEUS));
+            NAME = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.NAME));
+            KIND = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.KIND));
+            NORMALIZED_URL = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.NORMALIZEDURL));
+            TAGS = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.TAGS));
+            ATTRIBUTES = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.ATTRIBUTES));
+            CLAZZ = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.CLAZZ));
+            METHOD = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.METHOD));
+            STATUS = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.STATUS));
+        }
+
+        public static String getAppName(Record record) {
+            return (String) record.get(APP_NAME.get());
+        }
+
+        public static String getInstanceName(Record record) {
+            return (String) record.get(INSTANCE_NAME.get());
+        }
+
+        public static String getTraceId(Record record) {
+            return (String) record.get(TRACE_ID.get());
+        }
+
+        public static String getSpanId(Record record) {
+            return (String) record.get(SPAN_ID.get());
+        }
+
+        public static String getParentSpanId(Record record) {
+            return (String) record.get(PARENT_SPAN_ID.get());
+        }
+
+        public static long getStartTime(Record record) {
+            return (long) record.get(START_TIME.get());
+        }
+
+        public static long getCostTime(Record record) {
+            return (long) record.get(COST_TIME.get());
+        }
+
+        public static long getEndTime(Record record) {
+            return (long) record.get(END_TIME.get());
+        }
+
+        public static String getName(Record record) {
+            return (String) record.get(NAME.get());
+        }
+
+        public static String getKind(Record record) {
+            return (String) record.get(KIND.get());
+        }
+
+        public static String getMethod(Record record) {
+            return (String) record.get(METHOD.get());
+        }
+
+        public static String getClazz(Record record) {
+            return (String) record.get(CLAZZ.get());
+        }
+
+        public static String getStatus(Record record) {
+            return (String) record.get(STATUS.get());
+        }
+
+        public static String getNormalizedUrl(Record record) {
+            return (String) record.get(NORMALIZED_URL.get());
+        }
+
+        public static String getTags(Record record) {
+            return (String) record.get(TAGS.get());
+        }
+
+        public static Object getAttributes(Record record) {
+            return record.get(ATTRIBUTES.get());
+        }
+    }
+
+    private TraceSpan toTraceSpan(Record record) {
+
         TraceSpan span = new TraceSpan();
-        span.appName = record.getAppname();
-        span.instanceName = record.getInstancename();
-        span.traceId = record.getTraceid();
-        span.spanId = record.getSpanid();
-        span.parentSpanId = record.getParentspanid();
-        span.startTime = record.getStarttimeus();
-        span.costTime = record.getCosttimems();
-        span.endTime = record.getEndtimeus();
-        span.name = record.getName();
-        span.kind = record.getKind();
-        span.method = record.getMethod();
-        span.clazz = record.getClazz();
-        span.status = record.getStatus();
-        span.normalizedUri = record.getNormalizedurl();
-        if (StringUtils.hasText(record.getTags())) {
+        span.appName = TraceSpanRecordAccessor.getAppName(record);
+        span.instanceName = TraceSpanRecordAccessor.getInstanceName(record);
+        span.traceId = TraceSpanRecordAccessor.getTraceId(record);
+        span.spanId = TraceSpanRecordAccessor.getSpanId(record);
+        span.parentSpanId = TraceSpanRecordAccessor.getParentSpanId(record);
+        span.startTime = TraceSpanRecordAccessor.getStartTime(record);
+        span.costTime = TraceSpanRecordAccessor.getCostTime(record);
+        span.endTime = TraceSpanRecordAccessor.getEndTime(record);
+        span.name = TraceSpanRecordAccessor.getName(record);
+        span.kind = TraceSpanRecordAccessor.getKind(record);
+        span.method = TraceSpanRecordAccessor.getMethod(record);
+        span.clazz = TraceSpanRecordAccessor.getClazz(record);
+        span.status = TraceSpanRecordAccessor.getStatus(record);
+        span.normalizedUri = TraceSpanRecordAccessor.getNormalizedUrl(record);
+        if (StringUtils.hasText(TraceSpanRecordAccessor.getTags(record))) {
             // Compatible with old data
             try {
-                span.tags = objectMapper.readValue(record.getTags(), TraceSpan.TagMap.class);
+                span.tags = objectMapper.readValue(TraceSpanRecordAccessor.getTags(record), TraceSpan.TagMap.class);
             } catch (JsonProcessingException ignored) {
             }
         } else {
-            span.tags = new TraceSpan.TagMap((Map<String, String>) record.getAttributes());
+            span.tags = toTagMap(TraceSpanRecordAccessor.getAttributes(record));
         }
-        span.name = record.getName();
         return span;
     }
 
-    @SuppressWarnings("unchecked")
-    private TraceSpan toTraceSpan(BithonTraceSpanSummaryRecord record) {
-        TraceSpan span = new TraceSpan();
-        span.appName = record.getAppname();
-        span.instanceName = record.getInstancename();
-        span.traceId = record.getTraceid();
-        span.spanId = record.getSpanid();
-        span.parentSpanId = record.getParentspanid();
-        span.startTime = record.getStarttimeus();
-        span.costTime = record.getCosttimems();
-        span.endTime = record.getEndtimeus();
-        span.name = record.getName();
-        span.kind = record.getKind();
-        span.method = record.getMethod();
-        span.clazz = record.getClazz();
-        span.status = record.getStatus();
-        span.normalizedUri = record.getNormalizedurl();
-        if (StringUtils.hasText(record.getTags())) {
-            // Compatible with old data
-            try {
-                span.tags = objectMapper.readValue(record.getTags(), TraceSpan.TagMap.class);
-            } catch (JsonProcessingException ignored) {
-            }
-        } else {
-            span.tags = new TraceSpan.TagMap((Map<String, String>) record.getAttributes());
+    protected TraceSpan.TagMap toTagMap(Object attributes) {
+        try {
+            return objectMapper.readValue((String) attributes, TraceSpan.TagMap.class);
+        } catch (JsonProcessingException ignored) {
+            return new TraceSpan.TagMap();
         }
-        span.name = record.getName();
-        return span;
     }
 }

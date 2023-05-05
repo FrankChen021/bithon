@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
 
-    private static final long serialVersionUID = 1789006827;
+    private static final long serialVersionUID = -613968307;
 
     /**
      * The reference instance of <code>bithon_trace_span</code>
@@ -118,7 +118,7 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     /**
      * The column <code>bithon_trace_span.attributes</code>.
      */
-    public final TableField<BithonTraceSpanRecord, Object> ATTRIBUTES = createField(DSL.name("attributes"), org.jooq.impl.SQLDataType.OTHER, this, "");
+    public final TableField<BithonTraceSpanRecord, String> ATTRIBUTES = createField(DSL.name("attributes"), org.jooq.impl.SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>bithon_trace_span.normalizedUrl</code>.
@@ -204,7 +204,7 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row17<LocalDateTime, String, String, String, String, String, String, String, String, String, Long, Long, Long, String, Object, String, String> fieldsRow() {
+    public Row17<LocalDateTime, String, String, String, String, String, String, String, String, String, Long, Long, Long, String, String, String, String> fieldsRow() {
         return (Row17) super.fieldsRow();
     }
 }

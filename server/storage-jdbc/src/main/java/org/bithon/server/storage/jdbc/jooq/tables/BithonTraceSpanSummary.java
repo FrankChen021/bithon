@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryRecord> {
 
-    private static final long serialVersionUID = 1677141473;
+    private static final long serialVersionUID = -1692998903;
 
     /**
      * The reference instance of <code>bithon_trace_span_summary</code>
@@ -118,7 +118,7 @@ public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryReco
     /**
      * The column <code>bithon_trace_span_summary.attributes</code>.
      */
-    public final TableField<BithonTraceSpanSummaryRecord, Object> ATTRIBUTES = createField(DSL.name("attributes"), org.jooq.impl.SQLDataType.OTHER, this, "");
+    public final TableField<BithonTraceSpanSummaryRecord, String> ATTRIBUTES = createField(DSL.name("attributes"), org.jooq.impl.SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>bithon_trace_span_summary.normalizedUrl</code>.
@@ -204,7 +204,7 @@ public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryReco
     // -------------------------------------------------------------------------
 
     @Override
-    public Row17<LocalDateTime, String, String, String, String, String, String, String, String, String, Long, Long, Long, String, Object, String, String> fieldsRow() {
+    public Row17<LocalDateTime, String, String, String, String, String, String, String, String, String, Long, Long, Long, String, String, String, String> fieldsRow() {
         return (Row17) super.fieldsRow();
     }
 }
