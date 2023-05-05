@@ -22,15 +22,15 @@ import java.util.function.Supplier;
  * @author frank.chen021@outlook.com
  * @date 2023/3/10 21:38
  */
-public class LazySupplier<T> {
+public class CacheSupplier<T> {
     private final Supplier<T> supplier;
     private volatile T object;
 
-    public static <T> LazySupplier<T> of(Supplier<T> supplier) {
-        return new LazySupplier<>(supplier);
+    public static <T> CacheSupplier<T> of(Supplier<T> supplier) {
+        return new CacheSupplier<>(supplier);
     }
 
-    private LazySupplier(Supplier<T> supplier) {
+    private CacheSupplier(Supplier<T> supplier) {
         this.supplier = supplier;
     }
 
