@@ -21,9 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.tracing.SpanKind;
-import org.bithon.component.commons.utils.LockFreeCachedSupplier;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.component.commons.utils.SupplierUtils;
 import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -450,22 +450,22 @@ public class TraceJdbcReader implements ITraceReader {
         private static final Supplier<Integer> STATUS;
 
         static {
-            APP_NAME = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.APPNAME));
-            INSTANCE_NAME = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.INSTANCENAME));
-            TRACE_ID = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID));
-            SPAN_ID = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.SPANID));
-            PARENT_SPAN_ID = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.PARENTSPANID));
-            START_TIME = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS));
-            COST_TIME = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS));
-            END_TIME = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.ENDTIMEUS));
-            NAME = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.NAME));
-            KIND = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.KIND));
-            NORMALIZED_URL = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.NORMALIZEDURL));
-            TAGS = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.TAGS));
-            ATTRIBUTES = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.ATTRIBUTES));
-            CLAZZ = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.CLAZZ));
-            METHOD = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.METHOD));
-            STATUS = LockFreeCachedSupplier.of(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.STATUS));
+            APP_NAME = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.APPNAME));
+            INSTANCE_NAME = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.INSTANCENAME));
+            TRACE_ID = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID));
+            SPAN_ID = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.SPANID));
+            PARENT_SPAN_ID = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.PARENTSPANID));
+            START_TIME = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS));
+            COST_TIME = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS));
+            END_TIME = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.ENDTIMEUS));
+            NAME = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.NAME));
+            KIND = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.KIND));
+            NORMALIZED_URL = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.NORMALIZEDURL));
+            TAGS = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.TAGS));
+            ATTRIBUTES = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.ATTRIBUTES));
+            CLAZZ = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.CLAZZ));
+            METHOD = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.METHOD));
+            STATUS = SupplierUtils.cachedWithoutLock(() -> Tables.BITHON_TRACE_SPAN_SUMMARY.fieldsRow().indexOf(Tables.BITHON_TRACE_SPAN_SUMMARY.STATUS));
         }
 
         public static String getAppName(Record record) {
