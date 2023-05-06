@@ -43,7 +43,6 @@ public class IntervalRequest {
     /**
      * The count of time buckets if the query is going to group the result by a time interval.
      * In most cases, users don't need to set this value.
-     *
      * If it's null, it defaults to {@link org.bithon.server.storage.metrics.Interval#calculateDefaultStep(TimeSpan, TimeSpan)}
      */
     @Nullable
