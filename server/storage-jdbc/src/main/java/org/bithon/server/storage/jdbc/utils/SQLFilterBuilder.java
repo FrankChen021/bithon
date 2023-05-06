@@ -55,6 +55,13 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     private final String fieldName;
     private final IValueType valueType;
 
+    /**
+     * Whether a field SHOULD be quoted.
+     * For filters on the tag field, the field name is sth like tags['htt_method'],
+     * this name tags['htt_method'] SHOULD be quoted or the whole text would be treated as a column by database
+     */
+    private final boolean quoted;
+
     public SQLFilterBuilder(DataSourceSchema schema, IFilter filter) {
         IColumnSpec columnSpec;
         if (IFilter.TYPE_DIMENSION.equals(filter.getType())) {
@@ -77,12 +84,17 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
         }
         this.valueType = columnSpec.getValueType();
         this.tableName = "bithon_" + schema.getName().replaceAll("-", "_");
+        this.quoted = true;
     }
 
-    public SQLFilterBuilder(String table, String fieldName, IValueType valueType) {
+    public SQLFilterBuilder(String table,
+                            String fieldName,
+                            IValueType valueType,
+                            boolean quoted) {
         this.valueType = valueType;
         this.fieldName = fieldName;
         this.tableName = table;
+        this.quoted = quoted;
     }
 
     public static String build(DataSourceSchema schema, Collection<IFilter> filters) {
@@ -97,12 +109,16 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
 
     @Override
     public String visit(StringEqualMatcher matcher) {
-        return StringUtils.format("\"%s\" = '%s'", fieldName, matcher.getPattern());
+        return StringUtils.format(quoted ? "\"%s\" = '%s'" : "%s = '%s'",
+                                  fieldName,
+                                  matcher.getPattern());
     }
 
     @Override
     public String visit(StringNotEqualMatcher matcher) {
-        return StringUtils.format("\"%s\" <> '%s'", fieldName, matcher.getPattern());
+        return StringUtils.format(quoted ? "\"%s\" <> '%s'" : "%s <> '%s'",
+                                  fieldName,
+                                  matcher.getPattern());
     }
 
     @Override
@@ -137,24 +153,21 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
 
     @Override
     public String visit(BetweenMatcher matcher) {
-        StringBuilder sb = new StringBuilder(32);
-        sb.append("\"");
-        sb.append(fieldName);
-        sb.append("\"");
-        sb.append(" BETWEEN ");
-        sb.append(matcher.getLower());
-        sb.append(" AND ");
-        sb.append(matcher.getUpper());
-        return sb.toString();
+        return StringUtils.format(quoted ? "\"%s\" BETWEEN %s AND %s" : "%s BETWEEN %s AND %s",
+                                  fieldName,
+                                  matcher.getLower().toString(),
+                                  matcher.getUpper().toString());
     }
 
     @Override
     public String visit(InMatcher inMatcher) {
         if (inMatcher.getPattern().size() == 1) {
-            return StringUtils.format("\"%s\" = '%s'", fieldName, inMatcher.getPattern().iterator().next());
+            return StringUtils.format(quoted ? "\"%s\" = '%s'" : "%s = '%s'",
+                                      fieldName,
+                                      inMatcher.getPattern().iterator().next());
         }
 
-        return StringUtils.format("\"%s\" in (%s)",
+        return StringUtils.format(quoted ? "\"%s\" in (%s)" : "%s in (%s)",
                                   fieldName,
                                   inMatcher.getPattern()
                                            .stream()
@@ -163,15 +176,15 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     }
 
     /**
-     * use qualified name because there might be an aggregated field with the same name
+     * Use the full qualified name because there might be an aggregated field with the same name as the field name
      */
     @Override
     public String visit(GreaterThanMatcher matcher) {
         String pattern;
         if (valueType instanceof StringValueType) {
-            pattern = "\"%s\".\"%s\" > '%s'";
+            pattern = quoted ? "\"%s\".\"%s\" > '%s'" : "%s.%s > '%s'";
         } else {
-            pattern = "\"%s\".\"%s\" > %s";
+            pattern = quoted ? "\"%s\".\"%s\" > %s" : "%s.%s > %s";
         }
         return StringUtils.format(pattern, tableName, fieldName, matcher.getValue().toString());
     }
@@ -180,20 +193,26 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     public String visit(GreaterThanOrEqualMatcher matcher) {
         String pattern;
         if (valueType instanceof StringValueType) {
-            pattern = "\"%s\".\"%s\" >= '%s'";
+            pattern = quoted ? "\"%s\".\"%s\" >= '%s'" : "%s.%s >= '%s'";
         } else {
-            pattern = "\"%s\".\"%s\" >= %s";
+            pattern = quoted ? "\"%s\".\"%s\" >= %s" : "%s.%s >= %s";
         }
         return StringUtils.format(pattern, tableName, fieldName, matcher.getValue().toString());
     }
 
     @Override
     public String visit(LessThanMatcher matcher) {
-        return StringUtils.format("\"%s\".\"%s\" < %s", tableName, fieldName, matcher.getValue().toString());
+        return StringUtils.format(quoted ? "\"%s\".\"%s\" < %s" : "%s.%s < %s",
+                                  tableName,
+                                  fieldName,
+                                  matcher.getValue().toString());
     }
 
     @Override
     public String visit(LessThanOrEqualMatcher matcher) {
-        return StringUtils.format("\"%s\".\"%s\" <= %s", tableName, fieldName, matcher.getValue().toString());
+        return StringUtils.format(quoted ? "\"%s\".\"%s\" <= %s" : "%s.%s <= %s",
+                                  tableName,
+                                  fieldName,
+                                  matcher.getValue().toString());
     }
 }

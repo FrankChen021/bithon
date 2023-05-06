@@ -128,13 +128,17 @@ public class TraceStorage extends TraceJdbcStorage {
                                    this.traceStorageConfig,
                                    this.sqlDialect) {
 
+            /**
+             * In ClickHouse, the tags are stored in a Map field.
+             * We need to use map accessor expression to search in the map
+             */
             @Override
             protected String getTagPredicate(IFilter filter) {
-                /*
-                 * Use map accessor expression to search in the map
-                 */
                 String tag = StringUtils.format("%s['%s']", Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName(), filter.getName().substring(SPAN_TAGS_PREFIX.length()));
-                return filter.getMatcher().accept(new SQLFilterBuilder(traceSpanSchema.getName(), tag, StringValueType.INSTANCE));
+                return filter.getMatcher().accept(new SQLFilterBuilder(traceSpanSchema.getName(),
+                                                                       tag,
+                                                                       StringValueType.INSTANCE,
+                                                                       false));
             }
 
             @Override

@@ -16,9 +16,6 @@
 
 package org.bithon.component.commons.expression;
 
-import org.bithon.component.commons.logging.ILogAdaptor;
-import org.bithon.component.commons.logging.LoggerFactory;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/4/7 20:17
