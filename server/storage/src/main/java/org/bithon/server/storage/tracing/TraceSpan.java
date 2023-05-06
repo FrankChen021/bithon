@@ -50,7 +50,7 @@ import java.util.TreeMap;
 public class TraceSpan implements IInputRow {
 
     public static class TagDeserializer extends JsonDeserializer<TreeMap<String, String>> {
-        public final static TypeReference<TreeMap<String, String>> TYPE = new TypeReference<TreeMap<String, String>>() {
+        public static final TypeReference<TreeMap<String, String>> TYPE = new TypeReference<TreeMap<String, String>>() {
         };
 
         @Override
