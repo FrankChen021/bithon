@@ -49,6 +49,7 @@ import org.jooq.impl.DSL;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -86,7 +87,7 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end) {
-        SelectConditionStep<Record> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN.getName())
+        SelectConditionStep<Record> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN.getUnqualifiedName().quotedName())
                                                     .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId));
         if (start != null) {
             sql = sql.and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start.toTimestamp().toLocalDateTime()));
@@ -115,7 +116,7 @@ public class TraceJdbcReader implements ITraceReader {
         // NOTE:
         // here use selectFrom(String) instead of use selectFrom(table)
         // because we want to use the raw objects returned by underlying JDBC
-        SelectConditionStep<Record> listQuery = dslContext.selectFrom(summaryTable.getName())
+        SelectConditionStep<Record> listQuery = dslContext.selectFrom(summaryTable.getUnqualifiedName().quotedName())
                                                           .where(summaryTable.TIMESTAMP.ge(start.toLocalDateTime()))
                                                           .and(summaryTable.TIMESTAMP.lt(end.toLocalDateTime()));
 
@@ -335,7 +336,7 @@ public class TraceJdbcReader implements ITraceReader {
         }
 
         return StringUtils.format("\"%s\" LIKE '%%\"%s\":\"%s\"%%'",
-                                  Tables.BITHON_TRACE_SPAN.TAGS.getName(),
+                                  Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName(),
                                   filter.getName().substring(SPAN_TAGS_PREFIX.length()),
                                   ((StringEqualMatcher) filter.getMatcher()).getPattern());
     }
@@ -368,7 +369,7 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public List<TraceSpan> getTraceByParentSpanId(String parentSpanId) {
-        return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN.getName())
+        return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN.getUnqualifiedName().quotedName())
                          .where(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(parentSpanId))
                          // For spans coming from the same application instance, sort them by the start time
                          .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(),
@@ -553,7 +554,7 @@ public class TraceJdbcReader implements ITraceReader {
         if (StringUtils.hasText(TraceSpanRecordAccessor.getTags(record))) {
             // Compatible with old data
             try {
-                span.tags = objectMapper.readValue(TraceSpanRecordAccessor.getTags(record), TraceSpan.TagMap.class);
+                span.tags = objectMapper.readValue(TraceSpanRecordAccessor.getTags(record), TraceSpan.TagDeserializer.TYPE);
             } catch (JsonProcessingException ignored) {
             }
         } else {
@@ -562,11 +563,11 @@ public class TraceJdbcReader implements ITraceReader {
         return span;
     }
 
-    protected TraceSpan.TagMap toTagMap(Object attributes) {
+    protected Map<String, String> toTagMap(Object attributes) {
         try {
-            return objectMapper.readValue((String) attributes, TraceSpan.TagMap.class);
+            return objectMapper.readValue((String) attributes, TraceSpan.TagDeserializer.TYPE);
         } catch (JsonProcessingException ignored) {
-            return new TraceSpan.TagMap();
+            return Collections.emptyMap();
         }
     }
 }

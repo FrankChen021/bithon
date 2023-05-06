@@ -67,7 +67,7 @@ public class TraceJdbcWriter implements ITraceWriter {
         return true;
     }
 
-    protected Object toTagStore(TraceSpan.TagMap tag) {
+    protected Object toTagStore(Map<String, String> tag) {
         try {
             return objectMapper.writeValueAsString(tag);
         } catch (JsonProcessingException ignored) {

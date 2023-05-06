@@ -61,7 +61,7 @@ public class TagIndexBuilderTest {
         Collection<TagIndex> indexes = builder.generate(Collections.singletonList(TraceSpan.builder()
                                                                                            .startTime(1000)
                                                                                            .appName("bithon-test")
-                                                                                           .tags(new TraceSpan.TagMap(ImmutableMap.of("status1", "200")))
+                                                                                           .tags(ImmutableMap.of("status1", "200"))
                                                                                            .build()));
 
         Assert.assertTrue(indexes.isEmpty());
@@ -77,7 +77,7 @@ public class TagIndexBuilderTest {
                                                                                      .startTime(1000)
                                                                                      .appName("bithon-test")
                                                                                      .traceId("trace-id-123")
-                                                                                     .tags(new TraceSpan.TagMap(ImmutableMap.of("status", "200")))
+                                                                                     .tags(ImmutableMap.of("status", "200"))
                                                                                      .build()));
 
         Assert.assertEquals(1, indexes.size());

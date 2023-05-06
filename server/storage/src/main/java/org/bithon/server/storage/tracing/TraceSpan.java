@@ -17,6 +17,11 @@
 package org.bithon.server.storage.tracing;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,6 +30,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.UrlUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,16 +49,13 @@ import java.util.TreeMap;
 @NoArgsConstructor
 public class TraceSpan implements IInputRow {
 
-    /**
-     * Explicitly define the tag map as HashMap so that deserialization won't use an unmodifiable version
-     */
-    public static class TagMap extends TreeMap<String, String> {
-        public TagMap() {
+    public static class TagDeserializer extends JsonDeserializer<TreeMap<String, String>> {
+        public final static TypeReference<TreeMap<String, String>> TYPE = new TypeReference<TreeMap<String, String>>() {
+        };
 
-        }
-
-        public TagMap(Map<String, String> map) {
-            super(map);
+        @Override
+        public TreeMap<String, String> deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
+            return p.readValueAs(TYPE);
         }
     }
 
@@ -74,7 +77,7 @@ public class TraceSpan implements IInputRow {
     public String instanceName;
     /**
      * Unspecified
-     *  JAVA
+     * JAVA
      */
     public String appType = "Unspecified";
     public String traceId;
@@ -82,10 +85,17 @@ public class TraceSpan implements IInputRow {
     public String kind;
     public String parentSpanId;
     public String parentApplication;
-    public TagMap tags;
-    public long costTime;
+
     /**
-     * in us
+     * The deserializer is customized because the default deserializer returns an unmodifiable map
+     */
+    @JsonDeserialize(using = TagDeserializer.class)
+    public Map<String, String> tags;
+
+    public long costTime;
+
+    /**
+     * in microsecond
      */
     public long startTime;
     public long endTime;
@@ -94,8 +104,10 @@ public class TraceSpan implements IInputRow {
     public String method;
     public String status = "";
     public String normalizedUri = "";
+
     @JsonIgnore
     private volatile Map<String, String> uriParameters;
+
     @JsonIgnore
     private Map<String, Object> properties;
 
@@ -126,21 +138,21 @@ public class TraceSpan implements IInputRow {
     @Override
     public String toString() {
         return "TraceSpan{" +
-               "appName='" + appName + '\'' +
-               ", instanceName='" + instanceName + '\'' +
-               ", traceId='" + traceId + '\'' +
-               ", spanId='" + spanId + '\'' +
-               ", kind='" + kind + '\'' +
-               ", parentSpanId='" + parentSpanId + '\'' +
-               ", parentApplication='" + parentApplication + '\'' +
-               ", tags=" + tags +
-               ", costTime=" + costTime +
-               ", startTime=" + startTime +
-               ", endTime=" + endTime +
-               ", name='" + name + '\'' +
-               ", clazz='" + clazz + '\'' +
-               ", method='" + method + '\'' +
-               '}';
+                "appName='" + appName + '\'' +
+                ", instanceName='" + instanceName + '\'' +
+                ", traceId='" + traceId + '\'' +
+                ", spanId='" + spanId + '\'' +
+                ", kind='" + kind + '\'' +
+                ", parentSpanId='" + parentSpanId + '\'' +
+                ", parentApplication='" + parentApplication + '\'' +
+                ", tags=" + tags +
+                ", costTime=" + costTime +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", name='" + name + '\'' +
+                ", clazz='" + clazz + '\'' +
+                ", method='" + method + '\'' +
+                '}';
     }
 
     @Override
