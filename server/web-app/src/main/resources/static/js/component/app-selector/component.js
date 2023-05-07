@@ -68,7 +68,7 @@ class AppSelector {
         this.mDataSource = schema.name;
         this.mSchema = schema;
 
-        // Note: first two dimensions MUST be app/instance
+        // Note: the first two dimensions MUST be app/instance
         for (let index = 0; index < schema.dimensionsSpec.length; index++) {
             const dimension = schema.dimensionsSpec[index];
             if (!dimension.visible)
@@ -212,7 +212,7 @@ class AppSelector {
         };
     }
 
-    // following 'transport' function is based on: https://github.com/select2/select2/issues/110#issuecomment-694495292
+    // The following 'transport' function is based on: https://github.com/select2/select2/issues/110#issuecomment-694495292
     #getAndCache(cacheName, params, success, failure, processResults) {
         const search = params.data['search'];
         delete params.data['search'];

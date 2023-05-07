@@ -19,7 +19,11 @@
 
     <script>
         $(document).ready(() => {
-            new TracePage({appName: g_SelectedApp});
+            new TracePage(
+                {appName: g_SelectedApp},
+                // Only shows the SERVER spans
+                "kind = 'SERVER'"
+            );
         });
     </script>
 </div>

@@ -51,7 +51,14 @@
     <script>
         let g_SelectedInstance = null;
         $(document).ready(() => {
-            new TracePage(window.queryParams);
+            let moreFilter = window.queryParams['more'];
+            if (moreFilter !== undefined && moreFilter !== '') {
+                moreFilter = atob(moreFilter);
+            } else {
+                moreFilter = '';
+            }
+
+            new TracePage(window.queryParams, moreFilter);
         });
     </script>
 </div>

@@ -466,7 +466,7 @@ class Dashboard {
         });
 
         if (tracingSpec.more !== undefined) {
-            url += '&more=' + btoa(tracingSpec.more);
+            url += 'more=' + btoa(tracingSpec.more);
         }
 
         window.open(url);

@@ -1,10 +1,14 @@
 class TracePage {
-    constructor(queryParams) {
+    /**
+     * @param queryParams a map that contains the query parameter
+     * @param filterExpression extra filter expression
+     */
+    constructor(queryParams, filterExpression) {
         // Model
         this.mQueryParams = queryParams;
         this.mInterval = null;
         this.metricFilters = [];
-        this.moreFilter = '';
+        this.moreFilter = filterExpression
 
         // View
         this.vChartComponent = new ChartComponent({
@@ -71,21 +75,34 @@ class TracePage {
                     return {
                         filters: this.#getFilters(),
                         startTimeISO8601: this.mInterval.start,
-                        endTimeISO8601: this.mInterval.end
+                        endTimeISO8601: this.mInterval.end,
+                        expression: this.moreFilter
                     };
                 }
             }
         );
 
-        //
-        // Process additional tags filter
-        this.moreFilter = window.queryParams['more'];
-        if (this.moreFilter !== undefined && this.moreFilter !== '') {
-            this.moreFilter = atob(this.moreFilter);
-        }
+        // Add other tag filters to moreFilter
+        const tagFilters = {};
+        $.each(this.vTagFilter.getFilterName(), (index, name) => {
+            tagFilters["tags." + name] = true;
+        });
+        $.each(window.queryParams, (name, value) => {
+            if (name.startsWith("tags.")) {
+                if (tagFilters[name] === undefined) {
+                    if (this.moreFilter.length > 0) {
+                        this.moreFilter += ' AND ';
+                    }
+                    this.moreFilter += `${name} = '${value}'`
+                }
+            }
+        });
+
         $("#filter-input").val(this.moreFilter);
 
+        //
         // Model for distribution chart
+        //
         this.columns = {
             "minResponse": {chartType: 'line', fill: false, yAxis: 0, formatter: (v) => microFormat(v, 2)},
             "maxResponse": {chartType: 'line', fill: false, yAxis: 0, formatter: (v) => microFormat(v, 2)},
