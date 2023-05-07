@@ -1,14 +1,16 @@
 class TracePage {
     /**
-     * @param queryParams a map that contains the query parameter
-     * @param filterExpression extra filter expression
+     * @param options {
+     *     queryParams: {},
+     *     filterExpression: '',
+     *     showSelector: true | false
+     * }
      */
-    constructor(queryParams, filterExpression) {
+    constructor(options) {
         // Model
-        this.mQueryParams = queryParams;
+        this.mQueryParams = options.queryParams;
+        this.filterExpression = options.filterExpression
         this.mInterval = null;
-        this.metricFilters = [];
-        this.moreFilter = filterExpression
 
         // View
         this.vChartComponent = new ChartComponent({
@@ -21,35 +23,36 @@ class TracePage {
         });
 
         // View
-        this.vFilters = new AppSelector({
-            parentId: 'filterBar',
-            intervalProvider: () => this.#getInterval()
-        }).registerChangedListener((name, value) => {
-            if (name === 'application') {
-                g_SelectedApp = value;
-                window.history.pushState('', '', `/web/app/trace/${value}`);
-            }
-            this.#refreshPage();
-        }).createAppSelector(this.mQueryParams['appName'])
-            .createFilter('trace_span_summary');
+        this.vFilters = null;
+        this.vTagFilter = null;
+        if (options.showSelector) {
+            this.vFilters = new AppSelector({
+                parentId: 'filterBar',
+                intervalProvider: () => this.#getInterval()
+            }).registerChangedListener((name, value) => {
+                if (name === 'application') {
+                    g_SelectedApp = value;
+                    window.history.pushState('', '', `/web/app/trace/${value}`);
+                }
+                this.#refreshPage();
+            }).createAppSelector(this.mQueryParams['appName'])
+                .createFilter('trace_span_summary');
 
-        // View, tag filter
-        this.vTagFilter = new AppSelector({
-            parentId: 'filterBar',
-            queryVariablePrefix: 'tags.',
-            intervalProvider: () => this.#getInterval()
-        }).registerChangedListener((name, value) => {
-            this.#refreshPage();
-        }).createFilter('trace_span_tag_index');
+            // View, tag filter
+            this.vTagFilter = new AppSelector({
+                parentId: 'filterBar',
+                queryVariablePrefix: 'tags.',
+                intervalProvider: () => this.#getInterval()
+            }).registerChangedListener((name, value) => {
+                this.#refreshPage();
+            }).createFilter('trace_span_tag_index');
+        }
 
         const parent = $('#filterBarForm');
 
         // View - Refresh Button
         parent.append('<button class="btn btn-outline-secondary" style="border-radius:0;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
             .find("button").click(() => {
-            // reset the metric filter
-            this.metricFilters = [];
-
             // get a new interval
             this.mInterval = this.vIntervalSelector.getInterval();
 
@@ -76,29 +79,36 @@ class TracePage {
                         filters: this.#getFilters(),
                         startTimeISO8601: this.mInterval.start,
                         endTimeISO8601: this.mInterval.end,
-                        expression: this.moreFilter
+                        expression: this.filterExpression
                     };
                 }
             }
         );
 
-        // Add other tag filters to moreFilter
+        // If the tag filters are not selectable, add them to the filterExpression
         const tagFilters = {};
-        $.each(this.vTagFilter.getFilterName(), (index, name) => {
-            tagFilters["tags." + name] = true;
-        });
-        $.each(window.queryParams, (name, value) => {
-            if (name.startsWith("tags.")) {
-                if (tagFilters[name] === undefined) {
-                    if (this.moreFilter.length > 0) {
-                        this.moreFilter += ' AND ';
-                    }
-                    this.moreFilter += `${name} = '${value}'`
+        if (this.vTagFilter !== null) {
+            $.each(this.vTagFilter.getFilterName(), (index, name) => {
+                tagFilters["tags." + name] = true;
+            });
+        }
+        $.each(options.queryParams, (name, value) => {
+            if (name.startsWith("tags.") && tagFilters[name] === undefined) {
+                if (this.filterExpression.length > 0) {
+                    this.filterExpression += ' AND ';
                 }
+                this.filterExpression += `${name} = '${value}'`
             }
         });
 
-        $("#filter-input").val(this.moreFilter);
+        $("#filter-input")
+            .val(this.filterExpression)
+            .on('keydown', (event) => {
+                this.filterExpression = event.target.value;
+                if (event.keyCode === 13) {
+                    this.#refreshPage();
+                }
+            })
 
         //
         // Model for distribution chart
@@ -118,9 +128,13 @@ class TracePage {
     }
 
     #getFilters() {
-        let summaryTableFilter = this.vFilters.getSelectedFilters();
-        let tagFilters = this.vTagFilter.getSelectedFilters();
-        return summaryTableFilter.concat(tagFilters, this.metricFilters);
+        if (this.vFilters !== null) {
+            let summaryTableFilter = this.vFilters.getSelectedFilters();
+            let tagFilters = this.vTagFilter.getSelectedFilters();
+            return summaryTableFilter.concat(tagFilters);
+        } else {
+            return [];
+        }
     }
 
     #refreshPage() {
@@ -142,7 +156,7 @@ class TracePage {
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
                 filters: this.#getFilters(),
-                expression: this.moreFilter
+                expression: this.filterExpression
             }),
             processResult: (data) => {
                 this._data = data;

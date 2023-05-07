@@ -416,21 +416,25 @@ class Dashboard {
      *  }
      */
     #openTraceSearchPage(chartDescriptor, startTime, endTime, row) {
-        // const startTime = moment(start).local().format('yyyy-MM-DD HH:mm:ss');
-        // const endTime = moment(end).local().format('yyyy-MM-DD HH:mm:ss');
+        let filterExpression = '';
 
-        let url = `/web/trace/search?appName=${g_SelectedApp}&`;
+        if (g_SelectedApp !== undefined && g_SelectedApp !== null) {
+            filterExpression += `appName = '${g_SelectedApp}' `;
+        }
 
         const instanceFilter = this.vFilter.getSelectedFilter("instanceName");
         if (instanceFilter != null) {
-            url += `instanceName=${encodeURI(instanceFilter.matcher.pattern)}&`;
+            filterExpression += `AND instanceName = '${instanceFilter.matcher.pattern}' `;
         }
-        url += `interval=c:${encodeURI(startTime)}/${encodeURI(endTime)}&`;
 
+        //
+        // Get filter expression from current row and pattern in the 'tracing' definition
+        //
         const tracingSpec = chartDescriptor.details.tracing;
-
-        // groupBy is a legacy property
-        const columns = chartDescriptor.details.groupBy === undefined ?  chartDescriptor.details.columns : chartDescriptor.details.groupBy;
+        const columns = chartDescriptor.details.groupBy === undefined ?
+            chartDescriptor.details.columns
+            // groupBy is a legacy property
+            : chartDescriptor.details.groupBy;
 
         $.each(columns, (index, dimension) => {
             const mappingField = tracingSpec.dimensionMaps[dimension];
@@ -440,7 +444,7 @@ class Dashboard {
 
             const val = row[dimension];
             if (typeof mappingField === "string") {
-                url += `${mappingField}=${encodeURI(val)}&`;
+                filterExpression += `AND ${mappingField} = '${val}' `;
             } else {
                 // the mapping is an object
                 const val = row[dimension];
@@ -454,10 +458,10 @@ class Dashboard {
                     if (fType === 'array') {
                         // f is a pair, f[0] is the field name, f[1] is the value
                         if (f[1] != null && f[1] !== '') {
-                            url += `${f[0]}=${encodeURI(f[1])}&`;
+                            filterExpression += `AND ${f[0]} = '${f[1]}' `;
                         }
                     } else if (fType === 'string') {
-                        url += `${f}=${encodeURI(val)}&`;
+                        filterExpression += `AND ${f} = '${val}' `;
                     }
                 } else {
                     console.log(`mapping type ${mappingField.type} is not supported yet.`);
@@ -466,10 +470,13 @@ class Dashboard {
         });
 
         if (tracingSpec.more !== undefined) {
-            url += 'more=' + btoa(tracingSpec.more);
+            filterExpression += `AND ${tracingSpec.more} `;
+        }
+        if (filterExpression.startsWith('AND ')) {
+            filterExpression = filterExpression.substring('AND '.length)
         }
 
-        window.open(url);
+        window.open(`/web/trace/search?interval=c:${encodeURI(startTime)}/${encodeURI(endTime)}&filter=${btoa(filterExpression)}`);
     }
 
     createTableComponent(chartId, parentElement, tableDescriptor, insertIndexColumn, buttons) {
