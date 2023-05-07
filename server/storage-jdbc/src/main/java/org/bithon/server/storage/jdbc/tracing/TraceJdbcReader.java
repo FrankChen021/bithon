@@ -117,7 +117,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                           .where(timestampField.greaterOrEqual(start.toLocalDateTime()).and(timestampField.le(end.toLocalDateTime())));
 
         if (CollectionUtils.isNotEmpty(filters)) {
-            listQuery = listQuery.and(SQLFilterBuilder.build(traceSpanSchema, filters.stream()));
+            listQuery = listQuery.and(SQLFilterBuilder.build(traceSpanSchema, filters.stream(), false));
         }
 
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
@@ -185,7 +185,7 @@ public class TraceJdbcReader implements ITraceReader {
 
         if (CollectionUtils.isNotEmpty(filters)) {
             sqlBuilder.append(" AND ");
-            sqlBuilder.append(SQLFilterBuilder.build(traceSpanSchema, filters.stream()));
+            sqlBuilder.append(SQLFilterBuilder.build(traceSpanSchema, filters.stream(), false));
         }
 
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
@@ -236,7 +236,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                                      .where(timestampField.ge(start.toLocalDateTime()).and(timestampField.lt(end.toLocalDateTime())));
 
         if (CollectionUtils.isNotEmpty(filters)) {
-            countQuery = countQuery.and(SQLFilterBuilder.build(traceSpanSchema, filters.stream()));
+            countQuery = countQuery.and(SQLFilterBuilder.build(traceSpanSchema, filters.stream(), false));
         }
 
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {

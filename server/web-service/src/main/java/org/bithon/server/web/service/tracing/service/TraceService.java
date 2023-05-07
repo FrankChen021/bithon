@@ -18,6 +18,8 @@ package org.bithon.server.web.service.tracing.service;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceStorage;
@@ -51,11 +53,14 @@ public class TraceService {
 
     private final ITraceReader traceReader;
     private final TraceStorageConfig traceStorageConfig;
+    private final DataSourceSchema traceSpanSummarySchema;
 
     public TraceService(ITraceStorage traceStorage,
-                        TraceStorageConfig traceStorageConfig) {
+                        TraceStorageConfig traceStorageConfig,
+                        DataSourceSchemaManager dataSourceSchemaManager) {
         this.traceReader = traceStorage.createReader();
         this.traceStorageConfig = traceStorageConfig;
+        this.traceSpanSummarySchema = dataSourceSchemaManager.getDataSourceSchema("trace_span_summary");
     }
 
     /**
@@ -170,7 +175,7 @@ public class TraceService {
                                 Timestamp start,
                                 Timestamp end) {
         // Convert filter expression into filter objects first
-        filters.addAll(FilterExpressionToFilters.toFilter(filterExpression));
+        filters.addAll(FilterExpressionToFilters.toFilter(traceSpanSummarySchema, filterExpression));
 
         FilterSplitter splitter = new FilterSplitter(this.traceStorageConfig);
         splitter.split(filters);
@@ -187,7 +192,7 @@ public class TraceService {
                                         int pageNumber,
                                         int pageSize) {
         // Convert filter expression into filter objects first
-        filters.addAll(FilterExpressionToFilters.toFilter(filterExpression));
+        filters.addAll(FilterExpressionToFilters.toFilter(this.traceSpanSummarySchema, filterExpression));
 
         FilterSplitter splitter = new FilterSplitter(this.traceStorageConfig);
         splitter.split(filters);
@@ -208,7 +213,7 @@ public class TraceService {
                                                       TimeSpan end,
                                                       int bucketCount) {
         // Convert filter expression into filter objects first
-        filters.addAll(FilterExpressionToFilters.toFilter(filterExpression));
+        filters.addAll(FilterExpressionToFilters.toFilter(this.traceSpanSummarySchema, filterExpression));
 
         FilterSplitter splitter = new FilterSplitter(this.traceStorageConfig);
         splitter.split(filters);

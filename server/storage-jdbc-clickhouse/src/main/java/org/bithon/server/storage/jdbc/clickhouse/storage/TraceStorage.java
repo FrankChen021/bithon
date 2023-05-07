@@ -138,6 +138,7 @@ public class TraceStorage extends TraceJdbcStorage {
                 return filter.getMatcher().accept(new SQLFilterBuilder(traceSpanSchema.getName(),
                                                                        tag,
                                                                        StringValueType.INSTANCE,
+                                                                       false,
                                                                        false));
             }
 

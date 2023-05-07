@@ -22,11 +22,17 @@ import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.matcher.GreaterThanMatcher;
 import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.storage.common.expression.FilterExpressionASTFactory;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IColumnSpec;
+import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
-import org.springframework.util.StringUtils;
+import org.bithon.server.storage.metrics.MetricFilter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,19 +44,24 @@ import java.util.List;
  */
 class FilterExpressionToFilters {
 
-    static List<IFilter> toFilter(String filterExpression) {
+    static List<IFilter> toFilter(DataSourceSchema schema, String filterExpression) {
         if (StringUtils.isEmpty(filterExpression)) {
             return Collections.emptyList();
         }
 
         IExpression expressionAST = FilterExpressionASTFactory.create(filterExpression);
-        Visitor v = new Visitor();
+        Visitor v = new Visitor(schema);
         expressionAST.accept(v);
         return v.filters;
     }
 
     static class Visitor implements IExpressionVisitor<Void> {
         private final List<IFilter> filters = new ArrayList<>();
+        private final DataSourceSchema schema;
+
+        public Visitor(DataSourceSchema schema) {
+            this.schema = schema;
+        }
 
         @Override
         public Void visit(LogicalExpression expression) {
@@ -83,7 +94,31 @@ class FilterExpressionToFilters {
 
         @Override
         public Void visit(BinaryExpression.GT expression) {
-            return IExpressionVisitor.super.visit(expression);
+            IExpression left = expression.getLeft();
+            if (!(left instanceof IdentifierExpression)) {
+                throw new UnsupportedOperationException(StringUtils.format("Left expression of [%s] must be a field",
+                                                                           expression.toString()));
+            }
+
+            IExpression right = expression.getRight();
+            if (!(right instanceof LiteralExpression)) {
+                throw new UnsupportedOperationException(StringUtils.format("Right expression of [%s] must be a constant",
+                                                                           expression.toString()));
+            }
+
+            IColumnSpec columnSpec = schema.getColumnByName(((IdentifierExpression) left).getIdentifier());
+            Preconditions.checkNotNull(columnSpec, "Column [%s] can not be found in schema [%s].", ((IdentifierExpression) left).getIdentifier(), schema.getName());
+
+            if (columnSpec instanceof IDimensionSpec) {
+                filters.add(new DimensionFilter(((IdentifierExpression) left).getIdentifier(),
+                                                "alias",
+                                                new GreaterThanMatcher(((LiteralExpression) right).getValue())));
+            } else {
+                filters.add(new MetricFilter(((IdentifierExpression) left).getIdentifier(),
+                                             new GreaterThanMatcher(((LiteralExpression) right).getValue())));
+            }
+
+            return null;
         }
 
         @Override
