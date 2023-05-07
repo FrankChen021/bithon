@@ -176,7 +176,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                                         Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS.getName(),
                                                                         Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS.getName(),
                                                                         Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS.getName(),
-                                                                        isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.getQualifiedName() : Tables.BITHON_TRACE_SPAN.getName()));
+                                                                        isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.getUnqualifiedName().unquotedName() : Tables.BITHON_TRACE_SPAN.getUnqualifiedName().unquotedName()));
         sqlBuilder.append(StringUtils.format(" WHERE \"%s\" >= '%s' AND \"%s\" < '%s'",
                                              Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.getName(),
                                              DateTime.toYYYYMMDDhhmmss(start.getTime()),
