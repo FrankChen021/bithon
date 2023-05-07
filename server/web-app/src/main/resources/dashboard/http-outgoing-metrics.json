@@ -43,6 +43,8 @@
         },
         "tracing": {
           "dimensionMaps": {
+            "targetHostPort": "tags.net.peer",
+            "method": "tags.http.method",
             "path": "url",
             "statusCode": "status"
           },
