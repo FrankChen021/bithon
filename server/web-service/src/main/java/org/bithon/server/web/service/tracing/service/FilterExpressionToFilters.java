@@ -76,6 +76,7 @@ class FilterExpressionToFilters {
             }
 
             filters.add(new DimensionFilter(((IdentifierExpression) left).getIdentifier(),
+                                            "alias",
                                             new StringEqualMatcher((String) ((LiteralExpression) right).getValue())));
             return null;
         }
