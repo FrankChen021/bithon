@@ -22,7 +22,6 @@ import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
-import org.bithon.server.storage.tracing.index.TagIndexConfig;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 
