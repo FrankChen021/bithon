@@ -42,6 +42,11 @@ public class GetTraceListRequest {
 
     private List<IFilter> filters = Collections.emptyList();
 
+    /**
+     * Filter expression
+     */
+    private String expression;
+
     private String order = "desc";
     private String orderBy = "";
 

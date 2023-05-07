@@ -16,15 +16,12 @@
 
 package org.bithon.server.web.service.tracing.api;
 
-import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.component.commons.utils.Watch;
 import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.metrics.DimensionFilter;
-import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.TraceSpan;
-import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.tracing.service.TraceService;
@@ -51,20 +48,18 @@ import java.util.Map;
 @Conditional(WebServiceModuleEnabler.class)
 public class TraceApi {
 
-    private final TraceStorageConfig traceConfig;
     private final TraceService traceService;
 
-    public TraceApi(TraceStorageConfig traceConfig, TraceService traceService) {
-        this.traceConfig = traceConfig;
+    public TraceApi(TraceService traceService) {
         this.traceService = traceService;
     }
 
     @PostMapping("/api/trace/getTraceById")
     public GetTraceByIdResponse getTraceById(@Valid @RequestBody GetTraceByIdRequest request) {
-        Watch<List<TraceSpan>> getSpanList = new Watch(() -> traceService.getTraceByTraceId(request.getId(),
-                                                                                            request.getType(),
-                                                                                            request.getStartTimeISO8601(),
-                                                                                            request.getEndTimeISO8601()));
+        Watch<List<TraceSpan>> getSpanList = new Watch<>(() -> traceService.getTraceByTraceId(request.getId(),
+                                                                                              request.getType(),
+                                                                                              request.getStartTimeISO8601(),
+                                                                                              request.getEndTimeISO8601()));
 
         Watch<List<TraceSpan>> buildTree = new Watch<>(() -> traceService.asTree(getSpanList.getResult()));
         Watch<TraceTopo> buildTopo = new Watch<>(() -> new TraceTopoBuilder().build(buildTree.getResult()));
@@ -99,19 +94,10 @@ public class TraceApi {
             request.getFilters().add(new DimensionFilter("appName", new StringEqualMatcher(request.getApplication())));
         }
 
-        // check if filters exists
-        for (IFilter filter : request.getFilters()) {
-            if (filter.getName().startsWith("tags.")) {
-                String tagName = filter.getName().substring("tags.".length());
-                Preconditions.checkIfTrue(traceConfig.getIndexes().getColumnPos(tagName) > 0,
-                                          "Can't search on tag [%s] because there's no index defined for this tag.",
-                                          tagName);
-            }
-        }
-
         return new GetTraceListResponse(
-                traceService.getTraceListSize(request.getFilters(), start, end),
+                traceService.getTraceListSize(request.getFilters(), request.getExpression(), start, end),
                 traceService.getTraceList(request.getFilters(),
+                                          request.getExpression(),
                                           start,
                                           end,
                                           request.getOrderBy(),

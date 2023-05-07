@@ -33,6 +33,8 @@ public interface ITraceReader {
     List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end);
 
     List<TraceSpan> getTraceList(List<IFilter> filters,
+                                 Map<Integer, IFilter> indexedTagFilters,
+                                 List<IFilter> nonIndexedTagFilters,
                                  Timestamp start,
                                  Timestamp end,
                                  String orderBy,
@@ -41,11 +43,17 @@ public interface ITraceReader {
                                  int pageSize);
 
     List<Map<String, Object>> getTraceDistribution(List<IFilter> filters,
+                                                   Map<Integer, IFilter> indexedTagFilters,
+                                                   List<IFilter> nonIndexedTagFilters,
                                                    Timestamp start,
                                                    Timestamp end,
                                                    int interval);
 
-    int getTraceListSize(List<IFilter> filters, Timestamp start, Timestamp end);
+    int getTraceListSize(List<IFilter> filters,
+                         Map<Integer, IFilter> indexedTagFilters,
+                         List<IFilter> nonIndexedTagFilters,
+                         Timestamp start,
+                         Timestamp end);
 
     List<TraceSpan> getTraceByParentSpanId(String parentSpanId);
 
