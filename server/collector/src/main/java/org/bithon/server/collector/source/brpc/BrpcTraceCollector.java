@@ -25,8 +25,8 @@ import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -77,8 +77,9 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
         traceSpan.setMethod(spanBody.getMethod());
 
         // The returned Map is unmodifiable,
-        // it's turned into a mutable one because the sink process might perform transformation on this Map object
-        traceSpan.setTags(new HashMap<>(spanBody.getTagsMap()));
+        // here it's turned into a mutable one because the sink process might perform transformation on this Map object.
+        // Also, a TreeMap is used to order the keys, which is consistent with the definition in TraceSpan
+        traceSpan.setTags(new TreeMap<>(spanBody.getTagsMap()));
         return traceSpan;
     }
 
