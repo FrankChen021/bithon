@@ -16,6 +16,8 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.utils.Preconditions;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/4/7 20:17
@@ -37,6 +39,8 @@ public abstract class BinaryExpression implements IExpression {
             case "<>":
             case "!=":
                 return new NE(left, right);
+            case "in":
+                return new IN(left, right);
             default:
                 throw new UnsupportedOperationException("Not supported operator " + operator);
         }
@@ -74,9 +78,18 @@ public abstract class BinaryExpression implements IExpression {
 
     @Override
     public Object evaluate(IEvaluationContext context) {
-        Object lValue = left.evaluate(context);
-        Object rValue = right.evaluate(context);
+        return matches(left.evaluate(context), right.evaluate(context));
+    }
 
+    /**
+     * Override for debugging
+     */
+    @Override
+    public String toString() {
+        return this.left + " " + this.operator + " " + this.right;
+    }
+
+    protected boolean matches(Object lValue, Object rValue) {
         if (lValue == null || rValue == null) {
             return matchesNull(lValue, rValue);
         }
@@ -92,14 +105,6 @@ public abstract class BinaryExpression implements IExpression {
         return matches(lValue.toString(), rValue.toString());
     }
 
-    /**
-     * Override for debugging
-     */
-    @Override
-    public String toString() {
-        return this.left + " " + this.operator + " " + this.right;
-    }
-
     protected abstract boolean matchesNull(Object left, Object right);
 
     protected abstract boolean matches(Number left, Number right);
@@ -109,6 +114,10 @@ public abstract class BinaryExpression implements IExpression {
     public static class EQ extends BinaryExpression {
         public EQ(IExpression left, IExpression right) {
             super("=", left, right);
+        }
+
+        protected EQ(String operator, IExpression left, IExpression right) {
+            super(operator, left, right);
         }
 
         @Override
@@ -266,4 +275,29 @@ public abstract class BinaryExpression implements IExpression {
         }
     }
 
+    public static class IN extends EQ {
+        public IN(IExpression left, IExpression right) {
+            super("in", left, right);
+
+            Preconditions.checkIfTrue(right instanceof ExpressionList, "The 2nd expression of IN operator must be type of ExpressionList");
+        }
+
+        @Override
+        public Object evaluate(IEvaluationContext context) {
+            Object leftVal = left.evaluate(context);
+
+            for (IExpression expr : ((ExpressionList) right).getExpressionList()) {
+                if (this.matches(leftVal, expr.evaluate(context))) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        @Override
+        public <T> T accept(IExpressionVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
+    }
 }

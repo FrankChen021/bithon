@@ -17,6 +17,7 @@
 package org.bithon.server.web.service.tracing.service;
 
 import org.bithon.component.commons.expression.BinaryExpression;
+import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -25,6 +26,11 @@ import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.matcher.GreaterThanMatcher;
+import org.bithon.server.commons.matcher.GreaterThanOrEqualMatcher;
+import org.bithon.server.commons.matcher.InMatcher;
+import org.bithon.server.commons.matcher.LessThanMatcher;
+import org.bithon.server.commons.matcher.LessThanOrEqualMatcher;
+import org.bithon.server.commons.matcher.NotEqualMatcher;
 import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.storage.common.expression.FilterExpressionASTFactory;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -36,7 +42,9 @@ import org.bithon.server.storage.metrics.MetricFilter;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author frank.chen021@outlook.com
@@ -74,48 +82,65 @@ class FilterExpressionToFilters {
             return null;
         }
 
-        @Override
-        public Void visit(BinaryExpression.EQ expression) {
-            IExpression left = expression.getLeft();
+        private void checkBinaryExpression(BinaryExpression binaryExpression, Class<? extends IExpression> rightExpressionType) {
+            IExpression left = binaryExpression.getLeft();
             if (!(left instanceof IdentifierExpression)) {
                 throw new UnsupportedOperationException("Expression at left side must be a field");
             }
 
-            IExpression right = expression.getRight();
-            if (!(right instanceof LiteralExpression)) {
-                throw new UnsupportedOperationException("Expression at right side must be a constant");
+            IExpression right = binaryExpression.getRight();
+            if (!rightExpressionType.isAssignableFrom(right.getClass())) {
+                throw new UnsupportedOperationException(StringUtils.format("Expression at right side must be type of [%s], but is [%s].",
+                                                                           rightExpressionType.getSimpleName(),
+                                                                           right.getClass().getSimpleName()));
+            }
+        }
+
+        @Override
+        public Void visit(BinaryExpression.IN expression) {
+            checkBinaryExpression(expression, ExpressionList.class);
+
+            Set<String> patterns = new HashSet<>();
+            List<IExpression> expressionList = ((ExpressionList) expression.getRight()).getExpressionList();
+            for (IExpression expr : expressionList) {
+                if (!(expr instanceof LiteralExpression)) {
+                    throw new UnsupportedOperationException(StringUtils.format("Expression [%s] of the IN operator must be a constant", expr.toString()));
+                }
+                patterns.add(expr.toString());
             }
 
-            filters.add(new DimensionFilter(((IdentifierExpression) left).getIdentifier(),
+            filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
                                             "alias",
-                                            new StringEqualMatcher((String) ((LiteralExpression) right).getValue())));
+                                            new InMatcher(patterns)));
+            return null;
+        }
+
+        @Override
+        public Void visit(BinaryExpression.EQ expression) {
+            checkBinaryExpression(expression, LiteralExpression.class);
+
+            filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                            "alias",
+                                            new StringEqualMatcher((String) ((LiteralExpression) expression.getRight()).getValue())));
             return null;
         }
 
         @Override
         public Void visit(BinaryExpression.GT expression) {
-            IExpression left = expression.getLeft();
-            if (!(left instanceof IdentifierExpression)) {
-                throw new UnsupportedOperationException(StringUtils.format("Left expression of [%s] must be a field",
-                                                                           expression.toString()));
-            }
+            checkBinaryExpression(expression, LiteralExpression.class);
 
-            IExpression right = expression.getRight();
-            if (!(right instanceof LiteralExpression)) {
-                throw new UnsupportedOperationException(StringUtils.format("Right expression of [%s] must be a constant",
-                                                                           expression.toString()));
-            }
-
-            IColumnSpec columnSpec = schema.getColumnByName(((IdentifierExpression) left).getIdentifier());
-            Preconditions.checkNotNull(columnSpec, "Column [%s] can not be found in schema [%s].", ((IdentifierExpression) left).getIdentifier(), schema.getName());
+            IColumnSpec columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            Preconditions.checkNotNull(columnSpec,
+                                       "Column [%s] can not be found in schema [%s].",
+                                       ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
 
             if (columnSpec instanceof IDimensionSpec) {
-                filters.add(new DimensionFilter(((IdentifierExpression) left).getIdentifier(),
+                filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
                                                 "alias",
-                                                new GreaterThanMatcher(((LiteralExpression) right).getValue())));
+                                                new GreaterThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
             } else {
-                filters.add(new MetricFilter(((IdentifierExpression) left).getIdentifier(),
-                                             new GreaterThanMatcher(((LiteralExpression) right).getValue())));
+                filters.add(new MetricFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                             new GreaterThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
             }
 
             return null;
@@ -123,22 +148,83 @@ class FilterExpressionToFilters {
 
         @Override
         public Void visit(BinaryExpression.GTE expression) {
-            return IExpressionVisitor.super.visit(expression);
+            checkBinaryExpression(expression, LiteralExpression.class);
+
+            IColumnSpec columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            Preconditions.checkNotNull(columnSpec,
+                                       "Column [%s] can not be found in schema [%s].",
+                                       ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
+
+            if (columnSpec instanceof IDimensionSpec) {
+                filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                                "alias",
+                                                new GreaterThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
+            } else {
+                filters.add(new MetricFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                             new GreaterThanOrEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
+            }
+
+            return null;
         }
 
         @Override
         public Void visit(BinaryExpression.LT expression) {
-            return IExpressionVisitor.super.visit(expression);
+            checkBinaryExpression(expression, LiteralExpression.class);
+
+            IColumnSpec columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            Preconditions.checkNotNull(columnSpec,
+                                       "Column [%s] can not be found in schema [%s].",
+                                       ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
+
+            if (columnSpec instanceof IDimensionSpec) {
+                filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                                "alias",
+                                                new GreaterThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
+            } else {
+                filters.add(new MetricFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                             new LessThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
+            }
+            return null;
         }
 
         @Override
         public Void visit(BinaryExpression.LTE expression) {
-            return IExpressionVisitor.super.visit(expression);
+            checkBinaryExpression(expression, LiteralExpression.class);
+
+            IColumnSpec columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            Preconditions.checkNotNull(columnSpec,
+                                       "Column [%s] can not be found in schema [%s].",
+                                       ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
+
+            if (columnSpec instanceof IDimensionSpec) {
+                filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                                "alias",
+                                                new GreaterThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
+            } else {
+                filters.add(new MetricFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                             new LessThanOrEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
+            }
+            return null;
         }
 
         @Override
         public Void visit(BinaryExpression.NE expression) {
-            return IExpressionVisitor.super.visit(expression);
+            checkBinaryExpression(expression, LiteralExpression.class);
+
+            IColumnSpec columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            Preconditions.checkNotNull(columnSpec,
+                                       "Column [%s] can not be found in schema [%s].",
+                                       ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
+
+            if (columnSpec instanceof IDimensionSpec) {
+                filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                                "alias",
+                                                new GreaterThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
+            } else {
+                filters.add(new MetricFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                             new NotEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
+            }
+            return null;
         }
     }
 }

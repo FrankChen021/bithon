@@ -251,7 +251,7 @@ public class TraceService {
                     continue;
                 }
 
-                String tagName = filter.getName().substring("tags".length());
+                String tagName = filter.getName().substring("tags.".length());
                 if (!StringUtils.hasText(tagName)) {
                     throw new RuntimeException(StringUtils.format("Wrong tag name [%s]", filter.getName()));
                 }

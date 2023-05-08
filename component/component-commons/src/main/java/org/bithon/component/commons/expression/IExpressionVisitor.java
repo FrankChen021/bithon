@@ -56,4 +56,6 @@ public interface IExpressionVisitor<T> {
     default T visit(BinaryExpression.NE expression) {
         return null;
     }
+
+    default T visit(BinaryExpression.IN expression) { return null; }
 }

@@ -26,6 +26,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.component.commons.expression.BinaryExpression;
+import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
@@ -39,6 +40,7 @@ import org.bithon.server.storage.datasource.spec.InvalidExpressionException;
 
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -120,7 +122,7 @@ public class FilterExpressionASTFactory {
         @Override
         public IExpression visitBinaryExpression(FilterExpressionParser.BinaryExpressionContext ctx) {
             FilterExpressionParser.UnaryExpressionContext left = ctx.unaryExpression(0);
-            String comparisonOperator = ctx.comparisonOperator().getText();
+            String comparisonOperator = ctx.getChild(1).getText().toLowerCase(Locale.ENGLISH);
             FilterExpressionParser.UnaryExpressionContext right = ctx.unaryExpression(1);
 
             if (left.nameExpression() == null) {
@@ -129,19 +131,20 @@ public class FilterExpressionASTFactory {
             }
 
             IExpression leftExpression = new IdentifierExpression(left.getText());
-            IExpression rightExpression = right.accept(new UnaryExpressionVisitor());
-
             BinaryExpression binaryExpression;
             switch (comparisonOperator) {
                 case "=":
-                    binaryExpression = new BinaryExpression.EQ(leftExpression, rightExpression);
+                    binaryExpression = new BinaryExpression.EQ(leftExpression, ctx.unaryExpression(1).accept(new UnaryExpressionVisitor()));
                     break;
                 case ">":
-                    binaryExpression = new BinaryExpression.GT(leftExpression, rightExpression);
+                    binaryExpression = new BinaryExpression.GT(leftExpression, ctx.unaryExpression(1).accept(new UnaryExpressionVisitor()));
                     break;
                 case "<>":
                 case "!=":
-                    binaryExpression = new BinaryExpression.NE(leftExpression, rightExpression);
+                    binaryExpression = new BinaryExpression.NE(leftExpression, ctx.unaryExpression(1).accept(new UnaryExpressionVisitor()));
+                    break;
+                case "in":
+                    binaryExpression = new BinaryExpression.IN(leftExpression, ctx.experssionList().accept(this));
                     break;
                 default:
                     throw new RuntimeException("not yet supported operator: " + comparisonOperator);
@@ -154,6 +157,14 @@ public class FilterExpressionASTFactory {
             }
         }
 
+        @Override
+        public IExpression visitExperssionList(FilterExpressionParser.ExperssionListContext ctx) {
+            final UnaryExpressionVisitor unaryExpressionGenerator = new UnaryExpressionVisitor();
+            return new ExpressionList(ctx.unaryExpression()
+                                         .stream()
+                                         .map((expr) -> expr.accept(unaryExpressionGenerator))
+                                         .collect(Collectors.toList()));
+        }
     }
 
     static String getUnQuotedString(Token symbol) {

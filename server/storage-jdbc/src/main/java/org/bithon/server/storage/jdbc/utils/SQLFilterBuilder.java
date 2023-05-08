@@ -25,12 +25,12 @@ import org.bithon.server.commons.matcher.IMatcherVisitor;
 import org.bithon.server.commons.matcher.InMatcher;
 import org.bithon.server.commons.matcher.LessThanMatcher;
 import org.bithon.server.commons.matcher.LessThanOrEqualMatcher;
+import org.bithon.server.commons.matcher.NotEqualMatcher;
 import org.bithon.server.commons.matcher.StringAntPathMatcher;
 import org.bithon.server.commons.matcher.StringContainsMatcher;
 import org.bithon.server.commons.matcher.StringEndWithMatcher;
 import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.matcher.StringIContainsMatcher;
-import org.bithon.server.commons.matcher.StringNotEqualMatcher;
 import org.bithon.server.commons.matcher.StringRegexMatcher;
 import org.bithon.server.commons.matcher.StringStartsWithMatcher;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -123,10 +123,10 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     }
 
     @Override
-    public String visit(StringNotEqualMatcher matcher) {
+    public String visit(NotEqualMatcher matcher) {
         return StringUtils.format("%s <> '%s'",
                                   fieldName,
-                                  matcher.getPattern());
+                                  matcher.getValue());
     }
 
     @Override

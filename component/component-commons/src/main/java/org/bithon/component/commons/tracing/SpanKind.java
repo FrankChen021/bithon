@@ -16,6 +16,8 @@
 
 package org.bithon.component.commons.tracing;
 
+import java.util.Locale;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/5 8:51 下午
@@ -62,6 +64,7 @@ public enum SpanKind {
     }
 
     public static boolean isRootSpan(String kind) {
+        kind = kind.toUpperCase(Locale.ENGLISH);
         return SERVER.name().equals(kind) || TIMER.name().equals(kind) || CONSUMER.name().equals(kind);
     }
 }

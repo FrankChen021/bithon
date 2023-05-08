@@ -13,6 +13,7 @@ filterExpression
 
 binaryExpression
   : unaryExpression comparisonOperator unaryExpression
+  | unaryExpression 'in' experssionList
   ;
 
 unaryExpression
@@ -35,6 +36,10 @@ simpleNameExpression
 
 literalExperssion
   : STRING_LITERAL | NUMBER_LITERAL
+  ;
+
+experssionList
+  : '(' unaryExpression (',' unaryExpression)* ')'
   ;
 
 logicOperator

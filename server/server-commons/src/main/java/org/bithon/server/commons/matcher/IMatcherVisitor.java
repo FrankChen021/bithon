@@ -23,7 +23,7 @@ package org.bithon.server.commons.matcher;
 public interface IMatcherVisitor<T> {
     T visit(StringEqualMatcher matcher);
 
-    T visit(StringNotEqualMatcher matcher);
+    T visit(NotEqualMatcher matcher);
 
     T visit(StringAntPathMatcher matcher);
 

@@ -23,6 +23,7 @@ import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.matcher.InMatcher;
 import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -45,6 +46,7 @@ import org.jooq.SelectSeekStep1;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -232,7 +234,7 @@ public class TraceJdbcReader implements ITraceReader {
         // because the jOOQ DSL expression, where(summary.TIMESTAMP.lt(xxx)), might translate the TIMESTAMP as a full qualified name,
         // but the query might be performed on the detailed table
         SelectConditionStep<Record1<Integer>> countQuery = dslContext.selectCount()
-                                                                     .from(isFilterOnRootSpan(filters) ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN)
+                                                                     .from(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN)
                                                                      .where(timestampField.ge(start.toLocalDateTime()).and(timestampField.lt(end.toLocalDateTime())));
 
         if (CollectionUtils.isNotEmpty(filters)) {
@@ -320,22 +322,39 @@ public class TraceJdbcReader implements ITraceReader {
     private boolean isFilterOnRootSpan(List<IFilter> filters) {
         final String kindFieldName = Tables.BITHON_TRACE_SPAN_SUMMARY.KIND.getName();
 
-        return filters.stream().anyMatch((filter) -> {
+        Iterator<IFilter> iterator = filters.iterator();
+        while (iterator.hasNext()) {
+            IFilter filter = iterator.next();
+
             if (!kindFieldName.equals(filter.getName())) {
-                return false;
+                continue;
             }
 
-            if (!(filter.getMatcher() instanceof StringEqualMatcher)) {
-                // If the filter is NOT equal filter, we turn this query to run on the detail table
-                return false;
+            if (filter.getMatcher() instanceof StringEqualMatcher) {
+                String kindValue = ((StringEqualMatcher) filter.getMatcher()).getPattern();
+
+                // RootSpan has been extracted into trace_span_summary table during ingestion
+                // If the filter is on the root spans, it SHOULD query on the summary table
+                if (SpanKind.isRootSpan(kindValue)) {
+                    return true;
+                }
             }
 
-            String kindValue = ((StringEqualMatcher) filter.getMatcher()).getPattern();
+            if (filter.getMatcher() instanceof InMatcher) {
+                boolean isRootSpan = ((InMatcher) filter.getMatcher()).getPattern().stream().allMatch(SpanKind::isRootSpan);
+                if (isRootSpan) {
+                    if (((InMatcher) filter.getMatcher()).getPattern().size() == 3) {
+                        // Can remove this filter since the summary table contains all these records
+                        iterator.remove();
+                    }
+                    return true;
+                }
+            }
 
-            // RootSpan has been extracted into trace_span_summary table during ingestion
-            // If the filter is on the root spans, it SHOULD query on the summary table
-            return SpanKind.isRootSpan(kindValue);
-        });
+            return false;
+        }
+
+        return false;
     }
 
     /**

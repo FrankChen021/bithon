@@ -21,7 +21,7 @@
         $(document).ready(() => {
             new TracePage({
                 queryParams: {appName: g_SelectedApp},
-                filterExpression: "kind = 'SERVER'",
+                filterExpression: "kind in ('SERVER', 'CONSUMER', 'TIMER')",
                 showSelector: true
             });
         });
