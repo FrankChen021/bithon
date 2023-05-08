@@ -42,13 +42,13 @@
           }
         },
         "tracing": {
-          "dimensionMaps": {
+          "mappings": {
             "targetHostPort": "tags.net.peer",
             "method": "tags.http.method",
             "path": "url",
             "statusCode": "status"
           },
-          "more": "name= 'httpclient' AND kind = 'CLIENT'"
+          "filter": "name= 'httpclient' AND kind = 'CLIENT'"
         }
       }
     },
@@ -189,9 +189,10 @@
           "targetHostPort",
           "method",
           "path",
+          "requestCount",
           "statusCode",
-          "requestByteRate",
-          "responseByteRate"
+          {"name":"requestByteRate","format": "byte_rate"},
+          {"name":"responseByteRate","format": "byte_rate"}
         ],
         "query": {
           "type": "groupBy",
@@ -199,10 +200,15 @@
             "targetHostPort",
             "method",
             "path",
+            "requestCount",
             "statusCode",
             "requestByteRate",
             "responseByteRate"
-          ]
+          ],
+          "orderBy": {
+            "name": "requestByteRate",
+            "order": "desc"
+          }
         }
       }
     }

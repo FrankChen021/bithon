@@ -396,7 +396,7 @@ class Dashboard {
      * Tracing Spec Example On Dashboard
      *
      *  "tracing": {
-     *    "dimensionMaps": {
+     *    "mappings": {
      *      "cluster": "tags.clickhouse.cluster",
      *      "user": "tags.clickhouse.user",
      *      "queryType": "tags.clickhouse.queryType",
@@ -411,7 +411,7 @@ class Dashboard {
      *          "default": "tags.clickhouse.exceptionCode"
      *        }
      *      },
-     *      "more": "name = 'httpclient' AND kind = 'CLIENT'"
+     *      "filter": "name = 'httpclient' AND kind = 'CLIENT'"
      *    }
      *  }
      */
@@ -436,8 +436,10 @@ class Dashboard {
             // groupBy is a legacy property
             : chartDescriptor.details.groupBy;
 
+        // dimensionMaps is the old name, use it as compatibility
+        const mappings = tracingSpec.mappings === undefined ? tracingSpec.dimensionMaps : tracingSpec.mappings;
         $.each(columns, (index, dimension) => {
-            const mappingField = tracingSpec.dimensionMaps[dimension];
+            const mappingField = mappings[dimension];
             if (mappingField == null) {
                 return;
             }
@@ -469,8 +471,8 @@ class Dashboard {
             }
         });
 
-        if (tracingSpec.more !== undefined) {
-            filterExpression += `AND ${tracingSpec.more} `;
+        if (tracingSpec.filter !== undefined) {
+            filterExpression += `AND ${tracingSpec.filter} `;
         }
         if (filterExpression.startsWith('AND ')) {
             filterExpression = filterExpression.substring('AND '.length)
