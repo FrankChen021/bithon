@@ -20,8 +20,6 @@ class TimeInterval {
             {id: "P7D", value: 144, unit: "hour", text: "Last 7d"},
             {id: "today", value: "today", unit: "day", text: "Today"},
             {id: "yesterday", value: "yesterday", unit: "day", text: "Yesterday"},
-            {id: "input", value: "", text: "Customization"}
-            // {id: "user", value: "user", text: "Customer", start, end}
         ];
 
         if (defaultIntervalId !== undefined && defaultIntervalId.startsWith("c:")) {
@@ -34,7 +32,7 @@ class TimeInterval {
                 value: "user",
                 start: start,
                 end: end,
-                text: parts[0] + '~' + parts[1]
+                text: this.#formatDisplayText(start.valueOf(), end.valueOf())
             });
             defaultIntervalId = "user";
         }
@@ -42,6 +40,9 @@ class TimeInterval {
         if (includeAll) {
             this._viewModel.push({id: "all", value: "all", unit: "day", text: "All"});
         }
+
+        // Must be the last one
+        this._viewModel.push({id: "input", value: "", text: "Customization"});
 
         this._control = $('<select id="intervalSelector" class="form-control"></select>');
         this._viewModel.forEach(model => {
@@ -272,11 +273,10 @@ class TimeInterval {
     }
 
     setInternal(startTimestamp, endTimestamp) {
-        const displayStart = new Date(startTimestamp).format('MM-dd hh:mm:ss');
-        const displayEnd = new Date(endTimestamp).format('MM-dd hh:mm:ss');
+        const displayText = this.#formatDisplayText(startTimestamp, endTimestamp);
 
         if (this._viewModel.length - this.vBuiltInIntervalCount < 10) {
-            $(`<option id="user">${displayStart} ~ ${displayEnd}</option>`).insertBefore(this.vUserInputOption);
+            $(`<option id="user">${displayText}</option>`).insertBefore(this.vUserInputOption);
             this._viewModel.splice(this._viewModel.length - 1,  0,{id: "user", value: "user"});
         } else {
             // If the user inputs reaches the limit, change the last one
@@ -289,11 +289,22 @@ class TimeInterval {
         this._viewModel[index].end = moment(endTimestamp).utc().local().toISOString(true);
 
         // Change UI displayed content
-        this._control[0].children[index].innerText = `${displayStart} ~ ${displayEnd}`;
+        this._control[0].children[index].innerText = displayText;
 
         // Change UI selection
         this._control[0].selectedIndex = index;
         this._control.change();
+    }
+
+    /**
+     * @param start timestamp
+     * @param end timestamp
+     * @return text
+     */
+    #formatDisplayText(start, end) {
+        const displayStart = new Date(start).format('MM-dd hh:mm:ss');
+        const displayEnd = new Date(end).format('MM-dd hh:mm:ss');
+        return `${displayStart} ~ ${displayEnd}`;
     }
 }
 
