@@ -51,16 +51,6 @@ class TracePage {
 
         const parent = $('#filterBarForm');
 
-        // View - Refresh Button
-        parent.append('<button class="btn btn-outline-secondary" style="border-radius:0;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
-            .find("button").click(() => {
-            // get a new interval
-            this.mInterval = this.vIntervalSelector.getInterval();
-
-            // refresh the page
-            this.#refreshPage();
-        });
-
         // View
         this.vIntervalSelector = new TimeInterval(window.queryParams['interval'])
             .childOf(parent)
@@ -69,6 +59,16 @@ class TracePage {
                 this.#refreshPage();
             });
         this.mInterval = this.vIntervalSelector.getInterval();
+
+        // View - Auto Refresh Button
+        parent.append('<button class="btn btn-outline-secondary" style="border-radius:0;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
+            .find("button").click(() => {
+            // get a new interval
+            this.mInterval = this.vIntervalSelector.getInterval();
+
+            // refresh the page
+            this.#refreshPage();
+        });
 
         // View, will also trigger refresh automatically
         this.vTraceList = new TraceListComponent({
@@ -309,6 +309,14 @@ class TracePage {
     }
 
     #onClickChart(e) {
+        for(let i = 0; i < this._data.metrics.length; i++) {
+            const metric = this._data.metrics[i];
+            if (metric.tags[0] === 'count' && metric.values[e.dataIndex] === 0) {
+                // The 'count' metric is zero, no need to response the click event
+                return;
+            }
+        }
+
         const startTimestamp = this._data.startTimestamp + this._data.interval * e.dataIndex;
         const endTimestamp = startTimestamp + this._data.interval;
 

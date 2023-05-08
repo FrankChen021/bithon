@@ -58,16 +58,16 @@
     <script>
         let g_SelectedInstance = null;
         $(document).ready(() => {
-            let moreFilter = window.queryParams['filter'];
-            if (moreFilter !== undefined && moreFilter !== '') {
-                moreFilter = atob(moreFilter);
+            let filterExpression = window.queryParams['filter'];
+            if (filterExpression !== undefined && filterExpression !== null) {
+                filterExpression = decodeURIComponent(filterExpression);
             } else {
-                moreFilter = '';
+                filterExpression = '';
             }
 
             new TracePage({
                 queryParams: window.queryParams,
-                filterExpression: moreFilter,
+                filterExpression: filterExpression,
                 showSelector: false
             });
         });

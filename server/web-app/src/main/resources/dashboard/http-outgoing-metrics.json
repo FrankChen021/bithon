@@ -98,6 +98,15 @@
             "name": "avgResponseTime",
             "order": "desc"
           }
+        },
+        "tracing": {
+          "mappings": {
+            "targetHostPort": "tags.net.peer",
+            "method": "tags.http.method",
+            "path": "url",
+            "statusCode": "status"
+          },
+          "filter": "name= 'httpclient' AND kind = 'CLIENT'"
         }
       }
     },
@@ -146,6 +155,15 @@
               }
             }
           ]
+        },
+        "tracing": {
+          "mappings": {
+            "targetHostPort": "tags.net.peer",
+            "method": "tags.http.method",
+            "path": "url",
+            "statusCode": "status"
+          },
+          "filter": "name= 'httpclient' AND kind = 'CLIENT'"
         }
       }
     },

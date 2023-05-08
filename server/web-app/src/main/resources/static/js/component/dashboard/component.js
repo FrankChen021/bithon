@@ -84,17 +84,7 @@ class Dashboard {
             }
         });
 
-        //
-        // Create AutoRefresher
-        // the filterBarForm is defined in the app-layout.html
-        //
         const parent = $('#filterBarForm');
-        new AutoRefresher({
-            timerLength: 10
-        }).childOf(parent).registerRefreshListener(() => {
-            this._selectedInterval = this._timeSelector.getInterval();
-            this.refreshDashboard();
-        });
 
         //
         // Create TimeInterval
@@ -114,6 +104,17 @@ class Dashboard {
             window.history.pushState('', '', url);
         });
         this._selectedInterval = this._timeSelector.getInterval();
+
+        //
+        // Create AutoRefresher
+        // the filterBarForm is defined in the app-layout.html
+        //
+        new AutoRefresher({
+            timerLength: 10
+        }).childOf(parent).registerRefreshListener(() => {
+            this._selectedInterval = this._timeSelector.getInterval();
+            this.refreshDashboard();
+        });
 
         $.each(dashboard.charts, (index, chartDescriptor) => {
 
@@ -478,7 +479,7 @@ class Dashboard {
             filterExpression = filterExpression.substring('AND '.length)
         }
 
-        window.open(`/web/trace/search?interval=c:${encodeURI(startTime)}/${encodeURI(endTime)}&filter=${btoa(filterExpression)}`);
+        window.open(`/web/trace/search?interval=c:${startTime}/${endTime}&filter=${encodeURIComponent(filterExpression)}`);
     }
 
     createTableComponent(chartId, parentElement, tableDescriptor, insertIndexColumn, buttons) {

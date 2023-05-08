@@ -123,7 +123,6 @@ public class FilterExpressionASTFactory {
         public IExpression visitBinaryExpression(FilterExpressionParser.BinaryExpressionContext ctx) {
             FilterExpressionParser.UnaryExpressionContext left = ctx.unaryExpression(0);
             String comparisonOperator = ctx.getChild(1).getText().toLowerCase(Locale.ENGLISH);
-            FilterExpressionParser.UnaryExpressionContext right = ctx.unaryExpression(1);
 
             if (left.nameExpression() == null) {
                 // just for simplicity

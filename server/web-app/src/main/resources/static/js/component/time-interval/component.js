@@ -52,7 +52,7 @@ class TimeInterval {
             }
         });
         if (this.getSelectedIndex() === 0) {
-            // If the given interval is not in the predefined list, set it the a default one
+            // If the given interval is not in the predefined list, set it to a default one
             this._control.find('option[id="P5M"]').attr('selected', true);
         }
 
@@ -114,7 +114,7 @@ class TimeInterval {
 
                                 index = this._viewModel.length - 2;
                             } else {
-                                // Only allow to append 10 items, if the number exceeds, change the last one
+                                // Only allow appending 10 items, if the number exceeds, change the last one
                                 index = this._viewModel.length - 2;
                             }
                         }
@@ -122,7 +122,7 @@ class TimeInterval {
                         // Change UI displayed content
                         this._control[0].children[index].innerText = `${displayStart} ~ ${displayEnd}`;
 
-                        // save value to view model
+                        // save value to the view model
                         this._viewModel[index].start = moment(startTimestamp).local().toISOString(true);
                         this._viewModel[index].end = moment(endTimestamp).local().toISOString(true);
 
@@ -279,7 +279,7 @@ class TimeInterval {
             $(`<option id="user">${displayText}</option>`).insertBefore(this.vUserInputOption);
             this._viewModel.splice(this._viewModel.length - 1,  0,{id: "user", value: "user"});
         } else {
-            // If the user inputs reaches the limit, change the last one
+            // If the user's inputs reach the limit, change the last one
             // Remember that the last editable one is actually index - 1
         }
         const index = this._viewModel.length - 2;
@@ -299,7 +299,7 @@ class TimeInterval {
     /**
      * @param start timestamp
      * @param end timestamp
-     * @return text
+     * @return string
      */
     #formatDisplayText(start, end) {
         const displayStart = new Date(start).format('MM-dd hh:mm:ss');

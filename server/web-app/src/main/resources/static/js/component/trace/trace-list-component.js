@@ -29,10 +29,10 @@ class TraceListComponent {
             paginationPreText: '<',              //上一页按钮样式
             paginationNextText: '>',             //下一页按钮样式
             pageNumber: 1,
-            pageSize: 10,
-            pageList: [10, 25, 50, 100],
-            // sortName: 'startTime',
-            // sortOrder: 'desc',
+            pageSize: 15,
+            pageList: [15, 50, 100],
+            sortName: 'startTime',
+            sortOrder: 'asc',
 
             stickyHeader: true,
             stickyHeaderOffsetLeft: parseInt($('body').css('padding-left'), 10),
