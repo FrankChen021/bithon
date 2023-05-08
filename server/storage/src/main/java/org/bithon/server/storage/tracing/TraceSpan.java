@@ -28,6 +28,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.UrlUtils;
+import org.bithon.server.storage.common.ApplicationType;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 import java.io.IOException;
@@ -76,10 +77,10 @@ public class TraceSpan implements IInputRow {
     public String appName;
     public String instanceName;
     /**
-     * Unspecified
+     * UNKNOWN
      * JAVA
      */
-    public String appType = "Unspecified";
+    public String appType = ApplicationType.UNKNOWN;
     public String traceId;
     public String spanId;
     public String kind;

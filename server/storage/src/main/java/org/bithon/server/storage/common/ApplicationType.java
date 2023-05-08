@@ -22,4 +22,6 @@ package org.bithon.server.storage.common;
  */
 public class ApplicationType {
     public static final String JAVA = "JAVA";
+    public static final String CPP = "CPP";
+    public static final String UNKNOWN = "Unknown";
 }

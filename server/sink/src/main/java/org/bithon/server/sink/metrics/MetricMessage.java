@@ -16,12 +16,12 @@
 
 package org.bithon.server.sink.metrics;
 
+import org.bithon.server.storage.common.ApplicationType;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 import java.util.HashMap;
 
 /**
- * TODO: cache reflection results
  *
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
@@ -57,7 +57,7 @@ public class MetricMessage extends HashMap<String, Object> implements IInputRow 
     }
 
     public String getApplicationType() {
-        return this.getOrDefault("appType", "Unknown").toString();
+        return this.getOrDefault("appType", ApplicationType.UNKNOWN).toString();
     }
 
     public long getLong(String prop) {

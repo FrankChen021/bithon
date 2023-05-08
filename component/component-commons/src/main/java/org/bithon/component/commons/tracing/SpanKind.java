@@ -29,7 +29,7 @@ public enum SpanKind {
     NONE,
 
     /**
-     * a client is a termination of trace in current context.
+     * A client is a termination of trace in current context.
      * It spreads the trace context to next hop.
      * <p>
      * For such type, 'targetType' and 'uri' must be filled in `tags`
