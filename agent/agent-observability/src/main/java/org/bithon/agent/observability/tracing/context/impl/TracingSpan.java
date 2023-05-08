@@ -181,6 +181,7 @@ class TracingSpan implements ITraceSpan {
     @Override
     public void finish() {
         if (this.endTime != 0) {
+
             return;
         }
         this.endTime = context().clock().currentMicroseconds();
@@ -201,6 +202,7 @@ class TracingSpan implements ITraceSpan {
                 ", method=" + this.method +
                 ", kind=" + this.kind +
                 ", cost=" + (this.endTime - this.startTime) + "(micro seconds)" +
+                ", exception=" + this.tags.getOrDefault(Tags.Exception.TYPE, "") +
                 "]";
     }
 }

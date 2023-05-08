@@ -88,6 +88,7 @@ public class AroundGatewayFilter$Filter extends AroundInterceptor {
                                               .method(aopContext.getTargetClass(), aopContext.getMethod())
                                               .start());
 
+
         return InterceptionDecision.CONTINUE;
     }
 
@@ -111,8 +112,16 @@ public class AroundGatewayFilter$Filter extends AroundInterceptor {
             span.tag(aopContext.getException()).finish();
         } else {
             Mono<Void> originalReturning = aopContext.getReturningAs();
-            Mono<Void> replacedReturning = originalReturning.doOnError(span::tag)
-                                                            .doFinally((s) -> span.finish());
+            Mono<Void> replacedReturning = originalReturning.doOnError((throwable -> {
+                                                                // NOTE: DO NOT Replace the call by lambda which is suggested by the IDE,
+                                                                // because it's hard to debug the statement
+                                                                span.tag(throwable).finish();
+                                                            }))
+                                                            .doOnSuccess((s) -> {
+                                                                // NOTE: DO NOT Replace the call by lambda which is suggested by the IDE,
+                                                                // because it's hard to debug the statement
+                                                                span.finish();
+                                                            });
             aopContext.setReturning(replacedReturning);
         }
     }

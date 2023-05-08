@@ -16,7 +16,9 @@
 
 package org.bithon.agent.observability.tracing.context.impl;
 
+import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.observability.tracing.Tracer;
+import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextListener;
@@ -26,6 +28,7 @@ import org.bithon.agent.observability.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.time.Clock;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +45,7 @@ public class TracingContext implements ITraceContext {
     private final Clock clock = new Clock();
     private final String traceId;
     private final ISpanIdGenerator spanIdGenerator;
+    private final boolean isDebugEnabled;
     private ITraceReporter reporter;
 
     private boolean finished = false;
@@ -50,6 +54,7 @@ public class TracingContext implements ITraceContext {
                           ISpanIdGenerator spanIdGenerator) {
         this.traceId = traceId;
         this.spanIdGenerator = spanIdGenerator;
+        this.isDebugEnabled = ConfigurationManager.getInstance().getConfig(TraceConfig.class).isDebug();
     }
 
     @Override
@@ -98,11 +103,23 @@ public class TracingContext implements ITraceContext {
     @Override
     public void finish() {
         if (!spanStack.isEmpty()) {
-            LoggerFactory.getLogger(TracingContext.class).warn("TraceContext does not finish correctly. "
-                                                                       + "[{}] spans are still remained in the stack. "
-                                                                       + "Please adding -Dbithon.tracing.debug=true parameter to your application to turn on the span life time message to debug. Remained spans: \n{}",
-                                                               spans.size(),
-                                                               spans);
+            if (isDebugEnabled) {
+                LoggerFactory.getLogger(TracingContext.class)
+                             .warn(StringUtils.format("TraceContext does not finish correctly. "
+                                                      + "[%d] spans are still remained unfinished. This IS a bug.\nRemained spans: \n%s",
+                                                      spanStack.size(),
+                                                      spanStack),
+                                   new RuntimeException("Bug Detected"));
+            } else {
+                LoggerFactory.getLogger(TracingContext.class).warn("TraceContext does not finish correctly. "
+                                                                   + "[{}] spans are still remained unfinished. This IS a bug.\n"
+                                                                   + "Please adding -Dbithon.tracing.debug=true parameter to your application to turn on the span life time message to debug. \nRemained spans: \n{}",
+                                                                   spanStack.size(),
+                                                                   spanStack);
+            }
+
+            this.spans.clear();
+            this.spanStack.clear();
             return;
         }
 
@@ -131,14 +148,36 @@ public class TracingContext implements ITraceContext {
     void onSpanFinished(TracingSpan span) {
 
         if (spanStack.isEmpty()) {
-            // TODO: internal error
             TraceContextListener.getInstance().onSpanFinished(span);
+
+            if (isDebugEnabled) {
+                LoggerFactory.getLogger(TracingContext.class)
+                             .warn(StringUtils.format("Try to finish a span which is not in the stack. This IS a bug.\nCurrent span: \n%s",
+                                                      span),
+                                   new RuntimeException("Bug Detected"));
+            } else {
+                LoggerFactory.getLogger(TracingContext.class).warn("Try to finish a span which is not in the stack. This IS a bug.\n"
+                                                                   + "Please adding -Dbithon.tracing.debug=true parameter to your application to turn on the span life time message to debug. \nCurrent span: \n{}",
+                                                                   span);
+            }
             return;
         }
 
         if (!spanStack.peek().equals(span)) {
-            // TODO: internal error
             TraceContextListener.getInstance().onSpanFinished(span);
+
+            if (isDebugEnabled) {
+                LoggerFactory.getLogger(TracingContext.class)
+                             .warn(StringUtils.format("Try to finish a span which does not match the span in the stack. This IS a bug.\nCurrent span: \n%s, \n Unfinished Spans:\n%s",
+                                                      span,
+                                                      spanStack),
+                                   new RuntimeException("Bug Detected"));
+            } else {
+                LoggerFactory.getLogger(TracingContext.class).warn("Try to finish a span which is not in the stack. This IS a bug.\n"
+                                                                   + "Please adding -Dbithon.tracing.debug=true parameter to your application to turn on the span life time message to debug. \nCurrent span: \n{}, Unfinished Spans:\n{}",
+                                                                   span,
+                                                                   spanStack);
+            }
             return;
         }
 

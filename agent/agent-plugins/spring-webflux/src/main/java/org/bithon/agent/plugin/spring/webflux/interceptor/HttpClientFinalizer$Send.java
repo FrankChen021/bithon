@@ -33,7 +33,7 @@ import reactor.netty.http.client.HttpClientRequest;
 import java.util.function.BiFunction;
 
 /**
- * see reactor.netty.http.client.HttpClientFinalizer#send
+ * See {@link reactor.netty.http.client.HttpClientFinalizer#send}
  *
  * @author frank.chen021@outlook.com
  * @date 27/11/21 1:57 pm

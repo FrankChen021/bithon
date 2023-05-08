@@ -41,7 +41,7 @@ public class TraceContextListener {
     public TraceContextListener() {
         TraceConfig config = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
         if (config != null && config.isDebug()) {
-            listeners.add(new SpanEventLogger());
+            listeners.add(new SpanEventDebugLogger());
         }
     }
 
@@ -67,7 +67,7 @@ public class TraceContextListener {
         void onSpanFinished(ITraceSpan span);
     }
 
-    private static class SpanEventLogger implements IListener {
+    private static class SpanEventDebugLogger implements IListener {
         private final ILogAdaptor log = LoggerFactory.getLogger(TraceContextListener.class);
 
         @Override
