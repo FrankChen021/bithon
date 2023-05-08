@@ -3,7 +3,8 @@ class TracePage {
      * @param options {
      *     queryParams: {},
      *     filterExpression: '',
-     *     showSelector: true | false
+     *     showSelector: true | false,
+     *     excludeColumns: an array of String that contains the columns that are excluded from the list
      * }
      */
     constructor(options) {
@@ -70,20 +71,18 @@ class TracePage {
         this.mInterval = this.vIntervalSelector.getInterval();
 
         // View, will also trigger refresh automatically
-        this.vTraceList = new TraceListComponent(
-            $('#table'),
-            {
-                showApplicationName: false,
-                getQueryParams: (params) => {
-                    return {
-                        filters: this.#getFilters(),
-                        startTimeISO8601: this.mInterval.start,
-                        endTimeISO8601: this.mInterval.end,
-                        expression: this.filterExpression
-                    };
-                }
+        this.vTraceList = new TraceListComponent({
+            parent: $('#table'),
+            excludeColumns: options.excludeColumns || [],
+            getQueryParams: (params) => {
+                return {
+                    filters: this.#getFilters(),
+                    startTimeISO8601: this.mInterval.start,
+                    endTimeISO8601: this.mInterval.end,
+                    expression: this.filterExpression
+                };
             }
-        );
+        });
 
         // If the tag filters are not selectable, add them to the filterExpression
         const tagFilters = {};

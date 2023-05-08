@@ -1,7 +1,21 @@
 class TraceListComponent {
 
-    constructor(parent, apiOption) {
+    /**
+     * options: {
+     *     parent: the parent HTML control,
+     *     getQueryParams: callback function when issuing an ajax request
+     *     excludeColumns: an array of String to exclude columns
+     * }
+     */
+    constructor(options) {
+
+        const parent = options.parent;
         this.vTable = $(parent).append('<table></table>').find('table');
+
+        const excludeColumns = {};
+        $.each(options.excludeColumns, (index, column) => {
+            excludeColumns[column] = true;
+        });
 
         this.vTable.bootstrapTable({
             url: apiHost + '/api/trace/getTraceList',
@@ -27,7 +41,7 @@ class TraceListComponent {
 
             queryParamsType: '',
             queryParams: (params) => {
-                let queryParams = apiOption.getQueryParams(params);
+                let queryParams = options.getQueryParams(params);
                 queryParams = $.extend(queryParams, {
                     pageSize: params.pageSize,
                     pageNumber: params.pageNumber - 1,
@@ -51,18 +65,19 @@ class TraceListComponent {
                     // Search the trace in a window of 4 hours
                     const startISO8601 = moment(row.startTime / 1000 - 2 * 3600000).utc().toISOString();
                     const endISO8601 = moment(row.startTime / 1000 + 2 * 3600000).utc().toISOString();
-                    return `<a target="_blank" href="/web/trace/detail?id=${row.traceId}&type=trace&interval=${startISO8601}/${endISO8601}">${value}</a>`;
+                    return `<a target="_blank" title='${value}' href="/web/trace/detail?id=${row.traceId}&type=trace&interval=${startISO8601}/${endISO8601}">${value.substring(0, 6)}...</a>`;
                 },
             }, {
                 field: 'appName',
                 title: 'Application',
-                visible: apiOption.showApplicationName === undefined ? false : apiOption.showApplicationName
+                visible: excludeColumns['appName'] === undefined
             }, {
                 field: 'instanceName',
                 title: 'Instance'
-            }, {
+            },
+            {
                 field: 'startTime',
-                title: 'Time',
+                title: 'Start Time',
                 formatter: function (value) {
                     return new Date(value / 1000).format('MM-dd hh:mm:ss.S');
                 },
@@ -75,13 +90,22 @@ class TraceListComponent {
                 },
                 sortable: true
             }, {
+                field: 'name',
+                title: 'Name',
+                visible: excludeColumns['name'] === undefined
+            }, {
+                field: 'kind',
+                title: 'Kind',
+                visible: excludeColumns['kind'] === undefined
+            },
+            {
                 field: 'status',
                 title: 'Status'
             }, {
                 field: 'tags',
                 title: 'URL',
                 formatter: function (value) {
-                    return value['uri'] || value['http.uri'];
+                    return value['uri'] || value['http.uri'] || value['http.target'];
                 }
             }],
 

@@ -22,7 +22,8 @@
             new TracePage({
                 queryParams: {appName: g_SelectedApp},
                 filterExpression: "kind in ('SERVER', 'CONSUMER', 'TIMER')",
-                showSelector: true
+                showSelector: true,
+                excludeColumns: ['appName', 'name']
             });
         });
     </script>
