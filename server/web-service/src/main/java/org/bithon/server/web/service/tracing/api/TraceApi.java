@@ -16,11 +16,8 @@
 
 package org.bithon.server.web.service.tracing.api;
 
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.component.commons.utils.Watch;
-import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
@@ -34,7 +31,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,22 +84,16 @@ public class TraceApi {
         Timestamp start = TimeSpan.fromISO8601(request.getStartTimeISO8601()).toTimestamp();
         Timestamp end = TimeSpan.fromISO8601(request.getEndTimeISO8601()).toTimestamp();
 
-        // backward compatibility
-        if (StringUtils.hasText(request.getApplication())) {
-            request.setFilters(new ArrayList<>(request.getFilters()));
-            request.getFilters().add(new DimensionFilter("appName", new StringEqualMatcher(request.getApplication())));
-        }
-
         return new GetTraceListResponse(
-                traceService.getTraceListSize(request.getFilters(), request.getExpression(), start, end),
-                traceService.getTraceList(request.getFilters(),
-                                          request.getExpression(),
-                                          start,
-                                          end,
-                                          request.getOrderBy(),
-                                          request.getOrder(),
-                                          request.getPageNumber(),
-                                          request.getPageSize())
+            traceService.getTraceListSize(request.getFilters(), request.getExpression(), start, end),
+            traceService.getTraceList(request.getFilters(),
+                                      request.getExpression(),
+                                      start,
+                                      end,
+                                      request.getOrderBy(),
+                                      request.getOrder(),
+                                      request.getPageNumber(),
+                                      request.getPageSize())
         );
     }
 

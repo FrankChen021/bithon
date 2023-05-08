@@ -31,9 +31,6 @@ import java.util.List;
  */
 @Data
 public class GetTraceListRequest {
-    @Deprecated
-    private String application;
-
     @NotBlank
     private String startTimeISO8601;
 
