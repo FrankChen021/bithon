@@ -40,12 +40,13 @@ import java.util.Stack;
  */
 public class TracingContext implements ITraceContext {
 
+    private static final boolean IS_DEBUG_ENABLED = ConfigurationManager.getInstance().getConfig(TraceConfig.class).isDebug();
+
     private final Stack<ITraceSpan> spanStack = new Stack<>();
     private final List<ITraceSpan> spans = new ArrayList<>();
     private final Clock clock = new Clock();
     private final String traceId;
     private final ISpanIdGenerator spanIdGenerator;
-    private final boolean isDebugEnabled;
     private ITraceReporter reporter;
 
     private boolean finished = false;
@@ -54,7 +55,6 @@ public class TracingContext implements ITraceContext {
                           ISpanIdGenerator spanIdGenerator) {
         this.traceId = traceId;
         this.spanIdGenerator = spanIdGenerator;
-        this.isDebugEnabled = ConfigurationManager.getInstance().getConfig(TraceConfig.class).isDebug();
     }
 
     @Override
@@ -103,7 +103,7 @@ public class TracingContext implements ITraceContext {
     @Override
     public void finish() {
         if (!spanStack.isEmpty()) {
-            if (isDebugEnabled) {
+            if (IS_DEBUG_ENABLED) {
                 LoggerFactory.getLogger(TracingContext.class)
                              .warn(StringUtils.format("TraceContext does not finish correctly. "
                                                       + "[%d] spans are still remained unfinished. This IS a bug.\nRemained spans: \n%s",
@@ -150,7 +150,7 @@ public class TracingContext implements ITraceContext {
         if (spanStack.isEmpty()) {
             TraceContextListener.getInstance().onSpanFinished(span);
 
-            if (isDebugEnabled) {
+            if (IS_DEBUG_ENABLED) {
                 LoggerFactory.getLogger(TracingContext.class)
                              .warn(StringUtils.format("Try to finish a span which is not in the stack. This IS a bug.\nCurrent span: \n%s",
                                                       span),
@@ -166,7 +166,7 @@ public class TracingContext implements ITraceContext {
         if (!spanStack.peek().equals(span)) {
             TraceContextListener.getInstance().onSpanFinished(span);
 
-            if (isDebugEnabled) {
+            if (IS_DEBUG_ENABLED) {
                 LoggerFactory.getLogger(TracingContext.class)
                              .warn(StringUtils.format("Try to finish a span which does not match the span in the stack. This IS a bug.\nCurrent span: \n%s, \n Unfinished Spans:\n%s",
                                                       span,
