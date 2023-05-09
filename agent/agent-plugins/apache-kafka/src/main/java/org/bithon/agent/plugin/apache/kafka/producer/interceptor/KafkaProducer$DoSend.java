@@ -41,7 +41,8 @@ import java.nio.charset.StandardCharsets;
  */
 public class KafkaProducer$DoSend extends AroundInterceptor {
 
-    private final KafkaProducerTracingConfig tracingConfig = ConfigurationManager.getInstance().getConfig(KafkaProducerTracingConfig.class);
+    private final KafkaProducerTracingConfig tracingConfig = ConfigurationManager.getInstance()
+                                                                                 .getConfig(KafkaProducerTracingConfig.class);
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
@@ -70,11 +71,13 @@ public class KafkaProducer$DoSend extends AroundInterceptor {
             size = ((ByteBuffer) record.value()).remaining();
         }
 
-        String cluster = ((KafkaPluginContext) ((IBithonObject) aopContext.getTarget()).getInjectedObject()).clusterSupplier.get();
+        IBithonObject bithonObject = aopContext.getTargetAs();
+        KafkaPluginContext pluginContext = (KafkaPluginContext) bithonObject.getInjectedObject();
 
         aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                       .kind(SpanKind.PRODUCER)
-                                      .tag(Tags.Net.PEER, cluster)
+                                      .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
+                                      .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
                                       .tag(Tags.Messaging.KAFKA_TOPIC, record.topic())
                                       .tag(Tags.Messaging.KAFKA_SOURCE_PARTITION, record.partition())
                                       .tag(Tags.Messaging.BYTES, size)
@@ -91,7 +94,8 @@ public class KafkaProducer$DoSend extends AroundInterceptor {
         } else {
             Object returning = aopContext.getReturning();
             if (returning != null) {
-                if ("org.apache.kafka.clients.producer.KafkaProducer$FutureFailure".equals(returning.getClass().getName())) {
+                if ("org.apache.kafka.clients.producer.KafkaProducer$FutureFailure".equals(returning.getClass()
+                                                                                                    .getName())) {
                     Exception exception = (Exception) ReflectionUtils.getFieldValue(returning, "exception");
                     if (exception != null) {
                         span.tag(exception.getCause());
