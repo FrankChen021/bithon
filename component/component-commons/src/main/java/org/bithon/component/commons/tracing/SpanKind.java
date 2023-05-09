@@ -26,7 +26,7 @@ public enum SpanKind {
     /**
      * Unspecified.
      */
-    NONE,
+    INTERNAL,
 
     /**
      * A client is a termination of trace in current context.

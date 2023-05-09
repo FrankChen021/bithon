@@ -54,6 +54,12 @@ public class TraceSpanTransformer implements ITransformer {
     public void transform(IInputRow inputRow) throws TransformException {
         TraceSpan span = (TraceSpan) inputRow;
 
+        // Standardise kind
+        // 'NONE' is previously defined in SpanKind
+        if (span.getKind() == null || "NONE".equals(span.getKind())) {
+            span.setKind(SpanKind.INTERNAL.name());
+        }
+
         transformIntoJavaStyleMethod(span);
         transformClickHouseSpans(span);
 

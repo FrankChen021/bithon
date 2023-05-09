@@ -42,7 +42,7 @@ class TracingSpan implements ITraceSpan {
      */
     private long startTime;
     private long endTime;
-    private SpanKind kind = SpanKind.NONE;
+    private SpanKind kind = SpanKind.INTERNAL;
     private String component;
     private String parentApplication;
     private String clazz;
