@@ -27,6 +27,7 @@ import org.bithon.agent.observability.metric.domain.web.HttpIncomingMetricsRegis
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
@@ -89,7 +90,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
         TraceContextHolder.remove();
 
         //
-        // HttpServerRequest has an implementation of HttpServerOperation
+        // HttpServerRequest has an implementation of HttpServerOperation,
         // which is instrumented as IBithonObject
         //
         if (request instanceof IBithonObject) {
@@ -110,7 +111,11 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
                                 .configIfTrue(!traceConfig.getHeaders().getRequest().isEmpty(),
                                               (span) -> traceConfig.getHeaders()
                                                                    .getRequest()
-                                                                   .forEach((header) -> span.tag(Tags.Http.REQUEST_HEADER_PREFIX + header.toLowerCase(Locale.ENGLISH), request.requestHeaders().get(header))))
+                                                                   .forEach((header) -> span.tag(Tags.Http.REQUEST_HEADER_PREFIX
+                                                                                                 + header.toLowerCase(
+                                                                                                     Locale.ENGLISH),
+                                                                                                 request.requestHeaders()
+                                                                                                        .get(header))))
                                 .method(aopContext.getTargetClass(), aopContext.getMethod())
                                 .kind(SpanKind.SERVER)
                                 .start();
@@ -191,54 +196,65 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
             return;
         }
 
-        traceContext.currentSpan()
-                    .tag(Tags.Http.STATUS, String.valueOf(response.status().code()))
-                    .tag(t)
-                    .config((span -> {
-                        // extract headers in the response to tag
-                        if (!CollectionUtils.isEmpty(responseConfigs.getHeaders())) {
-                            HttpHeaders httpHeaders = response.responseHeaders();
-                            for (Map.Entry<String, String> entry : responseConfigs.getHeaders().entrySet()) {
-                                String headerName = entry.getKey();
-                                String tagName = entry.getValue();
-                                String tagValue = httpHeaders.get(headerName);
-                                if (tagValue != null) {
-                                    span.tag(tagName, tagValue);
-                                }
-                            }
-                        }
+        ITraceSpan span = traceContext.currentSpan();
+        if (span == null) {
+            // THIS IS a BUG. The unmatched 'finish' call already prints the error message, so we just return here
+            return;
+        }
 
-                        //
-                        // handle X-FORWARDED-FOR
-                        //
-                        if (xforwardTagName == null) {
-                            return;
-                        }
-                        InetSocketAddress remoteAddr = request.remoteAddress();
-                        if (remoteAddr == null) {
-                            return;
-                        }
+        if (!"webflux".equals(span.component())) {
+            // Directly close the context so that the tracing context prints the debug message
+            traceContext.finish();
+            return;
+        }
 
-                        String remoteAddrText = remoteAddr.getAddress().getHostAddress();
-                        List<String> xforwarded = request.requestHeaders().getAll(X_FORWARDED_FOR);
-                        if (xforwarded == null) {
-                            span.tag(xforwardTagName, remoteAddrText);
-                            return;
+        span.tag(Tags.Http.STATUS, String.valueOf(response.status().code()))
+            .tag(t)
+            .config((s -> {
+                // extract headers in the response to tag
+                if (!CollectionUtils.isEmpty(responseConfigs.getHeaders())) {
+                    HttpHeaders httpHeaders = response.responseHeaders();
+                    for (Map.Entry<String, String> entry : responseConfigs.getHeaders().entrySet()) {
+                        String headerName = entry.getKey();
+                        String tagName = entry.getValue();
+                        String tagValue = httpHeaders.get(headerName);
+                        if (tagValue != null) {
+                            s.tag(tagName, tagValue);
                         }
+                    }
+                }
 
-                        if (!xforwarded.contains(remoteAddrText)) { // prevent duplicates
-                            // xforwarded maybe unmodifiable, create a new container
-                            xforwarded = new ArrayList<>(xforwarded);
+                //
+                // handle X-FORWARDED-FOR
+                //
+                if (xforwardTagName == null) {
+                    return;
+                }
+                InetSocketAddress remoteAddr = request.remoteAddress();
+                if (remoteAddr == null) {
+                    return;
+                }
 
-                            xforwarded.add(remoteAddrText);
-                        }
+                String remoteAddrText = remoteAddr.getAddress().getHostAddress();
+                List<String> xforwarded = request.requestHeaders().getAll(X_FORWARDED_FOR);
+                if (xforwarded == null) {
+                    span.tag(xforwardTagName, remoteAddrText);
+                    return;
+                }
 
-                        // using join instead of using ObjectMapper
-                        // because in other modules such as tomcat-plugin, we directly get the header value and record it in the log
-                        // the value in that header is comma delimited
-                        span.tag(xforwardTagName, String.join(",", xforwarded));
-                    }))
-                    .finish();
+                if (!xforwarded.contains(remoteAddrText)) { // prevent duplicates
+                    // xforwarded maybe unmodifiable, create a new container
+                    xforwarded = new ArrayList<>(xforwarded);
+
+                    xforwarded.add(remoteAddrText);
+                }
+
+                // using join instead of using ObjectMapper
+                // because in other modules such as tomcat-plugin, we directly get the header value and record it in the log
+                // the value in that header is comma delimited
+                s.tag(xforwardTagName, String.join(",", xforwarded));
+            }))
+            .finish();
         traceContext.finish();
     }
 }

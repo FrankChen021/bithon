@@ -181,8 +181,10 @@ class TracingSpan implements ITraceSpan {
     @Override
     public void finish() {
         if (this.endTime != 0) {
+            // This span has already been closed, this is a bug
             return;
         }
+
         this.endTime = context().clock().currentMicroseconds();
         try {
             this.tracingContext.onSpanFinished(this);
@@ -201,6 +203,7 @@ class TracingSpan implements ITraceSpan {
                 ", method=" + this.method +
                 ", kind=" + this.kind +
                 ", cost=" + (this.endTime - this.startTime) + "(micro seconds)" +
+                ", exception=" + this.tags.getOrDefault(Tags.Exception.TYPE, "") +
                 "]";
     }
 }

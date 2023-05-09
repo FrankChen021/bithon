@@ -34,7 +34,7 @@ import reactor.netty.http.client.HttpClientResponse;
 import java.util.function.BiFunction;
 
 /**
- * see reactor.netty.http.client.HttpClientFinalizer#responseConnection
+ * see {@link reactor.netty.http.client.HttpClientFinalizer#responseConnection}
  *
  * @author frank.chen021@outlook.com
  * @date 27/11/21 1:57 pm
