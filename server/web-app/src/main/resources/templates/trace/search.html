@@ -31,7 +31,19 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light" style="padding-left: 5px; padding-right: 5px">
 
         <div class="collapse navbar-collapse">
-            <ul class="navbar-nav mr-auto mt-2 mt-lg-0" id="filterBar"></ul>
+            <ul class="navbar-nav mr-auto mt-2 mt-lg-0" id="filterBar" style="width:70%">
+                <li style="width: 100%">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="filter-input-span">Filter</span>
+                        </div>
+                        <input type="text"
+                               class="form-control"
+                               id="filter-input"
+                               aria-describedby="filter-input-span"/>
+                    </div>
+                </li>
+            </ul>
             <form class="form-inline my-2 my-lg-0" id="filterBarForm">
                 <!-- Auto Refresher -->
 
@@ -39,12 +51,25 @@
             </form>
         </div>
     </nav>
+
+
     <div id="distribution"></div>
     <table id="table" style="width: 100%;"></table>
     <script>
         let g_SelectedInstance = null;
         $(document).ready(() => {
-            new TracePage(window.queryParams);
+            let filterExpression = window.queryParams['filter'];
+            if (filterExpression !== undefined && filterExpression !== null) {
+                filterExpression = decodeURIComponent(filterExpression);
+            } else {
+                filterExpression = '';
+            }
+
+            new TracePage({
+                queryParams: window.queryParams,
+                filterExpression: filterExpression,
+                showSelector: false
+            });
         });
     </script>
 </div>

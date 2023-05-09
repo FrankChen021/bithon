@@ -26,6 +26,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -72,9 +73,13 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
         traceSpan.setStartTime(spanBody.getStartTime());
         traceSpan.setEndTime(spanBody.getEndTime());
         traceSpan.setCostTime(spanBody.getEndTime() - spanBody.getStartTime());
-        traceSpan.setTags(new TraceSpan.TagMap(spanBody.getTagsMap()));
         traceSpan.setClazz(spanBody.getClazz());
         traceSpan.setMethod(spanBody.getMethod());
+
+        // The returned Map is unmodifiable,
+        // here it's turned into a mutable one because the sink process might perform transformation on this Map object.
+        // Also, a TreeMap is used to order the keys, which is consistent with the definition in TraceSpan
+        traceSpan.setTags(new TreeMap<>(spanBody.getTagsMap()));
         return traceSpan;
     }
 

@@ -16,7 +16,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row16;
+import org.jooq.Row17;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryRecord> {
 
-    private static final long serialVersionUID = -1208433690;
+    private static final long serialVersionUID = -1692998903;
 
     /**
      * The reference instance of <code>bithon_trace_span_summary</code>
@@ -111,9 +111,14 @@ public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryReco
     public final TableField<BithonTraceSpanSummaryRecord, Long> ENDTIMEUS = createField(DSL.name("endTimeUs"), org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "Micro Second");
 
     /**
-     * The column <code>bithon_trace_span_summary.tags</code>.
+     * The column <code>bithon_trace_span_summary.tags</code>. Kept for compatibility
      */
-    public final TableField<BithonTraceSpanSummaryRecord, String> TAGS = createField(DSL.name("tags"), org.jooq.impl.SQLDataType.CLOB, this, "");
+    public final TableField<BithonTraceSpanSummaryRecord, String> TAGS = createField(DSL.name("tags"), org.jooq.impl.SQLDataType.CLOB, this, "Kept for compatibility");
+
+    /**
+     * The column <code>bithon_trace_span_summary.attributes</code>.
+     */
+    public final TableField<BithonTraceSpanSummaryRecord, String> ATTRIBUTES = createField(DSL.name("attributes"), org.jooq.impl.SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>bithon_trace_span_summary.normalizedUrl</code>.
@@ -195,11 +200,11 @@ public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryReco
     }
 
     // -------------------------------------------------------------------------
-    // Row16 type methods
+    // Row17 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row16<LocalDateTime, String, String, String, String, String, String, String, String, String, Long, Long, Long, String, String, String> fieldsRow() {
-        return (Row16) super.fieldsRow();
+    public Row17<LocalDateTime, String, String, String, String, String, String, String, String, String, Long, Long, Long, String, String, String, String> fieldsRow() {
+        return (Row17) super.fieldsRow();
     }
 }

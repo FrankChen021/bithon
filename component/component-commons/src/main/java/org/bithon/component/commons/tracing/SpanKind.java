@@ -16,6 +16,8 @@
 
 package org.bithon.component.commons.tracing;
 
+import java.util.Locale;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/5 8:51 下午
@@ -24,10 +26,10 @@ public enum SpanKind {
     /**
      * Unspecified.
      */
-    NONE,
+    INTERNAL,
 
     /**
-     * a client is a termination of trace in current context.
+     * A client is a termination of trace in current context.
      * It spreads the trace context to next hop.
      * <p>
      * For such type, 'targetType' and 'uri' must be filled in `tags`
@@ -62,6 +64,7 @@ public enum SpanKind {
     }
 
     public static boolean isRootSpan(String kind) {
+        kind = kind.toUpperCase(Locale.ENGLISH);
         return SERVER.name().equals(kind) || TIMER.name().equals(kind) || CONSUMER.name().equals(kind);
     }
 }

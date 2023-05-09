@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.jdbc.tracing;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -32,7 +33,7 @@ import org.jooq.Table;
 import org.jooq.TransactionalRunnable;
 import org.springframework.dao.DuplicateKeyException;
 
-import java.io.IOException;
+import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -66,71 +67,91 @@ public class TraceJdbcWriter implements ITraceWriter {
         return true;
     }
 
+    protected Object toTagStore(Map<String, String> tag) {
+        try {
+            return objectMapper.writeValueAsString(tag);
+        } catch (JsonProcessingException ignored) {
+            return "{}";
+        }
+    }
+
     private void writeSpans(Collection<TraceSpan> traceSpans, Table<?> table) {
         if (traceSpans.isEmpty()) {
             return;
         }
-
-        BatchBindStep step = dslContext.batch(dslContext.insertInto(table,
-                                                                    Tables.BITHON_TRACE_SPAN.TIMESTAMP,
-                                                                    Tables.BITHON_TRACE_SPAN.APPNAME,
-                                                                    Tables.BITHON_TRACE_SPAN.INSTANCENAME,
-                                                                    Tables.BITHON_TRACE_SPAN.TRACEID,
-                                                                    Tables.BITHON_TRACE_SPAN.SPANID,
-                                                                    Tables.BITHON_TRACE_SPAN.PARENTSPANID,
-                                                                    Tables.BITHON_TRACE_SPAN.NAME,
-                                                                    Tables.BITHON_TRACE_SPAN.CLAZZ,
-                                                                    Tables.BITHON_TRACE_SPAN.METHOD,
-                                                                    Tables.BITHON_TRACE_SPAN.KIND,
-                                                                    Tables.BITHON_TRACE_SPAN.STARTTIMEUS,
-                                                                    Tables.BITHON_TRACE_SPAN.ENDTIMEUS,
-                                                                    Tables.BITHON_TRACE_SPAN.COSTTIMEMS,
-                                                                    Tables.BITHON_TRACE_SPAN.TAGS,
-                                                                    Tables.BITHON_TRACE_SPAN.NORMALIZEDURL,
-                                                                    Tables.BITHON_TRACE_SPAN.STATUS)
-                                                        .values((LocalDateTime) null,
-                                                                null, //app name
-                                                                null, // instance
-                                                                null, //trace id
-                                                                null, // span id
-                                                                null, // parent id
-                                                                null, // name
-                                                                null, // class
-                                                                null, // method
-                                                                null, // kind
-                                                                null, // start time
-                                                                null, // end time
-                                                                null, // cost time
-                                                                null,   // tags
-                                                                null,   // normalized url
-                                                                null    // status
-                                                        ));
-
-        for (TraceSpan span : traceSpans) {
-            String tags;
-            try {
-                tags = span.getTags() == null ? "{}" : objectMapper.writeValueAsString(span.tags);
-            } catch (IOException ignored) {
-                tags = "{}";
+        String insertTemplate = dslContext.render(dslContext.insertInto(table,
+                                                                        Tables.BITHON_TRACE_SPAN.TIMESTAMP,
+                                                                        Tables.BITHON_TRACE_SPAN.APPNAME,
+                                                                        Tables.BITHON_TRACE_SPAN.INSTANCENAME,
+                                                                        Tables.BITHON_TRACE_SPAN.TRACEID,
+                                                                        Tables.BITHON_TRACE_SPAN.SPANID,
+                                                                        Tables.BITHON_TRACE_SPAN.PARENTSPANID,
+                                                                        Tables.BITHON_TRACE_SPAN.NAME,
+                                                                        Tables.BITHON_TRACE_SPAN.CLAZZ,
+                                                                        Tables.BITHON_TRACE_SPAN.METHOD,
+                                                                        Tables.BITHON_TRACE_SPAN.KIND,
+                                                                        Tables.BITHON_TRACE_SPAN.STARTTIMEUS,
+                                                                        Tables.BITHON_TRACE_SPAN.ENDTIMEUS,
+                                                                        Tables.BITHON_TRACE_SPAN.COSTTIMEMS,
+                                                                        Tables.BITHON_TRACE_SPAN.ATTRIBUTES,
+                                                                        Tables.BITHON_TRACE_SPAN.NORMALIZEDURL,
+                                                                        Tables.BITHON_TRACE_SPAN.STATUS)
+                                                            .values((LocalDateTime) null,
+                                                                    //app name
+                                                                    null,
+                                                                    // instance
+                                                                    null,
+                                                                    //trace id
+                                                                    null,
+                                                                    // span id
+                                                                    null,
+                                                                    // parent id
+                                                                    null,
+                                                                    // name
+                                                                    null,
+                                                                    // class
+                                                                    null,
+                                                                    // method
+                                                                    null,
+                                                                    // kind
+                                                                    null,
+                                                                    // start time
+                                                                    null,
+                                                                    // end time
+                                                                    null,
+                                                                    // cost time
+                                                                    null,
+                                                                    // tags
+                                                                    null,
+                                                                    // normalized url
+                                                                    null,
+                                                                    // status
+                                                                    null
+                                                            ));
+        dslContext.connection(conn -> {
+            try (PreparedStatement stmt = conn.prepareStatement(insertTemplate)) {
+                for (TraceSpan span : traceSpans) {
+                    stmt.setObject(1, new Timestamp(span.startTime / 1000));
+                    stmt.setObject(2, span.appName);
+                    stmt.setObject(3, span.instanceName);
+                    stmt.setObject(4, span.traceId);
+                    stmt.setObject(5, span.spanId);
+                    stmt.setObject(6, span.parentSpanId);
+                    stmt.setObject(7, getOrDefault(span.name));
+                    stmt.setObject(8, getOrDefault(span.clazz));
+                    stmt.setObject(9, getOrDefault(span.method));
+                    stmt.setObject(10, getOrDefault(span.kind));
+                    stmt.setObject(11, span.startTime);
+                    stmt.setObject(12, span.endTime);
+                    stmt.setObject(13, span.costTime);
+                    stmt.setObject(14, toTagStore(span.getTags()));
+                    stmt.setObject(15, span.getNormalizedUri());
+                    stmt.setObject(16, span.getStatus());
+                    stmt.addBatch();
+                }
+                stmt.executeBatch();
             }
-            step.bind(new Timestamp(span.startTime / 1000),
-                      span.appName,
-                      span.instanceName,
-                      span.traceId,
-                      span.spanId,
-                      span.parentSpanId,
-                      getOrDefault(span.name),
-                      getOrDefault(span.clazz),
-                      getOrDefault(span.method),
-                      getOrDefault(span.kind),
-                      span.startTime,
-                      span.endTime,
-                      span.costTime,
-                      tags,
-                      span.getNormalizedUri(),
-                      span.getStatus());
-        }
-        step.execute();
+        });
     }
 
     private void writeMappings(Collection<TraceIdMapping> mappings) {

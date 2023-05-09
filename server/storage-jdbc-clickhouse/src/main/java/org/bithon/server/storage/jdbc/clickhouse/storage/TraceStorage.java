@@ -22,20 +22,27 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.typing.StringValueType;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseSqlDialect;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.tracing.TraceJdbcReader;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
+import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
+import org.bithon.server.storage.metrics.IFilter;
+import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 
 import java.sql.Timestamp;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -98,6 +105,47 @@ public class TraceStorage extends TraceJdbcStorage {
             @Override
             protected boolean isTransactionSupported() {
                 return false;
+            }
+
+            /**
+             * The map object is supported by ClickHouse JDBC, uses it directly
+             */
+            @Override
+            protected Object toTagStore(Map<String, String> tag) {
+                // TagMap is an instance of java.util.Map,
+                // can be directly returned since ClickHouse JDBC supports such type
+                return tag;
+            }
+        };
+    }
+
+    @Override
+    public ITraceReader createReader() {
+        return new TraceJdbcReader(this.dslContext,
+                                   this.objectMapper,
+                                   this.traceSpanSchema,
+                                   this.traceTagIndexSchema,
+                                   this.traceStorageConfig,
+                                   this.sqlDialect) {
+
+            /**
+             * In ClickHouse, the tags are stored in a Map field.
+             * We need to use map accessor expression to search in the map
+             */
+            @Override
+            protected String getTagPredicate(IFilter filter) {
+                String tag = StringUtils.format("%s['%s']", Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName(), filter.getName().substring(SPAN_TAGS_PREFIX.length()));
+                return filter.getMatcher().accept(new SQLFilterBuilder(traceSpanSchema.getName(),
+                                                                       tag,
+                                                                       StringValueType.INSTANCE,
+                                                                       false,
+                                                                       false));
+            }
+
+            @Override
+            protected Map<String, String> toTagMap(Object attributes) {
+                //noinspection unchecked
+                return (Map<String, String>) attributes;
             }
         };
     }

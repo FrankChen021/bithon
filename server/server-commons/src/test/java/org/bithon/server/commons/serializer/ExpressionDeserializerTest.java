@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.bithon.component.commons.expression.BinaryExpression;
+import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
@@ -43,6 +44,26 @@ public class ExpressionDeserializerTest {
         IExpression expression = new LogicalExpression.AND(BinaryExpression.create(">", new LiteralExpression(1), new LiteralExpression(2)),
                                                            new LiteralExpression(true),
                                                            new IdentifierExpression("a"));
+
+        String jsonText = om.writeValueAsString(expression);
+
+        IExpression deserialized = om.readValue(jsonText, IExpression.class);
+        String jsonText2 = om.writeValueAsString(deserialized);
+
+        Assert.assertEquals(jsonText, jsonText2);
+    }
+
+    @Test
+    public void testSerializationInOperator() throws JsonProcessingException {
+        ObjectMapper om = new ObjectMapper();
+        SimpleModule m = new SimpleModule();
+        m.addDeserializer(IExpression.class, new ExpressionDeserializer());
+        om.registerModule(m);
+
+        IExpression expression = new BinaryExpression.IN(new IdentifierExpression("a"),
+                                                         new ExpressionList(new LiteralExpression(1),
+                                                                            new LiteralExpression(2),
+                                                                            new IdentifierExpression("b")));
 
         String jsonText = om.writeValueAsString(expression);
 

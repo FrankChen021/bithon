@@ -157,8 +157,8 @@ public class ExpressionFilterTest {
     }
 
     @Test
-    public void testCompoundExpressioOR() {
-        ExpressionFilter filter = new ExpressionFilter("a = b OR c = d");
+    public void testCompoundExpressionOR() {
+        ExpressionFilter filter = new ExpressionFilter("a = b OR c = d", true);
 
         IInputRow row = new InputRow(new HashMap<>());
 
@@ -351,7 +351,7 @@ public class ExpressionFilterTest {
     }
 
     @Test
-    public void testGreaterThan() throws JsonProcessingException {
+    public void testOperator_GT() throws JsonProcessingException {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(new ExpressionFilter("a > 5"));
         IInputRowFilter filter = om.readValue(json, IInputRowFilter.class);
@@ -365,6 +365,54 @@ public class ExpressionFilterTest {
         Assert.assertTrue(filter.shouldInclude(row));
 
         row.updateColumn("a", 4);
+        Assert.assertFalse(filter.shouldInclude(row));
+
+        // empty row
+        Assert.assertFalse(filter.shouldInclude(new InputRow(new HashMap<>())));
+    }
+
+    @Test
+    public void testQualifiedName() throws JsonProcessingException {
+        ObjectMapper om = new ObjectMapper();
+        String json = om.writeValueAsString(new ExpressionFilter("a.b.c > 5", true));
+        IInputRowFilter filter = om.readValue(json, IInputRowFilter.class);
+
+        IInputRow row = new InputRow(new HashMap<>());
+
+        row.updateColumn("a.b.c", 5);
+        Assert.assertFalse(filter.shouldInclude(row));
+
+        row.updateColumn("a.b.c", 6);
+        Assert.assertTrue(filter.shouldInclude(row));
+
+        row.updateColumn("a.b.c", 4);
+        Assert.assertFalse(filter.shouldInclude(row));
+
+        // empty row
+        Assert.assertFalse(filter.shouldInclude(new InputRow(new HashMap<>())));
+    }
+
+    @Test
+    public void testOperator_IN() throws JsonProcessingException {
+        ObjectMapper om = new ObjectMapper();
+        String json = om.writeValueAsString(new ExpressionFilter("a in (5,6,7)", true));
+        IInputRowFilter filter = om.readValue(json, IInputRowFilter.class);
+
+        IInputRow row = new InputRow(new HashMap<>());
+
+        row.updateColumn("a", 0);
+        Assert.assertFalse(filter.shouldInclude(row));
+
+        row.updateColumn("a", 5);
+        Assert.assertTrue(filter.shouldInclude(row));
+
+        row.updateColumn("a", 6);
+        Assert.assertTrue(filter.shouldInclude(row));
+
+        row.updateColumn("a", 7);
+        Assert.assertTrue(filter.shouldInclude(row));
+
+        row.updateColumn("a", 8);
         Assert.assertFalse(filter.shouldInclude(row));
 
         // empty row

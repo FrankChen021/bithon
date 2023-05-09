@@ -80,20 +80,25 @@
             <driver>com.mysql.cj.jdbc.Driver</driver>
             <url>jdbc:mysql://localhost:3306/bithon_codegen?useSSL=false</url>
             <user>root</user>
-            <password></password>
+            <password/>
           </jdbc>
           <generator>
             <database>
               <name>org.jooq.meta.mysql.MySQLDatabase</name>
               <inputSchema>bithon_codegen</inputSchema><!-- database -->
-              <includes>.*</includes><!-- table whitelist, regex -->
+              <includes>.*</includes><!-- table white-list, regex -->
               <dateAsTimestamp>false</dateAsTimestamp>
               <outputSchemaToDefault>true</outputSchemaToDefault>
               <forcedTypes>
                 <forcedType>
+                  <!--tinyint is mapped into java Boolean(org.jooq.impl.SQLDataType)-->
                   <name>BOOLEAN</name>
                   <includeTypes>tinyint</includeTypes>
                 </forcedType>
+<!--                <forcedType>-->
+<!--                  <name>OTHER</name>-->
+<!--                  <includeExpression>bithon_trace_span.*.attributes</includeExpression>-->
+<!--                </forcedType>-->
               </forcedTypes>
               <!-- <unsignedTypes>false</unsignedTypes> -->
             </database>
@@ -101,13 +106,14 @@
               <globalSchemaReferences>false</globalSchemaReferences>
               <globalTableReferences>true</globalTableReferences>
               <deprecated>false</deprecated>
+              <deprecationOnUnknownTypes>false</deprecationOnUnknownTypes>
               <instanceFields>true</instanceFields>
               <keys>true</keys>
               <pojos>false</pojos>
               <indexes>true</indexes>
               <generatedAnnotation>false</generatedAnnotation>
               <!--
-              Use LocalDateTime for timestamp SQL type.
+              Use LocalDateTime for the timestamp SQL type.
               This is because CK driver treats DateTime as LocalDateTime in its JDBC driver.
 
               Since the code/schema are all based on original Timestamp, to keep compatibility,

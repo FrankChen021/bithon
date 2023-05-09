@@ -16,11 +16,16 @@
 
 package org.bithon.server.web.service.tracing.service;
 
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.bithon.server.storage.tracing.TraceStorageConfig;
+import org.bithon.server.storage.tracing.index.TagIndexConfig;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
@@ -28,7 +33,6 @@ import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -36,6 +40,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -47,9 +52,15 @@ import java.util.stream.Collectors;
 public class TraceService {
 
     private final ITraceReader traceReader;
+    private final TraceStorageConfig traceStorageConfig;
+    private final DataSourceSchema traceSpanSummarySchema;
 
-    public TraceService(ITraceStorage traceStorage) {
+    public TraceService(ITraceStorage traceStorage,
+                        TraceStorageConfig traceStorageConfig,
+                        DataSourceSchemaManager dataSourceSchemaManager) {
         this.traceReader = traceStorage.createReader();
+        this.traceStorageConfig = traceStorageConfig;
+        this.traceSpanSummarySchema = dataSourceSchemaManager.getDataSourceSchema("trace_span_summary");
     }
 
     /**
@@ -64,7 +75,8 @@ public class TraceService {
      * 1. The minimal length of each bucket is 1 minute
      *
      * <p>
-     * @param bucketCount the count of buckets
+     *
+     * @param bucketCount    the count of buckets
      * @param startTimestamp in millisecond
      * @param endTimestamp   in millisecond
      * @return the length of a bucket in second
@@ -148,7 +160,7 @@ public class TraceService {
                 if (parentSpan == null) {
                     // For example, two applications: A --> B
                     // if span logs of A are not stored in Bithon,
-                    // the root span of B has parentSpanId but of course has no parent span
+                    // the root span of B has parentSpanId, but apparently the parent span can't be found
                     rootSpans.add(bo);
                 } else {
                     parentSpan.children.add(bo);
@@ -158,18 +170,36 @@ public class TraceService {
         return rootSpans;
     }
 
-    public int getTraceListSize(List<IFilter> filters, Timestamp start, Timestamp end) {
-        return traceReader.getTraceListSize(filters, start, end);
+    public int getTraceListSize(List<IFilter> filters,
+                                String filterExpression,
+                                Timestamp start,
+                                Timestamp end) {
+        // Convert filter expression into filter objects first
+        filters.addAll(FilterExpressionToFilters.toFilter(traceSpanSummarySchema, filterExpression));
+
+        FilterSplitter splitter = new FilterSplitter(this.traceStorageConfig);
+        splitter.split(filters);
+
+        return traceReader.getTraceListSize(splitter.filters, splitter.indexedTagFilter, splitter.nonIndexedTagFilter, start, end);
     }
 
     public List<TraceSpan> getTraceList(List<IFilter> filters,
+                                        String filterExpression,
                                         Timestamp start,
                                         Timestamp end,
                                         String orderBy,
                                         String order,
                                         int pageNumber,
                                         int pageSize) {
-        return traceReader.getTraceList(filters,
+        // Convert filter expression into filter objects first
+        filters.addAll(FilterExpressionToFilters.toFilter(this.traceSpanSummarySchema, filterExpression));
+
+        FilterSplitter splitter = new FilterSplitter(this.traceStorageConfig);
+        splitter.split(filters);
+
+        return traceReader.getTraceList(splitter.filters,
+                                        splitter.indexedTagFilter,
+                                        splitter.nonIndexedTagFilter,
                                         start,
                                         end,
                                         orderBy,
@@ -178,17 +208,64 @@ public class TraceService {
     }
 
     public TimeSeriesQueryResult getTraceDistribution(List<IFilter> filters,
+                                                      String filterExpression,
                                                       TimeSpan start,
                                                       TimeSpan end,
                                                       int bucketCount) {
+        // Convert filter expression into filter objects first
+        filters.addAll(FilterExpressionToFilters.toFilter(this.traceSpanSummarySchema, filterExpression));
+
+        FilterSplitter splitter = new FilterSplitter(this.traceStorageConfig);
+        splitter.split(filters);
+
         int bucketInSecond = getTimeBucket(start.getMilliseconds(), end.getMilliseconds(), bucketCount).length;
-        List<Map<String, Object>> dataPoints = traceReader.getTraceDistribution(filters,
+        List<Map<String, Object>> dataPoints = traceReader.getTraceDistribution(splitter.filters,
+                                                                                splitter.indexedTagFilter,
+                                                                                splitter.nonIndexedTagFilter,
                                                                                 start.toTimestamp(),
                                                                                 end.toTimestamp(),
                                                                                 bucketInSecond);
         List<String> metrics = Arrays.asList("count", "minResponse", "avgResponse", "maxResponse");
         return TimeSeriesQueryResult.build(start, end, bucketInSecond, dataPoints, "_timestamp", Collections.emptyList(), metrics);
     }
+
+    static class FilterSplitter {
+        private final List<IFilter> filters;
+        private final Map<Integer, IFilter> indexedTagFilter;
+        private final List<IFilter> nonIndexedTagFilter;
+        private final TraceStorageConfig traceStorageConfig;
+
+        public FilterSplitter(TraceStorageConfig traceStorageConfig) {
+            this.traceStorageConfig = traceStorageConfig;
+            this.filters = new ArrayList<>();
+            this.indexedTagFilter = new TreeMap<>();
+            this.nonIndexedTagFilter = new ArrayList<>();
+        }
+
+        void split(List<IFilter> filters) {
+            TagIndexConfig indexedTagConfig = this.traceStorageConfig.getIndexes();
+
+            for (IFilter filter : filters) {
+                if (!filter.getName().startsWith("tags.")) {
+                    this.filters.add(filter);
+                    continue;
+                }
+
+                String tagName = filter.getName().substring("tags.".length());
+                if (!StringUtils.hasText(tagName)) {
+                    throw new RuntimeException(StringUtils.format("Wrong tag name [%s]", filter.getName()));
+                }
+
+                int tagIndex = indexedTagConfig == null ? 0 : indexedTagConfig.getColumnPos(tagName);
+                if (tagIndex > 0) {
+                    indexedTagFilter.put(tagIndex, filter);
+                } else {
+                    nonIndexedTagFilter.add(filter);
+                }
+            }
+        }
+    }
+
 
     static class Bucket {
         /**

@@ -27,10 +27,10 @@ import javax.annotation.Nullable;
 public class Limit implements IASTNode {
 
     @Getter
-    private int limit;
+    private final int limit;
 
     @Getter
-    private int offset;
+    private final int offset;
 
     public Limit(int limit, int offset) {
         this.limit = limit;

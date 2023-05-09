@@ -46,10 +46,11 @@
           }
         },
         "tracing": {
-          "dimensionMaps": {
+          "mappings": {
             "uri": "url",
             "statusCode": "status"
-          }
+          },
+          "filter": "kind = 'SERVER'"
         }
       }
     },
@@ -101,10 +102,11 @@
           }
         },
         "tracing": {
-          "dimensionMaps": {
+          "mappings": {
             "uri": "url",
             "statusCode": "status"
-          }
+          },
+          "filter": "kind = 'SERVER'"
         }
       }
     },
@@ -160,10 +162,11 @@
           ]
         },
         "tracing": {
-          "dimensionMaps": {
+          "mappings": {
             "uri": "url",
             "statusCode": "status"
-          }
+          },
+          "filter": "kind = 'SERVER'"
         }
       }
     },
@@ -208,8 +211,8 @@
           "uri",
           "statusCode",
           "totalCount",
-          "requestByteRate",
-          "responseByteRate"
+          {"name":"requestByteRate","format": "byte_rate"},
+          {"name":"responseByteRate","format": "byte_rate"}
         ],
         "query": {
           "type": "groupBy",

@@ -25,16 +25,17 @@ import org.bithon.server.commons.matcher.IMatcherVisitor;
 import org.bithon.server.commons.matcher.InMatcher;
 import org.bithon.server.commons.matcher.LessThanMatcher;
 import org.bithon.server.commons.matcher.LessThanOrEqualMatcher;
+import org.bithon.server.commons.matcher.NotEqualMatcher;
 import org.bithon.server.commons.matcher.StringAntPathMatcher;
 import org.bithon.server.commons.matcher.StringContainsMatcher;
 import org.bithon.server.commons.matcher.StringEndWithMatcher;
 import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.matcher.StringIContainsMatcher;
-import org.bithon.server.commons.matcher.StringNotEqualMatcher;
 import org.bithon.server.commons.matcher.StringRegexMatcher;
 import org.bithon.server.commons.matcher.StringStartsWithMatcher;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.IColumnSpec;
+import org.bithon.server.storage.datasource.typing.IValueType;
 import org.bithon.server.storage.datasource.typing.StringValueType;
 import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
@@ -50,11 +51,29 @@ import java.util.stream.Stream;
  */
 public class SQLFilterBuilder implements IMatcherVisitor<String> {
 
-    private final DataSourceSchema schema;
+    public static String build(DataSourceSchema schema, Collection<IFilter> filters) {
+        return build(schema, filters.stream());
+    }
+
+    public static String build(DataSourceSchema schema, Stream<IFilter> filterStream) {
+        return build(schema, filterStream, true);
+    }
+
+    public static String build(DataSourceSchema schema, Stream<IFilter> filterStream, boolean useQualifiedName) {
+        return filterStream.map(filter -> filter.getMatcher()
+                                                .accept(new SQLFilterBuilder(schema, filter, useQualifiedName)))
+                           .collect(Collectors.joining(" AND "));
+    }
+
     private final String fieldName;
-    private final IColumnSpec columnSpec;
+    private final IValueType valueType;
 
     public SQLFilterBuilder(DataSourceSchema schema, IFilter filter) {
+        this(schema, filter, true);
+    }
+
+    public SQLFilterBuilder(DataSourceSchema schema, IFilter filter, boolean useQualifiedName) {
+        IColumnSpec columnSpec;
         if (IFilter.TYPE_DIMENSION.equals(filter.getType())) {
             String nameType = ((DimensionFilter) filter).getNameType();
             if ("name".equals(nameType)) {
@@ -65,35 +84,49 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
                 columnSpec = null;
             }
             Preconditions.checkNotNull(columnSpec, "dimension [%s] is not defined in data source [%s]", filter.getName(), schema.getName());
-
-            this.fieldName = columnSpec.getName();
         } else {
             columnSpec = schema.getMetricSpecByName(filter.getName());
             Preconditions.checkNotNull(columnSpec, "metric [%s] is not defined in data source [%s]", filter.getName(), schema.getName());
-
-            this.fieldName = filter.getName();
         }
-        this.schema = schema;
+
+        this.fieldName = formatName(useQualifiedName, true, "bithon_" + schema.getName().replaceAll("-", "_"), columnSpec.getName());
+        this.valueType = columnSpec.getValueType();
     }
 
-    public static String build(DataSourceSchema schema, Collection<IFilter> filters) {
-        return build(schema, filters.stream());
+    private static String formatName(boolean useQualifiedName, boolean quoted, String table, String field) {
+        if (useQualifiedName) {
+            return quoted ? StringUtils.format("\"%s\".\"%s\"", table, field) : StringUtils.format("%s.%s", table, field);
+        } else {
+            return quoted ? StringUtils.format("\"%s\"", field) : field;
+        }
     }
 
-    public static String build(DataSourceSchema schema, Stream<IFilter> filterStream) {
-        return filterStream.map(filter -> filter.getMatcher()
-                                                .accept(new SQLFilterBuilder(schema, filter)))
-                           .collect(Collectors.joining(" AND "));
+    /**
+     * @param quoted Whether a field SHOULD be quoted.
+     *               For filters on the tag field, the field name is sth like tags['htt_method'],
+     *               this name tags['htt_method'] SHOULD be quoted or the whole text would be treated as a column by database
+     */
+    public SQLFilterBuilder(String table,
+                            String fieldName,
+                            IValueType valueType,
+                            boolean quoted,
+                            boolean useQualifiedName) {
+        this.valueType = valueType;
+        this.fieldName = formatName(useQualifiedName, quoted, table, fieldName);
     }
 
     @Override
     public String visit(StringEqualMatcher matcher) {
-        return StringUtils.format("\"%s\" = '%s'", fieldName, matcher.getPattern());
+        return StringUtils.format("%s = '%s'",
+                                  fieldName,
+                                  matcher.getPattern());
     }
 
     @Override
-    public String visit(StringNotEqualMatcher matcher) {
-        return StringUtils.format("\"%s\" <> '%s'", fieldName, matcher.getPattern());
+    public String visit(NotEqualMatcher matcher) {
+        return StringUtils.format("%s <> '%s'",
+                                  fieldName,
+                                  matcher.getValue());
     }
 
     @Override
@@ -128,24 +161,21 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
 
     @Override
     public String visit(BetweenMatcher matcher) {
-        StringBuilder sb = new StringBuilder(32);
-        sb.append("\"");
-        sb.append(fieldName);
-        sb.append("\"");
-        sb.append(" BETWEEN ");
-        sb.append(matcher.getLower());
-        sb.append(" AND ");
-        sb.append(matcher.getUpper());
-        return sb.toString();
+        return StringUtils.format("%s BETWEEN %s AND %s",
+                                  fieldName,
+                                  matcher.getLower().toString(),
+                                  matcher.getUpper().toString());
     }
 
     @Override
     public String visit(InMatcher inMatcher) {
         if (inMatcher.getPattern().size() == 1) {
-            return StringUtils.format("\"%s\" = '%s'", fieldName, inMatcher.getPattern().iterator().next());
+            return StringUtils.format("%s = '%s'",
+                                      fieldName,
+                                      inMatcher.getPattern().iterator().next());
         }
 
-        return StringUtils.format("\"%s\" in (%s)",
+        return StringUtils.format("%s in (%s)",
                                   fieldName,
                                   inMatcher.getPattern()
                                            .stream()
@@ -154,43 +184,53 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     }
 
     /**
-     * use qualified name because there might be an aggregated field with the same name
+     * Use the full qualified name because there might be an aggregated field with the same name as the field name
      */
     @Override
     public String visit(GreaterThanMatcher matcher) {
-        String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
-
         String pattern;
-        if (columnSpec.getValueType() instanceof StringValueType) {
-            pattern = "\"%s\".\"%s\" > '%s'";
+        if (valueType instanceof StringValueType) {
+            pattern = "%s > '%s'";
         } else {
-            pattern = "\"%s\".\"%s\" > %s";
+            pattern = "%s > %s";
         }
-        return StringUtils.format(pattern, tableName, fieldName, matcher.getValue().toString());
+        return StringUtils.format(pattern, fieldName, matcher.getValue().toString());
     }
 
     @Override
     public String visit(GreaterThanOrEqualMatcher matcher) {
-        String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
-
         String pattern;
-        if (columnSpec.getValueType() instanceof StringValueType) {
-            pattern = "\"%s\".\"%s\" >= '%s'";
+        if (valueType instanceof StringValueType) {
+            pattern = "%s >= '%s'";
         } else {
-            pattern = "\"%s\".\"%s\" >= %s";
+            pattern = "%s >= %s";
         }
-        return StringUtils.format(pattern, tableName, fieldName, matcher.getValue().toString());
+        return StringUtils.format(pattern, fieldName, matcher.getValue().toString());
     }
 
     @Override
     public String visit(LessThanMatcher matcher) {
-        String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
-        return StringUtils.format("\"%s\".\"%s\" < %s", tableName, fieldName, matcher.getValue().toString());
+        String pattern;
+        if (valueType instanceof StringValueType) {
+            pattern = "%s < '%s'";
+        } else {
+            pattern = "%s < %s";
+        }
+        return StringUtils.format(pattern,
+                                  fieldName,
+                                  matcher.getValue().toString());
     }
 
     @Override
     public String visit(LessThanOrEqualMatcher matcher) {
-        String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
-        return StringUtils.format("\"%s\".\"%s\" <= %s", tableName, fieldName, matcher.getValue().toString());
+        String pattern;
+        if (valueType instanceof StringValueType) {
+            pattern = "%s <= '%s'";
+        } else {
+            pattern = "%s <= %s";
+        }
+        return StringUtils.format(pattern,
+                                  fieldName,
+                                  matcher.getValue().toString());
     }
 }

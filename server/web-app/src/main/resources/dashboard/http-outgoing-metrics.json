@@ -22,7 +22,8 @@
           "method",
           "path",
           "statusCode",
-          "qps"
+          "qps",
+          "requestCount"
         ],
         "query": {
           "type": "timeseries",
@@ -32,12 +33,22 @@
             "method",
             "path",
             "statusCode",
-            "qps"
+            "qps",
+            "requestCount"
           ],
           "orderBy": {
             "name": "qps",
             "order": "desc"
           }
+        },
+        "tracing": {
+          "mappings": {
+            "targetHostPort": "tags.net.peer",
+            "method": "tags.http.method",
+            "path": "url",
+            "statusCode": "status"
+          },
+          "filter": "name= 'httpclient' AND kind = 'CLIENT'"
         }
       }
     },
@@ -87,6 +98,15 @@
             "name": "avgResponseTime",
             "order": "desc"
           }
+        },
+        "tracing": {
+          "mappings": {
+            "targetHostPort": "tags.net.peer",
+            "method": "tags.http.method",
+            "path": "url",
+            "statusCode": "status"
+          },
+          "filter": "name= 'httpclient' AND kind = 'CLIENT'"
         }
       }
     },
@@ -135,6 +155,15 @@
               }
             }
           ]
+        },
+        "tracing": {
+          "mappings": {
+            "targetHostPort": "tags.net.peer",
+            "method": "tags.http.method",
+            "path": "url",
+            "statusCode": "status"
+          },
+          "filter": "name= 'httpclient' AND kind = 'CLIENT'"
         }
       }
     },
@@ -178,9 +207,10 @@
           "targetHostPort",
           "method",
           "path",
+          "requestCount",
           "statusCode",
-          "requestByteRate",
-          "responseByteRate"
+          {"name":"requestByteRate","format": "byte_rate"},
+          {"name":"responseByteRate","format": "byte_rate"}
         ],
         "query": {
           "type": "groupBy",
@@ -188,10 +218,15 @@
             "targetHostPort",
             "method",
             "path",
+            "requestCount",
             "statusCode",
             "requestByteRate",
             "responseByteRate"
-          ]
+          ],
+          "orderBy": {
+            "name": "requestByteRate",
+            "order": "desc"
+          }
         }
       }
     }

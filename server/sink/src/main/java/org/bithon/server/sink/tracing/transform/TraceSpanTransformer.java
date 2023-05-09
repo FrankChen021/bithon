@@ -57,6 +57,13 @@ public class TraceSpanTransformer implements ITransformer {
         transformIntoJavaStyleMethod(span);
         transformClickHouseSpans(span);
 
+        // SHOULD be placed at last
+        // Standardise kind
+        // 'NONE' is previously defined in SpanKind
+        if (span.getKind() == null || "NONE".equals(span.getKind())) {
+            span.setKind(SpanKind.INTERNAL.name());
+        }
+
         Map<String, String> tags = span.getTags();
         if (CollectionUtils.isEmpty(tags)) {
             return;
@@ -72,9 +79,9 @@ public class TraceSpanTransformer implements ITransformer {
         }
         if ("".equals(status)) {
             status = tags.containsKey("exception")
-                    || tags.containsKey(Tags.Exception.MESSAGE)
-                    || tags.containsKey(Tags.Exception.STACKTRACE)
-                    || tags.containsKey(Tags.Exception.TYPE) ? "500" : "200";
+                     || tags.containsKey(Tags.Exception.MESSAGE)
+                     || tags.containsKey(Tags.Exception.STACKTRACE)
+                     || tags.containsKey(Tags.Exception.TYPE) ? "500" : "200";
         }
         span.setStatus(status);
 
@@ -118,6 +125,10 @@ public class TraceSpanTransformer implements ITransformer {
         int parameterStart = span.getMethod().indexOf('(');
         if (parameterStart > 0) {
             span.setMethod(span.getMethod().substring(0, parameterStart));
+        }
+
+        if (span.getMethod().indexOf("::") > 0) {
+            span.appType = ApplicationType.CPP;
         }
 
         //

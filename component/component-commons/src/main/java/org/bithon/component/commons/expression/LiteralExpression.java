@@ -45,4 +45,9 @@ public class LiteralExpression implements IExpression {
     public Object evaluate(IEvaluationContext context) {
         return value;
     }
+
+    @Override
+    public String toString() {
+        return value.toString();
+    }
 }

@@ -45,7 +45,7 @@ public class ExpressionFilter implements IInputRowFilter {
 
     @JsonCreator
     public ExpressionFilter(@JsonProperty("expression") String expression,
-                            @JsonProperty("isDebug") Boolean debug) {
+                            @JsonProperty("debug") Boolean debug) {
         this.expression = expression;
         this.debug = debug != null && debug;
         this.delegation = FilterExpressionASTFactory.create(expression, this.debug);

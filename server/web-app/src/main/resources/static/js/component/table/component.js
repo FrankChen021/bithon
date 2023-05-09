@@ -23,7 +23,7 @@ class TableComponent {
         this.mColumns = option.columns;
         this.mCreated = false;
 
-        this.mHasPagination = option.pagination !== undefined;
+        this.mHasPagination = option.pagination !== undefined && option.pagination.length > 0;
         if (Array.isArray(option.pagination)) {
             this.mPagination = option.pagination;
             this.mPaginationSide = 'server';
@@ -167,7 +167,7 @@ class TableComponent {
                 tableOption.paginationPreText = '<';
                 tableOption.paginationNextText = '>';
                 tableOption.pageNumber = 1;
-                tableOption.pageSize = 10;
+                tableOption.pageSize = this.mPagination[0];
                 tableOption.pageList = this.mPagination;
             }
 

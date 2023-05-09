@@ -13,11 +13,33 @@ filterExpression
 
 binaryExpression
   : unaryExpression comparisonOperator unaryExpression
+  | unaryExpression 'in' experssionList
   ;
 
 unaryExpression
+  : nameExpression
+  | literalExperssion
+  ;
+
+nameExpression
+  : qualifiedNameExpression
+  | simpleNameExpression
+  ;
+
+qualifiedNameExpression
+  : VARIABLE ('.' VARIABLE)+
+  ;
+
+simpleNameExpression
   : VARIABLE
-  | STRING_LITERAL | NUMBER_LITERAL
+  ;
+
+literalExperssion
+  : STRING_LITERAL | NUMBER_LITERAL
+  ;
+
+experssionList
+  : '(' unaryExpression (',' unaryExpression)* ')'
   ;
 
 logicOperator

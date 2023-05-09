@@ -18,48 +18,53 @@ package org.bithon.server.storage.jdbc.tracing;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
-import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.matcher.InMatcher;
+import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.jooq.Tables;
-import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
-import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
-import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanSummaryRecord;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
-import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
+import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectSeekStep1;
-import org.jooq.impl.DSL;
 
 import java.sql.Timestamp;
-import java.util.Collection;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 30/12/20
  */
+@Slf4j
 public class TraceJdbcReader implements ITraceReader {
 
     public static final String SPAN_TAGS_PREFIX = "tags.";
-    private final DSLContext dslContext;
-    private final ObjectMapper objectMapper;
-    private final TraceStorageConfig traceStorageConfig;
-    private final DataSourceSchema traceSpanSchema;
-    private final DataSourceSchema traceTagIndexSchema;
-    private final ISqlDialect sqlDialect;
+    protected final DSLContext dslContext;
+    protected final ObjectMapper objectMapper;
+    protected final TraceStorageConfig traceStorageConfig;
+    protected final DataSourceSchema traceSpanSchema;
+    protected final DataSourceSchema traceTagIndexSchema;
+    protected final ISqlDialect sqlDialect;
 
     public TraceJdbcReader(DSLContext dslContext,
                            ObjectMapper objectMapper,
@@ -77,8 +82,8 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end) {
-        SelectConditionStep<BithonTraceSpanRecord> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                                                                   .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId));
+        SelectConditionStep<Record> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN.getUnqualifiedName().quotedName())
+                                                    .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId));
         if (start != null) {
             sql = sql.and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start.toTimestamp().toLocalDateTime()));
         }
@@ -86,7 +91,7 @@ public class TraceJdbcReader implements ITraceReader {
             sql = sql.and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end.toTimestamp().toLocalDateTime()));
         }
 
-        // for spans coming from a same application instance, sort them by the start time
+        // For spans coming from the same application instance, sort them by the start time
         return sql.orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(),
                            Tables.BITHON_TRACE_SPAN.INSTANCENAME,
                            Tables.BITHON_TRACE_SPAN.STARTTIMEUS)
@@ -95,36 +100,56 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public List<TraceSpan> getTraceList(List<IFilter> filters,
+                                        Map<Integer, IFilter> indexedTagFilter,
+                                        List<IFilter> nonIndexedTagFilters,
                                         Timestamp start,
                                         Timestamp end,
                                         String orderBy,
                                         String order,
                                         int pageNumber,
                                         int pageSize) {
-        BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
-        SelectConditionStep<BithonTraceSpanSummaryRecord> listQuery = dslContext.selectFrom(summaryTable)
-                                                                                .where(summaryTable.TIMESTAMP.ge(start.toLocalDateTime()))
-                                                                                .and(summaryTable.TIMESTAMP.lt(end.toLocalDateTime()));
+        boolean isOnSummaryTable = isFilterOnRootSpan(filters);
 
-        String moreFilter = SQLFilterBuilder.build(traceSpanSchema,
-                                                   filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
-        if (StringUtils.hasText(moreFilter)) {
-            listQuery = listQuery.and(moreFilter);
+        Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
+
+        // NOTE:
+        // 1. Here use selectFrom(String) instead of use selectFrom(table) because we want to use the raw objects returned by underlying JDBC
+        // 2. If the filters contain a filter that matches the ROOT kind, then the search is built upon the summary table
+        SelectConditionStep<Record> listQuery = dslContext.selectFrom(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.getUnqualifiedName().quotedName() : Tables.BITHON_TRACE_SPAN.getUnqualifiedName().quotedName())
+                                                          .where(timestampField.greaterOrEqual(start.toLocalDateTime()).and(timestampField.le(end.toLocalDateTime())));
+
+        if (CollectionUtils.isNotEmpty(filters)) {
+            listQuery = listQuery.and(SQLFilterBuilder.build(traceSpanSchema, filters.stream(), false));
         }
 
-        // build tag query
-        SelectConditionStep<Record1<String>> tagQuery = buildTagQuery(start, end, filters);
-        if (tagQuery != null) {
-            listQuery = listQuery.and(summaryTable.TRACEID.in(tagQuery));
+        if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
+            listQuery = listQuery.and(nonIndexedTagFilters.stream()
+                                                          .map(this::getTagPredicate)
+                                                          .collect(Collectors.joining(" AND ")));
+        }
+
+        // Build the tag query
+        if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
+            SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.traceTagIndexSchema)
+                    .dslContext(this.dslContext)
+                    .start(start.toLocalDateTime())
+                    .end(end.toLocalDateTime())
+                    .build(indexedTagFilter);
+
+            if (isOnSummaryTable) {
+                listQuery = listQuery.and(Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery));
+            } else {
+                listQuery = listQuery.and(Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery));
+            }
         }
 
         Field<?> orderField;
         if ("costTime".equals(orderBy)) {
-            orderField = summaryTable.COSTTIMEMS;
+            orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
         } else if ("startTime".equals(orderBy)) {
-            orderField = summaryTable.STARTTIMEUS;
+            orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
         } else {
-            orderField = summaryTable.TIMESTAMP;
+            orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
         }
         SelectSeekStep1<?, ?> orderedListQuery;
         if ("desc".equals(order)) {
@@ -135,65 +160,105 @@ public class TraceJdbcReader implements ITraceReader {
 
         return orderedListQuery.offset(pageNumber * pageSize)
                                .limit(pageSize)
-                               .fetch(r -> this.toTraceSpan((BithonTraceSpanSummaryRecord) r));
+                               .fetch(this::toTraceSpan);
     }
 
     @Override
-    public List<Map<String, Object>> getTraceDistribution(List<IFilter> filters, Timestamp start, Timestamp end, int interval) {
-        BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
+    public List<Map<String, Object>> getTraceDistribution(List<IFilter> filters,
+                                                          Map<Integer, IFilter> indexedTagFilter,
+                                                          List<IFilter> nonIndexedTagFilters,
+                                                          Timestamp start,
+                                                          Timestamp end,
+                                                          int interval) {
+        boolean isOnSummaryTable = isFilterOnRootSpan(filters);
 
         String timeBucket = sqlDialect.timeFloor("timestamp", interval);
-        StringBuilder sqlBuilder = new StringBuilder(StringUtils.format("SELECT %s AS \"_timestamp\", count(1) AS \"count\", min(\"%s\") AS \"minResponse\", avg(\"%s\") AS \"avgResponse\", max(\"%s\") AS \"maxResponse\" FROM %s",
+        StringBuilder sqlBuilder = new StringBuilder(StringUtils.format("SELECT %s AS \"_timestamp\", count(1) AS \"count\", min(\"%s\") AS \"minResponse\", avg(\"%s\") AS \"avgResponse\", max(\"%s\") AS \"maxResponse\" FROM \"%s\"",
                                                                         timeBucket,
-                                                                        summaryTable.COSTTIMEMS.getName(),
-                                                                        summaryTable.COSTTIMEMS.getName(),
-                                                                        summaryTable.COSTTIMEMS.getName(),
-                                                                        summaryTable.getQualifiedName()));
+                                                                        Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS.getName(),
+                                                                        Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS.getName(),
+                                                                        Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS.getName(),
+                                                                        isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.getUnqualifiedName().unquotedName() : Tables.BITHON_TRACE_SPAN.getUnqualifiedName().unquotedName()));
         sqlBuilder.append(StringUtils.format(" WHERE \"%s\" >= '%s' AND \"%s\" < '%s'",
-                                             summaryTable.TIMESTAMP.getName(),
+                                             Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.getName(),
                                              DateTime.toYYYYMMDDhhmmss(start.getTime()),
-                                             summaryTable.TIMESTAMP.getName(),
+                                             Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.getName(),
                                              DateTime.toYYYYMMDDhhmmss(end.getTime())));
 
-        String moreFilter = SQLFilterBuilder.build(traceSpanSchema, filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
-        if (StringUtils.hasText(moreFilter)) {
+        if (CollectionUtils.isNotEmpty(filters)) {
             sqlBuilder.append(" AND ");
-            sqlBuilder.append(moreFilter);
+            sqlBuilder.append(SQLFilterBuilder.build(traceSpanSchema, filters.stream(), false));
         }
 
-        // build tag query
-        SelectConditionStep<Record1<String>> tagQuery = buildTagQuery(start, end, filters);
-        if (tagQuery != null) {
+        if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
             sqlBuilder.append(" AND ");
-            sqlBuilder.append(dslContext.renderInlined(summaryTable.TRACEID.in(tagQuery)));
+            sqlBuilder.append(nonIndexedTagFilters.stream()
+                                                  .map(this::getTagPredicate)
+                                                  .collect(Collectors.joining(" AND ")));
+        }
+
+        // Build the indexed tag sub query
+        if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
+            SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.traceTagIndexSchema)
+                    .dslContext(this.dslContext)
+                    .start(start.toLocalDateTime())
+                    .end(end.toLocalDateTime())
+                    .build(indexedTagFilter);
+            Condition subQuery = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery) :
+                    Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery);
+
+            sqlBuilder.append(" AND ");
+            sqlBuilder.append(dslContext.renderInlined(subQuery));
         }
 
         sqlBuilder.append(StringUtils.format(" GROUP BY \"_timestamp\" ORDER BY \"_timestamp\"", timeBucket));
 
-        return dslContext.fetch(sqlBuilder.toString()).intoMaps();
+        String sql = sqlBuilder.toString();
+        log.info("Get trace distribution: {}", sql);
+        return dslContext.fetch(sql).intoMaps();
     }
 
     @Override
     public int getTraceListSize(List<IFilter> filters,
+                                Map<Integer, IFilter> indexedTagFilter,
+                                List<IFilter> nonIndexedTagFilters,
                                 Timestamp start,
                                 Timestamp end) {
-        BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
+        boolean isOnSummaryTable = isFilterOnRootSpan(filters);
 
-        SelectConditionStep<Record1<Integer>> countQuery = dslContext.select(DSL.count(summaryTable.TRACEID))
-                                                                     .from(summaryTable)
-                                                                     .where(summaryTable.TIMESTAMP.ge(start.toLocalDateTime()))
-                                                                     .and(summaryTable.TIMESTAMP.lt(end.toLocalDateTime()));
+        Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
 
-        String moreFilter = SQLFilterBuilder.build(traceSpanSchema,
-                                                   filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
-        if (StringUtils.hasText(moreFilter)) {
-            countQuery = countQuery.and(moreFilter);
+        // NOTE:
+        // 1. the query is performed on summary table or detail table based on input filters
+        // 2. the WHERE clause is built on raw SQL string
+        // because the jOOQ DSL expression, where(summary.TIMESTAMP.lt(xxx)), might translate the TIMESTAMP as a full qualified name,
+        // but the query might be performed on the detailed table
+        SelectConditionStep<Record1<Integer>> countQuery = dslContext.selectCount()
+                                                                     .from(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN)
+                                                                     .where(timestampField.ge(start.toLocalDateTime()).and(timestampField.lt(end.toLocalDateTime())));
+
+        if (CollectionUtils.isNotEmpty(filters)) {
+            countQuery = countQuery.and(SQLFilterBuilder.build(traceSpanSchema, filters.stream(), false));
         }
 
-        // build tag query
-        SelectConditionStep<Record1<String>> tagQuery = buildTagQuery(start, end, filters);
-        if (tagQuery != null) {
-            countQuery = countQuery.and(summaryTable.TRACEID.in(tagQuery));
+        if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
+            countQuery = countQuery.and(nonIndexedTagFilters.stream()
+                                                            .map(this::getTagPredicate)
+                                                            .collect(Collectors.joining(" AND ")));
+        }
+
+        // Build the indexed tag query
+        SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.traceTagIndexSchema)
+                .dslContext(this.dslContext)
+                .start(start.toLocalDateTime())
+                .end(end.toLocalDateTime())
+                .build(indexedTagFilter);
+        if (indexedTagQuery != null) {
+            if (isOnSummaryTable) {
+                countQuery = countQuery.and(Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery));
+            } else {
+                countQuery = countQuery.and(Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery));
+            }
         }
 
         return (int) countQuery.fetchOne(0);
@@ -201,9 +266,9 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public List<TraceSpan> getTraceByParentSpanId(String parentSpanId) {
-        return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
+        return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN.getUnqualifiedName().quotedName())
                          .where(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(parentSpanId))
-                         // for spans coming from a same application instance, sort them by the start time
+                         // For spans coming from the same application instance, sort them by the start time
                          .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(),
                                   Tables.BITHON_TRACE_SPAN.INSTANCENAME,
                                   Tables.BITHON_TRACE_SPAN.STARTTIMEUS)
@@ -226,94 +291,93 @@ public class TraceJdbcReader implements ITraceReader {
                          });
     }
 
-    /**
-     * TODO:
-     *  1. If a given tag name is not in the index list, the query on that name should fall back to BITHON_TRACE_SPAN table to match
-     *  2. For multiple tags which are not in the same group, nested query should be applied
-     */
-    protected SelectConditionStep<Record1<String>> buildTagQuery(Timestamp start, Timestamp end, Collection<IFilter> filters) {
-        SelectConditionStep<Record1<String>> tagQuery = null;
+    private TraceSpan toTraceSpan(Record record) {
+        TraceSpan span = new TraceSpan();
+        span.appName = TraceSpanRecordAccessor.getAppName(record);
+        span.instanceName = TraceSpanRecordAccessor.getInstanceName(record);
+        span.traceId = TraceSpanRecordAccessor.getTraceId(record);
+        span.spanId = TraceSpanRecordAccessor.getSpanId(record);
+        span.parentSpanId = TraceSpanRecordAccessor.getParentSpanId(record);
+        span.startTime = TraceSpanRecordAccessor.getStartTime(record);
+        span.costTime = TraceSpanRecordAccessor.getCostTime(record);
+        span.endTime = TraceSpanRecordAccessor.getEndTime(record);
+        span.name = TraceSpanRecordAccessor.getName(record);
+        span.kind = TraceSpanRecordAccessor.getKind(record);
+        span.method = TraceSpanRecordAccessor.getMethod(record);
+        span.clazz = TraceSpanRecordAccessor.getClazz(record);
+        span.status = TraceSpanRecordAccessor.getStatus(record);
+        span.normalizedUri = TraceSpanRecordAccessor.getNormalizedUrl(record);
+        if (StringUtils.hasText(TraceSpanRecordAccessor.getTags(record))) {
+            // Compatible with old data
+            try {
+                span.tags = objectMapper.readValue(TraceSpanRecordAccessor.getTags(record), TraceSpan.TagDeserializer.TYPE);
+            } catch (JsonProcessingException ignored) {
+            }
+        } else {
+            span.tags = toTagMap(TraceSpanRecordAccessor.getAttributes(record));
+        }
+        return span;
+    }
 
-        for (IFilter filter : filters) {
-            if (!filter.getName().startsWith(SPAN_TAGS_PREFIX)) {
+    private boolean isFilterOnRootSpan(List<IFilter> filters) {
+        final String kindFieldName = Tables.BITHON_TRACE_SPAN_SUMMARY.KIND.getName();
+
+        Iterator<IFilter> iterator = filters.iterator();
+        while (iterator.hasNext()) {
+            IFilter filter = iterator.next();
+
+            if (!kindFieldName.equals(filter.getName())) {
                 continue;
             }
-            String tagName = filter.getName().substring(SPAN_TAGS_PREFIX.length());
-            if (!StringUtils.hasText(tagName)) {
-                throw new RuntimeException(StringUtils.format("Wrong tag name [%s]", filter.getName()));
+
+            if (filter.getMatcher() instanceof StringEqualMatcher) {
+                String kindValue = ((StringEqualMatcher) filter.getMatcher()).getPattern();
+
+                // RootSpan has been extracted into trace_span_summary table during ingestion
+                // If the filter is on the root spans, it SHOULD query on the summary table
+                if (SpanKind.isRootSpan(kindValue)) {
+                    return true;
+                }
             }
 
-            Preconditions.checkNotNull(this.traceStorageConfig.getIndexes(), "No index configured for 'tags' attribute.");
-
-            int tagIndex = this.traceStorageConfig.getIndexes().getColumnPos(tagName);
-            if (tagIndex == 0) {
-                throw new RuntimeException(StringUtils.format("Can't search on tag [%s] because it is not configured in the index.", tagName));
-            }
-            if (tagIndex > Tables.BITHON_TRACE_SPAN_TAG_INDEX.fieldsRow().size() - 2) {
-                throw new RuntimeException(StringUtils.format("Tag [%s] is configured to use wrong index [%d]. Should be in the range [1, %d]",
-                                                              tagName,
-                                                              tagIndex,
-                                                              Tables.BITHON_TRACE_SPAN_TAG_INDEX.fieldsRow().size() - 2));
+            if (filter.getMatcher() instanceof InMatcher) {
+                boolean isRootSpan = ((InMatcher) filter.getMatcher()).getPattern().stream().allMatch(SpanKind::isRootSpan);
+                if (isRootSpan) {
+                    if (((InMatcher) filter.getMatcher()).getPattern().size() == 3) {
+                        // Can remove this filter since the summary table contains all these records
+                        iterator.remove();
+                    }
+                    return true;
+                }
             }
 
-            if (tagQuery == null) {
-                tagQuery = dslContext.select(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TRACEID)
-                                     .from(Tables.BITHON_TRACE_SPAN_TAG_INDEX)
-                                     .where(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.ge(start.toLocalDateTime()))
-                                     .and(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.lt(end.toLocalDateTime()));
-            }
-            tagQuery = tagQuery.and(filter.getMatcher().accept(new SQLFilterBuilder(this.traceTagIndexSchema,
-                                                                                    new DimensionFilter("f" + tagIndex, filter.getMatcher()))));
+            return false;
         }
 
-        return tagQuery;
+        return false;
     }
 
-    private TraceSpan toTraceSpan(BithonTraceSpanRecord record) {
-        TraceSpan span = new TraceSpan();
-        span.appName = record.getAppname();
-        span.instanceName = record.getInstancename();
-        span.traceId = record.getTraceid();
-        span.spanId = record.getSpanid();
-        span.parentSpanId = record.getParentspanid();
-        span.startTime = record.getStarttimeus();
-        span.costTime = record.getCosttimems();
-        span.endTime = record.getEndtimeus();
-        span.name = record.getName();
-        span.kind = record.getKind();
-        span.method = record.getMethod();
-        span.clazz = record.getClazz();
-        span.status = record.getStatus();
-        span.normalizedUri = record.getNormalizedurl();
-        try {
-            span.tags = objectMapper.readValue(record.getTags(), TraceSpan.TagMap.class);
-        } catch (JsonProcessingException ignored) {
+    /**
+     * Get the SQL predicate expression for give tag filter.
+     * For the default implementation, ONLY the 'equal' filter is supported, and it's turned into a LIKE search.
+     */
+    protected String getTagPredicate(IFilter filter) {
+        if (!(filter.getMatcher() instanceof StringEqualMatcher)) {
+            throw new UnsupportedOperationException(StringUtils.format("[%s] matcher on tag field is not supported on this database.",
+                                                                       filter.getMatcher().getClass().getSimpleName()));
         }
-        span.name = record.getName();
-        return span;
+
+        return StringUtils.format("\"%s\" LIKE '%%\"%s\":\"%s\"%%'",
+                                  Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName(),
+                                  filter.getName().substring(SPAN_TAGS_PREFIX.length()),
+                                  ((StringEqualMatcher) filter.getMatcher()).getPattern());
     }
 
-    private TraceSpan toTraceSpan(BithonTraceSpanSummaryRecord record) {
-        TraceSpan span = new TraceSpan();
-        span.appName = record.getAppname();
-        span.instanceName = record.getInstancename();
-        span.traceId = record.getTraceid();
-        span.spanId = record.getSpanid();
-        span.parentSpanId = record.getParentspanid();
-        span.startTime = record.getStarttimeus();
-        span.costTime = record.getCosttimems();
-        span.endTime = record.getEndtimeus();
-        span.name = record.getName();
-        span.kind = record.getKind();
-        span.method = record.getMethod();
-        span.clazz = record.getClazz();
-        span.status = record.getStatus();
-        span.normalizedUri = record.getNormalizedurl();
+    protected Map<String, String> toTagMap(Object attributes) {
         try {
-            span.tags = objectMapper.readValue(record.getTags(), TraceSpan.TagMap.class);
+            return objectMapper.readValue((String) attributes, TraceSpan.TagDeserializer.TYPE);
         } catch (JsonProcessingException ignored) {
+            return Collections.emptyMap();
         }
-        span.name = record.getName();
-        return span;
     }
 }

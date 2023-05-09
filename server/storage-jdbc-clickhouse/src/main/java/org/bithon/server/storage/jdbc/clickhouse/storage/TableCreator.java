@@ -21,6 +21,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
+import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.jooq.DSLContext;
 import org.jooq.DataType;
 import org.jooq.Field;
@@ -80,12 +81,12 @@ public class TableCreator {
 
     public void createIfNotExist(Table<?> table) {
         //
-        // create local table
+        // Create local table
         //
         {
             //
-            // NOTE: for ReplacingMergeTree, version is not specified on CREATE table DDL
-            // that means the last record will be kept
+            // NOTE: for ReplacingMergeTree, if the version is not specified on CREATE table DDL,
+            // the last record will be kept
             //
             String fullEngine = config.getEngine();
             if (replacingMergeTreeVersion != null && !config.getTableEngine().contains("Replacing")) {
@@ -108,7 +109,7 @@ public class TableCreator {
                                                            config.getDatabase(),
                                                            tableName,
                                                            config.getOnClusterExpression(),
-                                                           getFieldText(table),
+                                                           getFieldDeclarationExpression(table),
                                                            getIndexText()));
 
             // replace macro in the template to suit for ReplicatedMergeTree
@@ -151,13 +152,15 @@ public class TableCreator {
                 createTableStatement.append("\nORDER BY(");
                 for (Index idx : table.getIndexes()) {
                     if (idx.getFields().size() == 1 && this.secondaryIndexes.containsKey(idx.getFields().get(0).getName())) {
-                        // index on single column, and is marked as secondary index, no need to put this column in the ORDER-BY expression as primary key
+                        // index on single column,
+                        // and is marked as secondary index,
+                        // no need to put this column in the ORDER-BY expression as the primary key
                         continue;
                     }
 
                     if (replacingMergeTreeVersion != null) {
                         if (!idx.getUnique()) {
-                            // For replacing merge tree, use unique key as order key only,
+                            // For replacing merge tree, use unique key as the order key only,
                             // So if it's not the unique key, skip it
                             continue;
                         }
@@ -196,7 +199,7 @@ public class TableCreator {
                                          config.getDatabase(),
                                          table.getName(),
                                          config.getOnClusterExpression()));
-            sb.append(getFieldText(table));
+            sb.append(getFieldDeclarationExpression(table));
             sb.append(StringUtils.format(") ENGINE=Distributed('%s', '%s', '%s', murmurHash2_64(%s));",
                                          config.getCluster(),
                                          config.getDatabase(),
@@ -208,21 +211,24 @@ public class TableCreator {
         }
     }
 
-    private String getFieldText(Table<?> table) {
+    private String getFieldDeclarationExpression(Table<?> table) {
+
         StringBuilder sb = new StringBuilder(128);
-        for (Field<?> f : table.fields()) {
-            DataType<?> dataType = f.getDataType();
+        for (Field<?> field : table.fields()) {
+            DataType<?> dataType = field.getDataType();
 
             String typeName = dataType.getTypeName();
             if (dataType.equals(SQLDataType.TIMESTAMP) || dataType.equals(SQLDataType.LOCALDATETIME)) {
                 typeName = "timestamp(3,0)";
+            } else if (useMapType(table, field)) {
+                typeName = "Map(String, String)";
             } else {
                 if (dataType.hasPrecision()) {
                     typeName = dataType.getTypeName() + "(" + dataType.precision() + ", " + dataType.scale() + ")";
                 }
             }
 
-            sb.append(StringUtils.format("`%s` %s ", f.getName(), typeName));
+            sb.append(StringUtils.format("`%s` %s ", field.getName(), typeName));
 
             Field<?> defaultValue = dataType.defaultValue();
             if (defaultValue != null) {
@@ -233,6 +239,11 @@ public class TableCreator {
         }
         sb.delete(sb.length() - 2, sb.length());
         return sb.toString();
+    }
+
+    private boolean useMapType(Table<?> table, Field<?> field) {
+        return Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName().equals(field.getName())
+                && (table.getName().equals(Tables.BITHON_TRACE_SPAN.getName()) || table.getName().equals(Tables.BITHON_TRACE_SPAN_SUMMARY.getName()));
     }
 
     private String getIndexText() {

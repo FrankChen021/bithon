@@ -31,9 +31,6 @@ import java.util.List;
  */
 @Data
 public class GetTraceListRequest {
-    @Deprecated
-    private String application;
-
     @NotBlank
     private String startTimeISO8601;
 
@@ -41,6 +38,11 @@ public class GetTraceListRequest {
     private String endTimeISO8601;
 
     private List<IFilter> filters = Collections.emptyList();
+
+    /**
+     * Filter expression
+     */
+    private String expression;
 
     private String order = "desc";
     private String orderBy = "";

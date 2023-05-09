@@ -89,7 +89,7 @@ public class StorageAutoConfiguration {
         // load default schemas
         try {
             Resource[] resources = new PathMatchingResourcePatternResolver()
-                .getResources("classpath:/schema/*.json");
+                    .getResources("classpath:/schema/*.json");
             for (Resource resource : resources) {
                 storage.putIfNotExist(resource.getFilename().replace(".json", ""), StringUtils.from(resource.getInputStream()));
             }
@@ -183,39 +183,44 @@ public class StorageAutoConfiguration {
     }
 
     private DataSourceSchema createTraceSpanSchema() {
-        return new DataSourceSchema("trace_span_summary",
-                                    "trace_span_summary",
-                                    new TimestampSpec("timestamp", null, null),
-                                    Arrays.asList(new StringDimensionSpec("appName",
-                                                                          "appName",
-                                                                          "appName",
-                                                                          true,
-                                                                          null,
-                                                                          null),
-                                                  new StringDimensionSpec("instanceName",
-                                                                          "instanceName",
-                                                                          "instanceName",
-                                                                          false,
-                                                                          null,
-                                                                          null),
-                                                  new StringDimensionSpec("status",
-                                                                          "status",
-                                                                          "status",
-                                                                          false,
-                                                                          true,
-                                                                          null),
-                                                  new StringDimensionSpec("normalizedUrl",
-                                                                          "url",
-                                                                          "url",
-                                                                          false,
-                                                                          true,
-                                                                          128)),
-                                    Arrays.asList(CountMetricSpec.INSTANCE,
-                                                  new LongSumMetricSpec("costTimeMs",
-                                                                        null,
-                                                                        "costTimeMs",
-                                                                        "us",
-                                                                        true)));
+        DataSourceSchema dataSourceSchema =
+                new DataSourceSchema("trace_span_summary",
+                                     "trace_span_summary",
+                                     new TimestampSpec("timestamp", null, null),
+                                     Arrays.asList(new StringDimensionSpec("appName",
+                                                                           "appName",
+                                                                           "appName",
+                                                                           true,
+                                                                           null,
+                                                                           null),
+                                                   new StringDimensionSpec("instanceName",
+                                                                           "instanceName",
+                                                                           "instanceName",
+                                                                           false,
+                                                                           null,
+                                                                           null),
+                                                   new StringDimensionSpec("status",
+                                                                           "status",
+                                                                           "status",
+                                                                           false,
+                                                                           true,
+                                                                           null),
+                                                   new StringDimensionSpec("name", "name", "name", true, false, 128),
+                                                   new StringDimensionSpec("normalizedUrl",
+                                                                           "url",
+                                                                           "url",
+                                                                           false,
+                                                                           true,
+                                                                           128),
+                                                   new StringDimensionSpec("kind", "kind", "kind", true, false, 128)),
+                                     Arrays.asList(CountMetricSpec.INSTANCE,
+                                                   new LongSumMetricSpec("costTimeMs",
+                                                                         null,
+                                                                         "costTimeMs",
+                                                                         "us",
+                                                                         true)));
+        dataSourceSchema.setVirtual(true);
+        return dataSourceSchema;
     }
 
     private DataSourceSchema createTraceTagIndexSchema(TagIndexConfig tagIndexConfig) {

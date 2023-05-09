@@ -16,8 +16,7 @@
 
 package org.bithon.component.commons.expression;
 
-import org.bithon.component.commons.logging.ILogAdaptor;
-import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.Preconditions;
 
 /**
  * @author frank.chen021@outlook.com
@@ -40,6 +39,8 @@ public abstract class BinaryExpression implements IExpression {
             case "<>":
             case "!=":
                 return new NE(left, right);
+            case "in":
+                return new IN(left, right);
             default:
                 throw new UnsupportedOperationException("Not supported operator " + operator);
         }
@@ -77,9 +78,18 @@ public abstract class BinaryExpression implements IExpression {
 
     @Override
     public Object evaluate(IEvaluationContext context) {
-        Object lValue = left.evaluate(context);
-        Object rValue = right.evaluate(context);
+        return matches(left.evaluate(context), right.evaluate(context));
+    }
 
+    /**
+     * Override for debugging
+     */
+    @Override
+    public String toString() {
+        return this.left + " " + this.operator + " " + this.right;
+    }
+
+    protected boolean matches(Object lValue, Object rValue) {
         if (lValue == null || rValue == null) {
             return matchesNull(lValue, rValue);
         }
@@ -104,6 +114,10 @@ public abstract class BinaryExpression implements IExpression {
     public static class EQ extends BinaryExpression {
         public EQ(IExpression left, IExpression right) {
             super("=", left, right);
+        }
+
+        protected EQ(String operator, IExpression left, IExpression right) {
+            super(operator, left, right);
         }
 
         @Override
@@ -261,36 +275,29 @@ public abstract class BinaryExpression implements IExpression {
         }
     }
 
-    public static class DebuggableExpression implements IExpression {
-        private static final ILogAdaptor LOG = LoggerFactory.getLogger(DebuggableExpression.class);
+    public static class IN extends EQ {
+        public IN(IExpression left, IExpression right) {
+            super("in", left, right);
 
-        private final String expression;
-        private final BinaryExpression delegate;
-
-        public DebuggableExpression(String expression, BinaryExpression delegate) {
-            this.expression = expression;
-            this.delegate = delegate;
-        }
-
-        @Override
-        public String getType() {
-            return delegate.getType();
+            Preconditions.checkIfTrue(right instanceof ExpressionList, "The 2nd expression of IN operator must be type of ExpressionList");
         }
 
         @Override
         public Object evaluate(IEvaluationContext context) {
-            boolean ret = (boolean) delegate.evaluate(context);
-            LOG.info("Expression[{}] evaluates to be {}: left val={}, right val = {}",
-                     expression,
-                     ret,
-                     delegate.left.evaluate(context),
-                     delegate.right.evaluate(context));
-            return ret;
+            Object leftVal = left.evaluate(context);
+
+            for (IExpression expr : ((ExpressionList) right).getExpressionList()) {
+                if (this.matches(leftVal, expr.evaluate(context))) {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         @Override
         public <T> T accept(IExpressionVisitor<T> visitor) {
-            return delegate.accept(visitor);
+            return visitor.visit(this);
         }
     }
 }

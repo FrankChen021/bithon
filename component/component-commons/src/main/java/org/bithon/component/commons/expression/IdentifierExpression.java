@@ -45,4 +45,9 @@ public class IdentifierExpression implements IExpression {
     public Object evaluate(IEvaluationContext context) {
         return context.get(identifier);
     }
+
+    @Override
+    public String toString() {
+        return identifier;
+    }
 }

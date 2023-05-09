@@ -1,9 +1,17 @@
 class TracePage {
-    constructor(queryParams) {
+    /**
+     * @param options {
+     *     queryParams: {},
+     *     filterExpression: '',
+     *     showSelector: true | false,
+     *     excludeColumns: an array of String that contains the columns that are excluded from the list
+     * }
+     */
+    constructor(options) {
         // Model
-        this.mQueryParams = queryParams;
+        this.mQueryParams = options.queryParams;
+        this.filterExpression = options.filterExpression
         this.mInterval = null;
-        this.metricFilters = [];
 
         // View
         this.vChartComponent = new ChartComponent({
@@ -16,41 +24,32 @@ class TracePage {
         });
 
         // View
-        this.vFilters = new AppSelector({
-            parentId: 'filterBar',
-            intervalProvider: () => this.#getInterval()
-        }).registerChangedListener((name, value) => {
-            if (name === 'application') {
-                g_SelectedApp = value;
-                window.history.pushState('', '', `/web/app/trace/${value}`);
-            }
-            this.#refreshPage();
-        }).createAppSelector(this.mQueryParams['appName'])
-            .createFilter('trace_span_summary');
+        this.vFilters = null;
+        this.vTagFilter = null;
+        if (options.showSelector) {
+            this.vFilters = new AppSelector({
+                parentId: 'filterBar',
+                intervalProvider: () => this.#getInterval()
+            }).registerChangedListener((name, value) => {
+                if (name === 'application') {
+                    g_SelectedApp = value;
+                    window.history.pushState('', '', `/web/app/trace/${value}`);
+                }
+                this.#refreshPage();
+            }).createAppSelector(this.mQueryParams['appName'])
+                .createFilter('trace_span_summary');
 
-        // View, tag filter
-        this.vTagFilter = new AppSelector({
-            parentId: 'filterBar',
-            queryVariablePrefix: 'tags.',
-            intervalProvider: () => this.#getInterval()
-        }).registerChangedListener((name, value) => {
-            this.#refreshPage();
-        }).createFilter('trace_span_tag_index');
+            // View, tag filter
+            this.vTagFilter = new AppSelector({
+                parentId: 'filterBar',
+                queryVariablePrefix: 'tags.',
+                intervalProvider: () => this.#getInterval()
+            }).registerChangedListener((name, value) => {
+                this.#refreshPage();
+            }).createFilter('trace_span_tag_index');
+        }
 
         const parent = $('#filterBarForm');
-
-        // View - Refresh Button
-        parent.append('<button class="btn btn-outline-secondary" style="border-radius:0;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
-            .find("button").click(() => {
-            // reset the metric filter
-            this.metricFilters = [];
-
-            // get new interval
-            this.mInterval = this.vIntervalSelector.getInterval();
-
-            // refresh the page
-            this.#refreshPage();
-        });
 
         // View
         this.vIntervalSelector = new TimeInterval(window.queryParams['interval'])
@@ -61,22 +60,58 @@ class TracePage {
             });
         this.mInterval = this.vIntervalSelector.getInterval();
 
-        // View, will also trigger refresh automatically
-        this.vTraceList = new TraceListComponent(
-            $('#table'),
-            {
-                showApplicationName: false,
-                getQueryParams: (params) => {
-                    return {
-                        filters: this.#getFilters(),
-                        startTimeISO8601: this.mInterval.start,
-                        endTimeISO8601: this.mInterval.end
-                    };
-                }
-            }
-        );
+        // View - Auto Refresh Button
+        parent.append('<button class="btn btn-outline-secondary" style="border-radius:0;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
+            .find("button").click(() => {
+            // get a new interval
+            this.mInterval = this.vIntervalSelector.getInterval();
 
-        // Model
+            // refresh the page
+            this.#refreshPage();
+        });
+
+        // View, will also trigger refresh automatically
+        this.vTraceList = new TraceListComponent({
+            parent: $('#table'),
+            excludeColumns: options.excludeColumns || [],
+            getQueryParams: (params) => {
+                return {
+                    filters: this.#getFilters(),
+                    startTimeISO8601: this.mInterval.start,
+                    endTimeISO8601: this.mInterval.end,
+                    expression: this.filterExpression
+                };
+            }
+        });
+
+        // If the tag filters are not selectable, add them to the filterExpression
+        const tagFilters = {};
+        if (this.vTagFilter !== null) {
+            $.each(this.vTagFilter.getFilterName(), (index, name) => {
+                tagFilters["tags." + name] = true;
+            });
+        }
+        $.each(options.queryParams, (name, value) => {
+            if (name.startsWith("tags.") && tagFilters[name] === undefined) {
+                if (this.filterExpression.length > 0) {
+                    this.filterExpression += ' AND ';
+                }
+                this.filterExpression += `${name} = '${value}'`
+            }
+        });
+
+        $("#filter-input")
+            .val(this.filterExpression)
+            .on('keydown', (event) => {
+                this.filterExpression = event.target.value;
+                if (event.keyCode === 13) {
+                    this.#refreshPage();
+                }
+            })
+
+        //
+        // Model for distribution chart
+        //
         this.columns = {
             "minResponse": {chartType: 'line', fill: false, yAxis: 0, formatter: (v) => microFormat(v, 2)},
             "maxResponse": {chartType: 'line', fill: false, yAxis: 0, formatter: (v) => microFormat(v, 2)},
@@ -92,13 +127,16 @@ class TracePage {
     }
 
     #getFilters() {
-        let summaryTableFilter = this.vFilters.getSelectedFilters();
-        let tagFilters = this.vTagFilter.getSelectedFilters();
-        return summaryTableFilter.concat(tagFilters, this.metricFilters);
+        if (this.vFilters !== null) {
+            let summaryTableFilter = this.vFilters.getSelectedFilters();
+            let tagFilters = this.vTagFilter.getSelectedFilters();
+            return summaryTableFilter.concat(tagFilters);
+        } else {
+            return [];
+        }
     }
 
     #refreshPage() {
-        //
         // refresh the list
         //
         this.vTraceList.refresh();
@@ -116,7 +154,8 @@ class TracePage {
             ajaxData: JSON.stringify({
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                filters: this.#getFilters()
+                filters: this.#getFilters(),
+                expression: this.filterExpression
             }),
             processResult: (data) => {
                 this._data = data;
@@ -225,7 +264,7 @@ class TracePage {
                         const formatter = this.columns[s.seriesName].formatter;
                         const text = formatter === undefined ? s.data : formatter(s.data);
                         //Concat the tooltip
-                        //marker can be seen as the style of legend of this series
+                        //marker can be seen as the style of this series's legend
                         tooltip += `<br />${s.marker}${s.seriesName}: ${text}`;
                     });
                     return tooltip;
@@ -270,6 +309,14 @@ class TracePage {
     }
 
     #onClickChart(e) {
+        for(let i = 0; i < this._data.metrics.length; i++) {
+            const metric = this._data.metrics[i];
+            if (metric.tags[0] === 'count' && metric.values[e.dataIndex] === 0) {
+                // The 'count' metric is zero, no need to response the click event
+                return;
+            }
+        }
+
         const startTimestamp = this._data.startTimestamp + this._data.interval * e.dataIndex;
         const endTimestamp = startTimestamp + this._data.interval;
 

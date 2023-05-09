@@ -27,7 +27,7 @@ public class ExceptionUtils {
     public static String getStackTrace(Throwable throwable) {
         StringWriter stackTrace = new StringWriter(256);
         try (PrintWriter pw = new PrintWriter(stackTrace)) {
-            throwable.printStackTrace();
+            throwable.printStackTrace(pw);
             return stackTrace.toString();
         }
     }

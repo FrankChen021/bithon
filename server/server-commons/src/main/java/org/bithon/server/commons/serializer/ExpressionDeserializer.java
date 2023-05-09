@@ -20,7 +20,9 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.bithon.component.commons.expression.BinaryExpression;
+import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
@@ -65,6 +67,8 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
                     return LogicalExpressionDeserializer.deserialize(jsonNode);
                 case "identifier":
                     return IdentifierExpressionDeserializer.deserialize(jsonNode);
+                case "expressionList":
+                    return ExpressionListDeserializer.deserialize(jsonNode);
                 default:
                     throw new RuntimeException("Unknown type " + type);
             }
@@ -154,6 +158,25 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
                 throw new RuntimeException("Missing 'identifier' field");
             }
             return new IdentifierExpression(identifierNode.asText());
+        }
+    }
+
+    static class ExpressionListDeserializer {
+        static IExpression deserialize(JsonNode jsonNode) throws IOException {
+
+            JsonNode expressionList = jsonNode.get("expressionList");
+            if (expressionList == null) {
+                throw new RuntimeException("Missing 'expressionList' field");
+            }
+            if (!(expressionList instanceof ArrayNode)) {
+                throw new RuntimeException("expressionList should be an array.");
+            }
+
+            List<IExpression> exprList = new ArrayList<>();
+            for (JsonNode node : expressionList) {
+                exprList.add(Expression.deserialize(node));
+            }
+            return new ExpressionList(exprList);
         }
     }
 }
