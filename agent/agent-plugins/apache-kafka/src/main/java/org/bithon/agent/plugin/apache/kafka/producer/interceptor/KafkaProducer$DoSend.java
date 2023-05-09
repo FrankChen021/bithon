@@ -27,6 +27,7 @@ import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.agent.plugin.apache.kafka.producer.KafkaProducerTracingConfig;
+import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.ReflectionUtils;
@@ -44,7 +45,7 @@ public class KafkaProducer$DoSend extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan("kafka");
+        ITraceSpan span = TraceSpanFactory.newSpan(Components.KAFKA);
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -73,7 +74,7 @@ public class KafkaProducer$DoSend extends AroundInterceptor {
 
         aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                       .kind(SpanKind.PRODUCER)
-                                      .tag("uri", "kafka://" + cluster)
+                                      .tag(Tags.Net.PEER, cluster)
                                       .tag(Tags.Messaging.KAFKA_TOPIC, record.topic())
                                       .tag(Tags.Messaging.KAFKA_SOURCE_PARTITION, record.partition())
                                       .tag(Tags.Messaging.BYTES, size)
