@@ -27,6 +27,12 @@ public class Tags {
     public static class Http {
         /**
          * Non-standard name
+         * The type name of http server.
+         * For example, webflux, tomcat, undertow...
+         */
+        public static final String SERVER = "http.server";
+        /**
+         * Non-standard name
          * The type name of http client
          */
         public static final String CLIENT = "http.client";
