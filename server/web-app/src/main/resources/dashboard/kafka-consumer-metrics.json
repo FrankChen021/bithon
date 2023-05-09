@@ -20,6 +20,29 @@
           "consumedRecordsRate",
           "consumedRecords"
         ]
+      },
+      "details": {
+        "columns": ["cluster","topic","groupId","consumedRecordsRate","consumedRecords"],
+        "query": {
+          "type": "groupBy",
+          "dataSource": "kafka-consumer-metrics",
+          "fields": [
+            "cluster","topic","groupId","consumedRecordsRate","consumedRecords"
+          ],
+          "orderBy": {
+            "name": "consumedRecordsRate",
+            "order": "desc"
+          },
+          "limit": 15
+        },
+        "tracing": {
+          "mappings": {
+            "cluster": "tags.net.peer",
+            "topic": "tags.messaging.kafka.topic",
+            "groupId": "tags.messaging.kafka.consumer.group"
+          },
+          "filter": "name= 'kafka' AND kind = 'CONSUMER'"
+        }
       }
     },
     {
