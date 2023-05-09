@@ -27,9 +27,13 @@ import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
+import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
+import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.tracing.Tags;
 
 /**
  * {@link org.springframework.kafka.listener.KafkaMessageListenerContainer$ListenerConsumer}
@@ -40,19 +44,28 @@ import org.bithon.component.commons.tracing.SpanKind;
 public class ListenerConsumer$PollAndInvoke extends AroundInterceptor {
 
     private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
-                                                                                      .getDynamicConfig("tracing.samplingConfigs.kafka-consumer",
-                                                                                                        TraceSamplingConfig.class));
+                                                                                      .getDynamicConfig(
+                                                                                          "tracing.samplingConfigs.kafka-consumer",
+                                                                                          TraceSamplingConfig.class));
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
+        IBithonObject bithonObject = aopContext.getTargetAs();
+        KafkaPluginContext pluginContext = (KafkaPluginContext) bithonObject.getInjectedObject();
+        if (pluginContext == null) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
+
         ITraceContext context = TraceContextFactory.create(sampler.decideSamplingMode(null),
                                                            Tracer.get().traceIdGenerator().newTraceId());
 
-        aopContext.setUserContext(context.currentSpan()
-                                         .component("kafka")
-                                         .kind(SpanKind.CONSUMER)
-                                         .method(aopContext.getTargetClass(), aopContext.getMethod())
-                                         .start());
+        if (TraceMode.TRACING.equals(context.traceMode())) {
+            aopContext.setUserContext(context.currentSpan()
+                                             .component(Components.KAFKA)
+                                             .kind(SpanKind.CONSUMER)
+                                             .method(aopContext.getTargetClass(), aopContext.getMethod())
+                                             .start());
+        }
 
         TraceContextHolder.set(context);
         return InterceptionDecision.CONTINUE;
@@ -62,11 +75,21 @@ public class ListenerConsumer$PollAndInvoke extends AroundInterceptor {
     public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getUserContextAs();
 
-        span.tag(aopContext.getException())
-            .tag("status", aopContext.hasException() ? "500" : "200")
-            .tag("uri", ((IBithonObject) aopContext.getTarget()).getInjectedObject())
-            .finish();
-        span.context().finish();
+        if (span != null) {
+            IBithonObject bithonObject = aopContext.getTargetAs();
+            KafkaPluginContext pluginContext = (KafkaPluginContext) bithonObject.getInjectedObject();
+
+            span.tag(aopContext.getException())
+                .tag("status", aopContext.hasException() ? "500" : "200")
+                .tag("uri", ((IBithonObject) aopContext.getTarget()).getInjectedObject())
+                .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
+                .tag(Tags.Messaging.KAFKA_TOPIC, pluginContext.topic)
+                .tag(Tags.Messaging.KAFKA_CONSUMER_GROUP, pluginContext.groupId)
+                .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
+                .finish();
+
+            span.context().finish();
+        }
 
         TraceContextHolder.remove();
     }

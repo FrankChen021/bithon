@@ -41,32 +41,41 @@ public class ListenerConsumer$Ctor extends AfterInterceptor {
      */
     @Override
     public void after(AopContext aopContext) {
-        KafkaConsumer<?, ?> consumer = (KafkaConsumer<?, ?>) ReflectionUtils.getFieldValue(aopContext.getTarget(), "consumer");
+        KafkaConsumer<?, ?> consumer = (KafkaConsumer<?, ?>) ReflectionUtils.getFieldValue(aopContext.getTarget(),
+                                                                                           "consumer");
         if (consumer == null) {
             return;
         }
-        String cluster = ((KafkaPluginContext) ((IBithonObject) consumer).getInjectedObject()).clusterSupplier.get();
 
-        ContainerProperties properties = (ContainerProperties) ReflectionUtils.getFieldValue(aopContext.getTarget(), "containerProperties");
+        ContainerProperties properties = (ContainerProperties) ReflectionUtils.getFieldValue(aopContext.getTarget(),
+                                                                                             "containerProperties");
         if (properties == null) {
             return;
         }
 
-        String uri = "kafka://" + cluster;
-        String[] topics = properties.getTopics();
-        if (topics != null) {
-            uri += "?topic=" + String.join(",", topics);
-        } else if (properties.getTopicPattern() != null) {
-            uri += "?topic=" + properties.getTopicPattern().pattern();
-        } else {
-            TopicPartitionOffset[] partitions = properties.getTopicPartitions();
-            if (partitions != null) {
-                uri += "?topic=" + Stream.of(partitions).map(TopicPartitionOffset::getTopic).collect(Collectors.joining(","));
+        KafkaPluginContext pluginContext = ((KafkaPluginContext) ((IBithonObject) consumer).getInjectedObject());
+        {
+            String topicString = null;
+            String[] topics = properties.getTopics();
+            if (topics != null) {
+                topicString = String.join(",", topics);
+            } else if (properties.getTopicPattern() != null) {
+                topicString = properties.getTopicPattern().pattern();
+            } else {
+                TopicPartitionOffset[] partitions = properties.getTopicPartitions();
+                if (partitions != null) {
+                    topicString = Stream.of(partitions)
+                                        .map(TopicPartitionOffset::getTopic)
+                                        .collect(Collectors.joining(","));
+                }
             }
+            String cluster = pluginContext.clusterSupplier.get();
+            pluginContext.uri = "kafka://" + cluster;
+            pluginContext.topic = topicString;
         }
 
         // Keep the uri for further use
         IBithonObject bithonObject = aopContext.getTargetAs();
-        bithonObject.setInjectedObject(uri);
+        bithonObject.setInjectedObject(pluginContext);
     }
 }

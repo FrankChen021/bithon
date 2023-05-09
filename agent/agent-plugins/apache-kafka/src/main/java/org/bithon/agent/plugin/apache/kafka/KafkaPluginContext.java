@@ -33,6 +33,9 @@ public class KafkaPluginContext {
     public String clientId;
     public Supplier<String> clusterSupplier;
 
+    public String uri;
+    public String topic;
+
     public static String getCurrentDestination() {
         String dest = (String) InterceptorContext.get("kafka-ctx-destination");
         return dest == null ? "" : dest;
