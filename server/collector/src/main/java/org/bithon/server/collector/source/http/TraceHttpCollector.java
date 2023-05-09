@@ -63,10 +63,6 @@ public class TraceHttpCollector {
     @PostMapping("/api/collector/trace")
     public void span(HttpServletRequest request, HttpServletResponse response) throws IOException {
         InputStream is = request.getInputStream();
-        if (is.available() == 0) {
-            // Treat it as a success
-            return;
-        }
 
         String encoding = request.getHeader("Content-Encoding");
         if (!StringUtils.isEmpty(encoding)) {
