@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 public class KafkaPluginContext {
     /**
      * Available for consumer.
-     * default to empty string so that no need to handle null.
+     * Default to empty string so that no need to handle null.
      */
     public String groupId = "";
     public String clientId;

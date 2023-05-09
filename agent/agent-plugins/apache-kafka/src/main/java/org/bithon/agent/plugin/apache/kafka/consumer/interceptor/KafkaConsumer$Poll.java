@@ -24,6 +24,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterc
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
+import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.Tags;
 
 import java.time.Duration;
@@ -38,7 +39,7 @@ public class KafkaConsumer$Poll extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan("kafka");
+        ITraceSpan span = TraceSpanFactory.newSpan(Components.KAFKA);
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -62,6 +63,7 @@ public class KafkaConsumer$Poll extends AroundInterceptor {
         ConsumerRecords<?, ?> records = aopContext.getReturningAs();
         ITraceSpan span = aopContext.getUserContextAs();
         span.tag(aopContext.getException())
+            .tag(Tags.Net.PEER, kafkaPluginContext.clusterSupplier.get())
             .tag(Tags.Messaging.KAFKA_CONSUMER_GROUP, kafkaPluginContext.groupId)
             .tag(Tags.Messaging.KAFKA_CLIENT_ID, kafkaPluginContext.clientId)
             .tag(Tags.Messaging.KAFKA_TOPIC, topics)
