@@ -29,4 +29,4 @@ The Bithon will initialize the tracing context for an incoming HTTP request when
 | Pinpoint | `Pinpoint-TraceID`, `Pinpoint-SpanID`, `Pinpoint-pSpanID` |
           
 - Or the Bithon determines the tracing context should be initialized by sampling calculation based on `samplingRate` of each component.
-See the [Tracing Configuration](../configuration/server/configuration-agent.md#tracing-configurations) of agent for more detail.
+See the [Tracing Configuration](../configuration/agent/README.md#tracing-configurations) of agent for more detail.

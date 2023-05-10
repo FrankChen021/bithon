@@ -169,10 +169,12 @@ If the target application runs under JDK 11 and above, the following arguments s
 
 
 # User Doc
-1. [Configuration](doc/configuration/configuration.md)
-2. [Diagnosis](doc/diagnosis/README.md)
+1. [Metrics](doc/metrics/README.md)
+2. [Tracing](doc/tracing/README.md)
 3. [Logging](doc/logging/README.md)
-4. SDK
+4. [Diagnosis](doc/diagnosis/README.md)
+5. [Configuration](doc/configuration/configuration.md)
+6. SDK
    1. [Metrics](doc/sdk/metrics.md)
    2. [Tracing](doc/sdk/tracing.md)
 

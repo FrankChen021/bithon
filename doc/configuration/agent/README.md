@@ -84,5 +84,5 @@ Plugin configuration locates each plugin's resource directory with the name 'plu
 
 # Plugin Configurations
 
-- [Alibaba Druid](../agent-plugin/alibaba-druid.md)
-- [Spring WebFlux](../agent-plugin/spring-webflux.md)
+- [Alibaba Druid](plugin/alibaba-druid.md)
+- [Spring WebFlux](plugin/spring-webflux.md)
