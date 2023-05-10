@@ -19,6 +19,29 @@
           "errorRecordCount",
           "retryRecordCount"
         ]
+      },
+      "details": {
+        "columns": ["cluster","topic","clientId","recordCount","errorRecordCount"],
+        "query": {
+          "type": "groupBy",
+          "dataSource": "kafka-producer-metrics",
+          "fields": [
+            "cluster","topic","clientId","recordCount","errorRecordCount"
+          ],
+          "orderBy": {
+            "name": "recordCount",
+            "order": "desc"
+          },
+          "limit": 15
+        },
+        "tracing": {
+          "mappings": {
+            "cluster": "tags.net.peer",
+            "topic": "tags.messaging.kafka.topic",
+            "clientId": "tags.messaging.kafka.client_id"
+          },
+          "filter": "name= 'kafka' AND kind = 'PRODUCER'"
+        }
       }
     },
     {

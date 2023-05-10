@@ -1,7 +1,7 @@
 
 ## Agent Configuration
 
-See [Here](server/configuration-agent.md)
+See [Here](agent/README.md)
 
 ## Server Configuration
 

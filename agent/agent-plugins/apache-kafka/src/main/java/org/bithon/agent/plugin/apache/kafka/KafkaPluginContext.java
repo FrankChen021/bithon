@@ -27,11 +27,14 @@ import java.util.function.Supplier;
 public class KafkaPluginContext {
     /**
      * Available for consumer.
-     * default to empty string so that no need to handle null.
+     * Default to empty string so that no need to handle null.
      */
     public String groupId = "";
     public String clientId;
     public Supplier<String> clusterSupplier;
+
+    public String uri;
+    public String topic;
 
     public static String getCurrentDestination() {
         String dest = (String) InterceptorContext.get("kafka-ctx-destination");

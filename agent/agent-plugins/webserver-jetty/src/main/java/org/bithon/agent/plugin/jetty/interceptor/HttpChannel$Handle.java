@@ -29,6 +29,7 @@ import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.plugin.jetty.context.RequestContext;
+import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
@@ -68,7 +69,8 @@ public class HttpChannel$Handle extends AroundInterceptor {
                 InterceptorContext.set(InterceptorContext.KEY_TRACEID, traceContext.traceId());
 
                 traceContext.currentSpan()
-                            .component("jetty")
+                            .component(Components.HTTP_SERVER)
+                            .tag(Tags.Http.SERVER, "jetty")
                             .tag(Tags.Net.PEER_ADDR, request.getRemoteAddr() + ":" + request.getRemotePort())
                             .tag(Tags.Http.URL, request.getRequestURI())
                             .tag(Tags.Http.METHOD, request.getMethod())

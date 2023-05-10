@@ -134,45 +134,47 @@ If the target application runs under JDK 11 and above, the following arguments s
 
 # Supported Components
 
-| Component              | Min Version | Max Version | Metrics | Tracing |
-|------------------------|-------------|-------------|---------|---------|
-| JVM                    | 1.8         |             | &check; |         |
-| JDK - Thread Pool      | 1.8         |             | &check; |         |
-| JDK - HTTP Client      | 1.8         |             | &check; | &check; |
-| Alibaba Druid          | 1.0.28      |             | &check; |         |
-| Apache Druid           | 0.16        | 24.0        |         | &check; |
-| Apache Kafka           | 0.10        |             | &check; | &check; |
-| Apache OZone           | 1.3.0       |             |         | &check; |
-| Eclipse Glassfish      | 2.34        |             |         | &check; |
-| GRPC                   | 1.6.0       |             | &check; |         |
-| Google Guice           | 4.1.0       |             |         | &check; |
-| HTTP Client - Apache   | 4.5.2       |             | &check; | &check; |
-| HTTP Client - Jetty    | 9.4.6       |             | &check; | &check; |
-| HTTP Client - Netty    | 3.10.6      | < 4.0       | &check; | &check; |
-| HTTP Client - okhttp3  | 3.2         | 4.9         | &check; | &check; |
-| Jersey                 | 1.19.4      |             |         | &check; |
-| MongoDB                | 3.4.2       |             | &check; |         |
-| MySQL                  | 5.x         | 8.x         | &check; |         |
-| Quartz                 | 2.x         |             | &check; | &check; |
-| Redis - Jedis          | 2.9         |             | &check; |         |
-| Redis - Lettuce        | 5.1.2       |             | &check; |         |
-| Spring Boot            | 1.5         | 3.0+        |         | &check; |
-| Spring Bean            | 4.3.12      |             |         | &check; |
-| Spring Open Feign      | 10.12       |             |         | &check; |
-| Spring Rest Template   | 4.3.12      |             |         | &check; |
-| Spring Scheduling      | 4.3.12      |             |         | &check; |
-| Spring WebFlux         | 5.0.0       |             | &check; | &check; | 
-| HTTP Server - Jetty    | 9.4.41      |             | &check; | &check; |
-| HTTP Server - Netty    | 2.0.0       |             |         | &check; |
-| HTTP Server - Tomcat   | 8.5.20      |             | &check; | &check; |
-| HTTP Server - Undertow | 1.4.12      |             | &check; | &check; |
+| Component              | Min Version | Max Version | Metrics                                        | Tracing |
+|------------------------|-------------|-------------|------------------------------------------------|---------|
+| JVM                    | 1.8         |             | &check;                                        |         |
+| JDK - Thread Pool      | 1.8         |             | &check;                                        |         |
+| JDK - HTTP Client      | 1.8         |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
+| Alibaba Druid          | 1.0.28      |             | &check;                                        |         |
+| Apache Druid           | 0.16        | 24.0        |                                                | &check; |
+| Apache Kafka           | 0.10        |             | &check;                                        | &check; |
+| Apache OZone           | 1.3.0       |             |                                                | &check; |
+| Eclipse Glassfish      | 2.34        |             |                                                | &check; |
+| GRPC                   | 1.6.0       |             | &check;                                        |         |
+| Google Guice           | 4.1.0       |             |                                                | &check; |
+| HTTP Client - Apache   | 4.5.2       |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
+| HTTP Client - Jetty    | 9.4.6       |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
+| HTTP Client - Netty    | 3.10.6      | < 4.0       | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
+| HTTP Client - okhttp3  | 3.2         | 4.9         | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
+| Jersey                 | 1.19.4      |             |                                                | &check; |
+| MongoDB                | 3.4.2       |             | &check;                                        |         |
+| MySQL                  | 5.x         | 8.x         | &check;                                        |         |
+| Quartz                 | 2.x         |             | &check;                                        | &check; |
+| Redis - Jedis          | 2.9         |             | &check;                                        |         |
+| Redis - Lettuce        | 5.1.2       |             | &check;                                        |         |
+| Spring Boot            | 1.5         | 3.0+        |                                                | &check; |
+| Spring Bean            | 4.3.12      |             |                                                | &check; |
+| Spring Open Feign      | 10.12       |             |                                                | &check; |
+| Spring Rest Template   | 4.3.12      |             |                                                | &check; |
+| Spring Scheduling      | 4.3.12      |             |                                                | &check; |
+| Spring WebFlux         | 5.0.0       |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; | 
+| HTTP Server - Jetty    | 9.4.41      |             | &check;                                        | &check; |
+| HTTP Server - Netty    | 2.0.0       |             |                                                | &check; |
+| HTTP Server - Tomcat   | 8.5.20      |             | &check;                                        | &check; |
+| HTTP Server - Undertow | 1.4.12      |             | &check;                                        | &check; |
 
 
 # User Doc
-1. [Configuration](doc/configuration/configuration.md)
-2. [Diagnosis](doc/diagnosis/README.md)
+1. [Metrics](doc/metrics/README.md)
+2. [Tracing](doc/tracing/README.md)
 3. [Logging](doc/logging/README.md)
-4. SDK
+4. [Diagnosis](doc/diagnosis/README.md)
+5. [Configuration](doc/configuration/configuration.md)
+6. SDK
    1. [Metrics](doc/sdk/metrics.md)
    2. [Tracing](doc/sdk/tracing.md)
 

@@ -183,14 +183,10 @@ class Dashboard {
                     // because there may be value transformers on different units
                     const charts = dataSource2Charts[schema.name];
                     $.each(charts, (index, chartId) => {
-                        this.refreshChart(this._chartDescriptors[chartId],
-                            this._chartComponents[chartId],
-                            this.getSelectedTimeInterval());
-                    });
+                        this.refreshChart(this._chartDescriptors[chartId], this._chartComponents[chartId], this.getSelectedTimeInterval());
 
-                    // init the detail
-                    $.each(dashboard.charts, (index, chartDescriptor) => {
-                        this.createChartDetail(chartDescriptor);
+                        // Create detail for this chart
+                        this.createChartDetail(this._chartDescriptors[chartId]);
                     });
                 },
                 errorCallback: (error) => {

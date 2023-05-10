@@ -72,16 +72,17 @@ Plugin configuration locates each plugin's resource directory with the name 'plu
 
 # Tracing Configurations
 
-| configuration                         | description                                                                                     | default | example                                |
-|---------------------------------------|-------------------------------------------------------------------------------------------------|---------|----------------------------------------|
-| tracing.default.samplingRate          | Percentage of incoming HTTP requests to be sampled. <br/>Value must be in the range of [0,100]. | 1       | 50(means 50% requests will be sampled) |
-| tracing.brpc.samplingRate             | Percentage of BRPC requests to be sampled. <br/>Value must be in the range of [0,100].          | 1       | 50(means 50% requests will be sampled) |
-| tracing.quartz.samplingRate           | Percentage of quartz jobs to be sampled. <br/>Value must be in the range of [0,100].            | 1       | 50(means 50% jobs will be sampled)     |
-| tracing.spring-scheduler.samplingRate | Percentage of spring scheduled jobs to be sampled. <br/>Value must be in the range of [0,100].  | 1       | 50(means 50% jobs will be sampled)     |
-| tracing.debug                         | Whether to enable the logging of span events.                                                   | false   |                                        |
-| tracing.traceIdInResponse             | The header name in a HTTP response that contains the trace-id.                                  | null    |                                        |                                  
+| configuration                                         | description                                                                                     | default | example                                |
+|-------------------------------------------------------|-------------------------------------------------------------------------------------------------|---------|----------------------------------------|
+| tracing.samplingConfigs.default.samplingRate          | Percentage of incoming HTTP requests to be sampled. <br/>Value must be in the range of [0,100]. | 1       | 50(means 50% requests will be sampled) |
+| tracing.samplingConfigs.brpc.samplingRate             | Percentage of BRPC requests to be sampled. <br/>Value must be in the range of [0,100].          | 1       | 50(means 50% requests will be sampled) |
+| tracing.samplingConfigs.quartz.samplingRate           | Percentage of quartz jobs to be sampled. <br/>Value must be in the range of [0,100].            | 1       | 50(means 50% jobs will be sampled)     |
+| tracing.samplingConfigs.spring-scheduler.samplingRate | Percentage of spring scheduled jobs to be sampled. <br/>Value must be in the range of [0,100].  | 1       | 50(means 50% jobs will be sampled)     |
+| tracing.samplingConfigs.kafka-consumer.samplingRate   | Percentage of spring scheduled jobs to be sampled. <br/>Value must be in the range of [0,100].  | 1       | 50(means 50% jobs will be sampled)     |
+| tracing.debug                                         | Whether to enable the logging of span events.                                                   | false   |                                        |
+| tracing.traceIdInResponse                             | The header name in a HTTP response that contains the trace-id.                                  | null    |                                        |                                  
 
 # Plugin Configurations
 
-- [Alibaba Druid](../agent-plugin/alibaba-druid.md)
-- [Spring WebFlux](../agent-plugin/spring-webflux.md)
+- [Alibaba Druid](plugin/alibaba-druid.md)
+- [Spring WebFlux](plugin/spring-webflux.md)

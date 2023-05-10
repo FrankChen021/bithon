@@ -35,6 +35,7 @@ import org.bithon.agent.plugin.spring.webflux.config.ResponseConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.CollectionUtils;
@@ -103,7 +104,8 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
 
                 if (traceContext != null) {
                     traceContext.currentSpan()
-                                .component("webflux")
+                                .component(Components.HTTP_SERVER)
+                                .tag(Tags.Http.SERVER, "webflux")
                                 .tag(Tags.Net.PEER_ADDR, request.remoteAddress())
                                 .tag(Tags.Http.URL, request.uri())
                                 .tag(Tags.Http.METHOD, request.method().name())
@@ -202,7 +204,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
             return;
         }
 
-        if (!"webflux".equals(span.component())) {
+        if (!Components.HTTP_SERVER.equals(span.component())) {
             // Directly close the context so that the tracing context prints the debug message
             traceContext.finish();
             return;

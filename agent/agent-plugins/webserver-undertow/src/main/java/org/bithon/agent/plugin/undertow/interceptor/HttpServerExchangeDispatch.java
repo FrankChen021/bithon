@@ -30,6 +30,7 @@ import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
+import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
@@ -59,7 +60,8 @@ public class HttpServerExchangeDispatch extends BeforeInterceptor {
 
         if (traceContext != null) {
             traceContext.currentSpan()
-                        .component("undertow")
+                        .component(Components.HTTP_SERVER)
+                        .tag(Tags.Http.SERVER, "undertow")
                         .tag(Tags.Net.PEER_ADDR, exchange.getConnection().getPeerAddress())
                         .tag(Tags.Http.URL, exchange.getRequestURI())
                         .tag(Tags.Http.METHOD, exchange.getRequestMethod().toString())
