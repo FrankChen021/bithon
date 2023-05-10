@@ -81,7 +81,7 @@ public class ListenerConsumer$PollAndInvoke extends AroundInterceptor {
 
             span.tag(aopContext.getException())
                 .tag("status", aopContext.hasException() ? "500" : "200")
-                .tag("uri", ((IBithonObject) aopContext.getTarget()).getInjectedObject())
+                .tag("uri", pluginContext.uri)
                 .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
                 .tag(Tags.Messaging.KAFKA_TOPIC, pluginContext.topic)
                 .tag(Tags.Messaging.KAFKA_CONSUMER_GROUP, pluginContext.groupId)
