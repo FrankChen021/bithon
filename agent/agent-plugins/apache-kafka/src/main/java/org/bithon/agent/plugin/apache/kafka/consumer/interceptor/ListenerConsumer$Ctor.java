@@ -70,7 +70,7 @@ public class ListenerConsumer$Ctor extends AfterInterceptor {
                 }
             }
             String cluster = pluginContext.clusterSupplier.get();
-            pluginContext.uri = "kafka://" + cluster;
+            pluginContext.uri = "kafka://" + cluster + (topicString == null ? "" : "?topic=" + topicString);
             pluginContext.topic = topicString;
         }
 
