@@ -90,7 +90,7 @@
             headerStyle: 'thead-light',
             rowStyle: (rows, rowIndex) => {
                 const row = rows[rowIndex];
-                if (row.tags !== undefined && (row.tags.exception !== undefined || row.tags["http.status"] >= "400")) {
+                if (row.status >= "400" || row.tags !== undefined && (row.tags.exception !== undefined || row.tags["http.status"] >= "400")) {
                     return 'table-danger';
                 }
                 if (row.kind === 'SERVER' || row.kind === 'CONSUMER') {
