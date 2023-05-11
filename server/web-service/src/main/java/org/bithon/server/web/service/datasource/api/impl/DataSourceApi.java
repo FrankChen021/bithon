@@ -34,6 +34,7 @@ import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.DataSourceService;
 import org.bithon.server.web.service.datasource.api.DisplayableText;
+import org.bithon.server.web.service.datasource.api.FilterExpressionToFilters;
 import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
 import org.bithon.server.web.service.datasource.api.GeneralQueryResponse;
 import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
@@ -97,9 +98,10 @@ public class DataSourceApi implements IDataSourceApi {
                                                  .stream()
                                                  .map((field) -> {
                                                      IColumnSpec spec = schema.getColumnByName(field.getField());
+                                                     Preconditions.checkNotNull(spec, "field [%s] does not exist in the schema.", field.getField());
                                                      return new ResultColumn(spec.getName(), field.getName());
                                                  }).collect(Collectors.toList()))
-                           .filters(request.getFilters())
+                           .filters(FilterExpressionToFilters.toFilter(schema, request.getFilterExpression(), request.getFilters()))
                            .interval(Interval.of(TimeSpan.fromISO8601(request.getInterval().getStartISO8601()),
                                                  TimeSpan.fromISO8601(request.getInterval().getEndISO8601())))
                            .orderBy(request.getOrderBy())

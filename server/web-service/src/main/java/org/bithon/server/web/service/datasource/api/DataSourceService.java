@@ -16,7 +16,6 @@
 
 package org.bithon.server.web.service.datasource.api;
 
-import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -64,7 +63,8 @@ public class DataSourceService {
         List<String> metrics = query.getResultColumns()
                                     .stream()
                                     .filter((resultColumn) -> query.getDataSource()
-                                                                   .getDimensionSpecByName(resultColumn.getResultColumnName()) == null)
+                                                                   .getDimensionSpecByName(resultColumn.getResultColumnName())
+                                                              == null)
                                     .map((ResultColumn::getResultColumnName))
                                     .collect(Collectors.toList());
 
@@ -98,10 +98,11 @@ public class DataSourceService {
             }
 
             if (field.getAggregator() != null) {
-                org.bithon.server.storage.datasource.query.ast.Function function = SimpleAggregateExpressions.create(field.getAggregator(),
-                                                                                                                     field.getField() == null
-                                                                                                                     ? field.getName()
-                                                                                                                     : field.getField());
+                org.bithon.server.storage.datasource.query.ast.Function function = SimpleAggregateExpressions.create(
+                    field.getAggregator(),
+                    field.getField() == null
+                    ? field.getName()
+                    : field.getField());
                 resultColumnList.add(new ResultColumn(function, field.getName()));
             } else {
                 IColumnSpec columnSpec = schema.getColumnByName(field.getField());
@@ -134,11 +135,13 @@ public class DataSourceService {
         return builder.groupBy(new ArrayList<>(groupBy))
                       .resultColumns(resultColumnList)
                       .dataSource(schema)
-                      .filters(CollectionUtils.emptyOrOriginal(query.getFilters()))
+                      .filters(FilterExpressionToFilters.toFilter(schema, query.getFilterExpression(), query.getFilters()))
                       .interval(Interval.of(start, end, step))
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())
-                      .resultFormat(query.getResultFormat() == null ? Query.ResultFormat.Object : query.getResultFormat())
+                      .resultFormat(query.getResultFormat() == null
+                                    ? Query.ResultFormat.Object
+                                    : query.getResultFormat())
                       .build();
     }
 

@@ -29,6 +29,7 @@ import org.bithon.server.storage.tracing.index.TagIndexConfig;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.common.bucket.TimeBucket;
+import org.bithon.server.web.service.datasource.api.FilterExpressionToFilters;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.springframework.beans.BeanUtils;
@@ -126,11 +127,8 @@ public class TraceService {
                                 String filterExpression,
                                 Timestamp start,
                                 Timestamp end) {
-        // Convert filter expression into filter objects first
-        filters.addAll(FilterExpressionToFilters.toFilter(traceSpanSummarySchema, filterExpression));
-
         FilterSplitter splitter = new FilterSplitter(this.traceStorageConfig);
-        splitter.split(filters);
+        splitter.split(FilterExpressionToFilters.toFilter(traceSpanSummarySchema, filterExpression, filters));
 
         return traceReader.getTraceListSize(splitter.filters,
                                             splitter.indexedTagFilter,
@@ -147,11 +145,8 @@ public class TraceService {
                                         String order,
                                         int pageNumber,
                                         int pageSize) {
-        // Convert filter expression into filter objects first
-        filters.addAll(FilterExpressionToFilters.toFilter(this.traceSpanSummarySchema, filterExpression));
-
         FilterSplitter splitter = new FilterSplitter(this.traceStorageConfig);
-        splitter.split(filters);
+        splitter.split(FilterExpressionToFilters.toFilter(traceSpanSummarySchema, filterExpression, filters));
 
         return traceReader.getTraceList(splitter.filters,
                                         splitter.indexedTagFilter,
@@ -168,11 +163,8 @@ public class TraceService {
                                                       TimeSpan start,
                                                       TimeSpan end,
                                                       int bucketCount) {
-        // Convert filter expression into filter objects first
-        filters.addAll(FilterExpressionToFilters.toFilter(this.traceSpanSummarySchema, filterExpression));
-
         FilterSplitter splitter = new FilterSplitter(this.traceStorageConfig);
-        splitter.split(filters);
+        splitter.split(FilterExpressionToFilters.toFilter(this.traceSpanSummarySchema, filterExpression, filters));
 
         int interval = TimeBucket.calculate(start.getMilliseconds(), end.getMilliseconds(), bucketCount).getLength();
         List<Map<String, Object>> dataPoints = traceReader.getTraceDistribution(splitter.filters,

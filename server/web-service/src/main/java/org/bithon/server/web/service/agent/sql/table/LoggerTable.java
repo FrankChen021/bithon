@@ -66,7 +66,7 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
 
         public String name;
 
-        // For the Schema, the level is declared as String to avoid Enum problem at Calcite side
+        // For the Schema, the level is declared as String to avoid the Enum problem at Calcite side
         public String level;
         public String effectiveLevel;
     }
@@ -99,7 +99,7 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
         Preconditions.checkIfTrue(filterExpression instanceof BinaryExpression, "WHERE clause must only contain one filter.");
 
         BinaryExpression binaryExpression = (BinaryExpression) filterExpression;
-        Preconditions.checkIfTrue("=".equals(binaryExpression.getOperator()), "Logger table does not support operator '%s', only '=' is supported", binaryExpression.getOperator());
+        Preconditions.checkIfTrue("=".equals(binaryExpression.getType()), "Logger table does not support operator '%s', only '=' is supported", binaryExpression.getType());
 
         OneFilter nameFilter = new OneFilter();
         binaryExpression.getLeft().accept(nameFilter);

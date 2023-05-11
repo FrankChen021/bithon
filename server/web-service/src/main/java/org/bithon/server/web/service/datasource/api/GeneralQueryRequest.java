@@ -42,7 +42,11 @@ public class GeneralQueryRequest {
     @Valid
     private IntervalRequest interval;
 
+    @Nullable
     private List<IFilter> filters;
+
+    @Nullable
+    private String filterExpression;
 
     @NotEmpty
     private List<QueryField> fields;
