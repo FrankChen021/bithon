@@ -40,6 +40,20 @@ class Dashboard {
     // PUBLIC
     load(dashboard) {
         this._dashboard = dashboard;
+        //
+        // Create customer filter input
+        //
+        if (dashboard.filter !== undefined && dashboard.filter.showFilterInput === true) {
+            this._container.before( '<div class="input-group" style="padding-left: 5px; padding-right: 5px">      ' +
+                                    '     <div class="input-group-prepend">                                       ' +
+                                    '         <span class="input-group-text rounded-0" id="filter-input-span">Filter</span> ' +
+                                    '     </div>                                                                  ' +
+                                    '    <input type="text"                                                       ' +
+                                    '           class="form-control"                                              ' +
+                                    '           id="filter-input"                                                 ' +
+                                    '            aria-describedby="filter-input-span"/>                           ' +
+                                    ' </div>');
+        }
 
         //
         // Create App Filter
@@ -543,7 +557,9 @@ class Dashboard {
                 columns: tableColumns,
                 pagination: tableDescriptor.pagination,
                 detailView: false,
-
+                toolbar: {
+                    showColumns: tableDescriptor.showColumns
+                },
                 buttons: buttons,
 
                 // default order
@@ -629,7 +645,8 @@ class Dashboard {
             const start = currentChartOption.timestamp.start;
             const interval = currentChartOption.timestamp.interval;
             const dataIndex = series[0].dataIndex;
-            let tooltip = moment(start + dataIndex * interval).local().format('yyyy-MM-DD HH:mm:ss');
+            let tooltip = moment(start + dataIndex * interval).local().format('MM-DD HH:mm:ss') + '<br/>'
+            + moment(start + dataIndex * interval + interval).local().format('MM-DD HH:mm:ss');
             series.forEach(s => {
                 //Use the yAxis defined formatter to format the data
                 const yAxisIndex = currentChartOption.series[s.seriesIndex].yAxisIndex;
@@ -668,6 +685,22 @@ class Dashboard {
         }).header('<b>' + chartDescriptor.title + '</b>')
             .setChartOption(chartOption);
 
+        // Apply click event to refresh time interval
+        if (chartDescriptor.refreshTime === true) {
+            chartComponent.setClickHandler((e) => {
+                const chartOption = this.getChartCurrentOption(chartId);
+
+                const start = chartOption.timestamp.start;
+                const interval = chartOption.timestamp.interval;
+                const dataIndex = e.dataIndex;
+
+                const startTimestamp = start + dataIndex * interval;
+                const endTimestamp = startTimestamp + interval;
+
+                this._timeSelector.setInterval(startTimestamp, endTimestamp);
+            });
+        }
+
         this._chartComponents[chartId] = chartComponent;
 
         return chartComponent;
@@ -687,6 +720,7 @@ class Dashboard {
             endISO8601: interval.end
         };
         thisQuery.filters = filters;
+        thisQuery.filterExpression = $('#filter-input').val();
 
         let path;
         if (query.type === 'list') {
@@ -855,6 +889,7 @@ class Dashboard {
             endISO8601: interval.end
         };
         thisQuery.filters = filters;
+        thisQuery.filterExpression = $('#filter-input').val();
 
         const queryFieldsCount = chartDescriptor.query.fields.length;
 

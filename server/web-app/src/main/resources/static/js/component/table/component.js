@@ -5,6 +5,15 @@ function onTableComponentButtonClick(id, rowIndex, buttonIndex) {
     }
 }
 
+function onTableComponentColumnToggle(id, col) {
+    if (window.event.target.localName === 'input') {
+        const tableComponent = window.gTableComponents[id];
+        if (tableComponent != null) {
+            tableComponent.toggleColumn(col);
+        }
+    }
+}
+
 class TableComponent {
     /**
      *
@@ -20,6 +29,7 @@ class TableComponent {
         this.vTable = this.vTableContainer.append(`<table id="${option.tableId}"></table>`).find('table');
         option.parent.append(this.vTableContainer);
 
+        this.mShowColumn = option.toolbar !== undefined ? (option.toolbar.showColumns === true) : false;
         this.mColumns = option.columns;
         this.mCreated = false;
 
@@ -96,12 +106,49 @@ class TableComponent {
         window.gTableComponents[option.tableId] = this;
     }
 
-    header(text) {
+    #ensureHeader() {
         if (this._header == null) {
-            this._header = $(this.vTableContainer).prepend('<div class="card-header"></div>').find('.card-header');
+            this._header = $(this.vTableContainer).prepend(
+                '<div class="card-header d-flex" style="padding: 0.5em 1em">' +
+                '<span class="header-text btn-sm"></span>' +
+                '<div class="tools ml-auto">' +
+                '</div>' +
+                '</div>');
         }
-        $(this._header).html(text);
+        return this._header;
+    }
+
+    header(text) {
+        this.#ensureHeader().find('.header-text').html(text);
         return this;
+    }
+
+    toggleColumn(columnName) {
+        let visible = null;
+
+        const cols = this.vTable.bootstrapTable('getVisibleColumns');
+        for (let i = 0; i < cols.length; i++) {
+            if (cols[i].field === columnName) {
+                visible = true;
+                break;
+            }
+        }
+
+        if (visible != true) {
+            const cols = this.vTable.bootstrapTable('getHiddenColumns');
+            for (let i = 0; i < cols.length; i++) {
+                if (cols[i].field === columnName) {
+                    visible = false;
+                    break;
+                }
+            }
+        }
+
+        if (visible === true) {
+            this.vTable.bootstrapTable('hideColumn', columnName);
+        } else if (visible === false) {
+            this.vTable.bootstrapTable('showColumn', columnName);
+        }
     }
 
     onButtonClick(rowIndex, buttonIndex) {
@@ -172,9 +219,28 @@ class TableComponent {
             }
 
             this.vTable.bootstrapTable(tableOption);
+
+            this.#createShowColumnDropdownList();
         } else {
             this.vTable.bootstrapTable('refresh');
         }
+    }
+
+    #createShowColumnDropdownList() {
+        if (!this.mShowColumn)
+            return;
+
+        const tableId = this.vTable.attr('id');
+
+        let dropDownList = '<div class="btn-group dropright"><button type="button" class="btn btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Columns' +
+            '<div class="dropdown-menu dropdown-menu-lg-right">';
+        for(let i = 0; i < this.mColumns.length; i++) {
+            const col = this.mColumns[i];
+            dropDownList += `<label class="dropdown-item dropdown-item-marker" onclick="onTableComponentColumnToggle('${tableId}', '${col.field}'); event.stopPropagation();"><input type="checkbox" checked=${col.visible || true} ><span>&nbsp;${col.title}</span></label>`;
+        }
+        dropDownList += '</div></button></div>';
+
+        this.#ensureHeader().find('.tools').append(dropDownList);
     }
 
     #compare(a, b) {
