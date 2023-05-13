@@ -44,15 +44,22 @@ class Dashboard {
         // Create customer filter input
         //
         if (dashboard.filter !== undefined && dashboard.filter.showFilterInput === true) {
+            // Insert the filter expression before the dashboard container
             this._container.before( '<div class="input-group" style="padding-left: 5px; padding-right: 5px">      ' +
                                     '     <div class="input-group-prepend">                                       ' +
                                     '         <span class="input-group-text rounded-0" id="filter-input-span">Filter</span> ' +
                                     '     </div>                                                                  ' +
                                     '    <input type="text"                                                       ' +
                                     '           class="form-control"                                              ' +
-                                    '           id="filter-input"                                                 ' +
+                                    '           id="filter-input" placeholder="SQL style filter, such as: message like \'%a%\'"' +
                                     '            aria-describedby="filter-input-span"/>                           ' +
-                                    ' </div>');
+                                    ' </div>')
+                                    .parent()
+                                    .find('#filter-input').on('keydown', (event) => {
+                                        if (event.keyCode === 13) {
+                                            this.refreshDashboard();
+                                        }
+                                    });
         }
 
         //
@@ -88,8 +95,16 @@ class Dashboard {
             const chartId = 'chart_' + index;
             chartDescriptor['id'] = chartId;
 
-            // set up a data source to charts mapping
-            const dataSourceName = chartDescriptor.dataSource;
+            //
+            // Set up a data source to charts mapping
+            //
+            // dataSource property on chart is a legacy property
+            let dataSourceName = chartDescriptor.dataSource;
+            if (dataSourceName === undefined) {
+                if (chartDescriptor.query !== undefined) {
+                    dataSourceName = chartDescriptor.query.dataSource;
+                }
+            }
             if (dataSourceName !== undefined) {
                 if (dataSource2Charts[dataSourceName] == null) {
                     dataSource2Charts[dataSourceName] = [];
@@ -108,7 +123,10 @@ class Dashboard {
             this._selectedInterval = this._timeSelector.getInterval();
             this.refreshDashboard();
 
-            let url = `/web/metrics/${this._dashboardName}?appName=${g_SelectedApp}`;
+            let url = `/web/metrics/${this._dashboardName}?`;
+            if (g_SelectedApp !== undefined && g_SelectedApp !== null) {
+                url += `appName=${g_SelectedApp}`;
+            }
             if (g_SelectedInstance !== undefined && g_SelectedInstance !== null) {
                 url += `&instanceName=${g_SelectedInstance}`;
             }
@@ -493,6 +511,19 @@ class Dashboard {
     }
 
     createTableComponent(chartId, parentElement, tableDescriptor, insertIndexColumn, buttons) {
+
+        //
+        // type of string column is allowed in definition, convert it to object first to simply further processing
+        //
+        for (let i = 0, size = tableDescriptor.columns.length; i < size; i++) {
+            let column = tableDescriptor.columns[i];
+
+            // string type of column is allowed for simple configuration
+            // during rendering, it's turned into object for simple processing
+            if (typeof column === 'string') {
+                tableDescriptor.columns[i] = {name: column};
+            }
+        }
 
         const lookup = tableDescriptor.lookup;
         const tableColumns = tableDescriptor.columns.map((column) => {
@@ -921,6 +952,7 @@ class Dashboard {
                     const chartType = column.chartType || 'line';
                     const isLine = chartType === 'line';
                     const isArea = isLine && (column.fill === undefined ? true : column.fill);
+                    const isBar = column.chartType === 'bar';
 
                     const n = metricNamePrefix + group + (column.title === undefined ? column.name : column.title);
                     let s = {
@@ -934,7 +966,13 @@ class Dashboard {
                         areaStyle: isArea ? {opacity: 0.3} : null,
                         lineStyle: isLine ? {width: 1} : null,
                         itemStyle: isLine ? {opacity: 0} : null,
-                        barWidth: 10,
+
+                        label: {
+                            show: isBar,
+                            formatter: (v) => {
+                                return v.value > 0 ? v.value.toString() : '';
+                            }
+                        },
 
                         // selected is not a property of series
                         // this is used to render default selected state of legend by chart-component
@@ -988,6 +1026,17 @@ class Dashboard {
     }
 
     refreshChart(chartDescriptor, chartComponent, interval, metricNamePrefix, mode) {
+        // Check if the filter satisfies the requirement of this chart
+        const query = chartDescriptor.query;
+        if (query.precondition !== undefined
+        && query.precondition.filters !== undefined ) {
+            const satisfied = query.precondition.filters.every((f) => this.vFilter.getSelectedFilter(f) != null);
+            if (!satisfied) {
+                console.log('Not satisfied');
+                return;
+            }
+        }
+
         if (chartDescriptor.type === 'table') {
             this.refreshTable(chartDescriptor.query, chartComponent, interval);
             return;
@@ -1083,7 +1132,6 @@ class Dashboard {
             },
             xAxis: {
                 type: 'category',
-                boundaryGap: false,
                 axisLabel: {},
                 data: [],
             },
