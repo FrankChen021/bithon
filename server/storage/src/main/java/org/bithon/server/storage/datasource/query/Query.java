@@ -52,6 +52,9 @@ public class Query {
     private final ResultFormat resultFormat;
 
     public enum ResultFormat {
+        /**
+         * Object is output as an array
+         */
         ValueArray,
         Object
     }

@@ -27,7 +27,7 @@
         "fields": [
           "eventCount"
         ],
-        "bucket": 30
+        "bucketCount": 30
       }
     },
     {

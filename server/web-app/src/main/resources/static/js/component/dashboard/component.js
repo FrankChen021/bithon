@@ -919,6 +919,9 @@ class Dashboard {
             startISO8601: interval.start,
             endISO8601: interval.end
         };
+        if (chartDescriptor.query.bucketCount !== undefined && chartDescriptor.query.bucketCount != null) {
+            thisQuery.interval.bucketCount = chartDescriptor.query.bucketCount;
+        }
         thisQuery.filters = filters;
         thisQuery.filterExpression = $('#filter-input').val();
 
