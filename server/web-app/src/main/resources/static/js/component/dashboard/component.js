@@ -467,18 +467,21 @@ class Dashboard {
 
         // dimensionMaps is the old name, use it as compatibility
         const mappings = tracingSpec.mappings === undefined ? tracingSpec.dimensionMaps : tracingSpec.mappings;
-        $.each(columns, (index, dimension) => {
-            const mappingField = mappings[dimension];
+        $.each(columns, (index, col) => {
+            if (typeof col === "object") {
+                col = col.name;
+            }
+            const mappingField = mappings[col];
             if (mappingField == null) {
                 return;
             }
 
-            const val = row[dimension];
+            const val = row[col];
             if (typeof mappingField === "string") {
                 filterExpression += `AND ${mappingField} = '${val}' `;
             } else {
                 // the mapping is an object
-                const val = row[dimension];
+                const val = row[col];
                 if (mappingField.type === 'switch') { // currently, only switch is supported
                     let f = mappingField.cases[val];
                     if (f == null) {
