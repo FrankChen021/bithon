@@ -87,10 +87,11 @@ CREATE TABLE `bithon_trace_span`
     `attributes`          TEXT COMMENT '',
     `normalizedUrl` VARCHAR(255) NOT NULL COMMENT '',
     `status`        VARCHAR(32)  NOT NULL COMMENT '',
-    KEY `idx_ts_1_timestamp` (`timestamp`),
-    KEY `idx_ts_app_name` (`appName`),
-    KEY `idx_ts_instanceName` (`instanceName`),
-    KEY `idx_ts_key` (`traceId`)
+    KEY `idx_ts_1_traceId` (`traceId`), -- NOTE: jOOQ generates indexes in the alphabetic order not the declaration order
+    KEY `idx_ts_2_timestamp` (`timestamp`),
+    KEY `idx_ts_3_app_name` (`appName`),
+    KEY `idx_ts_4_instanceName` (`instanceName`),
+    KEY `idx_ts_5_name` (`name`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
@@ -116,9 +117,9 @@ CREATE TABLE `bithon_trace_span_summary`
     `normalizedUrl` VARCHAR(255) NOT NULL COMMENT '',
     `status`        VARCHAR(32)  NOT NULL COMMENT '',
     KEY `idx_tss_1_timestamp` (`timestamp`),
-    KEY `idx_tss_app_name` (`appName`),
-    KEY `idx_tss_instanceName` (`instanceName`),
-    KEY `idx_tss_key` (`traceId`)
+    KEY `idx_tss_2_app_name` (`appName`),
+    KEY `idx_tss_3_instanceName` (`instanceName`),
+    KEY `idx_tss_4_traceId` (`traceId`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
