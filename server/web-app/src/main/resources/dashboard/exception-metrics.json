@@ -9,7 +9,7 @@
       "title": "Exceptions",
       "width": 4,
       "type": "line",
-      "refreshTime": true,
+      "zoomOnTime": true,
       "yAxis": [
         {
           "format": "compact_number"

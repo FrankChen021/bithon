@@ -722,7 +722,7 @@ class Dashboard {
             .setChartOption(chartOption);
 
         // Apply click event to refresh time interval
-        if (chartDescriptor.refreshTime === true) {
+        if (chartDescriptor.zoomOnTime === true) {
             chartComponent.setClickHandler((e) => {
                 const chartOption = this.getChartCurrentOption(chartId);
 

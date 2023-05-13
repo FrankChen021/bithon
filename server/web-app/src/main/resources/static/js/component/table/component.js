@@ -131,7 +131,7 @@ class TableComponent {
         if (this._header == null) {
             this._header = $(this.vComponentContainer).prepend(
                 '<div class="card-header d-flex" style="padding: 0.5em 1em">' +
-                '<span class="header-text btn-sm"></span>' +
+                '<div class="header"><span class="header-text btn-sm"></span></div>' +
                 '<div class="tools ml-auto">' +
                 '<button class="btn btn-sm btn-toggle"><span class="far fa-window-minimize"></span></button>' +
                 '</div>' +
