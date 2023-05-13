@@ -76,10 +76,7 @@
                 return null;
             }
 
-            const base = parseInt(parts[0].trim());
-            if (isNaN(base)) {
-                return null;
-            }
+            const base = moment(parts[0].trim()).unix() * 1000;
             const offset = parts[1].trim();
             if (offset.length <= 1) {
                 return null;
