@@ -77,6 +77,7 @@
 
 .bootstrap-table .fixed-table-container .table th,
 .bootstrap-table .fixed-table-container .table td {
+  padding: 0.5rem;
   vertical-align: middle;
   box-sizing: border-box;
 }
@@ -96,7 +97,7 @@
 }
 
 .bootstrap-table .fixed-table-container .table thead th .th-inner {
-  padding: 0.75rem;
+  padding: 0.5rem;
   vertical-align: bottom;
   overflow: hidden;
   text-overflow: ellipsis;

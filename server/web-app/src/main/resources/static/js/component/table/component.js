@@ -25,9 +25,9 @@ class TableComponent {
      */
     constructor(option) {
         // view
-        this.vTableContainer = $(`<div class="card card-block chart-container"></div>`);
-        this.vTable = this.vTableContainer.append(`<table id="${option.tableId}"></table>`).find('table');
-        option.parent.append(this.vTableContainer);
+        this.vComponentContainer = $(`<div class="card card-block rounded-0"></div>`);
+        this.vTable = this.vComponentContainer.append(`<div class="table-container"><table id="${option.tableId}"></table></div>`).find('table');
+        option.parent.append(this.vComponentContainer);
 
         this.mShowColumn = option.toolbar !== undefined ? (option.toolbar.showColumns === true) : false;
         this.mColumns = option.columns;
@@ -108,12 +108,25 @@ class TableComponent {
 
     #ensureHeader() {
         if (this._header == null) {
-            this._header = $(this.vTableContainer).prepend(
+            this._header = $(this.vComponentContainer).prepend(
                 '<div class="card-header d-flex" style="padding: 0.5em 1em">' +
                 '<span class="header-text btn-sm"></span>' +
                 '<div class="tools ml-auto">' +
+                '<button class="btn btn-sm btn-toggle"><span class="far fa-window-minimize"></span></button>' +
                 '</div>' +
                 '</div>');
+
+            const toggleButton = this._header.find('.btn-toggle');
+            toggleButton.click(() => {
+                const tableContainer = this.vComponentContainer.find('.table-container');
+                tableContainer.toggle();
+
+                if (tableContainer.is(':visible')) {
+                    toggleButton.find('span').removeClass('fa-window-maximize').addClass("fa-window-minimize");
+                } else {
+                    toggleButton.find('span').removeClass('fa-window-minimize').addClass("fa-window-maximize");
+                }
+            });
         }
         return this._header;
     }
@@ -230,17 +243,25 @@ class TableComponent {
         if (!this.mShowColumn)
             return;
 
-        const tableId = this.vTable.attr('id');
+        let headerText = this.#ensureHeader().find('.header-text').html();
+        if (headerText === '') {
+            headerText = 'Columns';
+        }
 
-        let dropDownList = '<div class="btn-group dropright"><button type="button" class="btn btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Columns' +
+        // Build the dropdown list
+        let dropDownList = '<div class="btn-group dropright"><button type="button" class="btn btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' + headerText +
             '<div class="dropdown-menu dropdown-menu-lg-right">';
-        for(let i = 0; i < this.mColumns.length; i++) {
-            const col = this.mColumns[i];
-            dropDownList += `<label class="dropdown-item dropdown-item-marker" onclick="onTableComponentColumnToggle('${tableId}', '${col.field}'); event.stopPropagation();"><input type="checkbox" checked=${col.visible || true} ><span>&nbsp;${col.title}</span></label>`;
+        {
+            const tableId = this.vTable.attr('id');
+            for (let i = 0; i < this.mColumns.length; i++) {
+                const col = this.mColumns[i];
+                dropDownList += `<label class="dropdown-item dropdown-item-marker" onclick="onTableComponentColumnToggle('${tableId}', '${col.field}'); event.stopPropagation();"><input type="checkbox" checked=${col.visible || true} ><span>&nbsp;${col.title}</span></label>`;
+            }
         }
         dropDownList += '</div></button></div>';
 
-        this.#ensureHeader().find('.tools').append(dropDownList);
+        // Add the dropdown list to DOM
+        this.#ensureHeader().find('.header').replaceWith(dropDownList);
     }
 
     #compare(a, b) {
@@ -279,7 +300,7 @@ class TableComponent {
     }
 
     show() {
-        this.vTableContainer.show();
+        this.vComponentContainer.show();
     }
 
     clear() {
@@ -287,7 +308,7 @@ class TableComponent {
     }
 
     hide() {
-        this.vTableContainer.hide();
+        this.vComponentContainer.hide();
     }
 
     getColumns() {

@@ -16,7 +16,7 @@ class ChartComponent {
 
         this._chartId = option.containerId + '_chart';
         this._card = $('#' + option.containerId).append(
-            '    <div class="card card-block chart-container">                             ' +
+            '    <div class="card card-block rounded-0">                             ' +
             '        <div class="card-body" style="padding: 0.25em">                    ' +
             '            <div class="card-chart"></div> ' +
             '        </div>                                     ' +
@@ -59,13 +59,23 @@ class ChartComponent {
                 '<span class="header-text btn-sm"></span>' +
                 '<div class="tools ml-auto">' +
                 '<button class="btn btn-sm btn-select" style="display:none" ><span class="far fa-object-ungroup" title="selection"></span></button>' +
-                '<button class="btn btn-sm btn-hide"><span class="far fa-window-minimize" title="hide"></span></button>' +
-                '<button class="btn btn-sm btn-open" style="display:none" ><span class="far fa-window-maximize" title="open"></span></button>' +
+                '<button class="btn btn-sm btn-toggle"><span class="far fa-window-minimize"></span></button>' +
+                '<button class="btn btn-sm btn-open" style="display:none" ><span class="far fa-window-restore" title="open"></span></button>' +
                 //'    <button class="btn btn-sm btn-alert"><span class="far fa-bell" title="alert"></span></button>' +
                 '</div>' +
                 '</div>');
-            header.find('.btn-hide').click(() => {
-                this._card.find('.card-body').toggle();
+
+            const toggleButton = header.find('.btn-toggle');
+
+            toggleButton.click(() => {
+                const container = this._card.find('.card-body');
+                container.toggle();
+
+                if (container.is(':visible')) {
+                    toggleButton.find('span').removeClass('fa-window-maximize').addClass("fa-window-minimize");
+                } else {
+                    toggleButton.find('span').removeClass('fa-window-minimize').addClass("fa-window-maximize");
+                }
             });
 
             headerText = header.find('.header-text');

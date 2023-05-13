@@ -27,6 +27,11 @@
             white-space: pre-wrap;
             white-space: -moz-pre-wrap;
         }
+
+        .table th, .table td {
+            font-size: 0.8em;
+            padding: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -101,7 +106,7 @@
             },
             columns: [{
                 field: '__levelId',
-                title: 'No',
+                title: 'No.',
                 formatter: (value, row, index) => (index + 1)
             }, {
                 field: 'appName',
