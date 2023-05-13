@@ -287,7 +287,7 @@ class ChartComponent {
         this._chart.dispose();
     }
 
-    getChart() {
+    getEchartInstance() {
         return this._chart;
     }
 
@@ -312,25 +312,13 @@ class ChartComponent {
     }
 
     setSelectionHandler(selectedHandler, showHandler, hideHandler, clearHandler) {
-        const ctrl = $(this._card).find('.tools')
-        ctrl.find(".btn-select").css('display', '').click(() => {
-            this._chart.dispatchAction({
-                type: 'takeGlobalCursor',
-                key: 'brush',
-                brushOption: {
-                    brushType: this._selectionState ? false : 'lineX',
-                    brushMode: 'single'
-                }
-            });
-            const btn = $(this._card).find('.tools').find('.btn-select');
-            if (this._selectionState) {
-                btn.removeClass('btn-primary');
-                this.#hideRangeSelection();
-            } else {
-                btn.addClass('btn-primary');
-                this.#showRangeSelection();
+        this._chart.dispatchAction({
+            type: 'takeGlobalCursor',
+            key: 'brush',
+            brushOption: {
+                brushType: this._selectionState ? false : 'lineX',
+                brushMode: 'single'
             }
-            this._selectionState = !this._selectionState;
         });
 
         this._selectedHandler = selectedHandler;

@@ -161,11 +161,13 @@ class Dashboard {
             this._chartDescriptors[chartDescriptor.id] = chartDescriptor;
         });
 
+        //
         // Connect the charts to show tooltip synchronize
+        //
         const charts = [];
         for (const id in this._chartComponents) {
             try {
-                const chartInstance = this._chartComponents[id].getChart();
+                const chartInstance = this._chartComponents[id].getEchartInstance();
                 charts.push(chartInstance);
 
                 // Ignore brush event for connection
