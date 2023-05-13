@@ -92,7 +92,7 @@
         {
           "name": "traceId",
           "format": "template",
-          "template": "<a target='_blank' href='/web/trace/detail?id={value}&type=trace'>{value}</a>"
+          "template": "<a target='_blank' href='/web/trace/detail?id={traceId}&range={timestamp}/2H&type=trace'>{traceId}</a>"
         },
         "exceptionClass",
         "message",

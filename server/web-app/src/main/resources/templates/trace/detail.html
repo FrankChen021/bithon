@@ -56,11 +56,63 @@
     <div class="tab-content">
         <div class="tab-pane show active" id="pills-trace" role="tabpanel" aria-labelledby="pills-trace-tab">
         </div>
-        <div class="tab-pane fade" id="pills-map" role="tabpanel" aria-labelledby="pills-map-tab" style="height: 900px; width: 100%">
+        <div class="tab-pane fade" id="pills-map" role="tabpanel" aria-labelledby="pills-map-tab"
+             style="height: 900px; width: 100%">
         </div>
     </div>
 
     <script>
+        /**
+         * @param range timestamp-in-millisecond/offset
+         *          offset: {number}{unit}
+         */
+        function parseRangeExpression(range) {
+            if (range === null) {
+                return null;
+            }
+
+            const parts = range.split('/');
+            if (parts.length !== 2) {
+                return null;
+            }
+
+            const base = parseInt(parts[0].trim());
+            if (isNaN(base)) {
+                return null;
+            }
+            const offset = parts[1].trim();
+            if (offset.length <= 1) {
+                return null;
+            }
+
+            const unit = offset.at(offset.length - 1);
+            let offsetValue = parseInt(offset.substring(0, offset.length - 1));
+            if (isNaN(offsetValue)) {
+                return null;
+            }
+            switch (unit) {
+                case 'D':
+                    offsetValue *= 3600 * 24 * 1000;
+                    break;
+                case 'H':
+                    offsetValue *= 3600 * 1000;
+                    break;
+                case 'M':
+                    offsetValue *= 60 * 1000;
+                    break;
+                case 'S':
+                    offsetValue *= 1000;
+                    break;
+                default:
+                    return null;
+            }
+
+            return {
+                start: moment(base - offsetValue).utc().local().toISOString(true),
+                end: moment(base + offsetValue).utc().local().toISOString(true),
+            };
+        }
+
         let interval = window.queryParams['interval'];
         if (interval != null) {
             const parts = decodeURIComponent(interval).split('/');
@@ -69,8 +121,7 @@
                 end: parts[1]
             };
         } else {
-            //interval maybe undefined
-            interval = null;
+            interval = parseRangeExpression(window.queryParams['range'])
         }
 
         if (window.queryParams['embedded'] === '1') {
@@ -174,6 +225,9 @@
         }
 
         function loadSpanLog() {
+            let startTimeISO8601 = interval === null ? null : interval.start;
+            let endTimeISO8601 = interval === null ? null : interval.end;
+
             vTreeTable.load({
                 url: apiHost + '/api/trace/getTraceById',
                 method: 'post',

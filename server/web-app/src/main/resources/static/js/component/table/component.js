@@ -58,8 +58,29 @@ class TableComponent {
         this.mFormatters['dialog'] = (val, row, index, field) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="showTableDetailViewInDlg('${option.tableId}', ${index}, '${field}')">Show</button>` : '';
         this.mFormatters['block'] = (val, row, index) => `<pre>${val}</pre>`;
         this.mFormatters['template'] = (val, row, index, field) => {
-            const column = this.mColumnMap[field];
-            return column.template.replaceAll('{value}', val);
+            // Get the column definition first
+            let template = this.mColumnMap[field].template;
+
+            // Find all replacements
+            const replacement = new Map();
+            {
+                const extractVariable = /\{([^}]+)}/g;
+                let match;
+                while ((match = extractVariable.exec(template)) !== null) {
+                    let variable = match[1];
+                    replacement.set(variable, true);
+                }
+            }
+
+            // Do replacement
+            replacement.forEach((val, key) => {
+                const v = row[key];
+                if (v !== undefined && v !== null) {
+                    template = template.replaceAll(`{${key}}`, v);
+                }
+            });
+
+            return template;
         };
         this.mFormatters['timeDuration'] = (val) => val.formatTimeDuration();
 
