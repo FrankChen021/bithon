@@ -20,6 +20,8 @@ import org.bithon.component.brpc.endpoint.IEndPointProvider;
 import org.bithon.component.brpc.endpoint.SingleEndPointProvider;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -33,6 +35,8 @@ public class BrpcClientBuilder {
     private Duration retryInterval = Duration.ofMillis(100);
 
     private String appName = "brpc-client";
+
+    private Map<String, String> headers;
 
     /**
      * The name that is used to set to threads of this client.
@@ -81,12 +85,27 @@ public class BrpcClientBuilder {
         return this;
     }
 
-    public BrpcClient build() {
-        return new BrpcClient(server,
-                              workerThreads,
-                              maxRetry,
-                              retryInterval,
-                              appName,
-                              clientId);
+    public BrpcClientBuilder header(String name, String value) {
+        if (headers == null) {
+            headers = new HashMap<>();
+        }
+        headers.put(name, value);
+        return this;
     }
+
+    public BrpcClient build() {
+        BrpcClient brpcClient = new BrpcClient(server,
+                                               workerThreads,
+                                               maxRetry,
+                                               retryInterval,
+                                               appName,
+                                               clientId);
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            String k = entry.getKey();
+            String v = entry.getValue();
+            brpcClient.setHeader(k, v);
+        }
+        return brpcClient;
+    }
+
 }
