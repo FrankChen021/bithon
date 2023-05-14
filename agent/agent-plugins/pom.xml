@@ -41,6 +41,7 @@
     <module>mongodb-3.8</module>
     <module>logging-log4j2</module>
     <module>logging-logback</module>
+    <module>starrocks</module>
     <module>spring-bean</module>
     <module>spring-boot</module>
     <module>spring-mvc</module>
@@ -217,6 +218,12 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-logging-log4j2</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-starrocks</artifactId>
       <version>${project.version}</version>
     </dependency>
 
