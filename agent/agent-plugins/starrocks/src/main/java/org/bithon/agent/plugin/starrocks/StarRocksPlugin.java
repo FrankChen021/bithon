@@ -44,7 +44,7 @@ public class StarRocksPlugin implements IPlugin {
             forClass("com.starrocks.http.HttpServerHandler")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("start")
+                                                   .onMethodAndNoArgs("channelRead")
                                                    .to("org.bithon.agent.plugin.starrocks.interceptor.HttpServerHandler$ChannelRead")
                 )
 

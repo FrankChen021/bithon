@@ -15,6 +15,13 @@
       <groupId>${project.parent.groupId}</groupId>
       <artifactId>agent-observability</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-common</artifactId>
+      <version>4.1.61.Final</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <build>
