@@ -58,4 +58,6 @@ public interface IExpressionVisitor<T> {
     }
 
     default T visit(BinaryExpression.IN expression) { return null; }
+
+    default T visit(BinaryExpression.LIKE expression) { return null; }
 }

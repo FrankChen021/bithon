@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryRecord> {
 
-    private static final long serialVersionUID = -1692998903;
+    private static final long serialVersionUID = -774174580;
 
     /**
      * The reference instance of <code>bithon_trace_span_summary</code>
@@ -170,7 +170,7 @@ public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryReco
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_1_TIMESTAMP, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_APP_NAME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_KEY);
+        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_1_TIMESTAMP, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_2_APP_NAME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_3_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_4_TRACEID);
     }
 
     @Override

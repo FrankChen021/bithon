@@ -48,4 +48,6 @@ public interface IMatcherVisitor<T> {
     T visit(LessThanMatcher matcher);
 
     T visit(LessThanOrEqualMatcher matcher);
+
+    T visit(StringLikeMatcher stringLikeMatcher);
 }

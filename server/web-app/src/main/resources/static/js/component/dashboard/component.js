@@ -40,6 +40,27 @@ class Dashboard {
     // PUBLIC
     load(dashboard) {
         this._dashboard = dashboard;
+        //
+        // Create customer filter input
+        //
+        if (dashboard.filter !== undefined && dashboard.filter.showFilterInput === true) {
+            // Insert the filter expression before the dashboard container
+            this._container.before( '<div class="input-group" style="padding-left: 5px; padding-right: 5px">      ' +
+                                    '     <div class="input-group-prepend">                                       ' +
+                                    '         <span class="input-group-text rounded-0" id="filter-input-span">Filter</span> ' +
+                                    '     </div>                                                                  ' +
+                                    '    <input type="text"                                                       ' +
+                                    '           class="form-control"                                              ' +
+                                    '           id="filter-input" placeholder="SQL style filter, such as: message like \'%a%\'"' +
+                                    '            aria-describedby="filter-input-span"/>                           ' +
+                                    ' </div>')
+                                    .parent()
+                                    .find('#filter-input').on('keydown', (event) => {
+                                        if (event.keyCode === 13) {
+                                            this.refreshDashboard();
+                                        }
+                                    });
+        }
 
         //
         // Create App Filter
@@ -74,8 +95,16 @@ class Dashboard {
             const chartId = 'chart_' + index;
             chartDescriptor['id'] = chartId;
 
-            // set up a data source to charts mapping
-            const dataSourceName = chartDescriptor.dataSource;
+            //
+            // Set up a data source to charts mapping
+            //
+            // dataSource property on chart is a legacy property
+            let dataSourceName = chartDescriptor.dataSource;
+            if (dataSourceName === undefined) {
+                if (chartDescriptor.query !== undefined) {
+                    dataSourceName = chartDescriptor.query.dataSource;
+                }
+            }
             if (dataSourceName !== undefined) {
                 if (dataSource2Charts[dataSourceName] == null) {
                     dataSource2Charts[dataSourceName] = [];
@@ -94,7 +123,10 @@ class Dashboard {
             this._selectedInterval = this._timeSelector.getInterval();
             this.refreshDashboard();
 
-            let url = `/web/metrics/${this._dashboardName}?appName=${g_SelectedApp}`;
+            let url = `/web/metrics/${this._dashboardName}?`;
+            if (g_SelectedApp !== undefined && g_SelectedApp !== null) {
+                url += `appName=${g_SelectedApp}`;
+            }
             if (g_SelectedInstance !== undefined && g_SelectedInstance !== null) {
                 url += `&instanceName=${g_SelectedInstance}`;
             }
@@ -129,11 +161,13 @@ class Dashboard {
             this._chartDescriptors[chartDescriptor.id] = chartDescriptor;
         });
 
+        //
         // Connect the charts to show tooltip synchronize
+        //
         const charts = [];
         for (const id in this._chartComponents) {
             try {
-                const chartInstance = this._chartComponents[id].getChart();
+                const chartInstance = this._chartComponents[id].getEchartInstance();
                 charts.push(chartInstance);
 
                 // Ignore brush event for connection
@@ -435,18 +469,21 @@ class Dashboard {
 
         // dimensionMaps is the old name, use it as compatibility
         const mappings = tracingSpec.mappings === undefined ? tracingSpec.dimensionMaps : tracingSpec.mappings;
-        $.each(columns, (index, dimension) => {
-            const mappingField = mappings[dimension];
+        $.each(columns, (index, col) => {
+            if (typeof col === "object") {
+                col = col.name;
+            }
+            const mappingField = mappings[col];
             if (mappingField == null) {
                 return;
             }
 
-            const val = row[dimension];
+            const val = row[col];
             if (typeof mappingField === "string") {
                 filterExpression += `AND ${mappingField} = '${val}' `;
             } else {
                 // the mapping is an object
-                const val = row[dimension];
+                const val = row[col];
                 if (mappingField.type === 'switch') { // currently, only switch is supported
                     let f = mappingField.cases[val];
                     if (f == null) {
@@ -479,6 +516,19 @@ class Dashboard {
     }
 
     createTableComponent(chartId, parentElement, tableDescriptor, insertIndexColumn, buttons) {
+
+        //
+        // type of string column is allowed in definition, convert it to object first to simply further processing
+        //
+        for (let i = 0, size = tableDescriptor.columns.length; i < size; i++) {
+            let column = tableDescriptor.columns[i];
+
+            // string type of column is allowed for simple configuration
+            // during rendering, it's turned into object for simple processing
+            if (typeof column === 'string') {
+                tableDescriptor.columns[i] = {name: column};
+            }
+        }
 
         const lookup = tableDescriptor.lookup;
         const tableColumns = tableDescriptor.columns.map((column) => {
@@ -543,7 +593,9 @@ class Dashboard {
                 columns: tableColumns,
                 pagination: tableDescriptor.pagination,
                 detailView: false,
-
+                toolbar: {
+                    showColumns: tableDescriptor.showColumns
+                },
                 buttons: buttons,
 
                 // default order
@@ -629,7 +681,8 @@ class Dashboard {
             const start = currentChartOption.timestamp.start;
             const interval = currentChartOption.timestamp.interval;
             const dataIndex = series[0].dataIndex;
-            let tooltip = moment(start + dataIndex * interval).local().format('yyyy-MM-DD HH:mm:ss');
+            let tooltip = moment(start + dataIndex * interval).local().format('MM-DD HH:mm:ss') + '<br/>'
+            + moment(start + dataIndex * interval + interval).local().format('MM-DD HH:mm:ss');
             series.forEach(s => {
                 //Use the yAxis defined formatter to format the data
                 const yAxisIndex = currentChartOption.series[s.seriesIndex].yAxisIndex;
@@ -668,6 +721,22 @@ class Dashboard {
         }).header('<b>' + chartDescriptor.title + '</b>')
             .setChartOption(chartOption);
 
+        // Apply click event to refresh time interval
+        if (chartDescriptor.zoomOnTime === true) {
+            chartComponent.setClickHandler((e) => {
+                const chartOption = this.getChartCurrentOption(chartId);
+
+                const start = chartOption.timestamp.start;
+                const interval = chartOption.timestamp.interval;
+                const dataIndex = e.dataIndex;
+
+                const startTimestamp = start + dataIndex * interval;
+                const endTimestamp = startTimestamp + interval;
+
+                this._timeSelector.setInterval(startTimestamp, endTimestamp);
+            });
+        }
+
         this._chartComponents[chartId] = chartComponent;
 
         return chartComponent;
@@ -687,6 +756,7 @@ class Dashboard {
             endISO8601: interval.end
         };
         thisQuery.filters = filters;
+        thisQuery.filterExpression = $('#filter-input').val();
 
         let path;
         if (query.type === 'list') {
@@ -854,7 +924,11 @@ class Dashboard {
             startISO8601: interval.start,
             endISO8601: interval.end
         };
+        if (chartDescriptor.query.bucketCount !== undefined && chartDescriptor.query.bucketCount != null) {
+            thisQuery.interval.bucketCount = chartDescriptor.query.bucketCount;
+        }
         thisQuery.filters = filters;
+        thisQuery.filterExpression = $('#filter-input').val();
 
         const queryFieldsCount = chartDescriptor.query.fields.length;
 
@@ -886,6 +960,7 @@ class Dashboard {
                     const chartType = column.chartType || 'line';
                     const isLine = chartType === 'line';
                     const isArea = isLine && (column.fill === undefined ? true : column.fill);
+                    const isBar = column.chartType === 'bar';
 
                     const n = metricNamePrefix + group + (column.title === undefined ? column.name : column.title);
                     let s = {
@@ -899,7 +974,13 @@ class Dashboard {
                         areaStyle: isArea ? {opacity: 0.3} : null,
                         lineStyle: isLine ? {width: 1} : null,
                         itemStyle: isLine ? {opacity: 0} : null,
-                        barWidth: 10,
+
+                        label: {
+                            show: isBar,
+                            formatter: (v) => {
+                                return v.value > 0 ? v.value.toString() : '';
+                            }
+                        },
 
                         // selected is not a property of series
                         // this is used to render default selected state of legend by chart-component
@@ -953,6 +1034,17 @@ class Dashboard {
     }
 
     refreshChart(chartDescriptor, chartComponent, interval, metricNamePrefix, mode) {
+        // Check if the filter satisfies the requirement of this chart
+        const query = chartDescriptor.query;
+        if (query.precondition !== undefined
+        && query.precondition.filters !== undefined ) {
+            const satisfied = query.precondition.filters.every((f) => this.vFilter.getSelectedFilter(f) != null);
+            if (!satisfied) {
+                console.log('Not satisfied');
+                return;
+            }
+        }
+
         if (chartDescriptor.type === 'table') {
             this.refreshTable(chartDescriptor.query, chartComponent, interval);
             return;
@@ -1048,7 +1140,6 @@ class Dashboard {
             },
             xAxis: {
                 type: 'category',
-                boundaryGap: false,
                 axisLabel: {},
                 data: [],
             },

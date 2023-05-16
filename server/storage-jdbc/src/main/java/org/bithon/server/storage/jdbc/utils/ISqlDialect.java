@@ -30,14 +30,14 @@ public interface ISqlDialect {
      *
      * @param interval in seconds
      */
-    default String timeFloor(String field, long interval) {
+    default String timeFloorExpression(String field, long interval) {
         return StringUtils.format("UNIX_TIMESTAMP(\"%s\")/ %d * %d", field, interval, interval);
     }
 
     /**
-     * some DBMS requires the group-by expression to be the same as the expression in field list
-     * even if field is a complex expression
-     *
+     * Some DBMS requires the group-by expression to be the same as the expression in field list
+     * even if field is a complex expression.
+     * <p>
      * For example, the following group-by expression can't be the alias of the expression in field list.
      * In this case, this function should return 'true'
      * <p>
@@ -55,7 +55,7 @@ public interface ISqlDialect {
 
     /**
      * Different DBMSs have different requirements on the aggregators
-     *
+     * <p>
      * Take the following SQL as an example,
      * <p>
      * SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 "timestamp",
@@ -68,10 +68,9 @@ public interface ISqlDialect {
      * </p>
      *
      * We can see that expression sum("requestBytes") appears on the SQL twice.
-     *
-     * Some DBMS allows it but some DO NOT.
-     *
-     * So, for those DBMs that DO NOT the same aggregator expresion, we need to rewrite the SQL as
+     * <p>
+     * Some DBMS allow it, but some DO NOT.
+     * So, for those DBMs that DO NOT support the same aggregator expression, we need to rewrite the SQL as
      *
      * <p>
      * SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 "timestamp",

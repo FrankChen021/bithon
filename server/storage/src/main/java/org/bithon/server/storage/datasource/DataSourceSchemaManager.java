@@ -113,7 +113,7 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
         try {
             List<DataSourceSchema> changedSchemaList = schemaStorage.getSchemas(this.lastLoadAt);
 
-            log.info("{} Schemas has been changed since {}.", changedSchemaList.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
+            log.info("{} schema(s) have been changed since {}.", changedSchemaList.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
 
             for (DataSourceSchema changedSchema : changedSchemaList) {
                 this.onChange(this.schemas.put(changedSchema.getName(), changedSchema), changedSchema);

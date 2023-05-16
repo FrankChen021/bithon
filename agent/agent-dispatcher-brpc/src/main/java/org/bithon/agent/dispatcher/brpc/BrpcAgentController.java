@@ -68,21 +68,19 @@ public class BrpcAgentController implements IAgentController {
                                       .workerThreads(2)
                                       .maxRetry(3)
                                       .retryInterval(Duration.ofSeconds(2))
+                                      .header(Headers.HEADER_VERSION, AgentBuildVersion.getString())
+                                      .header(Headers.HEADER_START_TIME, String.valueOf(ManagementFactory.getRuntimeMXBean().getStartTime()))
                                       .build();
 
         if (appInstance.getPort() > 0) {
             // Set the default the appId
             brpcClient.setHeader(Headers.HEADER_APP_ID, appInstance.getHostAndPort());
-            brpcClient.setHeader(Headers.HEADER_VERSION, AgentBuildVersion.getString());
-            brpcClient.setHeader(Headers.HEADER_START_TIME, String.valueOf(ManagementFactory.getRuntimeMXBean().getStartTime()));
         }
 
         // Update appId once the port is configured,
         // so that the management API in the server side can find this agent by appId correctly
         appInstance.addListener((port) -> {
             brpcClient.setHeader(Headers.HEADER_APP_ID, AppInstance.getInstance().getHostAndPort());
-            brpcClient.setHeader(Headers.HEADER_VERSION, AgentBuildVersion.getString());
-            brpcClient.setHeader(Headers.HEADER_START_TIME, String.valueOf(ManagementFactory.getRuntimeMXBean().getStartTime()));
 
             if (refreshListener != null) {
                 try {

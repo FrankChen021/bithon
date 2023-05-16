@@ -20,7 +20,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bithon.server.commons.time.TimeSpan;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotBlank;
 
 /**
@@ -39,8 +41,10 @@ public class IntervalRequest {
     private String endISO8601;
 
     /**
-     * in seconds. The frontend in most cases don't need to set this value.
-     * Can be null. If it's null, it will be default to {@link org.bithon.server.metric.storage.Interval#calculateDefaultStep()}
+     * The count of time buckets if the query is going to group the result by a time interval.
+     * In most cases, users don't need to set this value.
+     * If it's null, it defaults to {@link org.bithon.server.storage.metrics.Interval#calculateDefaultStep(TimeSpan, TimeSpan)}
      */
-    private Integer step;
+    @Nullable
+    private Integer bucketCount;
 }

@@ -80,7 +80,7 @@ public class MetricJdbcReader implements IMetricReader {
         // Add timestamp expression to sub-query
         timestampFilterExpression.getResultColumnList()
                                  .insert(new StringNode(StringUtils.format("%s AS \"%s\"",
-                                                                           sqlDialect.timeFloor("timestamp", query.getInterval().getStep()),
+                                                                           sqlDialect.timeFloorExpression("timestamp", query.getInterval().getStep()),
                                                                            TIMESTAMP_ALIAS_NAME)));
 
         selectExpression.getGroupBy().addField(TIMESTAMP_ALIAS_NAME);

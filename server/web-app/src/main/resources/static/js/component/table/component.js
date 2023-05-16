@@ -5,6 +5,15 @@ function onTableComponentButtonClick(id, rowIndex, buttonIndex) {
     }
 }
 
+function onTableComponentColumnToggle(id, col) {
+    if (window.event.target.localName === 'input') {
+        const tableComponent = window.gTableComponents[id];
+        if (tableComponent != null) {
+            tableComponent.toggleColumn(col);
+        }
+    }
+}
+
 class TableComponent {
     /**
      *
@@ -16,10 +25,11 @@ class TableComponent {
      */
     constructor(option) {
         // view
-        this.vTableContainer = $(`<div class="card card-block chart-container"></div>`);
-        this.vTable = this.vTableContainer.append(`<table id="${option.tableId}"></table>`).find('table');
-        option.parent.append(this.vTableContainer);
+        this.vComponentContainer = $(`<div class="card card-block rounded-0"></div>`);
+        this.vTable = this.vComponentContainer.append(`<div class="table-container"><table id="${option.tableId}"></table></div>`).find('table');
+        option.parent.append(this.vComponentContainer);
 
+        this.mShowColumn = option.toolbar !== undefined ? (option.toolbar.showColumns === true) : false;
         this.mColumns = option.columns;
         this.mCreated = false;
 
@@ -48,8 +58,29 @@ class TableComponent {
         this.mFormatters['dialog'] = (val, row, index, field) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="showTableDetailViewInDlg('${option.tableId}', ${index}, '${field}')">Show</button>` : '';
         this.mFormatters['block'] = (val, row, index) => `<pre>${val}</pre>`;
         this.mFormatters['template'] = (val, row, index, field) => {
-            const column = this.mColumnMap[field];
-            return column.template.replaceAll('{value}', val);
+            // Get the column definition first
+            let template = this.mColumnMap[field].template;
+
+            // Find all replacements
+            const replacement = new Map();
+            {
+                const extractVariable = /\{([^}]+)}/g;
+                let match;
+                while ((match = extractVariable.exec(template)) !== null) {
+                    let variable = match[1];
+                    replacement.set(variable, true);
+                }
+            }
+
+            // Do replacement
+            replacement.forEach((val, key) => {
+                const v = row[key];
+                if (v !== undefined && v !== null) {
+                    template = template.replaceAll(`{${key}}`, v);
+                }
+            });
+
+            return template;
         };
         this.mFormatters['timeDuration'] = (val) => val.formatTimeDuration();
 
@@ -96,12 +127,62 @@ class TableComponent {
         window.gTableComponents[option.tableId] = this;
     }
 
-    header(text) {
+    #ensureHeader() {
         if (this._header == null) {
-            this._header = $(this.vTableContainer).prepend('<div class="card-header"></div>').find('.card-header');
+            this._header = $(this.vComponentContainer).prepend(
+                '<div class="card-header d-flex" style="padding: 0.5em 1em">' +
+                '<div class="header"><span class="header-text btn-sm"></span></div>' +
+                '<div class="tools ml-auto">' +
+                '<button class="btn btn-sm btn-toggle"><span class="far fa-window-minimize"></span></button>' +
+                '</div>' +
+                '</div>');
+
+            const toggleButton = this._header.find('.btn-toggle');
+            toggleButton.click(() => {
+                const tableContainer = this.vComponentContainer.find('.table-container');
+                tableContainer.toggle();
+
+                if (tableContainer.is(':visible')) {
+                    toggleButton.find('span').removeClass('fa-window-maximize').addClass("fa-window-minimize");
+                } else {
+                    toggleButton.find('span').removeClass('fa-window-minimize').addClass("fa-window-maximize");
+                }
+            });
         }
-        $(this._header).html(text);
+        return this._header;
+    }
+
+    header(text) {
+        this.#ensureHeader().find('.header-text').html(text);
         return this;
+    }
+
+    toggleColumn(columnName) {
+        let visible = null;
+
+        const cols = this.vTable.bootstrapTable('getVisibleColumns');
+        for (let i = 0; i < cols.length; i++) {
+            if (cols[i].field === columnName) {
+                visible = true;
+                break;
+            }
+        }
+
+        if (visible != true) {
+            const cols = this.vTable.bootstrapTable('getHiddenColumns');
+            for (let i = 0; i < cols.length; i++) {
+                if (cols[i].field === columnName) {
+                    visible = false;
+                    break;
+                }
+            }
+        }
+
+        if (visible === true) {
+            this.vTable.bootstrapTable('hideColumn', columnName);
+        } else if (visible === false) {
+            this.vTable.bootstrapTable('showColumn', columnName);
+        }
     }
 
     onButtonClick(rowIndex, buttonIndex) {
@@ -172,9 +253,36 @@ class TableComponent {
             }
 
             this.vTable.bootstrapTable(tableOption);
+
+            this.#createShowColumnDropdownList();
         } else {
             this.vTable.bootstrapTable('refresh');
         }
+    }
+
+    #createShowColumnDropdownList() {
+        if (!this.mShowColumn)
+            return;
+
+        let headerText = this.#ensureHeader().find('.header-text').html();
+        if (headerText === '') {
+            headerText = 'Columns';
+        }
+
+        // Build the dropdown list
+        let dropDownList = '<div class="btn-group dropright"><button type="button" class="btn btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' + headerText +
+            '<div class="dropdown-menu dropdown-menu-lg-right">';
+        {
+            const tableId = this.vTable.attr('id');
+            for (let i = 0; i < this.mColumns.length; i++) {
+                const col = this.mColumns[i];
+                dropDownList += `<label class="dropdown-item dropdown-item-marker" onclick="onTableComponentColumnToggle('${tableId}', '${col.field}'); event.stopPropagation();"><input type="checkbox" checked=${col.visible || true} ><span>&nbsp;${col.title}</span></label>`;
+            }
+        }
+        dropDownList += '</div></button></div>';
+
+        // Add the dropdown list to DOM
+        this.#ensureHeader().find('.header').replaceWith(dropDownList);
     }
 
     #compare(a, b) {
@@ -213,7 +321,7 @@ class TableComponent {
     }
 
     show() {
-        this.vTableContainer.show();
+        this.vComponentContainer.show();
     }
 
     clear() {
@@ -221,7 +329,7 @@ class TableComponent {
     }
 
     hide() {
-        this.vTableContainer.hide();
+        this.vComponentContainer.hide();
     }
 
     getColumns() {

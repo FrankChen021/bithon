@@ -27,10 +27,12 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.utils.Preconditions;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 
 /**
  * {@link IExpression} is used at both server and agent side, since the server and the agent use different jackson to deal with deserialization,
@@ -59,8 +61,23 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
             JsonNode typeNode = jsonNode.get("type");
             String type = typeNode.asText();
             switch (type) {
-                case "binary":
-                    return BinaryExpressionDeserializer.deserialize(jsonNode);
+                case "=":
+                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, BinaryExpression.EQ::new);
+                case ">":
+                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, BinaryExpression.GT::new);
+                case ">=":
+                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, BinaryExpression.GTE::new);
+                case "<":
+                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, BinaryExpression.LT::new);
+                case "<=":
+                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, BinaryExpression.LTE::new);
+                case "<>":
+                case "!=":
+                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, BinaryExpression.NE::new);
+                case "in":
+                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, BinaryExpression.IN::new);
+                case "like":
+                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, BinaryExpression.LIKE::new);
                 case "literal":
                     return LiteralExpressionDeserializer.deserialize(jsonNode);
                 case "logical":
@@ -79,16 +96,18 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
      * {@link org.bithon.component.commons.expression.BinaryExpression}
      */
     static class BinaryExpressionDeserializer {
-        static IExpression deserialize(JsonNode jsonNode) throws IOException {
-            JsonNode operator = jsonNode.get("operator");
-            if (operator == null) {
-                throw new RuntimeException("Missing 'operator' field");
-            }
+        static IExpression deserialize(String operator,
+                                       JsonNode jsonNode,
+                                       BiFunction<IExpression, IExpression, IExpression> expressionCreator) throws IOException {
+            JsonNode left = Preconditions.checkNotNull(jsonNode.get("left"),
+                                                       "Missing 'left' property when deserializing operator [%s]",
+                                                       operator);
 
-            JsonNode left = jsonNode.get("left");
-            JsonNode right = jsonNode.get("right");
-            return BinaryExpression.create(operator.asText(),
-                                           Expression.deserialize(left),
+            JsonNode right = Preconditions.checkNotNull(jsonNode.get("right"),
+                                                        "Missing 'right' property when deserializing operator [%s]",
+                                                        operator);
+
+            return expressionCreator.apply(Expression.deserialize(left),
                                            Expression.deserialize(right));
         }
     }

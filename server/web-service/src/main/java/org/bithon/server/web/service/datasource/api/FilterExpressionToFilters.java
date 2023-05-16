@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.tracing.service;
+package org.bithon.server.web.service.datasource.api;
 
 import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.ExpressionList;
@@ -23,6 +23,7 @@ import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.matcher.GreaterThanMatcher;
@@ -32,6 +33,7 @@ import org.bithon.server.commons.matcher.LessThanMatcher;
 import org.bithon.server.commons.matcher.LessThanOrEqualMatcher;
 import org.bithon.server.commons.matcher.NotEqualMatcher;
 import org.bithon.server.commons.matcher.StringEqualMatcher;
+import org.bithon.server.commons.matcher.StringLikeMatcher;
 import org.bithon.server.storage.common.expression.FilterExpressionASTFactory;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.IColumnSpec;
@@ -50,17 +52,21 @@ import java.util.Set;
  * @author frank.chen021@outlook.com
  * @date 2023/5/6 23:49
  */
-class FilterExpressionToFilters {
+public class FilterExpressionToFilters {
 
-    static List<IFilter> toFilter(DataSourceSchema schema, String filterExpression) {
+    public static List<IFilter> toFilter(DataSourceSchema schema, String filterExpression, List<IFilter> otherFilters) {
         if (StringUtils.isEmpty(filterExpression)) {
-            return Collections.emptyList();
+            return otherFilters == null ? Collections.emptyList() : otherFilters;
         }
 
         IExpression expressionAST = FilterExpressionASTFactory.create(filterExpression);
         Visitor v = new Visitor(schema);
         expressionAST.accept(v);
-        return v.filters;
+        List<IFilter> filters = v.filters;
+        if (CollectionUtils.isNotEmpty(otherFilters)) {
+            filters.addAll(otherFilters);
+        }
+        return filters;
     }
 
     static class Visitor implements IExpressionVisitor<Void> {
@@ -82,7 +88,8 @@ class FilterExpressionToFilters {
             return null;
         }
 
-        private void checkBinaryExpression(BinaryExpression binaryExpression, Class<? extends IExpression> rightExpressionType) {
+        private void checkBinaryExpression(BinaryExpression binaryExpression,
+                                           Class<? extends IExpression> rightExpressionType) {
             IExpression left = binaryExpression.getLeft();
             if (!(left instanceof IdentifierExpression)) {
                 throw new UnsupportedOperationException("Expression at left side must be a field");
@@ -90,9 +97,10 @@ class FilterExpressionToFilters {
 
             IExpression right = binaryExpression.getRight();
             if (!rightExpressionType.isAssignableFrom(right.getClass())) {
-                throw new UnsupportedOperationException(StringUtils.format("Expression at right side must be type of [%s], but is [%s].",
-                                                                           rightExpressionType.getSimpleName(),
-                                                                           right.getClass().getSimpleName()));
+                throw new UnsupportedOperationException(StringUtils.format(
+                    "Expression at right side must be type of [%s], but is [%s].",
+                    rightExpressionType.getSimpleName(),
+                    right.getClass().getSimpleName()));
             }
         }
 
@@ -104,7 +112,9 @@ class FilterExpressionToFilters {
             List<IExpression> expressionList = ((ExpressionList) expression.getRight()).getExpressionList();
             for (IExpression expr : expressionList) {
                 if (!(expr instanceof LiteralExpression)) {
-                    throw new UnsupportedOperationException(StringUtils.format("Expression [%s] of the IN operator must be a constant", expr.toString()));
+                    throw new UnsupportedOperationException(StringUtils.format(
+                        "Expression [%s] of the IN operator must be a constant",
+                        expr.toString()));
                 }
                 patterns.add(expr.toString());
             }
@@ -224,6 +234,27 @@ class FilterExpressionToFilters {
                 filters.add(new MetricFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
                                              new NotEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
             }
+            return null;
+        }
+
+        @Override
+        public Void visit(BinaryExpression.LIKE expression) {
+            checkBinaryExpression(expression, LiteralExpression.class);
+
+            IColumnSpec columnSpec = schema.getDimensionSpecByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            Preconditions.checkNotNull(columnSpec,
+                                       "Column [%s] can not be found in schema [%s].",
+                                       ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
+
+            Preconditions.checkIfTrue(expression.getRight() instanceof LiteralExpression,
+                                      "Right expression of LIKE operator must be a literal.");
+            Preconditions.checkIfTrue(((LiteralExpression) expression.getRight()).getValue() instanceof String,
+                                      "right expression of LIKE operator must be a STRING literal.");
+
+            filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                            "alias",
+                                            new StringLikeMatcher((String) ((LiteralExpression) expression.getRight()).getValue())));
+
             return null;
         }
     }

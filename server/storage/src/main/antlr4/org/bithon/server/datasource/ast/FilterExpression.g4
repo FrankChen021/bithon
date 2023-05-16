@@ -62,6 +62,7 @@ comparisonOperator
     | '>='
     | '<>'
     | '!='
+    | 'like'
     ;
 
 VARIABLE

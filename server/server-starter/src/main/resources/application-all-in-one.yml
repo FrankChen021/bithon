@@ -1,6 +1,6 @@
 #
 # This all-in-one profile is just an example.
-# It combines other profiles to enables webapp, collector and use H2 database as storage.
+# It combines other profiles to enable webapp, collector and use the H2 database as storage.
 #
 spring:
   profiles:

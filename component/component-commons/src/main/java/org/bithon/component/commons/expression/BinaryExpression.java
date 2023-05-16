@@ -24,43 +24,17 @@ import org.bithon.component.commons.utils.Preconditions;
  */
 public abstract class BinaryExpression implements IExpression {
 
-    public static BinaryExpression create(String operator, IExpression left, IExpression right) {
-        switch (operator) {
-            case "=":
-                return new EQ(left, right);
-            case ">":
-                return new GT(left, right);
-            case ">=":
-                return new GTE(left, right);
-            case "<":
-                return new LT(left, right);
-            case "<=":
-                return new LTE(left, right);
-            case "<>":
-            case "!=":
-                return new NE(left, right);
-            case "in":
-                return new IN(left, right);
-            default:
-                throw new UnsupportedOperationException("Not supported operator " + operator);
-        }
-    }
-
     /**
      * Don't change these property names because they're used in manual deserializer
      */
-    protected final String operator;
+    protected final String type;
     protected final IExpression left;
     protected final IExpression right;
 
-    protected BinaryExpression(String operator, IExpression left, IExpression right) {
-        this.operator = operator;
+    protected BinaryExpression(String type, IExpression left, IExpression right) {
+        this.type = type;
         this.left = left;
         this.right = right;
-    }
-
-    public String getOperator() {
-        return operator;
     }
 
     public IExpression getLeft() {
@@ -73,12 +47,7 @@ public abstract class BinaryExpression implements IExpression {
 
     @Override
     public String getType() {
-        return "binary";
-    }
-
-    @Override
-    public Object evaluate(IEvaluationContext context) {
-        return matches(left.evaluate(context), right.evaluate(context));
+        return type;
     }
 
     /**
@@ -86,7 +55,12 @@ public abstract class BinaryExpression implements IExpression {
      */
     @Override
     public String toString() {
-        return this.left + " " + this.operator + " " + this.right;
+        return this.left + " " + this.type + " " + this.right;
+    }
+
+    @Override
+    public Object evaluate(IEvaluationContext context) {
+        return matches(left.evaluate(context), right.evaluate(context));
     }
 
     protected boolean matches(Object lValue, Object rValue) {
@@ -279,7 +253,8 @@ public abstract class BinaryExpression implements IExpression {
         public IN(IExpression left, IExpression right) {
             super("in", left, right);
 
-            Preconditions.checkIfTrue(right instanceof ExpressionList, "The 2nd expression of IN operator must be type of ExpressionList");
+            Preconditions.checkIfTrue(right instanceof ExpressionList,
+                                      "The 2nd expression of IN operator must be type of ExpressionList");
         }
 
         @Override
@@ -293,6 +268,38 @@ public abstract class BinaryExpression implements IExpression {
             }
 
             return false;
+        }
+
+        @Override
+        public <T> T accept(IExpressionVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    public static class LIKE extends BinaryExpression {
+        public LIKE(IExpression left, IExpression right) {
+            super("like", left, right);
+        }
+
+        @Override
+        protected boolean matchesNull(Object left, Object right) {
+            return false;
+        }
+
+        @Override
+        protected boolean matches(Number left, Number right) {
+            throw new UnsupportedOperationException("LIKE operator is not supported on both numbers");
+        }
+
+        @Override
+        protected boolean matches(String left, String right) {
+            // Escape any special characters in the pattern
+            String pattern = right.replaceAll("%", "\\\\%").replaceAll("_", "\\\\_");
+
+            // Replace SQL wildcard characters with Java regex wildcard characters
+            pattern = pattern.replaceAll("%", ".*").replaceAll("_", ".");
+
+            return left.contains(pattern);
         }
 
         @Override

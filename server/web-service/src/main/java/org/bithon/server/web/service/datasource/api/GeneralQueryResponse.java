@@ -34,7 +34,7 @@ import java.util.Collection;
 public class GeneralQueryResponse {
 
     /**
-     * total records that satisfies the request conditions
+     * The number of total records that satisfies the request conditions
      */
     private Integer total;
 
