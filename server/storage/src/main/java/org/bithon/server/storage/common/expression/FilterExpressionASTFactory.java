@@ -145,6 +145,9 @@ public class FilterExpressionASTFactory {
                 case "in":
                     binaryExpression = new BinaryExpression.IN(leftExpression, ctx.experssionList().accept(this));
                     break;
+                case "like":
+                    binaryExpression = new BinaryExpression.LIKE(leftExpression, ctx.unaryExpression(1).accept(new UnaryExpressionVisitor()));
+                    break;
                 default:
                     throw new RuntimeException("not yet supported operator: " + comparisonOperator);
             }

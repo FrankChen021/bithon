@@ -27,7 +27,7 @@ import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 public class ClickHouseSqlDialect implements ISqlDialect {
 
     @Override
-    public String timeFloor(String field, long interval) {
+    public String timeFloorExpression(String field, long interval) {
         return StringUtils.format("CAST(toUnixTimestamp(\"%s\")/ %d AS Int64) * %d", field, interval, interval);
     }
 

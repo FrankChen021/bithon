@@ -41,35 +41,24 @@ public class ExpressionDeserializerTest {
         m.addDeserializer(IExpression.class, new ExpressionDeserializer());
         om.registerModule(m);
 
-        IExpression expression = new LogicalExpression.AND(BinaryExpression.create(">", new LiteralExpression(1), new LiteralExpression(2)),
+        IExpression expression = new LogicalExpression.AND(new BinaryExpression.GT(new LiteralExpression(1),
+                                                                                   new LiteralExpression(2)),
                                                            new LiteralExpression(true),
-                                                           new IdentifierExpression("a"));
+                                                           new IdentifierExpression("a"),
+                                                           new BinaryExpression.IN(new IdentifierExpression("a"),
+                                                                                   new ExpressionList(new LiteralExpression(1),
+                                                                                                      new LiteralExpression(2),
+                                                                                                      new IdentifierExpression("b"))),
+                                                           new BinaryExpression.LIKE(new IdentifierExpression("a"), new LiteralExpression("c"))
+        );
 
         String jsonText = om.writeValueAsString(expression);
 
+        // Deserialize and Serialized again
         IExpression deserialized = om.readValue(jsonText, IExpression.class);
         String jsonText2 = om.writeValueAsString(deserialized);
 
         Assert.assertEquals(jsonText, jsonText2);
     }
 
-    @Test
-    public void testSerializationInOperator() throws JsonProcessingException {
-        ObjectMapper om = new ObjectMapper();
-        SimpleModule m = new SimpleModule();
-        m.addDeserializer(IExpression.class, new ExpressionDeserializer());
-        om.registerModule(m);
-
-        IExpression expression = new BinaryExpression.IN(new IdentifierExpression("a"),
-                                                         new ExpressionList(new LiteralExpression(1),
-                                                                            new LiteralExpression(2),
-                                                                            new IdentifierExpression("b")));
-
-        String jsonText = om.writeValueAsString(expression);
-
-        IExpression deserialized = om.readValue(jsonText, IExpression.class);
-        String jsonText2 = om.writeValueAsString(deserialized);
-
-        Assert.assertEquals(jsonText, jsonText2);
-    }
 }

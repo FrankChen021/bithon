@@ -326,6 +326,6 @@ class TracePage {
             return;
         }
 
-        this.vIntervalSelector.setInternal(startTimestamp, endTimestamp);
+        this.vIntervalSelector.setInterval(startTimestamp, endTimestamp);
     }
 }

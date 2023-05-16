@@ -46,17 +46,17 @@ public class H2SqlDialect implements ISqlDialect {
         return StringUtils.format(
                 "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\") AS \"%s\"",
                 field,
-                this.timeFloor("timestamp", window),
+                this.timeFloorExpression("timestamp", window),
                 name);
     }
 
     @Override
     public String lastAggregator(String field, long window) {
-        // NOTE: use FIRST_VALUE since LAST_VALUE returns wrong result
+        // NOTE: use FIRST_VALUE instead of LAST_VALUE because the latter one returns the wrong result
         return StringUtils.format(
                 "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC)",
                 field,
-                this.timeFloor("timestamp", window));
+                this.timeFloorExpression("timestamp", window));
     }
 
     @Override
@@ -64,8 +64,4 @@ public class H2SqlDialect implements ISqlDialect {
         return SimpleAggregateExpressions.FirstAggregateExpression.TYPE.equals(aggregator)
                 || SimpleAggregateExpressions.LastAggregateExpression.TYPE.equals(aggregator);
     }
-
-    /*
-     * NOTE, H2 does not support timestamp comparison, we have to use ISO8601 format
-     */
 }

@@ -14,6 +14,6 @@
     border-radius: 0px;
 }
 
-.chart-container {
-    border-radius: .0em !important
+.card-header {
+    padding: 0.25em 0.5em !important
 }

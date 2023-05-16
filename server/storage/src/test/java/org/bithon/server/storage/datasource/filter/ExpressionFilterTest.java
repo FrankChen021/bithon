@@ -418,4 +418,24 @@ public class ExpressionFilterTest {
         // empty row
         Assert.assertFalse(filter.shouldInclude(new InputRow(new HashMap<>())));
     }
+
+    @Test
+    public void testOperator_LIKE() throws JsonProcessingException {
+        ObjectMapper om = new ObjectMapper();
+        String json = om.writeValueAsString(new ExpressionFilter("a like 'b'", true));
+        IInputRowFilter filter = om.readValue(json, IInputRowFilter.class);
+
+        IInputRow row = new InputRow(new HashMap<>());
+
+        // a does NOT like c
+        row.updateColumn("a", "c");
+        Assert.assertFalse(filter.shouldInclude(row));
+
+        // a does LIKE 'b'
+        row.updateColumn("a", "b");
+        Assert.assertTrue(filter.shouldInclude(row));
+
+        // empty row
+        Assert.assertFalse(filter.shouldInclude(new InputRow(new HashMap<>())));
+    }
 }

@@ -272,7 +272,14 @@ class TimeInterval {
         return option;
     }
 
-    setInternal(startTimestamp, endTimestamp) {
+    setInterval(startTimestamp, endTimestamp) {
+        const startISO8601 = moment(startTimestamp).utc().local().toISOString(true);
+        const endISO8601 = moment(endTimestamp).utc().local().toISOString(true);
+        const currentSelect = this.getInterval();
+        if (startISO8601 === currentSelect.start && endISO8601 === currentSelect.end) {
+            return;
+        }
+
         const displayText = this.#formatDisplayText(startTimestamp, endTimestamp);
 
         if (this._viewModel.length - this.vBuiltInIntervalCount < 10) {
@@ -285,8 +292,8 @@ class TimeInterval {
         const index = this._viewModel.length - 2;
 
         // Change view model
-        this._viewModel[index].start = moment(startTimestamp).utc().local().toISOString(true);
-        this._viewModel[index].end = moment(endTimestamp).utc().local().toISOString(true);
+        this._viewModel[index].start = startISO8601;
+        this._viewModel[index].end = endISO8601;
 
         // Change UI displayed content
         this._control[0].children[index].innerText = displayText;

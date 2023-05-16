@@ -1,11 +1,15 @@
 {
   "title": "Exceptions",
+  "filter": {
+    "showFilterInput": true
+  },
   "charts": [
     {
       "dataSource": "exception-metrics",
       "title": "Exceptions",
       "width": 4,
       "type": "line",
+      "zoomOnTime": true,
       "yAxis": [
         {
           "format": "compact_number"
@@ -14,8 +18,7 @@
       "columns": [
         {
           "name": "eventCount",
-          "chartType": "line",
-          "fill": false
+          "chartType": "bar"
         }
       ],
       "query": {
@@ -23,14 +26,60 @@
         "type": "timeseries",
         "fields": [
           "eventCount"
-        ]
+        ],
+        "bucketCount": 30
+      }
+    },
+    {
+      "title": "Top 5 instances",
+      "width": 2,
+      "type": "table",
+      "columns": [
+        "instanceName",
+        {"name": "eventCount", "title": "exceptionCount"}
+      ],
+      "query": {
+        "dataSource": "exception-metrics",
+        "type": "groupBy",
+        "fields": [
+          "instanceName",
+          "eventCount"
+        ],
+        "limit": 5,
+        "orderBy": {
+          "name": "eventCount",
+          "order": "desc"
+        }
+      }
+    },
+    {
+      "title": "Top 5 Exceptions",
+      "width": 2,
+      "type": "table",
+      "columns": [
+        "exceptionClass",
+        {"name": "eventCount", "title": "exceptionCount"}
+      ],
+      "query": {
+        "dataSource": "exception-metrics",
+        "type": "groupBy",
+        "fields": [
+          "exceptionClass",
+          "eventCount"
+        ],
+        "limit": 5,
+        "orderBy": {
+          "name": "eventCount",
+          "order": "desc"
+        }
       }
     },
     {
       "dataSource": "exception-metrics",
       "title": "Exception List",
       "width": 4,
-      "type":  "table",
+      "type": "table",
+      "showColumns": true,
       "columns": [
         {
           "name": "timestamp",
@@ -38,36 +87,25 @@
           "format": "shortDateTime",
           "width": 150
         },
-        {
-          "name": "instanceName",
-          "title": "Instance"
-        },
-        {
-          "name": "thread",
-          "title": "Thread",
-          "width": 150
-        },
+        "instanceName",
+        "thread",
         {
           "name": "traceId",
-          "title": "Trace Id",
           "format": "template",
-          "template": "<a target='_blank' href='/web/trace/detail?id={value}&type=trace'>{value}</a>"
+          "template": "<a target='_blank' href='/web/trace/detail?id={traceId}&range={timestamp}/2H&type=trace'>{traceId}</a>"
         },
-        {
-          "name": "exceptionClass",
-          "title": "Exception"
-        },
-        {
-          "name": "message",
-          "title": "Message"
-        },
+        "exceptionClass",
+        "message",
         {
           "name": "stack",
-          "title": "Stack Trace",
           "format": "detail"
         }
       ],
-      "pagination": [25, 50, 100],
+      "pagination": [
+        50,
+        100,
+        500
+      ],
       "query": {
         "dataSource": "exception-metrics",
         "type": "list",

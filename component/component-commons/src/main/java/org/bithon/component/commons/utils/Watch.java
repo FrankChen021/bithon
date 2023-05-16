@@ -25,7 +25,7 @@ import java.util.concurrent.Callable;
 public class Watch<V> {
 
     private final V result;
-    private long duration;
+    private final long duration;
 
     public Watch(Callable<V> callable) {
         long start = System.currentTimeMillis();
