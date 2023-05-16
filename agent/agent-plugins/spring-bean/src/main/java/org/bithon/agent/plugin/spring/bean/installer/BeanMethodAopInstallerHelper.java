@@ -27,14 +27,15 @@ import org.bithon.agent.plugin.spring.bean.interceptor.BeanMethod$Invoke;
 public class BeanMethodAopInstallerHelper {
 
     public static void install(Class<?> targetClass) {
-        if (BeanMethod$Invoke.AnnotationHelper.getOrCreateComponentName(targetClass) != null) {
+        String clazzName = targetClass.getName();
 
-            BeanMethodAopInstaller.BeanTransformationConfig transformationConfig = ConfigurationManager.getInstance()
-                                                                                                       .getConfig("agent.plugin.spring.bean", BeanMethodAopInstaller.BeanTransformationConfig.class);
+        BeanMethodAopInstaller.BeanTransformationConfig transformationConfig = ConfigurationManager.getInstance()
+                                                                                                   .getConfig("agent.plugin.spring.bean",
+                                                                                                              BeanMethodAopInstaller.BeanTransformationConfig.class,
+                                                                                                              true);
 
-            BeanMethodAopInstaller.install(targetClass,
-                                           BeanMethod$Invoke.class.getName(),
-                                           transformationConfig);
-        }
+        BeanMethodAopInstaller.install(targetClass,
+                                       BeanMethod$Invoke.class.getName(),
+                                       transformationConfig);
     }
 }

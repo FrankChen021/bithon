@@ -10,26 +10,16 @@ agent:
 #              - type: endwith
 #                suffix:
         excludedClasses:
+          - type: contains
+            pattern: $$EnhancerBySpringCGLIB$$
           - type: endwith
             suffix: Properties
           - type: endwith
             suffix: Configuration
           - type: endwith
             suffix: Configurer
-          - type: endwith
-            suffix: BeanPostProcessor
           - type: startwith
-            prefix: org.springframework.boot.context.properties.
-          - type: startwith
-            prefix: org.springframework.boot.autoconfigure.
-          - type: startwith
-            prefix: org.springframework.boot.annotation.
-          - type: startwith
-            prefix: org.springframework.context.annotation.
-          - type: startwith
-            prefix: org.springframework.cloud.bootstrap.
-          - type: startwith
-            prefix: org.springframework.cloud.context.properties.
+            prefix: org.springframework.
           - type: startwith
             prefix: io.micrometer.
           - type: contains
@@ -40,3 +30,7 @@ agent:
             suffix: AntPathMatcher
           - type: endwith
             suffix: ObjectMapper
+          - type: startwith
+            prefix: com.fasterxml.
+          - type: startwith
+            prefix: com.alibaba.druid
