@@ -100,10 +100,12 @@ public class BrpcClientBuilder {
                                                retryInterval,
                                                appName,
                                                clientId);
-        for (Map.Entry<String, String> entry : headers.entrySet()) {
-            String k = entry.getKey();
-            String v = entry.getValue();
-            brpcClient.setHeader(k, v);
+        if (headers != null) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                String k = entry.getKey();
+                String v = entry.getValue();
+                brpcClient.setHeader(k, v);
+            }
         }
         return brpcClient;
     }
