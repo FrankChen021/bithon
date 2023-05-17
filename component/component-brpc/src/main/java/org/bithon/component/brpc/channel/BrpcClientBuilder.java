@@ -46,6 +46,12 @@ public class BrpcClientBuilder {
      */
     private String clientId = "brpc-client";
 
+    /**
+     * The default value is 200, which is originally used in previous versions.
+     * We keep it as compatibility.
+     */
+    private int connectionTimeout = 200;
+
     public static BrpcClientBuilder builder() {
         return new BrpcClientBuilder();
     }
@@ -93,13 +99,19 @@ public class BrpcClientBuilder {
         return this;
     }
 
+    public BrpcClientBuilder connectionTimeout(int connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
+        return this;
+    }
+
     public BrpcClient build() {
         BrpcClient brpcClient = new BrpcClient(server,
                                                workerThreads,
                                                maxRetry,
                                                retryInterval,
                                                appName,
-                                               clientId);
+                                               clientId,
+                                               Duration.ofMillis(connectionTimeout));
         if (headers != null) {
             for (Map.Entry<String, String> entry : headers.entrySet()) {
                 String k = entry.getKey();
@@ -109,5 +121,4 @@ public class BrpcClientBuilder {
         }
         return brpcClient;
     }
-
 }

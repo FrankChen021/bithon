@@ -98,6 +98,7 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
                                            .server(new RoundRobinEndPointProvider(endpoints))
                                            .maxRetry(3)
                                            .retryInterval(Duration.ofMillis(100))
+                                           .connectionTimeout(dispatcherConfig.getClient().getConnectionTimeout())
                                            .build();
         this.dispatcherConfig = dispatcherConfig;
 
@@ -143,7 +144,7 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
         }
 
         IBrpcChannel channel = ((IServiceController) metricCollector).getChannel();
-        if (channel.getConnectionLifeTime() > dispatcherConfig.getClient().getMaxLifeTime()) {
+        if (channel.getConnectionLifeTime() > dispatcherConfig.getClient().getConnectionLifeTime()) {
             LOG.info("Disconnect metric-channel for client-side load balancing...");
             try {
                 channel.disconnect();
@@ -166,7 +167,7 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
             LOG.warn("Failed to send metrics: []-[]", messageClass, method);
         } catch (InvocationTargetException e) {
             if (e.getTargetException() instanceof CallerSideException
-                    || e.getTargetException() instanceof CalleeSideException) {
+                || e.getTargetException() instanceof CalleeSideException) {
                 //suppress client exception
                 LOG.error("Failed to send metric: {}", e.getTargetException().getMessage());
             } else {

@@ -5,21 +5,25 @@ application:
 
 controller:
   servers: 127.0.0.1:9899
-  client: org.bithon.agent.dispatcher.brpc.BrpcAgentControllerFactory
+  client:
+    factory: org.bithon.agent.dispatcher.brpc.BrpcAgentControllerFactory
+    connectionLifeTime: 2000
 
 dispatchers:
   metric:
     client:
       factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
       # in milliseconds
-      maxLifeTime: 300000
+      connectionLifeTime: 300000
+      connectionTimeout: 2000
     servers: 127.0.0.1:9898
     # No need to configure the metric client in batch because it's already batched. If doing so, there will be exceptions
   tracing:
     client:
       factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
       # in milliseconds
-      maxLifeTime: 300000
+      connectionLifeTime: 300000
+      connectionTimeout: 2000
     servers: 127.0.0.1:9895
     batchSize: 4096
     flushTime: 3000
@@ -29,7 +33,8 @@ dispatchers:
     client:
       factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
       # in milliseconds
-      maxLifeTime: 300000
+      connectionLifeTime: 300000
+      connectionTimeout: 2000
     servers: 127.0.0.1:9896
     batchSize: 500
     flushTime: 5000
