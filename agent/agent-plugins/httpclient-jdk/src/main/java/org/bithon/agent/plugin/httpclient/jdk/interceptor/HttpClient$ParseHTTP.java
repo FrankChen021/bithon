@@ -27,7 +27,6 @@ import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
-import sun.net.ProgressSource;
 import sun.net.www.MessageHeader;
 import sun.net.www.protocol.http.HttpURLConnection;
 
@@ -36,7 +35,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * {@link sun.net.www.http.HttpClient#parseHTTP(MessageHeader, ProgressSource, HttpURLConnection)}
+ * {@link sun.net.www.http.HttpClient#parseHTTP(MessageHeader, sun.net.ProgressSource, HttpURLConnection)}
  *
  * @author frankchen
  */
