@@ -11,6 +11,8 @@ agent:
 #                suffix:
         excludedClasses:
           - type: startwith
+            prefix: org.hibernate.validator.
+          - type: startwith
             prefix: org.thymeleaf.
           - type: startwith
             prefix: javax.
