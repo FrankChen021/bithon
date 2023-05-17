@@ -10,6 +10,10 @@ agent:
 #              - type: endwith
 #                suffix:
         excludedClasses:
+          - type: startwith
+            prefix: org.thymeleaf.
+          - type: startwith
+            prefix: javax.
           - type: contains
             pattern: $$EnhancerBySpringCGLIB$$
           - type: endwith
