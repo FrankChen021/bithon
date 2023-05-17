@@ -67,7 +67,7 @@
          *          offset: {number}{unit}
          */
         function parseRangeExpression(range) {
-            if (range === null) {
+            if (range === undefined || range === null) {
                 return null;
             }
 
