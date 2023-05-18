@@ -83,6 +83,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
     private long connectionTimestamp;
 
     private final InvocationManager invocationManager;
+    private final Duration connectionTimeout;
 
     /**
      * Use {@link BrpcClientBuilder} to create instance.
@@ -94,7 +95,8 @@ public class BrpcClient implements IBrpcChannel, Closeable {
                int maxRetry,
                Duration retryInterval,
                String appName,
-               String clientId) {
+               String clientId,
+               Duration connectionTimeout) {
         Preconditions.checkIfTrue(StringUtils.hasText("appName"), "appName can't be blank.");
         Preconditions.checkIfTrue(maxRetry > 0, "maxRetry must be at least 1.");
 
@@ -122,6 +124,8 @@ public class BrpcClient implements IBrpcChannel, Closeable {
                               pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry, invocationManager));
                           }
                       });
+
+        this.connectionTimeout = connectionTimeout;
     }
 
     @Override
@@ -193,7 +197,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
             server = this.server.getEndpoint();
             try {
                 Future<?> connectFuture = bootstrap.connect(server.getHost(), server.getPort());
-                connectFuture.await(200, TimeUnit.MILLISECONDS);
+                connectFuture.await(this.connectionTimeout.toMillis(), TimeUnit.MILLISECONDS);
                 if (connectFuture.isSuccess()) {
                     connectionTimestamp = System.currentTimeMillis();
                     LOG.info("Successfully connected to remote service at [{}:{}]", server.getHost(), server.getPort());

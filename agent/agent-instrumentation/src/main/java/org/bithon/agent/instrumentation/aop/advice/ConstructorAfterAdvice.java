@@ -42,7 +42,7 @@ public class ConstructorAfterAdvice {
                               @Advice.Origin("#m") String method,
                               @Advice.This Object target,
                               @Advice.AllArguments Object[] args) {
-        AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getSupplier(index).get();
+        AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getInterceptor(index);
         if (interceptor == null) {
             return;
         }

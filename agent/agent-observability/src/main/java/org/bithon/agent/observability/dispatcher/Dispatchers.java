@@ -49,7 +49,7 @@ public class Dispatchers {
 
     public static Dispatcher getOrCreate(String dispatcherName) {
         DispatcherConfig config = ConfigurationManager.getInstance()
-                                                      .getConfig("dispatchers." + dispatcherName, DispatcherConfig.class);
+                                                      .getConfig("dispatchers." + dispatcherName, DispatcherConfig.class, true);
         if (config == null) {
             return null;
         }

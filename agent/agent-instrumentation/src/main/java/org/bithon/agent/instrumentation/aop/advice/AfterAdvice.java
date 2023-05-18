@@ -61,7 +61,7 @@ public class AfterAdvice {
                               @Advice.Thrown Throwable exception,
                               @Advice.Local("context") Object context) {
 
-        AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getSupplier(index).get();
+        AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getInterceptor(index);
         if (interceptor == null) {
             return;
         }

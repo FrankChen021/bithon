@@ -58,7 +58,7 @@ public class BeanMethodAopInstaller {
     public static void install(Class<?> targetClass,
                                String interceptor,
                                BeanTransformationConfig transformationConfig) {
-        if (targetClass.isSynthetic()) {
+        if (targetClass.isSynthetic() || targetClass.isAnonymousClass()) {
             /*
              * eg: org.springframework.boot.actuate.autoconfigure.metrics.KafkaMetricsAutoConfiguration$$Lambda$709/829537923
              */
@@ -73,14 +73,14 @@ public class BeanMethodAopInstaller {
         //
         // derive from the global configuration
         //
-        excludedMethods.addAll(transformationConfig.excludedMethods);
+        excludedMethods.addAll(transformationConfig.getExcludedMethods());
 
         //
         // check if current class is in includedClasses list
         //
         IncludedClassConfig includedClassConfig = null;
-        if (!transformationConfig.includedClasses.isEmpty()) {
-            for (IncludedClassConfig includedClass : transformationConfig.includedClasses) {
+        if (!transformationConfig.getIncludedClasses().isEmpty()) {
+            for (IncludedClassConfig includedClass : transformationConfig.getIncludedClasses()) {
                 if (includedClass.matcher.matches(targetClass.getName())) {
                     includedClassConfig = includedClass;
                     if (includedClassConfig.excludedMethods != null) {
@@ -100,7 +100,7 @@ public class BeanMethodAopInstaller {
         //
         if (includedClassConfig == null || !(includedClassConfig.matcher instanceof StringEqualMatcher)) {
             //execute excluding rules for non-exact matcher
-            if (transformationConfig.excludedClasses.matches(targetClass.getName())) {
+            if (transformationConfig.getExcludedClasses().matches(targetClass.getName())) {
                 return;
             }
         }

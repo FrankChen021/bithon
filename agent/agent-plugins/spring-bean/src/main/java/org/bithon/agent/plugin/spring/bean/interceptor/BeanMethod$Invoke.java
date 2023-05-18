@@ -56,7 +56,7 @@ public class BeanMethod$Invoke extends AroundInterceptor {
 
     public static class AnnotationHelper {
         private static final Map<String, String> ANNOTATION2_NAME = new HashMap<>();
-        private static final Map<Class<?>, String> COMPONENT_NAMES = new ConcurrentHashMap<>();
+        private static final Map<String, String> COMPONENT_NAMES = new ConcurrentHashMap<>();
 
         // Use string format class name instead of using Class to avoid ClassNotFound problem
         // when target application does not ship with spring-web
@@ -68,20 +68,21 @@ public class BeanMethod$Invoke extends AroundInterceptor {
             ANNOTATION2_NAME.put("org.springframework.web.bind.annotation.RestController", "spring-controller");
         }
 
-        public static String getOrCreateComponentName(Class<?> beanClass) {
+        public static String getComponentName(Class<?> clazz) {
+            return COMPONENT_NAMES.computeIfAbsent(clazz.getSimpleName(), (key) -> getComponentNameByClass(clazz));
+        }
+
+        private static String getComponentNameByClass(Class<?> beanClass) {
             Annotation[] annotations = beanClass.getAnnotations();
             for (Annotation annotation : annotations) {
                 String name = ANNOTATION2_NAME.get(annotation.annotationType().getName());
                 if (name != null) {
-                    COMPONENT_NAMES.put(beanClass, name);
                     return name;
                 }
             }
-            return null;
-        }
 
-        public static String getComponentName(Class<?> clazz) {
-            return COMPONENT_NAMES.get(clazz);
+            // created by @Bean or BeanFactory
+            return "spring-bean";
         }
     }
 }

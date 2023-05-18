@@ -49,7 +49,7 @@ public class AgentControllerService implements IAgentService {
         LOG.info("Initializing agent controller");
 
         AgentControllerConfig ctrlConfig = ConfigurationManager.getInstance().getConfig(AgentControllerConfig.class);
-        if (ctrlConfig == null || StringUtils.isEmpty(ctrlConfig.getClient())) {
+        if (ctrlConfig == null || ctrlConfig.getClient() == null || StringUtils.isEmpty(ctrlConfig.getClient().getFactory())) {
             LOG.warn("Agent Controller has not configured.");
             return;
         }
@@ -58,7 +58,7 @@ public class AgentControllerService implements IAgentService {
         // create controller
         //
         try {
-            IAgentControllerFactory factory = (IAgentControllerFactory) Class.forName(ctrlConfig.getClient())
+            IAgentControllerFactory factory = (IAgentControllerFactory) Class.forName(ctrlConfig.getClient().getFactory())
                                                                              .getDeclaredConstructor().newInstance();
             controller = factory.createController(ctrlConfig);
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {

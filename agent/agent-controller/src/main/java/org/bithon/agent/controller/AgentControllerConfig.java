@@ -17,6 +17,7 @@
 package org.bithon.agent.controller;
 
 import org.bithon.agent.configuration.ConfigurationProperties;
+import org.bithon.agent.observability.dispatcher.config.DispatcherClient;
 
 /**
  * @author frank.chen021@outlook.com
@@ -24,14 +25,14 @@ import org.bithon.agent.configuration.ConfigurationProperties;
  */
 @ConfigurationProperties(prefix = "controller", dynamic = false)
 public class AgentControllerConfig {
-    private String client;
+    private DispatcherClient client;
     private String servers;
 
-    public String getClient() {
+    public DispatcherClient getClient() {
         return client;
     }
 
-    public void setClient(String client) {
+    public void setClient(DispatcherClient client) {
         this.client = client;
     }
 

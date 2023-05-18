@@ -62,6 +62,7 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
                                            .server(new RoundRobinEndPointProvider(endpoints))
                                            .maxRetry(3)
                                            .retryInterval(Duration.ofMillis(200))
+                                           .connectionTimeout(dispatcherConfig.getClient().getConnectionTimeout())
                                            .build();
 
         this.dispatcherConfig = dispatcherConfig;
@@ -104,7 +105,7 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
         }
 
         IBrpcChannel channel = ((IServiceController) traceCollector).getChannel();
-        if (channel.getConnectionLifeTime() > dispatcherConfig.getClient().getMaxLifeTime()) {
+        if (channel.getConnectionLifeTime() > dispatcherConfig.getClient().getConnectionLifeTime()) {
             LOG.info("Disconnect trace-channel for client-side load balancing...");
             try {
                 channel.disconnect();

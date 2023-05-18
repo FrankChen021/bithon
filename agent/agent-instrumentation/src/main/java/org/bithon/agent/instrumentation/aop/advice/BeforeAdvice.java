@@ -46,7 +46,7 @@ public class BeforeAdvice {
                                @Advice.This(optional = true) Object target,
                                @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args
     ) {
-        AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getSupplier(index).get();
+        AbstractInterceptor interceptor = InterceptorManager.INSTANCE.getInterceptor(index);
         if (interceptor == null) {
             return;
         }

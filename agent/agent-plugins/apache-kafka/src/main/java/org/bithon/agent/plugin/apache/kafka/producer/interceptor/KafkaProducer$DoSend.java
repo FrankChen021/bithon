@@ -36,6 +36,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 /**
+ * {@link org.apache.kafka.clients.producer.KafkaProducer#send(ProducerRecord)}
  * @author Frank Chen
  * @date 18/11/22 10:33 am
  */
