@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -29,6 +28,7 @@ import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
+import org.bithon.server.storage.jdbc.utils.SqlDialectManager;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.storage.metrics.ttl.MetricStorageCleaner;
 
@@ -48,8 +48,8 @@ public class MetricStorage extends MetricJdbcStorage {
                          @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
                          @JacksonInject(useInput = OptBoolean.FALSE) MetricStorageConfig storageConfig,
                          @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config,
-                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
-        super(dslContextHolder.getDslContext(), schemaManager, storageConfig, objectMapper);
+                         @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
+        super(dslContextHolder.getDslContext(), schemaManager, storageConfig, sqlDialectManager);
         this.config = config;
     }
 

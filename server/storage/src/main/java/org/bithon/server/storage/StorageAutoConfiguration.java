@@ -227,11 +227,13 @@ public class StorageAutoConfiguration {
         List<IDimensionSpec> dimensionSpecs = new ArrayList<>();
         if (tagIndexConfig != null) {
             for (Map.Entry<String, Integer> entry : tagIndexConfig.getMap().entrySet()) {
-                String tagName = entry.getKey();
+                String tagName = "tags." + entry.getKey();
                 Integer indexPos = entry.getValue();
                 dimensionSpecs.add(new StringDimensionSpec("f" + indexPos,
+                                                           // Alias
                                                            tagName,
-                                                           tagName,
+                                                           // Display
+                                                           entry.getKey(),
                                                            true,
                                                            null,
                                                            null));
