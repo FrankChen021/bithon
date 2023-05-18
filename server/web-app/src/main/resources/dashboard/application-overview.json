@@ -1,4 +1,5 @@
 {
+  "name": "application-overview",
   "title": "Application Overview",
   "folder": "metrics",
   "charts": [

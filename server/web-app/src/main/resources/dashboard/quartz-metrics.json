@@ -1,4 +1,5 @@
 {
+  "name": "quartz-metrics",
   "title": "Quartz",
   "folder": "metrics",
   "charts": [

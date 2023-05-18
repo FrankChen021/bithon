@@ -1,4 +1,5 @@
 {
+  "name": "thread-pool-metrics",
   "title": "Thread Pool",
   "folder": "metrics",
   "charts": [

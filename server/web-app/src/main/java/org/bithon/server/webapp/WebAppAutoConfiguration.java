@@ -16,6 +16,7 @@
 
 package org.bithon.server.webapp;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.InvalidConfigurationException;
@@ -54,10 +55,21 @@ public class WebAppAutoConfiguration {
                 .getResources("classpath:/dashboard/*.json");
             for (Resource resource : resources) {
 
-                // deserialize and then serialize again to compact the json string
-                String payload = om.writeValueAsString(om.readTree(resource.getInputStream()));
+                JsonNode dashboard = om.readTree(resource.getInputStream());
+                JsonNode nameNode = dashboard.get("name");
+                if (nameNode == null) {
+                    throw new RuntimeException(StringUtils.format("dashboard [%s] miss the name property", resource.getFilename()));
+                }
 
-                storage.putIfNotExist(resource.getFilename().replace(".json", ""), payload);
+                String name = nameNode.asText();
+                if (StringUtils.isEmpty(name)) {
+                    throw new RuntimeException(StringUtils.format("dashboard [%s] has empty name property", resource.getFilename()));
+                }
+
+                // deserialize and then serialize again to compact the json string
+                String payload = om.writeValueAsString(dashboard);
+
+                storage.putIfNotExist(nameNode.asText(), payload);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -1,4 +1,5 @@
 {
+  "name": "web-server-metrics",
   "title": "Web Server",
   "folder": "metrics",
   "charts": [

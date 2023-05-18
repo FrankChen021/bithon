@@ -1,4 +1,5 @@
 {
+  "name": "sql-metrics",
   "title": "SQL",
   "folder": "metrics",
   "charts": [

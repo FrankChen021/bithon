@@ -1,4 +1,5 @@
 {
+  "name": "jvm-metrics",
   "title": "JVM",
   "folder": "metrics",
   "charts": [

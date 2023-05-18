@@ -1,4 +1,5 @@
 {
+  "name": "kafka-producer-metrics",
   "title": "Kafka Producer",
   "folder": "metrics",
   "charts": [

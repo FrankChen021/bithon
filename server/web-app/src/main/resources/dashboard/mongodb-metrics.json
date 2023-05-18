@@ -1,4 +1,5 @@
 {
+  "name": "mongodb-metrics",
   "title": "MongoDb",
   "folder": "metrics",
   "charts": [

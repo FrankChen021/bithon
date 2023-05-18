@@ -1,4 +1,5 @@
 {
+  "name": "http-outgoing-metrics",
   "title": "HTTP Outgoing",
   "folder": "metrics",
   "charts": [
