@@ -16,6 +16,8 @@
 
 package org.bithon.server.storage.jdbc.utils;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 
@@ -24,6 +26,13 @@ import org.bithon.server.commons.time.TimeSpan;
  * @author frank.chen021@outlook.com
  * @date 2021-10-26
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(value = {
+    /**
+     * The name must comply with the name defined in {@link org.jooq.SQLDialect}
+     */
+    @JsonSubTypes.Type(name = "H2", value = H2SqlDialect.class)
+})
 public interface ISqlDialect {
     /**
      * different DBMS has different functions to support time_floor semantics

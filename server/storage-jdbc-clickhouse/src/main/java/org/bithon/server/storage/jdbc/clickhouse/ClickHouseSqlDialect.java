@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.jdbc.clickhouse;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
@@ -24,6 +25,7 @@ import org.bithon.server.storage.jdbc.utils.ISqlDialect;
  * @author frank.chen021@outlook.com
  * @date 1/11/21 5:21 pm
  */
+@JsonTypeName("CLICKHOUSE")
 public class ClickHouseSqlDialect implements ISqlDialect {
 
     @Override

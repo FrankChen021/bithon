@@ -21,15 +21,16 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.store.DataStoreSpec;
 import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
-import org.bithon.server.storage.jdbc.utils.DefaultSqlDialect;
-import org.bithon.server.storage.jdbc.utils.H2SqlDialect;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
@@ -38,7 +39,6 @@ import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.storage.metrics.ttl.MetricStorageCleaner;
 import org.jooq.CreateTableIndexStep;
 import org.jooq.DSLContext;
-import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
@@ -65,20 +65,27 @@ public class MetricJdbcStorage implements IMetricStorage {
      */
     protected final Map<String, DSLContext> dslContextMap;
 
+    protected final Map<String, ISqlDialect> sqlDialectMap;
+    private final ObjectMapper objectMapper;
+
     @JsonCreator
     public MetricJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder,
                              @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
-                             @JacksonInject(useInput = OptBoolean.FALSE) MetricStorageConfig storageConfig) {
-        this(dslContextHolder.getDslContext(), schemaManager, storageConfig);
+                             @JacksonInject(useInput = OptBoolean.FALSE) MetricStorageConfig storageConfig,
+                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+        this(dslContextHolder.getDslContext(), schemaManager, storageConfig, objectMapper);
     }
 
     public MetricJdbcStorage(DSLContext dslContext,
                              DataSourceSchemaManager schemaManager,
-                             MetricStorageConfig storageConfig) {
+                             MetricStorageConfig storageConfig,
+                             ObjectMapper objectMapper) {
         this.dslContext = dslContext;
+        this.objectMapper = objectMapper;
         this.schemaManager = schemaManager;
         this.storageConfig = storageConfig;
         this.dslContextMap = new ConcurrentHashMap<>();
+        this.sqlDialectMap = new ConcurrentHashMap<>();
         schemaManager.addListener((oldSchema, newSchema) -> {
             if (oldSchema != null && !Objects.equals(oldSchema.getDataStoreSpec(), newSchema.getDataStoreSpec())) {
                 DSLContext context = dslContextMap.remove(oldSchema.getName());
@@ -122,21 +129,24 @@ public class MetricJdbcStorage implements IMetricStorage {
                                  .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
         });
 
-        return new MetricJdbcReader(context, getSqlDialect());
+        return new MetricJdbcReader(context, getSqlDialect(context));
     }
 
-    protected ISqlDialect getSqlDialect() {
-        if (dslContext.dialect() == SQLDialect.H2) {
-            return H2SqlDialect.INSTANCE;
-        } else {
-            return DefaultSqlDialect.INSTANCE;
-        }
+    protected ISqlDialect getSqlDialect(DSLContext context) {
+        final String name = context.dialect().name().toUpperCase();
+        return sqlDialectMap.computeIfAbsent(name, (k) -> {
+            try {
+                return this.objectMapper.readValue(StringUtils.format("{\"type\": \"%s\"}", name), ISqlDialect.class);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(StringUtils.format("Can't find SqlDialect for %s", name));
+            }
+        });
     }
 
     protected void initialize(DataSourceSchema schema, MetricTable table) {
         CreateTableIndexStep s = dslContext.createTableIfNotExists(table)
-                .columns(table.fields())
-                .indexes(table.getIndexes());
+                                           .columns(table.fields())
+                                           .indexes(table.getIndexes());
         s.execute();
     }
 
@@ -157,8 +167,8 @@ public class MetricJdbcStorage implements IMetricStorage {
             protected void expireImpl(DataSourceSchema schema, Timestamp before) {
                 final MetricTable table = new MetricTable(schema);
                 dslContext.deleteFrom(table)
-                        .where(table.getTimestampField().le(before))
-                        .execute();
+                          .where(table.getTimestampField().le(before))
+                          .execute();
             }
         };
     }
