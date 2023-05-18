@@ -45,6 +45,7 @@ import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 
 import java.sql.Timestamp;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -133,7 +134,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     }
 
     protected ISqlDialect getSqlDialect(DSLContext context) {
-        final String name = context.dialect().name().toUpperCase();
+        final String name = context.dialect().name().toUpperCase(Locale.ENGLISH);
         return sqlDialectMap.computeIfAbsent(name, (k) -> {
             try {
                 return this.objectMapper.readValue(StringUtils.format("{\"type\": \"%s\"}", name), ISqlDialect.class);
