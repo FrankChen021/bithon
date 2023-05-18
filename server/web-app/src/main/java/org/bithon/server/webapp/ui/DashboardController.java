@@ -111,7 +111,7 @@ public class DashboardController {
             loadDashboardList();
         }
         if (StringUtils.hasText(folder)) {
-            return dashboardList.stream().filter((dashboard) -> dashboard.folder.startsWith(folder)).collect(Collectors.toList());
+            return dashboardList.stream().filter((dashboard) -> dashboard.folder != null && dashboard.folder.startsWith(folder)).collect(Collectors.toList());
         } else {
             return dashboardList;
         }
@@ -163,8 +163,8 @@ public class DashboardController {
         }
     }
 
-    @PostMapping("/web/api/dashboard/update/{boardName}")
-    public void updateDashboard(@PathVariable("boardName") String name, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    @PostMapping("/web/api/dashboard/update")
+    public void updateDashboard(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         JsonNode dashboard;
         try {
@@ -183,6 +183,13 @@ public class DashboardController {
             return;
         }
 
-        this.dashboardManager.update(name, objectMapper.writeValueAsString(dashboard));
+        JsonNode nameNode = dashboard.get("name");
+        if (nameNode == null || StringUtils.isBlank(nameNode.asText())) {
+            response.getWriter().println("name is missing.");
+            response.setStatus(HttpStatus.BAD_REQUEST.value());
+            return;
+        }
+
+        this.dashboardManager.update(nameNode.asText(), objectMapper.writeValueAsString(dashboard));
     }
 }
