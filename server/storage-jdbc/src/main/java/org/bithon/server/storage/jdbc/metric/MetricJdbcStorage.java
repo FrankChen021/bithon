@@ -16,14 +16,17 @@
 
 package org.bithon.server.storage.jdbc.metric;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.store.DataStoreSpec;
 import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
 import org.bithon.server.storage.jdbc.utils.DefaultSqlDialect;
 import org.bithon.server.storage.jdbc.utils.H2SqlDialect;
@@ -36,8 +39,15 @@ import org.bithon.server.storage.metrics.ttl.MetricStorageCleaner;
 import org.jooq.CreateTableIndexStep;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
+import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultConfiguration;
+import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
+import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 
 import java.sql.Timestamp;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author frank.chen021@outlook.com
@@ -49,6 +59,11 @@ public class MetricJdbcStorage implements IMetricStorage {
     protected final DSLContext dslContext;
     protected final MetricStorageConfig storageConfig;
     protected final DataSourceSchemaManager schemaManager;
+
+    /**
+     * context per data source
+     */
+    protected final Map<String, DSLContext> dslContextMap;
 
     @JsonCreator
     public MetricJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder,
@@ -63,6 +78,15 @@ public class MetricJdbcStorage implements IMetricStorage {
         this.dslContext = dslContext;
         this.schemaManager = schemaManager;
         this.storageConfig = storageConfig;
+        this.dslContextMap = new ConcurrentHashMap<>();
+        schemaManager.addListener((oldSchema, newSchema) -> {
+            if (oldSchema != null && !Objects.equals(oldSchema.getDataStoreSpec(), newSchema.getDataStoreSpec())) {
+                DSLContext context = dslContextMap.remove(oldSchema.getName());
+                if (context != null) {
+                    context.close();
+                }
+            }
+        });
     }
 
     @Override
@@ -74,7 +98,31 @@ public class MetricJdbcStorage implements IMetricStorage {
 
     @Override
     public IMetricReader createMetricReader(DataSourceSchema schema) {
-        return new MetricJdbcReader(dslContext, getSqlDialect());
+        DSLContext context = this.dslContextMap.computeIfAbsent(schema.getName(), (name) -> {
+            DataStoreSpec dataStoreSpec = schema.getDataStoreSpec();
+            if (dataStoreSpec == null || dataStoreSpec.isInternal()) {
+                return dslContext;
+            }
+
+            //
+            // Create a new DSL Context on the external data source
+            //
+            DruidDataSource jdbcDataSource = new DruidDataSource();
+            jdbcDataSource.setDriverClassName(Preconditions.checkNotNull(dataStoreSpec.getProperty("driverClassName"), "Missing driverClassName property for %s", schema.getName()));
+            jdbcDataSource.setUrl(Preconditions.checkNotNull(dataStoreSpec.getProperty("url"), "Missing url property for %s", schema.getName()));
+            jdbcDataSource.setUsername(Preconditions.checkNotNull(dataStoreSpec.getProperty("username"), "Missing userName property for %s", schema.getName()));
+            jdbcDataSource.setPassword(Preconditions.checkNotNull(dataStoreSpec.getProperty("password"), "Missing password property for %s", schema.getName()));
+            jdbcDataSource.setName(schema.getName());
+
+            // Create a new one
+            JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
+            return DSL.using(new DefaultConfiguration()
+                                 .set(autoConfiguration.dataSourceConnectionProvider(jdbcDataSource))
+                                 .set(new JooqProperties().determineSqlDialect(jdbcDataSource))
+                                 .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
+        });
+
+        return new MetricJdbcReader(context, getSqlDialect());
     }
 
     protected ISqlDialect getSqlDialect() {
@@ -87,8 +135,8 @@ public class MetricJdbcStorage implements IMetricStorage {
 
     protected void initialize(DataSourceSchema schema, MetricTable table) {
         CreateTableIndexStep s = dslContext.createTableIfNotExists(table)
-                                           .columns(table.fields())
-                                           .indexes(table.getIndexes());
+                .columns(table.fields())
+                .indexes(table.getIndexes());
         s.execute();
     }
 
@@ -109,8 +157,8 @@ public class MetricJdbcStorage implements IMetricStorage {
             protected void expireImpl(DataSourceSchema schema, Timestamp before) {
                 final MetricTable table = new MetricTable(schema);
                 dslContext.deleteFrom(table)
-                          .where(table.getTimestampField().le(before))
-                          .execute();
+                        .where(table.getTimestampField().le(before))
+                        .execute();
             }
         };
     }
