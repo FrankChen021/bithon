@@ -1,5 +1,6 @@
 {
   "title": "Thread Pool",
+  "folder": "metrics",
   "charts": [
     {
       "dataSource": "thread-pool-metrics",

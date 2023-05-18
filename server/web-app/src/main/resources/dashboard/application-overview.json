@@ -1,5 +1,6 @@
 {
   "title": "Application Overview",
+  "folder": "metrics",
   "charts": [
     {
       "title": "Instance List",

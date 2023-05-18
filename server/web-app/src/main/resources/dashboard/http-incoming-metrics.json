@@ -1,5 +1,6 @@
 {
   "title": "HTTP Incoming",
+  "folder": "metrics",
   "charts": [
     {
       "dataSource": "http-incoming-metrics",

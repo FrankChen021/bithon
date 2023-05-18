@@ -1,5 +1,6 @@
 {
   "title": "JVM",
+  "folder": "metrics",
   "charts": [
     {
       "dataSource": "jvm-metrics",

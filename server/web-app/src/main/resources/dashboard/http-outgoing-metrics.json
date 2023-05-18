@@ -1,5 +1,6 @@
 {
   "title": "HTTP Outgoing",
+  "folder": "metrics",
   "charts": [
     {
       "dataSource": "http-outgoing-metrics",

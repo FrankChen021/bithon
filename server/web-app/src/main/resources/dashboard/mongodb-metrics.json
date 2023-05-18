@@ -1,5 +1,6 @@
 {
   "title": "MongoDb",
+  "folder": "metrics",
   "charts": [
     {
       "dataSource": "mongodb-metrics",
