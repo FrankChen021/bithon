@@ -27,7 +27,6 @@ import org.bithon.agent.plugin.spring.bean.interceptor.BeanMethod$Invoke;
 public class BeanMethodAopInstallerHelper {
 
     public static void install(Class<?> targetClass) {
-        String clazzName = targetClass.getName();
 
         BeanMethodAopInstaller.BeanTransformationConfig transformationConfig = ConfigurationManager.getInstance()
                                                                                                    .getConfig("agent.plugin.spring.bean",
