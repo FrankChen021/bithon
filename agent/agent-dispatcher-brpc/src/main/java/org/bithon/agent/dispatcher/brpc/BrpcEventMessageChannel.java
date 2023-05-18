@@ -61,6 +61,7 @@ public class BrpcEventMessageChannel implements IMessageChannel {
                                            .server(new RoundRobinEndPointProvider(endpoints))
                                            .maxRetry(3)
                                            .retryInterval(Duration.ofMillis(200))
+                                           .connectionTimeout(dispatcherConfig.getClient().getConnectionTimeout())
                                            .build();
 
         this.dispatcherConfig = dispatcherConfig;
@@ -96,7 +97,7 @@ public class BrpcEventMessageChannel implements IMessageChannel {
         }
 
         IBrpcChannel channel = ((IServiceController) eventCollector).getChannel();
-        if (channel.getConnectionLifeTime() > dispatcherConfig.getClient().getMaxLifeTime()) {
+        if (channel.getConnectionLifeTime() > dispatcherConfig.getClient().getConnectionLifeTime()) {
             LOG.info("Disconnect for event-channel load balancing...");
             try {
                 channel.disconnect();

@@ -50,13 +50,26 @@ public class InterceptorManager {
     /**
      * Get interceptor by given index.
      */
-    public Supplier<AbstractInterceptor> getSupplier(int index) {
-        return index < interceptorList.length ? interceptorList[index] : () -> null;
+    public AbstractInterceptor getInterceptor(int index) {
+        if (index < interceptorList.length) {
+            Supplier<AbstractInterceptor> supplier = interceptorList[index];
+            //
+            // The case that the returned supplier is null is very complicated.
+            // If the target application runs with agent while it enables the spring-boot-devtools,
+            // this InterceptorManager class will be loaded into multiple class loaders.
+            // However, only one of the loaders has the interceptorList assigned.
+            //
+            if (supplier != null) {
+                return supplier.get();
+            }
+        }
+        return null;
     }
 
     /**
      * Get or create an interceptor supplier
-     * @return the global index of this supplier so that it can be passed to {{@link #getSupplier(int)}} to get the supplier instance
+     *
+     * @return the global index of this supplier so that it can be passed to {{@link #getInterceptor(int)}} to get the supplier instance
      */
     public int getOrCreateSupplier(String interceptorClassName,
                                    ClassLoader classLoader) {
@@ -68,7 +81,7 @@ public class InterceptorManager {
             return supplier.getIndex();
         }
 
-        synchronized (InterceptorManager.class) {
+        synchronized (this) {
             // Double check
             supplier = suppliers.get(classLoaderId);
             if (supplier != null) {
@@ -89,6 +102,7 @@ public class InterceptorManager {
 
     /**
      * Take a snapshot of suppliers.
+     *
      * @return if target interceptor does not exist, an empty map, instead of null, is returned
      */
     public Map<String, InterceptorSupplier> getSuppliers(String interceptorClazz) {

@@ -76,6 +76,7 @@ public class DynamicInterceptorInstaller {
             .disableClassFormatChanges()
             .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+            .with(AgentBuilder.RedefinitionStrategy.Listener.ErrorEscalating.FAIL_LAST)
             .type(typeMatcher)
             .transform((DynamicType.Builder<?> builder,
                         TypeDescription typeDescription,

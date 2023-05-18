@@ -29,6 +29,14 @@ class AppSelector {
         //
         // create app selector
         //
+        this.mFilterSpecs.push({
+             filterType: 'select',
+             sourceType: 'datasource',
+             name: 'appName',
+             alias: 'appName',
+             displayText: 'appName',
+             onPreviousFilters: false
+        });
         this.vAppSelector = $('<li class="nav-item"><select class="form-control" style="width:200px"></select></li>').find('select');
         this.vParent.append(this.vAppSelector);
         $(document).ready(() => {

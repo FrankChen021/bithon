@@ -35,6 +35,7 @@ public class Validator {
         Map<Class<? extends Annotation>, IValueValidator> validators = new HashMap<Class<? extends Annotation>, IValueValidator>() {{
             put(NotBlank.class, new NotBlankValidator());
             put(Range.class, new RangeValidator());
+            put(GreaterThan.class, new GreaterThanValidator());
         }};
 
         for (Field field : obj.getClass().getDeclaredFields()) {
@@ -54,10 +55,10 @@ public class Validator {
 
     private static <T extends Annotation> String validateField(Object object,
                                                                Field field,
-                                                               Class<T> validatorAnnotationClass,
+                                                               Class<T> validationAnnotation,
                                                                IValueValidator valueValidator) {
-        Annotation validatorAnnotation = field.getAnnotation(validatorAnnotationClass);
-        if (validatorAnnotation == null) {
+        Annotation declaredValidationAnnotation = field.getAnnotation(validationAnnotation);
+        if (declaredValidationAnnotation == null) {
             return null;
         }
 
@@ -70,7 +71,7 @@ public class Validator {
             field.setAccessible(true);
 
 
-            violationMessagePattern = valueValidator.validate(validatorAnnotation,
+            violationMessagePattern = valueValidator.validate(declaredValidationAnnotation,
                                                               field.getType(),
                                                               field.get(object));
             if (violationMessagePattern == null) {
@@ -125,6 +126,21 @@ public class Validator {
                     return null;
                 }
                 return "%s " + String.format(Locale.ENGLISH, "should be in the range of [%d, %d], but is %d", min, max, v);
+            }
+            return "Type of [%s] is not Number, but " + objectType.getSimpleName();
+        }
+    }
+
+    static class GreaterThanValidator implements IValueValidator {
+        @Override
+        public String validate(Annotation annotation, Class<?> objectType, Object value) {
+            if (value instanceof Number) {
+                long input = ((Number) value).longValue();
+                long constraint = ((GreaterThan) annotation).value();
+                if (input > constraint) {
+                    return null;
+                }
+                return "%s " + String.format(Locale.ENGLISH, "should be greater than [%d], but is %d", input, constraint);
             }
             return "Type of [%s] is not Number, but " + objectType.getSimpleName();
         }

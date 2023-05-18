@@ -16,6 +16,8 @@
 
 package org.bithon.agent.observability.dispatcher.config;
 
+import org.bithon.agent.configuration.validation.GreaterThan;
+import org.bithon.agent.configuration.validation.NotBlank;
 import org.bithon.agent.observability.dispatcher.channel.IMessageChannelFactory;
 
 /**
@@ -26,19 +28,26 @@ public class DispatcherClient {
     /**
      * must be subclass of {@link IMessageChannelFactory}
      */
+    @NotBlank(message = "factory should not be blank.")
     private String factory;
 
     /**
      * how long a connection can be kept. in milliseconds
      */
-    private int maxLifeTime;
+    private int connectionLifeTime;
 
-    public int getMaxLifeTime() {
-        return maxLifeTime;
+    /**
+     * The timeout value in millisecond for establishing a connection to remote server.
+     */
+    @GreaterThan(value = 0)
+    private int connectionTimeout;
+
+    public int getConnectionLifeTime() {
+        return connectionLifeTime;
     }
 
-    public void setMaxLifeTime(int maxLifeTime) {
-        this.maxLifeTime = maxLifeTime;
+    public void setConnectionLifeTime(int connectionLifeTime) {
+        this.connectionLifeTime = connectionLifeTime;
     }
 
     public String getFactory() {
@@ -47,5 +56,13 @@ public class DispatcherClient {
 
     public void setFactory(String factory) {
         this.factory = factory;
+    }
+
+    public int getConnectionTimeout() {
+        return connectionTimeout;
+    }
+
+    public void setConnectionTimeout(int connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
     }
 }

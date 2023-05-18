@@ -48,7 +48,7 @@ public class AroundAdvice {
                                   @Advice.Local("context") Object context,
                                   @Advice.Local("interceptor") AroundInterceptor interceptor
     ) {
-        interceptor = (AroundInterceptor) InterceptorManager.INSTANCE.getSupplier(index).get();
+        interceptor = (AroundInterceptor) InterceptorManager.INSTANCE.getInterceptor(index);
         if (interceptor == null) {
             return false;
         }

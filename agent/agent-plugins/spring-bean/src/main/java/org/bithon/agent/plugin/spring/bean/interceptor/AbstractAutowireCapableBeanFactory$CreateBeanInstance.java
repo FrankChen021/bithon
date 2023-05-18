@@ -28,7 +28,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
  * @author frank.chen021@outlook.com
  * @date 2021/4/11 20:48
  */
-public class AbstractAutowireCapableBeanFactory$CreateInstance extends AfterInterceptor {
+public class AbstractAutowireCapableBeanFactory$CreateBeanInstance extends AfterInterceptor {
 
     /**
      * Re-transform the class of the bean
@@ -46,10 +46,6 @@ public class AbstractAutowireCapableBeanFactory$CreateInstance extends AfterInte
 
         BeanWrapper result = aopContext.getReturningAs();
         Object beanInstance = result.getWrappedInstance();
-        if (beanInstance == null) {
-            return;
-        }
-
         BeanMethodAopInstallerHelper.install(beanInstance.getClass());
     }
 }

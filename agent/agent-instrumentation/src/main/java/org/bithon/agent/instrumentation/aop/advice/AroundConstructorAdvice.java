@@ -47,7 +47,7 @@ public class AroundConstructorAdvice {
                                   @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
                                   @Advice.Local("context") Object context,
                                   @Advice.Local("interceptor") AroundInterceptor interceptor) {
-        interceptor = (AroundInterceptor) InterceptorManager.INSTANCE.getSupplier(index).get();
+        interceptor = (AroundInterceptor) InterceptorManager.INSTANCE.getInterceptor(index);
         if (interceptor == null) {
             return false;
         }

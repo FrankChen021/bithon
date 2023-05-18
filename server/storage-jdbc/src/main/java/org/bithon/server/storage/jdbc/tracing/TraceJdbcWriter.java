@@ -31,6 +31,7 @@ import org.jooq.BatchBindStep;
 import org.jooq.DSLContext;
 import org.jooq.Table;
 import org.jooq.TransactionalRunnable;
+import org.jooq.exception.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.PreparedStatement;
@@ -75,7 +76,7 @@ public class TraceJdbcWriter implements ITraceWriter {
         }
     }
 
-    private void writeSpans(Collection<TraceSpan> traceSpans, Table<?> table) {
+    private void writeSpans(Collection<TraceSpan> traceSpans, Table<?> table) throws Throwable {
         if (traceSpans.isEmpty()) {
             return;
         }
@@ -128,30 +129,36 @@ public class TraceJdbcWriter implements ITraceWriter {
                                                                     // status
                                                                     null
                                                             ));
-        dslContext.connection(conn -> {
-            try (PreparedStatement stmt = conn.prepareStatement(insertTemplate)) {
-                for (TraceSpan span : traceSpans) {
-                    stmt.setObject(1, new Timestamp(span.startTime / 1000));
-                    stmt.setObject(2, span.appName);
-                    stmt.setObject(3, span.instanceName);
-                    stmt.setObject(4, span.traceId);
-                    stmt.setObject(5, span.spanId);
-                    stmt.setObject(6, span.parentSpanId);
-                    stmt.setObject(7, getOrDefault(span.name));
-                    stmt.setObject(8, getOrDefault(span.clazz));
-                    stmt.setObject(9, getOrDefault(span.method));
-                    stmt.setObject(10, getOrDefault(span.kind));
-                    stmt.setObject(11, span.startTime);
-                    stmt.setObject(12, span.endTime);
-                    stmt.setObject(13, span.costTime);
-                    stmt.setObject(14, toTagStore(span.getTags()));
-                    stmt.setObject(15, span.getNormalizedUri());
-                    stmt.setObject(16, span.getStatus());
-                    stmt.addBatch();
+        try {
+            dslContext.connection(conn -> {
+                try (PreparedStatement stmt = conn.prepareStatement(insertTemplate)) {
+                    for (TraceSpan span : traceSpans) {
+                        stmt.setObject(1, new Timestamp(span.startTime / 1000));
+                        stmt.setObject(2, span.appName);
+                        stmt.setObject(3, span.instanceName);
+                        stmt.setObject(4, span.traceId);
+                        stmt.setObject(5, span.spanId);
+                        stmt.setObject(6, span.parentSpanId);
+                        stmt.setObject(7, getOrDefault(span.name));
+                        stmt.setObject(8, getOrDefault(span.clazz));
+                        stmt.setObject(9, getOrDefault(span.method));
+                        stmt.setObject(10, getOrDefault(span.kind));
+                        stmt.setObject(11, span.startTime);
+                        stmt.setObject(12, span.endTime);
+                        stmt.setObject(13, span.costTime);
+                        stmt.setObject(14, toTagStore(span.getTags()));
+                        stmt.setObject(15, span.getNormalizedUri());
+                        stmt.setObject(16, span.getStatus());
+                        stmt.addBatch();
+                    }
+                    stmt.executeBatch();
                 }
-                stmt.executeBatch();
-            }
-        });
+            });
+        } catch (DataAccessException e) {
+            // Re-throw the caused exception for more clear stack trace
+            // In such case, the caused exception is not NULL.
+            throw e.getCause();
+        }
     }
 
     private void writeMappings(Collection<TraceIdMapping> mappings) {
