@@ -1,0 +1,94 @@
+<!DOCTYPE HTML>
+<html lang="zh_CN"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{_common/layout}">
+<head>
+    <title>Bithon Logs - [[${store}]]</title>
+
+    <!-- bootstrap select -->
+    <script th:src="@{/lib/select2-4.0.13/js/select2.min.js}"></script>
+    <link rel="stylesheet" th:href="@{/lib/select2-4.0.13/css/select2.min.css}">
+    <link rel="stylesheet" th:href="@{/lib/select2-4.0.13/css/select2-bootstrap4.min.css}">
+
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+
+    <script th:src="@{/lib/echarts5.0.1/echarts.min.js}"></script>
+    <script th:src="@{/js/card-component.js}"></script>
+    <script th:src="@{/js/chart-component.js}"></script>
+    <script th:src="@{/js/utils/location.js}"></script>
+
+    <script th:inline="javascript">
+        let g_SelectedApp = window.queryParams['appName'];
+        let g_SelectedInstance = window.queryParams['instanceName'];
+        let g_MetricSelectedInterval = window.queryParams['interval'];
+    </script>
+    <script th:src="@{/js/api-client/schema-api.js}"></script>
+    <script th:src="@{/js/component/dashboard/component.js}"></script>
+    <script th:src="@{/js/component/table/component.js}"></script>
+    <script th:src="@{/lib/custom-scrollbar/jquery.mCustomScrollbar.concat.min.js}"></script>
+    <script th:src="@{/lib/pro-sidebar/src/js/main.js}"></script>
+    <script th:src="@{/js/api-client/metadata-client.js}"></script>
+    <script th:src="@{/js/api-client/dashboard-api.js}"></script>
+    <script th:src="@{/js/component/sidebar/component.js}"></script>
+    <script th:src="@{/js/component/auto-refresher/component.js}"></script>
+    <script th:src="@{/js/component/time-interval/component.js}"></script>
+    <script th:src="@{/js/component/app-selector/component.js}"></script>
+
+    <style>
+        .word-wrap {
+            /* CSS 3 */
+            white-space: -o-pre-wrap;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            white-space: -moz-pre-wrap;
+        }
+
+        .table th, .table td {
+            font-size: 0.8em;
+            padding: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- page-content  -->
+    <main class="page-content">
+        <nav id="filterContainer" class="navbar navbar-expand-lg navbar-light bg-light" style="padding-left: 5px; padding-right: 5px">
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav mr-auto mt-2 mt-lg-0" id="filterBar">
+                </ul>
+                <form class="form-inline my-2 my-lg-0" id="filterBarForm">
+                    <!-- Auto Refresher -->
+
+                    <!-- TimeInterval Component -->
+                </form>
+            </div>
+        </nav>
+
+        <div style="padding-top: 10px; padding-left: 5px; padding-right: 5px" id="dashboard"></div>
+    </main>
+
+    <script th:inline="javascript">
+        const logStore = [[${store}]];
+        $(document).ready(function () {
+            new DashboardApi().getDashboardConfig(logStore,
+                (boardConfig) => {
+                    const dashboard = new Dashboard('dashboard',
+                        logStore,
+                        window.queryParams['interval'],
+                        new SchemaApi(),
+                        false);
+                    dashboard.load(boardConfig);
+
+                    $(window).bind('resize', () => {
+                        dashboard.resize();
+                    });
+                }, (error) => {
+                    alert(error.responseText);
+                });
+        });
+    </script>
+</div>
+</body>
+</html>
