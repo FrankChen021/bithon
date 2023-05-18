@@ -341,6 +341,8 @@ class AppSelector {
                         if (filter != null) {
                             filters.push({
                                 // use name instead of alias to query dimensions
+                                 type: 'dimension',
+                                 nameType: 'alias',
                                 dimension: filter.dimension,
                                 matcher: filter.matcher
                             });
