@@ -18,6 +18,7 @@ package org.bithon.server.storage.datasource.filter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.datasource.input.filter.ExpressionFilter;
@@ -421,21 +422,24 @@ public class ExpressionFilterTest {
 
     @Test
     public void testOperator_LIKE() throws JsonProcessingException {
-        ObjectMapper om = new ObjectMapper();
-        String json = om.writeValueAsString(new ExpressionFilter("a like 'b'", true));
-        IInputRowFilter filter = om.readValue(json, IInputRowFilter.class);
+        String[] operators = new String[]{"like", "LIKE", "lIke"};
+        for (String operator : operators) {
+            ObjectMapper om = new ObjectMapper();
+            String json = om.writeValueAsString(new ExpressionFilter(StringUtils.format("a %s 'b'", operator), true));
+            IInputRowFilter filter = om.readValue(json, IInputRowFilter.class);
 
-        IInputRow row = new InputRow(new HashMap<>());
+            IInputRow row = new InputRow(new HashMap<>());
 
-        // a does NOT like c
-        row.updateColumn("a", "c");
-        Assert.assertFalse(filter.shouldInclude(row));
+            // a does NOT like c
+            row.updateColumn("a", "c");
+            Assert.assertFalse(filter.shouldInclude(row));
 
-        // a does LIKE 'b'
-        row.updateColumn("a", "b");
-        Assert.assertTrue(filter.shouldInclude(row));
+            // a does LIKE 'b'
+            row.updateColumn("a", "b");
+            Assert.assertTrue(filter.shouldInclude(row));
 
-        // empty row
-        Assert.assertFalse(filter.shouldInclude(new InputRow(new HashMap<>())));
+            // empty row
+            Assert.assertFalse(filter.shouldInclude(new InputRow(new HashMap<>())));
+        }
     }
 }
