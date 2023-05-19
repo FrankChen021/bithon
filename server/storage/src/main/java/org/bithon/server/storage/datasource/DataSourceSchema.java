@@ -27,6 +27,7 @@ import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.dimension.LongDimensionSpec;
 import org.bithon.server.storage.datasource.spec.CountMetricSpec;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.store.DataStoreSpec;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -52,12 +53,22 @@ public class DataSourceSchema {
     @Getter
     private final List<IMetricSpec> metricsSpec;
 
+    /**
+     * Where the data should be ingested from.
+     * It's the caller to deserialize the object
+     */
     @Getter
     private final JsonNode inputSourceSpec;
 
     /**
-     * data source level ttl.
-     * can be null.
+     * Experimental
+     */
+    @Getter
+    private final DataStoreSpec dataStoreSpec;
+
+    /**
+     * Data source level ttl.
+     * Can be null.
      * If it's null, it's controlled by the global level TTL
      */
     @Getter
@@ -78,7 +89,7 @@ public class DataSourceSchema {
     private boolean enforceDuplicationCheck = false;
 
     /**
-     * a runtime property that holds the hash of the json formatted text of this object
+     * A runtime property that holds the hash of the json formatted text of this object
      */
     @Getter
     @Setter
@@ -87,7 +98,7 @@ public class DataSourceSchema {
 
 
     /**
-     * a runtime property that the schema is only used for query.
+     * A runtime property that the schema is only used for queries.
      */
     @Getter
     @Setter
@@ -101,7 +112,7 @@ public class DataSourceSchema {
                             TimestampSpec timestampSpec,
                             List<IDimensionSpec> dimensionsSpec,
                             List<IMetricSpec> metricsSpec) {
-        this(displayText, name, timestampSpec, dimensionsSpec, metricsSpec, null, null);
+        this(displayText, name, timestampSpec, dimensionsSpec, metricsSpec, null, null, null);
     }
 
     @JsonCreator
@@ -111,6 +122,7 @@ public class DataSourceSchema {
                             @JsonProperty("dimensionsSpec") List<IDimensionSpec> dimensionsSpec,
                             @JsonProperty("metricsSpec") List<IMetricSpec> metricsSpec,
                             @JsonProperty("inputSourceSpec") @Nullable JsonNode inputSourceSpec,
+                            @JsonProperty("storeSpec") @Nullable DataStoreSpec dataStoreSpec,
                             @JsonProperty("ttl") @Nullable Period ttl) {
         this.displayText = displayText == null ? name : displayText;
         this.name = name;
@@ -118,13 +130,14 @@ public class DataSourceSchema {
         this.dimensionsSpec = dimensionsSpec;
         this.metricsSpec = metricsSpec;
         this.inputSourceSpec = inputSourceSpec;
+        this.dataStoreSpec = dataStoreSpec;
         this.ttl = ttl;
 
         this.dimensionsSpec.forEach((dimensionSpec) -> dimensionMap.put(dimensionSpec.getName(), dimensionSpec));
         this.metricsSpec.forEach((metricSpec) -> metricsMap.put(metricSpec.getName(), metricSpec));
         this.dimensionMap.put(TIMESTAMP_COLUMN.getName(), TIMESTAMP_COLUMN);
 
-        // set owner after initialization
+        // set the owner after initialization
         this.metricsSpec.forEach((metricSpec) -> metricSpec.setOwner(this));
     }
 

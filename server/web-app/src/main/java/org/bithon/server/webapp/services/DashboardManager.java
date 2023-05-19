@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Conditional(value = WebAppModuleEnabler.class)
 public class DashboardManager implements InitializingBean, DisposableBean {
-    public interface IDashboardListener {
+    public interface IDashboardChangedListener {
         void onChanged();
     }
 
@@ -53,7 +53,7 @@ public class DashboardManager implements InitializingBean, DisposableBean {
     private long lastLoadAt;
     private final Map<String, Dashboard> dashboards = new ConcurrentHashMap<>(9);
 
-    private final List<IDashboardListener> listeners = Collections.synchronizedList(new ArrayList<>());
+    private final List<IDashboardChangedListener> listeners = Collections.synchronizedList(new ArrayList<>());
 
     public DashboardManager(IDashboardStorage storage) {
         this.storage = storage;
@@ -113,13 +113,13 @@ public class DashboardManager implements InitializingBean, DisposableBean {
         return new ArrayList<>(dashboards.values());
     }
 
-    public void addListener(IDashboardListener listener) {
+    public void addChangedListener(IDashboardChangedListener listener) {
         this.listeners.add(listener);
     }
 
     private void onChanged() {
-        IDashboardListener[] listeners = this.listeners.toArray(new IDashboardListener[0]);
-        for (IDashboardListener listener : listeners) {
+        IDashboardChangedListener[] listeners = this.listeners.toArray(new IDashboardChangedListener[0]);
+        for (IDashboardChangedListener listener : listeners) {
             try {
                 listener.onChanged();
             } catch (Exception e) {

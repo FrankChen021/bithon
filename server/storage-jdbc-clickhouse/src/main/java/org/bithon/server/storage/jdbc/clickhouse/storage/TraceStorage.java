@@ -30,12 +30,12 @@ import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.typing.StringValueType;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
-import org.bithon.server.storage.jdbc.clickhouse.ClickHouseSqlDialect;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcReader;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
+import org.bithon.server.storage.jdbc.utils.SqlDialectManager;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
@@ -56,18 +56,18 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @JsonCreator
     public TraceStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseJooqContextHolder dslContextHolder,
-                        @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseSqlDialect sqlDialect,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceSinkConfig traceConfig,
                         @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config,
-                        @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
+                        @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
+                        @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
         super(dslContextHolder.getDslContext(),
               objectMapper,
               storageConfig,
               traceConfig,
               schemaManager,
-              sqlDialect);
+              sqlDialectManager);
         this.config = config;
     }
 
@@ -126,7 +126,7 @@ public class TraceStorage extends TraceJdbcStorage {
                                    this.traceSpanSchema,
                                    this.traceTagIndexSchema,
                                    this.traceStorageConfig,
-                                   this.sqlDialect) {
+                                   this.sqlDialectManager.getSqlDialect(this.dslContext)) {
 
             /**
              * In ClickHouse, the tags are stored in a Map field.

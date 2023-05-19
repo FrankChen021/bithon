@@ -1,5 +1,7 @@
 {
+  "name": "redis-metrics",
   "title": "Redis",
+  "folder": "metrics",
   "charts": [
     {
       "dataSource": "redis-metrics",

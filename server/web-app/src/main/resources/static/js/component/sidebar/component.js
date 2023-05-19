@@ -5,6 +5,7 @@ class MetricSidebar {
 
     load() {
         g_DashboardApi.getDashboardList(
+            'metrics',
             (data) => {
                 $.each(data, (index, item) => {
                     this.addDashboardItem({id: item.value, text: item.text});

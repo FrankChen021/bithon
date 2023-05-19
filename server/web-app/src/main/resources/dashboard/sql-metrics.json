@@ -1,5 +1,7 @@
 {
+  "name": "sql-metrics",
   "title": "SQL",
+  "folder": "metrics",
   "charts": [
     {
       "dataSource": "sql-metrics",

@@ -1,5 +1,7 @@
 {
+  "name": "kafka-consumer-metrics",
   "title": "Kafka Consumer",
+  "folder": "metrics",
   "charts": [
     {
       "dataSource": "kafka-consumer-metrics",

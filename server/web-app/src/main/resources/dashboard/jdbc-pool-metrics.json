@@ -1,5 +1,7 @@
 {
+  "name": "jdbc-pool-metrics",
   "title": "JDBC Connection Pool",
+  "folder": "metrics",
   "charts": [
     {
       "dataSource": "jdbc-pool-metrics",

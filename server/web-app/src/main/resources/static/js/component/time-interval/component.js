@@ -44,18 +44,26 @@ class TimeInterval {
         // Must be the last one
         this._viewModel.push({id: "input", value: "", text: "Customization"});
 
+        //
+        // Create select control
+        //
+        let selected = false
         this._control = $('<select id="intervalSelector" class="form-control"></select>');
         this._viewModel.forEach(model => {
             const option = this.#addIntervalOption(model.id, model.value, model.unit, model.text);
             if (model.id === defaultIntervalId) {
                 option.attr('selected', true);
+                selected = true;
             }
         });
-        if (this.getSelectedIndex() === 0) {
+        if (!selected) {
             // If the given interval is not in the predefined list, set it to a default one
             this._control.find('option[id="P5M"]').attr('selected', true);
         }
 
+        //
+        // Bind event handlers
+        //
         this._control.on('focus', () => {
             this._prevSelectIndex = this.getSelectedIndex();
         }).change(() => {
@@ -65,8 +73,9 @@ class TimeInterval {
             if (selectedModel.id === 'input') {
                 this.#openCustomerDateSelectorDialog(this._prevSelectIndex, selectedIndex);
             } else {
+                const interval = this.#toInterval(selectedIndex);
                 $.each(this._listeners, (index, listener) => {
-                    listener(selectedModel);
+                    listener(interval);
                 });
             }
         });
@@ -192,12 +201,34 @@ class TimeInterval {
         return this;
     }
 
+    /*
+     * Callback object:
+     * {
+     *    id:
+     *    start:
+     *    end
+     * }
+     */
     registerIntervalChangedListener(listener) {
         this._listeners.push(listener);
         return this;
     }
 
-    //PUBLIC
+    /*
+     * P5M/P1H
+     * YYYY-MM-DD HH:mm:ss/YYYY-MM-DD HH:mm:ss
+     */
+    getSelectedId() {
+        return this._viewModel[index].id;
+    }
+
+    /**
+     * {
+     *      id:
+     *      start: ISO8601 string
+     *      end: ISO8601 string
+     * }
+     */
     getInterval() {
         return this.#toInterval(this.getSelectedIndex());
     }
@@ -206,29 +237,36 @@ class TimeInterval {
         const selectedModel = this._viewModel[index];
         if (selectedModel.value === 'today') {
             return {
+                id: selectedModel.id,
                 start: moment().utc().local().startOf('day').toISOString(),
                 end: moment().utc().local().toISOString()
             };
         } else if (selectedModel.value === 'yesterday') {
             const start = moment().utc().local().startOf('day').subtract(1, 'day');
             return {
+                id: selectedModel.id,
                 start: start.toISOString(),
                 end: start.add(1, 'day').toISOString()
             };
         } else if (selectedModel.value === 'all') {
             return {
-                start: "2000-01-01T00:00:00.000Z",
-                end: "2099-12-31T23:59:59.000Z"
+                id: 'c:2000-01-01T00:00:00.000Z/2099-12-31T23:59:59.000Z',
+                start: '2000-01-01T00:00:00.000Z',
+                end: '2099-12-31T23:59:59.000Z'
             };
         } else if (selectedModel.value === 'user') {
             return {
+                id: `c:${selectedModel.start}/${selectedModel.end}`,
                 start: selectedModel.start,
                 end: selectedModel.end
             }
         } else {
+            const s = moment().utc().subtract(selectedModel.value, selectedModel.unit).local().toISOString();
+            const e = moment().utc().local().toISOString();
             return {
-                start: moment().utc().subtract(selectedModel.value, selectedModel.unit).local().toISOString(),
-                end: moment().utc().local().toISOString()
+                id: selectedModel.id,
+                start: s,
+                end: e
             };
         }
     }
@@ -312,6 +350,10 @@ class TimeInterval {
         const displayStart = new Date(start).format('MM-dd hh:mm:ss');
         const displayEnd = new Date(end).format('MM-dd hh:mm:ss');
         return `${displayStart} ~ ${displayEnd}`;
+    }
+
+    setIntervalById(intervalId) {
+
     }
 }
 

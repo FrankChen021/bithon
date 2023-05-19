@@ -1,7 +1,6 @@
 class Dashboard {
-    constructor(containerId, appName, dashboardName, defaultInterval, schemaApi) {
+    constructor(containerId, dashboardName, defaultInterval, schemaApi, showAppSelector) {
         this._schemaApi = schemaApi;
-        this._appName = appName;
         this._dashboardName = dashboardName;
         this._defaultInterval = defaultInterval;
 
@@ -12,6 +11,7 @@ class Dashboard {
         this._stackLayoutRow = $('<div style="display: flex"></div>');
         this._container.append(this._stackLayoutRow);
         this._timeSelector = null;
+        this._showAppSelector = (showAppSelector === undefined || showAppSelector === null) ? true : showAppSelector;
 
         // Model
         this._chartComponents = {};
@@ -35,6 +35,8 @@ class Dashboard {
 
         // deprecated
         this._formatters['nanoFormatter'] = (v) => nanoFormat(v, 2);
+
+        window.onpopstate = (e) => this.#onNavigateBack(e);
     }
 
     // PUBLIC
@@ -44,6 +46,12 @@ class Dashboard {
         // Create customer filter input
         //
         if (dashboard.filter !== undefined && dashboard.filter.showFilterInput === true) {
+            // Get the value from the URL
+            let inputFilterExpression = window.queryParams['filter'];
+            if (inputFilterExpression === undefined || inputFilterExpression === null) {
+                inputFilterExpression = '';
+            }
+
             // Insert the filter expression before the dashboard container
             this._container.before( '<div class="input-group" style="padding-left: 5px; padding-right: 5px">      ' +
                                     '     <div class="input-group-prepend">                                       ' +
@@ -55,8 +63,12 @@ class Dashboard {
                                     '            aria-describedby="filter-input-span"/>                           ' +
                                     ' </div>')
                                     .parent()
-                                    .find('#filter-input').on('keydown', (event) => {
+                                    .find('#filter-input')
+                                    .val(inputFilterExpression)
+                                    .on('keydown', (event) => {
                                         if (event.keyCode === 13) {
+                                            this.#updatePageURL();
+
                                             this.refreshDashboard();
                                         }
                                     });
@@ -75,17 +87,17 @@ class Dashboard {
 
                 // Reset the instanceName
                 this.vFilter.resetFilter('instanceName');
-
-                // Update URL
-                let url = `/web/metrics/${this._dashboardName}?appName=${value}`;
-                if (g_MetricSelectedInterval !== undefined) {
-                    url += `&interval=${g_MetricSelectedInterval}`;
-                }
-                window.history.pushState('', '', url);
             }
 
+            // TODO: reset all filters after this one
+
             this.refreshDashboard();
-        }).createAppSelector();
+
+            this.#updatePageURL();
+        });
+        if (this._showAppSelector) {
+            this.vFilter.createAppSelector();
+        }
 
         //
         // dataSource --> Charts
@@ -120,20 +132,14 @@ class Dashboard {
         //
         this._timeSelector = new TimeInterval(this._defaultInterval).childOf(parent).registerIntervalChangedListener((selectedModel) => {
             g_MetricSelectedInterval = selectedModel.id;
-            this._selectedInterval = this._timeSelector.getInterval();
-            this.refreshDashboard();
+            this._selectedInterval = {
+                id: selectedModel.id,
+                start: selectedModel.start,
+                end: selectedModel.end
+            };
 
-            let url = `/web/metrics/${this._dashboardName}?`;
-            if (g_SelectedApp !== undefined && g_SelectedApp !== null) {
-                url += `appName=${g_SelectedApp}`;
-            }
-            if (g_SelectedInstance !== undefined && g_SelectedInstance !== null) {
-                url += `&instanceName=${g_SelectedInstance}`;
-            }
-            if (g_MetricSelectedInterval !== undefined && g_MetricSelectedInterval !== null) {
-                url += `&interval=${g_MetricSelectedInterval}`;
-            }
-            window.history.pushState('', '', url);
+            this.refreshDashboard();
+            this.#updatePageURL();
         });
         this._selectedInterval = this._timeSelector.getInterval();
 
@@ -230,6 +236,23 @@ class Dashboard {
         if (!hasSchema) {
             this.refreshDashboard();
         }
+    }
+
+    #updatePageURL() {
+        let url = window.location.pathname + '?';
+
+        const filters = this.vFilter.getSelectedFilters();
+        $.each(filters, (index, filter)=>{
+            url += `${filter.dimension}=${filter.matcher.pattern}&`;
+        });
+        url += `interval=${this._selectedInterval.id}&`;
+
+        const inputFilterExpression = this.#getInputFilterExpression();
+        if (inputFilterExpression.length > 0) {
+            url += `filter=${encodeURIComponent(inputFilterExpression)}`;
+        }
+
+        window.history.pushState('updated' /*state*/, '', url);
     }
 
     createChartDetail(chartDescriptor) {
@@ -1300,5 +1323,35 @@ class Dashboard {
             start: moment().subtract(value, unit).toISOString(true),
             end: moment().toISOString(true)
         }
+    }
+
+    #getInputFilterExpression() {
+        const v = $('#filter-input').val();
+        return v === undefined || v === null ? '' : v;
+    }
+
+    #setInputFilterExpression(val) {
+        $('#filter-input').val(val);
+    }
+
+    #onNavigateBack(e) {
+        if(e.state === null) {
+            // We set the state manually, so if the state is null, it's triggered by other source that needs to be ignored
+            return;
+        }
+
+        // For simply implementation, we reload the page to let the page re-create to load all filters
+        // In the future we can reset filters only as shown above
+        //        // Update the global parameters first
+        //        window.queryParams = toQueryParameters(window.location.href);
+        //
+        //        //
+        //        this._timeSelector.setIntervalById(window.queryParams['interval']);
+        //        this.vFilter.resetToFilters(window.queryParams);
+        //        this.#setInputFilterExpression(window.queryParams['filter']);
+        //
+        //        // Refresh the dashboard at last
+        //        this.refreshDashboard();
+        window.location.reload();
     }
 }
