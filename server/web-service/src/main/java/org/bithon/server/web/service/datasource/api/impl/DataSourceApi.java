@@ -139,7 +139,6 @@ public class DataSourceApi implements IDataSourceApi {
         return schemaManager.getDataSourceSchema(schemaName);
     }
 
-
     @Override
     public void createSchema(@RequestBody DataSourceSchema schema) {
         if (schemaManager.containsSchema(schema.getName())) {

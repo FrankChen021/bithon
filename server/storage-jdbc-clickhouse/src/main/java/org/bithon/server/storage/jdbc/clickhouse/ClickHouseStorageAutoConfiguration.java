@@ -61,11 +61,6 @@ public class ClickHouseStorageAutoConfiguration {
     }
 
     @Bean
-    ClickHouseSqlDialect clickHouseSqlDialect() {
-        return new ClickHouseSqlDialect();
-    }
-
-    @Bean
     ClickHouseJooqContextHolder clickHouseDSLContextHolder(@Qualifier("bithon-clickhouse-dataSource") DataSource dataSource) {
         JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
         return new ClickHouseJooqContextHolder(DSL.using(new DefaultConfiguration().set(autoConfiguration.dataSourceConnectionProvider(dataSource))
@@ -94,7 +89,8 @@ public class ClickHouseStorageAutoConfiguration {
                                          MetadataStorage.class,
                                          SchemaStorage.class,
                                          SettingStorage.class,
-                                         DashboardStorage.class);
+                                         DashboardStorage.class,
+                                         ClickHouseSqlDialect.class);
             }
         };
     }

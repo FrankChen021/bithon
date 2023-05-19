@@ -113,6 +113,32 @@ class AppSelector {
         this.vSuppressChangeEvent = false;
     }
 
+    /**
+     * filters: a map object that contains new filters
+     */
+    resetToFilters(filters) {
+        $.each(this.mSelectedFilters, (name, value) => {
+            this.resetFilter(name);
+        });
+
+        // Bind new filter to the view
+        $.each(this.mFilterNames, (index, name) =>{
+            const queryValue = filters[name];
+
+            // If we find the value in the given filter, update the UI
+            if (queryValue != null) {
+
+                const filterName = this.mQueryVariablePrefix + name;
+
+                // create selector
+                const selector = this.vParent.find(`#${filterName}`);
+                selector.append(`<option value="${this.mDataSource}">${queryValue}</option>`).change();
+
+                this.#addFilter(filterName, queryValue);
+            }
+        });
+    }
+
     getFilterName() {
         return this.mFilterNames;
     }
@@ -199,6 +225,15 @@ class AppSelector {
 
     /**
      * @returns an array of filters
+     * filter: {
+     *    dimension: dimensionName,
+     *    type: 'dimension',
+     *    nameType: 'alias',
+     *    matcher: {
+     *        type: 'equal',
+     *        pattern: dimensionValue
+     *    }
+     * }
      */
     getSelectedFilters() {
         const filters = [];
@@ -306,6 +341,8 @@ class AppSelector {
                         if (filter != null) {
                             filters.push({
                                 // use name instead of alias to query dimensions
+                                 type: 'dimension',
+                                 nameType: 'alias',
                                 dimension: filter.dimension,
                                 matcher: filter.matcher
                             });

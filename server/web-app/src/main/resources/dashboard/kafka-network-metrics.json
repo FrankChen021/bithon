@@ -1,5 +1,7 @@
 {
+  "name": "kafka-network-metrics",
   "title": "Kafka Network",
+  "folder": "metrics",
   "charts": [
     {
       "dataSource": "kafka-network-metrics",

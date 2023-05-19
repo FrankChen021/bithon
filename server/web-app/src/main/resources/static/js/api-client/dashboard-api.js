@@ -17,10 +17,10 @@ class DashboardApi {
         });
     }
 
-    getDashboardList(successCallback, errorCallback) {
+    getDashboardList(folder, successCallback, errorCallback) {
         $.ajax({
             type: 'GET',
-            url: "/web/api/dashboard/names",
+            url: `/web/api/dashboard/names?folder=${folder}`,
             async: true,
             dataType: "json",
             contentType: "application/json",

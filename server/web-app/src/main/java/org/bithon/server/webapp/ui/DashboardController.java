@@ -33,6 +33,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -42,6 +43,7 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -66,11 +68,14 @@ public class DashboardController {
 
         // display text
         private final String text;
+
+        private final String folder;
     }
 
     @Data
-    public static class DashboardTitle {
+    public static class DashboardMetadata {
         private String title;
+        private String folder;
     }
 
     private List<DisplayableText> dashboardList;
@@ -78,32 +83,38 @@ public class DashboardController {
     public DashboardController(DashboardManager dashboardManager,
                                ObjectMapper objectMapper) {
         this.dashboardManager = dashboardManager;
-        this.dashboardManager.addListener(this::updateDashboardList);
+        this.dashboardManager.addChangedListener(this::loadDashboardList);
         this.objectMapper = objectMapper;
     }
 
-    private void updateDashboardList() {
+    private void loadDashboardList() {
         dashboardList = this.dashboardManager.getDashboards()
                                              .stream()
                                              .map(dashboard -> {
-                                                 String title = "";
                                                  try {
-                                                     title = objectMapper.readValue(dashboard.getPayload(), DashboardTitle.class).title;
+                                                     DashboardMetadata metadata = objectMapper.readValue(dashboard.getPayload(), DashboardMetadata.class);
+                                                     return new DisplayableText(dashboard.getName(), metadata.getTitle(), metadata.getFolder());
                                                  } catch (JsonProcessingException ignored) {
+                                                     return null;
                                                  }
-                                                 return new DisplayableText(dashboard.getName(), title);
+
                                              })
+                                             .filter(Objects::nonNull)
                                              .sorted(Comparator.comparing(o -> o.text))
                                              .collect(Collectors.toList());
     }
 
     @GetMapping("/web/api/dashboard/names")
-    public List<DisplayableText> getDashboardNames() {
+    public List<DisplayableText> getDashboardNames(@RequestParam(value = "folder", required = false) String folder) {
         if (dashboardList == null) {
             // no need to sync because it's acceptable
-            updateDashboardList();
+            loadDashboardList();
         }
-        return dashboardList;
+        if (StringUtils.hasText(folder)) {
+            return dashboardList.stream().filter((dashboard) -> dashboard.folder != null && dashboard.folder.startsWith(folder)).collect(Collectors.toList());
+        } else {
+            return dashboardList;
+        }
     }
 
     @GetMapping("/web/api/dashboard/all")
@@ -152,8 +163,8 @@ public class DashboardController {
         }
     }
 
-    @PostMapping("/web/api/dashboard/update/{boardName}")
-    public void updateDashboard(@PathVariable("boardName") String name, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    @PostMapping("/web/api/dashboard/update")
+    public void updateDashboard(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         JsonNode dashboard;
         try {
@@ -172,6 +183,13 @@ public class DashboardController {
             return;
         }
 
-        this.dashboardManager.update(name, objectMapper.writeValueAsString(dashboard));
+        JsonNode nameNode = dashboard.get("name");
+        if (nameNode == null || StringUtils.isBlank(nameNode.asText())) {
+            response.getWriter().println("name is missing.");
+            response.setStatus(HttpStatus.BAD_REQUEST.value());
+            return;
+        }
+
+        this.dashboardManager.update(nameNode.asText(), objectMapper.writeValueAsString(dashboard));
     }
 }

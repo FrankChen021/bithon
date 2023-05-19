@@ -18,7 +18,6 @@
             new DashboardApi().getDashboardConfig(dashboardName,
                 (boardConfig) => {
                     const dashboard = new Dashboard('dashboard',
-                        [[${appName}]],
                         dashboardName,
                         window.queryParams['interval'],
                         new SchemaApi());

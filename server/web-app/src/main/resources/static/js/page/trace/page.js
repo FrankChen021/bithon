@@ -33,7 +33,7 @@ class TracePage {
             }).registerChangedListener((name, value) => {
                 if (name === 'application') {
                     g_SelectedApp = value;
-                    window.history.pushState('', '', `/web/app/trace/${value}`);
+                    window.history.pushState('', '', `/web/app/trace/list?appName=${value}`);
                 }
                 this.#refreshPage();
             }).createAppSelector(this.mQueryParams['appName'])
@@ -42,7 +42,6 @@ class TracePage {
             // View, tag filter
             this.vTagFilter = new AppSelector({
                 parentId: 'filterBar',
-                queryVariablePrefix: 'tags.',
                 intervalProvider: () => this.#getInterval()
             }).registerChangedListener((name, value) => {
                 this.#refreshPage();
