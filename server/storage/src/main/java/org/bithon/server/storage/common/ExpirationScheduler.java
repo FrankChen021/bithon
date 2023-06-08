@@ -87,7 +87,7 @@ public class ExpirationScheduler {
 
         long cleanPeriod = expirationConfig.getCleanPeriod().getMilliseconds();
 
-        long last = timestamps.computeIfAbsent(storage.getName(), v -> now);
+        long last = timestamps.getOrDefault(storage.getName(), now);
         if ((now - last) < cleanPeriod) {
             if (log.isDebugEnabled()) {
                 log.debug("Storage [{}] is expected to execute expiration at [{}], not now.",
@@ -101,15 +101,18 @@ public class ExpirationScheduler {
         log.info("Expire [{}] before {}...", storage.getName(), DateTime.toYYYYMMDDhhmmss(before));
         try {
             cleaner.expire(new Timestamp(before));
-            timestamps.put(storage.getName(), now);
             log.info("Expire [{}] ends, next round is about at [{}]",
                      storage.getName(),
                      DateTime.toYYYYMMDDhhmmss(now + cleanPeriod));
         } catch (Throwable t) {
-            log.error(StringUtils.format("Failed to expire [%s]: [%s], will retry later.",
+            log.error(StringUtils.format("Failed to expire [%s]: [%s].",
                                          storage.getName(),
                                          t.getMessage()),
                       t);
+        } finally {
+            // Update the timestamp whether the task is successful or not.
+            // This prevents retrying the task periodically in case it fails.
+            timestamps.put(storage.getName(), now);
         }
     }
 }
