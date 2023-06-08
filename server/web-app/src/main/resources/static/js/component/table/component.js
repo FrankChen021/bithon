@@ -57,6 +57,12 @@ class TableComponent {
         this.mFormatters['detail'] = (val, row, index) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="toggleTableDetailView('${option.tableId}', ${index})">Toggle</button>` : '';
         this.mFormatters['dialog'] = (val, row, index, field) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="showTableDetailViewInDlg('${option.tableId}', ${index}, '${field}')">Show</button>` : '';
         this.mFormatters['block'] = (val, row, index) => `<pre>${val}</pre>`;
+        this.mFormatters['time'] = (val, row, index, field) => {
+            // Get the column definition first
+            let format = this.mColumnMap[field].template;
+
+            return new Date(val).format(format);
+        };
         this.mFormatters['template'] = (val, row, index, field) => {
             // Get the column definition first
             let template = this.mColumnMap[field].template;
