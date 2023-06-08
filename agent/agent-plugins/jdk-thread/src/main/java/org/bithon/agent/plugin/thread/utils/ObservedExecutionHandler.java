@@ -58,7 +58,8 @@ public class ObservedExecutionHandler implements RejectedExecutionHandler {
     private ITraceSpan before() {
         ITraceSpan span = TraceSpanFactory.newSpan("threadPool");
         if (span != null) {
-            span.method(delegate.getClass().getName(), "rejectedExecution");
+            span.method(delegate.getClass().getName(), "rejectedExecution")
+                .start();
         }
         return span;
     }
