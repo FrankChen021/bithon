@@ -25,6 +25,7 @@ import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -39,7 +40,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class DataSourceSchemaManager implements InitializingBean, DisposableBean {
-    private final List<IDataSourceSchemaListener> listeners = new ArrayList<>();
+    private final List<IDataSourceSchemaListener> listeners = Collections.synchronizedList(new ArrayList<>());
     private final ISchemaStorage schemaStorage;
     private final ScheduledExecutorService loaderScheduler;
     private final Map<String, DataSourceSchema> schemas = new ConcurrentHashMap<>();
@@ -142,7 +143,10 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
     }
 
     private void onChange(DataSourceSchema oldSchema, DataSourceSchema dataSourceSchema) {
-        for (IDataSourceSchemaListener listener : listeners) {
+        // Copy to list first to avoid concurrency problem
+        IDataSourceSchemaListener[] listenerList = this.listeners.toArray(new IDataSourceSchemaListener[0]);
+
+        for (IDataSourceSchemaListener listener : listenerList) {
             try {
                 listener.onChange(oldSchema, dataSourceSchema);
             } catch (Exception e) {
