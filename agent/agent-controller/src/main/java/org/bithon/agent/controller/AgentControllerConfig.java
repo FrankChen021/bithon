@@ -17,6 +17,7 @@
 package org.bithon.agent.controller;
 
 import org.bithon.agent.configuration.ConfigurationProperties;
+import org.bithon.agent.configuration.validation.Validated;
 import org.bithon.agent.observability.dispatcher.config.DispatcherClient;
 
 /**
@@ -25,7 +26,9 @@ import org.bithon.agent.observability.dispatcher.config.DispatcherClient;
  */
 @ConfigurationProperties(prefix = "controller", dynamic = false)
 public class AgentControllerConfig {
+    @Validated
     private DispatcherClient client;
+
     private String servers;
 
     public DispatcherClient getClient() {
