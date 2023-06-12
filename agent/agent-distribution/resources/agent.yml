@@ -8,6 +8,7 @@ controller:
   client:
     factory: org.bithon.agent.dispatcher.brpc.BrpcAgentControllerFactory
     connectionLifeTime: 2000
+    connectionTimeout: 2000
 
 dispatchers:
   metric:
