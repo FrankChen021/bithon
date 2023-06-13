@@ -40,7 +40,7 @@ public class DispatcherClient {
      * The timeout value in millisecond for establishing a connection to remote server.
      */
     @GreaterThan(value = 0)
-    private int connectionTimeout;
+    private int connectionTimeout = 2000;
 
     public int getConnectionLifeTime() {
         return connectionLifeTime;

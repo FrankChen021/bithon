@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -114,6 +115,10 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
             }
             serviceGroup.brpcServer = brpcServer;
             serviceGroup.start(port);
+
+            log.info("Started Brpc services [{}] at port {}",
+                     serviceGroup.services.stream().map((s) -> s.name).collect(Collectors.joining(",")),
+                     port);
         });
 
         isRunning = true;
