@@ -16,7 +16,6 @@
 
 package org.bithon.agent.configuration.validation;
 
-import org.bithon.agent.configuration.ConfigurationProperties;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.lang.annotation.Annotation;
@@ -30,38 +29,36 @@ import java.util.Map;
  * @date 2021/8/7 10:37
  */
 public class Validator {
-    public static String validate(Object obj) {
+    public static String validate(String prefix, Object obj) {
 
-        Map<Class<? extends Annotation>, IValueValidator> validators = new HashMap<Class<? extends Annotation>, IValueValidator>() {{
-            put(NotBlank.class, new NotBlankValidator());
-            put(Range.class, new RangeValidator());
-            put(GreaterThan.class, new GreaterThanValidator());
+        Map<String, IValueValidator> validators = new HashMap<String, IValueValidator>() {{
+            put(NotBlank.class.getName(), new NotBlankValidator());
+            put(Range.class.getName(), new RangeValidator());
+            put(GreaterThan.class.getName(), new GreaterThanValidator());
+            put(Validated.class.getName(), (annotation, objectType, property, value) -> validate(property, value));
         }};
 
         for (Field field : obj.getClass().getDeclaredFields()) {
-            for (Map.Entry<Class<? extends Annotation>, IValueValidator> entry : validators.entrySet()) {
-                Class<? extends Annotation> annotation = entry.getKey();
-                IValueValidator validator = entry.getValue();
-
-                String violation = validateField(obj, field, annotation, validator);
-                if (violation != null) {
-                    return violation;
+            Annotation[] annotations = field.getDeclaredAnnotations();
+            for (Annotation annotation : annotations) {
+                IValueValidator validator = validators.get(annotation.annotationType().getName());
+                if (validator != null) {
+                    String violation = validateField(prefix, annotation, obj, field, validator);
+                    if (violation != null) {
+                        return violation;
+                    }
                 }
             }
-
         }
         return null;
     }
 
-    private static <T extends Annotation> String validateField(Object object,
+    private static <T extends Annotation> String validateField(String prefix,
+                                                               Annotation declaredValidationAnnotation,
+                                                               Object object,
                                                                Field field,
-                                                               Class<T> validationAnnotation,
                                                                IValueValidator valueValidator) {
-        Annotation declaredValidationAnnotation = field.getAnnotation(validationAnnotation);
-        if (declaredValidationAnnotation == null) {
-            return null;
-        }
-
+        String property = prefix + '.' + field.getName();
         String violationMessagePattern;
         try {
             // although this function would be called twice if this field has more than 1 validation annotations
@@ -73,6 +70,7 @@ public class Validator {
 
             violationMessagePattern = valueValidator.validate(declaredValidationAnnotation,
                                                               field.getType(),
+                                                              property,
                                                               field.get(object));
             if (violationMessagePattern == null) {
                 return null;
@@ -81,28 +79,19 @@ public class Validator {
             return null;
         }
 
-        // get field name or configuration property name
-        String name;
-        ConfigurationProperties cfgAnnotation = object.getClass().getAnnotation(ConfigurationProperties.class);
-        if (cfgAnnotation != null) {
-            name = cfgAnnotation.prefix() + "." + field.getName();
-        } else {
-            name = field.getName();
-        }
-
-        return String.format(Locale.ENGLISH, violationMessagePattern, name);
+        return String.format(Locale.ENGLISH, violationMessagePattern, property);
     }
 
     interface IValueValidator {
         /**
          * @return violation message pattern
          */
-        String validate(Annotation annotation, Class<?> objectType, Object value);
+        String validate(Annotation annotation, Class<?> objectType, String property, Object value);
     }
 
     static class NotBlankValidator implements IValueValidator {
         @Override
-        public String validate(Annotation annotation, Class<?> objectType, Object value) {
+        public String validate(Annotation annotation, Class<?> objectType, String property, Object value) {
             if (objectType.equals(String.class)) {
                 if (StringUtils.hasText((String) value)) {
                     // success
@@ -117,7 +106,7 @@ public class Validator {
 
     static class RangeValidator implements IValueValidator {
         @Override
-        public String validate(Annotation annotation, Class<?> objectType, Object value) {
+        public String validate(Annotation annotation, Class<?> objectType, String property, Object value) {
             if (value instanceof Number) {
                 long v = ((Number) value).longValue();
                 long min = ((Range) annotation).min();
@@ -125,7 +114,7 @@ public class Validator {
                 if (v >= min && v <= max) {
                     return null;
                 }
-                return "%s " + String.format(Locale.ENGLISH, "should be in the range of [%d, %d], but is %d", min, max, v);
+                return "[%s] " + String.format(Locale.ENGLISH, "should be in the range of [%d, %d], but is %d", min, max, v);
             }
             return "Type of [%s] is not Number, but " + objectType.getSimpleName();
         }
@@ -133,14 +122,14 @@ public class Validator {
 
     static class GreaterThanValidator implements IValueValidator {
         @Override
-        public String validate(Annotation annotation, Class<?> objectType, Object value) {
+        public String validate(Annotation annotation, Class<?> objectType, String property, Object value) {
             if (value instanceof Number) {
                 long input = ((Number) value).longValue();
                 long constraint = ((GreaterThan) annotation).value();
                 if (input > constraint) {
                     return null;
                 }
-                return "%s " + String.format(Locale.ENGLISH, "should be greater than [%d], but is %d", input, constraint);
+                return "[%s] " + String.format(Locale.ENGLISH, "should be greater than [%d], but is %d", input, constraint);
             }
             return "Type of [%s] is not Number, but " + objectType.getSimpleName();
         }

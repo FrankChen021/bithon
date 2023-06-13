@@ -111,11 +111,11 @@ public class Configuration {
                         }
                     }
                 } else {
-                    // use the source node to replace the to node
+                    // use the source node to replace the 'to' node
                     ((ObjectNode) to).set(fieldName, sourceNode);
                 }
             } else {
-                // use the source node to replace the to node
+                // use the source node to replace the 'to' node
                 ((ObjectNode) to).set(fieldName, sourceNode);
             }
         }
@@ -258,7 +258,7 @@ public class Configuration {
             if (targetNode.isObject()) {
                 getKeys(result, path, targetNode);
             } else {
-                // use the source node to replace the to node
+                // use the source node to replace the 'to' node
                 result.add(String.join(".", path));
             }
             path.remove(addIndex);
@@ -302,7 +302,7 @@ public class Configuration {
     public <T> T getConfig(String prefixes, Class<T> clazz, Supplier<T> defaultSupplier) {
         JsonNode node = configurationNode;
 
-        // find correct node by prefixes
+        // Find the correct node by prefixes
         for (String prefix : prefixes.split("\\.")) {
             if (node == null) {
                 break;
@@ -313,10 +313,10 @@ public class Configuration {
         if (node == null) {
             return defaultSupplier.get();
         }
-        return getConfig(node, clazz);
+        return getConfig(prefixes, node, clazz);
     }
 
-    private <T> T getConfig(JsonNode configurationNode, Class<T> clazz) {
+    private <T> T getConfig(String prefixes, JsonNode configurationNode, Class<T> clazz) {
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -332,7 +332,7 @@ public class Configuration {
                                      e.getMessage());
         }
 
-        String violation = Validator.validate(value);
+        String violation = Validator.validate(prefixes, value);
         if (violation != null) {
             throw new AgentException("Invalid configuration for type of [%s]: %s",
                                      clazz.getSimpleName(),
