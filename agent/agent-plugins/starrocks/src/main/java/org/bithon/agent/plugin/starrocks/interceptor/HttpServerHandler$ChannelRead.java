@@ -16,52 +16,60 @@
 
 package org.bithon.agent.plugin.starrocks.interceptor;
 
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.HttpRequest;
+import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.tracing.Tracer;
+import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
-import org.bithon.component.commons.utils.StringUtils;
-import io.netty.handler.codec.http.HttpRequest;
+
+import java.net.InetSocketAddress;
 import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/5/15 18:35
  */
-public class HttpServerHandler$ChannelRead extends AroundInterceptor {
+public class HttpServerHandler$ChannelRead extends BeforeInterceptor
+{
+
+    private final TraceConfig traceConfig = ConfigurationManager.getInstance()
+                                                                .getConfig(TraceConfig.class);
 
     @Override
-    public InterceptionDecision before(AopContext aopContext) throws Exception {
-        if (aopContext.getArgs()[1] instanceof HttpRequest) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-
+    public void before(AopContext aopContext) throws Exception {
+        
+        ChannelHandlerContext ctx = (ChannelHandlerContext) aopContext.getArgs()[0];
+        HttpRequest request = (HttpRequest) aopContext.getArgs()[1];
 
         ITraceContext traceContext = Tracer.get()
                                            .propagator()
-                                           .extract(request, Request::getHeader);
+                                           .extract(request, (req, key) -> req.headers().get(key));
         if (traceContext == null) {
-            return InterceptionDecision.SKIP_LEAVE;
+            return;
         }
+
+        InetSocketAddress socket = (InetSocketAddress) ctx.channel().remoteAddress();
 
         traceContext.currentSpan()
                     .component(Components.HTTP_SERVER)
-                    .tag(Tags.Http.SERVER, "tomcat")
-                    .tag(Tags.Net.PEER_ADDR, request.getRemoteAddr() + ":" + request.getRemotePort())
-                    .tag(Tags.Http.URL, request.getRequestURI())
+                    .tag(Tags.Http.SERVER, "sr_fe")
+                    .tag(Tags.Net.PEER_ADDR, socket.getHostName() + ":" + socket.getPort())
+                    .tag(Tags.Http.URL, request.uri())
                     .tag(Tags.Http.METHOD, request.getMethod())
-                    .tag(Tags.Http.VERSION, request.getProtocol())
+                    .tag(Tags.Http.VERSION, request.protocolVersion())
                     .configIfTrue(!traceConfig.getHeaders().getRequest().isEmpty(),
                                   (span) -> traceConfig.getHeaders()
                                                        .getRequest()
-                                                       .forEach((header) -> span.tag(Tags.Http.REQUEST_HEADER_PREFIX + header.toLowerCase(Locale.ENGLISH), request.getHeader(header))))
+                                                       .forEach((header) -> span.tag(Tags.Http.REQUEST_HEADER_PREFIX + header.toLowerCase(Locale.ENGLISH), request.headers().get(header))))
                     .method(aopContext.getTargetClass(), aopContext.getMethod())
                     .kind(SpanKind.SERVER)
                     .start();
@@ -76,38 +84,11 @@ public class HttpServerHandler$ChannelRead extends AroundInterceptor {
             // However, this plugin is compiled with tomcat 8 which returns javax.servlet.HttpServletRequest
             // On tomcat 10, which requires jakarta.servlet.HttpServletRequest, this request.getRequest() call fails
             //
-            request.setAttribute("X-Bithon-TraceId", traceContext.traceId());
-
-            String traceIdHeader = traceConfig.getTraceIdInResponse();
-            if (StringUtils.hasText(traceIdHeader)) {
-                request.getResponse().addHeader(traceIdHeader, traceContext.traceId());
-            }
+            request.headers().set("X-Bithon-TraceId", traceContext.traceId());
         }
 
         aopContext.setUserContext(traceContext);
 
-        InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
-
-        return InterceptionDecision.CONTINUE;
-    }
-
-    @Override
-    public void after(AopContext aopContext) throws Exception {
-        InterceptorContext.remove(InterceptorContext.KEY_URI);
-
-        ITraceContext traceContext = aopContext.getUserContextAs();
-        try {
-            Response response = (Response) aopContext.getArgs()[1];
-            traceContext.currentSpan()
-                        .tag(Tags.Http.STATUS, Integer.toString(response.getStatus()))
-                        .tag(aopContext.getException())
-                        .finish();
-        } finally {
-            traceContext.finish();
-            try {
-                TraceContextHolder.remove();
-            } catch (Exception ignored) {
-            }
-        }
+        InterceptorContext.set(InterceptorContext.KEY_URI, request.uri());
     }
 }
