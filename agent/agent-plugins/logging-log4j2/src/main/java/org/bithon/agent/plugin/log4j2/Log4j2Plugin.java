@@ -34,11 +34,6 @@ public class Log4j2Plugin implements IPlugin {
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
-            /**
-             * {@link org.apache.logging.log4j.core.Logger#logMessage(String, org.apache.logging.log4j.Level, org.apache.logging.log4j.Marker, String, Throwable)}
-             * {@link org.apache.logging.log4j.core.Logger#logMessage(String, org.apache.logging.log4j.Level, org.apache.logging.log4j.Marker, Object, Throwable)}
-             * {@link org.apache.logging.log4j.core.Logger#logMessage(String, org.apache.logging.log4j.Level, org.apache.logging.log4j.Marker, CharSequence, Throwable)}
-             */
             forClass("org.apache.logging.log4j.core.Logger")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()

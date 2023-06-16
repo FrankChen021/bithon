@@ -37,13 +37,14 @@ public interface IInstrumentationCommand {
         public String methodName;
         public boolean isStatic;
         public String parameters;
+        public String exception;
 
         /**
          * Return the object in an object array.
          * The sequence of the values in the array MUST be in accordance with the sequence of fields
          */
         public Object[] toObjects() {
-            return new Object[]{interceptor, clazzLoader, hitCount, clazzName, returnType, methodName, isStatic, parameters};
+            return new Object[]{interceptor, clazzLoader, hitCount, clazzName, returnType, methodName, isStatic, parameters, exception};
         }
     }
 
