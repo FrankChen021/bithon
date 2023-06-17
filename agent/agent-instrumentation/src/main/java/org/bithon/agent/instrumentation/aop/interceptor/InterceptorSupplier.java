@@ -20,6 +20,8 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.AbstractInte
 import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Locale;
 import java.util.function.Supplier;
 
@@ -32,8 +34,16 @@ public class InterceptorSupplier implements Supplier<AbstractInterceptor> {
     private ClassLoader classLoader;
 
     private volatile AbstractInterceptor interceptor;
+
+    /**
+     * The exception that the interceptor fails to load
+     */
+    private String exception;
+
+    /**
+     * The index of this supplier in the {@link InterceptorManager}
+     */
     private final int index;
-    private boolean initialized = false;
 
     public InterceptorSupplier(int index,
                                String interceptorClassName,
@@ -47,13 +57,12 @@ public class InterceptorSupplier implements Supplier<AbstractInterceptor> {
         return index;
     }
 
-    public boolean isInitialized() {
-        return initialized;
-    }
-
+    /**
+     * The return can be NULL
+     */
     @Override
     public AbstractInterceptor get() {
-        if (interceptor != null) {
+        if (interceptor != null || exception != null) {
             return interceptor;
         }
 
@@ -69,7 +78,6 @@ public class InterceptorSupplier implements Supplier<AbstractInterceptor> {
                 this.classLoader = null;
                 this.interceptorClassName = null;
             }
-            initialized = true;
             return interceptor;
         }
     }
@@ -82,11 +90,29 @@ public class InterceptorSupplier implements Supplier<AbstractInterceptor> {
 
             return (AbstractInterceptor) interceptorClass.getConstructor().newInstance();
         } catch (Throwable e) {
+            this.exception = getStackTrace(e);
+
             LoggerFactory.getLogger(InterceptorManager.class).error(String.format(Locale.ENGLISH,
-                                                                                  "Failed to load interceptor[%s] due to %s",
-                                                                                  interceptorClassName,
-                                                                                  e.getMessage()), e);
+                    "Failed to load interceptor[%s] due to %s",
+                    interceptorClassName,
+                    e.getMessage()), e);
             return null;
         }
+    }
+
+    private static String getStackTrace(Throwable throwable) {
+        StringWriter stackTrace = new StringWriter(256);
+        while (throwable != null) {
+            try (PrintWriter pw = new PrintWriter(stackTrace)) {
+                pw.format(Locale.ENGLISH, "%s:%s%n", throwable.getClass().getName(), throwable.getMessage());
+                throwable.printStackTrace(pw);
+            }
+            throwable = throwable.getCause();
+        }
+        return stackTrace.toString();
+    }
+
+    public String getException() {
+        return exception;
     }
 }

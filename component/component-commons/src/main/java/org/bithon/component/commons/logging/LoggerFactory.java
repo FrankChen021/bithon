@@ -22,6 +22,8 @@ import org.bithon.component.commons.logging.adaptor.log4j2.Log4j2LogAdaptorFacto
 import org.bithon.component.commons.logging.adaptor.logback.LogbackAdaptorFactory;
 import org.bithon.component.commons.logging.adaptor.slf4j.Slf4jLogAdaptorFactory;
 
+import java.lang.reflect.InvocationTargetException;
+
 
 public class LoggerFactory {
 
@@ -46,11 +48,12 @@ public class LoggerFactory {
             };
             for (Class<?> factoryClass : factoryClassList) {
                 try {
-                    ILogAdaptorFactory factory = (ILogAdaptorFactory) factoryClass.newInstance();
+                    ILogAdaptorFactory factory = (ILogAdaptorFactory) factoryClass.getDeclaredConstructor().newInstance();
                     factory.newLogger("default").info("Using [{}] as logging framework", factory.getClass().getSimpleName());
                     LoggerFactory.adaptorFactory = factory;
                     break;
-                } catch (NoClassDefFoundError | InstantiationException | IllegalAccessException ignored) {
+                } catch (NoClassDefFoundError | InstantiationException | IllegalAccessException |
+                         NoSuchMethodException | InvocationTargetException ignored) {
                 }
             }
         }

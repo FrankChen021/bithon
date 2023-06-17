@@ -45,12 +45,13 @@ public class InstrumentationCommand implements IInstrumentationCommand, IAgentCo
                     InstrumentedMethod m = new InstrumentedMethod();
                     m.interceptor = method.getInterceptor();
                     m.clazzLoader = clazzLoaderId;
-                    m.hitCount = supplier.isInitialized() ? supplier.get().getHitCount() : 0;
+                    m.hitCount = supplier.get() == null ? -1 : supplier.get().getHitCount();
                     m.clazzName = method.getType();
                     m.returnType = method.getReturnType();
                     m.methodName = method.getMethodName();
                     m.isStatic = method.isStatic();
                     m.parameters = method.getParameters();
+                    m.exception = supplier.getException();
                     returning.add(m);
                 }
             } else {

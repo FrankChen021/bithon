@@ -23,6 +23,10 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterc
 import org.bithon.agent.observability.event.ExceptionCollector;
 
 /**
+ * {@link org.apache.logging.log4j.core.Logger#logMessage(String, org.apache.logging.log4j.Level, org.apache.logging.log4j.Marker, String, Throwable)}
+ * {@link org.apache.logging.log4j.core.Logger#logMessage(String, org.apache.logging.log4j.Level, org.apache.logging.log4j.Marker, Object, Throwable)}
+ * {@link org.apache.logging.log4j.core.Logger#logMessage(String, org.apache.logging.log4j.Level, org.apache.logging.log4j.Marker, CharSequence, Throwable)}
+ *
  * @author frankchen
  */
 public class Logger$LogMessage extends BeforeInterceptor {
