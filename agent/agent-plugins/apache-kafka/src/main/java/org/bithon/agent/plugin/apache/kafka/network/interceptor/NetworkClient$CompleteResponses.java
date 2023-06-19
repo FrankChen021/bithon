@@ -23,24 +23,35 @@ import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.agent.plugin.apache.kafka.network.metrics.NetworkMetricRegistry;
 import org.bithon.agent.plugin.apache.kafka.network.metrics.NetworkMetrics;
+import org.bithon.component.commons.utils.ReflectionUtils;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 /**
+ * {@link org.apache.kafka.clients.NetworkClient#completeResponses(List)}
+ *
  * @author frank.chen021@outlook.com
  * @date 2022/12/4 17:13
  */
 public class NetworkClient$CompleteResponses extends AfterInterceptor {
 
     private final NetworkMetricRegistry metricRegistry;
+    private Field authenticationExceptionField;
 
     public NetworkClient$CompleteResponses() {
         metricRegistry = MetricRegistryFactory.getOrCreateRegistry("kafka-network",
                                                                    NetworkMetricRegistry::new);
+
+        try {
+            authenticationExceptionField = ReflectionUtils.getField(ClientResponse.class, "authenticationException");
+            authenticationExceptionField.setAccessible(true);
+        } catch (NoSuchFieldException ignored) {
+        }
     }
 
     @Override
-    public void after(AopContext aopContext) throws Exception {
+    public void after(AopContext aopContext) {
         KafkaPluginContext pluginContext = aopContext.getInjectedOnTargetAs();
 
         List<ClientResponse> responses = aopContext.getArgAs(0);
@@ -55,7 +66,16 @@ public class NetworkClient$CompleteResponses extends AfterInterceptor {
             }
 
             String exceptionName = response.wasDisconnected() ? "Disconnected" : "";
-            Exception exception = response.authenticationException();
+
+            // authenticationException is only support in some higher version(at least 1.0 version has no such exception)
+            // So, we need to use reflection to get the value so that this code is compatible with these old Kafka clients
+            Exception exception = null;
+            if (authenticationExceptionField != null) {
+                try {
+                    exception = (Exception) authenticationExceptionField.get(response);
+                } catch (IllegalAccessException ignored) {
+                }
+            }
             if (exception == null) {
                 exception = response.versionMismatch();
             }
