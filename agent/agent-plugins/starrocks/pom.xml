@@ -26,6 +26,7 @@
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
       <version>4.1.90.Final</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 

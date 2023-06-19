@@ -16,14 +16,19 @@
 
 package org.bithon.agent.plugin.starrocks.interceptor;
 
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
+import org.bithon.agent.observability.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.component.commons.utils.ReflectionUtils;
 
 public class HttpServerHandler$WriteResponse extends AfterInterceptor
 {
+  private final HttpIncomingMetricsRegistry metricRegistry = HttpIncomingMetricsRegistry.get();
 
   @Override
   public void after(AopContext aopContext) throws Exception
@@ -35,6 +40,15 @@ public class HttpServerHandler$WriteResponse extends AfterInterceptor
       traceContext.currentSpan()
                   .tag(aopContext.getException())
                   .finish();
+
+      HttpRequest request = (HttpRequest) ReflectionUtils.getFieldValue(aopContext.getArgs()[0], "request");
+      HttpResponseStatus status = (HttpResponseStatus) aopContext.getArgs()[2];
+      int httpStatus = status.code();
+      int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;
+      int count5xx = httpStatus >= 500 ? 1 : 0;
+
+      this.metricRegistry.getOrCreateMetrics("", request.method().toString(), request.uri(), httpStatus)
+                         .updateRequest(aopContext.getExecutionTime(), count4xx, count5xx);
     }
     finally {
       traceContext.finish();
