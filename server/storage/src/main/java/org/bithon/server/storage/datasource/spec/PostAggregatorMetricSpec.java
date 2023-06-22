@@ -21,21 +21,25 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 /**
  * @author frankchen
  */
 public class PostAggregatorMetricSpec implements IMetricSpec {
+
     @Getter
     private final String name;
+
+    @Getter
+    private final String alias;
 
     @Getter
     private final String displayText;
@@ -48,10 +52,12 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
 
     @JsonCreator
     public PostAggregatorMetricSpec(@JsonProperty("name") @NotNull String name,
+                                    @JsonProperty("alias") @Nullable String alias,
                                     @JsonProperty("displayText") @NotNull String displayText,
                                     @JsonProperty("expression") @NotNull String expression,
                                     @JsonProperty("valueType") @NotNull String valueType) {
         this.name = name;
+        this.alias = alias == null ? name : alias;
         this.displayText = displayText;
         this.expression = Preconditions.checkArgumentNotNull("expression", expression).trim();
         this.valueType = "long".equalsIgnoreCase(valueType) ? IDataType.LONG : IDataType.DOUBLE;

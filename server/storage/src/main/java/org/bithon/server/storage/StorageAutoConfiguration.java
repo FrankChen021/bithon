@@ -218,6 +218,7 @@ public class StorageAutoConfiguration {
                                                    // microsecond
                                                    new LongSumMetricSpec("costTimeMs",
                                                                          null,
+                                                                         null,
                                                                          "costTimeMs")));
         dataSourceSchema.setVirtual(true);
         return dataSourceSchema;

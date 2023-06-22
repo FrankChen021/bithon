@@ -19,7 +19,6 @@ package org.bithon.server.storage.datasource.spec.gauge;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.LongLastAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
@@ -37,6 +36,9 @@ public abstract class GaugeMetricSpec implements IMetricSpec {
     protected final String name;
 
     @Getter
+    private final String alias;
+
+    @Getter
     protected final String field;
 
     @Getter
@@ -46,9 +48,11 @@ public abstract class GaugeMetricSpec implements IMetricSpec {
 
     @JsonCreator
     public GaugeMetricSpec(String name,
+                           String alias,
                            String field,
                            String displayText) {
         this.name = name;
+        this.alias = alias == null ? name : alias;
         this.field = field;
         this.displayText = displayText;
         this.aggregateExpression = new SimpleAggregateExpressions.LastAggregateExpression(name);

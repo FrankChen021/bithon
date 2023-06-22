@@ -31,6 +31,8 @@ public interface IColumnSpec {
      */
     String getName();
 
+    String getAlias();
+
     @JsonIgnore
     IDataType getDataType();
 

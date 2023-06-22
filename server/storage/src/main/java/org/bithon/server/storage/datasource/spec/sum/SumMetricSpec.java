@@ -18,7 +18,6 @@ package org.bithon.server.storage.datasource.spec.sum;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
@@ -34,6 +33,9 @@ public abstract class SumMetricSpec implements IMetricSpec {
     protected final String name;
 
     @Getter
+    private final String alias;
+
+    @Getter
     protected final String field;
 
     @Getter
@@ -42,9 +44,11 @@ public abstract class SumMetricSpec implements IMetricSpec {
     protected final SimpleAggregateExpression aggregateExpression;
 
     public SumMetricSpec(String name,
+                         String alias,
                          String field,
                          String displayText) {
         this.name = name;
+        this.alias = alias == null ? name : alias;
         this.field = field;
         this.displayText = displayText;
         this.aggregateExpression = new SimpleAggregateExpressions.SumAggregateExpression(name);

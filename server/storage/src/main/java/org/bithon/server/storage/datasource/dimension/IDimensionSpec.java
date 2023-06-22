@@ -30,8 +30,6 @@ import org.bithon.server.storage.datasource.IColumnSpec;
 })
 public interface IDimensionSpec extends IColumnSpec {
 
-    String getAlias();
-
     boolean isRequired();
 
     int getLength();
