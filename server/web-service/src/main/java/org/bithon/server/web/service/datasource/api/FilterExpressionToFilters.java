@@ -168,7 +168,7 @@ public class FilterExpressionToFilters {
             if (columnSpec instanceof IDimensionSpec) {
                 filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
                                                 "alias",
-                                                new GreaterThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
+                                                new GreaterThanOrEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
             } else {
                 filters.add(new MetricFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
                                              new GreaterThanOrEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
@@ -189,7 +189,7 @@ public class FilterExpressionToFilters {
             if (columnSpec instanceof IDimensionSpec) {
                 filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
                                                 "alias",
-                                                new GreaterThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
+                                                new LessThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
             } else {
                 filters.add(new MetricFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
                                              new LessThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
@@ -209,7 +209,7 @@ public class FilterExpressionToFilters {
             if (columnSpec instanceof IDimensionSpec) {
                 filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
                                                 "alias",
-                                                new GreaterThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
+                                                new LessThanOrEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
             } else {
                 filters.add(new MetricFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
                                              new LessThanOrEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
@@ -229,7 +229,7 @@ public class FilterExpressionToFilters {
             if (columnSpec instanceof IDimensionSpec) {
                 filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
                                                 "alias",
-                                                new GreaterThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
+                                                new NotEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
             } else {
                 filters.add(new MetricFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
                                              new NotEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
