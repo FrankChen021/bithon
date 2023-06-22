@@ -110,10 +110,10 @@ public class DataSourceService {
                     throw new RuntimeException(StringUtils.format("field [%s] does not exist.", field.getField()));
                 }
                 if (columnSpec instanceof IDimensionSpec) {
-                    resultColumnList.add(new ResultColumn(columnSpec.getName()));
+                    resultColumnList.add(columnSpec.getResultColumn());
                     groupBy.add(columnSpec.getName());
                 } else {
-                    resultColumnList.add(((IMetricSpec) columnSpec).getResultColumn());
+                    resultColumnList.add(columnSpec.getResultColumn());
                 }
             }
         }

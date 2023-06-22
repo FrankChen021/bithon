@@ -17,6 +17,7 @@
 package org.bithon.server.storage.datasource;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
 /**
@@ -24,7 +25,6 @@ import org.bithon.server.storage.datasource.typing.IDataType;
  * @date 29/10/22 10:47 pm
  */
 public interface IColumnSpec {
-
     /**
      * the name in the storage.
      * can NOT be null
@@ -33,8 +33,11 @@ public interface IColumnSpec {
 
     String getAlias();
 
+    String getDisplayText();
+
     @JsonIgnore
     IDataType getDataType();
 
-    String getDisplayText();
+    @JsonIgnore
+    ResultColumn getResultColumn();
 }
