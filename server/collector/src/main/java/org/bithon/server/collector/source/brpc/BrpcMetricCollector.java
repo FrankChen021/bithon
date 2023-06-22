@@ -53,8 +53,8 @@ import java.util.stream.Collectors;
 public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
     private final IMetricMessageSink metricSink;
-    private final IDimensionSpec appName = new StringDimensionSpec("appName", "appName", "appName",  true, 128);
-    private final IDimensionSpec instanceName = new StringDimensionSpec("instanceName", "instanceName", "instanceName",  true, 128);
+    private final IDimensionSpec appName = new StringDimensionSpec("appName", "appName", "appName", true, 128);
+    private final IDimensionSpec instanceName = new StringDimensionSpec("instanceName", "instanceName", "instanceName", true, 128);
 
     public BrpcMetricCollector(IMetricMessageSink metricSink) {
         this.metricSink = metricSink;
