@@ -35,10 +35,8 @@ public class DoubleGaugeMetricSpec extends GaugeMetricSpec {
     @JsonCreator
     public DoubleGaugeMetricSpec(@JsonProperty("name") @NotNull String name,
                                  @JsonProperty("field") @Nullable String field,
-                                 @JsonProperty("displayText") @NotNull String displayText,
-                                 @JsonProperty("unit") @NotNull String unit,
-                                 @JsonProperty("visible") @Nullable Boolean visible) {
-        super(name, field, displayText, unit, visible);
+                                 @JsonProperty("displayText") @NotNull String displayText) {
+        super(name, field, displayText);
     }
 
     @JsonIgnore

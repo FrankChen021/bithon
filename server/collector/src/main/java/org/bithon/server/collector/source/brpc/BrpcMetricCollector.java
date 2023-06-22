@@ -90,16 +90,16 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                                        dimensionSpecs,
                                                        message.getSchema().getMetricsSpecList().stream().map(metricSpec -> {
                                                            if ("longMax".equals(metricSpec.getType())) {
-                                                               return new LongMaxMetricSpec(metricSpec.getName(), null, metricSpec.getName(), "", true);
+                                                               return new LongMaxMetricSpec(metricSpec.getName(), null, metricSpec.getName());
                                                            }
                                                            if ("longMin".equals(metricSpec.getType())) {
-                                                               return new LongMinMetricSpec(metricSpec.getName(), null, metricSpec.getName(), "", true);
+                                                               return new LongMinMetricSpec(metricSpec.getName(), null, metricSpec.getName());
                                                            }
                                                            if ("longSum".equals(metricSpec.getType())) {
-                                                               return new LongSumMetricSpec(metricSpec.getName(), null, metricSpec.getName(), "", true);
+                                                               return new LongSumMetricSpec(metricSpec.getName(), null, metricSpec.getName());
                                                            }
                                                            if ("longLast".equals(metricSpec.getType())) {
-                                                               return new LongGaugeMetricSpec(metricSpec.getName(), null, metricSpec.getName(), "", true);
+                                                               return new LongGaugeMetricSpec(metricSpec.getName(), null, metricSpec.getName());
                                                            }
 
                                                            return null;

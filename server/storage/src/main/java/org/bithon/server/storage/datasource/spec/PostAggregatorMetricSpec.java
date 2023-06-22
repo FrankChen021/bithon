@@ -28,7 +28,6 @@ import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
-import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -42,30 +41,20 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
     private final String displayText;
 
     @Getter
-    private final String unit;
-
-    @Getter
     private final String expression;
 
     @Getter
     private final IDataType valueType;
 
-    @Getter
-    private final boolean visible;
-
     @JsonCreator
     public PostAggregatorMetricSpec(@JsonProperty("name") @NotNull String name,
                                     @JsonProperty("displayText") @NotNull String displayText,
-                                    @JsonProperty("unit") @NotNull String unit,
                                     @JsonProperty("expression") @NotNull String expression,
-                                    @JsonProperty("valueType") @NotNull String valueType,
-                                    @JsonProperty("visible") @Nullable Boolean visible) {
+                                    @JsonProperty("valueType") @NotNull String valueType) {
         this.name = name;
         this.displayText = displayText;
-        this.unit = unit;
         this.expression = Preconditions.checkArgumentNotNull("expression", expression).trim();
         this.valueType = "long".equalsIgnoreCase(valueType) ? IDataType.LONG : IDataType.DOUBLE;
-        this.visible = visible == null ? true : visible;
     }
 
     @JsonIgnore

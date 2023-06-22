@@ -42,25 +42,15 @@ public abstract class GaugeMetricSpec implements IMetricSpec {
     @Getter
     protected final String displayText;
 
-    @Getter
-    protected final String unit;
-
-    @Getter
-    protected final boolean visible;
-
     protected final SimpleAggregateExpression aggregateExpression;
 
     @JsonCreator
     public GaugeMetricSpec(String name,
                            String field,
-                           String displayText,
-                           String unit,
-                           Boolean visible) {
+                           String displayText) {
         this.name = name;
         this.field = field;
         this.displayText = displayText;
-        this.unit = unit;
-        this.visible = visible == null ? true : visible;
         this.aggregateExpression = new SimpleAggregateExpressions.LastAggregateExpression(name);
     }
 

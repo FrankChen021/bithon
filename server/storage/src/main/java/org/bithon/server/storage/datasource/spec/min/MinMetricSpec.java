@@ -40,27 +40,18 @@ public abstract class MinMetricSpec implements IMetricSpec {
     @Getter
     protected final String displayText;
 
-    @Getter
-    protected final String unit;
-
-    @Getter
-    protected final boolean visible;
     protected final SimpleAggregateExpression aggregateExpression;
 
     @JsonCreator
     public MinMetricSpec(String name,
                          String field,
-                         String displayText,
-                         String unit,
-                         Boolean visible) {
+                         String displayText) {
         this.name = name;
         this.field = field;
         this.displayText = displayText;
-        this.unit = unit;
-        this.visible = visible == null ? true : visible;
 
-        // For IMetricSpec, the `name` property is the right text mapped a column in underlying database,
-        // So the two parameters of following ctor are all `name` properties
+        // For IMetricSpec, the `name` property is the right text mapped a column in the underlying database,
+        // So the two parameters of the following ctor are all `name` properties
         this.aggregateExpression = new SimpleAggregateExpressions.MinAggregateExpression(name);
     }
 

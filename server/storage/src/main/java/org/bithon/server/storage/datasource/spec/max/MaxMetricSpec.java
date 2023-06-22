@@ -19,8 +19,6 @@ package org.bithon.server.storage.datasource.spec.max;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.aggregator.LongMaxAggregator;
-import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
@@ -41,33 +39,19 @@ public abstract class MaxMetricSpec implements IMetricSpec {
     @Getter
     protected final String displayText;
 
-    @Getter
-    protected final String unit;
-
-    @Getter
-    protected final boolean visible;
     protected final SimpleAggregateExpression aggregateExpression;
 
     public MaxMetricSpec(String name,
                          String field,
-                         String displayText,
-                         String unit,
-                         Boolean visible) {
+                         String displayText) {
         this.name = name;
         this.field = field;
         this.displayText = displayText;
-        this.unit = unit;
-        this.visible = visible == null ? true : visible;
         this.aggregateExpression = new SimpleAggregateExpressions.MaxAggregateExpression(name);
     }
 
     @Override
     public void setOwner(DataSourceSchema dataSource) {
-    }
-
-    @Override
-    public NumberAggregator createAggregator() {
-        return new LongMaxAggregator();
     }
 
     @JsonIgnore

@@ -73,19 +73,9 @@ public interface IMetricSpec extends IColumnSpec {
     String getField();
 
     /**
-     * 是否对配置可见
-     */
-    boolean isVisible();
-
-    /**
      * 前端显示字段名称
      */
     String getDisplayText();
-
-    /**
-     * 指标单位
-     */
-    String getUnit();
 
     void setOwner(DataSourceSchema dataSource);
 

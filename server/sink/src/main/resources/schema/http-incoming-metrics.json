@@ -1,6 +1,27 @@
 {
   "displayText": "Incoming HTTP",
   "name": "http-incoming-metrics",
+
+  table http-incoming-metrics(
+    appName String ALIAS appName,
+    responseTime AggregateFunction(sum, long),
+    avgResponseTime Double View round(responseTime * 1.0 /totalCount,2) ALIAS ''
+  )
+  ENGINE = INTERNAL,
+  ENGINE = EXTERNAL(,
+    url = '',
+    user = '',
+    password = '',
+    database = '',
+    table = '',
+  );
+  IColumnSpec {
+    getName();
+    getAlias();
+    getDataType();
+  }
+
+
   "timestampSpec": {
     "column": "timestamp",
     "format": "auto"

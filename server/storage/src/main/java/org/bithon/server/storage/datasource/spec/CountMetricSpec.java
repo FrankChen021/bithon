@@ -59,18 +59,8 @@ public class CountMetricSpec implements IMetricSpec {
     }
 
     @Override
-    public boolean isVisible() {
-        return false;
-    }
-
-    @Override
     public String getDisplayText() {
         return "次数";
-    }
-
-    @Override
-    public String getUnit() {
-        return "次";
     }
 
     @Override

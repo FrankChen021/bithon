@@ -19,8 +19,6 @@ package org.bithon.server.storage.datasource.spec.gauge;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.aggregator.LongLastAggregator;
-import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
@@ -36,10 +34,8 @@ public class LongGaugeMetricSpec extends GaugeMetricSpec {
     @JsonCreator
     public LongGaugeMetricSpec(@JsonProperty("name") @NotNull String name,
                                @JsonProperty("field") @Nullable String field,
-                               @JsonProperty("displayText") @NotNull String displayText,
-                               @JsonProperty("unit") @NotNull String unit,
-                               @JsonProperty("visible") @Nullable Boolean visible) {
-        super(name, field, displayText, unit, visible);
+                               @JsonProperty("displayText") @NotNull String displayText) {
+        super(name, field, displayText);
     }
 
     @JsonIgnore
@@ -51,11 +47,6 @@ public class LongGaugeMetricSpec extends GaugeMetricSpec {
     @Override
     public IDataType getDataType() {
         return IDataType.LONG;
-    }
-
-    @Override
-    public NumberAggregator createAggregator() {
-        return new LongLastAggregator();
     }
 
     @Override

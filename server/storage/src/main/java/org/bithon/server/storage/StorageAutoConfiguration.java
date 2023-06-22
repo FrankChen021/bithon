@@ -214,11 +214,11 @@ public class StorageAutoConfiguration {
                                                                            128),
                                                    new StringDimensionSpec("kind", "kind", "kind", true, false, 128)),
                                      Arrays.asList(CountMetricSpec.INSTANCE,
+
+                                                   // microsecond
                                                    new LongSumMetricSpec("costTimeMs",
                                                                          null,
-                                                                         "costTimeMs",
-                                                                         "us",
-                                                                         true)));
+                                                                         "costTimeMs")));
         dataSourceSchema.setVirtual(true);
         return dataSourceSchema;
     }
