@@ -26,9 +26,7 @@ import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
-import org.bithon.server.storage.datasource.typing.DoubleValueType;
-import org.bithon.server.storage.datasource.typing.IValueType;
-import org.bithon.server.storage.datasource.typing.LongValueType;
+import org.bithon.server.storage.datasource.typing.IDataType;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -50,7 +48,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
     private final String expression;
 
     @Getter
-    private final IValueType valueType;
+    private final IDataType valueType;
 
     @Getter
     private final boolean visible;
@@ -66,7 +64,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
         this.displayText = displayText;
         this.unit = unit;
         this.expression = Preconditions.checkArgumentNotNull("expression", expression).trim();
-        this.valueType = "long".equalsIgnoreCase(valueType) ? LongValueType.INSTANCE : DoubleValueType.INSTANCE;
+        this.valueType = "long".equalsIgnoreCase(valueType) ? IDataType.LONG : IDataType.DOUBLE;
         this.visible = visible == null ? true : visible;
     }
 
@@ -118,5 +116,10 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
     @Override
     public ResultColumn getResultColumn() {
         return new ResultColumn(new Expression(this.expression), this.name);
+    }
+
+    @Override
+    public IDataType getDataType() {
+        return this.valueType;
     }
 }

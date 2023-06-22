@@ -18,8 +18,7 @@ package org.bithon.server.storage.datasource.builtin;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.ast.FieldExpressionParser;
-import org.bithon.server.storage.datasource.typing.DoubleValueType;
-import org.bithon.server.storage.datasource.typing.LongValueType;
+import org.bithon.server.storage.datasource.typing.IDataType;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,7 +42,7 @@ public class Functions {
 
     public Functions() {
         register(new Function("round",
-                              Arrays.asList(new Parameter(DoubleValueType.INSTANCE), new Parameter(LongValueType.INSTANCE)),
+                              Arrays.asList(new Parameter(IDataType.DOUBLE), new Parameter(IDataType.LONG)),
                               (index, expression) -> {
                                   if (index == 1 && expression.getToken(FieldExpressionParser.NUMBER, 0) == null) {
                                       throw new RuntimeException(StringUtils.format(

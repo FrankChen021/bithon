@@ -27,7 +27,7 @@ import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.typing.StringValueType;
+import org.bithon.server.storage.datasource.typing.IDataType;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
@@ -137,7 +137,7 @@ public class TraceStorage extends TraceJdbcStorage {
                 String tag = StringUtils.format("%s['%s']", Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName(), filter.getName().substring(SPAN_TAGS_PREFIX.length()));
                 return filter.getMatcher().accept(new SQLFilterBuilder(traceSpanSchema.getName(),
                                                                        tag,
-                                                                       StringValueType.INSTANCE,
+                                                                       IDataType.STRING,
                                                                        false,
                                                                        false));
             }

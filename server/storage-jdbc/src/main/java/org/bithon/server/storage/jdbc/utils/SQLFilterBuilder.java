@@ -36,8 +36,7 @@ import org.bithon.server.commons.matcher.StringRegexMatcher;
 import org.bithon.server.commons.matcher.StringStartsWithMatcher;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.IColumnSpec;
-import org.bithon.server.storage.datasource.typing.IValueType;
-import org.bithon.server.storage.datasource.typing.StringValueType;
+import org.bithon.server.storage.datasource.typing.IDataType;
 import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
 
@@ -67,7 +66,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     }
 
     private final String fieldName;
-    private final IValueType valueType;
+    private final IDataType valueType;
 
     public SQLFilterBuilder(DataSourceSchema schema, IFilter filter) {
         this(schema, filter, true);
@@ -91,7 +90,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
         }
 
         this.fieldName = formatName(useQualifiedName, true, schema.getDataStoreSpec().getStore(), columnSpec.getName());
-        this.valueType = columnSpec.getValueType();
+        this.valueType = columnSpec.getDataType();
     }
 
     private static String formatName(boolean useQualifiedName, boolean quoted, String table, String field) {
@@ -109,7 +108,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
      */
     public SQLFilterBuilder(String table,
                             String fieldName,
-                            IValueType valueType,
+                            IDataType valueType,
                             boolean quoted,
                             boolean useQualifiedName) {
         this.valueType = valueType;
@@ -190,7 +189,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     @Override
     public String visit(GreaterThanMatcher matcher) {
         String pattern;
-        if (valueType instanceof StringValueType) {
+        if (valueType.equals(IDataType.STRING)) {
             pattern = "%s > '%s'";
         } else {
             pattern = "%s > %s";
@@ -201,7 +200,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     @Override
     public String visit(GreaterThanOrEqualMatcher matcher) {
         String pattern;
-        if (valueType instanceof StringValueType) {
+        if (valueType.equals(IDataType.STRING)) {
             pattern = "%s >= '%s'";
         } else {
             pattern = "%s >= %s";
@@ -212,7 +211,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     @Override
     public String visit(LessThanMatcher matcher) {
         String pattern;
-        if (valueType instanceof StringValueType) {
+        if (valueType.equals(IDataType.STRING)) {
             pattern = "%s < '%s'";
         } else {
             pattern = "%s < %s";
@@ -225,7 +224,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     @Override
     public String visit(LessThanOrEqualMatcher matcher) {
         String pattern;
-        if (valueType instanceof StringValueType) {
+        if (valueType.equals(IDataType.STRING)) {
             pattern = "%s <= '%s'";
         } else {
             pattern = "%s <= %s";

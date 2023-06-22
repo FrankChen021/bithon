@@ -21,10 +21,7 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
-import org.bithon.server.storage.datasource.typing.DoubleValueType;
-import org.bithon.server.storage.datasource.typing.IValueType;
-import org.bithon.server.storage.datasource.typing.LongValueType;
-import org.bithon.server.storage.datasource.typing.StringValueType;
+import org.bithon.server.storage.datasource.typing.IDataType;
 import org.jooq.Field;
 import org.jooq.Index;
 import org.jooq.impl.DSL;
@@ -65,7 +62,7 @@ public class MetricTable extends TableImpl {
         indexesFields.add(timestampField);
 
         for (IDimensionSpec dimension : schema.getDimensionsSpec()) {
-            Field dimensionField = createField(dimension.getName(), dimension.getValueType(), dimension.getLength());
+            Field dimensionField = createField(dimension.getName(), dimension.getDataType(), dimension.getLength());
             dimensions.add(dimensionField);
 
             if (dimension.isVisible()) {
@@ -77,7 +74,7 @@ public class MetricTable extends TableImpl {
             if (metric instanceof PostAggregatorMetricSpec) {
                 continue;
             }
-            metrics.add(createField(metric.getName(), metric.getValueType(), null));
+            metrics.add(createField(metric.getName(), metric.getDataType(), null));
         }
 
         Index index = Internal.createIndex("idx_" + this.getName() + "_dimensions",
@@ -92,15 +89,15 @@ public class MetricTable extends TableImpl {
         return indexes;
     }
 
-    private Field createField(String name, IValueType valueType, Integer length) {
-        if (valueType.equals(DoubleValueType.INSTANCE)) {
+    private Field createField(String name, IDataType valueType, Integer length) {
+        if (valueType.equals(IDataType.DOUBLE)) {
             //noinspection unchecked
             return this.createField(DSL.name(name),
                                     SQLDataType.DECIMAL(18, 2).nullable(false).defaultValue(BigDecimal.valueOf(0)));
-        } else if (valueType.equals(LongValueType.INSTANCE)) {
+        } else if (valueType.equals(IDataType.LONG)) {
             //noinspection unchecked
             return this.createField(DSL.name(name), SQLDataType.BIGINT.nullable(false).defaultValue(0L));
-        } else if (valueType.equals(StringValueType.INSTANCE)) {
+        } else if (valueType.equals(IDataType.STRING)) {
             //noinspection unchecked
             return this.createField(DSL.name(name), SQLDataType.VARCHAR(length).nullable(false).defaultValue(""));
         } else {

@@ -17,7 +17,7 @@
 package org.bithon.server.storage.datasource;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.bithon.server.storage.datasource.typing.IValueType;
+import org.bithon.server.storage.datasource.typing.IDataType;
 
 /**
  * @author Frank Chen
@@ -32,5 +32,5 @@ public interface IColumnSpec {
     String getName();
 
     @JsonIgnore
-    IValueType getValueType();
+    IDataType getDataType();
 }

@@ -17,7 +17,7 @@
 package org.bithon.server.storage.datasource.builtin;
 
 import lombok.Getter;
-import org.bithon.server.storage.datasource.typing.IValueType;
+import org.bithon.server.storage.datasource.typing.IDataType;
 
 /**
  * @author frank.chen021@outlook.com
@@ -25,9 +25,9 @@ import org.bithon.server.storage.datasource.typing.IValueType;
  */
 @Getter
 public class Parameter {
-    private final IValueType type;
+    private final IDataType type;
 
-    public Parameter(IValueType type) {
+    public Parameter(IDataType type) {
         this.type = type;
     }
 }

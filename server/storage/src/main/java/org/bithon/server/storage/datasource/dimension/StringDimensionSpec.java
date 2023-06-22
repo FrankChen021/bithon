@@ -18,8 +18,7 @@ package org.bithon.server.storage.datasource.dimension;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.typing.IValueType;
-import org.bithon.server.storage.datasource.typing.StringValueType;
+import org.bithon.server.storage.datasource.typing.IDataType;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -49,8 +48,8 @@ public class StringDimensionSpec extends AbstractDimensionSpec {
     }
 
     @Override
-    public IValueType getValueType() {
-        return StringValueType.INSTANCE;
+    public IDataType getDataType() {
+        return IDataType.STRING;
     }
 
     @Override

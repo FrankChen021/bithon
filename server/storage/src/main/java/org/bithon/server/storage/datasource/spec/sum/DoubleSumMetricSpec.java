@@ -21,8 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bithon.server.storage.datasource.aggregator.DoubleSumAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.typing.DoubleValueType;
-import org.bithon.server.storage.datasource.typing.IValueType;
+import org.bithon.server.storage.datasource.typing.IDataType;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -49,8 +48,8 @@ public class DoubleSumMetricSpec extends SumMetricSpec {
     }
 
     @Override
-    public IValueType getValueType() {
-        return DoubleValueType.INSTANCE;
+    public IDataType getDataType() {
+        return IDataType.DOUBLE;
     }
 
     @Override

@@ -136,7 +136,7 @@ public class DataSourceSchema {
 
         this.dimensionsSpec.forEach((dimensionSpec) -> dimensionMap.put(dimensionSpec.getName(), dimensionSpec));
         this.metricsSpec.forEach((metricSpec) -> metricsMap.put(metricSpec.getName(), metricSpec));
-        if (timestampSpec.getTimestampColumn().equals("timestamp")) {
+        if ("timestamp".equals(timestampSpec.getTimestampColumn())) {
             this.dimensionMap.put(TIMESTAMP_COLUMN.getName(), TIMESTAMP_COLUMN);
         } else {
             this.dimensionMap.put(timestampSpec.getTimestampColumn(), new LongDimensionSpec(timestampSpec.getTimestampColumn(), timestampSpec.getTimestampColumn(), null, true, true));

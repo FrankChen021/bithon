@@ -22,8 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bithon.server.storage.datasource.aggregator.LongMinAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
-import org.bithon.server.storage.datasource.typing.IValueType;
-import org.bithon.server.storage.datasource.typing.LongValueType;
+import org.bithon.server.storage.datasource.typing.IDataType;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -50,8 +49,8 @@ public class LongMinMetricSpec extends MinMetricSpec {
     }
 
     @Override
-    public IValueType getValueType() {
-        return LongValueType.INSTANCE;
+    public IDataType getDataType() {
+        return IDataType.LONG;
     }
 
     @Override
