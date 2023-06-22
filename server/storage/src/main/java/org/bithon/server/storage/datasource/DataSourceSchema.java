@@ -106,7 +106,7 @@ public class DataSourceSchema {
     @JsonIgnore
     private boolean isVirtual = false;
 
-    private static final IDimensionSpec TIMESTAMP_COLUMN = new LongDimensionSpec("timestamp", "timestamp", null, true, true);
+    private static final IDimensionSpec TIMESTAMP_COLUMN = new LongDimensionSpec("timestamp", "timestamp", null, true);
 
     public DataSourceSchema(String displayText,
                             String name,
@@ -139,7 +139,7 @@ public class DataSourceSchema {
         if ("timestamp".equals(timestampSpec.getTimestampColumn())) {
             this.dimensionMap.put(TIMESTAMP_COLUMN.getName(), TIMESTAMP_COLUMN);
         } else {
-            this.dimensionMap.put(timestampSpec.getTimestampColumn(), new LongDimensionSpec(timestampSpec.getTimestampColumn(), timestampSpec.getTimestampColumn(), null, true, true));
+            this.dimensionMap.put(timestampSpec.getTimestampColumn(), new LongDimensionSpec(timestampSpec.getTimestampColumn(), timestampSpec.getTimestampColumn(), null, true));
         }
     }
 

@@ -50,20 +50,15 @@ public abstract class AbstractDimensionSpec implements IDimensionSpec {
     private final String displayText;
 
     @Getter
-    private final boolean required;
-
-    @Getter
     private final boolean visible;
 
     public AbstractDimensionSpec(@NotNull String name,
                                  @Nullable String alias,
                                  @NotNull String displayText,
-                                 @Nullable Boolean required,
                                  @Nullable Boolean visible) {
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.displayText = displayText;
-        this.required = required == null ? true : required;
         this.visible = visible == null ? true : visible;
     }
 }
