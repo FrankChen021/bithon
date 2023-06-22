@@ -56,10 +56,6 @@ public abstract class MinMetricSpec implements IMetricSpec {
     }
 
     @Override
-    public void setOwner(DataSourceSchema dataSource) {
-    }
-
-    @Override
     public <T> T accept(IMetricSpecVisitor<T> visitor) {
         return visitor.visit(this);
     }

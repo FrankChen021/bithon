@@ -19,7 +19,6 @@ package org.bithon.server.storage.datasource.spec;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.IColumnSpec;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
@@ -76,8 +75,6 @@ public interface IMetricSpec extends IColumnSpec {
      * 前端显示字段名称
      */
     String getDisplayText();
-
-    void setOwner(DataSourceSchema dataSource);
 
     <T> T accept(IMetricSpecVisitor<T> visitor);
 

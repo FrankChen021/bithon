@@ -85,10 +85,6 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
     }
 
     @Override
-    public void setOwner(DataSourceSchema dataSource) {
-    }
-
-    @Override
     public int hashCode() {
         return name.hashCode();
     }

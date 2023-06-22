@@ -141,9 +141,6 @@ public class DataSourceSchema {
         } else {
             this.dimensionMap.put(timestampSpec.getTimestampColumn(), new LongDimensionSpec(timestampSpec.getTimestampColumn(), timestampSpec.getTimestampColumn(), null, true, true));
         }
-
-        // set the owner after initialization
-        this.metricsSpec.forEach((metricSpec) -> metricSpec.setOwner(this));
     }
 
     public IMetricSpec getMetricSpecByName(String name) {

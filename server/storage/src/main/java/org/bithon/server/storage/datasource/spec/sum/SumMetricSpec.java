@@ -50,10 +50,6 @@ public abstract class SumMetricSpec implements IMetricSpec {
         this.aggregateExpression = new SimpleAggregateExpressions.SumAggregateExpression(name);
     }
 
-    @Override
-    public void setOwner(DataSourceSchema dataSource) {
-    }
-
     @JsonIgnore
     @Override
     public SimpleAggregateExpression getAggregateExpression() {

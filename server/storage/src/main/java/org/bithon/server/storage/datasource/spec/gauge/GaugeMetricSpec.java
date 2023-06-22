@@ -55,10 +55,6 @@ public abstract class GaugeMetricSpec implements IMetricSpec {
     }
 
     @Override
-    public void setOwner(DataSourceSchema dataSource) {
-    }
-
-    @Override
     public NumberAggregator createAggregator() {
         return new LongLastAggregator();
     }

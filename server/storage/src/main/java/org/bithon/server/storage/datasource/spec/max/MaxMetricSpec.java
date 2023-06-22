@@ -50,10 +50,6 @@ public abstract class MaxMetricSpec implements IMetricSpec {
         this.aggregateExpression = new SimpleAggregateExpressions.MaxAggregateExpression(name);
     }
 
-    @Override
-    public void setOwner(DataSourceSchema dataSource) {
-    }
-
     @JsonIgnore
     @Override
     public SimpleAggregateExpression getAggregateExpression() {
