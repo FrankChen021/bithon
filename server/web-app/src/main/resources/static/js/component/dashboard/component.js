@@ -345,14 +345,10 @@ class Dashboard {
         chartComponent.setSelectionHandler(
             (chartOption, startIndex, endIndex) => {
                 // get the time range
-                const start = chartOption.timestamp.start;
-                const interval = chartOption.timestamp.interval;
+                const interval = chartComponent.getInterval(startIndex, endIndex);
 
-                const startTimestamp = start + startIndex * interval;
-                const endTimestamp = start + endIndex * interval;
-
-                const startISO8601 = moment(startTimestamp).utc().toISOString();
-                const endISO8601 = moment(endTimestamp).utc().toISOString();
+                const startISO8601 = moment(interval.start).utc().toISOString();
+                const endISO8601 = moment(interval.end).utc().toISOString();
 
                 this.refreshTable(chartDescriptor.details.query,
                     detailTableComponent,
@@ -700,12 +696,13 @@ class Dashboard {
 
         chartOption.tooltip.formatter = series => {
             const currentChartOption = this.getChartCurrentOption(chartId);
+            const currentChartComponent = this._chartComponents[chartId];
 
-            const start = currentChartOption.timestamp.start;
-            const interval = currentChartOption.timestamp.interval;
             const dataIndex = series[0].dataIndex;
-            let tooltip = moment(start + dataIndex * interval).local().format('MM-DD HH:mm:ss') + '<br/>'
-            + moment(start + dataIndex * interval + interval).local().format('MM-DD HH:mm:ss');
+            const interval = currentChartComponent.getInterval(dataIndex);
+
+            let tooltip = moment(interval.start).local().format('MM-DD HH:mm:ss') + '<br/>'
+            + moment(interval.end).local().format('MM-DD HH:mm:ss');
             series.forEach(s => {
                 //Use the yAxis defined formatter to format the data
                 const yAxisIndex = currentChartOption.series[s.seriesIndex].yAxisIndex;
@@ -747,16 +744,8 @@ class Dashboard {
         // Apply click event to refresh time interval
         if (chartDescriptor.zoomOnTime === true) {
             chartComponent.setClickHandler((e) => {
-                const chartOption = this.getChartCurrentOption(chartId);
-
-                const start = chartOption.timestamp.start;
-                const interval = chartOption.timestamp.interval;
-                const dataIndex = e.dataIndex;
-
-                const startTimestamp = start + dataIndex * interval;
-                const endTimestamp = startTimestamp + interval;
-
-                this._timeSelector.setInterval(startTimestamp, endTimestamp);
+                const interval = chartComponent.getInterval(e.dataIndex);
+                this._timeSelector.setInterval(interval.start, interval.end);
             });
         }
 
@@ -1039,14 +1028,28 @@ class Dashboard {
                     }
                 }
 
+                const roundDownStart = data.startTimestamp;
+                const bucketLength = data.interval; // in millisecond
+                const absoluteStart = moment(interval.start).valueOf();
+                const absoluteEnd = moment(interval.end).valueOf();
+
+                // save the timestamp for further processing
+                chartComponent.getInterval = (startIndex, endIndex) => {
+                     if (endIndex === undefined) {
+                         endIndex = startIndex + 1;
+                     }
+
+                     const startTimestamp = roundDownStart + startIndex * bucketLength;
+                     const endTimestamp = roundDownStart + endIndex * bucketLength;
+                     return {
+                         start: startTimestamp < absoluteStart? absoluteStart : startTimestamp,
+                         end: endTimestamp > absoluteEnd?  absoluteEnd: endTimestamp
+                     }
+                 };
+
                 return {
                     refreshMode: mode,
 
-                    // save the timestamp for further processing
-                    timestamp: {
-                        start: data.startTimestamp,
-                        interval: data.interval
-                    },
                     xAxis: {
                         data: timeLabels
                     },
