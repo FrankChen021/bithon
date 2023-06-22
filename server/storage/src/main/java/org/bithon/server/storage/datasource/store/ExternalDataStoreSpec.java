@@ -17,7 +17,6 @@
 package org.bithon.server.storage.datasource.store;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.component.commons.Experimental;
@@ -32,29 +31,30 @@ import java.util.Objects;
  */
 @Experimental
 @Getter
-public class DataStoreSpec {
-    /**
-     * internal | external
-     */
-    private final String type;
+public class ExternalDataStoreSpec implements IDataStoreSpec {
 
     private final Map<String, String> properties;
+    private final String store;
 
     @JsonCreator
-    public DataStoreSpec(@JsonProperty("type") String type,
-                         @JsonProperty("properties") Map<String, String> properties) {
-        this.type = type;
+    public ExternalDataStoreSpec(@JsonProperty("properties") Map<String, String> properties,
+                                 @JsonProperty("store") String store) {
         this.properties = properties == null ? Collections.emptyMap() : properties;
+        this.store = store;
     }
 
-    @JsonIgnore
-    public boolean isInternal() {
-        return "internal".equals(type);
+    @Override
+    public String getType() {
+        return "external";
     }
 
-    @JsonIgnore
-    public String getProperty(String name) {
-        return properties.get(name);
+    @Override
+    public String getStore() {
+        return store;
+    }
+
+    public ExternalDataStoreSpec withProperties(Map<String, String> properties) {
+        return new ExternalDataStoreSpec(properties, store);
     }
 
     @Override
@@ -62,19 +62,17 @@ public class DataStoreSpec {
         if (this == o) {
             return true;
         }
+
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DataStoreSpec that = (DataStoreSpec) o;
-        return Objects.equals(type, that.type) && Objects.equals(properties, that.properties);
+
+        ExternalDataStoreSpec that = (ExternalDataStoreSpec) o;
+        return Objects.equals(properties, that.properties) && Objects.equals(store, that.store);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, properties);
-    }
-
-    public DataStoreSpec withProperties(Map<String, String> properties) {
-        return new DataStoreSpec(this.type, properties);
+        return Objects.hash(properties, store);
     }
 }

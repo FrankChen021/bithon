@@ -27,7 +27,8 @@ import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.dimension.LongDimensionSpec;
 import org.bithon.server.storage.datasource.spec.CountMetricSpec;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
-import org.bithon.server.storage.datasource.store.DataStoreSpec;
+import org.bithon.server.storage.datasource.store.IDataStoreSpec;
+import org.bithon.server.storage.datasource.store.InternalDataSourceSpec;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -64,7 +65,7 @@ public class DataSourceSchema {
      * Experimental
      */
     @Getter
-    private final DataStoreSpec dataStoreSpec;
+    private final IDataStoreSpec dataStoreSpec;
 
     /**
      * Data source level ttl.
@@ -122,7 +123,7 @@ public class DataSourceSchema {
                             @JsonProperty("dimensionsSpec") List<IDimensionSpec> dimensionsSpec,
                             @JsonProperty("metricsSpec") List<IMetricSpec> metricsSpec,
                             @JsonProperty("inputSourceSpec") @Nullable JsonNode inputSourceSpec,
-                            @JsonProperty("storeSpec") @Nullable DataStoreSpec dataStoreSpec,
+                            @JsonProperty("storeSpec") @Nullable IDataStoreSpec dataStoreSpec,
                             @JsonProperty("ttl") @Nullable Period ttl) {
         this.displayText = displayText == null ? name : displayText;
         this.name = name;
@@ -130,12 +131,16 @@ public class DataSourceSchema {
         this.dimensionsSpec = dimensionsSpec;
         this.metricsSpec = metricsSpec;
         this.inputSourceSpec = inputSourceSpec;
-        this.dataStoreSpec = dataStoreSpec;
+        this.dataStoreSpec = dataStoreSpec == null ? new InternalDataSourceSpec("bithon_" + name.replaceAll("-", "_")) : dataStoreSpec;
         this.ttl = ttl;
 
         this.dimensionsSpec.forEach((dimensionSpec) -> dimensionMap.put(dimensionSpec.getName(), dimensionSpec));
         this.metricsSpec.forEach((metricSpec) -> metricsMap.put(metricSpec.getName(), metricSpec));
-        this.dimensionMap.put(TIMESTAMP_COLUMN.getName(), TIMESTAMP_COLUMN);
+        if (timestampSpec.getTimestampColumn().equals("timestamp")) {
+            this.dimensionMap.put(TIMESTAMP_COLUMN.getName(), TIMESTAMP_COLUMN);
+        } else {
+            this.dimensionMap.put(timestampSpec.getTimestampColumn(), new LongDimensionSpec(timestampSpec.getTimestampColumn(), timestampSpec.getTimestampColumn(), null, true, true));
+        }
 
         // set the owner after initialization
         this.metricsSpec.forEach((metricSpec) -> metricSpec.setOwner(this));
@@ -197,7 +202,7 @@ public class DataSourceSchema {
         return this.name;
     }
 
-    public DataSourceSchema withDataStore(DataStoreSpec dataStoreSpec) {
+    public DataSourceSchema withDataStore(IDataStoreSpec dataStoreSpec) {
         return new DataSourceSchema(this.displayText,
                                     this.name,
                                     this.timestampSpec,

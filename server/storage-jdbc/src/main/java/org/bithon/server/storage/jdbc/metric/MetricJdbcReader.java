@@ -80,7 +80,7 @@ public class MetricJdbcReader implements IMetricReader {
         // Add timestamp expression to sub-query
         timestampFilterExpression.getResultColumnList()
                                  .insert(new StringNode(StringUtils.format("%s AS \"%s\"",
-                                                                           sqlDialect.timeFloorExpression("timestamp", query.getInterval().getStep()),
+                                                                           sqlDialect.timeFloorExpression(query.getDataSource().getTimestampSpec().getTimestampColumn(), query.getInterval().getStep()),
                                                                            TIMESTAMP_ALIAS_NAME)));
 
         selectExpression.getGroupBy().addField(TIMESTAMP_ALIAS_NAME);
@@ -117,16 +117,18 @@ public class MetricJdbcReader implements IMetricReader {
 
     @Override
     public List<Map<String, Object>> list(Query query) {
-        String sqlTableName = "bithon_" + query.getDataSource().getName().replace("-", "_");
-
+        String sqlTableName = query.getDataSource().getDataStoreSpec().getStore();
+        String timestampCol = query.getDataSource().getTimestampSpec().getTimestampColumn();
         String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
         String sql = StringUtils.format(
-            "SELECT %s FROM \"%s\" WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s %s LIMIT %d OFFSET %d",
+            "SELECT %s FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s %s LIMIT %d OFFSET %d",
             query.getResultColumns().stream().map(field -> "\"" + field.getColumnExpression() + "\"").collect(Collectors.joining(",")),
             sqlTableName,
             filter,
             StringUtils.hasText(filter) ? "AND" : "",
+            timestampCol,
             sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
+            timestampCol,
             sqlDialect.formatTimestamp(query.getInterval().getEndTime()),
             getOrderBySQL(query.getOrderBy()),
             query.getLimit().getLimit(),
@@ -138,15 +140,18 @@ public class MetricJdbcReader implements IMetricReader {
 
     @Override
     public int listSize(Query query) {
-        String sqlTableName = "bithon_" + query.getDataSource().getName().replace("-", "_");
+        String sqlTableName = query.getDataSource().getDataStoreSpec().getStore();
+        String timestampCol = query.getDataSource().getTimestampSpec().getTimestampColumn();
 
         String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
         String sql = StringUtils.format(
-            "SELECT count(1) FROM \"%s\" WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s",
+            "SELECT count(1) FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s",
             sqlTableName,
             filter,
             StringUtils.hasText(filter) ? "AND" : "",
+            timestampCol,
             sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
+            timestampCol,
             sqlDialect.formatTimestamp(query.getInterval().getEndTime())
         );
 
@@ -204,7 +209,7 @@ public class MetricJdbcReader implements IMetricReader {
             "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s AND \"%s\" IS NOT NULL ORDER BY \"%s\"",
             dimension,
             dimension,
-            "bithon_" + dataSourceSchema.getName().replace("-", "_"),
+            dataSourceSchema.getDataStoreSpec().getStore(),
             condition,
             sqlDialect.formatTimestamp(start),
             sqlDialect.formatTimestamp(end),

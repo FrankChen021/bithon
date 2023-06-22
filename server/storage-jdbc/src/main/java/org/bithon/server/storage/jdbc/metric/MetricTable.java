@@ -56,7 +56,7 @@ public class MetricTable extends TableImpl {
     }
 
     public MetricTable(DataSourceSchema schema) {
-        super(DSL.name("bithon_" + schema.getName().replace('-', '_')));
+        super(DSL.name(schema.getDataStoreSpec().getStore()));
 
         //noinspection unchecked
         timestampField = this.createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP);

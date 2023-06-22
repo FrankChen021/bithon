@@ -300,10 +300,10 @@ public class SelectExpressionBuilder {
      * </pre>
      */
     public SelectExpression build() {
-        String sqlTableName = "bithon_" + dataSource.getName().replace("-", "_");
+        String sqlTableName = dataSource.getDataStoreSpec().getStore();
 
         //
-        // Turn some metrics(those use window functions for aggregation) in expression into pre-aggregator first
+        // Turn some metrics (those use window functions for aggregation) in expression into pre-aggregator first
         //
         Set<String> aggregatedFields = this.resultColumns.stream()
                                                          .filter((f) -> f.getColumnExpression() instanceof SimpleAggregateExpression)
@@ -343,7 +343,7 @@ public class SelectExpressionBuilder {
 
                     // this window fields should be in the group-by clause and select clause,
                     // see the javadoc above
-                    // Use name in the groupBy expression because we have alias for corresponding field in sub-query expression
+                    // Use name in the groupBy expression because we have alias for the corresponding field in sub-query expression
                     selectExpression.getGroupBy().addField(resultColumn.getAlias().getName());
                     selectExpression.getResultColumnList().add(resultColumn.getAlias().getName());
 
@@ -380,16 +380,17 @@ public class SelectExpressionBuilder {
 
             // this window fields should be in the group-by clause and select clause,
             // see the javadoc above
-            // Use name in the groupBy expression because we have alias for corresponding field in sub-query expression
+            // Use name in the groupBy expression because we have alias for the corresponding field in sub-query expression
             selectExpression.getGroupBy().addField(aggregator.getName());
         }
 
         //
         // build WhereExpression
         //
+        String timestampCol = dataSource.getTimestampSpec().getTimestampColumn();
         Where where = new Where();
-        where.addExpression(StringUtils.format("\"timestamp\" >= %s", sqlDialect.formatTimestamp(interval.getStartTime())));
-        where.addExpression(StringUtils.format("\"timestamp\" < %s", sqlDialect.formatTimestamp(interval.getEndTime())));
+        where.addExpression(StringUtils.format("\"%s\" >= %s", timestampCol, sqlDialect.formatTimestamp(interval.getStartTime())));
+        where.addExpression(StringUtils.format("\"%s\" < %s", timestampCol, sqlDialect.formatTimestamp(interval.getEndTime())));
         for (IFilter filter : filters) {
             where.addExpression(filter.getMatcher().accept(new SQLFilterBuilder(dataSource, filter)));
         }
@@ -400,7 +401,7 @@ public class SelectExpressionBuilder {
         subSelectExpression.getResultColumnList().addAll(groupBy);
         selectExpression.getGroupBy().addFields(groupBy);
 
-        // Make sure all fields in the groupBy are in the fields list
+        // Make sure all fields in the groupBy are in the field list
         if (!groupBy.isEmpty()) {
             Set<String> existingFields = selectExpression.getResultColumnList().getColumnNames(Collectors.toSet());
 

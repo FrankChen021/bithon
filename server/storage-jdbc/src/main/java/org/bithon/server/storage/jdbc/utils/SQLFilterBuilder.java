@@ -90,7 +90,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
             Preconditions.checkNotNull(columnSpec, "metric [%s] is not defined in data source [%s]", filter.getName(), schema.getName());
         }
 
-        this.fieldName = formatName(useQualifiedName, true, "bithon_" + schema.getName().replaceAll("-", "_"), columnSpec.getName());
+        this.fieldName = formatName(useQualifiedName, true, schema.getDataStoreSpec().getStore(), columnSpec.getName());
         this.valueType = columnSpec.getValueType();
     }
 

@@ -26,7 +26,7 @@ import org.bithon.server.storage.datasource.IColumnSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.store.DataStoreSpec;
+import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
@@ -143,7 +143,7 @@ public class DataSourceApi implements IDataSourceApi {
         // Mask the sensitive information
         // This is experimental
         if (schema != null && schema.getDataStoreSpec() != null) {
-            DataStoreSpec dataStoreSpec = schema.getDataStoreSpec();
+            IDataStoreSpec dataStoreSpec = schema.getDataStoreSpec();
 
             Map<String, String> properties = new TreeMap<>(dataStoreSpec.getProperties());
             properties.computeIfPresent("password", (k, old) -> "<HIDDEN>");
