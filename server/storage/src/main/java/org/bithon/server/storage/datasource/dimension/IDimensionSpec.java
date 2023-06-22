@@ -32,8 +32,6 @@ public interface IDimensionSpec extends IColumnSpec {
 
     String getAlias();
 
-    String getDisplayText();
-
     boolean isRequired();
 
     int getLength();

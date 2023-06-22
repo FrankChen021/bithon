@@ -33,4 +33,6 @@ public interface IColumnSpec {
 
     @JsonIgnore
     IDataType getDataType();
+
+    String getDisplayText();
 }

@@ -71,11 +71,6 @@ public interface IMetricSpec extends IColumnSpec {
      */
     String getField();
 
-    /**
-     * 前端显示字段名称
-     */
-    String getDisplayText();
-
     <T> T accept(IMetricSpecVisitor<T> visitor);
 
     NumberAggregator createAggregator();
