@@ -73,4 +73,8 @@ public class DataStoreSpec {
     public int hashCode() {
         return Objects.hash(type, properties);
     }
+
+    public DataStoreSpec withProperties(Map<String, String> properties) {
+        return new DataStoreSpec(this.type, properties);
+    }
 }

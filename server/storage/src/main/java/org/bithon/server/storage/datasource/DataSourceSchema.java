@@ -196,4 +196,15 @@ public class DataSourceSchema {
     public String toString() {
         return this.name;
     }
+
+    public DataSourceSchema withDataStore(DataStoreSpec dataStoreSpec) {
+        return new DataSourceSchema(this.displayText,
+                                    this.name,
+                                    this.timestampSpec,
+                                    this.dimensionsSpec,
+                                    this.metricsSpec,
+                                    this.inputSourceSpec,
+                                    dataStoreSpec,
+                                    this.ttl);
+    }
 }

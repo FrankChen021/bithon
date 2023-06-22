@@ -26,6 +26,7 @@ import org.bithon.server.storage.datasource.IColumnSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
+import org.bithon.server.storage.datasource.store.DataStoreSpec;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
@@ -49,6 +50,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -136,7 +138,19 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public DataSourceSchema getSchemaByName(String schemaName) {
-        return schemaManager.getDataSourceSchema(schemaName);
+        DataSourceSchema schema = schemaManager.getDataSourceSchema(schemaName);
+
+        // Mask the sensitive information
+        // This is experimental
+        if (schema != null && schema.getDataStoreSpec() != null) {
+            DataStoreSpec dataStoreSpec = schema.getDataStoreSpec();
+
+            Map<String, String> properties = new TreeMap<>(dataStoreSpec.getProperties());
+            properties.computeIfPresent("password", (k, old) -> "<HIDDEN>");
+
+            return schema.withDataStore(dataStoreSpec.withProperties(properties));
+        }
+        return schema;
     }
 
     @Override
