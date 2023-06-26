@@ -174,7 +174,7 @@ public class MetricOverSpanInputSource implements IInputSource {
         }
 
         /**
-         * will be closed when this processor is unlinked from processor list
+         * will be closed when this processor is unlinked from a processor list
          */
         @Override
         public void close() {
@@ -195,8 +195,8 @@ public class MetricOverSpanInputSource implements IInputSource {
                 metricMessage.put(dimSpec.getName(), span.getCol(dimSpec.getName()));
             }
             for (IMetricSpec metricSpec : schema.getMetricsSpec()) {
-                String field = metricSpec.getField() == null ? metricSpec.getName() : metricSpec.getField();
-                metricMessage.put(metricSpec.getName(), span.getCol(field));
+                String name = metricSpec.getName();
+                metricMessage.put(name, span.getCol(name));
             }
 
             return metricMessage;
