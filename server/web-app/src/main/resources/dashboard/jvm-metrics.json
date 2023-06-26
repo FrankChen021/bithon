@@ -250,6 +250,7 @@
           "gcCount",
           "avgGcTime"
         ],
+        "groupBy": ["gcName"],
         "filters": {
           "generation": {
             "dimension": "generation",

@@ -66,7 +66,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     }
 
     private final String fieldName;
-    private final IDataType valueType;
+    private final IDataType fieldType;
 
     public SQLFilterBuilder(DataSourceSchema schema, IFilter filter) {
         this(schema, filter, true);
@@ -90,7 +90,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
         }
 
         this.fieldName = formatName(useQualifiedName, true, schema.getDataStoreSpec().getStore(), columnSpec.getName());
-        this.valueType = columnSpec.getDataType();
+        this.fieldType = columnSpec.getDataType();
     }
 
     private static String formatName(boolean useQualifiedName, boolean quoted, String table, String field) {
@@ -108,10 +108,10 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
      */
     public SQLFilterBuilder(String table,
                             String fieldName,
-                            IDataType valueType,
+                            IDataType fieldType,
                             boolean quoted,
                             boolean useQualifiedName) {
-        this.valueType = valueType;
+        this.fieldType = fieldType;
         this.fieldName = formatName(useQualifiedName, quoted, table, fieldName);
     }
 
@@ -189,7 +189,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     @Override
     public String visit(GreaterThanMatcher matcher) {
         String pattern;
-        if (valueType.equals(IDataType.STRING)) {
+        if (fieldType.equals(IDataType.STRING)) {
             pattern = "%s > '%s'";
         } else {
             pattern = "%s > %s";
@@ -200,7 +200,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     @Override
     public String visit(GreaterThanOrEqualMatcher matcher) {
         String pattern;
-        if (valueType.equals(IDataType.STRING)) {
+        if (fieldType.equals(IDataType.STRING)) {
             pattern = "%s >= '%s'";
         } else {
             pattern = "%s >= %s";
@@ -211,7 +211,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     @Override
     public String visit(LessThanMatcher matcher) {
         String pattern;
-        if (valueType.equals(IDataType.STRING)) {
+        if (fieldType.equals(IDataType.STRING)) {
             pattern = "%s < '%s'";
         } else {
             pattern = "%s < %s";
@@ -224,7 +224,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     @Override
     public String visit(LessThanOrEqualMatcher matcher) {
         String pattern;
-        if (valueType.equals(IDataType.STRING)) {
+        if (fieldType.equals(IDataType.STRING)) {
             pattern = "%s <= '%s'";
         } else {
             pattern = "%s <= %s";

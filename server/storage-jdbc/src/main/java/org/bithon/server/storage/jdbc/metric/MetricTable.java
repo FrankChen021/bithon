@@ -89,19 +89,19 @@ public class MetricTable extends TableImpl {
         return indexes;
     }
 
-    private Field createField(String name, IDataType valueType, Integer length) {
-        if (valueType.equals(IDataType.DOUBLE)) {
+    private Field createField(String name, IDataType dataType, Integer length) {
+        if (dataType.equals(IDataType.DOUBLE)) {
             //noinspection unchecked
             return this.createField(DSL.name(name),
                                     SQLDataType.DECIMAL(18, 2).nullable(false).defaultValue(BigDecimal.valueOf(0)));
-        } else if (valueType.equals(IDataType.LONG)) {
+        } else if (dataType.equals(IDataType.LONG)) {
             //noinspection unchecked
             return this.createField(DSL.name(name), SQLDataType.BIGINT.nullable(false).defaultValue(0L));
-        } else if (valueType.equals(IDataType.STRING)) {
+        } else if (dataType.equals(IDataType.STRING)) {
             //noinspection unchecked
             return this.createField(DSL.name(name), SQLDataType.VARCHAR(length).nullable(false).defaultValue(""));
         } else {
-            throw new RuntimeException("unknown type:" + valueType);
+            throw new RuntimeException("unknown type:" + dataType);
         }
     }
 }

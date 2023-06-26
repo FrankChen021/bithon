@@ -80,7 +80,21 @@ public class DataSourceApi implements IDataSourceApi {
     public GeneralQueryResponse timeseriesV3(@Validated @RequestBody GeneralQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
-        Query query = this.dataSourceService.convertToQuery(schema, request, true);
+        Query query = this.dataSourceService.convertToQuery(schema, request, false, true);
+        TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
+        return GeneralQueryResponse.builder()
+                                   .data(result.getMetrics())
+                                   .startTimestamp(result.getStartTimestamp())
+                                   .endTimestamp(result.getEndTimestamp())
+                                   .interval(result.getInterval())
+                                   .build();
+    }
+
+    @Override
+    public GeneralQueryResponse timeseriesV4(@Validated @RequestBody GeneralQueryRequest request) {
+        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+        Query query = this.dataSourceService.convertToQuery(schema, request, true, true);
         TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
         return GeneralQueryResponse.builder()
                                    .data(result.getMetrics())
@@ -123,7 +137,19 @@ public class DataSourceApi implements IDataSourceApi {
     public GeneralQueryResponse groupBy(GeneralQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
-        Query query = this.dataSourceService.convertToQuery(schema, request, false);
+        Query query = this.dataSourceService.convertToQuery(schema, request, false, false);
+        return GeneralQueryResponse.builder()
+                                   .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
+                                   .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
+                                   .data(this.metricStorage.createMetricReader(schema).groupBy(query))
+                                   .build();
+    }
+
+    @Override
+    public GeneralQueryResponse groupByV3(GeneralQueryRequest request) {
+        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+        Query query = this.dataSourceService.convertToQuery(schema, request, true, false);
         return GeneralQueryResponse.builder()
                                    .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
                                    .endTimestamp(query.getInterval().getEndTime().getMilliseconds())

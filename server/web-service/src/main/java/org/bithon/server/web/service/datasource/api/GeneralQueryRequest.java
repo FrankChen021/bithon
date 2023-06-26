@@ -52,10 +52,14 @@ public class GeneralQueryRequest {
     private List<QueryField> fields;
 
     @Nullable
+    private List<String> groupBy;
+
+    @Nullable
     private OrderBy orderBy;
 
     @Nullable
     private Limit limit;
+
 
     private Query.ResultFormat resultFormat;
 }

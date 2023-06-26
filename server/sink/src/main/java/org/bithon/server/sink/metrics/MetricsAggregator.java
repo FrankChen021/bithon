@@ -71,7 +71,7 @@ public class MetricsAggregator {
 
         Key key = new Key(flooredTimestamp, dimensionValues);
         rows.computeIfAbsent(key, k -> new FieldAggregators(schema))
-            .forEach((metricName, aggregator) -> aggregator.aggregate(timestamp, metricProvider.apply(metricName)));
+            .forEach((field, aggregator) -> aggregator.aggregate(timestamp, metricProvider.apply(field)));
     }
 
     @SuppressWarnings("rawtypes")
