@@ -65,12 +65,6 @@ public interface IMetricSpec extends IColumnSpec {
 
     String getType();
 
-    /**
-     * the name in the original message.
-     * can be null. if it's null, the {@link #getName()} is used
-     */
-    String getField();
-
     <T> T accept(IMetricSpecVisitor<T> visitor);
 
     NumberAggregator createAggregator();

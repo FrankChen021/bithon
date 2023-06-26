@@ -51,28 +51,28 @@ public class MetricAggregatorTest {
     @Parameterized.Parameters(name = "{0}")
     public static Object[] createSchemas() {
         DataSourceSchema emptyDimensionSchema = new DataSourceSchema(
-            "empty-dimension-table",
-            "empty-dimension-table",
-            new TimestampSpec("timestamp", null, null),
-            Collections.emptyList(),
-            Arrays.asList(new LongSumMetricSpec("totalCount", "totalCount", "totalCount", "", true),
-                          new LongMinMetricSpec("minTime", "minTime", "minTime", "", true),
-                          new LongMaxMetricSpec("maxTime", "maxTime", "maxTime", "", true))
+                "empty-dimension-table",
+                "empty-dimension-table",
+                new TimestampSpec("timestamp", null, null),
+                Collections.emptyList(),
+                Arrays.asList(new LongSumMetricSpec("totalCount", "totalCount", ""),
+                              new LongMinMetricSpec("minTime", "minTime", ""),
+                              new LongMaxMetricSpec("maxTime", "maxTime", ""))
         );
 
         DataSourceSchema hasDimensionSchema = new DataSourceSchema(
-            "one-dimension-table",
-            "one-dimension-table",
-            new TimestampSpec("timestamp", null, null),
-            Arrays.asList(new StringDimensionSpec("appName", "appName", "appName", true, true, 128)),
-            Arrays.asList(new LongSumMetricSpec("totalCount", "totalCount", "totalCount", "", true),
-                          new LongMinMetricSpec("minTime", "minTime", "minTime", "", true),
-                          new LongMaxMetricSpec("maxTime", "maxTime", "maxTime", "", true))
+                "one-dimension-table",
+                "one-dimension-table",
+                new TimestampSpec("timestamp", null, null),
+                Arrays.asList(new StringDimensionSpec("appName", "appName", "appName", true, 128)),
+                Arrays.asList(new LongSumMetricSpec("totalCount", "totalCount", ""),
+                              new LongMinMetricSpec("minTime", "minTime", ""),
+                              new LongMaxMetricSpec("maxTime", "maxTime", ""))
         );
 
         return new Object[]{
-            new Object[]{emptyDimensionSchema.getName(), emptyDimensionSchema},
-            new Object[]{hasDimensionSchema.getName(), hasDimensionSchema}
+                new Object[]{emptyDimensionSchema.getName(), emptyDimensionSchema},
+                new Object[]{hasDimensionSchema.getName(), hasDimensionSchema}
         };
     }
 

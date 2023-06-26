@@ -90,16 +90,16 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                                        dimensionSpecs,
                                                        message.getSchema().getMetricsSpecList().stream().map(metricSpec -> {
                                                            if ("longMax".equals(metricSpec.getType())) {
-                                                               return new LongMaxMetricSpec(metricSpec.getName(), null, null, metricSpec.getName());
+                                                               return new LongMaxMetricSpec(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
                                                            }
                                                            if ("longMin".equals(metricSpec.getType())) {
-                                                               return new LongMinMetricSpec(metricSpec.getName(), null, null, metricSpec.getName());
+                                                               return new LongMinMetricSpec(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
                                                            }
                                                            if ("longSum".equals(metricSpec.getType())) {
-                                                               return new LongSumMetricSpec(metricSpec.getName(), null, null, metricSpec.getName());
+                                                               return new LongSumMetricSpec(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
                                                            }
                                                            if ("longLast".equals(metricSpec.getType())) {
-                                                               return new LongGaugeMetricSpec(metricSpec.getName(), null, null, metricSpec.getName());
+                                                               return new LongGaugeMetricSpec(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
                                                            }
 
                                                            return null;
@@ -136,7 +136,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
     @Override
     public void sendGenericMetricsV2(BrpcMessageHeader header, BrpcGenericMetricMessageV2 message) {
-        List<IInputRow> messaegs = message.getMeasurementList().stream().map((measurement) -> {
+        List<IInputRow> messages = message.getMeasurementList().stream().map((measurement) -> {
             MetricMessage metricMessage = new MetricMessage();
             int i = 0;
             for (String dimension : measurement.getDimensionList()) {
@@ -158,7 +158,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
         this.metricSink.process(message.getSchema().getName(),
                                 SchemaMetricMessage.builder()
-                                                   .metrics(messaegs)
+                                                   .metrics(messages)
                                                    .build());
     }
 

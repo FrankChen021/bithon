@@ -37,9 +37,6 @@ public abstract class MinMetricSpec implements IMetricSpec {
     private final String alias;
 
     @Getter
-    protected final String field;
-
-    @Getter
     protected final String displayText;
 
     protected final SimpleAggregateExpression aggregateExpression;
@@ -47,11 +44,9 @@ public abstract class MinMetricSpec implements IMetricSpec {
     @JsonCreator
     public MinMetricSpec(String name,
                          String alias,
-                         String field,
                          String displayText) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.field = field;
         this.displayText = displayText;
 
         // For IMetricSpec, the `name` property is the right text mapped a column in the underlying database,

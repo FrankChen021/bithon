@@ -36,20 +36,15 @@ public abstract class MaxMetricSpec implements IMetricSpec {
     private final String alias;
 
     @Getter
-    protected final String field;
-
-    @Getter
     protected final String displayText;
 
     protected final SimpleAggregateExpression aggregateExpression;
 
     public MaxMetricSpec(String name,
                          String alias,
-                         String field,
                          String displayText) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.field = field;
         this.displayText = displayText;
         this.aggregateExpression = new SimpleAggregateExpressions.MaxAggregateExpression(name);
     }
