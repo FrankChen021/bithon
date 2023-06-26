@@ -37,6 +37,7 @@ import org.bithon.server.storage.datasource.spec.IMetricSpec;
     @JsonSubTypes.Type(name = "chain", value = ChainTransformer.class),
     @JsonSubTypes.Type(name = "add", value = AddFieldTransformer.class),
     @JsonSubTypes.Type(name = "has", value = HasFieldTransformer.class),
+        @JsonSubTypes.Type(name = "as", value = AsTransformer.class),
     @JsonSubTypes.Type(name = "regexpr", value = RegExprTransformer.class)
 })
 public interface ITransformer {

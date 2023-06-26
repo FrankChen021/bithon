@@ -20,8 +20,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.storage.datasource.input.InputRow;
+import org.bithon.server.storage.datasource.input.transformer.AsTransformer;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
-import org.bithon.server.storage.datasource.input.transformer.SplitterTransformer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,39 +29,21 @@ import java.util.HashMap;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 12/4/22 12:06 AM
+ * @date 2023/6/26 22:15
  */
-public class SplitterTransfomerTest {
-
+public class AsTransformerTest {
     @Test
     public void test() throws JsonProcessingException {
-        SplitterTransformer transformer = new SplitterTransformer("o1", "\\.", "database", "table");
+        AsTransformer transformer = new AsTransformer("a", "a1");
 
         // deserialize from json to test deserialization
         ObjectMapper om = new ObjectMapper();
         String transformerText = om.writeValueAsString(transformer);
         ITransformer newTransformer = om.readValue(transformerText, ITransformer.class);
 
-        InputRow row1 = new InputRow(new HashMap<>(ImmutableMap.of("o1", "default.user")));
+        InputRow row1 = new InputRow(new HashMap<>(ImmutableMap.of("a", "default")));
         newTransformer.transform(row1);
-        Assert.assertEquals("default", row1.getCol("database"));
-        Assert.assertEquals("user", row1.getCol("table"));
-
-        // field not match
-        InputRow row2 = new InputRow(new HashMap<>(ImmutableMap.of("o2", "default.user")));
-        newTransformer.transform(row2);
-        Assert.assertNull(row2.getCol("database"));
-        Assert.assertNull(row2.getCol("table"));
-    }
-
-    @Test
-    public void splitOnNestedObject() {
-        SplitterTransformer transformer = new SplitterTransformer("tags.iterator", "/", "current", "max");
-
-        InputRow row1 = new InputRow(new HashMap<>());
-        row1.updateColumn("tags", ImmutableMap.of("iterator", "1/5"));
-        transformer.transform(row1);
-        Assert.assertEquals("1", row1.getCol("current"));
-        Assert.assertEquals("5", row1.getCol("max"));
+        Assert.assertEquals("default", row1.getCol("a"));
+        Assert.assertEquals("default", row1.getCol("a1"));
     }
 }
