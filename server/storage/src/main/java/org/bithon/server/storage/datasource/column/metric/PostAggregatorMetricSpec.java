@@ -63,12 +63,6 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
         this.valueType = "long".equalsIgnoreCase(valueType) ? IDataType.LONG : IDataType.DOUBLE;
     }
 
-    @JsonIgnore
-    @Override
-    public String getType() {
-        return POST;
-    }
-
     @Override
     public NumberAggregator createAggregator() {
         return null;

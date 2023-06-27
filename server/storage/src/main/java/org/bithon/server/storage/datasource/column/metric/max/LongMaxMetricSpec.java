@@ -17,11 +17,9 @@
 package org.bithon.server.storage.datasource.column.metric.max;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bithon.server.storage.datasource.aggregator.LongMaxAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
 import javax.annotation.Nullable;
@@ -38,12 +36,6 @@ public class LongMaxMetricSpec extends MaxMetricSpec {
                              @JsonProperty("alias") @Nullable String alias,
                              @JsonProperty("displayText") @NotNull String displayText) {
         super(name, alias, displayText);
-    }
-
-    @JsonIgnore
-    @Override
-    public String getType() {
-        return IMetricSpec.LONG_MAX;
     }
 
     @Override

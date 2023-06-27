@@ -63,8 +63,6 @@ public interface IMetricSpec extends IColumnSpec {
     String LONG_MIN = "longMin";
     String LONG_MAX = "longMax";
 
-    String getType();
-
     NumberAggregator createAggregator();
 
     SimpleAggregateExpression getAggregateExpression();

@@ -52,12 +52,6 @@ public class CountMetricSpec implements IMetricSpec {
         this.queryStageAggregator = new SimpleAggregateExpressions.CountAggregateExpression(name);
     }
 
-    @JsonIgnore
-    @Override
-    public String getType() {
-        return IMetricSpec.COUNT;
-    }
-
     @Override
     public String getDisplayText() {
         return "次数";
