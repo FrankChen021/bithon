@@ -65,8 +65,6 @@ public interface IMetricSpec extends IColumnSpec {
 
     String getType();
 
-    <T> T accept(IMetricSpecVisitor<T> visitor);
-
     NumberAggregator createAggregator();
 
     SimpleAggregateExpression getAggregateExpression();

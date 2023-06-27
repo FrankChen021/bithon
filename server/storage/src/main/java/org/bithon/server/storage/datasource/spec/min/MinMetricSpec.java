@@ -22,7 +22,6 @@ import lombok.Getter;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
-import org.bithon.server.storage.datasource.spec.IMetricSpecVisitor;
 
 /**
  * @author frank.chen021@outlook.com
@@ -52,11 +51,6 @@ public abstract class MinMetricSpec implements IMetricSpec {
         // For IMetricSpec, the `name` property is the right text mapped a column in the underlying database,
         // So the two parameters of the following ctor are all `name` properties
         this.aggregateExpression = new SimpleAggregateExpressions.MinAggregateExpression(name);
-    }
-
-    @Override
-    public <T> T accept(IMetricSpecVisitor<T> visitor) {
-        return visitor.visit(this);
     }
 
     @JsonIgnore

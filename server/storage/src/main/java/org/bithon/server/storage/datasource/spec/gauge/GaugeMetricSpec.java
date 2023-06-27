@@ -24,7 +24,6 @@ import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
-import org.bithon.server.storage.datasource.spec.IMetricSpecVisitor;
 
 /**
  * @author frank.chen021@outlook.com
@@ -62,11 +61,6 @@ public abstract class GaugeMetricSpec implements IMetricSpec {
     @Override
     public SimpleAggregateExpression getAggregateExpression() {
         return aggregateExpression;
-    }
-
-    @Override
-    public final <T> T accept(IMetricSpecVisitor<T> visitor) {
-        return visitor.visit(this);
     }
 
     @Override

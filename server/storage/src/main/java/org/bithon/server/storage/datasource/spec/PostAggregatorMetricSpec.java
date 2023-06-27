@@ -70,11 +70,6 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
     }
 
     @Override
-    public <T> T accept(IMetricSpecVisitor<T> visitor) {
-        return visitor.visit(this);
-    }
-
-    @Override
     public NumberAggregator createAggregator() {
         return null;
     }
