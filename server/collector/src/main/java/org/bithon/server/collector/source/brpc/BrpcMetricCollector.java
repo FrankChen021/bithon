@@ -53,8 +53,8 @@ import java.util.stream.Collectors;
 public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
     private final IMetricMessageSink metricSink;
-    private final IDimensionSpec appName = new StringDimensionSpec("appName", "appName", "appName", true, 128);
-    private final IDimensionSpec instanceName = new StringDimensionSpec("instanceName", "instanceName", "instanceName", true, 128);
+    private final IDimensionSpec appName = new StringDimensionSpec("appName", "appName", "appName", true);
+    private final IDimensionSpec instanceName = new StringDimensionSpec("instanceName", "instanceName", "instanceName", true);
 
     public BrpcMetricCollector(IMetricMessageSink metricSink) {
         this.metricSink = metricSink;
@@ -81,7 +81,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
         dimensionSpecs.addAll(message.getSchema()
                                      .getDimensionsSpecList()
                                      .stream()
-                                     .map(dimSpec -> new StringDimensionSpec(dimSpec.getName(), dimSpec.getName(), dimSpec.getName(), true, null))
+                                     .map(dimSpec -> new StringDimensionSpec(dimSpec.getName(), dimSpec.getName(), dimSpec.getName(), true))
                                      .collect(Collectors.toList()));
 
         DataSourceSchema schema = new DataSourceSchema(message.getSchema().getName(),

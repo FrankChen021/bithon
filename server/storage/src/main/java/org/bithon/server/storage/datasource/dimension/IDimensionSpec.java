@@ -32,8 +32,6 @@ import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 })
 public interface IDimensionSpec extends IColumnSpec {
 
-    int getLength();
-
     /**
      * 对用户是否可见
      */

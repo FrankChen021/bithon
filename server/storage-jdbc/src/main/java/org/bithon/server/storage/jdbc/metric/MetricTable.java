@@ -62,7 +62,7 @@ public class MetricTable extends TableImpl {
         indexesFields.add(timestampField);
 
         for (IDimensionSpec dimension : schema.getDimensionsSpec()) {
-            Field dimensionField = createField(dimension.getName(), dimension.getDataType(), dimension.getLength());
+            Field dimensionField = createField(dimension.getName(), dimension.getDataType());
             dimensions.add(dimensionField);
 
             if (dimension.isVisible()) {
@@ -74,7 +74,7 @@ public class MetricTable extends TableImpl {
             if (metric instanceof PostAggregatorMetricSpec) {
                 continue;
             }
-            metrics.add(createField(metric.getName(), metric.getDataType(), null));
+            metrics.add(createField(metric.getName(), metric.getDataType()));
         }
 
         Index index = Internal.createIndex("idx_" + this.getName() + "_dimensions",
@@ -89,7 +89,7 @@ public class MetricTable extends TableImpl {
         return indexes;
     }
 
-    private Field createField(String name, IDataType dataType, Integer length) {
+    private Field createField(String name, IDataType dataType) {
         if (dataType.equals(IDataType.DOUBLE)) {
             //noinspection unchecked
             return this.createField(DSL.name(name),
@@ -99,7 +99,7 @@ public class MetricTable extends TableImpl {
             return this.createField(DSL.name(name), SQLDataType.BIGINT.nullable(false).defaultValue(0L));
         } else if (dataType.equals(IDataType.STRING)) {
             //noinspection unchecked
-            return this.createField(DSL.name(name), SQLDataType.VARCHAR(length).nullable(false).defaultValue(""));
+            return this.createField(DSL.name(name), SQLDataType.VARCHAR.nullable(false).defaultValue(""));
         } else {
             throw new RuntimeException("unknown type:" + dataType);
         }

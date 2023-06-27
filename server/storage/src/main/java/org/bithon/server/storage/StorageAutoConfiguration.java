@@ -163,18 +163,15 @@ public class StorageAutoConfiguration {
                                     Arrays.asList(new StringDimensionSpec("appName",
                                                                           "appName",
                                                                           "appName",
-                                                                          null,
                                                                           null),
                                                   new StringDimensionSpec("instanceName",
                                                                           "instanceName",
                                                                           "instanceName",
-                                                                          null,
                                                                           null),
                                                   new StringDimensionSpec("type",
                                                                           "type",
                                                                           "type",
-                                                                          true,
-                                                                          null)),
+                                                                          true)),
                                     Collections.singletonList(CountMetricSpec.INSTANCE));
 
     }
@@ -187,25 +184,21 @@ public class StorageAutoConfiguration {
                                      Arrays.asList(new StringDimensionSpec("appName",
                                                                            "appName",
                                                                            "appName",
-                                                                           null,
                                                                            null),
                                                    new StringDimensionSpec("instanceName",
                                                                            "instanceName",
                                                                            "instanceName",
-                                                                           null,
                                                                            null),
                                                    new StringDimensionSpec("status",
                                                                            "status",
                                                                            "status",
-                                                                           true,
-                                                                           null),
-                                                   new StringDimensionSpec("name", "name", "name", false, 128),
+                                                                           true),
+                                                   new StringDimensionSpec("name", "name", "name", false),
                                                    new StringDimensionSpec("normalizedUrl",
                                                                            "url",
                                                                            "url",
-                                                                           true,
-                                                                           128),
-                                                   new StringDimensionSpec("kind", "kind", "kind", false, 128)),
+                                                                           true),
+                                                   new StringDimensionSpec("kind", "kind", "kind", false)),
                                      Arrays.asList(CountMetricSpec.INSTANCE,
 
                                                    // microsecond
@@ -227,7 +220,6 @@ public class StorageAutoConfiguration {
                                                            tagName,
                                                            // Display
                                                            entry.getKey(),
-                                                           null,
                                                            null));
             }
         }

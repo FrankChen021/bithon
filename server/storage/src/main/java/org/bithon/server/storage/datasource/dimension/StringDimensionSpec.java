@@ -29,21 +29,12 @@ import javax.validation.constraints.NotNull;
  */
 public class StringDimensionSpec extends AbstractDimensionSpec {
 
-    private final int length;
-
     @JsonCreator
     public StringDimensionSpec(@JsonProperty("name") @NotNull String name,
                                @JsonProperty("alias") @Nullable String alias,
                                @JsonProperty("displayText") @NotNull String displayText,
-                               @JsonProperty("visible") Boolean visible,
-                               @JsonProperty("length") @Nullable Integer length) {
+                               @JsonProperty("visible") Boolean visible) {
         super(name, alias, displayText, visible);
-        this.length = length == null ? 128 : length;
-    }
-
-    @Override
-    public int getLength() {
-        return length;
     }
 
     @Override

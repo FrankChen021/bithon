@@ -44,6 +44,9 @@ public class MetricAggregatorTest {
 
     private final DataSourceSchema schema;
 
+    /**
+     * The arguments are passed from the method {@link #createSchemas()} below.
+     */
     public MetricAggregatorTest(String name, DataSourceSchema schema) {
         this.schema = schema;
     }
@@ -64,7 +67,7 @@ public class MetricAggregatorTest {
             "one-dimension-table",
             "one-dimension-table",
             new TimestampSpec("timestamp", null, null),
-            Arrays.asList(new StringDimensionSpec("appName", "appName", "appName", true, 128)),
+            Arrays.asList(new StringDimensionSpec("appName", "appName", "appName", true)),
             Arrays.asList(new LongSumMetricSpec("totalCount", "totalCount", ""),
                           new LongMinMetricSpec("minTime", "minTime", ""),
                           new LongMaxMetricSpec("maxTime", "maxTime", ""))

@@ -38,11 +38,6 @@ public class LongDimensionSpec extends AbstractDimensionSpec {
     }
 
     @Override
-    public int getLength() {
-        return 8;
-    }
-
-    @Override
     public IDataType getDataType() {
         return IDataType.LONG;
     }
