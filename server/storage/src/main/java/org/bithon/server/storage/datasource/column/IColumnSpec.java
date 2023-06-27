@@ -39,5 +39,7 @@ public interface IColumnSpec {
     IDataType getDataType();
 
     @JsonIgnore
-    ResultColumn getResultColumn();
+    default ResultColumn getResultColumn() {
+        return new ResultColumn(getName());
+    }
 }

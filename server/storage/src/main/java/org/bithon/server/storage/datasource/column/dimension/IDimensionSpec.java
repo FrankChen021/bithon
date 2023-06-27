@@ -16,11 +16,9 @@
 
 package org.bithon.server.storage.datasource.column.dimension;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.datasource.column.IColumnSpec;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 
 /**
  * @author frankchen
@@ -36,9 +34,4 @@ public interface IDimensionSpec extends IColumnSpec {
      * 对用户是否可见
      */
     boolean isVisible();
-
-    @JsonIgnore
-    default ResultColumn getResultColumn() {
-        return new ResultColumn(getName());
-    }
 }
