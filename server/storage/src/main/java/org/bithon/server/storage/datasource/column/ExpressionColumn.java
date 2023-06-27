@@ -33,7 +33,7 @@ import javax.validation.constraints.NotNull;
 /**
  * @author frankchen
  */
-public class ExpressionColumnSpec implements IColumnSpec {
+public class ExpressionColumn implements IColumn {
 
     @Getter
     private final String name;
@@ -51,11 +51,11 @@ public class ExpressionColumnSpec implements IColumnSpec {
     private final IDataType valueType;
 
     @JsonCreator
-    public ExpressionColumnSpec(@JsonProperty("name") @NotNull String name,
-                                @JsonProperty("alias") @Nullable String alias,
-                                @JsonProperty("displayText") @NotNull String displayText,
-                                @JsonProperty("expression") @NotNull String expression,
-                                @JsonProperty("valueType") @NotNull String valueType) {
+    public ExpressionColumn(@JsonProperty("name") @NotNull String name,
+                            @JsonProperty("alias") @Nullable String alias,
+                            @JsonProperty("displayText") @NotNull String displayText,
+                            @JsonProperty("expression") @NotNull String expression,
+                            @JsonProperty("valueType") @NotNull String valueType) {
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.displayText = displayText;
@@ -81,8 +81,8 @@ public class ExpressionColumnSpec implements IColumnSpec {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof ExpressionColumnSpec) {
-            return this.name.equals(((ExpressionColumnSpec) obj).name);
+        if (obj instanceof ExpressionColumn) {
+            return this.name.equals(((ExpressionColumn) obj).name);
         } else {
             return false;
         }

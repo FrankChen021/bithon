@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.column.IColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumnSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.GroupBy;
@@ -123,7 +123,7 @@ public class SelectExpressionBuilder {
         private final ISqlDialect sqlExpressionFormatter;
 
         @Getter
-        private final List<IAggregatableColumnSpec> windowFunctionAggregators = new ArrayList<>();
+        private final List<IAggregatableColumn> windowFunctionAggregators = new ArrayList<>();
 
         @Getter
         private final Set<String> metrics = new HashSet<>();
@@ -143,12 +143,12 @@ public class SelectExpressionBuilder {
         }
 
         @Override
-        public void visitField(IColumnSpec columnSpec) {
-            if (!(columnSpec instanceof IAggregatableColumnSpec)) {
+        public void visitField(IColumn columnSpec) {
+            if (!(columnSpec instanceof IAggregatableColumn)) {
                 throw new RuntimeException(StringUtils.format("field [%s] is not a metric", columnSpec.getName()));
             }
 
-            IAggregatableColumnSpec metricSpec = (IAggregatableColumnSpec) columnSpec;
+            IAggregatableColumn metricSpec = (IAggregatableColumn) columnSpec;
             if (aggregatedColumn.contains(metricSpec.getName())) {
                 return;
             }
@@ -193,9 +193,9 @@ public class SelectExpressionBuilder {
             expression.visitExpression(new FieldExpressionVisitorAdaptor2() {
 
                 @Override
-                public void visitField(IColumnSpec columnSpec) {
+                public void visitField(IColumn columnSpec) {
 
-                    IAggregatableColumnSpec metricSpec = (IAggregatableColumnSpec) columnSpec;
+                    IAggregatableColumn metricSpec = (IAggregatableColumn) columnSpec;
 
                     // Case 1. The field used in window function is presented in a sub-query, at the root query level we only reference the name
                     boolean useWindowFunctionAsAggregator = sqlDialect.useWindowFunctionAsAggregator(metricSpec.getAggregateExpression().getFnName());
@@ -374,7 +374,7 @@ public class SelectExpressionBuilder {
         for (String metric : fieldExpressionAnalyzer.getMetrics()) {
             subSelectExpression.getResultColumnList().add(metric);
         }
-        for (IAggregatableColumnSpec aggregator : fieldExpressionAnalyzer.getWindowFunctionAggregators()) {
+        for (IAggregatableColumn aggregator : fieldExpressionAnalyzer.getWindowFunctionAggregators()) {
             subSelectExpression.getResultColumnList()
                                .add(new StringNode(aggregator.getAggregateExpression().accept(generator)), aggregator.getName());
 

@@ -35,7 +35,7 @@ import org.bithon.server.commons.matcher.StringLikeMatcher;
 import org.bithon.server.commons.matcher.StringRegexMatcher;
 import org.bithon.server.commons.matcher.StringStartsWithMatcher;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.column.IColumnSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.typing.IDataType;
 import org.bithon.server.storage.metrics.ColumnFilter;
 import org.bithon.server.storage.metrics.IFilter;
@@ -73,7 +73,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     }
 
     public SQLFilterBuilder(DataSourceSchema schema, IFilter filter, boolean useQualifiedName) {
-        IColumnSpec columnSpec;
+        IColumn columnSpec;
         if (IFilter.TYPE_DIMENSION.equals(filter.getType())) {
             String nameType = ((ColumnFilter) filter).getNameType();
             if ("name".equals(nameType)) {

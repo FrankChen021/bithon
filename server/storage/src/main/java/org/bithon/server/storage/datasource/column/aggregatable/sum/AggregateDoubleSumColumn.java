@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column.aggregatable.max;
+package org.bithon.server.storage.datasource.column.aggregatable.sum;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.aggregator.LongMaxAggregator;
+import org.bithon.server.storage.datasource.aggregator.DoubleSumAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
@@ -27,31 +27,31 @@ import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/16
+ * @date 2020/12/23
  */
-public class AggregateLongMaxColumnSpec extends AggregateMaxColumnSpec {
+public class AggregateDoubleSumColumn extends AggregateSumColumn {
 
     @JsonCreator
-    public AggregateLongMaxColumnSpec(@JsonProperty("name") @NotNull String name,
-                                      @JsonProperty("alias") @Nullable String alias,
-                                      @JsonProperty("displayText") @NotNull String displayText) {
+    public AggregateDoubleSumColumn(@JsonProperty("name") @NotNull String name,
+                                    @JsonProperty("alias") @Nullable String alias,
+                                    @JsonProperty("displayText") @NotNull String displayText) {
         super(name, alias, displayText);
     }
 
     @Override
     public IDataType getDataType() {
-        return IDataType.LONG;
+        return IDataType.DOUBLE;
     }
 
     @Override
     public NumberAggregator createAggregator() {
-        return new LongMaxAggregator();
+        return new DoubleSumAggregator();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof AggregateLongMaxColumnSpec) {
-            return this.name.equals(((AggregateLongMaxColumnSpec) obj).name);
+        if (obj instanceof AggregateDoubleSumColumn) {
+            return this.name.equals(((AggregateDoubleSumColumn) obj).name);
         } else {
             return false;
         }

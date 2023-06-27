@@ -18,7 +18,7 @@ package org.bithon.server.web.service.datasource.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumnSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -45,7 +45,7 @@ public class TimeSeriesMetric {
     @JsonIgnore
     private Function<Integer, Number> valueGetter;
 
-    public TimeSeriesMetric(List<String> tags, int size, IAggregatableColumnSpec metricSpec) {
+    public TimeSeriesMetric(List<String> tags, int size, IAggregatableColumn metricSpec) {
         this.tags = tags;
 
         this.values = new double[size + 1];

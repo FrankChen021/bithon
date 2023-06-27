@@ -20,7 +20,7 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.column.IColumnSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
@@ -109,7 +109,7 @@ public class DataSourceService {
                     field.getField() == null ? field.getName() : field.getField());
                 resultColumnList.add(new ResultColumn(function, field.getName()));
             } else {
-                IColumnSpec columnSpec = schema.getColumnByName(field.getField());
+                IColumn columnSpec = schema.getColumnByName(field.getField());
                 if (columnSpec == null) {
                     throw new RuntimeException(StringUtils.format("field [%s] does not exist.", field.getField()));
                 }

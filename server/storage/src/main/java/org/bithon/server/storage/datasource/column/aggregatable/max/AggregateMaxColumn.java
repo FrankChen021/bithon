@@ -14,20 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column.aggregatable.min;
+package org.bithon.server.storage.datasource.column.aggregatable.max;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
-import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumnSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/16
+ * @date 2022/9/4 20:37
  */
-public abstract class AggregateMinColumnSpec implements IAggregatableColumnSpec {
+public abstract class AggregateMaxColumn implements IAggregatableColumn {
 
     @Getter
     protected final String name;
@@ -40,17 +39,13 @@ public abstract class AggregateMinColumnSpec implements IAggregatableColumnSpec 
 
     protected final SimpleAggregateExpression aggregateExpression;
 
-    @JsonCreator
-    public AggregateMinColumnSpec(String name,
-                                  String alias,
-                                  String displayText) {
+    public AggregateMaxColumn(String name,
+                              String alias,
+                              String displayText) {
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.displayText = displayText;
-
-        // For IMetricSpec, the `name` property is the right text mapped a column in the underlying database,
-        // So the two parameters of the following ctor are all `name` properties
-        this.aggregateExpression = new SimpleAggregateExpressions.MinAggregateExpression(name);
+        this.aggregateExpression = new SimpleAggregateExpressions.MaxAggregateExpression(name);
     }
 
     @JsonIgnore

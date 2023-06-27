@@ -19,10 +19,10 @@ package org.bithon.server.sink.metrics;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
-import org.bithon.server.storage.datasource.column.StringColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.max.AggregateLongMaxColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.min.AggregateLongMinColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumnSpec;
+import org.bithon.server.storage.datasource.column.StringColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.max.AggregateLongMaxColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.min.AggregateLongMinColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.junit.Assert;
@@ -58,19 +58,19 @@ public class MetricAggregatorTest {
             "empty-dimension-table",
             new TimestampSpec("timestamp", null, null),
             Collections.emptyList(),
-            Arrays.asList(new AggregateLongSumColumnSpec("totalCount", "totalCount", ""),
-                          new AggregateLongMinColumnSpec("minTime", "minTime", ""),
-                          new AggregateLongMaxColumnSpec("maxTime", "maxTime", ""))
+            Arrays.asList(new AggregateLongSumColumn("totalCount", "totalCount", ""),
+                          new AggregateLongMinColumn("minTime", "minTime", ""),
+                          new AggregateLongMaxColumn("maxTime", "maxTime", ""))
         );
 
         DataSourceSchema hasDimensionSchema = new DataSourceSchema(
             "one-dimension-table",
             "one-dimension-table",
             new TimestampSpec("timestamp", null, null),
-            Arrays.asList(new StringColumnSpec("appName", "appName", "appName", true)),
-            Arrays.asList(new AggregateLongSumColumnSpec("totalCount", "totalCount", ""),
-                          new AggregateLongMinColumnSpec("minTime", "minTime", ""),
-                          new AggregateLongMaxColumnSpec("maxTime", "maxTime", ""))
+            Arrays.asList(new StringColumn("appName", "appName", "appName", true)),
+            Arrays.asList(new AggregateLongSumColumn("totalCount", "totalCount", ""),
+                          new AggregateLongMinColumn("minTime", "minTime", ""),
+                          new AggregateLongMaxColumn("maxTime", "maxTime", ""))
         );
 
         return new Object[]{

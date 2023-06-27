@@ -21,10 +21,10 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.TimestampSpec;
-import org.bithon.server.storage.datasource.column.IColumnSpec;
-import org.bithon.server.storage.datasource.column.StringColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumnSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.column.StringColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.meta.CacheableMetadataStorage;
@@ -160,19 +160,19 @@ public class StorageAutoConfiguration {
         return new DataSourceSchema("event",
                                     "event",
                                     new TimestampSpec("timestamp", null, null),
-                                    Arrays.asList(new StringColumnSpec("appName",
-                                                                       "appName",
-                                                                       "appName",
-                                                                       null),
-                                                  new StringColumnSpec("instanceName",
-                                                                       "instanceName",
-                                                                       "instanceName",
-                                                                       null),
-                                                  new StringColumnSpec("type",
-                                                                       "type",
-                                                                       "type",
-                                                                       true)),
-                                    Collections.singletonList(AggregateCountColumnSpec.INSTANCE));
+                                    Arrays.asList(new StringColumn("appName",
+                                                                   "appName",
+                                                                   "appName",
+                                                                   null),
+                                                  new StringColumn("instanceName",
+                                                                   "instanceName",
+                                                                   "instanceName",
+                                                                   null),
+                                                  new StringColumn("type",
+                                                                   "type",
+                                                                   "type",
+                                                                   true)),
+                                    Collections.singletonList(AggregateCountColumn.INSTANCE));
 
     }
 
@@ -181,46 +181,46 @@ public class StorageAutoConfiguration {
                 new DataSourceSchema("trace_span_summary",
                                      "trace_span_summary",
                                      new TimestampSpec("timestamp", null, null),
-                                     Arrays.asList(new StringColumnSpec("appName",
-                                                                        "appName",
-                                                                        "appName",
-                                                                        null),
-                                                   new StringColumnSpec("instanceName",
-                                                                        "instanceName",
-                                                                        "instanceName",
-                                                                        null),
-                                                   new StringColumnSpec("status",
-                                                                        "status",
-                                                                        "status",
-                                                                        true),
-                                                   new StringColumnSpec("name", "name", "name", false),
-                                                   new StringColumnSpec("normalizedUrl",
-                                                                        "url",
-                                                                        "url",
-                                                                        true),
-                                                   new StringColumnSpec("kind", "kind", "kind", false)),
-                                     Arrays.asList(AggregateCountColumnSpec.INSTANCE,
+                                     Arrays.asList(new StringColumn("appName",
+                                                                    "appName",
+                                                                    "appName",
+                                                                    null),
+                                                   new StringColumn("instanceName",
+                                                                    "instanceName",
+                                                                    "instanceName",
+                                                                    null),
+                                                   new StringColumn("status",
+                                                                    "status",
+                                                                    "status",
+                                                                    true),
+                                                   new StringColumn("name", "name", "name", false),
+                                                   new StringColumn("normalizedUrl",
+                                                                    "url",
+                                                                    "url",
+                                                                    true),
+                                                   new StringColumn("kind", "kind", "kind", false)),
+                                     Arrays.asList(AggregateCountColumn.INSTANCE,
 
                                                    // microsecond
-                                                   new AggregateLongSumColumnSpec("costTimeMs",
-                                                                                  null,
-                                                                                  "costTimeMs")));
+                                                   new AggregateLongSumColumn("costTimeMs",
+                                                                              null,
+                                                                              "costTimeMs")));
         dataSourceSchema.setVirtual(true);
         return dataSourceSchema;
     }
 
     private DataSourceSchema createTraceTagIndexSchema(TagIndexConfig tagIndexConfig) {
-        List<IColumnSpec> dimensionSpecs = new ArrayList<>();
+        List<IColumn> dimensionSpecs = new ArrayList<>();
         if (tagIndexConfig != null) {
             for (Map.Entry<String, Integer> entry : tagIndexConfig.getMap().entrySet()) {
                 String tagName = "tags." + entry.getKey();
                 Integer indexPos = entry.getValue();
-                dimensionSpecs.add(new StringColumnSpec("f" + indexPos,
-                                                        // Alias
-                                                        tagName,
-                                                        // Display
-                                                        entry.getKey(),
-                                                        null));
+                dimensionSpecs.add(new StringColumn("f" + indexPos,
+                                                    // Alias
+                                                    tagName,
+                                                    // Display
+                                                    entry.getKey(),
+                                                    null));
             }
         }
 
@@ -228,7 +228,7 @@ public class StorageAutoConfiguration {
                                                                     "trace_span_tag_index",
                                                                     new TimestampSpec("timestamp", null, null),
                                                                     dimensionSpecs,
-                                                                    Collections.singletonList(AggregateCountColumnSpec.INSTANCE));
+                                                                    Collections.singletonList(AggregateCountColumn.INSTANCE));
         spanTagSchema.setVirtual(true);
         return spanTagSchema;
     }

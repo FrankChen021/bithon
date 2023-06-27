@@ -21,14 +21,13 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.gauge.AggregateDoubleLastColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.gauge.AggregateLongLastColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.max.AggregateLongMaxColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.min.AggregateLongMinColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateDoubleSumColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumnSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.last.AggregateDoubleLastColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.last.AggregateLongLastColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.max.AggregateLongMaxColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.min.AggregateLongMinColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateDoubleSumColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.typing.IDataType;
@@ -37,20 +36,20 @@ import org.bithon.server.storage.datasource.typing.IDataType;
  * @author Frank Chen
  * @date 29/10/22 10:47 pm
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = StringColumnSpec.class)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = StringColumn.class)
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "long", value = LongColumnSpec.class),
-    @JsonSubTypes.Type(name = "string", value = StringColumnSpec.class),
-    @JsonSubTypes.Type(name = IColumnSpec.LONG_SUM, value = AggregateLongSumColumnSpec.class),
-    @JsonSubTypes.Type(name = IColumnSpec.LONG_LAST, value = AggregateLongLastColumnSpec.class),
-    @JsonSubTypes.Type(name = IColumnSpec.LONG_MIN, value = AggregateLongMinColumnSpec.class),
-    @JsonSubTypes.Type(name = IColumnSpec.LONG_MAX, value = AggregateLongMaxColumnSpec.class),
-    @JsonSubTypes.Type(name = IColumnSpec.DOUBLE_SUM, value = AggregateDoubleSumColumnSpec.class),
-    @JsonSubTypes.Type(name = IColumnSpec.DOUBLE_LAST, value = AggregateDoubleLastColumnSpec.class),
-    @JsonSubTypes.Type(name = IColumnSpec.POST, value = ExpressionColumnSpec.class),
-    @JsonSubTypes.Type(name = IColumnSpec.COUNT, value = AggregateCountColumnSpec.class),
+    @JsonSubTypes.Type(name = "long", value = LongColumn.class),
+    @JsonSubTypes.Type(name = "string", value = StringColumn.class),
+    @JsonSubTypes.Type(name = IColumn.LONG_SUM, value = AggregateLongSumColumn.class),
+    @JsonSubTypes.Type(name = IColumn.LONG_LAST, value = AggregateLongLastColumn.class),
+    @JsonSubTypes.Type(name = IColumn.LONG_MIN, value = AggregateLongMinColumn.class),
+    @JsonSubTypes.Type(name = IColumn.LONG_MAX, value = AggregateLongMaxColumn.class),
+    @JsonSubTypes.Type(name = IColumn.DOUBLE_SUM, value = AggregateDoubleSumColumn.class),
+    @JsonSubTypes.Type(name = IColumn.DOUBLE_LAST, value = AggregateDoubleLastColumn.class),
+    @JsonSubTypes.Type(name = IColumn.POST, value = ExpressionColumn.class),
+    @JsonSubTypes.Type(name = IColumn.COUNT, value = AggregateCountColumn.class),
 })
-public interface IColumnSpec {
+public interface IColumn {
     /**
      * for Gauge
      */

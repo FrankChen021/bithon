@@ -36,7 +36,7 @@ import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.matcher.StringLikeMatcher;
 import org.bithon.server.storage.common.expression.FilterExpressionASTFactory;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.column.IColumnSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.metrics.ColumnFilter;
 import org.bithon.server.storage.metrics.IFilter;
 
@@ -137,7 +137,7 @@ public class FilterExpressionToFilters {
         public Void visit(BinaryExpression.GT expression) {
             checkBinaryExpression(expression, LiteralExpression.class);
 
-            IColumnSpec columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            IColumn columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
             Preconditions.checkNotNull(columnSpec,
                                        "Column [%s] can not be found in schema [%s].",
                                        ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
@@ -153,7 +153,7 @@ public class FilterExpressionToFilters {
         public Void visit(BinaryExpression.GTE expression) {
             checkBinaryExpression(expression, LiteralExpression.class);
 
-            IColumnSpec columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            IColumn columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
             Preconditions.checkNotNull(columnSpec,
                                        "Column [%s] can not be found in schema [%s].",
                                        ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
@@ -168,7 +168,7 @@ public class FilterExpressionToFilters {
         public Void visit(BinaryExpression.LT expression) {
             checkBinaryExpression(expression, LiteralExpression.class);
 
-            IColumnSpec columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            IColumn columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
             Preconditions.checkNotNull(columnSpec,
                                        "Column [%s] can not be found in schema [%s].",
                                        ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
@@ -183,7 +183,7 @@ public class FilterExpressionToFilters {
         public Void visit(BinaryExpression.LTE expression) {
             checkBinaryExpression(expression, LiteralExpression.class);
 
-            IColumnSpec columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            IColumn columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
             Preconditions.checkNotNull(columnSpec,
                                        "Column [%s] can not be found in schema [%s].",
                                        ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
@@ -198,7 +198,7 @@ public class FilterExpressionToFilters {
         public Void visit(BinaryExpression.NE expression) {
             checkBinaryExpression(expression, LiteralExpression.class);
 
-            IColumnSpec columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            IColumn columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
             Preconditions.checkNotNull(columnSpec,
                                        "Column [%s] can not be found in schema [%s].",
                                        ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
@@ -213,7 +213,7 @@ public class FilterExpressionToFilters {
         public Void visit(BinaryExpression.LIKE expression) {
             checkBinaryExpression(expression, LiteralExpression.class);
 
-            IColumnSpec columnSpec = schema.getDimensionSpecByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            IColumn columnSpec = schema.getDimensionSpecByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
             Preconditions.checkNotNull(columnSpec,
                                        "Column [%s] can not be found in schema [%s].",
                                        ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());

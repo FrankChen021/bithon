@@ -18,8 +18,8 @@ package org.bithon.server.storage.jdbc.metric;
 
 import lombok.Getter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.column.IColumnSpec;
-import org.bithon.server.storage.datasource.column.ExpressionColumnSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.typing.IDataType;
 import org.jooq.Field;
 import org.jooq.Index;
@@ -60,7 +60,7 @@ public class MetricTable extends TableImpl {
         List<Field> indexesFields = new ArrayList<>();
         indexesFields.add(timestampField);
 
-        for (IColumnSpec dimension : schema.getDimensionsSpec()) {
+        for (IColumn dimension : schema.getDimensionsSpec()) {
             Field dimensionField = createField(dimension.getName(), dimension.getDataType());
             dimensions.add(dimensionField);
 
@@ -69,8 +69,8 @@ public class MetricTable extends TableImpl {
             }
         }
 
-        for (IColumnSpec metric : schema.getMetricsSpec()) {
-            if (metric instanceof ExpressionColumnSpec) {
+        for (IColumn metric : schema.getMetricsSpec()) {
+            if (metric instanceof ExpressionColumn) {
                 continue;
             }
             metrics.add(createField(metric.getName(), metric.getDataType()));

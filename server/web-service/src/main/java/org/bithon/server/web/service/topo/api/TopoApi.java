@@ -20,7 +20,7 @@ import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.column.IColumnSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.datasource.query.Query;
@@ -83,7 +83,7 @@ public class TopoApi {
                                                           "maxResponseTime",
                                                           "minResponseTime")
                                                       .map((column) -> {
-                                                          IColumnSpec spec = topoSchema.getColumnByName(column);
+                                                          IColumn spec = topoSchema.getColumnByName(column);
                                                           return spec.getResultColumn();
                                                       })
                                                       .collect(Collectors.toList()))
@@ -135,7 +135,7 @@ public class TopoApi {
                                                           "maxResponseTime",
                                                           "minResponseTime")
                                                       .map((column) -> {
-                                                          IColumnSpec spec = topoSchema.getColumnByName(column);
+                                                          IColumn spec = topoSchema.getColumnByName(column);
                                                           return spec.getResultColumn();
                                                       })
                                                       .collect(Collectors.toList()))

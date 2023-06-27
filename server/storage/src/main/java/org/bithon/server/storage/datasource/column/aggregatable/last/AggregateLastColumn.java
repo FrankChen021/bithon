@@ -14,19 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column.aggregatable.max;
+package org.bithon.server.storage.datasource.column.aggregatable.last;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
-import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumnSpec;
+import org.bithon.server.storage.datasource.aggregator.LongLastAggregator;
+import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 20:37
+ * @date 2022/9/4 20:24
  */
-public abstract class AggregateMaxColumnSpec implements IAggregatableColumnSpec {
+public abstract class AggregateLastColumn implements IAggregatableColumn {
 
     @Getter
     protected final String name;
@@ -39,13 +42,19 @@ public abstract class AggregateMaxColumnSpec implements IAggregatableColumnSpec 
 
     protected final SimpleAggregateExpression aggregateExpression;
 
-    public AggregateMaxColumnSpec(String name,
-                                  String alias,
-                                  String displayText) {
+    @JsonCreator
+    public AggregateLastColumn(String name,
+                               String alias,
+                               String displayText) {
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.displayText = displayText;
-        this.aggregateExpression = new SimpleAggregateExpressions.MaxAggregateExpression(name);
+        this.aggregateExpression = new SimpleAggregateExpressions.LastAggregateExpression(name);
+    }
+
+    @Override
+    public NumberAggregator createAggregator() {
+        return new LongLastAggregator();
     }
 
     @JsonIgnore

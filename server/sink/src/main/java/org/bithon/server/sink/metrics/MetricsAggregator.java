@@ -19,7 +19,7 @@ package org.bithon.server.sink.metrics;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.column.IColumnSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
 
@@ -106,7 +106,7 @@ public class MetricsAggregator {
 
             // dimensions
             int i = 0;
-            for (IColumnSpec dimensionSpec : this.schema.getDimensionsSpec()) {
+            for (IColumn dimensionSpec : this.schema.getDimensionsSpec()) {
                 row.put(dimensionSpec.getName(), key.dimensions.get(i++));
             }
 
@@ -148,7 +148,7 @@ public class MetricsAggregator {
 
     static class FieldAggregators extends HashMap<String, NumberAggregator> {
         public FieldAggregators(DataSourceSchema schema) {
-            for (IColumnSpec metricSpec : schema.getMetricsSpec()) {
+            for (IColumn metricSpec : schema.getMetricsSpec()) {
                 NumberAggregator aggregator = metricSpec.createAggregator();
                 if (aggregator == null) {
                     // post aggregator has no physical aggregator

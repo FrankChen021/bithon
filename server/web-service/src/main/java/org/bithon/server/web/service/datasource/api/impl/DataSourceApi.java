@@ -22,7 +22,7 @@ import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.datasource.DataSourceExistException;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.column.IColumnSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
@@ -112,7 +112,7 @@ public class DataSourceApi implements IDataSourceApi {
                            .resultColumns(request.getFields()
                                                  .stream()
                                                  .map((field) -> {
-                                                     IColumnSpec spec = schema.getColumnByName(field.getField());
+                                                     IColumn spec = schema.getColumnByName(field.getField());
                                                      Preconditions.checkNotNull(spec, "field [%s] does not exist in the schema.", field.getField());
                                                      return new ResultColumn(spec.getName(), field.getName());
                                                  }).collect(Collectors.toList()))
@@ -213,7 +213,7 @@ public class DataSourceApi implements IDataSourceApi {
     public Collection<Map<String, String>> getDimensions(GetDimensionRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
-        IColumnSpec dimensionSpec;
+        IColumn dimensionSpec;
         if ("name".equals(request.getType())) {
             dimensionSpec = schema.getDimensionSpecByName(request.getName());
         } else if ("alias".equals(request.getType())) {

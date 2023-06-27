@@ -17,14 +17,14 @@
 package org.bithon.server.storage.datasource.column.aggregatable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.bithon.server.storage.datasource.column.IColumnSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/11/30 5:36 下午
  */
-public interface IAggregatableColumnSpec extends IColumnSpec {
+public interface IAggregatableColumn extends IColumn {
     @JsonIgnore
     default ResultColumn getResultColumn() {
         return new ResultColumn(getAggregateExpression(), getName());

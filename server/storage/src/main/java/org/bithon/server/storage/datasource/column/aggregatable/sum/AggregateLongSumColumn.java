@@ -14,10 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column.aggregatable.gauge;
+package org.bithon.server.storage.datasource.column.aggregatable.sum;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.bithon.server.storage.datasource.aggregator.LongSumAggregator;
+import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
 import javax.annotation.Nullable;
@@ -25,14 +27,14 @@ import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/26 11:08 下午
+ * @date 2020/11/30 5:38 下午
  */
-public class AggregateLongLastColumnSpec extends AggregateLastColumnSpec {
+public class AggregateLongSumColumn extends AggregateSumColumn {
 
     @JsonCreator
-    public AggregateLongLastColumnSpec(@JsonProperty("name") @NotNull String name,
-                                       @JsonProperty("alias") @Nullable String alias,
-                                       @JsonProperty("displayText") @NotNull String displayText) {
+    public AggregateLongSumColumn(@JsonProperty("name") @NotNull String name,
+                                  @JsonProperty("alias") @Nullable String alias,
+                                  @JsonProperty("displayText") @NotNull String displayText) {
         super(name, alias, displayText);
     }
 
@@ -42,9 +44,14 @@ public class AggregateLongLastColumnSpec extends AggregateLastColumnSpec {
     }
 
     @Override
+    public NumberAggregator createAggregator() {
+        return new LongSumAggregator();
+    }
+
+    @Override
     public boolean equals(Object obj) {
-        if (obj instanceof AggregateLongLastColumnSpec) {
-            return this.name.equals(((AggregateLongLastColumnSpec) obj).name);
+        if (obj instanceof AggregateLongSumColumn) {
+            return this.name.equals(((AggregateLongSumColumn) obj).name);
         } else {
             return false;
         }

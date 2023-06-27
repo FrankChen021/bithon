@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumnSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.datasource.typing.IDataType;
@@ -33,9 +33,9 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2020/12/23
  */
-public class AggregateCountColumnSpec implements IAggregatableColumnSpec {
+public class AggregateCountColumn implements IAggregatableColumn {
 
-    public static final IAggregatableColumnSpec INSTANCE = new AggregateCountColumnSpec("count", "count");
+    public static final IAggregatableColumn INSTANCE = new AggregateCountColumn("count", "count");
 
     @Getter
     private final String name;
@@ -46,8 +46,8 @@ public class AggregateCountColumnSpec implements IAggregatableColumnSpec {
     private final String alias;
 
     @JsonCreator
-    public AggregateCountColumnSpec(@JsonProperty("name") @NotNull String name,
-                                    @JsonProperty("alias") @Nullable String alias) {
+    public AggregateCountColumn(@JsonProperty("name") @NotNull String name,
+                                @JsonProperty("alias") @Nullable String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.queryStageAggregator = new SimpleAggregateExpressions.CountAggregateExpression(name);
@@ -113,8 +113,8 @@ public class AggregateCountColumnSpec implements IAggregatableColumnSpec {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof AggregateCountColumnSpec) {
-            return this.name.equals(((AggregateCountColumnSpec) obj).name);
+        if (obj instanceof AggregateCountColumn) {
+            return this.name.equals(((AggregateCountColumn) obj).name);
         } else {
             return false;
         }

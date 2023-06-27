@@ -29,12 +29,12 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2021/3/16
  */
-public class AggregateLongMinColumnSpec extends AggregateMinColumnSpec {
+public class AggregateLongMinColumn extends AggregateMinColumn {
 
     @JsonCreator
-    public AggregateLongMinColumnSpec(@JsonProperty("name") @NotNull String name,
-                                      @JsonProperty("alias") @Nullable String alias,
-                                      @JsonProperty("displayText") @NotNull String displayText) {
+    public AggregateLongMinColumn(@JsonProperty("name") @NotNull String name,
+                                  @JsonProperty("alias") @Nullable String alias,
+                                  @JsonProperty("displayText") @NotNull String displayText) {
         super(name, alias, displayText);
     }
 
@@ -50,8 +50,8 @@ public class AggregateLongMinColumnSpec extends AggregateMinColumnSpec {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof AggregateLongMinColumnSpec) {
-            return this.name.equals(((AggregateLongMinColumnSpec) obj).name);
+        if (obj instanceof AggregateLongMinColumn) {
+            return this.name.equals(((AggregateLongMinColumn) obj).name);
         } else {
             return false;
         }

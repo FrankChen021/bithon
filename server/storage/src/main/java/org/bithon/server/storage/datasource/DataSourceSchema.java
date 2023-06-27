@@ -23,10 +23,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;
 import lombok.Setter;
 import org.bithon.server.commons.time.Period;
-import org.bithon.server.storage.datasource.column.IColumnSpec;
-import org.bithon.server.storage.datasource.column.LongColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumnSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.column.LongColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.datasource.store.InternalDataSourceSpec;
 
@@ -49,10 +49,10 @@ public class DataSourceSchema {
     private final TimestampSpec timestampSpec;
 
     @Getter
-    private final List<IColumnSpec> dimensionsSpec;
+    private final List<IColumn> dimensionsSpec;
 
     @Getter
-    private final List<IColumnSpec> metricsSpec;
+    private final List<IColumn> metricsSpec;
 
     /**
      * Where the data should be ingested from.
@@ -76,10 +76,10 @@ public class DataSourceSchema {
     private final Period ttl;
 
     @JsonIgnore
-    private final Map<String, IColumnSpec> dimensionMap = new HashMap<>(15);
+    private final Map<String, IColumn> dimensionMap = new HashMap<>(15);
 
     @JsonIgnore
-    private final Map<String, IColumnSpec> metricsMap = new HashMap<>();
+    private final Map<String, IColumn> metricsMap = new HashMap<>();
 
     /**
      * check a {timestamp, dimensions} are unique to help find out some internal wrong implementation
@@ -106,13 +106,13 @@ public class DataSourceSchema {
     @JsonIgnore
     private boolean isVirtual = false;
 
-    private static final IColumnSpec TIMESTAMP_COLUMN = new LongColumnSpec("timestamp", "timestamp", null, true);
+    private static final IColumn TIMESTAMP_COLUMN = new LongColumn("timestamp", "timestamp", null, true);
 
     public DataSourceSchema(String displayText,
                             String name,
                             TimestampSpec timestampSpec,
-                            List<IColumnSpec> dimensionsSpec,
-                            List<IColumnSpec> metricsSpec) {
+                            List<IColumn> dimensionsSpec,
+                            List<IColumn> metricsSpec) {
         this(displayText, name, timestampSpec, dimensionsSpec, metricsSpec, null, null, null);
     }
 
@@ -120,8 +120,8 @@ public class DataSourceSchema {
     public DataSourceSchema(@JsonProperty("displayText") @Nullable String displayText,
                             @JsonProperty("name") String name,
                             @JsonProperty("timestampSpec") @Nullable TimestampSpec timestampSpec,
-                            @JsonProperty("dimensionsSpec") List<IColumnSpec> dimensionsSpec,
-                            @JsonProperty("metricsSpec") List<IColumnSpec> metricsSpec,
+                            @JsonProperty("dimensionsSpec") List<IColumn> dimensionsSpec,
+                            @JsonProperty("metricsSpec") List<IColumn> metricsSpec,
                             @JsonProperty("inputSourceSpec") @Nullable JsonNode inputSourceSpec,
                             @JsonProperty("storeSpec") @Nullable IDataStoreSpec dataStoreSpec,
                             @JsonProperty("ttl") @Nullable Period ttl) {
@@ -139,32 +139,32 @@ public class DataSourceSchema {
         if ("timestamp".equals(timestampSpec.getTimestampColumn())) {
             this.dimensionMap.put(TIMESTAMP_COLUMN.getName(), TIMESTAMP_COLUMN);
         } else {
-            this.dimensionMap.put(timestampSpec.getTimestampColumn(), new LongColumnSpec(timestampSpec.getTimestampColumn(), timestampSpec.getTimestampColumn(), null, true));
+            this.dimensionMap.put(timestampSpec.getTimestampColumn(), new LongColumn(timestampSpec.getTimestampColumn(), timestampSpec.getTimestampColumn(), null, true));
         }
     }
 
-    public IColumnSpec getMetricSpecByName(String name) {
-        if (IAggregatableColumnSpec.COUNT.equals(name)) {
-            return AggregateCountColumnSpec.INSTANCE;
+    public IColumn getMetricSpecByName(String name) {
+        if (IAggregatableColumn.COUNT.equals(name)) {
+            return AggregateCountColumn.INSTANCE;
         }
 
         return metricsMap.get(name);
     }
 
     public boolean containsMetric(String name) {
-        if (IAggregatableColumnSpec.COUNT.equals(name)) {
+        if (IAggregatableColumn.COUNT.equals(name)) {
             return true;
         }
 
         return metricsMap.containsKey(name);
     }
 
-    public IColumnSpec getDimensionSpecByName(String name) {
+    public IColumn getDimensionSpecByName(String name) {
         return dimensionMap.get(name);
     }
 
-    public IColumnSpec getDimensionSpecByAlias(String alias) {
-        for (IColumnSpec dimSpec : this.dimensionsSpec) {
+    public IColumn getDimensionSpecByAlias(String alias) {
+        for (IColumn dimSpec : this.dimensionsSpec) {
             if (alias.equals(dimSpec.getAlias())) {
                 return dimSpec;
             }
@@ -172,8 +172,8 @@ public class DataSourceSchema {
         return null;
     }
 
-    public IColumnSpec getColumnByName(String name) {
-        IColumnSpec dimSpec = dimensionMap.get(name);
+    public IColumn getColumnByName(String name) {
+        IColumn dimSpec = dimensionMap.get(name);
         return dimSpec == null ? getMetricSpecByName(name) : dimSpec;
     }
 

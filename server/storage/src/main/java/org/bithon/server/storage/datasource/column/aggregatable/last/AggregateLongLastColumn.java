@@ -14,11 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column;
+package org.bithon.server.storage.datasource.column.aggregatable.last;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
 import javax.annotation.Nullable;
@@ -26,25 +25,28 @@ import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/11 10:11 上午
+ * @date 2021/2/26 11:08 下午
  */
-public class StringColumnSpec extends AbstractColumnSpec {
+public class AggregateLongLastColumn extends AggregateLastColumn {
 
     @JsonCreator
-    public StringColumnSpec(@JsonProperty("name") @NotNull String name,
-                            @JsonProperty("alias") @Nullable String alias,
-                            @JsonProperty("displayText") @NotNull String displayText,
-                            @JsonProperty("visible") Boolean visible) {
-        super(name, alias, displayText, visible);
+    public AggregateLongLastColumn(@JsonProperty("name") @NotNull String name,
+                                   @JsonProperty("alias") @Nullable String alias,
+                                   @JsonProperty("displayText") @NotNull String displayText) {
+        super(name, alias, displayText);
     }
 
     @Override
     public IDataType getDataType() {
-        return IDataType.STRING;
+        return IDataType.LONG;
     }
 
     @Override
-    public ResultColumn getResultColumn() {
-        return new ResultColumn(getName());
+    public boolean equals(Object obj) {
+        if (obj instanceof AggregateLongLastColumn) {
+            return this.name.equals(((AggregateLongLastColumn) obj).name);
+        } else {
+            return false;
+        }
     }
 }

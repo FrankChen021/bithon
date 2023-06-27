@@ -30,12 +30,12 @@ import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
-import org.bithon.server.storage.datasource.column.IColumnSpec;
-import org.bithon.server.storage.datasource.column.StringColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.gauge.AggregateLongLastColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.max.AggregateLongMaxColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.min.AggregateLongMinColumnSpec;
-import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumnSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.column.StringColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.last.AggregateLongLastColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.max.AggregateLongMaxColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.min.AggregateLongMinColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.springframework.util.CollectionUtils;
 
@@ -52,8 +52,8 @@ import java.util.stream.Collectors;
 public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
     private final IMetricMessageSink metricSink;
-    private final IColumnSpec appName = new StringColumnSpec("appName", "appName", "appName", true);
-    private final IColumnSpec instanceName = new StringColumnSpec("instanceName", "instanceName", "instanceName", true);
+    private final IColumn appName = new StringColumn("appName", "appName", "appName", true);
+    private final IColumn instanceName = new StringColumn("instanceName", "instanceName", "instanceName", true);
 
     public BrpcMetricCollector(IMetricMessageSink metricSink) {
         this.metricSink = metricSink;
@@ -74,13 +74,13 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
     @Override
     public void sendGenericMetrics(BrpcMessageHeader header, BrpcGenericMetricMessage message) {
 
-        List<IColumnSpec> dimensionSpecs = new ArrayList<>();
+        List<IColumn> dimensionSpecs = new ArrayList<>();
         dimensionSpecs.add(appName);
         dimensionSpecs.add(instanceName);
         dimensionSpecs.addAll(message.getSchema()
                                      .getDimensionsSpecList()
                                      .stream()
-                                     .map(dimSpec -> new StringColumnSpec(dimSpec.getName(), dimSpec.getName(), dimSpec.getName(), true))
+                                     .map(dimSpec -> new StringColumn(dimSpec.getName(), dimSpec.getName(), dimSpec.getName(), true))
                                      .collect(Collectors.toList()));
 
         DataSourceSchema schema = new DataSourceSchema(message.getSchema().getName(),
@@ -89,16 +89,16 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                                        dimensionSpecs,
                                                        message.getSchema().getMetricsSpecList().stream().map(metricSpec -> {
                                                            if ("longMax".equals(metricSpec.getType())) {
-                                                               return new AggregateLongMaxColumnSpec(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
+                                                               return new AggregateLongMaxColumn(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
                                                            }
                                                            if ("longMin".equals(metricSpec.getType())) {
-                                                               return new AggregateLongMinColumnSpec(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
+                                                               return new AggregateLongMinColumn(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
                                                            }
                                                            if ("longSum".equals(metricSpec.getType())) {
-                                                               return new AggregateLongSumColumnSpec(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
+                                                               return new AggregateLongSumColumn(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
                                                            }
                                                            if ("longLast".equals(metricSpec.getType())) {
-                                                               return new AggregateLongLastColumnSpec(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
+                                                               return new AggregateLongLastColumn(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
                                                            }
 
                                                            return null;
@@ -113,13 +113,13 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
             int i = 0;
             for (String dimension : measurement.getDimensionList()) {
-                IColumnSpec dimensionSpec = schema.getDimensionsSpec().get(i++);
+                IColumn dimensionSpec = schema.getDimensionsSpec().get(i++);
                 metricMessage.put(dimensionSpec.getName(), dimension);
             }
 
             i = 0;
             for (long value : measurement.getMetricList()) {
-                IColumnSpec metricSpec = schema.getMetricsSpec().get(i++);
+                IColumn metricSpec = schema.getMetricsSpec().get(i++);
                 metricMessage.put(metricSpec.getName(), value);
             }
 

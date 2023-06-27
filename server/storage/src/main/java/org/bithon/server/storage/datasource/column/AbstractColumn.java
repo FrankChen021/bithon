@@ -27,7 +27,7 @@ import javax.validation.constraints.NotNull;
  * @date 2020/12/11 10:11 上午
  */
 @Data
-public abstract class AbstractColumnSpec implements IColumnSpec {
+public abstract class AbstractColumn implements IColumn {
 
     /**
      * this is the name that is used at the underlying storage
@@ -52,10 +52,10 @@ public abstract class AbstractColumnSpec implements IColumnSpec {
     @Getter
     private final boolean visible;
 
-    public AbstractColumnSpec(@NotNull String name,
-                              @Nullable String alias,
-                              @NotNull String displayText,
-                              @Nullable Boolean visible) {
+    public AbstractColumn(@NotNull String name,
+                          @Nullable String alias,
+                          @NotNull String displayText,
+                          @Nullable Boolean visible) {
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.displayText = displayText;

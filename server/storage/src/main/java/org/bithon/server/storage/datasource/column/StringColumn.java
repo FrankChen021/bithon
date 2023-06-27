@@ -14,12 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column.aggregatable.sum;
+package org.bithon.server.storage.datasource.column;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.aggregator.DoubleSumAggregator;
-import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
+import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
 import javax.annotation.Nullable;
@@ -27,33 +26,25 @@ import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/23
+ * @date 2020/12/11 10:11 上午
  */
-public class AggregateDoubleSumColumnSpec extends AggregateSumColumnSpec {
+public class StringColumn extends AbstractColumn {
 
     @JsonCreator
-    public AggregateDoubleSumColumnSpec(@JsonProperty("name") @NotNull String name,
-                                        @JsonProperty("alias") @Nullable String alias,
-                                        @JsonProperty("displayText") @NotNull String displayText) {
-        super(name, alias, displayText);
+    public StringColumn(@JsonProperty("name") @NotNull String name,
+                        @JsonProperty("alias") @Nullable String alias,
+                        @JsonProperty("displayText") @NotNull String displayText,
+                        @JsonProperty("visible") Boolean visible) {
+        super(name, alias, displayText, visible);
     }
 
     @Override
     public IDataType getDataType() {
-        return IDataType.DOUBLE;
+        return IDataType.STRING;
     }
 
     @Override
-    public NumberAggregator createAggregator() {
-        return new DoubleSumAggregator();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof AggregateDoubleSumColumnSpec) {
-            return this.name.equals(((AggregateDoubleSumColumnSpec) obj).name);
-        } else {
-            return false;
-        }
+    public ResultColumn getResultColumn() {
+        return new ResultColumn(getName());
     }
 }
