@@ -20,7 +20,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
-import org.bithon.server.storage.metrics.DimensionFilter;
+import org.bithon.server.storage.metrics.ColumnFilter;
 import org.bithon.server.storage.metrics.IFilter;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
@@ -65,7 +65,7 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
                                   .and(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.lt(this.end));
             }
             query = query.and(filter.getMatcher().accept(new SQLFilterBuilder(this.traceTagIndexSchema,
-                                                                              new DimensionFilter("f" + index, filter.getMatcher()))));
+                                                                              new ColumnFilter("f" + index, filter.getMatcher()))));
         }
 
         if (query != null) {

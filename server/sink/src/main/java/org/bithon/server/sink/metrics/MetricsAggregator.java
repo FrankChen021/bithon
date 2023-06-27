@@ -19,7 +19,7 @@ package org.bithon.server.sink.metrics;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.column.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.column.IColumnSpec;
 import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
@@ -42,7 +42,7 @@ public class MetricsAggregator {
     private final long granularityMs;
 
     /**
-     * @param granularity in seconds
+     * @param period granularity
      */
     public MetricsAggregator(DataSourceSchema schema, Period period) {
         this.schema = schema;
@@ -107,7 +107,7 @@ public class MetricsAggregator {
 
             // dimensions
             int i = 0;
-            for (IDimensionSpec dimensionSpec : this.schema.getDimensionsSpec()) {
+            for (IColumnSpec dimensionSpec : this.schema.getDimensionsSpec()) {
                 row.put(dimensionSpec.getName(), key.dimensions.get(i++));
             }
 

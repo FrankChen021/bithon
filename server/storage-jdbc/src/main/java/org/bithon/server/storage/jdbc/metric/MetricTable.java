@@ -18,7 +18,7 @@ package org.bithon.server.storage.jdbc.metric;
 
 import lombok.Getter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.column.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.column.IColumnSpec;
 import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
 import org.bithon.server.storage.datasource.column.metric.PostAggregatorMetricSpec;
 import org.bithon.server.storage.datasource.typing.IDataType;
@@ -61,7 +61,7 @@ public class MetricTable extends TableImpl {
         List<Field> indexesFields = new ArrayList<>();
         indexesFields.add(timestampField);
 
-        for (IDimensionSpec dimension : schema.getDimensionsSpec()) {
+        for (IColumnSpec dimension : schema.getDimensionsSpec()) {
             Field dimensionField = createField(dimension.getName(), dimension.getDataType());
             dimensions.add(dimensionField);
 

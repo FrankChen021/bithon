@@ -21,8 +21,8 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.TimestampSpec;
-import org.bithon.server.storage.datasource.column.dimension.IDimensionSpec;
-import org.bithon.server.storage.datasource.column.dimension.StringDimensionSpec;
+import org.bithon.server.storage.datasource.column.IColumnSpec;
+import org.bithon.server.storage.datasource.column.StringColumnSpec;
 import org.bithon.server.storage.datasource.column.metric.CountMetricSpec;
 import org.bithon.server.storage.datasource.column.metric.sum.LongSumMetricSpec;
 import org.bithon.server.storage.event.EventStorageConfig;
@@ -160,18 +160,18 @@ public class StorageAutoConfiguration {
         return new DataSourceSchema("event",
                                     "event",
                                     new TimestampSpec("timestamp", null, null),
-                                    Arrays.asList(new StringDimensionSpec("appName",
-                                                                          "appName",
-                                                                          "appName",
-                                                                          null),
-                                                  new StringDimensionSpec("instanceName",
-                                                                          "instanceName",
-                                                                          "instanceName",
-                                                                          null),
-                                                  new StringDimensionSpec("type",
-                                                                          "type",
-                                                                          "type",
-                                                                          true)),
+                                    Arrays.asList(new StringColumnSpec("appName",
+                                                                       "appName",
+                                                                       "appName",
+                                                                       null),
+                                                  new StringColumnSpec("instanceName",
+                                                                       "instanceName",
+                                                                       "instanceName",
+                                                                       null),
+                                                  new StringColumnSpec("type",
+                                                                       "type",
+                                                                       "type",
+                                                                       true)),
                                     Collections.singletonList(CountMetricSpec.INSTANCE));
 
     }
@@ -181,24 +181,24 @@ public class StorageAutoConfiguration {
                 new DataSourceSchema("trace_span_summary",
                                      "trace_span_summary",
                                      new TimestampSpec("timestamp", null, null),
-                                     Arrays.asList(new StringDimensionSpec("appName",
-                                                                           "appName",
-                                                                           "appName",
-                                                                           null),
-                                                   new StringDimensionSpec("instanceName",
-                                                                           "instanceName",
-                                                                           "instanceName",
-                                                                           null),
-                                                   new StringDimensionSpec("status",
-                                                                           "status",
-                                                                           "status",
-                                                                           true),
-                                                   new StringDimensionSpec("name", "name", "name", false),
-                                                   new StringDimensionSpec("normalizedUrl",
-                                                                           "url",
-                                                                           "url",
-                                                                           true),
-                                                   new StringDimensionSpec("kind", "kind", "kind", false)),
+                                     Arrays.asList(new StringColumnSpec("appName",
+                                                                        "appName",
+                                                                        "appName",
+                                                                        null),
+                                                   new StringColumnSpec("instanceName",
+                                                                        "instanceName",
+                                                                        "instanceName",
+                                                                        null),
+                                                   new StringColumnSpec("status",
+                                                                        "status",
+                                                                        "status",
+                                                                        true),
+                                                   new StringColumnSpec("name", "name", "name", false),
+                                                   new StringColumnSpec("normalizedUrl",
+                                                                        "url",
+                                                                        "url",
+                                                                        true),
+                                                   new StringColumnSpec("kind", "kind", "kind", false)),
                                      Arrays.asList(CountMetricSpec.INSTANCE,
 
                                                    // microsecond
@@ -210,17 +210,17 @@ public class StorageAutoConfiguration {
     }
 
     private DataSourceSchema createTraceTagIndexSchema(TagIndexConfig tagIndexConfig) {
-        List<IDimensionSpec> dimensionSpecs = new ArrayList<>();
+        List<IColumnSpec> dimensionSpecs = new ArrayList<>();
         if (tagIndexConfig != null) {
             for (Map.Entry<String, Integer> entry : tagIndexConfig.getMap().entrySet()) {
                 String tagName = "tags." + entry.getKey();
                 Integer indexPos = entry.getValue();
-                dimensionSpecs.add(new StringDimensionSpec("f" + indexPos,
-                                                           // Alias
-                                                           tagName,
-                                                           // Display
-                                                           entry.getKey(),
-                                                           null));
+                dimensionSpecs.add(new StringColumnSpec("f" + indexPos,
+                                                        // Alias
+                                                        tagName,
+                                                        // Display
+                                                        entry.getKey(),
+                                                        null));
             }
         }
 

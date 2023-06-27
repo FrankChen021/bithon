@@ -21,14 +21,11 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.column.IColumnSpec;
-import org.bithon.server.storage.datasource.column.dimension.IDimensionSpec;
-import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.datasource.query.Query;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.meta.EndPointType;
-import org.bithon.server.storage.metrics.DimensionFilter;
+import org.bithon.server.storage.metrics.ColumnFilter;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
@@ -87,16 +84,13 @@ public class TopoApi {
                                                           "minResponseTime")
                                                       .map((column) -> {
                                                           IColumnSpec spec = topoSchema.getColumnByName(column);
-                                                          if (spec instanceof IDimensionSpec) {
-                                                              return new ResultColumn(spec.getName());
-                                                          }
-                                                          return ((IMetricSpec) spec).getResultColumn();
+                                                          return spec.getResultColumn();
                                                       })
                                                       .collect(Collectors.toList()))
-                                 .filters(Arrays.asList(new DimensionFilter("srcEndpoint",
-                                                                            new StringEqualMatcher(request.getApplication())),
-                                                        new DimensionFilter("srcEndpointType",
-                                                                            new StringEqualMatcher(EndPointType.APPLICATION.name()))))
+                                 .filters(Arrays.asList(new ColumnFilter("srcEndpoint",
+                                                                         new StringEqualMatcher(request.getApplication())),
+                                                        new ColumnFilter("srcEndpointType",
+                                                                         new StringEqualMatcher(EndPointType.APPLICATION.name()))))
                                  .interval(Interval.of(start, end))
                                  .groupBy(Arrays.asList("dstEndpoint", "dstEndpointType"))
                                  .build();
@@ -142,16 +136,13 @@ public class TopoApi {
                                                           "minResponseTime")
                                                       .map((column) -> {
                                                           IColumnSpec spec = topoSchema.getColumnByName(column);
-                                                          if (spec instanceof IDimensionSpec) {
-                                                              return new ResultColumn(spec.getName());
-                                                          }
-                                                          return ((IMetricSpec) spec).getResultColumn();
+                                                          return spec.getResultColumn();
                                                       })
                                                       .collect(Collectors.toList()))
-                                 .filters(Arrays.asList(new DimensionFilter("dstEndpoint",
-                                                                            new StringEqualMatcher(request.getApplication())),
-                                                        new DimensionFilter("dstEndpointType",
-                                                                            new StringEqualMatcher(EndPointType.APPLICATION.name()))))
+                                 .filters(Arrays.asList(new ColumnFilter("dstEndpoint",
+                                                                         new StringEqualMatcher(request.getApplication())),
+                                                        new ColumnFilter("dstEndpointType",
+                                                                         new StringEqualMatcher(EndPointType.APPLICATION.name()))))
                                  .interval(Interval.of(start, end))
                                  .groupBy(Arrays.asList("srcEndpoint", "srcEndpointType")).build();
         List<Map<String, Object>> callers = (List<Map<String, Object>>) metricReader.groupBy(callerQuery);

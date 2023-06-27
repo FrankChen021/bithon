@@ -19,7 +19,7 @@ package org.bithon.server.sink.metrics;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
-import org.bithon.server.storage.datasource.column.dimension.StringDimensionSpec;
+import org.bithon.server.storage.datasource.column.StringColumnSpec;
 import org.bithon.server.storage.datasource.column.metric.max.LongMaxMetricSpec;
 import org.bithon.server.storage.datasource.column.metric.min.LongMinMetricSpec;
 import org.bithon.server.storage.datasource.column.metric.sum.LongSumMetricSpec;
@@ -67,7 +67,7 @@ public class MetricAggregatorTest {
             "one-dimension-table",
             "one-dimension-table",
             new TimestampSpec("timestamp", null, null),
-            Arrays.asList(new StringDimensionSpec("appName", "appName", "appName", true)),
+            Arrays.asList(new StringColumnSpec("appName", "appName", "appName", true)),
             Arrays.asList(new LongSumMetricSpec("totalCount", "totalCount", ""),
                           new LongMinMetricSpec("minTime", "minTime", ""),
                           new LongMaxMetricSpec("maxTime", "maxTime", ""))

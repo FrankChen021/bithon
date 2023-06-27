@@ -37,10 +37,8 @@ import org.bithon.server.commons.matcher.StringLikeMatcher;
 import org.bithon.server.storage.common.expression.FilterExpressionASTFactory;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.IColumnSpec;
-import org.bithon.server.storage.datasource.column.dimension.IDimensionSpec;
-import org.bithon.server.storage.metrics.DimensionFilter;
+import org.bithon.server.storage.metrics.ColumnFilter;
 import org.bithon.server.storage.metrics.IFilter;
-import org.bithon.server.storage.metrics.MetricFilter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -119,9 +117,9 @@ public class FilterExpressionToFilters {
                 patterns.add(expr.toString());
             }
 
-            filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
-                                            "alias",
-                                            new InMatcher(patterns)));
+            filters.add(new ColumnFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                         "alias",
+                                         new InMatcher(patterns)));
             return null;
         }
 
@@ -129,9 +127,9 @@ public class FilterExpressionToFilters {
         public Void visit(BinaryExpression.EQ expression) {
             checkBinaryExpression(expression, LiteralExpression.class);
 
-            filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
-                                            "alias",
-                                            new StringEqualMatcher((String) ((LiteralExpression) expression.getRight()).getValue())));
+            filters.add(new ColumnFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                         "alias",
+                                         new StringEqualMatcher((String) ((LiteralExpression) expression.getRight()).getValue())));
             return null;
         }
 
@@ -144,14 +142,9 @@ public class FilterExpressionToFilters {
                                        "Column [%s] can not be found in schema [%s].",
                                        ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
 
-            if (columnSpec instanceof IDimensionSpec) {
-                filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
-                                                "alias",
-                                                new GreaterThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
-            } else {
-                filters.add(new MetricFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
-                                             new GreaterThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
-            }
+            filters.add(new ColumnFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                         "alias",
+                                         new GreaterThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
 
             return null;
         }
@@ -165,15 +158,9 @@ public class FilterExpressionToFilters {
                                        "Column [%s] can not be found in schema [%s].",
                                        ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
 
-            if (columnSpec instanceof IDimensionSpec) {
-                filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
-                                                "alias",
-                                                new GreaterThanOrEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
-            } else {
-                filters.add(new MetricFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
-                                             new GreaterThanOrEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
-            }
-
+            filters.add(new ColumnFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                         "alias",
+                                         new GreaterThanOrEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
             return null;
         }
 
@@ -186,14 +173,9 @@ public class FilterExpressionToFilters {
                                        "Column [%s] can not be found in schema [%s].",
                                        ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
 
-            if (columnSpec instanceof IDimensionSpec) {
-                filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
-                                                "alias",
-                                                new LessThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
-            } else {
-                filters.add(new MetricFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
-                                             new LessThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
-            }
+            filters.add(new ColumnFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                         "alias",
+                                         new LessThanMatcher(((LiteralExpression) expression.getRight()).getValue())));
             return null;
         }
 
@@ -206,14 +188,9 @@ public class FilterExpressionToFilters {
                                        "Column [%s] can not be found in schema [%s].",
                                        ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
 
-            if (columnSpec instanceof IDimensionSpec) {
-                filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
-                                                "alias",
-                                                new LessThanOrEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
-            } else {
-                filters.add(new MetricFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
-                                             new LessThanOrEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
-            }
+            filters.add(new ColumnFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                         "alias",
+                                         new LessThanOrEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
             return null;
         }
 
@@ -226,14 +203,9 @@ public class FilterExpressionToFilters {
                                        "Column [%s] can not be found in schema [%s].",
                                        ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
 
-            if (columnSpec instanceof IDimensionSpec) {
-                filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
-                                                "alias",
-                                                new NotEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
-            } else {
-                filters.add(new MetricFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
-                                             new NotEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
-            }
+            filters.add(new ColumnFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                         "alias",
+                                         new NotEqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
             return null;
         }
 
@@ -251,9 +223,9 @@ public class FilterExpressionToFilters {
             Preconditions.checkIfTrue(((LiteralExpression) expression.getRight()).getValue() instanceof String,
                                       "right expression of LIKE operator must be a STRING literal.");
 
-            filters.add(new DimensionFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
-                                            "alias",
-                                            new StringLikeMatcher((String) ((LiteralExpression) expression.getRight()).getValue())));
+            filters.add(new ColumnFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
+                                         "alias",
+                                         new StringLikeMatcher((String) ((LiteralExpression) expression.getRight()).getValue())));
 
             return null;
         }

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column.dimension;
+package org.bithon.server.storage.datasource.column;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -27,13 +27,13 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2020/12/11 10:11 上午
  */
-public class StringDimensionSpec extends AbstractDimensionSpec {
+public class StringColumnSpec extends AbstractColumnSpec {
 
     @JsonCreator
-    public StringDimensionSpec(@JsonProperty("name") @NotNull String name,
-                               @JsonProperty("alias") @Nullable String alias,
-                               @JsonProperty("displayText") @NotNull String displayText,
-                               @JsonProperty("visible") Boolean visible) {
+    public StringColumnSpec(@JsonProperty("name") @NotNull String name,
+                            @JsonProperty("alias") @Nullable String alias,
+                            @JsonProperty("displayText") @NotNull String displayText,
+                            @JsonProperty("visible") Boolean visible) {
         super(name, alias, displayText, visible);
     }
 

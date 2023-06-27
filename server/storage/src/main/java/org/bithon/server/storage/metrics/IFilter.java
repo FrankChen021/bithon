@@ -25,9 +25,9 @@ import org.bithon.server.commons.matcher.IMatcher;
  * @author frank.chen021@outlook.com
  * @date 2021/1/30 4:43 下午
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = DimensionFilter.class)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = ColumnFilter.class)
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = IFilter.TYPE_DIMENSION, value = DimensionFilter.class),
+    @JsonSubTypes.Type(name = IFilter.TYPE_DIMENSION, value = ColumnFilter.class),
     @JsonSubTypes.Type(name = IFilter.TYPE_METRIC, value = MetricFilter.class),
 })
 public interface IFilter {

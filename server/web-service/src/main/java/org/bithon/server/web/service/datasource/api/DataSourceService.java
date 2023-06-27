@@ -21,11 +21,11 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.IColumnSpec;
-import org.bithon.server.storage.datasource.column.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
+import org.bithon.server.storage.datasource.typing.IDataType;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
@@ -113,14 +113,10 @@ public class DataSourceService {
                 if (columnSpec == null) {
                     throw new RuntimeException(StringUtils.format("field [%s] does not exist.", field.getField()));
                 }
-                if (columnSpec instanceof IDimensionSpec) {
-                    resultColumnList.add(columnSpec.getResultColumn());
+                resultColumnList.add(columnSpec.getResultColumn());
 
-                    if (!containsGroupBy) {
-                        groupBy.add(columnSpec.getName());
-                    }
-                } else {
-                    resultColumnList.add(columnSpec.getResultColumn());
+                if (!containsGroupBy && columnSpec.getDataType().equals(IDataType.STRING)) {
+                    groupBy.add(columnSpec.getName());
                 }
             }
         }

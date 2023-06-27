@@ -17,6 +17,8 @@
 package org.bithon.server.storage.datasource.column;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
@@ -24,7 +26,19 @@ import org.bithon.server.storage.datasource.typing.IDataType;
  * @author Frank Chen
  * @date 29/10/22 10:47 pm
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = StringColumnSpec.class)
+@JsonSubTypes(value = {
+    @JsonSubTypes.Type(name = "long", value = LongColumnSpec.class),
+    @JsonSubTypes.Type(name = "string", value = StringColumnSpec.class)
+})
 public interface IColumnSpec {
+    /**
+     * temporarily for compatibility only
+     */
+    default boolean isVisible() {
+        return true;
+    }
+
     /**
      * the name in the storage.
      * can NOT be null

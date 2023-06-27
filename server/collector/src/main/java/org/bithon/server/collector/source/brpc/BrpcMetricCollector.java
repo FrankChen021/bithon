@@ -30,8 +30,8 @@ import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
-import org.bithon.server.storage.datasource.column.dimension.IDimensionSpec;
-import org.bithon.server.storage.datasource.column.dimension.StringDimensionSpec;
+import org.bithon.server.storage.datasource.column.IColumnSpec;
+import org.bithon.server.storage.datasource.column.StringColumnSpec;
 import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
 import org.bithon.server.storage.datasource.column.metric.gauge.LongGaugeMetricSpec;
 import org.bithon.server.storage.datasource.column.metric.max.LongMaxMetricSpec;
@@ -53,8 +53,8 @@ import java.util.stream.Collectors;
 public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
     private final IMetricMessageSink metricSink;
-    private final IDimensionSpec appName = new StringDimensionSpec("appName", "appName", "appName", true);
-    private final IDimensionSpec instanceName = new StringDimensionSpec("instanceName", "instanceName", "instanceName", true);
+    private final IColumnSpec appName = new StringColumnSpec("appName", "appName", "appName", true);
+    private final IColumnSpec instanceName = new StringColumnSpec("instanceName", "instanceName", "instanceName", true);
 
     public BrpcMetricCollector(IMetricMessageSink metricSink) {
         this.metricSink = metricSink;
@@ -75,13 +75,13 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
     @Override
     public void sendGenericMetrics(BrpcMessageHeader header, BrpcGenericMetricMessage message) {
 
-        List<IDimensionSpec> dimensionSpecs = new ArrayList<>();
+        List<IColumnSpec> dimensionSpecs = new ArrayList<>();
         dimensionSpecs.add(appName);
         dimensionSpecs.add(instanceName);
         dimensionSpecs.addAll(message.getSchema()
                                      .getDimensionsSpecList()
                                      .stream()
-                                     .map(dimSpec -> new StringDimensionSpec(dimSpec.getName(), dimSpec.getName(), dimSpec.getName(), true))
+                                     .map(dimSpec -> new StringColumnSpec(dimSpec.getName(), dimSpec.getName(), dimSpec.getName(), true))
                                      .collect(Collectors.toList()));
 
         DataSourceSchema schema = new DataSourceSchema(message.getSchema().getName(),
@@ -114,7 +114,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
             int i = 0;
             for (String dimension : measurement.getDimensionList()) {
-                IDimensionSpec dimensionSpec = schema.getDimensionsSpec().get(i++);
+                IColumnSpec dimensionSpec = schema.getDimensionsSpec().get(i++);
                 metricMessage.put(dimensionSpec.getName(), dimension);
             }
 

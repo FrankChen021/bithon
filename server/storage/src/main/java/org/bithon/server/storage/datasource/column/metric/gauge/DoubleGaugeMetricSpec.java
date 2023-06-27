@@ -29,6 +29,7 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2020/12/23
  */
+
 public class DoubleGaugeMetricSpec extends GaugeMetricSpec {
 
     @JsonCreator

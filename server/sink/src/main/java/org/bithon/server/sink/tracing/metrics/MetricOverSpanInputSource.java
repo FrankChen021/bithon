@@ -36,7 +36,7 @@ import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.column.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.column.IColumnSpec;
 import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.TransformSpec;
@@ -191,7 +191,7 @@ public class MetricOverSpanInputSource implements IInputSource {
             metricMessage.setInstanceName(span.getInstanceName());
             metricMessage.setTimestamp(span.getStartTime() / 1000);
 
-            for (IDimensionSpec dimSpec : schema.getDimensionsSpec()) {
+            for (IColumnSpec dimSpec : schema.getDimensionsSpec()) {
                 metricMessage.put(dimSpec.getName(), span.getCol(dimSpec.getName()));
             }
             for (IMetricSpec metricSpec : schema.getMetricsSpec()) {
