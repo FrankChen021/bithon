@@ -50,9 +50,4 @@ public class StringDimensionSpec extends AbstractDimensionSpec {
     public IDataType getDataType() {
         return IDataType.STRING;
     }
-
-    @Override
-    public <T> T accept(IDimensionSpecVisitor<T> visitor) {
-        return visitor.visit(this);
-    }
 }

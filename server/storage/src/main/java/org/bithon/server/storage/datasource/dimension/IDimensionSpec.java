@@ -39,8 +39,6 @@ public interface IDimensionSpec extends IColumnSpec {
      */
     boolean isVisible();
 
-    <T> T accept(IDimensionSpecVisitor<T> visitor);
-
     @JsonIgnore
     default ResultColumn getResultColumn() {
         return new ResultColumn(getName());

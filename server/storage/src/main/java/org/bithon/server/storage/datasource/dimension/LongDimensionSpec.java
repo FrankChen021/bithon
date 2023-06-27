@@ -46,9 +46,4 @@ public class LongDimensionSpec extends AbstractDimensionSpec {
     public IDataType getDataType() {
         return IDataType.LONG;
     }
-
-    @Override
-    public <T> T accept(IDimensionSpecVisitor<T> visitor) {
-        return visitor.visit(this);
-    }
 }
