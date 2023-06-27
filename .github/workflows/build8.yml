@@ -12,7 +12,7 @@ on:
 concurrency:
   # https://stackoverflow.com/questions/68418857/how-to-cancel-existing-runs-when-a-new-push-happens-on-github-actions-but-only
   # Documentation suggests ${{ github.head_ref }}, but that's only available on pull_request/pull_request_target triggers, so using ${{ github.ref }}.
-  # On master, we want all builds to complete even if merging happens faster to make it easier to discover at which point something broke.
+  # On the master branch, we want all builds to complete even if merging happens faster to make it easier to discover at which point something broke.
   group: ${{ github.ref == 'refs/heads/master' && format('ci-master-jdk8-{0}', github.sha) || format('ci-jdk8-{0}', github.ref) }}
   cancel-in-progress: true
 
@@ -44,8 +44,12 @@ jobs:
       - name: Code Check
         run: mvn --ntp -T 1C animal-sniffer:check checkstyle:checkstyle com.github.spotbugs:spotbugs-maven-plugin:check
 
+      #
+      # Follow steps are for release, we only enable them for changes on the master branch
+      #
       # https://github.com/marketplace/actions/delete-tag-and-release
       - name: Delete agent tag
+        if: github.ref == 'refs/heads/master'
         uses: dev-drprasad/delete-tag-and-release@v0.2.1
         with:
           delete_release: true # default: false
