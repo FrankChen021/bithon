@@ -55,7 +55,7 @@ public class ExpressionColumn implements IColumn {
                             @JsonProperty("alias") @Nullable String alias,
                             @JsonProperty("displayText") @NotNull String displayText,
                             @JsonProperty("expression") @NotNull String expression,
-                            @JsonProperty("valueType") @NotNull String valueType) {
+                            @JsonProperty("valueType") @Nullable String valueType) {
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.displayText = displayText;
