@@ -17,34 +17,13 @@
 package org.bithon.server.storage.datasource.column.metric;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.column.IColumnSpec;
-import org.bithon.server.storage.datasource.column.metric.gauge.DoubleGaugeMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.gauge.LongGaugeMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.max.LongMaxMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.min.LongMinMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.sum.DoubleSumMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.sum.LongSumMetricSpec;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/11/30 5:36 下午
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = IMetricSpec.LONG_SUM, value = LongSumMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.LONG_LAST, value = LongGaugeMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.LONG_MIN, value = LongMinMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.LONG_MAX, value = LongMaxMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.DOUBLE_SUM, value = DoubleSumMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.DOUBLE_LAST, value = DoubleGaugeMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.POST, value = PostAggregatorMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.COUNT, value = CountMetricSpec.class),
-})
 public interface IMetricSpec extends IColumnSpec {
 
     /**
@@ -62,10 +41,6 @@ public interface IMetricSpec extends IColumnSpec {
     String COUNT = "count";
     String LONG_MIN = "longMin";
     String LONG_MAX = "longMax";
-
-    NumberAggregator createAggregator();
-
-    SimpleAggregateExpression getAggregateExpression();
 
     @JsonIgnore
     default ResultColumn getResultColumn() {

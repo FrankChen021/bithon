@@ -20,7 +20,6 @@ import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.column.IColumnSpec;
-import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
 
@@ -149,7 +148,7 @@ public class MetricsAggregator {
 
     static class FieldAggregators extends HashMap<String, NumberAggregator> {
         public FieldAggregators(DataSourceSchema schema) {
-            for (IMetricSpec metricSpec : schema.getMetricsSpec()) {
+            for (IColumnSpec metricSpec : schema.getMetricsSpec()) {
                 NumberAggregator aggregator = metricSpec.createAggregator();
                 if (aggregator == null) {
                     // post aggregator has no physical aggregator

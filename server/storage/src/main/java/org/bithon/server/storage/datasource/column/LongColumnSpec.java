@@ -18,6 +18,7 @@ package org.bithon.server.storage.datasource.column;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
 import javax.annotation.Nullable;
@@ -40,5 +41,10 @@ public class LongColumnSpec extends AbstractColumnSpec {
     @Override
     public IDataType getDataType() {
         return IDataType.LONG;
+    }
+
+    @Override
+    public ResultColumn getResultColumn() {
+        return new ResultColumn(getName());
     }
 }

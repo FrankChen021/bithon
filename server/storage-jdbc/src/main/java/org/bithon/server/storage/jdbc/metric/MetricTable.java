@@ -19,7 +19,6 @@ package org.bithon.server.storage.jdbc.metric;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.IColumnSpec;
-import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
 import org.bithon.server.storage.datasource.column.metric.PostAggregatorMetricSpec;
 import org.bithon.server.storage.datasource.typing.IDataType;
 import org.jooq.Field;
@@ -70,7 +69,7 @@ public class MetricTable extends TableImpl {
             }
         }
 
-        for (IMetricSpec metric : schema.getMetricsSpec()) {
+        for (IColumnSpec metric : schema.getMetricsSpec()) {
             if (metric instanceof PostAggregatorMetricSpec) {
                 continue;
             }

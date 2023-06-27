@@ -32,7 +32,6 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.IColumnSpec;
 import org.bithon.server.storage.datasource.column.StringColumnSpec;
-import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
 import org.bithon.server.storage.datasource.column.metric.gauge.LongGaugeMetricSpec;
 import org.bithon.server.storage.datasource.column.metric.max.LongMaxMetricSpec;
 import org.bithon.server.storage.datasource.column.metric.min.LongMinMetricSpec;
@@ -120,7 +119,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
             i = 0;
             for (long value : measurement.getMetricList()) {
-                IMetricSpec metricSpec = schema.getMetricsSpec().get(i++);
+                IColumnSpec metricSpec = schema.getMetricsSpec().get(i++);
                 metricMessage.put(metricSpec.getName(), value);
             }
 

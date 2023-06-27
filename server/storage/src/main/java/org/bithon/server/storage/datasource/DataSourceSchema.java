@@ -52,7 +52,7 @@ public class DataSourceSchema {
     private final List<IColumnSpec> dimensionsSpec;
 
     @Getter
-    private final List<IMetricSpec> metricsSpec;
+    private final List<IColumnSpec> metricsSpec;
 
     /**
      * Where the data should be ingested from.
@@ -79,7 +79,7 @@ public class DataSourceSchema {
     private final Map<String, IColumnSpec> dimensionMap = new HashMap<>(15);
 
     @JsonIgnore
-    private final Map<String, IMetricSpec> metricsMap = new HashMap<>();
+    private final Map<String, IColumnSpec> metricsMap = new HashMap<>();
 
     /**
      * check a {timestamp, dimensions} are unique to help find out some internal wrong implementation
@@ -112,7 +112,7 @@ public class DataSourceSchema {
                             String name,
                             TimestampSpec timestampSpec,
                             List<IColumnSpec> dimensionsSpec,
-                            List<IMetricSpec> metricsSpec) {
+                            List<IColumnSpec> metricsSpec) {
         this(displayText, name, timestampSpec, dimensionsSpec, metricsSpec, null, null, null);
     }
 
@@ -121,7 +121,7 @@ public class DataSourceSchema {
                             @JsonProperty("name") String name,
                             @JsonProperty("timestampSpec") @Nullable TimestampSpec timestampSpec,
                             @JsonProperty("dimensionsSpec") List<IColumnSpec> dimensionsSpec,
-                            @JsonProperty("metricsSpec") List<IMetricSpec> metricsSpec,
+                            @JsonProperty("metricsSpec") List<IColumnSpec> metricsSpec,
                             @JsonProperty("inputSourceSpec") @Nullable JsonNode inputSourceSpec,
                             @JsonProperty("storeSpec") @Nullable IDataStoreSpec dataStoreSpec,
                             @JsonProperty("ttl") @Nullable Period ttl) {
@@ -143,7 +143,7 @@ public class DataSourceSchema {
         }
     }
 
-    public IMetricSpec getMetricSpecByName(String name) {
+    public IColumnSpec getMetricSpecByName(String name) {
         if (IMetricSpec.COUNT.equals(name)) {
             return CountMetricSpec.INSTANCE;
         }
