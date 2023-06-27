@@ -22,6 +22,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.errors.TimeoutException;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.bithon.component.commons.utils.NumberUtils;
@@ -31,6 +32,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.BatchMessageListener;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.RecoveringBatchErrorHandler;
 
 import java.util.HashMap;
 import java.util.List;
@@ -92,6 +94,18 @@ public abstract class AbstractKafkaConsumer implements IKafkaConsumer, BatchMess
         consumerContainer.setConcurrency(concurrency);
         consumerContainer.setApplicationEventPublisher(applicationContext);
         consumerContainer.setApplicationContext(applicationContext);
+        consumerContainer.setBatchErrorHandler((thrownException, data) -> {
+            // Ignore exception when committing offset
+            if (thrownException instanceof TimeoutException) {
+                if (thrownException.getMessage().contains("committing")) {
+                    log.info("Timeout to commit offset ignored.");
+                    return;
+                }
+            }
+
+            // Fallback to default handler to handle
+            new RecoveringBatchErrorHandler().handle(thrownException, data);
+        });
         consumerContainer.start();
 
         log.info("Starting Kafka consumer for topic [{}]", topic);
