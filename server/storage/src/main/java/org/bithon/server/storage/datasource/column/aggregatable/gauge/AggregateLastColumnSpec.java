@@ -14,14 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column.metric.gauge;
+package org.bithon.server.storage.datasource.column.aggregatable.gauge;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.aggregator.LongLastAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumnSpec;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 
@@ -29,7 +29,7 @@ import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 20:24
  */
-public abstract class GaugeMetricSpec implements IMetricSpec {
+public abstract class AggregateLastColumnSpec implements IAggregatableColumnSpec {
 
     @Getter
     protected final String name;
@@ -43,9 +43,9 @@ public abstract class GaugeMetricSpec implements IMetricSpec {
     protected final SimpleAggregateExpression aggregateExpression;
 
     @JsonCreator
-    public GaugeMetricSpec(String name,
-                           String alias,
-                           String displayText) {
+    public AggregateLastColumnSpec(String name,
+                                   String alias,
+                                   String displayText) {
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.displayText = displayText;

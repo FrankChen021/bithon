@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column.metric;
+package org.bithon.server.storage.datasource.column;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -33,7 +33,7 @@ import javax.validation.constraints.NotNull;
 /**
  * @author frankchen
  */
-public class PostAggregatorMetricSpec implements IMetricSpec {
+public class ExpressionColumnSpec implements IColumnSpec {
 
     @Getter
     private final String name;
@@ -51,11 +51,11 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
     private final IDataType valueType;
 
     @JsonCreator
-    public PostAggregatorMetricSpec(@JsonProperty("name") @NotNull String name,
-                                    @JsonProperty("alias") @Nullable String alias,
-                                    @JsonProperty("displayText") @NotNull String displayText,
-                                    @JsonProperty("expression") @NotNull String expression,
-                                    @JsonProperty("valueType") @NotNull String valueType) {
+    public ExpressionColumnSpec(@JsonProperty("name") @NotNull String name,
+                                @JsonProperty("alias") @Nullable String alias,
+                                @JsonProperty("displayText") @NotNull String displayText,
+                                @JsonProperty("expression") @NotNull String expression,
+                                @JsonProperty("valueType") @NotNull String valueType) {
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.displayText = displayText;
@@ -81,8 +81,8 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof PostAggregatorMetricSpec) {
-            return this.name.equals(((PostAggregatorMetricSpec) obj).name);
+        if (obj instanceof ExpressionColumnSpec) {
+            return this.name.equals(((ExpressionColumnSpec) obj).name);
         } else {
             return false;
         }

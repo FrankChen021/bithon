@@ -32,10 +32,10 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.IColumnSpec;
 import org.bithon.server.storage.datasource.column.StringColumnSpec;
-import org.bithon.server.storage.datasource.column.metric.gauge.LongGaugeMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.max.LongMaxMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.min.LongMinMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.sum.LongSumMetricSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.gauge.AggregateLongLastColumnSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.max.AggregateLongMaxColumnSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.min.AggregateLongMinColumnSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumnSpec;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.springframework.util.CollectionUtils;
 
@@ -89,16 +89,16 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                                        dimensionSpecs,
                                                        message.getSchema().getMetricsSpecList().stream().map(metricSpec -> {
                                                            if ("longMax".equals(metricSpec.getType())) {
-                                                               return new LongMaxMetricSpec(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
+                                                               return new AggregateLongMaxColumnSpec(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
                                                            }
                                                            if ("longMin".equals(metricSpec.getType())) {
-                                                               return new LongMinMetricSpec(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
+                                                               return new AggregateLongMinColumnSpec(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
                                                            }
                                                            if ("longSum".equals(metricSpec.getType())) {
-                                                               return new LongSumMetricSpec(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
+                                                               return new AggregateLongSumColumnSpec(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
                                                            }
                                                            if ("longLast".equals(metricSpec.getType())) {
-                                                               return new LongGaugeMetricSpec(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
+                                                               return new AggregateLongLastColumnSpec(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
                                                            }
 
                                                            return null;

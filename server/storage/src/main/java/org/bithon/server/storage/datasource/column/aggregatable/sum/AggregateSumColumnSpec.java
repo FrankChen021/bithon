@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column.metric.sum;
+package org.bithon.server.storage.datasource.column.aggregatable.sum;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
-import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumnSpec;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 
@@ -26,7 +26,7 @@ import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 20:17
  */
-public abstract class SumMetricSpec implements IMetricSpec {
+public abstract class AggregateSumColumnSpec implements IAggregatableColumnSpec {
 
     @Getter
     protected final String name;
@@ -40,9 +40,9 @@ public abstract class SumMetricSpec implements IMetricSpec {
 
     protected final SimpleAggregateExpression aggregateExpression;
 
-    public SumMetricSpec(String name,
-                         String alias,
-                         String displayText) {
+    public AggregateSumColumnSpec(String name,
+                                  String alias,
+                                  String displayText) {
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.displayText = displayText;

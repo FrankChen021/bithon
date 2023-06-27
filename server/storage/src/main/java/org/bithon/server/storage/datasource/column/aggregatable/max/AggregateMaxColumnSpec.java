@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column.metric.max;
+package org.bithon.server.storage.datasource.column.aggregatable.max;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
-import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumnSpec;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 
@@ -26,7 +26,7 @@ import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 20:37
  */
-public abstract class MaxMetricSpec implements IMetricSpec {
+public abstract class AggregateMaxColumnSpec implements IAggregatableColumnSpec {
 
     @Getter
     protected final String name;
@@ -39,9 +39,9 @@ public abstract class MaxMetricSpec implements IMetricSpec {
 
     protected final SimpleAggregateExpression aggregateExpression;
 
-    public MaxMetricSpec(String name,
-                         String alias,
-                         String displayText) {
+    public AggregateMaxColumnSpec(String name,
+                                  String alias,
+                                  String displayText) {
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.displayText = displayText;

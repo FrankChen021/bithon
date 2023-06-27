@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column.metric;
+package org.bithon.server.storage.datasource.column.aggregatable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.bithon.server.storage.datasource.column.IColumnSpec;
@@ -24,24 +24,7 @@ import org.bithon.server.storage.datasource.query.ast.ResultColumn;
  * @author frank.chen021@outlook.com
  * @date 2020/11/30 5:36 下午
  */
-public interface IMetricSpec extends IColumnSpec {
-
-    /**
-     * for Gauge
-     */
-    String LONG_LAST = "longLast";
-    String DOUBLE_LAST = "doubleLast";
-
-    /**
-     * for Counter
-     */
-    String LONG_SUM = "longSum";
-    String DOUBLE_SUM = "doubleSum";
-    String POST = "post";
-    String COUNT = "count";
-    String LONG_MIN = "longMin";
-    String LONG_MAX = "longMax";
-
+public interface IAggregatableColumnSpec extends IColumnSpec {
     @JsonIgnore
     default ResultColumn getResultColumn() {
         return new ResultColumn(getAggregateExpression(), getName());

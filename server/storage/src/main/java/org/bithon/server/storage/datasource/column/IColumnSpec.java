@@ -21,15 +21,14 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.column.metric.CountMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.PostAggregatorMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.gauge.DoubleGaugeMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.gauge.LongGaugeMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.max.LongMaxMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.min.LongMinMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.sum.DoubleSumMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.sum.LongSumMetricSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumnSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumnSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.gauge.AggregateDoubleLastColumnSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.gauge.AggregateLongLastColumnSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.max.AggregateLongMaxColumnSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.min.AggregateLongMinColumnSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateDoubleSumColumnSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumnSpec;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.typing.IDataType;
@@ -42,16 +41,32 @@ import org.bithon.server.storage.datasource.typing.IDataType;
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = "long", value = LongColumnSpec.class),
     @JsonSubTypes.Type(name = "string", value = StringColumnSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.LONG_SUM, value = LongSumMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.LONG_LAST, value = LongGaugeMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.LONG_MIN, value = LongMinMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.LONG_MAX, value = LongMaxMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.DOUBLE_SUM, value = DoubleSumMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.DOUBLE_LAST, value = DoubleGaugeMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.POST, value = PostAggregatorMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.COUNT, value = CountMetricSpec.class),
+    @JsonSubTypes.Type(name = IColumnSpec.LONG_SUM, value = AggregateLongSumColumnSpec.class),
+    @JsonSubTypes.Type(name = IColumnSpec.LONG_LAST, value = AggregateLongLastColumnSpec.class),
+    @JsonSubTypes.Type(name = IColumnSpec.LONG_MIN, value = AggregateLongMinColumnSpec.class),
+    @JsonSubTypes.Type(name = IColumnSpec.LONG_MAX, value = AggregateLongMaxColumnSpec.class),
+    @JsonSubTypes.Type(name = IColumnSpec.DOUBLE_SUM, value = AggregateDoubleSumColumnSpec.class),
+    @JsonSubTypes.Type(name = IColumnSpec.DOUBLE_LAST, value = AggregateDoubleLastColumnSpec.class),
+    @JsonSubTypes.Type(name = IColumnSpec.POST, value = ExpressionColumnSpec.class),
+    @JsonSubTypes.Type(name = IColumnSpec.COUNT, value = AggregateCountColumnSpec.class),
 })
 public interface IColumnSpec {
+    /**
+     * for Gauge
+     */
+    String LONG_LAST = "longLast";
+    String DOUBLE_LAST = "doubleLast";
+
+    /**
+     * for Counter
+     */
+    String LONG_SUM = "longSum";
+    String DOUBLE_SUM = "doubleSum";
+    String POST = "post";
+    String COUNT = "count";
+    String LONG_MIN = "longMin";
+    String LONG_MAX = "longMax";
+
     /**
      * temporarily for compatibility only
      */

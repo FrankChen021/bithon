@@ -14,13 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column.metric;
+package org.bithon.server.storage.datasource.column.aggregatable.count;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumnSpec;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.datasource.typing.IDataType;
@@ -32,9 +33,9 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2020/12/23
  */
-public class CountMetricSpec implements IMetricSpec {
+public class AggregateCountColumnSpec implements IAggregatableColumnSpec {
 
-    public static final IMetricSpec INSTANCE = new CountMetricSpec("count", "count");
+    public static final IAggregatableColumnSpec INSTANCE = new AggregateCountColumnSpec("count", "count");
 
     @Getter
     private final String name;
@@ -45,8 +46,8 @@ public class CountMetricSpec implements IMetricSpec {
     private final String alias;
 
     @JsonCreator
-    public CountMetricSpec(@JsonProperty("name") @NotNull String name,
-                           @JsonProperty("alias") @Nullable String alias) {
+    public AggregateCountColumnSpec(@JsonProperty("name") @NotNull String name,
+                                    @JsonProperty("alias") @Nullable String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.queryStageAggregator = new SimpleAggregateExpressions.CountAggregateExpression(name);
@@ -112,8 +113,8 @@ public class CountMetricSpec implements IMetricSpec {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof CountMetricSpec) {
-            return this.name.equals(((CountMetricSpec) obj).name);
+        if (obj instanceof AggregateCountColumnSpec) {
+            return this.name.equals(((AggregateCountColumnSpec) obj).name);
         } else {
             return false;
         }

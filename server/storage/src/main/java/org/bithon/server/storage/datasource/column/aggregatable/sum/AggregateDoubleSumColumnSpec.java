@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column.metric.sum;
+package org.bithon.server.storage.datasource.column.aggregatable.sum;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -29,12 +29,12 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2020/12/23
  */
-public class DoubleSumMetricSpec extends SumMetricSpec {
+public class AggregateDoubleSumColumnSpec extends AggregateSumColumnSpec {
 
     @JsonCreator
-    public DoubleSumMetricSpec(@JsonProperty("name") @NotNull String name,
-                               @JsonProperty("alias") @Nullable String alias,
-                               @JsonProperty("displayText") @NotNull String displayText) {
+    public AggregateDoubleSumColumnSpec(@JsonProperty("name") @NotNull String name,
+                                        @JsonProperty("alias") @Nullable String alias,
+                                        @JsonProperty("displayText") @NotNull String displayText) {
         super(name, alias, displayText);
     }
 
@@ -50,8 +50,8 @@ public class DoubleSumMetricSpec extends SumMetricSpec {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof DoubleSumMetricSpec) {
-            return this.name.equals(((DoubleSumMetricSpec) obj).name);
+        if (obj instanceof AggregateDoubleSumColumnSpec) {
+            return this.name.equals(((AggregateDoubleSumColumnSpec) obj).name);
         } else {
             return false;
         }

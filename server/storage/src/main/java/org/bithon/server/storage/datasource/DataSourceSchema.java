@@ -25,8 +25,8 @@ import lombok.Setter;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.column.IColumnSpec;
 import org.bithon.server.storage.datasource.column.LongColumnSpec;
-import org.bithon.server.storage.datasource.column.metric.CountMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumnSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumnSpec;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.datasource.store.InternalDataSourceSpec;
 
@@ -144,15 +144,15 @@ public class DataSourceSchema {
     }
 
     public IColumnSpec getMetricSpecByName(String name) {
-        if (IMetricSpec.COUNT.equals(name)) {
-            return CountMetricSpec.INSTANCE;
+        if (IAggregatableColumnSpec.COUNT.equals(name)) {
+            return AggregateCountColumnSpec.INSTANCE;
         }
 
         return metricsMap.get(name);
     }
 
     public boolean containsMetric(String name) {
-        if (IMetricSpec.COUNT.equals(name)) {
+        if (IAggregatableColumnSpec.COUNT.equals(name)) {
             return true;
         }
 

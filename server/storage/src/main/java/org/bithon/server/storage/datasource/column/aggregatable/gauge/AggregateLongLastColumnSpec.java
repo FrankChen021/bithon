@@ -14,12 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column.metric.min;
+package org.bithon.server.storage.datasource.column.aggregatable.gauge;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.aggregator.LongMinAggregator;
-import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
 import javax.annotation.Nullable;
@@ -27,14 +25,14 @@ import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/16
+ * @date 2021/2/26 11:08 下午
  */
-public class LongMinMetricSpec extends MinMetricSpec {
+public class AggregateLongLastColumnSpec extends AggregateLastColumnSpec {
 
     @JsonCreator
-    public LongMinMetricSpec(@JsonProperty("name") @NotNull String name,
-                             @JsonProperty("alias") @Nullable String alias,
-                             @JsonProperty("displayText") @NotNull String displayText) {
+    public AggregateLongLastColumnSpec(@JsonProperty("name") @NotNull String name,
+                                       @JsonProperty("alias") @Nullable String alias,
+                                       @JsonProperty("displayText") @NotNull String displayText) {
         super(name, alias, displayText);
     }
 
@@ -44,14 +42,9 @@ public class LongMinMetricSpec extends MinMetricSpec {
     }
 
     @Override
-    public NumberAggregator createAggregator() {
-        return new LongMinAggregator();
-    }
-
-    @Override
     public boolean equals(Object obj) {
-        if (obj instanceof LongMinMetricSpec) {
-            return this.name.equals(((LongMinMetricSpec) obj).name);
+        if (obj instanceof AggregateLongLastColumnSpec) {
+            return this.name.equals(((AggregateLongLastColumnSpec) obj).name);
         } else {
             return false;
         }

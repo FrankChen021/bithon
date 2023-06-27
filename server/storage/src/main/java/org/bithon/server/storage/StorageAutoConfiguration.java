@@ -23,8 +23,8 @@ import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.IColumnSpec;
 import org.bithon.server.storage.datasource.column.StringColumnSpec;
-import org.bithon.server.storage.datasource.column.metric.CountMetricSpec;
-import org.bithon.server.storage.datasource.column.metric.sum.LongSumMetricSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumnSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumnSpec;
 import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.meta.CacheableMetadataStorage;
@@ -172,7 +172,7 @@ public class StorageAutoConfiguration {
                                                                        "type",
                                                                        "type",
                                                                        true)),
-                                    Collections.singletonList(CountMetricSpec.INSTANCE));
+                                    Collections.singletonList(AggregateCountColumnSpec.INSTANCE));
 
     }
 
@@ -199,12 +199,12 @@ public class StorageAutoConfiguration {
                                                                         "url",
                                                                         true),
                                                    new StringColumnSpec("kind", "kind", "kind", false)),
-                                     Arrays.asList(CountMetricSpec.INSTANCE,
+                                     Arrays.asList(AggregateCountColumnSpec.INSTANCE,
 
                                                    // microsecond
-                                                   new LongSumMetricSpec("costTimeMs",
-                                                                         null,
-                                                                         "costTimeMs")));
+                                                   new AggregateLongSumColumnSpec("costTimeMs",
+                                                                                  null,
+                                                                                  "costTimeMs")));
         dataSourceSchema.setVirtual(true);
         return dataSourceSchema;
     }
@@ -228,7 +228,7 @@ public class StorageAutoConfiguration {
                                                                     "trace_span_tag_index",
                                                                     new TimestampSpec("timestamp", null, null),
                                                                     dimensionSpecs,
-                                                                    Collections.singletonList(CountMetricSpec.INSTANCE));
+                                                                    Collections.singletonList(AggregateCountColumnSpec.INSTANCE));
         spanTagSchema.setVirtual(true);
         return spanTagSchema;
     }

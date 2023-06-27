@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column.metric.max;
+package org.bithon.server.storage.datasource.column.aggregatable.max;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -29,12 +29,12 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2021/3/16
  */
-public class LongMaxMetricSpec extends MaxMetricSpec {
+public class AggregateLongMaxColumnSpec extends AggregateMaxColumnSpec {
 
     @JsonCreator
-    public LongMaxMetricSpec(@JsonProperty("name") @NotNull String name,
-                             @JsonProperty("alias") @Nullable String alias,
-                             @JsonProperty("displayText") @NotNull String displayText) {
+    public AggregateLongMaxColumnSpec(@JsonProperty("name") @NotNull String name,
+                                      @JsonProperty("alias") @Nullable String alias,
+                                      @JsonProperty("displayText") @NotNull String displayText) {
         super(name, alias, displayText);
     }
 
@@ -50,8 +50,8 @@ public class LongMaxMetricSpec extends MaxMetricSpec {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof LongMaxMetricSpec) {
-            return this.name.equals(((LongMaxMetricSpec) obj).name);
+        if (obj instanceof AggregateLongMaxColumnSpec) {
+            return this.name.equals(((AggregateLongMaxColumnSpec) obj).name);
         } else {
             return false;
         }

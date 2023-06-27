@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column.metric.gauge;
+package org.bithon.server.storage.datasource.column.aggregatable.sum;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.aggregator.DoubleLastAggregator;
+import org.bithon.server.storage.datasource.aggregator.LongSumAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
@@ -27,25 +27,33 @@ import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/23
+ * @date 2020/11/30 5:38 下午
  */
-
-public class DoubleGaugeMetricSpec extends GaugeMetricSpec {
+public class AggregateLongSumColumnSpec extends AggregateSumColumnSpec {
 
     @JsonCreator
-    public DoubleGaugeMetricSpec(@JsonProperty("name") @NotNull String name,
-                                 @JsonProperty("alias") @Nullable String alias,
-                                 @JsonProperty("displayText") @NotNull String displayText) {
+    public AggregateLongSumColumnSpec(@JsonProperty("name") @NotNull String name,
+                                      @JsonProperty("alias") @Nullable String alias,
+                                      @JsonProperty("displayText") @NotNull String displayText) {
         super(name, alias, displayText);
     }
 
     @Override
     public IDataType getDataType() {
-        return IDataType.DOUBLE;
+        return IDataType.LONG;
     }
 
     @Override
     public NumberAggregator createAggregator() {
-        return new DoubleLastAggregator();
+        return new LongSumAggregator();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof AggregateLongSumColumnSpec) {
+            return this.name.equals(((AggregateLongSumColumnSpec) obj).name);
+        } else {
+            return false;
+        }
     }
 }

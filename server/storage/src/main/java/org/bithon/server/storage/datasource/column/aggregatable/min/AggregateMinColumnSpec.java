@@ -14,12 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column.metric.min;
+package org.bithon.server.storage.datasource.column.aggregatable.min;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
-import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumnSpec;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 
@@ -27,7 +27,7 @@ import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions
  * @author frank.chen021@outlook.com
  * @date 2021/3/16
  */
-public abstract class MinMetricSpec implements IMetricSpec {
+public abstract class AggregateMinColumnSpec implements IAggregatableColumnSpec {
 
     @Getter
     protected final String name;
@@ -41,9 +41,9 @@ public abstract class MinMetricSpec implements IMetricSpec {
     protected final SimpleAggregateExpression aggregateExpression;
 
     @JsonCreator
-    public MinMetricSpec(String name,
-                         String alias,
-                         String displayText) {
+    public AggregateMinColumnSpec(String name,
+                                  String alias,
+                                  String displayText) {
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.displayText = displayText;
