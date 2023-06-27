@@ -61,6 +61,9 @@ public interface IDataSourceApi {
     @PostMapping("/api/datasource/name")
     Collection<DisplayableText> getSchemaNames();
 
+    /**
+     * Get distinct values of a specific column under given condition
+     */
     @PostMapping("/api/datasource/dimensions/v2")
     Collection<Map<String, String>> getDimensions(@Validated @RequestBody GetDimensionRequest request);
 

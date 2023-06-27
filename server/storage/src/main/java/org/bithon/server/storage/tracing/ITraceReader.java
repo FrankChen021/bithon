@@ -18,7 +18,7 @@ package org.bithon.server.storage.tracing;
 
 import lombok.Data;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.metrics.IFilter;
+import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 
 import java.sql.Timestamp;
@@ -32,9 +32,9 @@ import java.util.Map;
 public interface ITraceReader {
     List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end);
 
-    List<TraceSpan> getTraceList(List<IFilter> filters,
-                                 Map<Integer, IFilter> indexedTagFilters,
-                                 List<IFilter> nonIndexedTagFilters,
+    List<TraceSpan> getTraceList(List<IColumnFilter> filters,
+                                 Map<Integer, IColumnFilter> indexedTagFilters,
+                                 List<IColumnFilter> nonIndexedTagFilters,
                                  Timestamp start,
                                  Timestamp end,
                                  String orderBy,
@@ -42,16 +42,16 @@ public interface ITraceReader {
                                  int pageNumber,
                                  int pageSize);
 
-    List<Map<String, Object>> getTraceDistribution(List<IFilter> filters,
-                                                   Map<Integer, IFilter> indexedTagFilters,
-                                                   List<IFilter> nonIndexedTagFilters,
+    List<Map<String, Object>> getTraceDistribution(List<IColumnFilter> filters,
+                                                   Map<Integer, IColumnFilter> indexedTagFilters,
+                                                   List<IColumnFilter> nonIndexedTagFilters,
                                                    Timestamp start,
                                                    Timestamp end,
                                                    int interval);
 
-    int getTraceListSize(List<IFilter> filters,
-                         Map<Integer, IFilter> indexedTagFilters,
-                         List<IFilter> nonIndexedTagFilters,
+    int getTraceListSize(List<IColumnFilter> filters,
+                         Map<Integer, IColumnFilter> indexedTagFilters,
+                         List<IColumnFilter> nonIndexedTagFilters,
                          Timestamp start,
                          Timestamp end);
 

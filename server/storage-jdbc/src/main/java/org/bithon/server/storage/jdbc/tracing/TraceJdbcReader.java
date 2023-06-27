@@ -27,10 +27,10 @@ import org.bithon.server.commons.matcher.InMatcher;
 import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
-import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
@@ -99,9 +99,9 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public List<TraceSpan> getTraceList(List<IFilter> filters,
-                                        Map<Integer, IFilter> indexedTagFilter,
-                                        List<IFilter> nonIndexedTagFilters,
+    public List<TraceSpan> getTraceList(List<IColumnFilter> filters,
+                                        Map<Integer, IColumnFilter> indexedTagFilter,
+                                        List<IColumnFilter> nonIndexedTagFilters,
                                         Timestamp start,
                                         Timestamp end,
                                         String orderBy,
@@ -164,9 +164,9 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public List<Map<String, Object>> getTraceDistribution(List<IFilter> filters,
-                                                          Map<Integer, IFilter> indexedTagFilter,
-                                                          List<IFilter> nonIndexedTagFilters,
+    public List<Map<String, Object>> getTraceDistribution(List<IColumnFilter> filters,
+                                                          Map<Integer, IColumnFilter> indexedTagFilter,
+                                                          List<IColumnFilter> nonIndexedTagFilters,
                                                           Timestamp start,
                                                           Timestamp end,
                                                           int interval) {
@@ -219,9 +219,9 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public int getTraceListSize(List<IFilter> filters,
-                                Map<Integer, IFilter> indexedTagFilter,
-                                List<IFilter> nonIndexedTagFilters,
+    public int getTraceListSize(List<IColumnFilter> filters,
+                                Map<Integer, IColumnFilter> indexedTagFilter,
+                                List<IColumnFilter> nonIndexedTagFilters,
                                 Timestamp start,
                                 Timestamp end) {
         boolean isOnSummaryTable = isFilterOnRootSpan(filters);
@@ -319,12 +319,12 @@ public class TraceJdbcReader implements ITraceReader {
         return span;
     }
 
-    private boolean isFilterOnRootSpan(List<IFilter> filters) {
+    private boolean isFilterOnRootSpan(List<IColumnFilter> filters) {
         final String kindFieldName = Tables.BITHON_TRACE_SPAN_SUMMARY.KIND.getName();
 
-        Iterator<IFilter> iterator = filters.iterator();
+        Iterator<IColumnFilter> iterator = filters.iterator();
         while (iterator.hasNext()) {
-            IFilter filter = iterator.next();
+            IColumnFilter filter = iterator.next();
 
             if (!kindFieldName.equals(filter.getName())) {
                 continue;
@@ -361,7 +361,7 @@ public class TraceJdbcReader implements ITraceReader {
      * Get the SQL predicate expression for give tag filter.
      * For the default implementation, ONLY the 'equal' filter is supported, and it's turned into a LIKE search.
      */
-    protected String getTagPredicate(IFilter filter) {
+    protected String getTagPredicate(IColumnFilter filter) {
         if (!(filter.getMatcher() instanceof StringEqualMatcher)) {
             throw new UnsupportedOperationException(StringUtils.format("[%s] matcher on tag field is not supported on this database.",
                                                                        filter.getMatcher().getClass().getSimpleName()));

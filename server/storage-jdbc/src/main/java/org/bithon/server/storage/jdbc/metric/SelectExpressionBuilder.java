@@ -22,6 +22,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
+import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.GroupBy;
@@ -38,7 +39,6 @@ import org.bithon.server.storage.datasource.query.ast.Where;
 import org.bithon.server.storage.datasource.query.parser.FieldExpressionVisitorAdaptor2;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
-import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.Interval;
 
 import javax.annotation.Nullable;
@@ -60,7 +60,7 @@ public class SelectExpressionBuilder {
 
     private List<ResultColumn> resultColumns;
 
-    private Collection<IFilter> filters;
+    private Collection<IColumnFilter> filters;
     private Interval interval;
 
     private List<String> groupBy;
@@ -87,7 +87,7 @@ public class SelectExpressionBuilder {
         return this;
     }
 
-    public SelectExpressionBuilder filters(Collection<IFilter> filters) {
+    public SelectExpressionBuilder filters(Collection<IColumnFilter> filters) {
         this.filters = filters;
         return this;
     }
@@ -391,7 +391,7 @@ public class SelectExpressionBuilder {
         Where where = new Where();
         where.addExpression(StringUtils.format("\"%s\" >= %s", timestampCol, sqlDialect.formatTimestamp(interval.getStartTime())));
         where.addExpression(StringUtils.format("\"%s\" < %s", timestampCol, sqlDialect.formatTimestamp(interval.getEndTime())));
-        for (IFilter filter : filters) {
+        for (IColumnFilter filter : filters) {
             where.addExpression(filter.getMatcher().accept(new SQLFilterBuilder(dataSource, filter)));
         }
 

@@ -16,7 +16,7 @@
 
 package org.bithon.server.storage.jdbc.tracing;
 
-import org.bithon.server.storage.metrics.IFilter;
+import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.jooq.DSLContext;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
@@ -55,5 +55,5 @@ abstract class NestQueryBuilder {
         return this;
     }
 
-    public abstract SelectConditionStep<Record1<String>> build(Map<Integer, IFilter> filters);
+    public abstract SelectConditionStep<Record1<String>> build(Map<Integer, IColumnFilter> filters);
 }

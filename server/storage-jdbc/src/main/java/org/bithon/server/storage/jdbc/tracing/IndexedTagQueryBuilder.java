@@ -18,10 +18,10 @@ package org.bithon.server.storage.jdbc.tracing;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.filter.ColumnFilter;
+import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
-import org.bithon.server.storage.metrics.ColumnFilter;
-import org.bithon.server.storage.metrics.IFilter;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 
@@ -40,16 +40,16 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
     }
 
     @Override
-    public SelectConditionStep<Record1<String>> build(Map<Integer, IFilter> filters) {
+    public SelectConditionStep<Record1<String>> build(Map<Integer, IColumnFilter> filters) {
         if (filters.isEmpty()) {
             return null;
         }
 
         SelectConditionStep<Record1<String>> query = null;
 
-        for (Map.Entry<Integer, IFilter> entry : filters.entrySet()) {
+        for (Map.Entry<Integer, IColumnFilter> entry : filters.entrySet()) {
             Integer index = entry.getKey();
-            IFilter filter = entry.getValue();
+            IColumnFilter filter = entry.getValue();
 
             if (index > Tables.BITHON_TRACE_SPAN_TAG_INDEX.fieldsRow().size() - 2) {
                 throw new RuntimeException(StringUtils.format("Tag [%s] is configured to use wrong index [%d]. Should be in the range [1, %d]",

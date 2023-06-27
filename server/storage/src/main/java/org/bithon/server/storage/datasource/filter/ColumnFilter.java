@@ -14,31 +14,49 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.metrics;
+package org.bithon.server.storage.datasource.filter;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.server.commons.matcher.IMatcher;
 
+import javax.annotation.Nullable;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 25/3/22 5:15 PM
  */
 @Getter
-public class MetricFilter implements IFilter {
+public class ColumnFilter implements IColumnFilter {
     private final IMatcher matcher;
     private final String name;
+    private final String nameType;
+    private final String type;
 
     @JsonCreator
-    public MetricFilter(@JsonProperty("name") String name,
+    public ColumnFilter(@JsonProperty("dimension") String name,
+                        @JsonProperty("nameType") @Nullable String nameType,
                         @JsonProperty("matcher") IMatcher matcher) {
+        this(name, nameType, matcher, "dimension");
+    }
+
+    public ColumnFilter(String name,
+                        String nameType,
+                        IMatcher matcher,
+                        String type) {
         this.name = name;
+        this.nameType = nameType == null ? "name" : "alias";
         this.matcher = matcher;
+        this.type = type;
+    }
+
+    public ColumnFilter(String dimension, IMatcher matcher) {
+        this(dimension, null, matcher);
     }
 
     @Override
     public String getType() {
-        return "metric";
+        return type;
     }
 }

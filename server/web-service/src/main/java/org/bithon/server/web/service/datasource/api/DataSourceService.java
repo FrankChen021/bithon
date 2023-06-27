@@ -21,6 +21,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
@@ -63,8 +64,7 @@ public class DataSourceService {
         List<String> metrics = query.getResultColumns()
                                     .stream()
                                     .filter((resultColumn) -> query.getDataSource()
-                                                                   .getDimensionSpecByName(resultColumn.getResultColumnName())
-                                        == null)
+                                                                   .getColumnByName(resultColumn.getResultColumnName()) instanceof IAggregatableColumn)
                                     .map((ResultColumn::getResultColumnName))
                                     .collect(Collectors.toList());
 

@@ -37,8 +37,8 @@ import org.bithon.server.commons.matcher.StringLikeMatcher;
 import org.bithon.server.storage.common.expression.FilterExpressionASTFactory;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.metrics.ColumnFilter;
-import org.bithon.server.storage.metrics.IFilter;
+import org.bithon.server.storage.datasource.filter.ColumnFilter;
+import org.bithon.server.storage.datasource.filter.IColumnFilter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,7 +52,7 @@ import java.util.Set;
  */
 public class FilterExpressionToFilters {
 
-    public static List<IFilter> toFilter(DataSourceSchema schema, String filterExpression, List<IFilter> otherFilters) {
+    public static List<IColumnFilter> toFilter(DataSourceSchema schema, String filterExpression, List<IColumnFilter> otherFilters) {
         if (StringUtils.isEmpty(filterExpression)) {
             return otherFilters == null ? Collections.emptyList() : otherFilters;
         }
@@ -60,7 +60,7 @@ public class FilterExpressionToFilters {
         IExpression expressionAST = FilterExpressionASTFactory.create(filterExpression);
         Visitor v = new Visitor(schema);
         expressionAST.accept(v);
-        List<IFilter> filters = v.filters;
+        List<IColumnFilter> filters = v.filters;
         if (CollectionUtils.isNotEmpty(otherFilters)) {
             filters.addAll(otherFilters);
         }
@@ -68,7 +68,7 @@ public class FilterExpressionToFilters {
     }
 
     static class Visitor implements IExpressionVisitor<Void> {
-        private final List<IFilter> filters = new ArrayList<>();
+        private final List<IColumnFilter> filters = new ArrayList<>();
         private final DataSourceSchema schema;
 
         public Visitor(DataSourceSchema schema) {
@@ -137,8 +137,8 @@ public class FilterExpressionToFilters {
         public Void visit(BinaryExpression.GT expression) {
             checkBinaryExpression(expression, LiteralExpression.class);
 
-            IColumn columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
-            Preconditions.checkNotNull(columnSpec,
+            IColumn column = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            Preconditions.checkNotNull(column,
                                        "Column [%s] can not be found in schema [%s].",
                                        ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
 
@@ -153,8 +153,8 @@ public class FilterExpressionToFilters {
         public Void visit(BinaryExpression.GTE expression) {
             checkBinaryExpression(expression, LiteralExpression.class);
 
-            IColumn columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
-            Preconditions.checkNotNull(columnSpec,
+            IColumn column = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            Preconditions.checkNotNull(column,
                                        "Column [%s] can not be found in schema [%s].",
                                        ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
 
@@ -168,8 +168,8 @@ public class FilterExpressionToFilters {
         public Void visit(BinaryExpression.LT expression) {
             checkBinaryExpression(expression, LiteralExpression.class);
 
-            IColumn columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
-            Preconditions.checkNotNull(columnSpec,
+            IColumn column = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            Preconditions.checkNotNull(column,
                                        "Column [%s] can not be found in schema [%s].",
                                        ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
 
@@ -183,8 +183,8 @@ public class FilterExpressionToFilters {
         public Void visit(BinaryExpression.LTE expression) {
             checkBinaryExpression(expression, LiteralExpression.class);
 
-            IColumn columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
-            Preconditions.checkNotNull(columnSpec,
+            IColumn column = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            Preconditions.checkNotNull(column,
                                        "Column [%s] can not be found in schema [%s].",
                                        ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
 
@@ -198,8 +198,8 @@ public class FilterExpressionToFilters {
         public Void visit(BinaryExpression.NE expression) {
             checkBinaryExpression(expression, LiteralExpression.class);
 
-            IColumn columnSpec = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
-            Preconditions.checkNotNull(columnSpec,
+            IColumn column = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            Preconditions.checkNotNull(column,
                                        "Column [%s] can not be found in schema [%s].",
                                        ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
 
@@ -213,8 +213,8 @@ public class FilterExpressionToFilters {
         public Void visit(BinaryExpression.LIKE expression) {
             checkBinaryExpression(expression, LiteralExpression.class);
 
-            IColumn columnSpec = schema.getDimensionSpecByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
-            Preconditions.checkNotNull(columnSpec,
+            IColumn column = schema.getColumnByName(((IdentifierExpression) expression.getLeft()).getIdentifier());
+            Preconditions.checkNotNull(column,
                                        "Column [%s] can not be found in schema [%s].",
                                        ((IdentifierExpression) expression.getLeft()).getIdentifier(), schema.getName());
 

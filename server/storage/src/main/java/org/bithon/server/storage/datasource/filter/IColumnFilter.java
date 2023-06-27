@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.metrics;
+package org.bithon.server.storage.datasource.filter;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -27,14 +27,15 @@ import org.bithon.server.commons.matcher.IMatcher;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = ColumnFilter.class)
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = IFilter.TYPE_DIMENSION, value = ColumnFilter.class),
-    @JsonSubTypes.Type(name = IFilter.TYPE_METRIC, value = MetricFilter.class),
+    @JsonSubTypes.Type(name = IColumnFilter.TYPE_DIMENSION, value = ColumnFilter.class)
 })
-public interface IFilter {
+public interface IColumnFilter {
 
     String TYPE_DIMENSION = "dimension";
-    String TYPE_METRIC = "metric";
 
+    /**
+     * Column name or column alias
+     */
     String getName();
 
     @JsonIgnore

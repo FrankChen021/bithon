@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Column;
@@ -27,7 +28,6 @@ import org.bithon.server.storage.datasource.query.ast.SelectExpression;
 import org.bithon.server.storage.datasource.query.ast.StringNode;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
-import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -196,11 +196,11 @@ public class MetricJdbcReader implements IMetricReader {
     }
 
     @Override
-    public List<Map<String, String>> getDimensionValueList(TimeSpan start,
-                                                           TimeSpan end,
-                                                           DataSourceSchema dataSourceSchema,
-                                                           Collection<IFilter> conditions,
-                                                           String dimension) {
+    public List<Map<String, String>> getDistinctValues(TimeSpan start,
+                                                       TimeSpan end,
+                                                       DataSourceSchema dataSourceSchema,
+                                                       Collection<IColumnFilter> conditions,
+                                                       String dimension) {
         String condition = conditions.stream()
                                      .map(d -> d.getMatcher().accept(new SQLFilterBuilder(dataSourceSchema, d)) + " AND ")
                                      .collect(Collectors.joining());

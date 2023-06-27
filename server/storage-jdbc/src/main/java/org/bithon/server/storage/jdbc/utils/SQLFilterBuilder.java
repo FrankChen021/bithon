@@ -36,9 +36,8 @@ import org.bithon.server.commons.matcher.StringRegexMatcher;
 import org.bithon.server.commons.matcher.StringStartsWithMatcher;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.typing.IDataType;
-import org.bithon.server.storage.metrics.ColumnFilter;
-import org.bithon.server.storage.metrics.IFilter;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -51,15 +50,15 @@ import java.util.stream.Stream;
  */
 public class SQLFilterBuilder implements IMatcherVisitor<String> {
 
-    public static String build(DataSourceSchema schema, Collection<IFilter> filters) {
+    public static String build(DataSourceSchema schema, Collection<IColumnFilter> filters) {
         return build(schema, filters.stream());
     }
 
-    public static String build(DataSourceSchema schema, Stream<IFilter> filterStream) {
+    public static String build(DataSourceSchema schema, Stream<IColumnFilter> filterStream) {
         return build(schema, filterStream, true);
     }
 
-    public static String build(DataSourceSchema schema, Stream<IFilter> filterStream, boolean useQualifiedName) {
+    public static String build(DataSourceSchema schema, Stream<IColumnFilter> filterStream, boolean useQualifiedName) {
         return filterStream.map(filter -> filter.getMatcher()
                                                 .accept(new SQLFilterBuilder(schema, filter, useQualifiedName)))
                            .collect(Collectors.joining(" AND "));
@@ -68,26 +67,13 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     private final String fieldName;
     private final IDataType fieldType;
 
-    public SQLFilterBuilder(DataSourceSchema schema, IFilter filter) {
+    public SQLFilterBuilder(DataSourceSchema schema, IColumnFilter filter) {
         this(schema, filter, true);
     }
 
-    public SQLFilterBuilder(DataSourceSchema schema, IFilter filter, boolean useQualifiedName) {
-        IColumn columnSpec;
-        if (IFilter.TYPE_DIMENSION.equals(filter.getType())) {
-            String nameType = ((ColumnFilter) filter).getNameType();
-            if ("name".equals(nameType)) {
-                columnSpec = schema.getDimensionSpecByName(filter.getName());
-            } else if ("alias".equals(nameType)) {
-                columnSpec = schema.getDimensionSpecByAlias(filter.getName());
-            } else {
-                columnSpec = null;
-            }
-            Preconditions.checkNotNull(columnSpec, "dimension [%s] is not defined in data source [%s]", filter.getName(), schema.getName());
-        } else {
-            columnSpec = schema.getMetricSpecByName(filter.getName());
-            Preconditions.checkNotNull(columnSpec, "metric [%s] is not defined in data source [%s]", filter.getName(), schema.getName());
-        }
+    public SQLFilterBuilder(DataSourceSchema schema, IColumnFilter filter, boolean useQualifiedName) {
+        IColumn columnSpec = schema.getColumnByName(filter.getName());
+        Preconditions.checkNotNull(columnSpec, "column [%s] is not defined in data source [%s]", filter.getName(), schema.getName());
 
         this.fieldName = formatName(useQualifiedName, true, schema.getDataStoreSpec().getStore(), columnSpec.getName());
         this.fieldType = columnSpec.getDataType();

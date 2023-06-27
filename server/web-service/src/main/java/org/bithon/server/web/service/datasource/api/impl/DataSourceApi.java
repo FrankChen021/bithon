@@ -213,22 +213,15 @@ public class DataSourceApi implements IDataSourceApi {
     public Collection<Map<String, String>> getDimensions(GetDimensionRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
-        IColumn dimensionSpec;
-        if ("name".equals(request.getType())) {
-            dimensionSpec = schema.getDimensionSpecByName(request.getName());
-        } else if ("alias".equals(request.getType())) {
-            dimensionSpec = schema.getDimensionSpecByAlias(request.getName());
-        } else {
-            throw new Preconditions.InvalidValueException("'type' should be one of (name, alias)");
-        }
-        Preconditions.checkNotNull(dimensionSpec, "dimension [%s] not defined.", request.getName());
+        IColumn column = schema.getColumnByName(request.getName());
+        Preconditions.checkNotNull(column, "column [%s] not found.", request.getName());
 
         return this.metricStorage.createMetricReader(schema)
-                                 .getDimensionValueList(TimeSpan.fromISO8601(request.getStartTimeISO8601()),
-                                                        TimeSpan.fromISO8601(request.getEndTimeISO8601()),
-                                                        schema,
-                                                        request.getFilters(),
-                                                        dimensionSpec.getName());
+                                 .getDistinctValues(TimeSpan.fromISO8601(request.getStartTimeISO8601()),
+                                                    TimeSpan.fromISO8601(request.getEndTimeISO8601()),
+                                                    schema,
+                                                    request.getFilters(),
+                                                    column.getName());
     }
 
     @Override

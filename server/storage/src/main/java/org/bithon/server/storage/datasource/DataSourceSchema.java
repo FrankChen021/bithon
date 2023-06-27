@@ -76,10 +76,7 @@ public class DataSourceSchema {
     private final Period ttl;
 
     @JsonIgnore
-    private final Map<String, IColumn> dimensionMap = new HashMap<>(15);
-
-    @JsonIgnore
-    private final Map<String, IColumn> metricsMap = new HashMap<>();
+    private final Map<String, IColumn> columnMap = new HashMap<>(17);
 
     /**
      * check a {timestamp, dimensions} are unique to help find out some internal wrong implementation
@@ -134,47 +131,33 @@ public class DataSourceSchema {
         this.dataStoreSpec = dataStoreSpec == null ? new InternalDataSourceSpec("bithon_" + name.replaceAll("-", "_")) : dataStoreSpec;
         this.ttl = ttl;
 
-        this.dimensionsSpec.forEach((dimensionSpec) -> dimensionMap.put(dimensionSpec.getName(), dimensionSpec));
-        this.metricsSpec.forEach((metricSpec) -> metricsMap.put(metricSpec.getName(), metricSpec));
-        if ("timestamp".equals(timestampSpec.getTimestampColumn())) {
-            this.dimensionMap.put(TIMESTAMP_COLUMN.getName(), TIMESTAMP_COLUMN);
-        } else {
-            this.dimensionMap.put(timestampSpec.getTimestampColumn(), new LongColumn(timestampSpec.getTimestampColumn(), timestampSpec.getTimestampColumn(), null, true));
-        }
-    }
+        this.dimensionsSpec.forEach((dimensionSpec) -> {
+            columnMap.put(dimensionSpec.getName(), dimensionSpec);
 
-    public IColumn getMetricSpecByName(String name) {
-        if (IAggregatableColumn.COUNT.equals(name)) {
-            return AggregateCountColumn.INSTANCE;
-        }
-
-        return metricsMap.get(name);
-    }
-
-    public boolean containsMetric(String name) {
-        if (IAggregatableColumn.COUNT.equals(name)) {
-            return true;
-        }
-
-        return metricsMap.containsKey(name);
-    }
-
-    public IColumn getDimensionSpecByName(String name) {
-        return dimensionMap.get(name);
-    }
-
-    public IColumn getDimensionSpecByAlias(String alias) {
-        for (IColumn dimSpec : this.dimensionsSpec) {
-            if (alias.equals(dimSpec.getAlias())) {
-                return dimSpec;
+            if (!dimensionSpec.getAlias().equals(dimensionSpec.getName())) {
+                columnMap.put(dimensionSpec.getAlias(), dimensionSpec);
             }
+        });
+
+        this.metricsSpec.forEach((metricSpec) -> {
+            columnMap.put(metricSpec.getName(), metricSpec);
+
+            if (!metricSpec.getAlias().equals(metricSpec.getName())) {
+                columnMap.put(metricSpec.getAlias(), metricSpec);
+            }
+        });
+
+        columnMap.putIfAbsent(IAggregatableColumn.COUNT, AggregateCountColumn.INSTANCE);
+
+        if ("timestamp".equals(timestampSpec.getTimestampColumn())) {
+            this.columnMap.put(TIMESTAMP_COLUMN.getName(), TIMESTAMP_COLUMN);
+        } else {
+            this.columnMap.put(timestampSpec.getTimestampColumn(), new LongColumn(timestampSpec.getTimestampColumn(), timestampSpec.getTimestampColumn(), null, true));
         }
-        return null;
     }
 
     public IColumn getColumnByName(String name) {
-        IColumn dimSpec = dimensionMap.get(name);
-        return dimSpec == null ? getMetricSpecByName(name) : dimSpec;
+        return columnMap.get(name);
     }
 
     @Override
