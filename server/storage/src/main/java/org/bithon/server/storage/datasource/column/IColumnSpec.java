@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource;
+package org.bithon.server.storage.datasource.column;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;

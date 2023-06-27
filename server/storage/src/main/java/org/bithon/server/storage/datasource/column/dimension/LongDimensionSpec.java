@@ -14,13 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.spec.sum;
+package org.bithon.server.storage.datasource.column.dimension;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.aggregator.LongSumAggregator;
-import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
 import javax.annotation.Nullable;
@@ -28,39 +25,20 @@ import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/11/30 5:38 下午
+ * @date 2020/12/11 10:16 上午
  */
-public class LongSumMetricSpec extends SumMetricSpec {
+public class LongDimensionSpec extends AbstractDimensionSpec {
 
     @JsonCreator
-    public LongSumMetricSpec(@JsonProperty("name") @NotNull String name,
+    public LongDimensionSpec(@JsonProperty("name") @NotNull String name,
                              @JsonProperty("alias") @Nullable String alias,
-                             @JsonProperty("displayText") @NotNull String displayText) {
-        super(name, alias, displayText);
-    }
-
-    @JsonIgnore
-    @Override
-    public String getType() {
-        return LONG_SUM;
+                             @JsonProperty("displayText") @NotNull String displayText,
+                             @JsonProperty("visible") @Nullable Boolean visible) {
+        super(name, alias, displayText, visible);
     }
 
     @Override
     public IDataType getDataType() {
         return IDataType.LONG;
-    }
-
-    @Override
-    public NumberAggregator createAggregator() {
-        return new LongSumAggregator();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof LongSumMetricSpec) {
-            return this.name.equals(((LongSumMetricSpec) obj).name);
-        } else {
-            return false;
-        }
     }
 }

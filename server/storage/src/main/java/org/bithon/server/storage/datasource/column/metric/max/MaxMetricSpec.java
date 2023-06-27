@@ -14,13 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.spec.max;
+package org.bithon.server.storage.datasource.column.metric.max;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
+import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
-import org.bithon.server.storage.datasource.spec.IMetricSpec;
 
 /**
  * @author frank.chen021@outlook.com

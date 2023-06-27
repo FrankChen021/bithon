@@ -14,19 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.spec.sum;
+package org.bithon.server.storage.datasource.column.metric.min;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
+import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
-import org.bithon.server.storage.datasource.spec.IMetricSpec;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 20:17
+ * @date 2021/3/16
  */
-public abstract class SumMetricSpec implements IMetricSpec {
+public abstract class MinMetricSpec implements IMetricSpec {
 
     @Getter
     protected final String name;
@@ -34,19 +35,22 @@ public abstract class SumMetricSpec implements IMetricSpec {
     @Getter
     private final String alias;
 
-
     @Getter
     protected final String displayText;
 
     protected final SimpleAggregateExpression aggregateExpression;
 
-    public SumMetricSpec(String name,
+    @JsonCreator
+    public MinMetricSpec(String name,
                          String alias,
                          String displayText) {
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.displayText = displayText;
-        this.aggregateExpression = new SimpleAggregateExpressions.SumAggregateExpression(name);
+
+        // For IMetricSpec, the `name` property is the right text mapped a column in the underlying database,
+        // So the two parameters of the following ctor are all `name` properties
+        this.aggregateExpression = new SimpleAggregateExpressions.MinAggregateExpression(name);
     }
 
     @JsonIgnore

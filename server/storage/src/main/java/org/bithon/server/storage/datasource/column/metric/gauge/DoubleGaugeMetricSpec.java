@@ -14,14 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.spec.max;
+package org.bithon.server.storage.datasource.column.metric.gauge;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.aggregator.LongMaxAggregator;
+import org.bithon.server.storage.datasource.aggregator.DoubleLastAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
 import javax.annotation.Nullable;
@@ -29,39 +28,30 @@ import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/16
+ * @date 2020/12/23
  */
-public class LongMaxMetricSpec extends MaxMetricSpec {
+public class DoubleGaugeMetricSpec extends GaugeMetricSpec {
 
     @JsonCreator
-    public LongMaxMetricSpec(@JsonProperty("name") @NotNull String name,
-                             @JsonProperty("alias") @Nullable String alias,
-                             @JsonProperty("displayText") @NotNull String displayText) {
+    public DoubleGaugeMetricSpec(@JsonProperty("name") @NotNull String name,
+                                 @JsonProperty("alias") @Nullable String alias,
+                                 @JsonProperty("displayText") @NotNull String displayText) {
         super(name, alias, displayText);
     }
 
     @JsonIgnore
     @Override
     public String getType() {
-        return IMetricSpec.LONG_MAX;
+        return DOUBLE_LAST;
     }
 
     @Override
     public IDataType getDataType() {
-        return IDataType.LONG;
+        return IDataType.DOUBLE;
     }
 
     @Override
     public NumberAggregator createAggregator() {
-        return new LongMaxAggregator();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof LongMaxMetricSpec) {
-            return this.name.equals(((LongMaxMetricSpec) obj).name);
-        } else {
-            return false;
-        }
+        return new DoubleLastAggregator();
     }
 }

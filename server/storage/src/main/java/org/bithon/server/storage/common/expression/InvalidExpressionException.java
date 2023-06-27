@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.spec;
+package org.bithon.server.storage.common.expression;
 
 import javax.validation.constraints.NotNull;
 import java.util.Locale;

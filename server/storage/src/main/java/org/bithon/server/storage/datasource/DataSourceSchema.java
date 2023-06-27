@@ -23,10 +23,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;
 import lombok.Setter;
 import org.bithon.server.commons.time.Period;
-import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
-import org.bithon.server.storage.datasource.dimension.LongDimensionSpec;
-import org.bithon.server.storage.datasource.spec.CountMetricSpec;
-import org.bithon.server.storage.datasource.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.column.IColumnSpec;
+import org.bithon.server.storage.datasource.column.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.column.dimension.LongDimensionSpec;
+import org.bithon.server.storage.datasource.column.metric.CountMetricSpec;
+import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.datasource.store.InternalDataSourceSpec;
 

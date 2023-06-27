@@ -19,10 +19,10 @@ package org.bithon.server.sink.metrics;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.column.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
-import org.bithon.server.storage.datasource.spec.IMetricSpec;
 
 import java.util.ArrayList;
 import java.util.Collections;

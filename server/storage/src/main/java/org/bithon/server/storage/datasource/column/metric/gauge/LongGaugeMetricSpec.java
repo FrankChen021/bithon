@@ -14,12 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.spec.gauge;
+package org.bithon.server.storage.datasource.column.metric.gauge;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
 import javax.annotation.Nullable;

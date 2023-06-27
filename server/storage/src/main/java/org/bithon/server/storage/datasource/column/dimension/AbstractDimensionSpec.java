@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.dimension;
+package org.bithon.server.storage.datasource.column.dimension;
 
 import lombok.Data;
 import lombok.Getter;

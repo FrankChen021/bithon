@@ -19,7 +19,7 @@ package org.bithon.server.storage.datasource.query.parser;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.IColumnSpec;
+import org.bithon.server.storage.datasource.column.IColumnSpec;
 
 /**
  * @author frank.chen021@outlook.com

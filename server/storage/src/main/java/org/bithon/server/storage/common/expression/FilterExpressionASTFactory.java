@@ -36,7 +36,6 @@ import org.bithon.component.commons.expression.debug.DebuggableLogicExpression;
 import org.bithon.server.datasource.ast.FilterExpressionBaseVisitor;
 import org.bithon.server.datasource.ast.FilterExpressionLexer;
 import org.bithon.server.datasource.ast.FilterExpressionParser;
-import org.bithon.server.storage.datasource.spec.InvalidExpressionException;
 
 import java.util.Arrays;
 import java.util.Locale;

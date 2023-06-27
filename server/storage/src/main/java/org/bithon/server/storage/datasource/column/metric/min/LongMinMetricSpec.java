@@ -14,13 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.spec.sum;
+package org.bithon.server.storage.datasource.column.metric.min;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.aggregator.DoubleSumAggregator;
+import org.bithon.server.storage.datasource.aggregator.LongMinAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
+import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
 import javax.annotation.Nullable;
@@ -28,37 +29,37 @@ import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/23
+ * @date 2021/3/16
  */
-public class DoubleSumMetricSpec extends SumMetricSpec {
+public class LongMinMetricSpec extends MinMetricSpec {
 
     @JsonCreator
-    public DoubleSumMetricSpec(@JsonProperty("name") @NotNull String name,
-                               @JsonProperty("alias") @Nullable String alias,
-                               @JsonProperty("displayText") @NotNull String displayText) {
+    public LongMinMetricSpec(@JsonProperty("name") @NotNull String name,
+                             @JsonProperty("alias") @Nullable String alias,
+                             @JsonProperty("displayText") @NotNull String displayText) {
         super(name, alias, displayText);
     }
 
     @JsonIgnore
     @Override
     public String getType() {
-        return DOUBLE_SUM;
+        return IMetricSpec.LONG_MIN;
     }
 
     @Override
     public IDataType getDataType() {
-        return IDataType.DOUBLE;
+        return IDataType.LONG;
     }
 
     @Override
     public NumberAggregator createAggregator() {
-        return new DoubleSumAggregator();
+        return new LongMinAggregator();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof DoubleSumMetricSpec) {
-            return this.name.equals(((DoubleSumMetricSpec) obj).name);
+        if (obj instanceof LongMinMetricSpec) {
+            return this.name.equals(((LongMinMetricSpec) obj).name);
         } else {
             return false;
         }

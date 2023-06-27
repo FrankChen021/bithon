@@ -14,12 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.dimension;
+package org.bithon.server.storage.datasource.column.dimension;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.datasource.IColumnSpec;
+import org.bithon.server.storage.datasource.column.IColumnSpec;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 
 /**

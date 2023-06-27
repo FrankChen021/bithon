@@ -35,7 +35,7 @@ import org.bithon.server.commons.matcher.StringLikeMatcher;
 import org.bithon.server.commons.matcher.StringRegexMatcher;
 import org.bithon.server.commons.matcher.StringStartsWithMatcher;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.IColumnSpec;
+import org.bithon.server.storage.datasource.column.IColumnSpec;
 import org.bithon.server.storage.datasource.typing.IDataType;
 import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;

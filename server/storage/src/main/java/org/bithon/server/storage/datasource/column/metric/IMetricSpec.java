@@ -14,21 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.spec;
+package org.bithon.server.storage.datasource.column.metric;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.datasource.IColumnSpec;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
+import org.bithon.server.storage.datasource.column.IColumnSpec;
+import org.bithon.server.storage.datasource.column.metric.gauge.DoubleGaugeMetricSpec;
+import org.bithon.server.storage.datasource.column.metric.gauge.LongGaugeMetricSpec;
+import org.bithon.server.storage.datasource.column.metric.max.LongMaxMetricSpec;
+import org.bithon.server.storage.datasource.column.metric.min.LongMinMetricSpec;
+import org.bithon.server.storage.datasource.column.metric.sum.DoubleSumMetricSpec;
+import org.bithon.server.storage.datasource.column.metric.sum.LongSumMetricSpec;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
-import org.bithon.server.storage.datasource.spec.gauge.DoubleGaugeMetricSpec;
-import org.bithon.server.storage.datasource.spec.gauge.LongGaugeMetricSpec;
-import org.bithon.server.storage.datasource.spec.max.LongMaxMetricSpec;
-import org.bithon.server.storage.datasource.spec.min.LongMinMetricSpec;
-import org.bithon.server.storage.datasource.spec.sum.DoubleSumMetricSpec;
-import org.bithon.server.storage.datasource.spec.sum.LongSumMetricSpec;
 
 /**
  * @author frank.chen021@outlook.com

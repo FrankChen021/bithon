@@ -14,10 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.dimension;
+package org.bithon.server.storage.datasource.column.metric.max;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.bithon.server.storage.datasource.aggregator.LongMaxAggregator;
+import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
+import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
 import javax.annotation.Nullable;
@@ -25,20 +29,39 @@ import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/11 10:16 上午
+ * @date 2021/3/16
  */
-public class LongDimensionSpec extends AbstractDimensionSpec {
+public class LongMaxMetricSpec extends MaxMetricSpec {
 
     @JsonCreator
-    public LongDimensionSpec(@JsonProperty("name") @NotNull String name,
+    public LongMaxMetricSpec(@JsonProperty("name") @NotNull String name,
                              @JsonProperty("alias") @Nullable String alias,
-                             @JsonProperty("displayText") @NotNull String displayText,
-                             @JsonProperty("visible") @Nullable Boolean visible) {
-        super(name, alias, displayText, visible);
+                             @JsonProperty("displayText") @NotNull String displayText) {
+        super(name, alias, displayText);
+    }
+
+    @JsonIgnore
+    @Override
+    public String getType() {
+        return IMetricSpec.LONG_MAX;
     }
 
     @Override
     public IDataType getDataType() {
         return IDataType.LONG;
+    }
+
+    @Override
+    public NumberAggregator createAggregator() {
+        return new LongMaxAggregator();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof LongMaxMetricSpec) {
+            return this.name.equals(((LongMaxMetricSpec) obj).name);
+        } else {
+            return false;
+        }
     }
 }

@@ -18,7 +18,7 @@ package org.bithon.server.web.service.datasource.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import org.bithon.server.storage.datasource.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
 
 import java.util.List;
 import java.util.function.BiConsumer;

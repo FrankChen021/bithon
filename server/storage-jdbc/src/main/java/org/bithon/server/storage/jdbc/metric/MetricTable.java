@@ -18,9 +18,9 @@ package org.bithon.server.storage.jdbc.metric;
 
 import lombok.Getter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
-import org.bithon.server.storage.datasource.spec.IMetricSpec;
-import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
+import org.bithon.server.storage.datasource.column.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.column.metric.IMetricSpec;
+import org.bithon.server.storage.datasource.column.metric.PostAggregatorMetricSpec;
 import org.bithon.server.storage.datasource.typing.IDataType;
 import org.jooq.Field;
 import org.jooq.Index;
@@ -89,17 +89,17 @@ public class MetricTable extends TableImpl {
         return indexes;
     }
 
+    @SuppressWarnings("unchecked")
     private Field createField(String name, IDataType dataType) {
         if (dataType.equals(IDataType.DOUBLE)) {
-            //noinspection unchecked
             return this.createField(DSL.name(name),
                                     SQLDataType.DECIMAL(18, 2).nullable(false).defaultValue(BigDecimal.valueOf(0)));
         } else if (dataType.equals(IDataType.LONG)) {
-            //noinspection unchecked
             return this.createField(DSL.name(name), SQLDataType.BIGINT.nullable(false).defaultValue(0L));
         } else if (dataType.equals(IDataType.STRING)) {
-            //noinspection unchecked
-            return this.createField(DSL.name(name), SQLDataType.VARCHAR.nullable(false).defaultValue(""));
+            // Note that the length defined here will be used in the MetricJdbcWriter to limit the size of input.
+            // This only works on the H2 database.
+            return this.createField(DSL.name(name), SQLDataType.VARCHAR.length(8192).nullable(false).defaultValue(""));
         } else {
             throw new RuntimeException("unknown type:" + dataType);
         }

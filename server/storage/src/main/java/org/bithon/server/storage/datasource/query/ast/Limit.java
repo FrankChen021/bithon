@@ -18,8 +18,6 @@ package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
 
-import javax.annotation.Nullable;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2022/10/30 15:08
