@@ -214,22 +214,33 @@ public class TraceTopoBuilder {
             // When there are no children, it means the next hop might be another system.
             // So, we need to create a link for this situation
             if (childSpan.children.size() == 0) {
-                String uriText = null;
+                String scheme = "";
+                String peer = null;
                 if (SpanKind.CLIENT.name().equals(childSpan.getKind())) {
-                    uriText = childSpan.getTag(Tags.Http.URL);
+                    peer = childSpan.getTag(Tags.Net.PEER);
+                    if (childSpan.getTag(Tags.Http.CLIENT) != null) {
+                        scheme = "http";
+                    } else {
+                        scheme = "Unknown";
+                    }
                 } else if (SpanKind.PRODUCER.name().equals(childSpan.getKind())) {
-                    uriText = childSpan.getTag("uri");
+                    scheme = childSpan.getTag(Tags.Messaging.SYSTEM);
+                    peer = childSpan.getTag(Tags.Net.PEER);
+                    if (scheme == null) {
+                        if (childSpan.getTag(Tags.Messaging.KAFKA_TOPIC) != null) {
+                            // compatible with old data
+                            scheme = "kafka";
+                        } else {
+                            scheme = "Unknown";
+                        }
+                    }
                 }
 
-                if (uriText != null) {
-                    try {
-                        URI uri = new URI(uriText);
-                        TraceSpan next = new TraceSpan();
-                        next.setAppName(uri.getScheme());
-                        next.setInstanceName(uri.getHost() + ":" + uri.getPort());
-                        this.addLink(childSpan, next).incrCount();
-                    } catch (URISyntaxException ignored) {
-                    }
+                if (peer != null) {
+                    TraceSpan next = new TraceSpan();
+                    next.setAppName(scheme);
+                    next.setInstanceName(peer);
+                    this.addLink(childSpan, next).incrCount();
                 }
             }
         }
