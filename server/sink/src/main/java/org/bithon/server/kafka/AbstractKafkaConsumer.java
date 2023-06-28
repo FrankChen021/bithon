@@ -20,8 +20,10 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.errors.TimeoutException;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -31,7 +33,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.BatchMessageListener;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.ContainerAwareBatchErrorHandler;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.listener.RecoveringBatchErrorHandler;
 
 import java.util.HashMap;
@@ -94,17 +98,25 @@ public abstract class AbstractKafkaConsumer implements IKafkaConsumer, BatchMess
         consumerContainer.setConcurrency(concurrency);
         consumerContainer.setApplicationEventPublisher(applicationContext);
         consumerContainer.setApplicationContext(applicationContext);
-        consumerContainer.setBatchErrorHandler((thrownException, data) -> {
-            // Ignore exception when committing offset
-            if (thrownException instanceof TimeoutException) {
-                if (thrownException.getMessage().contains("committing")) {
-                    log.info("Timeout to commit offset ignored.");
-                    return;
-                }
+        consumerContainer.setBatchErrorHandler(new ContainerAwareBatchErrorHandler() {
+            @Override
+            public void handle(Exception thrownException, ConsumerRecords<?, ?> data, Consumer<?, ?> consumer) {
+                this.handle(thrownException, data, consumer, consumerContainer);
             }
 
-            // Fallback to default handler to handle
-            new RecoveringBatchErrorHandler().handle(thrownException, data);
+            @Override
+            public void handle(Exception thrownException, ConsumerRecords<?, ?> data, Consumer<?, ?> consumer, MessageListenerContainer container) {
+                // Ignore exception when committing offset
+                if (thrownException instanceof TimeoutException) {
+                    if (thrownException.getMessage().contains("committing")) {
+                        log.info("Timeout to commit offset ignored.");
+                        return;
+                    }
+                }
+
+                // Fallback to default handler to handle
+                new RecoveringBatchErrorHandler().handle(thrownException, data, consumer, container);
+            }
         });
         consumerContainer.start();
 
