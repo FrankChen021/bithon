@@ -20,6 +20,7 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.Query;
@@ -63,8 +64,10 @@ public class DataSourceService {
         // Remove any dimensions
         List<String> metrics = query.getResultColumns()
                                     .stream()
-                                    .filter((resultColumn) -> query.getDataSource()
-                                                                   .getColumnByName(resultColumn.getResultColumnName()) instanceof IAggregatableColumn)
+                                    .filter((resultColumn) -> {
+                                        IColumn column = query.getDataSource().getColumnByName(resultColumn.getResultColumnName());
+                                        return column instanceof IAggregatableColumn || column instanceof ExpressionColumn;
+                                    })
                                     .map((ResultColumn::getResultColumnName))
                                     .collect(Collectors.toList());
 
