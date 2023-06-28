@@ -64,10 +64,11 @@ public class NetworkClient$CompleteResponses extends AfterInterceptor {
 
             // Process the node id for messages sending to group coordinator
             if (apiKeys.id == ApiKeys.LEAVE_GROUP.id
-                    || apiKeys.id == ApiKeys.JOIN_GROUP.id
-                    || apiKeys.id == ApiKeys.OFFSET_COMMIT.id
-                    || apiKeys.id == ApiKeys.OFFSET_FETCH.id
-                    || apiKeys.id == ApiKeys.HEARTBEAT.id) {
+                || apiKeys.id == ApiKeys.JOIN_GROUP.id
+                || apiKeys.id == ApiKeys.SYNC_GROUP.id
+                || apiKeys.id == ApiKeys.OFFSET_COMMIT.id
+                || apiKeys.id == ApiKeys.OFFSET_FETCH.id
+                || apiKeys.id == ApiKeys.HEARTBEAT.id) {
 
                 try {
                     // See FindCoordinatorResponseHandler in AbstractCoordinator
