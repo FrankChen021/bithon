@@ -78,6 +78,7 @@ public class KafkaProducer$DoSend extends AroundInterceptor {
         aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                       .kind(SpanKind.PRODUCER)
                                       .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
+                                      .tag(Tags.Messaging.SYSTEM, "kafka")
                                       .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
                                       .tag(Tags.Messaging.KAFKA_TOPIC, record.topic())
                                       .tag(Tags.Messaging.KAFKA_SOURCE_PARTITION, record.partition())
