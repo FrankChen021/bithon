@@ -87,7 +87,7 @@ public class ExpirationScheduler {
 
         long cleanPeriod = expirationConfig.getCleanPeriod().getMilliseconds();
 
-        long last = timestamps.getOrDefault(storage.getName(), now);
+        long last = timestamps.computeIfAbsent(storage.getName(), key -> now);
         if ((now - last) < cleanPeriod) {
             if (log.isDebugEnabled()) {
                 log.debug("Storage [{}] is expected to execute expiration at [{}], not now.",
