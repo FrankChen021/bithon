@@ -9,7 +9,8 @@
       "width": 4,
       "type": "line",
       "columns": [
-        "qps"
+        "qps",
+        {"name": "requestCount", "yAxis": 1}
       ],
       "query": {
         "dataSource": "http-outgoing-metrics",
