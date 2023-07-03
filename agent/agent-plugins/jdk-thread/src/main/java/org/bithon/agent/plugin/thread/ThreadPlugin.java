@@ -51,7 +51,7 @@ public class ThreadPlugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.thread.interceptor.ThreadPoolExecutor$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("remove")
+                                                   .onMethodAndArgs("remove", "java.lang.Runnable")
                                                    .to("org.bithon.agent.plugin.thread.interceptor.ThreadPoolExecutor$Remove"),
 
                     MethodPointCutDescriptorBuilder.build()

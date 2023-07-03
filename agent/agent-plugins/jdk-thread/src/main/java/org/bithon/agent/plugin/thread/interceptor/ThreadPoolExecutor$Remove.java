@@ -28,11 +28,19 @@ import org.bithon.agent.plugin.thread.utils.ObservedTask;
  */
 public class ThreadPoolExecutor$Remove extends BeforeInterceptor {
     /**
-     * The {@link java.util.concurrent.ThreadPoolExecutor#remove(Runnable)} removes the object from the queue,
-     * however, in the queue, we store the object of {@link ObservedTask}, so we need to change the input args as {@link ObservedTask}.
+     * When calling the {@link java.util.concurrent.ThreadPoolExecutor#remove(Runnable)},
+     * the implementation uses this pattern to compare the runnable object
+     * to determine if the current object from the queue is the right object to delete:
      * <p>
-     * The {@link ObservedTask} already overrides its {@link ObservedTask#equals(Object)}
-     * and {@link ObservedTask#compareTo(Object)} to handle the comparison correctly.
+     * userRunnableObject.equals(objectFromQueue)
+     * <p>
+     * So, we need to turn the userRunnableObject as an object wrapped by {@link ObservedTask},
+     * In such case, the above statement would be:
+     * <p>
+     * wrappedRunnableObject.equals(objectFromQueue).
+     * <p>
+     * Since we have overridden the {@link ObservedTask#equals(Object)} to compare the inner Runnable object,
+     * above equals function can return the correct result if two inner Runnable objects are the same.
      */
     @Override
     public void before(AopContext aopContext) {
