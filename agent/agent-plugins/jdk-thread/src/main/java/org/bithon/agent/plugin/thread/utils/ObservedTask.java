@@ -21,13 +21,14 @@ import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
 import org.bithon.component.commons.tracing.Tags;
 
+import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 12/5/22 8:57 PM
  */
-public class ObservedTask implements Runnable {
+public class ObservedTask implements Runnable, Comparable<Object> {
     /**
      * The executor that runs the runnable object
      */
@@ -106,5 +107,43 @@ public class ObservedTask implements Runnable {
                                                                (System.nanoTime() - nanos) / 1000L + (System.currentTimeMillis() - millis) * 1000,
                                                                hasException);
         }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public int compareTo(Object right) {
+        if (right instanceof ObservedTask) {
+            if (this.task instanceof Comparable) {
+                Runnable rightTask = ((ObservedTask) right).task;
+
+                return ((Comparable) this.task).compareTo(rightTask);
+            }
+            return -1;
+        }
+        return -1;
+    }
+
+    @Override
+    public boolean equals(Object right) {
+        if (this == right) {
+            return true;
+        }
+        if (right == null) {
+            return false;
+        }
+
+        if (getClass() == right.getClass()) {
+            ObservedTask that = (ObservedTask) right;
+            return Objects.equals(executor, that.executor) && Objects.equals(task, that.task);
+        }
+
+        if (right instanceof Runnable) {
+            // At user code side, they hold their own task objects,
+            // they will use these tasks to manipulate the executors like calling the 'remove' method on the executor,
+            // Since the executor holds the wrapped task object(type of ObservedTask),
+            // we need to support to compare the wrapped object with the raw object directly
+            return Objects.equals(this.task, right);
+        }
+        return false;
     }
 }
