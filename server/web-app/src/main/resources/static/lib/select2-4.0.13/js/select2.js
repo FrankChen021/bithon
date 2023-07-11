@@ -1598,7 +1598,7 @@ S2.define('select2/selection/single',[
     $selection.addClass('select2-selection--single');
 
     $selection.html(
-      '<span class="select2-selection__rendered"></span>' +
+      '<input class="select2-selection__rendered"></input>' +
       '<span class="select2-selection__arrow" role="presentation">' +
         '<b role="presentation"></b>' +
       '</span>'
@@ -1617,10 +1617,18 @@ S2.define('select2/selection/single',[
     this.$selection.find('.select2-selection__rendered')
       .attr('id', id)
       .attr('role', 'textbox')
-      .attr('aria-readonly', 'true');
+      .attr('aria-readonly', 'true')
+      // Change to INPUT, limit the size of INPUT, 20 is the dropdown icon width
+      .css('width', $container.width() - 2 + 'px')
+      .css('padding-left', '4px') //override the default to show more content
+      .css('border', '0')
+      ;
+      //---END
     this.$selection.attr('aria-labelledby', id);
 
-    this.$selection.on('mousedown', function (evt) {
+    /** Change to INPUT*/
+    //this.$selection.on('mousedown', function (evt) {
+    this.$selection.find('.select2-selection__arrow').on('mousedown', function (evt) {
       // Only respond to left clicks
       if (evt.which !== 1) {
         return;
@@ -1648,7 +1656,14 @@ S2.define('select2/selection/single',[
 
   SingleSelection.prototype.clear = function () {
     var $rendered = this.$selection.find('.select2-selection__rendered');
-    $rendered.empty();
+
+    //---Change to INPUT
+    // $rendered.empty();
+    $rendered.val('')
+             .css('padding-right', '20px');
+    this.$selection.find('.select2-selection__clear').remove();
+    //---END
+
     $rendered.removeAttr('title'); // clear tooltip on empty
   };
 
@@ -1674,7 +1689,9 @@ S2.define('select2/selection/single',[
     var $rendered = this.$selection.find('.select2-selection__rendered');
     var formatted = this.display(selection, $rendered);
 
-    $rendered.empty().append(formatted);
+    //Change to INPUT
+    //$rendered.empty().append(formatted);
+    $rendered.val(formatted);
 
     var title = selection.title || selection.text;
 
@@ -1847,9 +1864,12 @@ S2.define('select2/selection/placeholder',[
 
     this.clear();
 
-    var $placeholder = this.createPlaceholder(this.placeholder);
+    // Change to INPUT
+    //var $placeholder = this.createPlaceholder(this.placeholder);
 
-    this.$selection.find('.select2-selection__rendered').append($placeholder);
+    //this.$selection.find('.select2-selection__rendered').append($placeholder);
+    this.$selection.find('.select2-selection__rendered').attr('placeholder', this.placeholder.text);
+    //---END
   };
 
   return Placeholder;
@@ -1882,7 +1902,23 @@ S2.define('select2/selection/allowClear',[
     });
 
     container.on('keypress', function (evt) {
+      // Change to INPUT
       self._handleKeyboardClear(evt, container);
+      //---END
+
+      if (evt.which === KEYS.ENTER) {
+        const text = $container.find('.select2-selection__rendered').val().trim();
+        if (text.length === 0) {
+            self._handleClear(evt, container);
+        } else {
+            this.trigger('select', {
+              data: {
+                id: text,
+                text: text
+              }
+            });
+        }
+      }
     });
   };
 
@@ -1933,7 +1969,9 @@ S2.define('select2/selection/allowClear',[
 
     this.$element.trigger('input').trigger('change');
 
-    this.trigger('toggle', {});
+    // Change to INPUT, no show the dialog if clear button is clicked
+    //this.trigger('toggle', {});
+    //---END
   };
 
   AllowClear.prototype._handleKeyboardClear = function (_, evt, container) {
@@ -1963,7 +2001,16 @@ S2.define('select2/selection/allowClear',[
     );
     Utils.StoreData($remove[0], 'data', data);
 
-    this.$selection.find('.select2-selection__rendered').prepend($remove);
+    // Change to INPUT
+    //this.$selection.find('.select2-selection__rendered').prepend($remove);
+    $remove.css('position', 'absolute')
+            .css('top', '35%')
+            .css('right', '20px')
+            .css('margin-top', '0')
+            .css('margin-right', '0')
+            .insertBefore(this.$selection.find('.select2-selection__arrow'));
+    this.$selection.find('.select2-selection__rendered').css('padding-right', '30px');
+    //---END
   };
 
   return AllowClear;
@@ -5720,8 +5767,11 @@ S2.define('select2/core',[
           evt.preventDefault();
         }
       } else {
-        if (key === KEYS.ENTER || key === KEYS.SPACE ||
-            (key === KEYS.DOWN && evt.altKey)) {
+        // Change to INPUT
+        //if (key === KEYS.ENTER || key === KEYS.SPACE ||
+        //    (key === KEYS.DOWN && evt.altKey)) {
+        if (key === KEYS.DOWN) {
+        //--END
           self.open();
 
           evt.preventDefault();
