@@ -103,7 +103,7 @@ public class TraceSpanTransformer implements ITransformer {
 
                 tags.remove(Tags.Http.URL);
                 tags.put(Tags.Http.TARGET, query == null ? path : (path + "?" + query));
-                tags.put(Tags.Net.PEER, url.getHost() + ":" + url.getPort());
+                tags.put(Tags.Net.PEER, url.getPort() == -1 ? url.getHost() : (url.getHost() + ":" + url.getPort()));
 
                 // Use the path to normalize
                 uri = path;

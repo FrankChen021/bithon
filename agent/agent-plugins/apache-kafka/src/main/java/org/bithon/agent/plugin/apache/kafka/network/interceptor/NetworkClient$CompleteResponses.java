@@ -17,6 +17,7 @@
 package org.bithon.agent.plugin.apache.kafka.network.interceptor;
 
 import org.apache.kafka.clients.ClientResponse;
+import org.apache.kafka.common.protocol.ApiKeys;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
@@ -57,11 +58,23 @@ public class NetworkClient$CompleteResponses extends AfterInterceptor {
         List<ClientResponse> responses = aopContext.getArgAs(0);
         for (ClientResponse response : responses) {
 
-            String messageType = "";
-            if (response.hasResponse()) {
-                messageType = response.responseBody().getClass().getSimpleName();
-                if (messageType.endsWith("Response")) {
-                    messageType = messageType.substring(0, messageType.length() - "Response".length());
+            ApiKeys apiKeys = response.requestHeader().apiKey();
+            String messageType = apiKeys.name;
+            String nodeId = response.destination();
+
+            // Process the node id for messages sending to group coordinator
+            if (apiKeys.id == ApiKeys.LEAVE_GROUP.id
+                || apiKeys.id == ApiKeys.JOIN_GROUP.id
+                || apiKeys.id == ApiKeys.SYNC_GROUP.id
+                || apiKeys.id == ApiKeys.OFFSET_COMMIT.id
+                || apiKeys.id == ApiKeys.OFFSET_FETCH.id
+                || apiKeys.id == ApiKeys.HEARTBEAT.id) {
+
+                try {
+                    // See FindCoordinatorResponseHandler in AbstractCoordinator
+                    int realNodeId = Integer.MAX_VALUE - Integer.parseInt(nodeId);
+                    nodeId = String.valueOf(realNodeId);
+                } catch (NumberFormatException ignored) {
                 }
             }
 
@@ -85,7 +98,7 @@ public class NetworkClient$CompleteResponses extends AfterInterceptor {
 
             NetworkMetrics metrics = metricRegistry.getOrCreateMetrics(messageType,
                                                                        pluginContext.clusterSupplier.get(),
-                                                                       response.destination(),
+                                                                       nodeId,
                                                                        pluginContext.groupId,
                                                                        pluginContext.clientId,
                                                                        exceptionName);

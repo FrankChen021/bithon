@@ -20,6 +20,7 @@ import org.bithon.agent.observability.tracing.context.propagation.PropagationSet
 import org.bithon.component.commons.tracing.SpanKind;
 
 import java.lang.reflect.Executable;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Map;
@@ -65,9 +66,15 @@ public interface ITraceSpan {
     }
 
     default ITraceSpan tag(String name, InetSocketAddress address) {
-        if (address != null) {
-            tag(name, address.getAddress().getHostAddress() + ":" + address.getPort());
+        if (address == null) {
+            return this;
         }
+        InetAddress addr = address.getAddress();
+        if (addr == null) {
+            return this;
+        }
+
+        tag(name, addr.getHostAddress() + ":" + address.getPort());
         return this;
     }
 

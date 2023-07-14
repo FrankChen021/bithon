@@ -51,9 +51,13 @@ public class ThreadPlugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.thread.interceptor.ThreadPoolExecutor$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndArgs("remove", "java.lang.Runnable")
+                                                   .to("org.bithon.agent.plugin.thread.interceptor.ThreadPoolExecutor$Remove"),
+
+                    MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("shutdown")
                                                    .to("org.bithon.agent.plugin.thread.interceptor.ThreadPoolExecutor$Shutdown")
-                ),
+                        ),
 
             forClass("java.util.concurrent.ForkJoinPool")
                 .methods(
@@ -72,8 +76,8 @@ public class ThreadPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("externalPush")
                                                    .to("org.bithon.agent.plugin.thread.interceptor.ForkJoinPool$ExternalPush")
-                )
-        );
+                        )
+                            );
     }
 }
 

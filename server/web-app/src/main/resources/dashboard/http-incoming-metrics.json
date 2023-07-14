@@ -45,7 +45,8 @@
           "orderBy": {
             "name": "totalCount",
             "order": "desc"
-          }
+          },
+          "limit": 15
         },
         "tracing": {
           "mappings": {
@@ -101,7 +102,8 @@
           "orderBy": {
             "name": "avgResponseTime",
             "order": "desc"
-          }
+          },
+          "limit": 15
         },
         "tracing": {
           "mappings": {
@@ -161,7 +163,8 @@
                 "value": "400"
               }
             }
-          ]
+          ],
+          "limit": 15
         },
         "tracing": {
           "mappings": {
@@ -229,7 +232,8 @@
           "orderBy": {
             "name": "requestByteRate",
             "order": "desc"
-          }
+          },
+          "limit": 15
         }
       }
     }

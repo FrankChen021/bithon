@@ -35,6 +35,9 @@ class LoggingTraceSpan implements ITraceSpan {
     private final String spanId;
     private final String parentSpanId;
 
+    private long startTimeMicrosecond = 0;
+    private long endTimeMicrosecond = 0;
+
     public LoggingTraceSpan(LoggingTraceContext traceContext, String parentSpanId, String spanId) {
         this.traceContext = traceContext;
         this.spanId = spanId;
@@ -43,6 +46,7 @@ class LoggingTraceSpan implements ITraceSpan {
 
     @Override
     public ITraceSpan start() {
+        this.startTimeMicrosecond = traceContext.clock().currentMicroseconds();
         traceContext.onSpanStarted(this);
         return this;
     }
@@ -50,6 +54,7 @@ class LoggingTraceSpan implements ITraceSpan {
     @Override
     public void finish() {
         traceContext.onSpanFinished(this);
+        this.endTimeMicrosecond = traceContext.clock().currentMicroseconds();
     }
 
     @Override
@@ -139,12 +144,12 @@ class LoggingTraceSpan implements ITraceSpan {
 
     @Override
     public long startTime() {
-        return 0;
+        return startTimeMicrosecond;
     }
 
     @Override
     public long endTime() {
-        return 0;
+        return endTimeMicrosecond;
     }
 
     @Override
