@@ -82,7 +82,7 @@
         }
     </style>
     <script>
-        function redirect(url) {
+        function redirect(url, newWindow) {
             url += '/?';
             if (g_SelectedApp !== undefined && g_SelectedApp !== null) {
                 url += 'appName=' + g_SelectedApp;
@@ -93,7 +93,11 @@
             if (g_MetricSelectedInterval !== undefined && g_MetricSelectedInterval !== null) {
                 url += `&interval=${g_MetricSelectedInterval}`;
             }
-            window.location = url;
+            if (newWindow) {
+                window.open(url);
+            } else {
+                window.location = url;
+            }
         }
     </script>
 </head>
@@ -125,7 +129,7 @@
                         </a>
                         <div class="sidebar-submenu">
                             <ul>
-                                <li id="metricSidebar">
+                                <li id="metricFolder">
                                 </li>
                             </ul>
                         </div>
@@ -143,6 +147,19 @@
                                 </li>
                                 <li>
                                     <a onclick="redirect('/web/trace/profiling')">Profiling</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    <li class="sidebar-dropdown">
+                        <a class="log-anchor" href="#">
+                            <i class="fa fa-tachometer-alt"></i>
+                            <span class="menu-text">Logs</span>
+                        </a>
+                        <div class="sidebar-submenu">
+                            <ul>
+                                <li id="logFolder">
                                 </li>
                             </ul>
                         </div>
@@ -388,7 +405,8 @@
                 window.clearInterval(handler);
             }, 300);
         })
-        new MetricSidebar("metricSidebar", g_SelectedApp).load();
+        new Sidebar("metricFolder").load('metrics', '/web/metrics', false);
+        new Sidebar("logFolder").load('log', '/web/log', true);
 
         new SearchBar(true);
 

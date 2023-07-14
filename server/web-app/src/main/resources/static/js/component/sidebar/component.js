@@ -1,14 +1,14 @@
-class MetricSidebar {
-    constructor(containerId, appName) {
+class Sidebar {
+    constructor(containerId) {
         this._container = $('#' + containerId);
     }
 
-    load() {
+    load(folder, rootPath, newWindow) {
         g_DashboardApi.getDashboardList(
-            'metrics',
+            folder,
             (data) => {
                 $.each(data, (index, item) => {
-                    this.addDashboardItem({id: item.value, text: item.text});
+                    this.#addDashboardItem({id: item.value, text: item.text}, rootPath, newWindow);
                 });
             },
             (data) => {
@@ -19,9 +19,9 @@ class MetricSidebar {
     }
 
     // PRIVATE
-    addDashboardItem(item) {
+    #addDashboardItem(item, root, newWindow) {
         const i = $(`<a>${item.text}</a>`).click(() => {
-            redirect(`/web/metrics/${item.id}`);
+            redirect(`${root}/${item.id}`, newWindow);
         });
         this._container.append(i);
     }
