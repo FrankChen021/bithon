@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.tracing.api;
 
 import lombok.Data;
-import org.bithon.server.storage.metrics.IFilter;
+import org.bithon.server.storage.datasource.filter.IColumnFilter;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -39,7 +39,7 @@ public class GetTraceDistributionRequest {
     private String endTimeISO8601;
 
     @NotNull
-    private List<IFilter> filters = Collections.emptyList();
+    private List<IColumnFilter> filters = Collections.emptyList();
 
     /**
      * Filter expression

@@ -55,7 +55,9 @@ public class MetricStorage extends MetricJdbcStorage {
 
     @Override
     protected void initialize(DataSourceSchema schema, MetricTable table) {
-        new TableCreator(config, this.dslContext).createIfNotExist(table);
+        if (schema.getDataStoreSpec().isInternal()) {
+            new TableCreator(config, this.dslContext).createIfNotExist(table);
+        }
     }
 
     @Override
@@ -73,7 +75,7 @@ public class MetricStorage extends MetricJdbcStorage {
 
             @Override
             protected void expireImpl(DataSourceSchema schema, Timestamp before) {
-                String table = "bithon_" + schema.getName().replace('-', '_');
+                String table = schema.getDataStoreSpec().getStore();
                 new DataCleaner(config, dslContext).deleteFromPartition(table, before);
             }
         };

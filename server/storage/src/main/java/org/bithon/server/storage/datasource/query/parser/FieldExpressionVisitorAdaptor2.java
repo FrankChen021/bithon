@@ -19,7 +19,7 @@ package org.bithon.server.storage.datasource.query.parser;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.IColumnSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
 
 /**
  * @author frank.chen021@outlook.com
@@ -27,14 +27,14 @@ import org.bithon.server.storage.datasource.IColumnSpec;
  */
 public abstract class FieldExpressionVisitorAdaptor2 implements FieldExpressionVisitorAdaptor {
     public final void visitField(String field) {
-        IColumnSpec columnSpec = getSchema().getColumnByName(field);
+        IColumn columnSpec = getSchema().getColumnByName(field);
         if (columnSpec == null) {
             throw new RuntimeException(StringUtils.format("field [%s] can't be found in [%s].", field, getSchema().getName()));
         }
         visitField(columnSpec);
     }
 
-    public abstract void visitField(IColumnSpec columnSpec);
+    public abstract void visitField(IColumn columnSpec);
 
     protected abstract DataSourceSchema getSchema();
 }

@@ -21,7 +21,7 @@ import org.bithon.component.brpc.exception.BadRequestException;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.exception.HttpResponseMapping;
 import org.bithon.server.commons.exception.ErrorResponse;
-import org.bithon.server.storage.datasource.spec.InvalidExpressionException;
+import org.bithon.server.storage.common.expression.InvalidExpressionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;

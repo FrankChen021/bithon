@@ -36,10 +36,9 @@ import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.TransformSpec;
-import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.tracing.TraceSpan;
@@ -174,7 +173,7 @@ public class MetricOverSpanInputSource implements IInputSource {
         }
 
         /**
-         * will be closed when this processor is unlinked from processor list
+         * will be closed when this processor is unlinked from a processor list
          */
         @Override
         public void close() {
@@ -191,12 +190,12 @@ public class MetricOverSpanInputSource implements IInputSource {
             metricMessage.setInstanceName(span.getInstanceName());
             metricMessage.setTimestamp(span.getStartTime() / 1000);
 
-            for (IDimensionSpec dimSpec : schema.getDimensionsSpec()) {
+            for (IColumn dimSpec : schema.getDimensionsSpec()) {
                 metricMessage.put(dimSpec.getName(), span.getCol(dimSpec.getName()));
             }
-            for (IMetricSpec metricSpec : schema.getMetricsSpec()) {
-                String field = metricSpec.getField() == null ? metricSpec.getName() : metricSpec.getField();
-                metricMessage.put(metricSpec.getName(), span.getCol(field));
+            for (IColumn metricSpec : schema.getMetricsSpec()) {
+                String name = metricSpec.getName();
+                metricMessage.put(name, span.getCol(name));
             }
 
             return metricMessage;

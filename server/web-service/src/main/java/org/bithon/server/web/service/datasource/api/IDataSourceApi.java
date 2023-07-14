@@ -34,8 +34,14 @@ public interface IDataSourceApi {
     @PostMapping("/api/datasource/timeseries/v3")
     GeneralQueryResponse timeseriesV3(@Validated @RequestBody GeneralQueryRequest request);
 
+    @PostMapping("/api/datasource/timeseries/v4")
+    GeneralQueryResponse timeseriesV4(@Validated @RequestBody GeneralQueryRequest request);
+
     @PostMapping("/api/datasource/groupBy/v2")
     GeneralQueryResponse groupBy(@Validated @RequestBody GeneralQueryRequest request);
+
+    @PostMapping("/api/datasource/groupBy/v3")
+    GeneralQueryResponse groupByV3(@Validated @RequestBody GeneralQueryRequest request);
 
     @PostMapping("/api/datasource/list/v2")
     GeneralQueryResponse list(@Validated @RequestBody GeneralQueryRequest request);
@@ -55,6 +61,9 @@ public interface IDataSourceApi {
     @PostMapping("/api/datasource/name")
     Collection<DisplayableText> getSchemaNames();
 
+    /**
+     * Get distinct values of a specific column under given condition
+     */
     @PostMapping("/api/datasource/dimensions/v2")
     Collection<Map<String, String>> getDimensions(@Validated @RequestBody GetDimensionRequest request);
 

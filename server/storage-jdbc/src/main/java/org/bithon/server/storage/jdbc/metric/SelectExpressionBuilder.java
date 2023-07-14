@@ -20,7 +20,9 @@ import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.IColumnSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
+import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.GroupBy;
@@ -35,10 +37,8 @@ import org.bithon.server.storage.datasource.query.ast.StringNode;
 import org.bithon.server.storage.datasource.query.ast.Table;
 import org.bithon.server.storage.datasource.query.ast.Where;
 import org.bithon.server.storage.datasource.query.parser.FieldExpressionVisitorAdaptor2;
-import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
-import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.Interval;
 
 import javax.annotation.Nullable;
@@ -60,7 +60,7 @@ public class SelectExpressionBuilder {
 
     private List<ResultColumn> resultColumns;
 
-    private Collection<IFilter> filters;
+    private Collection<IColumnFilter> filters;
     private Interval interval;
 
     private List<String> groupBy;
@@ -87,7 +87,7 @@ public class SelectExpressionBuilder {
         return this;
     }
 
-    public SelectExpressionBuilder filters(Collection<IFilter> filters) {
+    public SelectExpressionBuilder filters(Collection<IColumnFilter> filters) {
         this.filters = filters;
         return this;
     }
@@ -123,7 +123,7 @@ public class SelectExpressionBuilder {
         private final ISqlDialect sqlExpressionFormatter;
 
         @Getter
-        private final List<IMetricSpec> windowFunctionAggregators = new ArrayList<>();
+        private final List<IAggregatableColumn> windowFunctionAggregators = new ArrayList<>();
 
         @Getter
         private final Set<String> metrics = new HashSet<>();
@@ -143,12 +143,12 @@ public class SelectExpressionBuilder {
         }
 
         @Override
-        public void visitField(IColumnSpec columnSpec) {
-            if (!(columnSpec instanceof IMetricSpec)) {
+        public void visitField(IColumn columnSpec) {
+            if (!(columnSpec instanceof IAggregatableColumn)) {
                 throw new RuntimeException(StringUtils.format("field [%s] is not a metric", columnSpec.getName()));
             }
 
-            IMetricSpec metricSpec = (IMetricSpec) columnSpec;
+            IAggregatableColumn metricSpec = (IAggregatableColumn) columnSpec;
             if (aggregatedColumn.contains(metricSpec.getName())) {
                 return;
             }
@@ -193,9 +193,9 @@ public class SelectExpressionBuilder {
             expression.visitExpression(new FieldExpressionVisitorAdaptor2() {
 
                 @Override
-                public void visitField(IColumnSpec columnSpec) {
+                public void visitField(IColumn columnSpec) {
 
-                    IMetricSpec metricSpec = (IMetricSpec) columnSpec;
+                    IAggregatableColumn metricSpec = (IAggregatableColumn) columnSpec;
 
                     // Case 1. The field used in window function is presented in a sub-query, at the root query level we only reference the name
                     boolean useWindowFunctionAsAggregator = sqlDialect.useWindowFunctionAsAggregator(metricSpec.getAggregateExpression().getFnName());
@@ -300,10 +300,10 @@ public class SelectExpressionBuilder {
      * </pre>
      */
     public SelectExpression build() {
-        String sqlTableName = "bithon_" + dataSource.getName().replace("-", "_");
+        String sqlTableName = dataSource.getDataStoreSpec().getStore();
 
         //
-        // Turn some metrics(those use window functions for aggregation) in expression into pre-aggregator first
+        // Turn some metrics (those use window functions for aggregation) in expression into pre-aggregator first
         //
         Set<String> aggregatedFields = this.resultColumns.stream()
                                                          .filter((f) -> f.getColumnExpression() instanceof SimpleAggregateExpression)
@@ -343,7 +343,7 @@ public class SelectExpressionBuilder {
 
                     // this window fields should be in the group-by clause and select clause,
                     // see the javadoc above
-                    // Use name in the groupBy expression because we have alias for corresponding field in sub-query expression
+                    // Use name in the groupBy expression because we have alias for the corresponding field in sub-query expression
                     selectExpression.getGroupBy().addField(resultColumn.getAlias().getName());
                     selectExpression.getResultColumnList().add(resultColumn.getAlias().getName());
 
@@ -374,23 +374,24 @@ public class SelectExpressionBuilder {
         for (String metric : fieldExpressionAnalyzer.getMetrics()) {
             subSelectExpression.getResultColumnList().add(metric);
         }
-        for (IMetricSpec aggregator : fieldExpressionAnalyzer.getWindowFunctionAggregators()) {
+        for (IAggregatableColumn aggregator : fieldExpressionAnalyzer.getWindowFunctionAggregators()) {
             subSelectExpression.getResultColumnList()
                                .add(new StringNode(aggregator.getAggregateExpression().accept(generator)), aggregator.getName());
 
             // this window fields should be in the group-by clause and select clause,
             // see the javadoc above
-            // Use name in the groupBy expression because we have alias for corresponding field in sub-query expression
+            // Use name in the groupBy expression because we have alias for the corresponding field in sub-query expression
             selectExpression.getGroupBy().addField(aggregator.getName());
         }
 
         //
         // build WhereExpression
         //
+        String timestampCol = dataSource.getTimestampSpec().getTimestampColumn();
         Where where = new Where();
-        where.addExpression(StringUtils.format("\"timestamp\" >= %s", sqlDialect.formatTimestamp(interval.getStartTime())));
-        where.addExpression(StringUtils.format("\"timestamp\" < %s", sqlDialect.formatTimestamp(interval.getEndTime())));
-        for (IFilter filter : filters) {
+        where.addExpression(StringUtils.format("\"%s\" >= %s", timestampCol, sqlDialect.formatTimestamp(interval.getStartTime())));
+        where.addExpression(StringUtils.format("\"%s\" < %s", timestampCol, sqlDialect.formatTimestamp(interval.getEndTime())));
+        for (IColumnFilter filter : filters) {
             where.addExpression(filter.getMatcher().accept(new SQLFilterBuilder(dataSource, filter)));
         }
 
@@ -400,7 +401,7 @@ public class SelectExpressionBuilder {
         subSelectExpression.getResultColumnList().addAll(groupBy);
         selectExpression.getGroupBy().addFields(groupBy);
 
-        // Make sure all fields in the groupBy are in the fields list
+        // Make sure all fields in the groupBy are in the field list
         if (!groupBy.isEmpty()) {
             Set<String> existingFields = selectExpression.getResultColumnList().getColumnNames(Collectors.toSet());
 

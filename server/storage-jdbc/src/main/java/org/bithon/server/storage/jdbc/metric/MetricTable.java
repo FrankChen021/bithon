@@ -18,13 +18,9 @@ package org.bithon.server.storage.jdbc.metric;
 
 import lombok.Getter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
-import org.bithon.server.storage.datasource.spec.IMetricSpec;
-import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
-import org.bithon.server.storage.datasource.typing.DoubleValueType;
-import org.bithon.server.storage.datasource.typing.IValueType;
-import org.bithon.server.storage.datasource.typing.LongValueType;
-import org.bithon.server.storage.datasource.typing.StringValueType;
+import org.bithon.server.storage.datasource.column.ExpressionColumn;
+import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.typing.IDataType;
 import org.jooq.Field;
 import org.jooq.Index;
 import org.jooq.impl.DSL;
@@ -56,7 +52,7 @@ public class MetricTable extends TableImpl {
     }
 
     public MetricTable(DataSourceSchema schema) {
-        super(DSL.name("bithon_" + schema.getName().replace('-', '_')));
+        super(DSL.name(schema.getDataStoreSpec().getStore()));
 
         //noinspection unchecked
         timestampField = this.createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP);
@@ -64,8 +60,8 @@ public class MetricTable extends TableImpl {
         List<Field> indexesFields = new ArrayList<>();
         indexesFields.add(timestampField);
 
-        for (IDimensionSpec dimension : schema.getDimensionsSpec()) {
-            Field dimensionField = createField(dimension.getName(), dimension.getValueType(), dimension.getLength());
+        for (IColumn dimension : schema.getDimensionsSpec()) {
+            Field dimensionField = createField(dimension.getName(), dimension.getDataType());
             dimensions.add(dimensionField);
 
             if (dimension.isVisible()) {
@@ -73,11 +69,11 @@ public class MetricTable extends TableImpl {
             }
         }
 
-        for (IMetricSpec metric : schema.getMetricsSpec()) {
-            if (metric instanceof PostAggregatorMetricSpec) {
+        for (IColumn metric : schema.getMetricsSpec()) {
+            if (metric instanceof ExpressionColumn) {
                 continue;
             }
-            metrics.add(createField(metric.getName(), metric.getValueType(), null));
+            metrics.add(createField(metric.getName(), metric.getDataType()));
         }
 
         Index index = Internal.createIndex("idx_" + this.getName() + "_dimensions",
@@ -92,19 +88,19 @@ public class MetricTable extends TableImpl {
         return indexes;
     }
 
-    private Field createField(String name, IValueType valueType, Integer length) {
-        if (valueType.equals(DoubleValueType.INSTANCE)) {
-            //noinspection unchecked
+    @SuppressWarnings("unchecked")
+    private Field createField(String name, IDataType dataType) {
+        if (dataType.equals(IDataType.DOUBLE)) {
             return this.createField(DSL.name(name),
                                     SQLDataType.DECIMAL(18, 2).nullable(false).defaultValue(BigDecimal.valueOf(0)));
-        } else if (valueType.equals(LongValueType.INSTANCE)) {
-            //noinspection unchecked
+        } else if (dataType.equals(IDataType.LONG)) {
             return this.createField(DSL.name(name), SQLDataType.BIGINT.nullable(false).defaultValue(0L));
-        } else if (valueType.equals(StringValueType.INSTANCE)) {
-            //noinspection unchecked
-            return this.createField(DSL.name(name), SQLDataType.VARCHAR(length).nullable(false).defaultValue(""));
+        } else if (dataType.equals(IDataType.STRING)) {
+            // Note that the length defined here will be used in the MetricJdbcWriter to limit the size of input.
+            // This only works on the H2 database.
+            return this.createField(DSL.name(name), SQLDataType.VARCHAR.length(8192).nullable(false).defaultValue(""));
         } else {
-            throw new RuntimeException("unknown type:" + valueType);
+            throw new RuntimeException("unknown type:" + dataType);
         }
     }
 }

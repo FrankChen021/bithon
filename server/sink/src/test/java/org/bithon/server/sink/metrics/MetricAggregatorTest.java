@@ -19,12 +19,12 @@ package org.bithon.server.sink.metrics;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
-import org.bithon.server.storage.datasource.dimension.StringDimensionSpec;
+import org.bithon.server.storage.datasource.column.StringColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.max.AggregateLongMaxColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.min.AggregateLongMinColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
-import org.bithon.server.storage.datasource.spec.max.LongMaxMetricSpec;
-import org.bithon.server.storage.datasource.spec.min.LongMinMetricSpec;
-import org.bithon.server.storage.datasource.spec.sum.LongSumMetricSpec;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,6 +44,9 @@ public class MetricAggregatorTest {
 
     private final DataSourceSchema schema;
 
+    /**
+     * The arguments are passed from the method {@link #createSchemas()} below.
+     */
     public MetricAggregatorTest(String name, DataSourceSchema schema) {
         this.schema = schema;
     }
@@ -55,19 +58,19 @@ public class MetricAggregatorTest {
             "empty-dimension-table",
             new TimestampSpec("timestamp", null, null),
             Collections.emptyList(),
-            Arrays.asList(new LongSumMetricSpec("totalCount", "totalCount", "totalCount", "", true),
-                          new LongMinMetricSpec("minTime", "minTime", "minTime", "", true),
-                          new LongMaxMetricSpec("maxTime", "maxTime", "maxTime", "", true))
+            Arrays.asList(new AggregateLongSumColumn("totalCount", "totalCount", ""),
+                          new AggregateLongMinColumn("minTime", "minTime", ""),
+                          new AggregateLongMaxColumn("maxTime", "maxTime", ""))
         );
 
         DataSourceSchema hasDimensionSchema = new DataSourceSchema(
             "one-dimension-table",
             "one-dimension-table",
             new TimestampSpec("timestamp", null, null),
-            Arrays.asList(new StringDimensionSpec("appName", "appName", "appName", true, true, 128)),
-            Arrays.asList(new LongSumMetricSpec("totalCount", "totalCount", "totalCount", "", true),
-                          new LongMinMetricSpec("minTime", "minTime", "minTime", "", true),
-                          new LongMaxMetricSpec("maxTime", "maxTime", "maxTime", "", true))
+            Arrays.asList(new StringColumn("appName", "appName", "appName", true)),
+            Arrays.asList(new AggregateLongSumColumn("totalCount", "totalCount", ""),
+                          new AggregateLongMinColumn("minTime", "minTime", ""),
+                          new AggregateLongMaxColumn("maxTime", "maxTime", ""))
         );
 
         return new Object[]{

@@ -23,11 +23,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;
 import lombok.Setter;
 import org.bithon.server.commons.time.Period;
-import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
-import org.bithon.server.storage.datasource.dimension.LongDimensionSpec;
-import org.bithon.server.storage.datasource.spec.CountMetricSpec;
-import org.bithon.server.storage.datasource.spec.IMetricSpec;
-import org.bithon.server.storage.datasource.store.DataStoreSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.column.LongColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
+import org.bithon.server.storage.datasource.store.IDataStoreSpec;
+import org.bithon.server.storage.datasource.store.InternalDataSourceSpec;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -48,10 +49,10 @@ public class DataSourceSchema {
     private final TimestampSpec timestampSpec;
 
     @Getter
-    private final List<IDimensionSpec> dimensionsSpec;
+    private final List<IColumn> dimensionsSpec;
 
     @Getter
-    private final List<IMetricSpec> metricsSpec;
+    private final List<IColumn> metricsSpec;
 
     /**
      * Where the data should be ingested from.
@@ -64,7 +65,7 @@ public class DataSourceSchema {
      * Experimental
      */
     @Getter
-    private final DataStoreSpec dataStoreSpec;
+    private final IDataStoreSpec dataStoreSpec;
 
     /**
      * Data source level ttl.
@@ -75,10 +76,7 @@ public class DataSourceSchema {
     private final Period ttl;
 
     @JsonIgnore
-    private final Map<String, IDimensionSpec> dimensionMap = new HashMap<>(15);
-
-    @JsonIgnore
-    private final Map<String, IMetricSpec> metricsMap = new HashMap<>();
+    private final Map<String, IColumn> columnMap = new HashMap<>(17);
 
     /**
      * check a {timestamp, dimensions} are unique to help find out some internal wrong implementation
@@ -105,13 +103,13 @@ public class DataSourceSchema {
     @JsonIgnore
     private boolean isVirtual = false;
 
-    private static final IDimensionSpec TIMESTAMP_COLUMN = new LongDimensionSpec("timestamp", "timestamp", null, true, true);
+    private static final IColumn TIMESTAMP_COLUMN = new LongColumn("timestamp", "timestamp", null, true);
 
     public DataSourceSchema(String displayText,
                             String name,
                             TimestampSpec timestampSpec,
-                            List<IDimensionSpec> dimensionsSpec,
-                            List<IMetricSpec> metricsSpec) {
+                            List<IColumn> dimensionsSpec,
+                            List<IColumn> metricsSpec) {
         this(displayText, name, timestampSpec, dimensionsSpec, metricsSpec, null, null, null);
     }
 
@@ -119,10 +117,10 @@ public class DataSourceSchema {
     public DataSourceSchema(@JsonProperty("displayText") @Nullable String displayText,
                             @JsonProperty("name") String name,
                             @JsonProperty("timestampSpec") @Nullable TimestampSpec timestampSpec,
-                            @JsonProperty("dimensionsSpec") List<IDimensionSpec> dimensionsSpec,
-                            @JsonProperty("metricsSpec") List<IMetricSpec> metricsSpec,
+                            @JsonProperty("dimensionsSpec") List<IColumn> dimensionsSpec,
+                            @JsonProperty("metricsSpec") List<IColumn> metricsSpec,
                             @JsonProperty("inputSourceSpec") @Nullable JsonNode inputSourceSpec,
-                            @JsonProperty("storeSpec") @Nullable DataStoreSpec dataStoreSpec,
+                            @JsonProperty("storeSpec") @Nullable IDataStoreSpec dataStoreSpec,
                             @JsonProperty("ttl") @Nullable Period ttl) {
         this.displayText = displayText == null ? name : displayText;
         this.name = name;
@@ -130,49 +128,36 @@ public class DataSourceSchema {
         this.dimensionsSpec = dimensionsSpec;
         this.metricsSpec = metricsSpec;
         this.inputSourceSpec = inputSourceSpec;
-        this.dataStoreSpec = dataStoreSpec;
+        this.dataStoreSpec = dataStoreSpec == null ? new InternalDataSourceSpec("bithon_" + name.replaceAll("-", "_")) : dataStoreSpec;
         this.ttl = ttl;
 
-        this.dimensionsSpec.forEach((dimensionSpec) -> dimensionMap.put(dimensionSpec.getName(), dimensionSpec));
-        this.metricsSpec.forEach((metricSpec) -> metricsMap.put(metricSpec.getName(), metricSpec));
-        this.dimensionMap.put(TIMESTAMP_COLUMN.getName(), TIMESTAMP_COLUMN);
+        this.dimensionsSpec.forEach((dimensionSpec) -> {
+            columnMap.put(dimensionSpec.getName(), dimensionSpec);
 
-        // set the owner after initialization
-        this.metricsSpec.forEach((metricSpec) -> metricSpec.setOwner(this));
-    }
-
-    public IMetricSpec getMetricSpecByName(String name) {
-        if (IMetricSpec.COUNT.equals(name)) {
-            return CountMetricSpec.INSTANCE;
-        }
-
-        return metricsMap.get(name);
-    }
-
-    public boolean containsMetric(String name) {
-        if (IMetricSpec.COUNT.equals(name)) {
-            return true;
-        }
-
-        return metricsMap.containsKey(name);
-    }
-
-    public IDimensionSpec getDimensionSpecByName(String name) {
-        return dimensionMap.get(name);
-    }
-
-    public IDimensionSpec getDimensionSpecByAlias(String alias) {
-        for (IDimensionSpec dimSpec : this.dimensionsSpec) {
-            if (alias.equals(dimSpec.getAlias())) {
-                return dimSpec;
+            if (!dimensionSpec.getAlias().equals(dimensionSpec.getName())) {
+                columnMap.put(dimensionSpec.getAlias(), dimensionSpec);
             }
+        });
+
+        this.metricsSpec.forEach((metricSpec) -> {
+            columnMap.put(metricSpec.getName(), metricSpec);
+
+            if (!metricSpec.getAlias().equals(metricSpec.getName())) {
+                columnMap.put(metricSpec.getAlias(), metricSpec);
+            }
+        });
+
+        columnMap.putIfAbsent(IAggregatableColumn.COUNT, AggregateCountColumn.INSTANCE);
+
+        if ("timestamp".equals(timestampSpec.getTimestampColumn())) {
+            this.columnMap.put(TIMESTAMP_COLUMN.getName(), TIMESTAMP_COLUMN);
+        } else {
+            this.columnMap.put(timestampSpec.getTimestampColumn(), new LongColumn(timestampSpec.getTimestampColumn(), timestampSpec.getTimestampColumn(), null, true));
         }
-        return null;
     }
 
-    public IColumnSpec getColumnByName(String name) {
-        IDimensionSpec dimSpec = dimensionMap.get(name);
-        return dimSpec == null ? getMetricSpecByName(name) : dimSpec;
+    public IColumn getColumnByName(String name) {
+        return columnMap.get(name);
     }
 
     @Override
@@ -197,7 +182,7 @@ public class DataSourceSchema {
         return this.name;
     }
 
-    public DataSourceSchema withDataStore(DataStoreSpec dataStoreSpec) {
+    public DataSourceSchema withDataStore(IDataStoreSpec dataStoreSpec) {
         return new DataSourceSchema(this.displayText,
                                     this.name,
                                     this.timestampSpec,

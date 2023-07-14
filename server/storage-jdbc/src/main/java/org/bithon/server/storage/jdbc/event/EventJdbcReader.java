@@ -19,12 +19,12 @@ package org.bithon.server.storage.jdbc.event;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.event.Event;
 import org.bithon.server.storage.event.IEventReader;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonEventRecord;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
-import org.bithon.server.storage.metrics.IFilter;
 import org.jooq.DSLContext;
 import org.jooq.SelectConditionStep;
 import org.jooq.impl.DSL;
@@ -51,7 +51,7 @@ public class EventJdbcReader implements IEventReader {
     }
 
     @Override
-    public List<Event> getEventList(List<IFilter> filters, TimeSpan start, TimeSpan end, int pageNumber, int pageSize) {
+    public List<Event> getEventList(List<IColumnFilter> filters, TimeSpan start, TimeSpan end, int pageNumber, int pageSize) {
         SelectConditionStep<BithonEventRecord> step = dslContext.selectFrom(Tables.BITHON_EVENT)
                                                                 .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp().toLocalDateTime()))
                                                                 .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp().toLocalDateTime()));
@@ -75,7 +75,7 @@ public class EventJdbcReader implements IEventReader {
     }
 
     @Override
-    public int getEventListSize(List<IFilter> filters, TimeSpan start, TimeSpan end) {
+    public int getEventListSize(List<IColumnFilter> filters, TimeSpan start, TimeSpan end) {
         SelectConditionStep<?> step = dslContext.select(DSL.count())
                                                 .from(Tables.BITHON_EVENT)
                                                 .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp().toLocalDateTime()))

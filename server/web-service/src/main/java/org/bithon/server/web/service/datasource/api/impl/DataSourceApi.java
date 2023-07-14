@@ -22,11 +22,10 @@ import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.datasource.DataSourceExistException;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.IColumnSpec;
-import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.store.DataStoreSpec;
+import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
@@ -80,7 +79,21 @@ public class DataSourceApi implements IDataSourceApi {
     public GeneralQueryResponse timeseriesV3(@Validated @RequestBody GeneralQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
-        Query query = this.dataSourceService.convertToQuery(schema, request, true);
+        Query query = this.dataSourceService.convertToQuery(schema, request, false, true);
+        TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
+        return GeneralQueryResponse.builder()
+                                   .data(result.getMetrics())
+                                   .startTimestamp(result.getStartTimestamp())
+                                   .endTimestamp(result.getEndTimestamp())
+                                   .interval(result.getInterval())
+                                   .build();
+    }
+
+    @Override
+    public GeneralQueryResponse timeseriesV4(@Validated @RequestBody GeneralQueryRequest request) {
+        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+        Query query = this.dataSourceService.convertToQuery(schema, request, true, true);
         TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
         return GeneralQueryResponse.builder()
                                    .data(result.getMetrics())
@@ -99,7 +112,7 @@ public class DataSourceApi implements IDataSourceApi {
                            .resultColumns(request.getFields()
                                                  .stream()
                                                  .map((field) -> {
-                                                     IColumnSpec spec = schema.getColumnByName(field.getField());
+                                                     IColumn spec = schema.getColumnByName(field.getField());
                                                      Preconditions.checkNotNull(spec, "field [%s] does not exist in the schema.", field.getField());
                                                      return new ResultColumn(spec.getName(), field.getName());
                                                  }).collect(Collectors.toList()))
@@ -123,7 +136,19 @@ public class DataSourceApi implements IDataSourceApi {
     public GeneralQueryResponse groupBy(GeneralQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
-        Query query = this.dataSourceService.convertToQuery(schema, request, false);
+        Query query = this.dataSourceService.convertToQuery(schema, request, false, false);
+        return GeneralQueryResponse.builder()
+                                   .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
+                                   .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
+                                   .data(this.metricStorage.createMetricReader(schema).groupBy(query))
+                                   .build();
+    }
+
+    @Override
+    public GeneralQueryResponse groupByV3(GeneralQueryRequest request) {
+        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+        Query query = this.dataSourceService.convertToQuery(schema, request, true, false);
         return GeneralQueryResponse.builder()
                                    .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
                                    .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
@@ -143,7 +168,7 @@ public class DataSourceApi implements IDataSourceApi {
         // Mask the sensitive information
         // This is experimental
         if (schema != null && schema.getDataStoreSpec() != null) {
-            DataStoreSpec dataStoreSpec = schema.getDataStoreSpec();
+            IDataStoreSpec dataStoreSpec = schema.getDataStoreSpec();
 
             Map<String, String> properties = new TreeMap<>(dataStoreSpec.getProperties());
             properties.computeIfPresent("password", (k, old) -> "<HIDDEN>");
@@ -188,22 +213,15 @@ public class DataSourceApi implements IDataSourceApi {
     public Collection<Map<String, String>> getDimensions(GetDimensionRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
-        IDimensionSpec dimensionSpec;
-        if ("name".equals(request.getType())) {
-            dimensionSpec = schema.getDimensionSpecByName(request.getName());
-        } else if ("alias".equals(request.getType())) {
-            dimensionSpec = schema.getDimensionSpecByAlias(request.getName());
-        } else {
-            throw new Preconditions.InvalidValueException("'type' should be one of (name, alias)");
-        }
-        Preconditions.checkNotNull(dimensionSpec, "dimension [%s] not defined.", request.getName());
+        IColumn column = schema.getColumnByName(request.getName());
+        Preconditions.checkNotNull(column, "column [%s] not found.", request.getName());
 
         return this.metricStorage.createMetricReader(schema)
-                                 .getDimensionValueList(TimeSpan.fromISO8601(request.getStartTimeISO8601()),
-                                                        TimeSpan.fromISO8601(request.getEndTimeISO8601()),
-                                                        schema,
-                                                        request.getFilters(),
-                                                        dimensionSpec.getName());
+                                 .getDistinctValues(TimeSpan.fromISO8601(request.getStartTimeISO8601()),
+                                                    TimeSpan.fromISO8601(request.getEndTimeISO8601()),
+                                                    schema,
+                                                    request.getFilters(),
+                                                    column.getName());
     }
 
     @Override

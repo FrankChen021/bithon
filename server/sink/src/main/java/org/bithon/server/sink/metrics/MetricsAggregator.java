@@ -19,10 +19,9 @@ package org.bithon.server.sink.metrics;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
-import org.bithon.server.storage.datasource.spec.IMetricSpec;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,7 +41,7 @@ public class MetricsAggregator {
     private final long granularityMs;
 
     /**
-     * @param granularity in seconds
+     * @param period granularity
      */
     public MetricsAggregator(DataSourceSchema schema, Period period) {
         this.schema = schema;
@@ -71,7 +70,7 @@ public class MetricsAggregator {
 
         Key key = new Key(flooredTimestamp, dimensionValues);
         rows.computeIfAbsent(key, k -> new FieldAggregators(schema))
-            .forEach((metricName, aggregator) -> aggregator.aggregate(timestamp, metricProvider.apply(metricName)));
+            .forEach((field, aggregator) -> aggregator.aggregate(timestamp, metricProvider.apply(field)));
     }
 
     @SuppressWarnings("rawtypes")
@@ -107,7 +106,7 @@ public class MetricsAggregator {
 
             // dimensions
             int i = 0;
-            for (IDimensionSpec dimensionSpec : this.schema.getDimensionsSpec()) {
+            for (IColumn dimensionSpec : this.schema.getDimensionsSpec()) {
                 row.put(dimensionSpec.getName(), key.dimensions.get(i++));
             }
 
@@ -149,7 +148,7 @@ public class MetricsAggregator {
 
     static class FieldAggregators extends HashMap<String, NumberAggregator> {
         public FieldAggregators(DataSourceSchema schema) {
-            for (IMetricSpec metricSpec : schema.getMetricsSpec()) {
+            for (IColumn metricSpec : schema.getMetricsSpec()) {
                 NumberAggregator aggregator = metricSpec.createAggregator();
                 if (aggregator == null) {
                     // post aggregator has no physical aggregator

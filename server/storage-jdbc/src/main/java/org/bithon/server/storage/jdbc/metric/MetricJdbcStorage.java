@@ -26,7 +26,7 @@ import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.store.DataStoreSpec;
+import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
 import org.bithon.server.storage.jdbc.utils.SqlDialectManager;
 import org.bithon.server.storage.metrics.IMetricReader;
@@ -101,7 +101,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     @Override
     public IMetricReader createMetricReader(DataSourceSchema schema) {
         DSLContext context = this.dslContextMap.computeIfAbsent(schema.getName(), (name) -> {
-            DataStoreSpec dataStoreSpec = schema.getDataStoreSpec();
+            IDataStoreSpec dataStoreSpec = schema.getDataStoreSpec();
             if (dataStoreSpec == null || dataStoreSpec.isInternal()) {
                 return dslContext;
             }
@@ -119,15 +119,18 @@ public class MetricJdbcStorage implements IMetricStorage {
             // Create a new one
             JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
             return DSL.using(new DefaultConfiguration()
-                                 .set(autoConfiguration.dataSourceConnectionProvider(jdbcDataSource))
-                                 .set(new JooqProperties().determineSqlDialect(jdbcDataSource))
-                                 .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
+                                     .set(autoConfiguration.dataSourceConnectionProvider(jdbcDataSource))
+                                     .set(new JooqProperties().determineSqlDialect(jdbcDataSource))
+                                     .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
         });
 
         return new MetricJdbcReader(context, sqlDialectManager.getSqlDialect(context));
     }
 
     protected void initialize(DataSourceSchema schema, MetricTable table) {
+        if (!schema.getDataStoreSpec().isInternal()) {
+            return;
+        }
         CreateTableIndexStep s = dslContext.createTableIfNotExists(table)
                                            .columns(table.fields())
                                            .indexes(table.getIndexes());

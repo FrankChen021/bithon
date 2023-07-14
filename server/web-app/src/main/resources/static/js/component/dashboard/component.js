@@ -207,17 +207,17 @@ class Dashboard {
                     // This should be changed in future
                     // converts metricsSpec from Array to Map
                     //
-                    const metricMap = {};
-                    for (index = 0; index < schema.metricsSpec.length; index++) {
-                        const metric = schema.metricsSpec[index];
-                        metricMap[metric.name] = metric;
-                    }
-                    schema.metricsSpec = metricMap;
+                    //const metricMap = {};
+                    //for (index = 0; index < schema.metricsSpec.length; index++) {
+                    //    const metric = schema.metricsSpec[index];
+                    //    metricMap[metric.name] = metric;
+                    //}
+                    //schema.metricsSpec = metricMap;
 
                     //
                     // Build Transformers
                     //
-                    this.createTransformers(schema);
+                    //this.createTransformers(schema);
 
                     // refresh dashboard after schema has been retrieved
                     // because there may be value transformers on different units
@@ -772,9 +772,9 @@ class Dashboard {
 
         let path;
         if (query.type === 'list') {
-            path = '/api/datasource/list/v2'
+            path = '/api/datasource/list/v2';
         } else {
-            path = '/api/datasource/groupBy/v2';
+            path = thisQuery.groupBy === undefined ? '/api/datasource/groupBy/v2' : '/api/datasource/groupBy/v3';
         }
         const loadOptions = {
             url: apiHost + path,
@@ -945,7 +945,7 @@ class Dashboard {
         const queryFieldsCount = chartDescriptor.query.fields.length;
 
         chartComponent.load({
-            url: apiHost + "/api/datasource/timeseries/v3",
+            url: apiHost + (thisQuery.groupBy === undefined ? "/api/datasource/timeseries/v3" : "/api/datasource/timeseries/v4"),
             ajaxData: JSON.stringify(thisQuery),
             processResult: (data) => {
                 const timeLabels = [];
@@ -980,7 +980,7 @@ class Dashboard {
                         name: n,
                         type: chartType,
 
-                        data: metric.values.map(val => column.transformer(val)),
+                        data: metric.values,
                         yAxisIndex: column.yAxis || 0,
 
                         areaStyle: isArea ? {opacity: 0.3} : null,

@@ -27,7 +27,8 @@ import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.typing.StringValueType;
+import org.bithon.server.storage.datasource.filter.IColumnFilter;
+import org.bithon.server.storage.datasource.typing.IDataType;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
@@ -36,7 +37,6 @@ import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.jdbc.utils.SqlDialectManager;
-import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
@@ -133,11 +133,11 @@ public class TraceStorage extends TraceJdbcStorage {
              * We need to use map accessor expression to search in the map
              */
             @Override
-            protected String getTagPredicate(IFilter filter) {
+            protected String getTagPredicate(IColumnFilter filter) {
                 String tag = StringUtils.format("%s['%s']", Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName(), filter.getName().substring(SPAN_TAGS_PREFIX.length()));
                 return filter.getMatcher().accept(new SQLFilterBuilder(traceSpanSchema.getName(),
                                                                        tag,
-                                                                       StringValueType.INSTANCE,
+                                                                       IDataType.STRING,
                                                                        false,
                                                                        false));
             }

@@ -17,10 +17,10 @@
 package org.bithon.server.web.service.datasource.api;
 
 import lombok.Data;
+import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
-import org.bithon.server.storage.metrics.IFilter;
 
 import javax.annotation.Nullable;
 import javax.validation.Valid;
@@ -43,7 +43,7 @@ public class GeneralQueryRequest {
     private IntervalRequest interval;
 
     @Nullable
-    private List<IFilter> filters;
+    private List<IColumnFilter> filters;
 
     @Nullable
     private String filterExpression;
@@ -52,10 +52,14 @@ public class GeneralQueryRequest {
     private List<QueryField> fields;
 
     @Nullable
+    private List<String> groupBy;
+
+    @Nullable
     private OrderBy orderBy;
 
     @Nullable
     private Limit limit;
+
 
     private Query.ResultFormat resultFormat;
 }

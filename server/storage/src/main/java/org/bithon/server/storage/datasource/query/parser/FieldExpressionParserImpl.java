@@ -28,9 +28,9 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.ast.FieldExpressionBaseVisitor;
 import org.bithon.server.datasource.ast.FieldExpressionLexer;
 import org.bithon.server.datasource.ast.FieldExpressionParser;
+import org.bithon.server.storage.common.expression.InvalidExpressionException;
 import org.bithon.server.storage.datasource.builtin.Function;
 import org.bithon.server.storage.datasource.builtin.Functions;
-import org.bithon.server.storage.datasource.spec.InvalidExpressionException;
 
 import java.util.List;
 

@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.datasource.api;
 
 import lombok.Data;
-import org.bithon.server.storage.metrics.IFilter;
+import org.bithon.server.storage.datasource.filter.IColumnFilter;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -42,7 +42,7 @@ public class GetDimensionRequest {
     private String dataSource;
 
     @Valid
-    private Collection<IFilter> filters = Collections.emptyList();
+    private Collection<IColumnFilter> filters = Collections.emptyList();
 
     /**
      * dimension name

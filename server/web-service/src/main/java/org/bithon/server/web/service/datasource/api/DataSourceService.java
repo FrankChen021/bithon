@@ -16,16 +16,18 @@
 
 package org.bithon.server.web.service.datasource.api;
 
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.IColumnSpec;
-import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.column.ExpressionColumn;
+import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
-import org.bithon.server.storage.datasource.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.typing.IDataType;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
@@ -62,9 +64,10 @@ public class DataSourceService {
         // Remove any dimensions
         List<String> metrics = query.getResultColumns()
                                     .stream()
-                                    .filter((resultColumn) -> query.getDataSource()
-                                                                   .getDimensionSpecByName(resultColumn.getResultColumnName())
-                                                              == null)
+                                    .filter((resultColumn) -> {
+                                        IColumn column = query.getDataSource().getColumnByName(resultColumn.getResultColumnName());
+                                        return column instanceof IAggregatableColumn || column instanceof ExpressionColumn;
+                                    })
                                     .map((ResultColumn::getResultColumnName))
                                     .collect(Collectors.toList());
 
@@ -82,10 +85,16 @@ public class DataSourceService {
 
     public Query convertToQuery(DataSourceSchema schema,
                                 GeneralQueryRequest query,
+                                boolean containsGroupBy,
                                 boolean bucketTimestamp) {
         Query.QueryBuilder builder = Query.builder();
 
-        List<String> groupBy = new ArrayList<>(4);
+        List<String> groupBy;
+        if (containsGroupBy) {
+            groupBy = CollectionUtils.emptyOrOriginal(query.getGroupBy());
+        } else {
+            groupBy = new ArrayList<>(4);
+        }
 
         // Turn into internal objects(post aggregators...)
         List<ResultColumn> resultColumnList = new ArrayList<>(query.getFields().size());
@@ -100,20 +109,17 @@ public class DataSourceService {
             if (field.getAggregator() != null) {
                 org.bithon.server.storage.datasource.query.ast.Function function = SimpleAggregateExpressions.create(
                     field.getAggregator(),
-                    field.getField() == null
-                    ? field.getName()
-                    : field.getField());
+                    field.getField() == null ? field.getName() : field.getField());
                 resultColumnList.add(new ResultColumn(function, field.getName()));
             } else {
-                IColumnSpec columnSpec = schema.getColumnByName(field.getField());
+                IColumn columnSpec = schema.getColumnByName(field.getField());
                 if (columnSpec == null) {
                     throw new RuntimeException(StringUtils.format("field [%s] does not exist.", field.getField()));
                 }
-                if (columnSpec instanceof IDimensionSpec) {
-                    resultColumnList.add(new ResultColumn(columnSpec.getName()));
+                resultColumnList.add(columnSpec.getResultColumn());
+
+                if (!containsGroupBy && columnSpec.getDataType().equals(IDataType.STRING)) {
                     groupBy.add(columnSpec.getName());
-                } else {
-                    resultColumnList.add(((IMetricSpec) columnSpec).getResultColumn());
                 }
             }
         }
@@ -140,8 +146,8 @@ public class DataSourceService {
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())
                       .resultFormat(query.getResultFormat() == null
-                                    ? Query.ResultFormat.Object
-                                    : query.getResultFormat())
+                                        ? Query.ResultFormat.Object
+                                        : query.getResultFormat())
                       .build();
     }
 

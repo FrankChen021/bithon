@@ -18,6 +18,7 @@ package org.bithon.server.storage.metrics;
 
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.query.Query;
 
 import java.util.Collection;
@@ -42,9 +43,9 @@ public interface IMetricReader {
 
     List<Map<String, Object>> executeSql(String sql);
 
-    List<Map<String, String>> getDimensionValueList(TimeSpan start,
-                                                    TimeSpan end,
-                                                    DataSourceSchema dataSourceSchema,
-                                                    Collection<IFilter> dimensions,
-                                                    String dimension);
+    List<Map<String, String>> getDistinctValues(TimeSpan start,
+                                                TimeSpan end,
+                                                DataSourceSchema dataSourceSchema,
+                                                Collection<IColumnFilter> dimensions,
+                                                String dimension);
 }

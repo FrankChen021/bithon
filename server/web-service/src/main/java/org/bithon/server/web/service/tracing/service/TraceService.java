@@ -20,7 +20,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.metrics.IFilter;
+import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.TraceSpan;
@@ -123,7 +123,7 @@ public class TraceService {
         return rootSpans;
     }
 
-    public int getTraceListSize(List<IFilter> filters,
+    public int getTraceListSize(List<IColumnFilter> filters,
                                 String filterExpression,
                                 Timestamp start,
                                 Timestamp end) {
@@ -137,7 +137,7 @@ public class TraceService {
                                             end);
     }
 
-    public List<TraceSpan> getTraceList(List<IFilter> filters,
+    public List<TraceSpan> getTraceList(List<IColumnFilter> filters,
                                         String filterExpression,
                                         Timestamp start,
                                         Timestamp end,
@@ -158,7 +158,7 @@ public class TraceService {
                                         pageNumber, pageSize);
     }
 
-    public TimeSeriesQueryResult getTraceDistribution(List<IFilter> filters,
+    public TimeSeriesQueryResult getTraceDistribution(List<IColumnFilter> filters,
                                                       String filterExpression,
                                                       TimeSpan start,
                                                       TimeSpan end,
@@ -184,9 +184,9 @@ public class TraceService {
     }
 
     static class FilterSplitter {
-        private final List<IFilter> filters;
-        private final Map<Integer, IFilter> indexedTagFilter;
-        private final List<IFilter> nonIndexedTagFilter;
+        private final List<IColumnFilter> filters;
+        private final Map<Integer, IColumnFilter> indexedTagFilter;
+        private final List<IColumnFilter> nonIndexedTagFilter;
         private final TraceStorageConfig traceStorageConfig;
 
         public FilterSplitter(TraceStorageConfig traceStorageConfig) {
@@ -196,10 +196,10 @@ public class TraceService {
             this.nonIndexedTagFilter = new ArrayList<>();
         }
 
-        void split(List<IFilter> filters) {
+        void split(List<IColumnFilter> filters) {
             TagIndexConfig indexedTagConfig = this.traceStorageConfig.getIndexes();
 
-            for (IFilter filter : filters) {
+            for (IColumnFilter filter : filters) {
                 if (!filter.getName().startsWith("tags.")) {
                     this.filters.add(filter);
                     continue;

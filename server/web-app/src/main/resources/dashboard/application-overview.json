@@ -32,6 +32,7 @@
           "heapMax",
           "processCpuLoad"
         ],
+        "groupBy": ["instanceName"],
         "orderBy": {
           "name": "instanceUpTime",
           "order": "asc"
@@ -60,6 +61,9 @@
           "errorCount",
           {"name": "errorRate", "expression": "round(errorCount*100.0/totalCount, 2)"},
           "avgResponseTime"
+        ],
+        "groupBy": [
+          "uri"
         ],
         "limit": "10",
         "orderBy": {
@@ -91,6 +95,9 @@
           {"name": "errorRate",  "expression": "round((count4xx + count5xx)*100.0/requestCount, 2)"},
           "avgResponseTime"
         ],
+        "groupBy": [
+          "path"
+        ],
         "limit": "10",
         "orderBy": {
           "name": "requestCount",
@@ -112,6 +119,9 @@
         "fields": [
           "exceptionClass",
           "eventCount"
+        ],
+        "groupBy": [
+          "exceptionClass"
         ],
         "limit": 10,
         "orderBy": {
