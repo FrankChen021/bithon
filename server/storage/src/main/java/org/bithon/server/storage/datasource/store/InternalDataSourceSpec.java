@@ -17,6 +17,7 @@
 package org.bithon.server.storage.datasource.store;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collections;
@@ -28,11 +29,11 @@ import java.util.Map;
  */
 public class InternalDataSourceSpec implements IDataStoreSpec {
 
-    private final String storeName;
+    private final String store;
 
     @JsonCreator
-    public InternalDataSourceSpec(@JsonProperty("storeName") String storeName) {
-        this.storeName = storeName;
+    public InternalDataSourceSpec(@JsonProperty("store") String store) {
+        this.store = store;
     }
 
     @Override
@@ -42,9 +43,10 @@ public class InternalDataSourceSpec implements IDataStoreSpec {
 
     @Override
     public String getStore() {
-        return storeName;
+        return store;
     }
 
+    @JsonIgnore
     @Override
     public Map<String, String> getProperties() {
         return Collections.emptyMap();
@@ -52,6 +54,6 @@ public class InternalDataSourceSpec implements IDataStoreSpec {
 
     @Override
     public IDataStoreSpec withProperties(Map<String, String> properties) {
-        return new InternalDataSourceSpec(storeName);
+        return new InternalDataSourceSpec(store);
     }
 }
