@@ -695,15 +695,16 @@ class Dashboard {
         });
 
         chartOption.tooltip.formatter = series => {
+            const seriesList = Array.isArray(series) ? series : [series];
             const currentChartOption = this.getChartCurrentOption(chartId);
             const currentChartComponent = this._chartComponents[chartId];
 
-            const dataIndex = series[0].dataIndex;
+            const dataIndex = seriesList[0].dataIndex;
             const interval = currentChartComponent.getInterval(dataIndex);
 
             let tooltip = moment(interval.start).local().format('MM-DD HH:mm:ss') + '<br/>'
             + moment(interval.end).local().format('MM-DD HH:mm:ss');
-            series.forEach(s => {
+            seriesList.forEach(s => {
                 //Use the yAxis defined formatter to format the data
                 const yAxisIndex = currentChartOption.series[s.seriesIndex].yAxisIndex;
 
@@ -815,7 +816,7 @@ class Dashboard {
 
             return this.createTableComponent(chartId, $('#' + chartId), chartDescriptor);
         }
-        if (chartDescriptor.type === 'line') {
+        if (chartDescriptor.type === 'line' || chartDescriptor.type === 'stack_bar') {
             return this.createLineComponent(chartId, chartDescriptor);
         }
 
@@ -943,6 +944,7 @@ class Dashboard {
         thisQuery.filterExpression = $('#filter-input').val();
 
         const queryFieldsCount = chartDescriptor.query.fields.length;
+        const chartId = chartDescriptor.id;
 
         chartComponent.load({
             url: apiHost + (thisQuery.groupBy === undefined ? "/api/datasource/timeseries/v3" : "/api/datasource/timeseries/v4"),
@@ -963,34 +965,43 @@ class Dashboard {
                         return;
                     }
 
-                    let group = "";
+                    let groupBy = "";
                     for (let i = 0; i < metric.tags.length - 1; i++) {
-                        group += metric.tags[i];
-                        group += "-";
+                        groupBy += metric.tags[i];
+                        if (groupBy.length > 0)
+                            groupBy += "-";
                     }
 
-                    const chartType = column.chartType || 'line';
+                    const chartType = column.chartType || chartDescriptor.type;
                     const isLine = chartType === 'line';
                     const isArea = isLine && (column.fill === undefined ? true : column.fill);
-                    const isBar = column.chartType === 'bar';
+                    const isStackBar = chartType === 'stack_bar';
+                    const isBar = column.chartType === 'bar' || isStackBar;
 
-                    const n = metricNamePrefix + group + (column.title === undefined ? column.name : column.title);
+                    const yAxis = column.yAxis || 0;
+                    const n = metricNamePrefix + groupBy + (column.title === undefined ? column.name : column.title);
                     let s = {
                         id: n,
                         name: n,
-                        type: chartType,
+                        type: isStackBar ? 'bar' : chartType,
 
-                        data: metric.values,
-                        yAxisIndex: column.yAxis || 0,
+                        data: isStackBar && metric.tags.length > 1 ? metric.values.map((v) => v === 0 ? null : v) : metric.values,
+                        yAxisIndex: yAxis,
 
                         areaStyle: isArea ? {opacity: 0.3} : null,
                         lineStyle: isLine ? {width: 1} : null,
                         itemStyle: isLine ? {opacity: 0} : null,
+                        stack: isStackBar ? 'total': undefined,
+                        barMinHeight: 10,
 
                         label: {
                             show: isBar,
                             formatter: (v) => {
-                                return v.value > 0 ? v.value.toString() : '';
+                                const currentChartOption = this.getChartCurrentOption(chartId);
+
+                                let formatterFn = currentChartOption.yAxis[yAxis].axisLabel.formatter;
+
+                                return v.value > 0 ? formatterFn(v.value) : '';
                             }
                         },
 
@@ -1047,14 +1058,20 @@ class Dashboard {
                      }
                  };
 
-                return {
+                const option = {
                     refreshMode: mode,
 
                     xAxis: {
                         data: timeLabels
                     },
                     series: series
+                };
+                if (chartDescriptor.type === 'stack_bar') {
+                    option.tooltip = {
+                        trigger: 'item'
+                    };
                 }
+                return option;
             }
         });
     }
@@ -1075,7 +1092,7 @@ class Dashboard {
             this.refreshTable(chartDescriptor.query, chartComponent, interval);
             return;
         }
-        if (chartDescriptor.type === 'line') {
+        if (chartDescriptor.type === 'line' || chartDescriptor.type === 'stack_bar') {
             this.refreshLine(chartDescriptor, chartComponent, interval, metricNamePrefix, mode);
             return;
         }
