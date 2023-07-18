@@ -16,24 +16,17 @@
 
 package org.bithon.server.storage.datasource.query.ast;
 
-import lombok.Getter;
-
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 16:11
+ * @date 2022/9/4 16:34
  */
-@Getter
-public abstract class Name implements IASTNode {
-
-    private final String name;
-
-    Name(String name) {
-        this.name = name;
+public class ASTColumnAlias extends ASTName {
+    public ASTColumnAlias(String name) {
+        super(name);
     }
 
-
     @Override
-    public String toString() {
-        return name;
+    public void accept(IASTNodeVisitor visitor) {
+        visitor.visit(this);
     }
 }

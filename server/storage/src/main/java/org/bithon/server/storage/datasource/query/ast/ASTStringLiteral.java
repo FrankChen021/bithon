@@ -19,24 +19,18 @@ package org.bithon.server.storage.datasource.query.ast;
 import lombok.Getter;
 
 /**
+ *
+ * An expression that uses string to hold raw string
+ *
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 14:55
+ * @date 2022/9/4 16:49
  */
-public class OrderBy implements IASTNode {
-
+public class ASTStringLiteral implements IASTNode {
     @Getter
-    private final String field;
+    private final String str;
 
-    @Getter
-    private final String order;
-
-    /**
-     * @param field
-     * @param order ASC or DESC
-     */
-    public OrderBy(String field, String order) {
-        this.field = field;
-        this.order = order;
+    public ASTStringLiteral(String str) {
+        this.str = str;
     }
 
     @Override

@@ -40,17 +40,17 @@ import org.bithon.component.commons.utils.StringUtils;
     @JsonSubTypes.Type(name = SimpleAggregateExpressions.RateAggregateExpression.TYPE, value = SimpleAggregateExpressions.RateAggregateExpression.class),
     @JsonSubTypes.Type(name = SimpleAggregateExpressions.GroupConcatAggregateExpression.TYPE, value = SimpleAggregateExpressions.GroupConcatAggregateExpression.class),
 })
-public abstract class SimpleAggregateExpression extends Function {
+public abstract class SimpleAggregateExpression extends ASTFunction {
     public SimpleAggregateExpression(String fnName, String field) {
         super(fnName);
-        getArguments().add(new Column(field));
+        getArguments().add(new ASTColumn(field));
     }
 
     /**
      * get the column that aggregation is performed on
      */
     public String getTargetColumn() {
-        return ((Column) this.getArguments().get(0)).getName();
+        return ((ASTColumn) this.getArguments().get(0)).getName();
     }
 
     public abstract <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor);

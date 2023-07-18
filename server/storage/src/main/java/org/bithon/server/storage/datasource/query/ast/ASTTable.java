@@ -16,30 +16,18 @@
 
 package org.bithon.server.storage.datasource.query.ast;
 
-import lombok.Getter;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 16:40
+ * @date 2022/9/4 15:04
  */
-@Getter
-public class Function implements IASTNode {
-    private final String fnName;
-    private final List<IASTNode> arguments = new ArrayList<>();
+public class ASTTable extends ASTName {
 
-    public Function(String fnName) {
-        this.fnName = fnName;
+    public ASTTable(String name) {
+        super(name);
     }
 
     @Override
     public void accept(IASTNodeVisitor visitor) {
-        visitor.before(this);
-        for (IASTNode arg : arguments) {
-            arg.accept(visitor);
-        }
-        visitor.after(this);
+        visitor.visit(this);
     }
 }

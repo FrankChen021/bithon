@@ -18,11 +18,9 @@ package org.bithon.server.web.service.datasource.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -42,22 +40,14 @@ public class TimeSeriesMetric {
     @JsonIgnore
     private BiConsumer<Integer, Object> valueSetter;
 
-    @JsonIgnore
-    private Function<Integer, Number> valueGetter;
-
-    public TimeSeriesMetric(List<String> tags, int size, IAggregatableColumn metricSpec) {
+    public TimeSeriesMetric(List<String> tags, int size) {
         this.tags = tags;
 
         this.values = new double[size + 1];
         this.valueSetter = (index, number) -> ((double[]) values)[index] = number == null ? 0 : ((Number) number).doubleValue();
-        this.valueGetter = (index) -> ((double[]) values)[index];
     }
 
     public void set(int index, Object value) {
         this.valueSetter.accept(index, value);
-    }
-
-    public Number get(int index) {
-        return this.valueGetter.apply(index);
     }
 }

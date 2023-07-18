@@ -26,16 +26,16 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 14:58
  */
-public class GroupBy implements IASTNode {
+public class ASTGroupBy implements IASTNode {
     @Getter
     private final List<String> fields = new ArrayList<>(2);
 
-    public GroupBy addField(String field) {
+    public ASTGroupBy addField(String field) {
         this.fields.add(field);
         return this;
     }
 
-    public GroupBy addFields(Collection<String> fields) {
+    public ASTGroupBy addFields(Collection<String> fields) {
         this.fields.addAll(fields);
         return this;
     }

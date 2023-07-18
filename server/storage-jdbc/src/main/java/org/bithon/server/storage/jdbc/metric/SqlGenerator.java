@@ -17,20 +17,21 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.query.ast.Column;
-import org.bithon.server.storage.datasource.query.ast.ColumnAlias;
-import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.From;
-import org.bithon.server.storage.datasource.query.ast.Function;
-import org.bithon.server.storage.datasource.query.ast.GroupBy;
+import org.bithon.server.storage.datasource.query.OrderBy;
+import org.bithon.server.storage.datasource.query.ast.ASTColumn;
+import org.bithon.server.storage.datasource.query.ast.ASTColumnAlias;
+import org.bithon.server.storage.datasource.query.ast.ASTExpression;
+import org.bithon.server.storage.datasource.query.ast.ASTFrom;
+import org.bithon.server.storage.datasource.query.ast.ASTFunction;
+import org.bithon.server.storage.datasource.query.ast.ASTGroupBy;
+import org.bithon.server.storage.datasource.query.ast.ASTLimit;
+import org.bithon.server.storage.datasource.query.ast.ASTOrderBy;
+import org.bithon.server.storage.datasource.query.ast.ASTResultColumn;
+import org.bithon.server.storage.datasource.query.ast.ASTSelectExpression;
+import org.bithon.server.storage.datasource.query.ast.ASTStringLiteral;
+import org.bithon.server.storage.datasource.query.ast.ASTTable;
+import org.bithon.server.storage.datasource.query.ast.ASTWhere;
 import org.bithon.server.storage.datasource.query.ast.IASTNodeVisitor;
-import org.bithon.server.storage.datasource.query.ast.Limit;
-import org.bithon.server.storage.datasource.query.ast.OrderBy;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.query.ast.SelectExpression;
-import org.bithon.server.storage.datasource.query.ast.StringNode;
-import org.bithon.server.storage.datasource.query.ast.Table;
-import org.bithon.server.storage.datasource.query.ast.Where;
 
 /**
  * @author frank.chen021@outlook.com
@@ -46,7 +47,7 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void before(SelectExpression selectExpression) {
+    public void before(ASTSelectExpression selectExpression) {
         if (nestedSelect++ > 0) {
             sql.append("( ");
         }
@@ -54,33 +55,41 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void visit(SelectExpression select) {
+    public void visit(ASTSelectExpression select) {
         select.accept(this);
     }
 
     @Override
-    public void after(SelectExpression selectExpression) {
+    public void after(ASTSelectExpression selectExpression) {
         if (--nestedSelect > 0) {
             sql.append(") ");
         }
     }
 
     @Override
-    public void visit(OrderBy orderBy) {
+    public void visit(ASTOrderBy orderBy) {
         sql.append("ORDER BY ");
-        sql.append('\"');
-        sql.append(orderBy.getField());
-        sql.append('\"');
 
-        if (!StringUtils.isEmpty(orderBy.getOrder())) {
-            sql.append(' ');
-            sql.append(orderBy.getOrder());
-            sql.append(' ');
+        for (int i = 0; i < orderBy.getOrders().length; i++) {
+            if (i > 0) {
+                sql.append(',');
+            }
+
+            OrderBy order = orderBy.getOrders()[i];
+            sql.append('\"');
+            sql.append(order.getName());
+            sql.append('\"');
+
+            if (!StringUtils.isEmpty(order.getOrder())) {
+                sql.append(' ');
+                sql.append(order.getOrder());
+                sql.append(' ');
+            }
         }
     }
 
     @Override
-    public void visit(Limit limit) {
+    public void visit(ASTLimit limit) {
         sql.append(" LIMIT ");
         sql.append(limit.getLimit());
         if (limit.getOffset() > 0) {
@@ -90,28 +99,28 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void visit(Expression expression) {
+    public void visit(ASTExpression expression) {
 
     }
 
     @Override
-    public void before(Function function) {
+    public void before(ASTFunction function) {
         sql.append(function.getFnName());
         sql.append('(');
     }
 
     @Override
-    public void after(Function function) {
+    public void after(ASTFunction function) {
         sql.append(')');
     }
 
     @Override
-    public void visit(StringNode stringNode) {
+    public void visit(ASTStringLiteral stringNode) {
         sql.append(stringNode.getStr());
     }
 
     @Override
-    public void visit(int index, int count, ResultColumn resultColumn) {
+    public void visit(int index, int count, ASTResultColumn resultColumn) {
 
         resultColumn.accept(this);
 
@@ -121,7 +130,7 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void visit(Column column) {
+    public void visit(ASTColumn column) {
         sql.append('\"');
         sql.append(column);
         sql.append('\"');
@@ -129,7 +138,7 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void visit(ColumnAlias alias) {
+    public void visit(ASTColumnAlias alias) {
         sql.append(" AS ");
         sql.append('\"');
         sql.append(alias.getName());
@@ -137,12 +146,12 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void visit(From from) {
+    public void visit(ASTFrom from) {
         sql.append(" FROM ");
     }
 
     @Override
-    public void visit(Table table) {
+    public void visit(ASTTable table) {
         sql.append('\"');
         sql.append(table.getName());
         sql.append('\"');
@@ -150,7 +159,7 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void visit(Where where) {
+    public void visit(ASTWhere where) {
         sql.append("WHERE ");
         for (String expression : where.getExpressions()) {
             sql.append(expression);
@@ -160,7 +169,7 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void visit(GroupBy groupBy) {
+    public void visit(ASTGroupBy groupBy) {
         sql.append("GROUP BY ");
         for (String field : groupBy.getFields()) {
             sql.append('\"');

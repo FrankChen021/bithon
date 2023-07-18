@@ -16,14 +16,23 @@
 
 package org.bithon.server.storage.datasource.query.ast;
 
+import lombok.Getter;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 15:04
+ * @date 2022/9/4 14:55
  */
-public class Table extends Name {
+@Getter
+public class ASTWhere implements IASTNode {
 
-    public Table(String name) {
-        super(name);
+    private final List<String> expressions = new ArrayList<>();
+
+    public ASTWhere addExpression(String expression) {
+        expressions.add(expression);
+        return this;
     }
 
     @Override

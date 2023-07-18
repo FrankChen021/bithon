@@ -23,9 +23,9 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
-import org.bithon.server.storage.datasource.query.ast.Column;
-import org.bithon.server.storage.datasource.query.ast.SelectExpression;
-import org.bithon.server.storage.datasource.query.ast.StringNode;
+import org.bithon.server.storage.datasource.query.ast.ASTColumn;
+import org.bithon.server.storage.datasource.query.ast.ASTSelectExpression;
+import org.bithon.server.storage.datasource.query.ast.ASTStringLiteral;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.metrics.IMetricReader;
@@ -58,30 +58,35 @@ public class MetricJdbcReader implements IMetricReader {
 
     @Override
     public List<Map<String, Object>> timeseries(Query query) {
-        SelectExpression selectExpression = SelectExpressionBuilder.builder()
-                                                                   .dataSource(query.getDataSource())
-                                                                   .fields(query.getResultColumns())
-                                                                   .filters(query.getFilters())
-                                                                   .interval(query.getInterval())
-                                                                   .groupBys(query.getGroupBy())
-                                                                   .orderBy(OrderBy.builder().name(TIMESTAMP_ALIAS_NAME).build())
-                                                                   .sqlDialect(this.sqlDialect)
-                                                                   .build();
+        SelectExpressionBuilder selectExpressionBuilder = SelectExpressionBuilder.builder()
+                                                                                 .dataSource(query.getDataSource())
+                                                                                 .fields(query.getResultColumns())
+                                                                                 .filters(query.getFilters())
+                                                                                 .interval(query.getInterval())
+                                                                                 .groupBys(query.getGroupBy());
 
-        SelectExpression timestampFilterExpression = selectExpression;
-        if (selectExpression.getFrom().getExpression() instanceof SelectExpression) {
+        if (query.getOrderBy() != null) {
+            selectExpressionBuilder.orderBy(OrderBy.builder().name(TIMESTAMP_ALIAS_NAME).order("asc").build(), query.getOrderBy());
+        } else {
+            selectExpressionBuilder.orderBy(OrderBy.builder().name(TIMESTAMP_ALIAS_NAME).build());
+        }
+        ASTSelectExpression selectExpression = selectExpressionBuilder.sqlDialect(this.sqlDialect)
+                                                                      .build();
+
+        ASTSelectExpression timestampFilterExpression = selectExpression;
+        if (selectExpression.getFrom().getExpression() instanceof ASTSelectExpression) {
             // Has a sub-query, timestampExpression will be put in sub-query
-            timestampFilterExpression = (SelectExpression) selectExpression.getFrom().getExpression();
+            timestampFilterExpression = (ASTSelectExpression) selectExpression.getFrom().getExpression();
 
-            // Add timestamp field to outer query at first position
-            selectExpression.getResultColumnList().insert(new Column(TIMESTAMP_ALIAS_NAME));
+            // Add timestamp field to an outer query at first position
+            selectExpression.getResultColumnList().insert(new ASTColumn(TIMESTAMP_ALIAS_NAME));
         }
 
         // Add timestamp expression to sub-query
         timestampFilterExpression.getResultColumnList()
-                                 .insert(new StringNode(StringUtils.format("%s AS \"%s\"",
-                                                                           sqlDialect.timeFloorExpression(query.getDataSource().getTimestampSpec().getTimestampColumn(), query.getInterval().getStep()),
-                                                                           TIMESTAMP_ALIAS_NAME)));
+                                 .insert(new ASTStringLiteral(StringUtils.format("%s AS \"%s\"",
+                                                                                 sqlDialect.timeFloorExpression(query.getDataSource().getTimestampSpec().getTimestampColumn(), query.getInterval().getStep()),
+                                                                                 TIMESTAMP_ALIAS_NAME)));
 
         selectExpression.getGroupBy().addField(TIMESTAMP_ALIAS_NAME);
 
@@ -92,16 +97,16 @@ public class MetricJdbcReader implements IMetricReader {
 
     @Override
     public List<?> groupBy(Query query) {
-        SelectExpression selectExpression = SelectExpressionBuilder.builder()
-                                                                   .dataSource(query.getDataSource())
-                                                                   .fields(query.getResultColumns())
-                                                                   .filters(query.getFilters())
-                                                                   .interval(query.getInterval())
-                                                                   .groupBys(query.getGroupBy())
-                                                                   .orderBy(query.getOrderBy())
-                                                                   .limit(query.getLimit())
-                                                                   .sqlDialect(this.sqlDialect)
-                                                                   .build();
+        ASTSelectExpression selectExpression = SelectExpressionBuilder.builder()
+                                                                      .dataSource(query.getDataSource())
+                                                                      .fields(query.getResultColumns())
+                                                                      .filters(query.getFilters())
+                                                                      .interval(query.getInterval())
+                                                                      .groupBys(query.getGroupBy())
+                                                                      .orderBy(query.getOrderBy())
+                                                                      .limit(query.getLimit())
+                                                                      .sqlDialect(this.sqlDialect)
+                                                                      .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator();
         selectExpression.accept(sqlGenerator);
@@ -121,19 +126,19 @@ public class MetricJdbcReader implements IMetricReader {
         String timestampCol = query.getDataSource().getTimestampSpec().getTimestampColumn();
         String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
         String sql = StringUtils.format(
-            "SELECT %s FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s %s LIMIT %d OFFSET %d",
-            query.getResultColumns().stream().map(field -> "\"" + field.getColumnExpression() + "\"").collect(Collectors.joining(",")),
-            sqlTableName,
-            filter,
-            StringUtils.hasText(filter) ? "AND" : "",
-            timestampCol,
-            sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
-            timestampCol,
-            sqlDialect.formatTimestamp(query.getInterval().getEndTime()),
-            getOrderBySQL(query.getOrderBy()),
-            query.getLimit().getLimit(),
-            query.getLimit().getOffset()
-        );
+                "SELECT %s FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s %s LIMIT %d OFFSET %d",
+                query.getResultColumns().stream().map(field -> "\"" + field.getColumnExpression() + "\"").collect(Collectors.joining(",")),
+                sqlTableName,
+                filter,
+                StringUtils.hasText(filter) ? "AND" : "",
+                timestampCol,
+                sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
+                timestampCol,
+                sqlDialect.formatTimestamp(query.getInterval().getEndTime()),
+                getOrderBySQL(query.getOrderBy()),
+                query.getLimit().getLimit(),
+                query.getLimit().getOffset()
+                                       );
 
         return executeSql(sql);
     }
@@ -145,15 +150,15 @@ public class MetricJdbcReader implements IMetricReader {
 
         String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
         String sql = StringUtils.format(
-            "SELECT count(1) FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s",
-            sqlTableName,
-            filter,
-            StringUtils.hasText(filter) ? "AND" : "",
-            timestampCol,
-            sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
-            timestampCol,
-            sqlDialect.formatTimestamp(query.getInterval().getEndTime())
-        );
+                "SELECT count(1) FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s",
+                sqlTableName,
+                filter,
+                StringUtils.hasText(filter) ? "AND" : "",
+                timestampCol,
+                sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
+                timestampCol,
+                sqlDialect.formatTimestamp(query.getInterval().getEndTime())
+                                       );
 
         Record record = dsl.fetchOne(sql);
         return ((Number) record.get(0)).intValue();
@@ -206,16 +211,16 @@ public class MetricJdbcReader implements IMetricReader {
                                      .collect(Collectors.joining());
 
         String sql = StringUtils.format(
-            "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s AND \"%s\" IS NOT NULL ORDER BY \"%s\"",
-            dimension,
-            dimension,
-            dataSourceSchema.getDataStoreSpec().getStore(),
-            condition,
-            sqlDialect.formatTimestamp(start),
-            sqlDialect.formatTimestamp(end),
-            dimension,
-            dimension
-        );
+                "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s AND \"%s\" IS NOT NULL ORDER BY \"%s\"",
+                dimension,
+                dimension,
+                dataSourceSchema.getDataStoreSpec().getStore(),
+                condition,
+                sqlDialect.formatTimestamp(start),
+                sqlDialect.formatTimestamp(end),
+                dimension,
+                dimension
+                                       );
 
         log.info("Executing {}", sql);
         List<Record> records = dsl.fetch(sql);

@@ -26,27 +26,27 @@ import org.bithon.component.commons.utils.StringUtils;
  * @date 2022/9/4 16:11
  */
 @Getter
-public class ResultColumn implements IASTNode {
+public class ASTResultColumn implements IASTNode {
     private final IASTNode columnExpression;
-    private final ColumnAlias alias;
+    private final ASTColumnAlias alias;
 
-    public ResultColumn(String name) {
-        this(new Column(name), (ColumnAlias) null);
+    public ASTResultColumn(String name) {
+        this(new ASTColumn(name), (ASTColumnAlias) null);
     }
 
-    public ResultColumn(String name, String alias) {
-        this(new Column(name), alias == null ? null : new ColumnAlias(alias));
+    public ASTResultColumn(String name, String alias) {
+        this(new ASTColumn(name), alias == null ? null : new ASTColumnAlias(alias));
     }
 
-    ResultColumn(IASTNode columnExpression) {
+    ASTResultColumn(IASTNode columnExpression) {
         this(columnExpression, (String) null);
     }
 
-    public ResultColumn(IASTNode columnExpression, String alias) {
-        this(columnExpression, alias == null ? null : new ColumnAlias(alias));
+    public ASTResultColumn(IASTNode columnExpression, String alias) {
+        this(columnExpression, alias == null ? null : new ASTColumnAlias(alias));
     }
 
-    public ResultColumn(IASTNode columnExpression, ColumnAlias alias) {
+    public ASTResultColumn(IASTNode columnExpression, ASTColumnAlias alias) {
         this.columnExpression = columnExpression;
         this.alias = alias;
     }
@@ -55,8 +55,8 @@ public class ResultColumn implements IASTNode {
         if (alias != null) {
             return alias.getName();
         }
-        if (columnExpression instanceof Column) {
-            return ((Column) columnExpression).getName();
+        if (columnExpression instanceof ASTColumn) {
+            return ((ASTColumn) columnExpression).getName();
         }
         throw new RuntimeException(StringUtils.format("no result name for result column [%s]", columnExpression));
     }

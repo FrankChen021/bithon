@@ -28,9 +28,9 @@ import java.util.stream.Collector;
  */
 public class ResultColumnList implements IASTNode {
     @Getter
-    private final List<ResultColumn> columns;
+    private final List<ASTResultColumn> columns;
 
-    public static ResultColumnList from(List<ResultColumn> columns) {
+    public static ResultColumnList from(List<ASTResultColumn> columns) {
         return new ResultColumnList(columns);
     }
 
@@ -38,7 +38,7 @@ public class ResultColumnList implements IASTNode {
         this.columns = new ArrayList<>(4);
     }
 
-    public ResultColumnList(List<ResultColumn> columns) {
+    public ResultColumnList(List<ASTResultColumn> columns) {
         this.columns = columns;
     }
 
@@ -46,53 +46,53 @@ public class ResultColumnList implements IASTNode {
      * insert the column at first place
      */
     public ResultColumnList insert(IASTNode columnExpression) {
-        if (columnExpression instanceof ResultColumn) {
+        if (columnExpression instanceof ASTResultColumn) {
             throw new RuntimeException("Can't add typeof ResultColumn");
         }
-        columns.add(0, new ResultColumn(columnExpression));
+        columns.add(0, new ASTResultColumn(columnExpression));
         return this;
     }
 
     public ResultColumnList add(String columnName) {
-        this.columns.add(new ResultColumn(columnName));
+        this.columns.add(new ASTResultColumn(columnName));
         return this;
     }
 
     public ResultColumnList add(IASTNode columnExpression) {
-        if (columnExpression instanceof ResultColumn) {
+        if (columnExpression instanceof ASTResultColumn) {
             throw new RuntimeException("Can't add typeof ResultColumn");
         }
 
-        columns.add(new ResultColumn(columnExpression));
+        columns.add(new ASTResultColumn(columnExpression));
         return this;
     }
 
     public ResultColumnList add(IASTNode columnExpression, String columnAlias) {
-        if (columnExpression instanceof ResultColumn) {
+        if (columnExpression instanceof ASTResultColumn) {
             throw new RuntimeException("Can't add typeof ResultColumn");
         }
-        columns.add(new ResultColumn(columnExpression, columnAlias));
+        columns.add(new ASTResultColumn(columnExpression, columnAlias));
         return this;
     }
 
-    public ResultColumnList add(IASTNode columnExpression, ColumnAlias columnAlias) {
-        if (columnExpression instanceof ResultColumn) {
+    public ResultColumnList add(IASTNode columnExpression, ASTColumnAlias columnAlias) {
+        if (columnExpression instanceof ASTResultColumn) {
             throw new RuntimeException("Can't add typeof ResultColumn");
         }
-        columns.add(new ResultColumn(columnExpression, columnAlias));
+        columns.add(new ASTResultColumn(columnExpression, columnAlias));
         return this;
     }
 
     public ResultColumnList addAll(List<String> columns) {
         for (String column : columns) {
-            this.columns.add(new ResultColumn(column));
+            this.columns.add(new ASTResultColumn(column));
         }
         return this;
     }
 
     public <C> C getColumnNames(Collector<String, ?, C> collector) {
         return columns.stream()
-                      .map(ResultColumn::getResultColumnName)
+                      .map(ASTResultColumn::getResultColumnName)
                       .collect(collector);
     }
 

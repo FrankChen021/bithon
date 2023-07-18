@@ -22,35 +22,35 @@ package org.bithon.server.storage.datasource.query.ast;
  */
 public interface IASTNodeVisitor {
 
-    void before(SelectExpression selectExpression);
+    void before(ASTSelectExpression selectExpression);
 
-    void visit(SelectExpression selectExpression);
+    void visit(ASTSelectExpression selectExpression);
 
-    void after(SelectExpression selectExpression);
+    void after(ASTSelectExpression selectExpression);
 
-    void visit(OrderBy orderBy);
+    void visit(ASTOrderBy orderBy);
 
-    void visit(Table table);
+    void visit(ASTTable table);
 
-    void visit(Where where);
+    void visit(ASTWhere where);
 
-    void visit(GroupBy groupBy);
+    void visit(ASTGroupBy groupBy);
 
-    void visit(From from);
+    void visit(ASTFrom from);
 
-    void before(Function function);
+    void before(ASTFunction function);
 
-    void after(Function function);
+    void after(ASTFunction function);
 
-    void visit(StringNode stringNode);
+    void visit(ASTStringLiteral stringNode);
 
-    void visit(int index, int count, ResultColumn resultColumn);
+    void visit(int index, int count, ASTResultColumn resultColumn);
 
-    void visit(Column column);
+    void visit(ASTColumn column);
 
-    void visit(ColumnAlias alias);
+    void visit(ASTColumnAlias alias);
 
-    void visit(Limit limit);
+    void visit(ASTLimit limit);
 
-    void visit(Expression expression);
+    void visit(ASTExpression expression);
 }

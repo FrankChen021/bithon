@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.datasource.api.impl;
 
 import lombok.Data;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
+import org.bithon.server.storage.datasource.query.ast.ASTResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 
 /**
@@ -30,7 +30,7 @@ public class QueryAggregator {
     private String name;
     private String field;
 
-    public ResultColumn toResultColumnExpression() {
-        return new ResultColumn(SimpleAggregateExpressions.create(type, field == null ? name : field), name);
+    public ASTResultColumn toResultColumnExpression() {
+        return new ASTResultColumn(SimpleAggregateExpressions.create(type, field == null ? name : field), name);
     }
 }

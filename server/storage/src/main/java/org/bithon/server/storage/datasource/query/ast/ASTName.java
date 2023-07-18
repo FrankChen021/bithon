@@ -17,33 +17,23 @@
 package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
-import org.bithon.server.storage.datasource.query.parser.FieldExpressionParserImpl;
-import org.bithon.server.storage.datasource.query.parser.FieldExpressionVisitorAdaptor;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/11/3 22:18
+ * @date 2022/9/4 16:11
  */
-public class Expression implements IASTNode {
+@Getter
+public abstract class ASTName implements IASTNode {
 
-    @Getter
-    private final String expression;
+    private final String name;
 
-    private FieldExpressionParserImpl parser;
-
-    public Expression(String expression) {
-        this.expression = expression;
+    ASTName(String name) {
+        this.name = name;
     }
 
-    public void visitExpression(FieldExpressionVisitorAdaptor visitorAdaptor) {
-        if (parser == null) {
-            parser = FieldExpressionParserImpl.create(this.expression);
-        }
-        parser.visit(visitorAdaptor);
-    }
 
     @Override
-    public void accept(IASTNodeVisitor visitor) {
-        visitor.visit(this);
+    public String toString() {
+        return name;
     }
 }

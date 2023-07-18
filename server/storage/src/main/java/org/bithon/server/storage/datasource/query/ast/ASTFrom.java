@@ -16,25 +16,19 @@
 
 package org.bithon.server.storage.datasource.query.ast;
 
-import lombok.Getter;
+import lombok.Data;
 
 /**
- *
- * An expression that uses string to hold raw string
- *
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 16:49
+ * @date 2022/9/4 15:43
  */
-public class StringNode implements IASTNode {
-    @Getter
-    private final String str;
-
-    public StringNode(String str) {
-        this.str = str;
-    }
+@Data
+public class ASTFrom implements IASTNode {
+    private IASTNode expression;
 
     @Override
     public void accept(IASTNodeVisitor visitor) {
         visitor.visit(this);
+        expression.accept(visitor);
     }
 }

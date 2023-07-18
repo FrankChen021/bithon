@@ -54,10 +54,9 @@ public class TimeSeriesQueryResult {
                                               String tsColumn,
                                               List<String> groups,
                                               List<String> metrics) {
-        int step = interval;
-        long startSecond = start.toSeconds() / step * step;
-        long endSecond = end.toSeconds() / step * step;
-        int bucketCount = (int) (endSecond - startSecond) / step;
+        long startSecond = start.toSeconds() / interval * interval;
+        long endSecond = end.toSeconds() / interval * interval;
+        int bucketCount = (int) (endSecond - startSecond) / interval;
 
         // Use LinkedHashMap to retain the order of input metric list
         Map<List<String>, TimeSeriesMetric> map = new LinkedHashMap<>(7);
@@ -68,14 +67,12 @@ public class TimeSeriesQueryResult {
                 List<String> tags = Collections.singletonList(metric);
 
                 map.computeIfAbsent(tags,
-                                    v -> new TimeSeriesMetric(tags,
-                                                              bucketCount,
-                                                              null));
+                                    v -> new TimeSeriesMetric(tags, bucketCount));
             }
         } else {
             for (Map<String, Object> point : dataPoints) {
                 long timestamp = ((Number) point.get(tsColumn)).longValue();
-                int bucketIndex = (int) (timestamp - startSecond) / step;
+                int bucketIndex = (int) (timestamp - startSecond) / interval;
 
                 for (String metric : metrics) {
                     // this code is not so efficient
@@ -87,9 +84,7 @@ public class TimeSeriesQueryResult {
                     tags.add(metric);
 
                     map.computeIfAbsent(tags,
-                                        v -> new TimeSeriesMetric(tags,
-                                                                  bucketCount,
-                                                                  null))
+                                        v -> new TimeSeriesMetric(tags, bucketCount))
                        .set(bucketIndex, point.get(metric));
                 }
             }

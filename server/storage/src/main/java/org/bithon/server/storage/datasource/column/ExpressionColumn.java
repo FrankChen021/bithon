@@ -22,8 +22,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
+import org.bithon.server.storage.datasource.query.ast.ASTExpression;
+import org.bithon.server.storage.datasource.query.ast.ASTResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
@@ -89,8 +89,8 @@ public class ExpressionColumn implements IColumn {
     }
 
     @Override
-    public ResultColumn getResultColumn() {
-        return new ResultColumn(new Expression(this.expression), this.name);
+    public ASTResultColumn getResultColumn() {
+        return new ASTResultColumn(new ASTExpression(this.expression), this.name);
     }
 
     @Override

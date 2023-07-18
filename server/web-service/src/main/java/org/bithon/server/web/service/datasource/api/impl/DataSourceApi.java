@@ -24,7 +24,7 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.Query;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
+import org.bithon.server.storage.datasource.query.ast.ASTResultColumn;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
@@ -114,7 +114,7 @@ public class DataSourceApi implements IDataSourceApi {
                                                  .map((field) -> {
                                                      IColumn spec = schema.getColumnByName(field.getField());
                                                      Preconditions.checkNotNull(spec, "field [%s] does not exist in the schema.", field.getField());
-                                                     return new ResultColumn(spec.getName(), field.getName());
+                                                     return new ASTResultColumn(spec.getName(), field.getName());
                                                  }).collect(Collectors.toList()))
                            .filters(FilterExpressionToFilters.toFilter(schema, request.getFilterExpression(), request.getFilters()))
                            .interval(Interval.of(TimeSpan.fromISO8601(request.getInterval().getStartISO8601()),

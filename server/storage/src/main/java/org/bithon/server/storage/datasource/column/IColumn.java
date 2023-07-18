@@ -28,7 +28,7 @@ import org.bithon.server.storage.datasource.column.aggregatable.max.AggregateLon
 import org.bithon.server.storage.datasource.column.aggregatable.min.AggregateLongMinColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateDoubleSumColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
+import org.bithon.server.storage.datasource.query.ast.ASTResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
@@ -96,5 +96,5 @@ public interface IColumn {
     IDataType getDataType();
 
     @JsonIgnore
-    ResultColumn getResultColumn();
+    ASTResultColumn getResultColumn();
 }

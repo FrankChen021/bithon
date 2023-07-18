@@ -24,8 +24,9 @@ import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.Query;
-import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
+import org.bithon.server.storage.datasource.query.ast.ASTExpression;
+import org.bithon.server.storage.datasource.query.ast.ASTFunction;
+import org.bithon.server.storage.datasource.query.ast.ASTResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.datasource.typing.IDataType;
 import org.bithon.server.storage.metrics.IMetricStorage;
@@ -68,7 +69,7 @@ public class DataSourceService {
                                         IColumn column = query.getDataSource().getColumnByName(resultColumn.getResultColumnName());
                                         return column instanceof IAggregatableColumn || column instanceof ExpressionColumn;
                                     })
-                                    .map((ResultColumn::getResultColumnName))
+                                    .map((ASTResultColumn::getResultColumnName))
                                     .collect(Collectors.toList());
 
         List<Map<String, Object>> points = this.metricStorage.createMetricReader(query.getDataSource())
@@ -97,20 +98,20 @@ public class DataSourceService {
         }
 
         // Turn into internal objects(post aggregators...)
-        List<ResultColumn> resultColumnList = new ArrayList<>(query.getFields().size());
+        List<ASTResultColumn> resultColumnList = new ArrayList<>(query.getFields().size());
         for (QueryField field : query.getFields()) {
             if (field.getExpression() != null) {
 
-                resultColumnList.add(new ResultColumn(new Expression(field.getExpression()), field.getName()));
+                resultColumnList.add(new ASTResultColumn(new ASTExpression(field.getExpression()), field.getName()));
 
                 continue;
             }
 
             if (field.getAggregator() != null) {
-                org.bithon.server.storage.datasource.query.ast.Function function = SimpleAggregateExpressions.create(
+                ASTFunction function = SimpleAggregateExpressions.create(
                     field.getAggregator(),
                     field.getField() == null ? field.getName() : field.getField());
-                resultColumnList.add(new ResultColumn(function, field.getName()));
+                resultColumnList.add(new ASTResultColumn(function, field.getName()));
             } else {
                 IColumn columnSpec = schema.getColumnByName(field.getField());
                 if (columnSpec == null) {

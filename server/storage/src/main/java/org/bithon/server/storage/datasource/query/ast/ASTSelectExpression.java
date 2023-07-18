@@ -21,23 +21,23 @@ import lombok.Getter;
 
 /**
  * Take SQL as an example, this AST node represents a whole SELECT statement.
- * Since statement is a concept in SQL, here we don't use that concept but use 'expression',
+ * Since a statement is a concept in SQL, here we don't use that concept but use 'expression'
  * so this class is called as 'SelectExpression'
- *
+ * <p>
  *
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 14:55
  */
 @Data
-public class SelectExpression implements IASTNode {
+public class ASTSelectExpression implements IASTNode {
     @Getter
     private final ResultColumnList resultColumnList = new ResultColumnList();
 
-    private final From from = new From();
-    private Where where;
-    private GroupBy groupBy;
-    private OrderBy orderBy;
-    private Limit limit;
+    private final ASTFrom from = new ASTFrom();
+    private ASTWhere where;
+    private ASTGroupBy groupBy;
+    private ASTOrderBy orderBy;
+    private ASTLimit limit;
 
     @Override
     public void accept(IASTNodeVisitor visitor) {

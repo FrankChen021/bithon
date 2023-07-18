@@ -18,7 +18,7 @@ package org.bithon.server.storage.datasource.column;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
+import org.bithon.server.storage.datasource.query.ast.ASTResultColumn;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
 import javax.annotation.Nullable;
@@ -44,7 +44,7 @@ public class StringColumn extends AbstractColumn {
     }
 
     @Override
-    public ResultColumn getResultColumn() {
-        return new ResultColumn(getName());
+    public ASTResultColumn getResultColumn() {
+        return new ASTResultColumn(getName());
     }
 }

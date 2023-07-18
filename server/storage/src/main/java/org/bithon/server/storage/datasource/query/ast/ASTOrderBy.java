@@ -16,19 +16,27 @@
 
 package org.bithon.server.storage.datasource.query.ast;
 
-import lombok.Data;
+import lombok.Getter;
+import org.bithon.server.storage.datasource.query.OrderBy;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 15:43
+ * @date 2022/9/4 14:55
  */
-@Data
-public class From implements IASTNode {
-    private IASTNode expression;
+public class ASTOrderBy implements IASTNode {
+
+    @Getter
+    private final OrderBy[] orders;
+
+    /**
+     * @param order ASC or DESC
+     */
+    public ASTOrderBy(OrderBy[] orders) {
+        this.orders = orders;
+    }
 
     @Override
     public void accept(IASTNodeVisitor visitor) {
         visitor.visit(this);
-        expression.accept(visitor);
     }
 }
