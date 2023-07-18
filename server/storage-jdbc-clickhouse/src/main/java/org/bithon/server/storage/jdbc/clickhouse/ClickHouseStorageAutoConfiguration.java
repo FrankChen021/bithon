@@ -45,22 +45,24 @@ import javax.sql.DataSource;
  * @date 27/10/21 9:45 pm
  */
 @Configuration
-@ConditionalOnProperty(prefix = "bithon.storage.providers.clickhouse", name = "enabled", havingValue = "true")
 public class ClickHouseStorageAutoConfiguration {
 
     @Bean("bithon-clickhouse-dataSource")
     @ConfigurationProperties(prefix = "bithon.storage.providers.clickhouse")
+    @ConditionalOnProperty(prefix = "bithon.storage.providers.clickhouse", name = "enabled", havingValue = "true")
     DataSource createDataSource() {
         return new DruidDataSource();
     }
 
     @Bean
     @ConfigurationProperties(prefix = "bithon.storage.providers.clickhouse")
+    @ConditionalOnProperty(prefix = "bithon.storage.providers.clickhouse", name = "enabled", havingValue = "true")
     ClickHouseConfig clickHouseConfig() {
         return new ClickHouseConfig();
     }
 
     @Bean
+    @ConditionalOnProperty(prefix = "bithon.storage.providers.clickhouse", name = "enabled", havingValue = "true")
     ClickHouseJooqContextHolder clickHouseDSLContextHolder(@Qualifier("bithon-clickhouse-dataSource") DataSource dataSource) {
         JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
         return new ClickHouseJooqContextHolder(DSL.using(new DefaultConfiguration().set(autoConfiguration.dataSourceConnectionProvider(dataSource))
