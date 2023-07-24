@@ -59,7 +59,7 @@ public class MetricAggregatorTest {
             new TimestampSpec("timestamp", null, null),
             Collections.emptyList(),
             Arrays.asList(new AggregateLongSumColumn("totalCount", "totalCount"),
-                          new AggregateLongMinColumn("minTime", "minTime" ),
+                          new AggregateLongMinColumn("minTime", "minTime"),
                           new AggregateLongMaxColumn("maxTime", "maxTime"))
         );
 
