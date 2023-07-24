@@ -2,6 +2,22 @@
   "name": "http-outgoing-metrics",
   "title": "HTTP Outgoing",
   "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "http-outgoing-metrics",
+        "fields": [
+          "appName",
+          "instanceName",
+          "targetHostPort",
+          "method",
+          "path",
+          "statusCode"
+        ]
+      }
+    ]
+  },
   "charts": [
     {
       "dataSource": "http-outgoing-metrics",

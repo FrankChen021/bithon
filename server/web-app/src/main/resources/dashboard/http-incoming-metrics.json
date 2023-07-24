@@ -2,6 +2,21 @@
   "name": "http-incoming-metrics",
   "title": "HTTP Incoming",
   "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "http-incoming-metrics",
+        "fields": [
+          "appName",
+          "instanceName",
+          "method",
+          "uri",
+          "statusCode"
+        ]
+      }
+    ]
+  },
   "charts": [
     {
       "dataSource": "http-incoming-metrics",

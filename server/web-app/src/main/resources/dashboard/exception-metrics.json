@@ -3,6 +3,17 @@
   "title": "Exceptions",
   "folder": "metrics",
   "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "exception-metrics",
+        "fields": [
+          "appName",
+          "instanceName",
+          "exceptionClass"
+        ]
+      }
+    ],
     "showFilterInput": true
   },
   "charts": [

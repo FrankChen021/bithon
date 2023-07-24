@@ -2,6 +2,20 @@
   "name": "redis-metrics",
   "title": "Redis",
   "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "redis-metrics",
+        "fields": [
+          "appName",
+          "instanceName",
+          "uri",
+          "command"
+        ]
+      }
+    ]
+  },
   "charts": [
     {
       "dataSource": "redis-metrics",

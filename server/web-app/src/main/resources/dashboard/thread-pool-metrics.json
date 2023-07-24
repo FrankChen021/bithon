@@ -2,6 +2,20 @@
   "name": "thread-pool-metrics",
   "title": "Thread Pool",
   "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "thread-pool-metrics",
+        "fields": [
+          "appName",
+          "instanceName",
+          "executorClass",
+          "poolName"
+        ]
+      }
+    ]
+  },
   "charts": [
     {
       "dataSource": "thread-pool-metrics",

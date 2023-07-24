@@ -2,6 +2,18 @@
   "name": "jvm-metrics",
   "title": "JVM",
   "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "jvm-metrics",
+        "fields": [
+          "appName",
+          "instanceName"
+        ]
+      }
+    ]
+  },
   "charts": [
     {
       "dataSource": "jvm-metrics",
@@ -217,7 +229,11 @@
             "dimension": "generation",
             "matcher": {
               "type": "in",
-              "pattern": ["new", "ZGC Cycles", "ZGC Pauses"]
+              "pattern": [
+                "new",
+                "ZGC Cycles",
+                "ZGC Pauses"
+              ]
             }
           }
         }
@@ -250,7 +266,9 @@
           "gcCount",
           "avgGcTime"
         ],
-        "groupBy": ["gcName"],
+        "groupBy": [
+          "gcName"
+        ],
         "filters": {
           "generation": {
             "dimension": "generation",

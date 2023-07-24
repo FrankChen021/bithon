@@ -2,6 +2,18 @@
   "name": "web-server-metrics",
   "title": "Web Server",
   "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "web-server-metrics",
+        "fields": [
+          "appName",
+          "instanceName"
+        ]
+      }
+    ]
+  },
   "charts": [
     {
       "dataSource": "web-server-metrics",

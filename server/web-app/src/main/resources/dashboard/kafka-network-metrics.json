@@ -2,6 +2,24 @@
   "name": "kafka-network-metrics",
   "title": "Kafka Network",
   "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "kafka-network-metrics",
+        "fields": [
+          "appName",
+          "instanceName",
+          "type",
+          "cluster",
+          "nodeId",
+          "groupId",
+          "clientId",
+          "exception"
+        ]
+      }
+    ]
+  },
   "charts": [
     {
       "dataSource": "kafka-network-metrics",

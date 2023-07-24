@@ -2,6 +2,23 @@
   "name": "kafka-consumer-metrics",
   "title": "Kafka Consumer",
   "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "kafka-consumer-metrics",
+        "fields": [
+          "appName",
+          "instanceName",
+          "cluster",
+          "topic",
+          "partition",
+          "groupId",
+          "clientId"
+        ]
+      }
+    ]
+  },
   "charts": [
     {
       "dataSource": "kafka-consumer-metrics",
