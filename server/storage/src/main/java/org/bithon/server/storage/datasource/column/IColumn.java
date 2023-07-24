@@ -81,8 +81,6 @@ public interface IColumn {
 
     String getAlias();
 
-    String getDisplayText();
-
     default NumberAggregator createAggregator() {
         throw new UnsupportedOperationException(StringUtils.format("createAggregator is not supported on type of " + this.getClass().getSimpleName()));
     }

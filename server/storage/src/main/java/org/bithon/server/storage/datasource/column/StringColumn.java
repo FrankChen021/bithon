@@ -33,9 +33,8 @@ public class StringColumn extends AbstractColumn {
     @JsonCreator
     public StringColumn(@JsonProperty("name") @NotNull String name,
                         @JsonProperty("alias") @Nullable String alias,
-                        @JsonProperty("displayText") @NotNull String displayText,
                         @JsonProperty("visible") Boolean visible) {
-        super(name, alias, displayText, visible);
+        super(name, alias, visible);
     }
 
     @Override

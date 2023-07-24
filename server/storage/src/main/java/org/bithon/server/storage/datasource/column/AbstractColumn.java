@@ -46,19 +46,13 @@ public abstract class AbstractColumn implements IColumn {
     private final String alias;
 
     @Getter
-    @NotNull
-    private final String displayText;
-
-    @Getter
     private final boolean visible;
 
     public AbstractColumn(@NotNull String name,
                           @Nullable String alias,
-                          @NotNull String displayText,
                           @Nullable Boolean visible) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.displayText = displayText;
         this.visible = visible == null ? true : visible;
     }
 }

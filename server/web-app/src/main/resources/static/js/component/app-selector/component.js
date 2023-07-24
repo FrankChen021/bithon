@@ -95,7 +95,7 @@ class AppSelector {
                 source: schema.name,
                 name: dimension.name,
                 alias: dimension.alias,
-                displayText: dimension.displayText,
+                displayText: dimension.alias,
                 onPreviousFilters: true
             });
         }
