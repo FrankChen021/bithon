@@ -165,6 +165,8 @@ class Dashboard {
                 });
 
             this._chartDescriptors[chartDescriptor.id] = chartDescriptor;
+
+            this.createChartDetail(chartDescriptor);
         });
 
         //
@@ -191,58 +193,38 @@ class Dashboard {
         // Loaded Dimension Filter
         // This is legacy implementation. Should be refactored to decouple the filter from the dataSource field
         //
-        let hasSchema = false;
-        for (const dataSourceName in dataSource2Charts) {
-            hasSchema = true;
-            this._schemaApi.getSchema({
-                name: dataSourceName,
-                successCallback: (schema) => {
-                    let index;
-                    if (schema.name === dataSourceFilter) {
-                        // create filters for dimensions
-                        this.vFilter.createFilterFromSchema(schema);
-                    }
+        const filterSpecs = [];
+        if (dashboard.filter !== undefined) {
+            $.each(dashboard.filter.selectors, (index, selector) => {
+                if (selector.type === 'datasource') {
+                    $.each(selector.fields, (fieldIndex, field) => {
+                        if (this._showAppSelector && field === 'appName') {
+                            return;
+                        }
 
-                    //
-                    // This should be changed in future
-                    // converts metricsSpec from Array to Map
-                    //
-                    //const metricMap = {};
-                    //for (index = 0; index < schema.metricsSpec.length; index++) {
-                    //    const metric = schema.metricsSpec[index];
-                    //    metricMap[metric.name] = metric;
-                    //}
-                    //schema.metricsSpec = metricMap;
-
-                    //
-                    // Build Transformers
-                    //
-                    //this.createTransformers(schema);
-
-                    // refresh dashboard after schema has been retrieved
-                    // because there may be value transformers on different units
-                    const charts = dataSource2Charts[schema.name];
-                    $.each(charts, (index, chartId) => {
-                        this.refreshChart(this._chartDescriptors[chartId], this._chartComponents[chartId], this.getSelectedTimeInterval());
-
-                        // Create detail for this chart
-                        this.createChartDetail(this._chartDescriptors[chartId]);
+                        filterSpecs.push({
+                            filterType: 'select',
+                            sourceType: 'datasource',
+                            source: selector.name,
+                            name: field,
+                            alias: field,
+                            displayText: field,
+                            onPreviousFilters: true
+                        });
                     });
-                },
-                errorCallback: (error) => {
                 }
             });
+            this.vFilter.createFilters(filterSpecs);
         }
-        if (!hasSchema) {
-            this.refreshDashboard();
-        }
+
+        this.refreshDashboard();
     }
 
     #updatePageURL() {
         let url = window.location.pathname + '?';
 
         const filters = this.vFilter.getSelectedFilters();
-        $.each(filters, (index, filter)=>{
+        $.each(filters, (index, filter) => {
             url += `${filter.dimension}=${filter.matcher.pattern}&`;
         });
         url += `interval=${this._selectedInterval.id}&`;
@@ -702,7 +684,7 @@ class Dashboard {
             const interval = currentChartComponent.getInterval(dataIndex);
 
             let tooltip = moment(interval.start).local().format('MM-DD HH:mm:ss') + '<br/>'
-            + moment(interval.end).local().format('MM-DD HH:mm:ss');
+                + moment(interval.end).local().format('MM-DD HH:mm:ss');
             series.forEach(s => {
                 //Use the yAxis defined formatter to format the data
                 const yAxisIndex = currentChartOption.series[s.seriesIndex].yAxisIndex;
@@ -1035,17 +1017,17 @@ class Dashboard {
 
                 // save the timestamp for further processing
                 chartComponent.getInterval = (startIndex, endIndex) => {
-                     if (endIndex === undefined) {
-                         endIndex = startIndex + 1;
-                     }
+                    if (endIndex === undefined) {
+                        endIndex = startIndex + 1;
+                    }
 
-                     const startTimestamp = roundDownStart + startIndex * bucketLength;
-                     const endTimestamp = roundDownStart + endIndex * bucketLength;
-                     return {
-                         start: startTimestamp < absoluteStart? absoluteStart : startTimestamp,
-                         end: endTimestamp > absoluteEnd?  absoluteEnd: endTimestamp
-                     }
-                 };
+                    const startTimestamp = roundDownStart + startIndex * bucketLength;
+                    const endTimestamp = roundDownStart + endIndex * bucketLength;
+                    return {
+                        start: startTimestamp < absoluteStart ? absoluteStart : startTimestamp,
+                        end: endTimestamp > absoluteEnd ? absoluteEnd : endTimestamp
+                    }
+                };
 
                 return {
                     refreshMode: mode,
@@ -1063,7 +1045,7 @@ class Dashboard {
         // Check if the filter satisfies the requirement of this chart
         const query = chartDescriptor.query;
         if (query.precondition !== undefined
-        && query.precondition.filters !== undefined ) {
+            && query.precondition.filters !== undefined) {
             const satisfied = query.precondition.filters.every((f) => this.vFilter.getSelectedFilter(f) != null);
             if (!satisfied) {
                 console.log('Not satisfied');
@@ -1338,7 +1320,7 @@ class Dashboard {
     }
 
     #onNavigateBack(e) {
-        if(e.state === null) {
+        if (e.state === null) {
             // We set the state manually, so if the state is null, it's triggered by other source that needs to be ignored
             return;
         }
