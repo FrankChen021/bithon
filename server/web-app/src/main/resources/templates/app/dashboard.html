@@ -19,8 +19,7 @@
                 (boardConfig) => {
                     const dashboard = new Dashboard('dashboard',
                         dashboardName,
-                        window.queryParams['interval'],
-                        new SchemaApi());
+                        window.queryParams['interval']);
                     dashboard.load(boardConfig);
 
                     $(window).bind('resize', () => {

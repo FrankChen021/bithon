@@ -1,11 +1,8 @@
 class Dashboard {
-    constructor(containerId, dashboardName, defaultInterval, schemaApi, showAppSelector) {
-        this._schemaApi = schemaApi;
-        this._dashboardName = dashboardName;
+    constructor(containerId, dashboardName, defaultInterval, showAppSelector) {
         this._defaultInterval = defaultInterval;
 
         // View
-        this._containerId = containerId;
         this._container = $('#' + containerId);
         this._stackLayoutRowFill = 0;
         this._stackLayoutRow = $('<div style="display: flex"></div>');
@@ -100,29 +97,11 @@ class Dashboard {
         }
 
         //
-        // dataSource --> Charts
+        // Set up id
         //
-        const dataSource2Charts = {};
         $.each(this._dashboard.charts, (index, chartDescriptor) => {
             const chartId = 'chart_' + index;
             chartDescriptor['id'] = chartId;
-
-            //
-            // Set up a data source to charts mapping
-            //
-            // dataSource property on chart is a legacy property
-            let dataSourceName = chartDescriptor.dataSource;
-            if (dataSourceName === undefined) {
-                if (chartDescriptor.query !== undefined) {
-                    dataSourceName = chartDescriptor.query.dataSource;
-                }
-            }
-            if (dataSourceName !== undefined) {
-                if (dataSource2Charts[dataSourceName] == null) {
-                    dataSource2Charts[dataSourceName] = [];
-                }
-                dataSource2Charts[dataSourceName].push(chartId);
-            }
         });
 
         const parent = $('#filterBarForm');
@@ -186,8 +165,6 @@ class Dashboard {
             }
         }
         echarts.connect(charts);
-
-        const dataSourceFilter = this._dashboard.charts[0].dataSource;
 
         //
         // Loaded Dimension Filter
@@ -411,7 +388,6 @@ class Dashboard {
         // create columns for metrics
         //
         $.each(chartDescriptor.details.metrics, (index, metric) => {
-            let metricName;
             if (typeof metric === 'object') {
                 fields.push(metric.name);
                 columns.push({name: metric.name, format: metric.formatter, sortable: true});
@@ -525,7 +501,7 @@ class Dashboard {
             let column = tableDescriptor.columns[i];
 
             // string type of column is allowed for simple configuration
-            // during rendering, it's turned into object for simple processing
+            // during rendering, it's turned into an object for simple processing
             if (typeof column === 'string') {
                 tableDescriptor.columns[i] = {name: column};
             }
@@ -626,7 +602,7 @@ class Dashboard {
             let column = chartDescriptor.columns[i];
 
             // string type of column is allowed for simple configuration
-            // during rendering, it's turned into object for simple processing
+            // during rendering, it's turned into an object for simple processing
             if (typeof column === 'string') {
                 chartDescriptor.columns[i] = {name: column};
                 column = chartDescriptor.columns[i];
@@ -643,7 +619,7 @@ class Dashboard {
 
             // formatter
             const yAxisIndex = column.yAxis || 0;
-            // Make sure the array has enough object for further access
+            // Make sure the array has enough objects for further access
             while (chartDescriptor.yAxis.length < yAxisIndex + 1) {
                 chartDescriptor.yAxis.push({});
             }
@@ -657,7 +633,7 @@ class Dashboard {
             }
         }
 
-        chartOption.yAxis = chartDescriptor.yAxis.map((yAxis, index) => {
+        chartOption.yAxis = chartDescriptor.yAxis.map((yAxis) => {
             return {
                 type: 'value',
                 min: 0 || yAxis.min,
@@ -718,12 +694,12 @@ class Dashboard {
         const chartComponent = new ChartComponent({
             containerId: chartId,
 
-            // Keep query object in the chart for further query
+            // Keep the query object in the chart for further queries
             query: chartDescriptor.query
         }).header('<b>' + chartDescriptor.title + '</b>')
             .setChartOption(chartOption);
 
-        // Apply click event to refresh time interval
+        // Apply click event to refresh the time interval
         if (chartDescriptor.zoomOnTime === true) {
             chartComponent.setClickHandler((e) => {
                 const interval = chartComponent.getInterval(e.dataIndex);
@@ -779,7 +755,7 @@ class Dashboard {
 
         // Process legacy list type
         if (chartDescriptor.type === 'list') {
-            // Convert old format to new format
+            // Convert an old format to new format
             const query = {
                 type: 'list',
                 dataSource: chartDescriptor.dataSource,
@@ -1005,7 +981,7 @@ class Dashboard {
                         mode = 'replace';
                     } else {
                         // If the returned count of series is less than the given fields count, that's a group-by.
-                        // In this case, we always replace the series because one group may not exist in a following query.
+                        // In this case, we always replace the series because one group may not exist in following queries.
                         mode = data.data.length < queryFieldsCount ? 'replace' : 'refresh'
                     }
                 }
@@ -1063,35 +1039,6 @@ class Dashboard {
         }
 
         console.log('Unknown chart type: ' + chartDescriptor.type);
-    }
-
-    // Unit conversion
-    // PRIVATE
-    createTransformers(schema) {
-        $.each(this._dashboard.charts, (index, chartDescriptor) => {
-            if (chartDescriptor.dataSource === schema.name) {
-                // create transformers for those charts associated with this datasource
-                $.each(chartDescriptor.columns, (columnIndex, column) => {
-                    column.transformer = this.createTransformer(schema, chartDescriptor, column);
-                });
-            }
-        });
-    }
-
-    createTransformer(schema, chartDescriptor, column) {
-        if (chartDescriptor.yAxis != null) {
-            // get yAxis config for this metric
-            const name = column.name;
-            const yIndex = column.yAxis || 0;
-            if (yIndex < chartDescriptor.yAxis.length) {
-                const yAxis = chartDescriptor.yAxis[yIndex];
-                const metricSpec = schema.metricsSpec[name];
-                if (metricSpec != null && yAxis.format === 'millisecond' && metricSpec.unit === 'nanosecond') {
-                    return (val) => val == null ? 0 : (val / 1000 / 1000);
-                }
-            }
-        }
-        return (val) => val === null || val === 'NaN' ? 0 : val;
     }
 
     // PRIVATE
@@ -1321,7 +1268,7 @@ class Dashboard {
 
     #onNavigateBack(e) {
         if (e.state === null) {
-            // We set the state manually, so if the state is null, it's triggered by other source that needs to be ignored
+            // We set the state manually, so if the state is null, it's triggered by another source that needs to be ignored
             return;
         }
 
