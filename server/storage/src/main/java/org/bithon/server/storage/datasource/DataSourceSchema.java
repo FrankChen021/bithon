@@ -103,7 +103,7 @@ public class DataSourceSchema {
     @JsonIgnore
     private boolean isVirtual = false;
 
-    private static final IColumn TIMESTAMP_COLUMN = new LongColumn("timestamp", "timestamp", true);
+    private static final IColumn TIMESTAMP_COLUMN = new LongColumn("timestamp", "timestamp");
 
     public DataSourceSchema(String displayText,
                             String name,
@@ -152,7 +152,7 @@ public class DataSourceSchema {
         if ("timestamp".equals(timestampSpec.getTimestampColumn())) {
             this.columnMap.put(TIMESTAMP_COLUMN.getName(), TIMESTAMP_COLUMN);
         } else {
-            this.columnMap.put(timestampSpec.getTimestampColumn(), new LongColumn(timestampSpec.getTimestampColumn(), timestampSpec.getTimestampColumn(), true));
+            this.columnMap.put(timestampSpec.getTimestampColumn(), new LongColumn(timestampSpec.getTimestampColumn(), timestampSpec.getTimestampColumn()));
         }
     }
 

@@ -81,8 +81,6 @@ class AppSelector {
         // Note: the first two dimensions MUST be app/instance
         for (let index = 0; index < schema.dimensionsSpec.length; index++) {
             const dimension = schema.dimensionsSpec[index];
-            if (!dimension.visible)
-                continue;
 
             if (index === 0 && dimension.alias === 'appName' && !keepAppFilter) {
                 // for appName filter, createAppSelector should be explicitly called
@@ -101,6 +99,22 @@ class AppSelector {
         }
 
         this.createFilters(filterSpecs);
+    }
+
+    createFilterByFields(datasource, fields) {
+        const filterSpecs = fields.map((field) => {
+            return {
+                filterType: 'select',
+                sourceType: 'datasource',
+                source: datasource,
+                name: field,
+                alias: field,
+                displayText: field,
+                onPreviousFilters: true
+            }
+        });
+        this.createFilters(filterSpecs);
+        return this;
     }
 
     /**

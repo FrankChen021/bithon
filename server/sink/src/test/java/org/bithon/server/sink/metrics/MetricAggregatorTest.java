@@ -67,7 +67,7 @@ public class MetricAggregatorTest {
             "one-dimension-table",
             "one-dimension-table",
             new TimestampSpec("timestamp", null, null),
-            Arrays.asList(new StringColumn("appName", "appName", "appName", true)),
+            Arrays.asList(new StringColumn("appName", "appName")),
             Arrays.asList(new AggregateLongSumColumn("totalCount", "totalCount"),
                           new AggregateLongMinColumn("minTime", "minTime"),
                           new AggregateLongMaxColumn("maxTime", "maxTime"))

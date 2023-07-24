@@ -67,13 +67,6 @@ public interface IColumn {
     String LONG_MAX = "longMax";
 
     /**
-     * temporarily for compatibility only
-     */
-    default boolean isVisible() {
-        return true;
-    }
-
-    /**
      * the name in the storage.
      * can NOT be null
      */

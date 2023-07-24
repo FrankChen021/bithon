@@ -161,14 +161,11 @@ public class StorageAutoConfiguration {
                                     "event",
                                     new TimestampSpec("timestamp", null, null),
                                     Arrays.asList(new StringColumn("appName",
-                                                                   "appName",
-                                                                   null),
+                                                                   "appName"),
                                                   new StringColumn("instanceName",
-                                                                   "instanceName",
-                                                                   null),
+                                                                   "instanceName"),
                                                   new StringColumn("type",
-                                                                   "type",
-                                                                   true)),
+                                                                   "type")),
                                     Collections.singletonList(AggregateCountColumn.INSTANCE));
 
     }
@@ -179,21 +176,16 @@ public class StorageAutoConfiguration {
                                      "trace_span_summary",
                                      new TimestampSpec("timestamp", null, null),
                                      Arrays.asList(new StringColumn("appName",
-                                                                    "appName",
-                                                                    null),
+                                                                    "appName"),
                                                    new StringColumn("instanceName",
-                                                                    "instanceName",
-                                                                    null),
+                                                                    "instanceName"),
                                                    new StringColumn("status",
-                                                                    "status",
-                                                                    true),
-                                                   new StringColumn("name", "name", false),
+                                                                    "status"),
+                                                   new StringColumn("name", "name"),
                                                    new StringColumn("normalizedUrl",
-                                                                    "url",
-                                                                    true),
-                                                   new StringColumn("kind", "kind", false)),
+                                                                    "url"),
+                                                   new StringColumn("kind", "kind")),
                                      Arrays.asList(AggregateCountColumn.INSTANCE,
-
                                                    // microsecond
                                                    new AggregateLongSumColumn("costTimeMs",
                                                                               "costTimeMs")));
@@ -209,7 +201,7 @@ public class StorageAutoConfiguration {
                 Integer indexPos = entry.getValue();
                 dimensionSpecs.add(new StringColumn("f" + indexPos,
                                                     // Alias
-                                                    tagName, null));
+                                                    tagName));
             }
         }
 

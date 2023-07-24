@@ -32,9 +32,8 @@ public class LongColumn extends AbstractColumn {
 
     @JsonCreator
     public LongColumn(@JsonProperty("name") @NotNull String name,
-                      @JsonProperty("alias") @Nullable String alias,
-                      @JsonProperty("visible") @Nullable Boolean visible) {
-        super(name, alias, visible);
+                      @JsonProperty("alias") @Nullable String alias) {
+        super(name, alias);
     }
 
     @Override
