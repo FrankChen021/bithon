@@ -67,21 +67,12 @@ public interface IColumn {
     String LONG_MAX = "longMax";
 
     /**
-     * temporarily for compatibility only
-     */
-    default boolean isVisible() {
-        return true;
-    }
-
-    /**
      * the name in the storage.
      * can NOT be null
      */
     String getName();
 
     String getAlias();
-
-    String getDisplayText();
 
     default NumberAggregator createAggregator() {
         throw new UnsupportedOperationException(StringUtils.format("createAggregator is not supported on type of " + this.getClass().getSimpleName()));

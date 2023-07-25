@@ -1,6 +1,6 @@
 # Dashboard Configuration
 
-## Example - Application Overview
+## Example—Application Overview
 
 ```json
 {
@@ -58,6 +58,58 @@
 
 ### Data Configuration
 
+### Filter Configuration
+
+#### Selector filter example
+
+```json
+{
+  "name": "jvm-metrics",
+  "title": "JVM",
+  "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "jvm-metrics",
+        "fields": [
+          "appName",
+          "instanceName"
+        ]
+      }
+    ]
+  },
+  ...
+}
+```
+
+#### Text input filter example
+
+By setting the `filter.showFilterInput` to `true` to enable the text filter on pages.
+
+```json
+{
+  "name": "exception-metrics",
+  "title": "Exceptions",
+  "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "exception-metrics",
+        "fields": [
+          "appName",
+          "instanceName",
+          "exceptionClass"
+        ]
+      }
+    ],
+    "showFilterInput": true
+  },
+  ...
+}
+```
+
 #### Timeseries
 
 #### groupBy
@@ -72,9 +124,9 @@ This is the ultimate way.
 }
 ```
 
-## Example - Get cardinality of application instances
+## Example—Get cardinality of application instances
 
-To illustrate cardinality of application instances in chart, add following column to columns of a char description file.
+To illustrate the cardinality of application instances in charts, add the following column to columns of a char description file.
 
 ```json
 {

@@ -58,19 +58,19 @@ public class MetricAggregatorTest {
             "empty-dimension-table",
             new TimestampSpec("timestamp", null, null),
             Collections.emptyList(),
-            Arrays.asList(new AggregateLongSumColumn("totalCount", "totalCount", ""),
-                          new AggregateLongMinColumn("minTime", "minTime", ""),
-                          new AggregateLongMaxColumn("maxTime", "maxTime", ""))
+            Arrays.asList(new AggregateLongSumColumn("totalCount", "totalCount"),
+                          new AggregateLongMinColumn("minTime", "minTime"),
+                          new AggregateLongMaxColumn("maxTime", "maxTime"))
         );
 
         DataSourceSchema hasDimensionSchema = new DataSourceSchema(
             "one-dimension-table",
             "one-dimension-table",
             new TimestampSpec("timestamp", null, null),
-            Arrays.asList(new StringColumn("appName", "appName", "appName", true)),
-            Arrays.asList(new AggregateLongSumColumn("totalCount", "totalCount", ""),
-                          new AggregateLongMinColumn("minTime", "minTime", ""),
-                          new AggregateLongMaxColumn("maxTime", "maxTime", ""))
+            Arrays.asList(new StringColumn("appName", "appName")),
+            Arrays.asList(new AggregateLongSumColumn("totalCount", "totalCount"),
+                          new AggregateLongMinColumn("minTime", "minTime"),
+                          new AggregateLongMaxColumn("maxTime", "maxTime"))
         );
 
         return new Object[]{

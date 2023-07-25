@@ -2,6 +2,22 @@
   "name": "mongodb-metrics",
   "title": "MongoDb",
   "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "mongodb-metrics",
+        "fields": [
+          "appName",
+          "instanceName",
+          "server",
+          "database",
+          "collection",
+          "command"
+        ]
+      }
+    ]
+  },
   "charts": [
     {
       "dataSource": "mongodb-metrics",

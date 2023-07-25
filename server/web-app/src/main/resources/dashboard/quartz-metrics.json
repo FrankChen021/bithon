@@ -2,6 +2,21 @@
   "name": "quartz-metrics",
   "title": "Quartz",
   "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "quartz-metrics",
+        "fields": [
+          "appName",
+          "instanceName",
+          "job",
+          "class",
+          "exception"
+        ]
+      }
+    ]
+  },
   "charts": [
     {
       "dataSource": "quartz-metrics",

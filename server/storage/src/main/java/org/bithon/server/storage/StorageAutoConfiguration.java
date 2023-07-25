@@ -161,17 +161,11 @@ public class StorageAutoConfiguration {
                                     "event",
                                     new TimestampSpec("timestamp", null, null),
                                     Arrays.asList(new StringColumn("appName",
-                                                                   "appName",
-                                                                   "appName",
-                                                                   null),
+                                                                   "appName"),
                                                   new StringColumn("instanceName",
-                                                                   "instanceName",
-                                                                   "instanceName",
-                                                                   null),
+                                                                   "instanceName"),
                                                   new StringColumn("type",
-                                                                   "type",
-                                                                   "type",
-                                                                   true)),
+                                                                   "type")),
                                     Collections.singletonList(AggregateCountColumn.INSTANCE));
 
     }
@@ -182,28 +176,18 @@ public class StorageAutoConfiguration {
                                      "trace_span_summary",
                                      new TimestampSpec("timestamp", null, null),
                                      Arrays.asList(new StringColumn("appName",
-                                                                    "appName",
-                                                                    "appName",
-                                                                    null),
+                                                                    "appName"),
                                                    new StringColumn("instanceName",
-                                                                    "instanceName",
-                                                                    "instanceName",
-                                                                    null),
+                                                                    "instanceName"),
                                                    new StringColumn("status",
-                                                                    "status",
-                                                                    "status",
-                                                                    true),
-                                                   new StringColumn("name", "name", "name", false),
+                                                                    "status"),
+                                                   new StringColumn("name", "name"),
                                                    new StringColumn("normalizedUrl",
-                                                                    "url",
-                                                                    "url",
-                                                                    true),
-                                                   new StringColumn("kind", "kind", "kind", false)),
+                                                                    "url"),
+                                                   new StringColumn("kind", "kind")),
                                      Arrays.asList(AggregateCountColumn.INSTANCE,
-
                                                    // microsecond
                                                    new AggregateLongSumColumn("costTimeMs",
-                                                                              null,
                                                                               "costTimeMs")));
         dataSourceSchema.setVirtual(true);
         return dataSourceSchema;
@@ -217,10 +201,7 @@ public class StorageAutoConfiguration {
                 Integer indexPos = entry.getValue();
                 dimensionSpecs.add(new StringColumn("f" + indexPos,
                                                     // Alias
-                                                    tagName,
-                                                    // Display
-                                                    entry.getKey(),
-                                                    null));
+                                                    tagName));
             }
         }
 

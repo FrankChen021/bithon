@@ -39,26 +39,15 @@ public abstract class AbstractColumn implements IColumn {
     /**
      * This is the name that is used at business layer
      * If it's not specified, it's default to {@link #name}.
-     *
+     * <p>
      * Some underlying storage uses some meaningless name, and the business layer maps a business name to that meaningless name.
      */
     @Getter
     private final String alias;
 
-    @Getter
-    @NotNull
-    private final String displayText;
-
-    @Getter
-    private final boolean visible;
-
     public AbstractColumn(@NotNull String name,
-                          @Nullable String alias,
-                          @NotNull String displayText,
-                          @Nullable Boolean visible) {
+                          @Nullable String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.displayText = displayText;
-        this.visible = visible == null ? true : visible;
     }
 }

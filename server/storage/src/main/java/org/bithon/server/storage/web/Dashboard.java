@@ -36,4 +36,5 @@ public class Dashboard {
     private String payload;
     private String signature;
     private Timestamp timestamp;
+    private boolean deleted;
 }

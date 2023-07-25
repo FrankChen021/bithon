@@ -52,8 +52,8 @@ import java.util.stream.Collectors;
 public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
     private final IMetricMessageSink metricSink;
-    private final IColumn appName = new StringColumn("appName", "appName", "appName", true);
-    private final IColumn instanceName = new StringColumn("instanceName", "instanceName", "instanceName", true);
+    private final IColumn appName = new StringColumn("appName", "appName");
+    private final IColumn instanceName = new StringColumn("instanceName", "instanceName");
 
     public BrpcMetricCollector(IMetricMessageSink metricSink) {
         this.metricSink = metricSink;
@@ -80,7 +80,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
         dimensionSpecs.addAll(message.getSchema()
                                      .getDimensionsSpecList()
                                      .stream()
-                                     .map(dimSpec -> new StringColumn(dimSpec.getName(), dimSpec.getName(), dimSpec.getName(), true))
+                                     .map(dimSpec -> new StringColumn(dimSpec.getName(), dimSpec.getName()))
                                      .collect(Collectors.toList()));
 
         DataSourceSchema schema = new DataSourceSchema(message.getSchema().getName(),
@@ -89,16 +89,16 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                                        dimensionSpecs,
                                                        message.getSchema().getMetricsSpecList().stream().map(metricSpec -> {
                                                            if ("longMax".equals(metricSpec.getType())) {
-                                                               return new AggregateLongMaxColumn(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
+                                                               return new AggregateLongMaxColumn(metricSpec.getName(), metricSpec.getName());
                                                            }
                                                            if ("longMin".equals(metricSpec.getType())) {
-                                                               return new AggregateLongMinColumn(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
+                                                               return new AggregateLongMinColumn(metricSpec.getName(), metricSpec.getName());
                                                            }
                                                            if ("longSum".equals(metricSpec.getType())) {
-                                                               return new AggregateLongSumColumn(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
+                                                               return new AggregateLongSumColumn(metricSpec.getName(), metricSpec.getName());
                                                            }
                                                            if ("longLast".equals(metricSpec.getType())) {
-                                                               return new AggregateLongLastColumn(metricSpec.getName(), metricSpec.getName(), metricSpec.getName());
+                                                               return new AggregateLongLastColumn(metricSpec.getName(), metricSpec.getName());
                                                            }
 
                                                            return null;

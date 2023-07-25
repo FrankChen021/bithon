@@ -33,9 +33,8 @@ public class AggregateLongMaxColumn extends AggregateMaxColumn {
 
     @JsonCreator
     public AggregateLongMaxColumn(@JsonProperty("name") @NotNull String name,
-                                  @JsonProperty("alias") @Nullable String alias,
-                                  @JsonProperty("displayText") @NotNull String displayText) {
-        super(name, alias, displayText);
+                                  @JsonProperty("alias") @Nullable String alias) {
+        super(name, alias);
     }
 
     @Override

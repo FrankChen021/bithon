@@ -2,6 +2,20 @@
   "name": "sql-metrics",
   "title": "SQL",
   "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "sql-metrics",
+        "fields": [
+          "appName",
+          "instanceName",
+          "server",
+          "database"
+        ]
+      }
+    ]
+  },
   "charts": [
     {
       "dataSource": "sql-metrics",
@@ -44,7 +58,7 @@
       "type": "line",
       "yAxis": [
         {
-          "format": "millisecond"
+          "format": "nanoFormatter"
         }
       ],
       "columns": [

@@ -17,7 +17,7 @@ class EventPage {
 
             this.#refreshPage();
         }).createAppSelector(appName)
-          .createFilter('event');
+            .createFilterByFields('event', ['instanceName', 'type']);
 
         const parent = $('#filterBarForm');
 

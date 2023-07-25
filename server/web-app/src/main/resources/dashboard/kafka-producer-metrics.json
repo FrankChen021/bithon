@@ -2,6 +2,22 @@
   "name": "kafka-producer-metrics",
   "title": "Kafka Producer",
   "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "kafka-producer-metrics",
+        "fields": [
+          "appName",
+          "instanceName",
+          "cluster",
+          "nodeId",
+          "topic",
+          "clientId"
+        ]
+      }
+    ]
+  },
   "charts": [
     {
       "dataSource": "kafka-producer-metrics",

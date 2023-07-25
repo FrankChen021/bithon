@@ -1,11 +1,8 @@
 class Dashboard {
-    constructor(containerId, dashboardName, defaultInterval, schemaApi, showAppSelector) {
-        this._schemaApi = schemaApi;
-        this._dashboardName = dashboardName;
+    constructor(containerId, dashboardName, defaultInterval, showAppSelector) {
         this._defaultInterval = defaultInterval;
 
         // View
-        this._containerId = containerId;
         this._container = $('#' + containerId);
         this._stackLayoutRowFill = 0;
         this._stackLayoutRow = $('<div style="display: flex"></div>');
@@ -100,29 +97,11 @@ class Dashboard {
         }
 
         //
-        // dataSource --> Charts
+        // Set up id
         //
-        const dataSource2Charts = {};
         $.each(this._dashboard.charts, (index, chartDescriptor) => {
             const chartId = 'chart_' + index;
             chartDescriptor['id'] = chartId;
-
-            //
-            // Set up a data source to charts mapping
-            //
-            // dataSource property on chart is a legacy property
-            let dataSourceName = chartDescriptor.dataSource;
-            if (dataSourceName === undefined) {
-                if (chartDescriptor.query !== undefined) {
-                    dataSourceName = chartDescriptor.query.dataSource;
-                }
-            }
-            if (dataSourceName !== undefined) {
-                if (dataSource2Charts[dataSourceName] == null) {
-                    dataSource2Charts[dataSourceName] = [];
-                }
-                dataSource2Charts[dataSourceName].push(chartId);
-            }
         });
 
         const parent = $('#filterBarForm');
@@ -165,6 +144,8 @@ class Dashboard {
                 });
 
             this._chartDescriptors[chartDescriptor.id] = chartDescriptor;
+
+            this.createChartDetail(chartDescriptor);
         });
 
         //
@@ -185,64 +166,42 @@ class Dashboard {
         }
         echarts.connect(charts);
 
-        const dataSourceFilter = this._dashboard.charts[0].dataSource;
-
         //
         // Loaded Dimension Filter
         // This is legacy implementation. Should be refactored to decouple the filter from the dataSource field
         //
-        let hasSchema = false;
-        for (const dataSourceName in dataSource2Charts) {
-            hasSchema = true;
-            this._schemaApi.getSchema({
-                name: dataSourceName,
-                successCallback: (schema) => {
-                    let index;
-                    if (schema.name === dataSourceFilter) {
-                        // create filters for dimensions
-                        this.vFilter.createFilterFromSchema(schema);
-                    }
+        const filterSpecs = [];
+        if (dashboard.filter !== undefined) {
+            $.each(dashboard.filter.selectors, (index, selector) => {
+                if (selector.type === 'datasource') {
+                    $.each(selector.fields, (fieldIndex, field) => {
+                        if (this._showAppSelector && field === 'appName') {
+                            return;
+                        }
 
-                    //
-                    // This should be changed in future
-                    // converts metricsSpec from Array to Map
-                    //
-                    //const metricMap = {};
-                    //for (index = 0; index < schema.metricsSpec.length; index++) {
-                    //    const metric = schema.metricsSpec[index];
-                    //    metricMap[metric.name] = metric;
-                    //}
-                    //schema.metricsSpec = metricMap;
-
-                    //
-                    // Build Transformers
-                    //
-                    //this.createTransformers(schema);
-
-                    // refresh dashboard after schema has been retrieved
-                    // because there may be value transformers on different units
-                    const charts = dataSource2Charts[schema.name];
-                    $.each(charts, (index, chartId) => {
-                        this.refreshChart(this._chartDescriptors[chartId], this._chartComponents[chartId], this.getSelectedTimeInterval());
-
-                        // Create detail for this chart
-                        this.createChartDetail(this._chartDescriptors[chartId]);
+                        filterSpecs.push({
+                            filterType: 'select',
+                            sourceType: 'datasource',
+                            source: selector.name,
+                            name: field,
+                            alias: field,
+                            displayText: field,
+                            onPreviousFilters: true
+                        });
                     });
-                },
-                errorCallback: (error) => {
                 }
             });
+            this.vFilter.createFilters(filterSpecs);
         }
-        if (!hasSchema) {
-            this.refreshDashboard();
-        }
+
+        this.refreshDashboard();
     }
 
     #updatePageURL() {
         let url = window.location.pathname + '?';
 
         const filters = this.vFilter.getSelectedFilters();
-        $.each(filters, (index, filter)=>{
+        $.each(filters, (index, filter) => {
             url += `${filter.dimension}=${filter.matcher.pattern}&`;
         });
         url += `interval=${this._selectedInterval.id}&`;
@@ -429,7 +388,6 @@ class Dashboard {
         // create columns for metrics
         //
         $.each(chartDescriptor.details.metrics, (index, metric) => {
-            let metricName;
             if (typeof metric === 'object') {
                 fields.push(metric.name);
                 columns.push({name: metric.name, format: metric.formatter, sortable: true});
@@ -543,7 +501,7 @@ class Dashboard {
             let column = tableDescriptor.columns[i];
 
             // string type of column is allowed for simple configuration
-            // during rendering, it's turned into object for simple processing
+            // during rendering, it's turned into an object for simple processing
             if (typeof column === 'string') {
                 tableDescriptor.columns[i] = {name: column};
             }
@@ -644,7 +602,7 @@ class Dashboard {
             let column = chartDescriptor.columns[i];
 
             // string type of column is allowed for simple configuration
-            // during rendering, it's turned into object for simple processing
+            // during rendering, it's turned into an object for simple processing
             if (typeof column === 'string') {
                 chartDescriptor.columns[i] = {name: column};
                 column = chartDescriptor.columns[i];
@@ -661,7 +619,7 @@ class Dashboard {
 
             // formatter
             const yAxisIndex = column.yAxis || 0;
-            // Make sure the array has enough object for further access
+            // Make sure the array has enough objects for further access
             while (chartDescriptor.yAxis.length < yAxisIndex + 1) {
                 chartDescriptor.yAxis.push({});
             }
@@ -675,7 +633,7 @@ class Dashboard {
             }
         }
 
-        chartOption.yAxis = chartDescriptor.yAxis.map((yAxis, index) => {
+        chartOption.yAxis = chartDescriptor.yAxis.map((yAxis) => {
             return {
                 type: 'value',
                 min: 0 || yAxis.min,
@@ -702,7 +660,7 @@ class Dashboard {
             const interval = currentChartComponent.getInterval(dataIndex);
 
             let tooltip = moment(interval.start).local().format('MM-DD HH:mm:ss') + '<br/>'
-            + moment(interval.end).local().format('MM-DD HH:mm:ss');
+                + moment(interval.end).local().format('MM-DD HH:mm:ss');
             series.forEach(s => {
                 //Use the yAxis defined formatter to format the data
                 const yAxisIndex = currentChartOption.series[s.seriesIndex].yAxisIndex;
@@ -736,12 +694,12 @@ class Dashboard {
         const chartComponent = new ChartComponent({
             containerId: chartId,
 
-            // Keep query object in the chart for further query
+            // Keep the query object in the chart for further queries
             query: chartDescriptor.query
         }).header('<b>' + chartDescriptor.title + '</b>')
             .setChartOption(chartOption);
 
-        // Apply click event to refresh time interval
+        // Apply click event to refresh the time interval
         if (chartDescriptor.zoomOnTime === true) {
             chartComponent.setClickHandler((e) => {
                 const interval = chartComponent.getInterval(e.dataIndex);
@@ -797,7 +755,7 @@ class Dashboard {
 
         // Process legacy list type
         if (chartDescriptor.type === 'list') {
-            // Convert old format to new format
+            // Convert an old format to new format
             const query = {
                 type: 'list',
                 dataSource: chartDescriptor.dataSource,
@@ -1023,7 +981,7 @@ class Dashboard {
                         mode = 'replace';
                     } else {
                         // If the returned count of series is less than the given fields count, that's a group-by.
-                        // In this case, we always replace the series because one group may not exist in a following query.
+                        // In this case, we always replace the series because one group may not exist in following queries.
                         mode = data.data.length < queryFieldsCount ? 'replace' : 'refresh'
                     }
                 }
@@ -1035,17 +993,17 @@ class Dashboard {
 
                 // save the timestamp for further processing
                 chartComponent.getInterval = (startIndex, endIndex) => {
-                     if (endIndex === undefined) {
-                         endIndex = startIndex + 1;
-                     }
+                    if (endIndex === undefined) {
+                        endIndex = startIndex + 1;
+                    }
 
-                     const startTimestamp = roundDownStart + startIndex * bucketLength;
-                     const endTimestamp = roundDownStart + endIndex * bucketLength;
-                     return {
-                         start: startTimestamp < absoluteStart? absoluteStart : startTimestamp,
-                         end: endTimestamp > absoluteEnd?  absoluteEnd: endTimestamp
-                     }
-                 };
+                    const startTimestamp = roundDownStart + startIndex * bucketLength;
+                    const endTimestamp = roundDownStart + endIndex * bucketLength;
+                    return {
+                        start: startTimestamp < absoluteStart ? absoluteStart : startTimestamp,
+                        end: endTimestamp > absoluteEnd ? absoluteEnd : endTimestamp
+                    }
+                };
 
                 return {
                     refreshMode: mode,
@@ -1063,7 +1021,7 @@ class Dashboard {
         // Check if the filter satisfies the requirement of this chart
         const query = chartDescriptor.query;
         if (query.precondition !== undefined
-        && query.precondition.filters !== undefined ) {
+            && query.precondition.filters !== undefined) {
             const satisfied = query.precondition.filters.every((f) => this.vFilter.getSelectedFilter(f) != null);
             if (!satisfied) {
                 console.log('Not satisfied');
@@ -1081,35 +1039,6 @@ class Dashboard {
         }
 
         console.log('Unknown chart type: ' + chartDescriptor.type);
-    }
-
-    // Unit conversion
-    // PRIVATE
-    createTransformers(schema) {
-        $.each(this._dashboard.charts, (index, chartDescriptor) => {
-            if (chartDescriptor.dataSource === schema.name) {
-                // create transformers for those charts associated with this datasource
-                $.each(chartDescriptor.columns, (columnIndex, column) => {
-                    column.transformer = this.createTransformer(schema, chartDescriptor, column);
-                });
-            }
-        });
-    }
-
-    createTransformer(schema, chartDescriptor, column) {
-        if (chartDescriptor.yAxis != null) {
-            // get yAxis config for this metric
-            const name = column.name;
-            const yIndex = column.yAxis || 0;
-            if (yIndex < chartDescriptor.yAxis.length) {
-                const yAxis = chartDescriptor.yAxis[yIndex];
-                const metricSpec = schema.metricsSpec[name];
-                if (metricSpec != null && yAxis.format === 'millisecond' && metricSpec.unit === 'nanosecond') {
-                    return (val) => val == null ? 0 : (val / 1000 / 1000);
-                }
-            }
-        }
-        return (val) => val === null || val === 'NaN' ? 0 : val;
     }
 
     // PRIVATE
@@ -1338,8 +1267,8 @@ class Dashboard {
     }
 
     #onNavigateBack(e) {
-        if(e.state === null) {
-            // We set the state manually, so if the state is null, it's triggered by other source that needs to be ignored
+        if (e.state === null) {
+            // We set the state manually, so if the state is null, it's triggered by another source that needs to be ignored
             return;
         }
 

@@ -37,7 +37,7 @@ class TracePage {
                 }
                 this.#refreshPage();
             }).createAppSelector(this.mQueryParams['appName'])
-                .createFilter('trace_span_summary');
+                .createFilterByFields('trace_span_summary', ['instanceName', 'status', 'url']);
 
             // View, tag filter
             this.vTagFilter = new AppSelector({

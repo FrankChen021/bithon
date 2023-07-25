@@ -81,7 +81,8 @@ public class DashboardManager implements InitializingBean, DisposableBean {
     public void afterPropertiesSet() {
         log.info("Starting schema incremental loader...");
         loaderScheduler.scheduleWithFixedDelay(this::incrementalLoad,
-                                               0, // no delay to execute the first task
+                                               // no delay to execute the first task
+                                               0,
                                                1,
                                                TimeUnit.MINUTES);
     }
@@ -93,7 +94,11 @@ public class DashboardManager implements InitializingBean, DisposableBean {
 
             if (!changedDashboards.isEmpty()) {
                 for (Dashboard dashboard : changedDashboards) {
-                    this.dashboards.put(dashboard.getName(), dashboard);
+                    if (dashboard.isDeleted()) {
+                        this.dashboards.remove(dashboard.getName());
+                    } else {
+                        this.dashboards.put(dashboard.getName(), dashboard);
+                    }
                 }
 
                 onChanged();
