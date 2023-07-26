@@ -20,7 +20,6 @@
   },
   "charts": [
     {
-      "dataSource": "mongodb-metrics",
       "title": "Commands",
       "width": 4,
       "type": "line",
@@ -41,7 +40,6 @@
       }
     },
     {
-      "dataSource": "mongodb-metrics",
       "title": "Time",
       "width": 4,
       "type": "line",
@@ -66,7 +64,6 @@
       }
     },
     {
-      "dataSource": "mongodb-metrics",
       "title": "IO",
       "width": 4,
       "type": "line",

@@ -22,7 +22,6 @@
   },
   "charts": [
     {
-      "dataSource": "kafka-network-metrics",
       "title": "QPS",
       "width": 4,
       "type": "line",
@@ -39,7 +38,6 @@
       }
     },
     {
-      "dataSource": "kafka-network-metrics",
       "title": "Latency",
       "width": 4,
       "type": "line",

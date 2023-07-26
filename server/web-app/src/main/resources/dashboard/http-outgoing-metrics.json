@@ -20,7 +20,6 @@
   },
   "charts": [
     {
-      "dataSource": "http-outgoing-metrics",
       "title": "QPS",
       "width": 4,
       "type": "line",
@@ -73,7 +72,6 @@
       }
     },
     {
-      "dataSource": "http-outgoing-metrics",
       "title": "Response Time",
       "width": 4,
       "type": "line",
@@ -132,7 +130,6 @@
       }
     },
     {
-      "dataSource": "http-outgoing-metrics",
       "title": "Errors",
       "width": 4,
       "type": "line",
@@ -194,7 +191,6 @@
       }
     },
     {
-      "dataSource": "http-outgoing-metrics",
       "title": "IO",
       "width": 4,
       "type": "line",
