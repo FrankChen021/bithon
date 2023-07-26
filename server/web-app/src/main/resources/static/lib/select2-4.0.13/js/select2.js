@@ -1620,7 +1620,7 @@ S2.define('select2/selection/single',[
       .attr('aria-readonly', 'true')
       // Change to INPUT, limit the size of INPUT, 20 is the dropdown icon width
       .css('width', $container.width() - 2 + 'px')
-      .css('padding-left', '4px') //override the default to show more content
+      //.css('padding-left', '4px') //override the default to show more content
       .css('border', '0')
       ;
       //---END
@@ -1687,11 +1687,11 @@ S2.define('select2/selection/single',[
     var selection = data[0];
 
     var $rendered = this.$selection.find('.select2-selection__rendered');
-    var formatted = this.display(selection, $rendered);
 
     //Change to INPUT
+    // var formatted = this.display(selection, $rendered);
     //$rendered.empty().append(formatted);
-    $rendered.val(formatted);
+    $rendered.val(selection.text);
 
     var title = selection.title || selection.text;
 
@@ -1979,9 +1979,11 @@ S2.define('select2/selection/allowClear',[
       return;
     }
 
-    if (evt.which == KEYS.DELETE || evt.which == KEYS.BACKSPACE) {
-      this._handleClear(evt);
-    }
+    // Change to INPUT, disable CLEAR
+    //if (evt.which == KEYS.DELETE || evt.which == KEYS.BACKSPACE) {
+    //  this._handleClear(evt);
+    //}
+    //
   };
 
   AllowClear.prototype.update = function (decorated, data) {
