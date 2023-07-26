@@ -222,13 +222,6 @@ class Dashboard {
 
         const detailViewId = chartDescriptor.id + '_detailView';
         if (chartDescriptor.details.query === undefined) {
-            //
-            // Convert from old definition
-            //
-            chartDescriptor.details.query = {
-                dataSource: chartDescriptor.dataSource
-            };
-
             if (chartDescriptor.details.columns !== undefined) {
                 const pair = this.#fromDetailV2(chartDescriptor);
                 chartDescriptor.details.query.fields = pair[0];
@@ -278,7 +271,7 @@ class Dashboard {
             }
         }
         if (chartDescriptor.details.query.dataSource === undefined) {
-            chartDescriptor.details.query.dataSource = chartDescriptor.dataSource;
+            chartDescriptor.details.query.dataSource = chartDescriptor.query.dataSource !== undefined ? chartDescriptor.query.dataSource : chartDescriptor.dataSource;
         }
 
         let buttons = undefined;
@@ -726,7 +719,10 @@ class Dashboard {
             endISO8601: interval.end
         };
         thisQuery.filters = filters;
-        thisQuery.filterExpression = $('#filter-input').val();
+
+        if (thisQuery.filterExpression === undefined) {
+            thisQuery.filterExpression = this.#getInputFilterExpression();
+        }
 
         let path;
         if (query.type === 'list') {
@@ -898,7 +894,10 @@ class Dashboard {
             thisQuery.interval.bucketCount = chartDescriptor.query.bucketCount;
         }
         thisQuery.filters = filters;
-        thisQuery.filterExpression = $('#filter-input').val();
+
+        if (thisQuery.filterExpression === undefined) {
+            thisQuery.filterExpression = this.#getInputFilterExpression();
+        }
 
         const queryFieldsCount = chartDescriptor.query.fields.length;
 
@@ -1259,7 +1258,7 @@ class Dashboard {
 
     #getInputFilterExpression() {
         const v = $('#filter-input').val();
-        return v === undefined || v === null ? '' : v;
+        return v === undefined || v === null ? '' : v.trim();
     }
 
     #setInputFilterExpression(val) {
