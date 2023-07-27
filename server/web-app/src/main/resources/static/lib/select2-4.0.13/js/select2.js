@@ -1903,20 +1903,14 @@ S2.define('select2/selection/allowClear',[
 
     container.on('keypress', function (evt) {
       // Change to INPUT
-      self._handleKeyboardClear(evt, container);
+      // self._handleKeyboardClear(evt, container);
       //---END
 
       if (evt.which === KEYS.ENTER) {
         const text = $container.find('.select2-selection__rendered').val().trim();
         if (text.length === 0) {
             self._handleClear(evt, container);
-        } else {
-            this.trigger('select', {
-              data: {
-                id: text,
-                text: text
-              }
-            });
+            evt.preventDefault();
         }
       }
     });
@@ -1989,9 +1983,11 @@ S2.define('select2/selection/allowClear',[
   AllowClear.prototype.update = function (decorated, data) {
     decorated.call(this, data);
 
-    if (this.$selection.find('.select2-selection__placeholder').length > 0 ||
-        data.length === 0) {
-      return;
+    // Change to INPUT
+    //if (this.$selection.find('.select2-selection__placeholder').length > 0 ||
+    if (this.$selection.find('.select2-selection__clear').length > 0 ||
+       data.length === 0) {
+     return;
     }
 
     var removeAll = this.options.get('translations').get('removeAllItems');
@@ -5777,6 +5773,14 @@ S2.define('select2/core',[
           self.open();
 
           evt.preventDefault();
+        } else if (key === KEYS.ENTER && !evt.isDefaultPrevented()) {
+          const text = self.$container.find('.select2-selection__rendered').val().trim();
+          this.trigger('select', {
+              data: {
+                  id: text,
+                  text: text
+              }
+          });
         }
       }
     });
