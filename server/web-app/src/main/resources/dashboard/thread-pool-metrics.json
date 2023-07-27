@@ -207,7 +207,7 @@
             "discardedOldestTaskCount",
             "userRejectedPolicyCount"
           ],
-          "filterExpression": "totalRejectedCount > 0",
+          "filter": "totalRejectedCount > 0",
           "orderBy": {
             "name": "totalRejectedCount",
             "order": "desc"

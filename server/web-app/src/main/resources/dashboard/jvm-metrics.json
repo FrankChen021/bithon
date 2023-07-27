@@ -217,7 +217,7 @@
           "gcCount",
           "avgGcTime"
         ],
-        "filterExpression": "generation in ('new', 'ZGC Cycles', 'ZGC Pauses')"
+        "filter": "generation in ('new', 'ZGC Cycles', 'ZGC Pauses')"
       }
     },
     {
@@ -249,7 +249,7 @@
         "groupBy": [
           "gcName"
         ],
-        "filterExpression": "generation = 'old'"
+        "filter": "generation = 'old'"
       }
     }
   ]

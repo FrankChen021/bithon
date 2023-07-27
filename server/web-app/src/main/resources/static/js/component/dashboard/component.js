@@ -720,8 +720,11 @@ class Dashboard {
         };
         thisQuery.filters = filters;
 
-        if (thisQuery.filterExpression === undefined) {
+        if (thisQuery.filter === undefined) {
             thisQuery.filterExpression = this.#getInputFilterExpression();
+        } else {
+            thisQuery.filterExpression = thisQuery.filter;
+            delete thisQuery.filter;
         }
 
         let path;
@@ -895,8 +898,11 @@ class Dashboard {
         }
         thisQuery.filters = filters;
 
-        if (thisQuery.filterExpression === undefined) {
+        if (thisQuery.filter === undefined) {
             thisQuery.filterExpression = this.#getInputFilterExpression();
+        } else {
+            thisQuery.filterExpression = thisQuery.filter;
+            delete thisQuery.filter;
         }
 
         const queryFieldsCount = chartDescriptor.query.fields.length;

@@ -134,7 +134,7 @@
           "avgResponseTime",
           "maxResponseTime"
         ],
-        "filterExpression": "type = 'Produce'"
+        "filter": "type = 'Produce'"
       }
     }
   ]
