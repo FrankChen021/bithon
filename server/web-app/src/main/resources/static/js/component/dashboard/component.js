@@ -932,6 +932,10 @@ class Dashboard {
                     const isBar = column.chartType === 'bar';
 
                     const n = metricNamePrefix + group + (column.title === undefined ? column.name : column.title);
+
+                    //Use the yAxis defined formatter to format the data
+                    const yAxisIndex = column.yAxis || 0;
+
                     let s = {
                         id: n,
                         name: n,
@@ -947,7 +951,12 @@ class Dashboard {
                         label: {
                             show: isBar,
                             formatter: (v) => {
-                                return v.value > 0 ? v.value.toString() : '';
+                                if (v.value > 0) {
+                                    const yAxis = chartDescriptor.yAxis[yAxisIndex];
+                                    return yAxis.formatter(v.value);
+                                } else {
+                                    return '';
+                                }
                             }
                         },
 
