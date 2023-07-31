@@ -222,13 +222,6 @@ class Dashboard {
 
         const detailViewId = chartDescriptor.id + '_detailView';
         if (chartDescriptor.details.query === undefined) {
-            //
-            // Convert from old definition
-            //
-            chartDescriptor.details.query = {
-                dataSource: chartDescriptor.dataSource
-            };
-
             if (chartDescriptor.details.columns !== undefined) {
                 const pair = this.#fromDetailV2(chartDescriptor);
                 chartDescriptor.details.query.fields = pair[0];
@@ -278,7 +271,7 @@ class Dashboard {
             }
         }
         if (chartDescriptor.details.query.dataSource === undefined) {
-            chartDescriptor.details.query.dataSource = chartDescriptor.dataSource;
+            chartDescriptor.details.query.dataSource = chartDescriptor.query.dataSource !== undefined ? chartDescriptor.query.dataSource : chartDescriptor.dataSource;
         }
 
         let buttons = undefined;
@@ -726,7 +719,13 @@ class Dashboard {
             endISO8601: interval.end
         };
         thisQuery.filters = filters;
-        thisQuery.filterExpression = $('#filter-input').val();
+
+        if (thisQuery.filter === undefined) {
+            thisQuery.filterExpression = this.#getInputFilterExpression();
+        } else {
+            thisQuery.filterExpression = thisQuery.filter;
+            delete thisQuery.filter;
+        }
 
         let path;
         if (query.type === 'list') {
@@ -898,7 +897,13 @@ class Dashboard {
             thisQuery.interval.bucketCount = chartDescriptor.query.bucketCount;
         }
         thisQuery.filters = filters;
-        thisQuery.filterExpression = $('#filter-input').val();
+
+        if (thisQuery.filter === undefined) {
+            thisQuery.filterExpression = this.#getInputFilterExpression();
+        } else {
+            thisQuery.filterExpression = thisQuery.filter;
+            delete thisQuery.filter;
+        }
 
         const queryFieldsCount = chartDescriptor.query.fields.length;
 
@@ -933,6 +938,10 @@ class Dashboard {
                     const isBar = column.chartType === 'bar';
 
                     const n = metricNamePrefix + group + (column.title === undefined ? column.name : column.title);
+
+                    //Use the yAxis defined formatter to format the data
+                    const yAxisIndex = column.yAxis || 0;
+
                     let s = {
                         id: n,
                         name: n,
@@ -948,7 +957,12 @@ class Dashboard {
                         label: {
                             show: isBar,
                             formatter: (v) => {
-                                return v.value > 0 ? v.value.toString() : '';
+                                if (v.value > 0) {
+                                    const yAxis = chartDescriptor.yAxis[yAxisIndex];
+                                    return yAxis.formatter(v.value);
+                                } else {
+                                    return '';
+                                }
                             }
                         },
 
@@ -1259,7 +1273,7 @@ class Dashboard {
 
     #getInputFilterExpression() {
         const v = $('#filter-input').val();
-        return v === undefined || v === null ? '' : v;
+        return v === undefined || v === null ? '' : v.trim();
     }
 
     #setInputFilterExpression(val) {

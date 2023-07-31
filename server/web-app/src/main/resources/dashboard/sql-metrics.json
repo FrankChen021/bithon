@@ -18,7 +18,6 @@
   },
   "charts": [
     {
-      "dataSource": "sql-metrics",
       "title": "TPS",
       "width": 4,
       "type": "line",
@@ -52,7 +51,6 @@
       }
     },
     {
-      "dataSource": "sql-metrics",
       "title": "Response Time",
       "width": 4,
       "type": "line",

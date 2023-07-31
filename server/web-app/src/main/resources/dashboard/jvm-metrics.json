@@ -16,7 +16,6 @@
   },
   "charts": [
     {
-      "dataSource": "jvm-metrics",
       "title": "CPU",
       "width": 2,
       "type": "line",
@@ -35,7 +34,6 @@
       }
     },
     {
-      "dataSource": "jvm-metrics",
       "title": "Threads",
       "width": 2,
       "type": "line",
@@ -56,7 +54,6 @@
       }
     },
     {
-      "dataSource": "jvm-metrics",
       "title": "Heap",
       "width": 1,
       "type": "line",
@@ -93,7 +90,6 @@
       }
     },
     {
-      "dataSource": "jvm-metrics",
       "title": "Non-Heap",
       "width": 1,
       "type": "line",
@@ -130,7 +126,6 @@
       }
     },
     {
-      "dataSource": "jvm-metrics",
       "title": "Metaspace",
       "width": 1,
       "type": "line",
@@ -167,7 +162,6 @@
       }
     },
     {
-      "dataSource": "jvm-metrics",
       "title": "Direct Memory",
       "width": 1,
       "type": "line",
@@ -198,7 +192,6 @@
       }
     },
     {
-      "dataSource": "jvm-gc-metrics",
       "title": "Young GC",
       "width": 4,
       "type": "line",
@@ -224,23 +217,10 @@
           "gcCount",
           "avgGcTime"
         ],
-        "filters": {
-          "generation": {
-            "dimension": "generation",
-            "matcher": {
-              "type": "in",
-              "pattern": [
-                "new",
-                "ZGC Cycles",
-                "ZGC Pauses"
-              ]
-            }
-          }
-        }
+        "filter": "generation in ('new', 'ZGC Cycles', 'ZGC Pauses')"
       }
     },
     {
-      "dataSource": "jvm-gc-metrics",
       "title": "Old GC",
       "width": 4,
       "type": "line",
@@ -269,15 +249,7 @@
         "groupBy": [
           "gcName"
         ],
-        "filters": {
-          "generation": {
-            "dimension": "generation",
-            "matcher": {
-              "type": "equal",
-              "pattern": "old"
-            }
-          }
-        }
+        "filter": "generation = 'old'"
       }
     }
   ]

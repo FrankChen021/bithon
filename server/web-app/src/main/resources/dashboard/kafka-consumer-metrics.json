@@ -21,7 +21,6 @@
   },
   "charts": [
     {
-      "dataSource": "kafka-consumer-metrics",
       "title": "Consumed Records",
       "width": 4,
       "type": "line",
@@ -65,7 +64,6 @@
       }
     },
     {
-      "dataSource": "kafka-consumer-metrics",
       "title": "Consumed Bytes",
       "width": 4,
       "type": "line",

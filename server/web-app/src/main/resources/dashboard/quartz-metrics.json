@@ -19,7 +19,6 @@
   },
   "charts": [
     {
-      "dataSource": "quartz-metrics",
       "title": "Status",
       "width": 4,
       "type": "line",

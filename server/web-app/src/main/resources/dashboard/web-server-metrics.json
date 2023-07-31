@@ -16,7 +16,6 @@
   },
   "charts": [
     {
-      "dataSource": "web-server-metrics",
       "title": "Web Server Connections",
       "width": 4,
       "type": "line",
@@ -34,7 +33,6 @@
       }
     },
     {
-      "dataSource": "web-server-metrics",
       "title": "Queued Tasks",
       "width": 4,
       "type": "line",
@@ -50,7 +48,6 @@
       }
     },
     {
-      "dataSource": "web-server-metrics",
       "title": "Web Server Threads",
       "width": 4,
       "type": "line",

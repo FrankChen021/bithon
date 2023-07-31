@@ -18,7 +18,6 @@
   },
   "charts": [
     {
-      "dataSource": "exception-metrics",
       "title": "Exceptions",
       "width": 4,
       "type": "line",
@@ -88,7 +87,6 @@
       }
     },
     {
-      "dataSource": "exception-metrics",
       "title": "Exception List",
       "width": 4,
       "type": "table",

@@ -20,7 +20,6 @@
   },
   "charts": [
     {
-      "dataSource": "kafka-producer-metrics",
       "title": "Produce Records",
       "width": 2,
       "type": "line",
@@ -63,7 +62,6 @@
       }
     },
     {
-      "dataSource": "kafka-network-metrics",
       "title": "Request",
       "width": 2,
       "type": "line",
@@ -93,7 +91,6 @@
       }
     },
     {
-      "dataSource": "kafka-producer-metrics",
       "title": "Record Size",
       "width": 4,
       "type": "line",
@@ -116,7 +113,6 @@
       }
     },
     {
-      "dataSource": "kafka-producer-metrics",
       "title": "Latency",
       "width": 4,
       "type": "line",
@@ -138,15 +134,7 @@
           "avgResponseTime",
           "maxResponseTime"
         ],
-        "filters": [
-          {
-            "dimension": "type",
-            "matcher": {
-              "type": "equal",
-              "pattern": "Produce"
-            }
-          }
-        ]
+        "filter": "type = 'Produce'"
       }
     }
   ]
