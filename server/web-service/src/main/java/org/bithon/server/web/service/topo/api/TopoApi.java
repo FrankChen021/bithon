@@ -16,7 +16,7 @@
 
 package org.bithon.server.web.service.topo.api;
 
-import org.bithon.server.commons.matcher.StringEqualMatcher;
+import org.bithon.server.commons.matcher.EqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
@@ -88,9 +88,9 @@ public class TopoApi {
                                                       })
                                                       .collect(Collectors.toList()))
                                  .filters(Arrays.asList(new ColumnFilter("srcEndpoint",
-                                                                         new StringEqualMatcher(request.getApplication())),
+                                                                         new EqualMatcher(request.getApplication())),
                                                         new ColumnFilter("srcEndpointType",
-                                                                         new StringEqualMatcher(EndPointType.APPLICATION.name()))))
+                                                                         new EqualMatcher(EndPointType.APPLICATION.name()))))
                                  .interval(Interval.of(start, end))
                                  .groupBy(Arrays.asList("dstEndpoint", "dstEndpointType"))
                                  .build();
@@ -140,9 +140,9 @@ public class TopoApi {
                                                       })
                                                       .collect(Collectors.toList()))
                                  .filters(Arrays.asList(new ColumnFilter("dstEndpoint",
-                                                                         new StringEqualMatcher(request.getApplication())),
+                                                                         new EqualMatcher(request.getApplication())),
                                                         new ColumnFilter("dstEndpointType",
-                                                                         new StringEqualMatcher(EndPointType.APPLICATION.name()))))
+                                                                         new EqualMatcher(EndPointType.APPLICATION.name()))))
                                  .interval(Interval.of(start, end))
                                  .groupBy(Arrays.asList("srcEndpoint", "srcEndpointType")).build();
         List<Map<String, Object>> callers = (List<Map<String, Object>>) metricReader.groupBy(callerQuery);

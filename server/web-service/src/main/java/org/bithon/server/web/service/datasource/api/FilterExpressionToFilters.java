@@ -26,13 +26,13 @@ import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.matcher.EqualMatcher;
 import org.bithon.server.commons.matcher.GreaterThanMatcher;
 import org.bithon.server.commons.matcher.GreaterThanOrEqualMatcher;
 import org.bithon.server.commons.matcher.InMatcher;
 import org.bithon.server.commons.matcher.LessThanMatcher;
 import org.bithon.server.commons.matcher.LessThanOrEqualMatcher;
 import org.bithon.server.commons.matcher.NotEqualMatcher;
-import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.matcher.StringLikeMatcher;
 import org.bithon.server.storage.common.expression.FilterExpressionASTFactory;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -129,7 +129,7 @@ public class FilterExpressionToFilters {
 
             filters.add(new ColumnFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
                                          "alias",
-                                         new StringEqualMatcher((String) ((LiteralExpression) expression.getRight()).getValue())));
+                                         new EqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
             return null;
         }
 

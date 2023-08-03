@@ -23,8 +23,8 @@ import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.matcher.EqualMatcher;
 import org.bithon.server.commons.matcher.InMatcher;
-import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
@@ -330,8 +330,8 @@ public class TraceJdbcReader implements ITraceReader {
                 continue;
             }
 
-            if (filter.getMatcher() instanceof StringEqualMatcher) {
-                String kindValue = ((StringEqualMatcher) filter.getMatcher()).getPattern();
+            if (filter.getMatcher() instanceof EqualMatcher) {
+                String kindValue = ((EqualMatcher) filter.getMatcher()).getPattern().toString();
 
                 // RootSpan has been extracted into trace_span_summary table during ingestion
                 // If the filter is on the root spans, it SHOULD query on the summary table
@@ -362,7 +362,7 @@ public class TraceJdbcReader implements ITraceReader {
      * For the default implementation, ONLY the 'equal' filter is supported, and it's turned into a LIKE search.
      */
     protected String getTagPredicate(IColumnFilter filter) {
-        if (!(filter.getMatcher() instanceof StringEqualMatcher)) {
+        if (!(filter.getMatcher() instanceof EqualMatcher)) {
             throw new UnsupportedOperationException(StringUtils.format("[%s] matcher on tag field is not supported on this database.",
                                                                        filter.getMatcher().getClass().getSimpleName()));
         }
@@ -370,7 +370,7 @@ public class TraceJdbcReader implements ITraceReader {
         return StringUtils.format("\"%s\" LIKE '%%\"%s\":\"%s\"%%'",
                                   Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName(),
                                   filter.getName().substring(SPAN_TAGS_PREFIX.length()),
-                                  ((StringEqualMatcher) filter.getMatcher()).getPattern());
+                                  ((EqualMatcher) filter.getMatcher()).getPattern());
     }
 
     protected Map<String, String> toTagMap(Object attributes) {
