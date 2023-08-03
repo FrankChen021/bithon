@@ -19,6 +19,7 @@ package org.bithon.server.storage.jdbc.utils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.matcher.BetweenMatcher;
+import org.bithon.server.commons.matcher.EqualMatcher;
 import org.bithon.server.commons.matcher.GreaterThanMatcher;
 import org.bithon.server.commons.matcher.GreaterThanOrEqualMatcher;
 import org.bithon.server.commons.matcher.IMatcherVisitor;
@@ -29,7 +30,6 @@ import org.bithon.server.commons.matcher.NotEqualMatcher;
 import org.bithon.server.commons.matcher.StringAntPathMatcher;
 import org.bithon.server.commons.matcher.StringContainsMatcher;
 import org.bithon.server.commons.matcher.StringEndWithMatcher;
-import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.matcher.StringIContainsMatcher;
 import org.bithon.server.commons.matcher.StringLikeMatcher;
 import org.bithon.server.commons.matcher.StringRegexMatcher;
@@ -102,17 +102,26 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     }
 
     @Override
-    public String visit(StringEqualMatcher matcher) {
-        return StringUtils.format("%s = '%s'",
-                                  fieldName,
-                                  matcher.getPattern());
+    public String visit(EqualMatcher matcher) {
+        String pattern;
+        if (fieldType.equals(IDataType.STRING)) {
+            pattern = "%s = '%s'";
+        } else {
+            pattern = "%s = %s";
+        }
+        return StringUtils.format(pattern, fieldName, matcher.getPattern());
     }
 
     @Override
     public String visit(NotEqualMatcher matcher) {
-        return StringUtils.format("%s <> '%s'",
-                                  fieldName,
-                                  matcher.getValue());
+        String pattern;
+        if (fieldType.equals(IDataType.STRING)) {
+            pattern = "%s <> '%s'";
+        } else {
+            pattern = "%s <> %s";
+        }
+
+        return StringUtils.format(pattern, fieldName, matcher.getValue());
     }
 
     @Override

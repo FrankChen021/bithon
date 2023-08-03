@@ -21,7 +21,7 @@ package org.bithon.server.commons.matcher;
  * @date 2021/1/31 1:54 下午
  */
 public interface IMatcherVisitor<T> {
-    T visit(StringEqualMatcher matcher);
+    T visit(EqualMatcher matcher);
 
     T visit(NotEqualMatcher matcher);
 

@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.event.api;
 
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.commons.matcher.StringEqualMatcher;
+import org.bithon.server.commons.matcher.EqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.filter.ColumnFilter;
 import org.bithon.server.storage.event.IEventReader;
@@ -50,7 +50,7 @@ public class EventApi implements IEventApi {
         // backward compatibility
         if (StringUtils.hasText(request.getApplication())) {
             request.setFilters(new ArrayList<>(request.getFilters()));
-            request.getFilters().add(new ColumnFilter("appName", new StringEqualMatcher(request.getApplication())));
+            request.getFilters().add(new ColumnFilter("appName", new EqualMatcher(request.getApplication())));
         }
 
         return new GetEventListResponse(eventReader.getEventListSize(request.getFilters(),

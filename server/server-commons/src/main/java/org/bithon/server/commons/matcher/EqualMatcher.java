@@ -26,19 +26,25 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2021/1/30 4:44 下午
  */
-public class StringEqualMatcher implements IMatcher {
+public class EqualMatcher implements IMatcher {
     @Getter
     @NotNull
-    private final String pattern;
+    private final Object pattern;
 
     @JsonCreator
-    public StringEqualMatcher(@JsonProperty("pattern") @NotNull String pattern) {
+    public EqualMatcher(@JsonProperty("pattern") @NotNull String pattern) {
         this.pattern = pattern;
     }
 
     @Override
     public boolean matches(Object input) {
-        return pattern.equals(input);
+        if (input instanceof Number) {
+            if (input instanceof Integer || input instanceof Long) {
+                return ((Number) input).longValue() == ((Number) pattern).longValue();
+            }
+            return ((Number) input).doubleValue() == ((Number) pattern).doubleValue();
+        }
+        return input.equals(pattern);
     }
 
     @Override
