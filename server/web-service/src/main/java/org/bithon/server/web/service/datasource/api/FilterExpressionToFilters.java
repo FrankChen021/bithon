@@ -129,7 +129,7 @@ public class FilterExpressionToFilters {
 
             filters.add(new ColumnFilter(((IdentifierExpression) expression.getLeft()).getIdentifier(),
                                          "alias",
-                                         new EqualMatcher((String) ((LiteralExpression) expression.getRight()).getValue())));
+                                         new EqualMatcher(((LiteralExpression) expression.getRight()).getValue())));
             return null;
         }
 

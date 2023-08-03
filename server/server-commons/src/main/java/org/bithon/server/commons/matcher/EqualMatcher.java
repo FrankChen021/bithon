@@ -32,7 +32,7 @@ public class EqualMatcher implements IMatcher {
     private final Object pattern;
 
     @JsonCreator
-    public EqualMatcher(@JsonProperty("pattern") @NotNull String pattern) {
+    public EqualMatcher(@JsonProperty("pattern") @NotNull Object pattern) {
         this.pattern = pattern;
     }
 
@@ -40,9 +40,22 @@ public class EqualMatcher implements IMatcher {
     public boolean matches(Object input) {
         if (input instanceof Number) {
             if (input instanceof Integer || input instanceof Long) {
-                return ((Number) input).longValue() == ((Number) pattern).longValue();
+                long l;
+                if (!(pattern instanceof Number)) {
+                    l = Long.parseLong(pattern.toString());
+                } else {
+                    l = ((Number) pattern).longValue();
+                }
+                return ((Number) input).longValue() == l;
             }
-            return ((Number) input).doubleValue() == ((Number) pattern).doubleValue();
+
+            double d;
+            if (!(pattern instanceof Number)) {
+                d = Double.parseDouble(pattern.toString());
+            } else {
+                d = ((Number) pattern).doubleValue();
+            }
+            return ((Number) input).doubleValue() == d;
         }
         return input.equals(pattern);
     }
