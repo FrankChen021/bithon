@@ -25,6 +25,7 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -51,7 +52,8 @@ public abstract class MetricStorageCleaner implements IExpirationRunnable {
         Period dataSourceLevelTTL = schema.getTtl();
         if (dataSourceLevelTTL != null && dataSourceLevelTTL.getMilliseconds() != 0) {
             //use datasource ttl
-            before = TimeSpan.nowInMinute()
+            before = TimeSpan.now()
+                             .floor(Duration.ofMinutes(1))
                              .before(dataSourceLevelTTL.getMilliseconds(), TimeUnit.MILLISECONDS)
                              .toTimestamp();
         }
