@@ -17,6 +17,7 @@
 package org.bithon.server.commons.time;
 
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Date;
@@ -42,9 +43,6 @@ public class TimeSpan {
     public static TimeSpan now() {
         return new TimeSpan(System.currentTimeMillis());
     }
-    public static TimeSpan nowInMinute() {
-        return new TimeSpan(DateTimeUtils.align2Minute());
-    }
 
     public static TimeSpan fromISO8601(String time) {
         return new TimeSpan(DateTimes.ISO_DATE_TIME.parse(time).getMillis());
@@ -66,16 +64,20 @@ public class TimeSpan {
         return new Timestamp(milliseconds);
     }
 
-    public Date toDate() {
-        return new Date(milliseconds);
-    }
-
-    public String toString(String format) {
-        return new SimpleDateFormat(format, Locale.ENGLISH).format(new Date(milliseconds));
+    public String toString(String format, TimeZone tz) {
+        SimpleDateFormat df = new SimpleDateFormat(format, Locale.ENGLISH);
+        df.setTimeZone(tz);
+        return df.format(new Date(milliseconds));
     }
 
     public String toISO8601() {
         return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH).format(new Date(this.milliseconds));
+    }
+
+    public static TimeSpan fromString(String dateTime, String format, TimeZone timeZone) throws ParseException {
+        SimpleDateFormat df = new SimpleDateFormat(format, Locale.ENGLISH);
+        df.setTimeZone(timeZone);
+        return new TimeSpan(df.parse(dateTime).getTime());
     }
 
     /**
@@ -103,20 +105,9 @@ public class TimeSpan {
         return (int) milliseconds;
     }
 
-    public static final long DAY_LENGTH_IN_MILLI = 24 * 3600 * 1000L;
-
-    public TimeSpan truncate2Day() {
-        return new TimeSpan(milliseconds / DAY_LENGTH_IN_MILLI * DAY_LENGTH_IN_MILLI);
-    }
-
     public TimeSpan offset(TimeZone zone) {
         return new TimeSpan(milliseconds - zone.getOffset(milliseconds));
     }
-
-    /*
-    public void plus(int value, TimeUnit unit) {
-        this.milliseconds += unit.toMillis(value);
-    }*/
 
     public TimeSpan floor(Duration duration) {
         long milliSeconds = duration.getSeconds() * 1000;
@@ -126,9 +117,7 @@ public class TimeSpan {
     public TimeSpan ceil(Duration duration) {
         long milliSeconds = duration.getSeconds() * 1000;
 
-        boolean hasModule = this.milliseconds % milliSeconds > 0;
-
-        return new TimeSpan((this.milliseconds / milliSeconds + (hasModule ? 1 : 0)) * milliSeconds);
+        return new TimeSpan((this.milliseconds + milliSeconds) / milliSeconds * milliSeconds);
     }
 
     public TimeSpan minus(long millis) {
