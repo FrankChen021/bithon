@@ -101,6 +101,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
 
     @Override
     public void after(AopContext aopContext) {
+        // The response object might be null if there's exception thrown before the okhttp client gets the response
         Response response = aopContext.getReturningAs();
 
         //
@@ -109,12 +110,12 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
         ITraceSpan span = aopContext.getUserContextAs();
         if (span != null) {
             //
-            // Record configured response headers in tracing logs
+            // Record configured response headers in tracing logs.
             //
             final List<String> responseHeaders = traceConfig.getHeaders().getResponse();
             span.tag(aopContext.getException())
-                .tag(Tags.Http.STATUS, response.code())
-                .configIfTrue(!responseHeaders.isEmpty(),
+                .tag(Tags.Http.STATUS, response == null ? null : response.code())
+                .configIfTrue(!responseHeaders.isEmpty() && response != null,
                               (s) -> {
                                   for (String name : responseHeaders) {
                                       String value = response.header(name);
