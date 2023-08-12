@@ -24,7 +24,6 @@ import org.bithon.agent.observability.utils.filter.InCollectionMatcher;
 import org.bithon.agent.observability.utils.filter.StringEqualMatcher;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
-import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -219,7 +218,6 @@ public class BeanMethodAopInstaller {
     }
 
     static class BeanMethodMatcher extends ElementMatcher.Junction.AbstractBase<MethodDescription> {
-        private static final ElementMatcher<MethodDescription> IS_GETTER = ElementMatchers.isGetter();
         private final MatcherList excludedMethods;
 
         BeanMethodMatcher(MatcherList excludedMethods) {
