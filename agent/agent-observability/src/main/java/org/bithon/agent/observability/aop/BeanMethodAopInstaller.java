@@ -24,11 +24,10 @@ import org.bithon.agent.observability.utils.filter.InCollectionMatcher;
 import org.bithon.agent.observability.utils.filter.StringEqualMatcher;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,16 +47,26 @@ public class BeanMethodAopInstaller {
 
     static {
         AppInstance.getInstance().addListener(port -> {
-            DynamicInterceptorInstaller.getInstance().install(PENDING_DESCRIPTORS);
+            if (PENDING_DESCRIPTORS != null) {
+                DynamicInterceptorInstaller.getInstance().install(PENDING_DESCRIPTORS);
 
-            // clear the reference
-            BeanMethodAopInstaller.PENDING_DESCRIPTORS = null;
+                // clear the reference
+                BeanMethodAopInstaller.PENDING_DESCRIPTORS = null;
+            }
         });
     }
 
     public static void install(Class<?> targetClass,
                                String interceptor,
                                BeanTransformationConfig transformationConfig) {
+        if (targetClass.isPrimitive()) {
+            // Some user beans are defined to be primitive type
+            return;
+        }
+        if (targetClass.getClassLoader() == null) {
+            // class in bootstrap loader
+            return;
+        }
         if (targetClass.isSynthetic() || targetClass.isAnonymousClass()) {
             /*
              * eg: org.springframework.boot.actuate.autoconfigure.metrics.KafkaMetricsAutoConfiguration$$Lambda$709/829537923
@@ -76,7 +85,7 @@ public class BeanMethodAopInstaller {
         excludedMethods.addAll(transformationConfig.getExcludedMethods());
 
         //
-        // check if current class is in includedClasses list
+        // check if the current class is in includedClasses list
         //
         IncludedClassConfig includedClassConfig = null;
         if (!transformationConfig.getIncludedClasses().isEmpty()) {
@@ -90,13 +99,13 @@ public class BeanMethodAopInstaller {
                 }
             }
             if (includedClassConfig == null) {
-                // if includedClasses is configured, current class must be in this list
+                // if includedClasses is configured, the current class must be in this list
                 return;
             }
         }
 
         //
-        // check if current class is in the excludedClasses(black list) only when it does NOT exist in the includedClasses list
+        // check if the current class is in the excludedClasses(blocklist) only when it does NOT exist in the includedClasses list
         //
         if (includedClassConfig == null || !(includedClassConfig.matcher instanceof StringEqualMatcher)) {
             //execute excluding rules for non-exact matcher
@@ -105,23 +114,8 @@ public class BeanMethodAopInstaller {
             }
         }
 
-        //
-        // infer property methods
-        //
-        Set<String> propertyMethods = new HashSet<>();
-        for (Field field : targetClass.getDeclaredFields()) {
-            String name = field.getName();
-            char[] chr = name.toCharArray();
-            chr[0] = Character.toUpperCase(chr[0]);
-            name = new String(chr);
-            propertyMethods.add("get" + name);
-            propertyMethods.add("set" + name);
-            propertyMethods.add("is" + name);
-        }
-
         DynamicInterceptorInstaller.AopDescriptor descriptor = new DynamicInterceptorInstaller.AopDescriptor(targetClass.getName(),
-                                                                                                             new BeanMethodMatcher(propertyMethods,
-                                                                                                                                   excludedMethods),
+                                                                                                             new BeanMethodMatcher(excludedMethods),
                                                                                                              interceptor);
 
         if (AppInstance.getInstance().getPort() == 0) {
@@ -130,7 +124,7 @@ public class BeanMethodAopInstaller {
             // the instrumentation will not take effect. This might be a bug of bytebuddy or wrong use of byte-buddy's API
             //
             // Since I don't have enough time to take a look at this problem,
-            // I use a workaround that by deferring the installation until the application's web service is working
+            // I use a workaround that by deferring the installation until the application's web service is working,
             // This may not solve the problem from the root or completely, but I think such problems have been eased a lot.
             //
             PENDING_DESCRIPTORS.put(descriptor.getTargetClass(), descriptor);
@@ -225,37 +219,44 @@ public class BeanMethodAopInstaller {
     }
 
     static class BeanMethodMatcher extends ElementMatcher.Junction.AbstractBase<MethodDescription> {
-        private final Set<String> propertyMethods;
+        private static final ElementMatcher<MethodDescription> IS_GETTER = ElementMatchers.isGetter();
         private final MatcherList excludedMethods;
 
-        BeanMethodMatcher(Set<String> propertyMethods, MatcherList excludedMethods) {
-            this.propertyMethods = propertyMethods;
+        BeanMethodMatcher(MatcherList excludedMethods) {
             this.excludedMethods = excludedMethods;
         }
 
         @Override
         public boolean matches(MethodDescription target) {
             boolean matched = target.isPublic()
-                    && !target.isConstructor()
-                    && !target.isStatic()
-                    && !target.isAbstract()
-                    && !target.isNative();
+                && !target.isConstructor()
+                && !target.isStatic()
+                && !target.isAbstract()
+                && !target.isNative();
             if (!matched) {
                 return false;
             }
 
-            String name = target.getName();
-
-            matched = !name.startsWith("is") && !name.startsWith("set") && !name.startsWith("can");
-            if (!matched) {
+            if (isPropertyMethod(target, "set")
+                || isPropertyMethod(target, "get")
+                || isPropertyMethod(target, "is")
+                || isPropertyMethod(target, "can")) {
                 return false;
             }
 
-            if (excludedMethods.matches(name)) {
-                return false;
-            }
+            return !excludedMethods.matches(target.getName());
+        }
 
-            return true;
+        private boolean isPropertyMethod(MethodDescription method, String prefix) {
+            String name = method.getName();
+            if (name.startsWith(prefix)) {
+                int prefixLen = prefix.length();
+                if (name.length() > prefixLen) {
+                    return Character.isUpperCase(name.charAt(prefixLen));
+                }
+                return true;
+            }
+            return false;
         }
     }
 
