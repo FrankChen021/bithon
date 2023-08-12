@@ -16,6 +16,7 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.installer;
 
+import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.agent.instrumentation.aop.advice.AdviceAnnotation;
 import org.bithon.agent.instrumentation.aop.advice.AroundAdvice;
@@ -88,6 +89,11 @@ public class DynamicInterceptorInstaller {
                 if (descriptor == null) {
                     // this must be an error
                     LOG.error("Can't find BeanAopDescriptor for [{}]", typeDescription.getTypeName());
+                    return builder;
+                }
+
+                if (typeDescription.isAssignableTo(IBithonObject.class)) {
+                    // Avoid instrument types which have been instrumented by agent-plugins
                     return builder;
                 }
 
