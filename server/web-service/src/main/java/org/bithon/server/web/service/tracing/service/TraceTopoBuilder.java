@@ -189,7 +189,23 @@ public class TraceTopoBuilder {
     /**
      * Search spans that cross two instances and then create a directed graph
      */
-    private void buildLink(TraceSpanBo parentSpan, List<?> childSpans) {
+    private boolean buildLink(TraceSpanBo parentSpan, List<?> childSpans) {
+        // Determine if a tree path has a termination node.
+        // Termination node is a node ends with 'CLIENT' or 'PRODUCER' span
+        // OR a CLIENT/PRODUCER span that has no child CLIENT/PRODUCER span.
+        //
+        // Usually, a CLIENT/PRODUCER span is the end of a tree path, but sometimes it's not.
+        // For example, for the 'feign' client, its kind is CLIENT, but it might have child CLIENT span like httpclient,
+        // So, we don't build a link for this feign client node.
+        //
+        // However, an httpclient CLIENT span might also have child spans,
+        // but none of these spans are CLIENT but just some inner method calls after the CLIENT span,
+        // we NEED to build topo for this httpclient CLIENT.
+        //
+        // To implement the above requirement, the 'hasTermination' is used.
+        //
+        boolean hasTermination = false;
+
         //noinspection unchecked
         for (TraceSpanBo childSpan : (List<TraceSpanBo>) childSpans) {
 
@@ -203,17 +219,21 @@ public class TraceTopoBuilder {
                 // But if the childSpan is a SERVER/CONSUMER, it means the application itself sends a request/message to itself,
                 // in that case, we need to go to the 'else' case
                 //
-                buildLink(parentSpan, childSpan.children);
+                if (buildLink(parentSpan, childSpan.children)) {
+                    hasTermination = true;
+                }
             } else {
                 this.addLink(parentSpan, childSpan).incrCount();
 
-                buildLink(childSpan, childSpan.children);
+                if (buildLink(childSpan, childSpan.children)) {
+                    hasTermination = true;
+                }
             }
 
             // This childSpan is a CLIENT termination.
             // When there are no children, it means the next hop might be another system.
             // So, we need to create a link for this situation
-            if (childSpan.children.size() == 0) {
+            if (childSpan.children.size() == 0 || !hasTermination) {
                 String scheme = "";
                 String peer = null;
                 if (SpanKind.CLIENT.name().equals(childSpan.getKind())) {
@@ -241,8 +261,12 @@ public class TraceTopoBuilder {
                     next.setAppName(scheme);
                     next.setInstanceName(peer);
                     this.addLink(childSpan, next).incrCount();
+
+                    hasTermination = true;
                 }
             }
         }
+
+        return hasTermination;
     }
 }
