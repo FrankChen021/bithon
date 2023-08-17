@@ -47,8 +47,7 @@ public class ExpressionDeserializerTest {
                                                            new IdentifierExpression("a"),
                                                            new ComparisonExpression.IN(new IdentifierExpression("a"),
                                                                                        new CollectionExpression(new LiteralExpression(1),
-                                                                                                                new LiteralExpression(2),
-                                                                                                                new IdentifierExpression("b"))),
+                                                                                                                new LiteralExpression(2))),
                                                            new ComparisonExpression.LIKE(new IdentifierExpression("a"), new LiteralExpression("c"))
         );
 

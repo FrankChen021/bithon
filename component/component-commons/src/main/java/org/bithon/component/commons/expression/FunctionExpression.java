@@ -18,6 +18,7 @@ package org.bithon.component.commons.expression;
 
 import org.bithon.component.commons.expression.function.IFunction;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,6 +36,10 @@ public class FunctionExpression implements IExpression {
         this.function = function;
         this.name = name;
         this.parameters = parameters;
+    }
+
+    public FunctionExpression(IFunction function, String name, IExpression... parameters) {
+        this(function, name, Arrays.asList(parameters));
     }
 
     @Override

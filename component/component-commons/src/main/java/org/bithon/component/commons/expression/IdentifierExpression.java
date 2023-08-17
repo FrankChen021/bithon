@@ -22,9 +22,11 @@ package org.bithon.component.commons.expression;
  */
 public class IdentifierExpression implements IExpression {
     private final String identifier;
+    private final boolean isQualified;
 
     public IdentifierExpression(String identifier) {
         this.identifier = identifier;
+        this.isQualified = identifier.indexOf('.') > 0;
     }
 
     public String getIdentifier() {
@@ -34,6 +36,10 @@ public class IdentifierExpression implements IExpression {
     @Override
     public String getType() {
         return "identifier";
+    }
+
+    public boolean isQualified() {
+        return isQualified;
     }
 
     @Override
@@ -47,7 +53,7 @@ public class IdentifierExpression implements IExpression {
     }
 
     @Override
-    public String toString() {
-        return identifier;
+    public void serializeToText(StringBuilder sb) {
+        sb.append(identifier);
     }
 }

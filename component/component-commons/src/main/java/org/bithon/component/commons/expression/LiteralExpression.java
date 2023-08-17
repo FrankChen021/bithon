@@ -47,7 +47,13 @@ public class LiteralExpression implements IExpression {
     }
 
     @Override
-    public String toString() {
-        return value.toString();
+    public void serializeToText(StringBuilder sb) {
+        if (value instanceof String) {
+            sb.append('\'');
+            sb.append(value);
+            sb.append('\'');
+        } else {
+            sb.append(value);
+        }
     }
 }

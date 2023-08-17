@@ -29,9 +29,9 @@ import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ArrayAccessExpression;
 import org.bithon.component.commons.expression.CollectionExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
-import org.bithon.component.commons.expression.FieldExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.function.IFunction;
@@ -206,7 +206,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
 
     @Override
     public IExpression visitFieldExpression(ExpressionParser.FieldExpressionContext ctx) {
-        return new FieldExpression(ctx.getText());
+        return new IdentifierExpression(ctx.getText());
     }
 
     @Override

@@ -40,6 +40,10 @@ public class CollectionExpression implements IExpression {
         this.values = this.elements.stream().map((element) -> ((LiteralExpression) element).getValue()).collect(Collectors.toSet());
     }
 
+    public List<IExpression> getElements() {
+        return elements;
+    }
+
     @Override
     public String getType() {
         return "()";

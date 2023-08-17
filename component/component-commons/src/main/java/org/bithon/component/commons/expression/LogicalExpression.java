@@ -71,9 +71,9 @@ public abstract class LogicalExpression implements IExpression {
     }
 
     @Override
-    public String toString() {
+    public void serializeToText(StringBuilder sb) {
         String separator = " " + this.operator + " ";
-        return this.operands.stream().map(Object::toString).collect(Collectors.joining(separator));
+        sb.append(this.operands.stream().map(Object::toString).collect(Collectors.joining(separator)));
     }
 
     public abstract LogicalExpression copy(List<IExpression> expressionList);
@@ -166,6 +166,13 @@ public abstract class LogicalExpression implements IExpression {
         @Override
         public LogicalExpression copy(List<IExpression> expressionList) {
             return new NOT(expressionList);
+        }
+
+        @Override
+        public void serializeToText(StringBuilder sb) {
+            sb.append("NOT (");
+            operands.get(0).serializeToText(sb);
+            sb.append(")");
         }
     }
 }

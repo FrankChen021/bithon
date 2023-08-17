@@ -275,7 +275,7 @@ public abstract class ComparisonExpression extends BinaryExpression {
     public static class IN extends BinaryExpression {
 
         public IN(IExpression left, CollectionExpression right) {
-            super("IN", left, right);
+            super("in", left, right);
         }
 
         @SuppressWarnings("unchecked")
@@ -330,7 +330,7 @@ public abstract class ComparisonExpression extends BinaryExpression {
     public static class LIKE extends BinaryExpression {
 
         public LIKE(IExpression left, IExpression right) {
-            super("LIKE", left, right);
+            super("like", left, right);
         }
 
         @Override

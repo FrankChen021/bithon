@@ -48,11 +48,24 @@ public abstract class BinaryExpression implements IExpression {
         return type;
     }
 
-    /**
-     * Override for debugging
-     */
-    @Override
-    public String toString() {
-        return this.left + " " + this.type + " " + this.right;
+    public void serializeToText(StringBuilder sb) {
+        if (left instanceof BinaryExpression) {
+            sb.append('(');
+        }
+        left.serializeToText(sb);
+        if (left instanceof BinaryExpression) {
+            sb.append(')');
+        }
+        sb.append(' ');
+        sb.append(this.getType());
+        sb.append(' ');
+
+        if (right instanceof BinaryExpression) {
+            sb.append('(');
+        }
+        right.serializeToText(sb);
+        if (right instanceof BinaryExpression) {
+            sb.append(')');
+        }
     }
 }

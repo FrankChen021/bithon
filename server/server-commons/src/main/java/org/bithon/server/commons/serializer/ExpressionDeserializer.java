@@ -21,8 +21,8 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import org.bithon.component.commons.expression.CollectionExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
-import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
@@ -74,8 +74,8 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
                 case "<>":
                 case "!=":
                     return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.NE::new);
-                //case "in":
-                //    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.IN::new);
+                case "in":
+                    return new ComparisonExpression.IN(Expression.deserialize(jsonNode.get("left")), CollectionExpressionDeserializer.deserialize(jsonNode.get("right")));
                 case "like":
                     return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.LIKE::new);
                 case "literal":
@@ -84,8 +84,6 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
                     return LogicalExpressionDeserializer.deserialize(jsonNode);
                 case "identifier":
                     return IdentifierExpressionDeserializer.deserialize(jsonNode);
-                case "expressionList":
-                    return ExpressionListDeserializer.deserialize(jsonNode);
                 default:
                     throw new RuntimeException("Unknown type " + type);
             }
@@ -180,22 +178,22 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
         }
     }
 
-    static class ExpressionListDeserializer {
-        static IExpression deserialize(JsonNode jsonNode) throws IOException {
+    static class CollectionExpressionDeserializer {
+        static CollectionExpression deserialize(JsonNode jsonNode) throws IOException {
 
-            JsonNode expressionList = jsonNode.get("expressionList");
+            JsonNode expressionList = jsonNode.get("elements");
             if (expressionList == null) {
-                throw new RuntimeException("Missing 'expressionList' field");
+                throw new RuntimeException("Missing 'elements' field");
             }
             if (!(expressionList instanceof ArrayNode)) {
-                throw new RuntimeException("expressionList should be an array.");
+                throw new RuntimeException("'elements' should be an array.");
             }
 
             List<IExpression> exprList = new ArrayList<>();
             for (JsonNode node : expressionList) {
                 exprList.add(Expression.deserialize(node));
             }
-            return new ExpressionList(exprList);
+            return new CollectionExpression(exprList);
         }
     }
 }

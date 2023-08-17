@@ -62,7 +62,7 @@ public class DebuggableLogicExpression extends LogicalExpression {
     }
 
     @Override
-    public String toString() {
-        return delegate.toString();
+    public void serializeToText(StringBuilder sb) {
+        delegate.serializeToText(sb);
     }
 }

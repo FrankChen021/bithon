@@ -28,8 +28,7 @@ public interface IExpression {
 
     <T> T accept(IExpressionVisitor<T> visitor);
 
-    default void serializeToText(StringBuilder sb) {
-    }
+    void serializeToText(StringBuilder sb);
 
     default String serializeToText() {
         StringBuilder sb = new StringBuilder(64);

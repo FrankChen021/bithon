@@ -85,10 +85,6 @@ public interface IExpressionVisitor<T> {
         return null;
     }
 
-    default T visit(FieldExpression expression) {
-        return null;
-    }
-
     default T visit(FunctionExpression expression) {
         return null;
     }

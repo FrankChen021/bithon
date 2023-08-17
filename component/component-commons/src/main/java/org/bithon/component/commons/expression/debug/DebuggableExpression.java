@@ -58,7 +58,7 @@ public class DebuggableExpression implements IExpression {
     }
 
     @Override
-    public String toString() {
-        return delegate.toString();
+    public void serializeToText(StringBuilder sb) {
+        delegate.serializeToText(sb);
     }
 }
