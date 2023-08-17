@@ -179,7 +179,8 @@ public class FieldExpressionParserImpl {
                 String functionName = ctx.getChild(0).getText();
                 Function function = Functions.getInstance().getFunction(functionName);
                 if (function == null) {
-                    throw new IllegalStateException(StringUtils.format("function [%s] is not defined.", functionName));
+                    // If the function definition is not provided, the validation is pushed down to the storage engine
+                    return null;
                 }
 
                 List<FieldExpressionParser.FieldExpressionContext> argumentExpressions = ctx.getRuleContexts(FieldExpressionParser.FieldExpressionContext.class);
