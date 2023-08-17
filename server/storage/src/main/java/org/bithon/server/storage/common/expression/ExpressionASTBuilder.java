@@ -131,19 +131,19 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
 
         switch (op.getSymbol().getType()) {
             case ExpressionLexer.ADD:
-                return new ArithmeticExpression.Add(ctx.getChild(0).accept(this),
+                return new ArithmeticExpression.ADD(ctx.getChild(0).accept(this),
                                                     ctx.getChild(2).accept(this));
 
             case ExpressionLexer.SUB:
-                return new ArithmeticExpression.Sub(ctx.getChild(0).accept(this),
+                return new ArithmeticExpression.SUB(ctx.getChild(0).accept(this),
                                                     ctx.getChild(2).accept(this));
 
             case ExpressionLexer.MUL:
-                return new ArithmeticExpression.Mul(ctx.getChild(0).accept(this),
+                return new ArithmeticExpression.MUL(ctx.getChild(0).accept(this),
                                                     ctx.getChild(2).accept(this));
 
             case ExpressionLexer.DIV:
-                return new ArithmeticExpression.Div(ctx.getChild(0).accept(this),
+                return new ArithmeticExpression.DIV(ctx.getChild(0).accept(this),
                                                     ctx.getChild(2).accept(this));
 
             case ExpressionLexer.LT:

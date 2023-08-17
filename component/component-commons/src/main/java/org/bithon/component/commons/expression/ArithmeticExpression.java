@@ -52,8 +52,8 @@ public abstract class ArithmeticExpression extends BinaryExpression {
 
     protected abstract long evaluate(long v1, long v2);
 
-    public static class Add extends ArithmeticExpression {
-        public Add(IExpression left, IExpression right) {
+    public static class ADD extends ArithmeticExpression {
+        public ADD(IExpression left, IExpression right) {
             super("+", left, right);
         }
 
@@ -73,8 +73,8 @@ public abstract class ArithmeticExpression extends BinaryExpression {
         }
     }
 
-    public static class Sub extends ArithmeticExpression {
-        public Sub(IExpression left, IExpression right) {
+    public static class SUB extends ArithmeticExpression {
+        public SUB(IExpression left, IExpression right) {
             super("-", left, right);
         }
 
@@ -94,8 +94,8 @@ public abstract class ArithmeticExpression extends BinaryExpression {
         }
     }
 
-    public static class Mul extends ArithmeticExpression {
-        public Mul(IExpression left, IExpression right) {
+    public static class MUL extends ArithmeticExpression {
+        public MUL(IExpression left, IExpression right) {
             super("*", left, right);
         }
 
@@ -115,8 +115,8 @@ public abstract class ArithmeticExpression extends BinaryExpression {
         }
     }
 
-    public static class Div extends ArithmeticExpression {
-        public Div(IExpression left, IExpression right) {
+    public static class DIV extends ArithmeticExpression {
+        public DIV(IExpression left, IExpression right) {
             super("/", left, right);
         }
 

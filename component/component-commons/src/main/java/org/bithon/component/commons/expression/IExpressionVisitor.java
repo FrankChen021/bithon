@@ -65,19 +65,19 @@ public interface IExpressionVisitor<T> {
         return null;
     }
 
-    default T visit(ArithmeticExpression.Add expression) {
+    default T visit(ArithmeticExpression.ADD expression) {
         return null;
     }
 
-    default T visit(ArithmeticExpression.Sub expression) {
+    default T visit(ArithmeticExpression.SUB expression) {
         return null;
     }
 
-    default T visit(ArithmeticExpression.Mul expression) {
+    default T visit(ArithmeticExpression.MUL expression) {
         return null;
     }
 
-    default T visit(ArithmeticExpression.Div expression) {
+    default T visit(ArithmeticExpression.DIV expression) {
         return null;
     }
 
