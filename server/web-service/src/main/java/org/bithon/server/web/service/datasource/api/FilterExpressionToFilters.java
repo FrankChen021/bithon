@@ -33,6 +33,7 @@ import org.bithon.server.commons.matcher.InMatcher;
 import org.bithon.server.commons.matcher.LessThanMatcher;
 import org.bithon.server.commons.matcher.LessThanOrEqualMatcher;
 import org.bithon.server.commons.matcher.NotEqualMatcher;
+import org.bithon.server.commons.matcher.NotMatcher;
 import org.bithon.server.commons.matcher.StringLikeMatcher;
 import org.bithon.server.storage.common.expression.FilterExpressionASTFactory;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -80,6 +81,16 @@ public class FilterExpressionToFilters {
             if (expression instanceof LogicalExpression.OR) {
                 throw new UnsupportedOperationException("OR operator is not supported now.");
             }
+
+            if (expression instanceof LogicalExpression.NOT) {
+                IExpression operand = expression.getOperands().get(0);
+                Visitor v = new Visitor(this.schema);
+                operand.accept(v);
+                IColumnFilter filter = v.filters.get(0);
+                filters.add(new ColumnFilter(filter.getName(), "alias", new NotMatcher(filter.getMatcher())));
+                return null;
+            }
+
             for (IExpression operand : expression.getOperands()) {
                 operand.accept(this);
             }

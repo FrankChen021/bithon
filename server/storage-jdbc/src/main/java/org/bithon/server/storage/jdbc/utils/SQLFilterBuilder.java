@@ -27,6 +27,7 @@ import org.bithon.server.commons.matcher.InMatcher;
 import org.bithon.server.commons.matcher.LessThanMatcher;
 import org.bithon.server.commons.matcher.LessThanOrEqualMatcher;
 import org.bithon.server.commons.matcher.NotEqualMatcher;
+import org.bithon.server.commons.matcher.NotMatcher;
 import org.bithon.server.commons.matcher.StringAntPathMatcher;
 import org.bithon.server.commons.matcher.StringContainsMatcher;
 import org.bithon.server.commons.matcher.StringEndWithMatcher;
@@ -232,5 +233,10 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     @Override
     public String visit(StringLikeMatcher matcher) {
         return StringUtils.format("%s LIKE '%s'", fieldName, matcher.getPattern());
+    }
+
+    @Override
+    public String visit(NotMatcher notMatcher) {
+        return StringUtils.format("NOT (%s)", notMatcher.getMatcher().accept(this));
     }
 }

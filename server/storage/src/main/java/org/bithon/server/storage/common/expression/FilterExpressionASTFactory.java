@@ -38,6 +38,7 @@ import org.bithon.server.datasource.ast.FilterExpressionLexer;
 import org.bithon.server.datasource.ast.FilterExpressionParser;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
@@ -114,6 +115,11 @@ public class FilterExpressionASTFactory {
                 }
             }
 
+            if (ctx.getChildCount() == 2) {
+                // NOT expression
+                return new LogicalExpression.NOT(Collections.singletonList(ctx.getChild(1).accept(this)));
+            }
+
             // expression or binaryExpression
             return ctx.getChild(0).accept(this);
         }
@@ -147,6 +153,10 @@ public class FilterExpressionASTFactory {
                 case "like":
                     binaryExpression = new BinaryExpression.LIKE(leftExpression, ctx.unaryExpression(1).accept(new UnaryExpressionVisitor()));
                     break;
+
+                case "notlike":
+                    return new LogicalExpression.NOT(new BinaryExpression.LIKE(leftExpression, ctx.unaryExpression(1).accept(new UnaryExpressionVisitor())));
+
                 default:
                     throw new RuntimeException("not yet supported operator: " + comparisonOperator);
             }

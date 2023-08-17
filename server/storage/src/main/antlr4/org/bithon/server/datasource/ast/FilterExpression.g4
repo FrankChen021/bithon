@@ -9,6 +9,7 @@ filterExpression
   : binaryExpression
   | filterExpression logicOperator filterExpression
   | '(' filterExpression ')'
+  | NOT filterExpression
   ;
 
 binaryExpression
@@ -55,6 +56,7 @@ comparisonOperator
     | '<>'
     | '!='
     | LIKE
+    | NOT LIKE
     ;
 
 AND
@@ -67,6 +69,9 @@ OR
 
 LIKE:
   L I K E;
+
+NOT:
+ N O T;
 
 VARIABLE
   : [a-zA-Z_][a-zA-Z_0-9]*

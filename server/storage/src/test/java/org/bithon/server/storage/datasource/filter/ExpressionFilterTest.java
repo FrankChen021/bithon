@@ -442,4 +442,34 @@ public class ExpressionFilterTest {
             Assert.assertFalse(filter.shouldInclude(new InputRow(new HashMap<>())));
         }
     }
+
+    @Test
+    public void testNOT() throws JsonProcessingException {
+        ObjectMapper om = new ObjectMapper();
+        String json = om.writeValueAsString(new ExpressionFilter("NOT a = 'b'"));
+        IInputRowFilter filter = om.readValue(json, IInputRowFilter.class);
+
+        IInputRow row = new InputRow(new HashMap<>());
+
+        row.updateColumn("a", "c");
+        Assert.assertTrue(filter.shouldInclude(row));
+
+        row.updateColumn("a", "b");
+        Assert.assertFalse(filter.shouldInclude(row));
+    }
+
+    @Test
+    public void testNOT_LIKE() throws JsonProcessingException {
+        ObjectMapper om = new ObjectMapper();
+        String json = om.writeValueAsString(new ExpressionFilter("a NOT LIKE 'b'"));
+        IInputRowFilter filter = om.readValue(json, IInputRowFilter.class);
+
+        IInputRow row = new InputRow(new HashMap<>());
+
+        row.updateColumn("a", "c");
+        Assert.assertTrue(filter.shouldInclude(row));
+
+        row.updateColumn("a", "b");
+        Assert.assertFalse(filter.shouldInclude(row));
+    }
 }
