@@ -35,29 +35,32 @@ public abstract class ComparisonExpression extends BinaryExpression {
         Object lv = left.evaluate(context);
         Object rv = right.evaluate(context);
         if (lv == null) {
-            return rv == null;
+            return compareLNull(rv);
         } else if (rv == null) {
-            return false;
+            return compareRNull(lv);
         }
+
         if (lv instanceof String) {
             return compare((String) lv, rv.toString());
         }
+
         if (lv instanceof Integer || lv instanceof Long) {
             if (rv instanceof Integer || rv instanceof Long) {
-                return compare((long) lv, (long) rv);
+                return compare(((Number) lv).longValue(), ((Number) rv).longValue());
             }
             if (rv instanceof Float || rv instanceof Double) {
-                return compare((double) lv, (double) rv);
+                return compare(((Number) lv).doubleValue(), ((Number) rv).doubleValue());
             }
             if (rv instanceof String) {
                 try {
-                    return compare((long) lv, Long.parseLong((String) rv));
+                    return compare(((Number) lv).longValue(), Long.parseLong((String) rv));
                 } catch (NumberFormatException e) {
                     throw new RuntimeException(StringUtils.format("Can't turn %s into type of Long", rv));
                 }
             }
             throw new RuntimeException(StringUtils.format("Can't turn %s[%s] into type of number", rv, rv.getClass().getName()));
         }
+
         if (lv instanceof Double || lv instanceof Float) {
             if (rv instanceof Number) {
                 return compare((double) lv, ((Number) rv).doubleValue());
@@ -71,6 +74,13 @@ public abstract class ComparisonExpression extends BinaryExpression {
             }
         }
         throw new RuntimeException(StringUtils.format("Can't compare [%s] with [%s]", left, right));
+    }
+
+    protected Object compareRNull(Object lv) {
+        return false;
+    }
+    protected Object compareLNull(Object lv) {
+        return false;
     }
 
     protected abstract boolean compare(String v1, String v2);
@@ -209,6 +219,16 @@ public abstract class ComparisonExpression extends BinaryExpression {
         }
 
         @Override
+        protected Object compareRNull(Object lv) {
+            return lv != null;
+        }
+
+        @Override
+        protected Object compareLNull(Object lv) {
+            return lv != null;
+        }
+
+        @Override
         public <T> T accept(IExpressionVisitor<T> visitor) {
             return visitor.visit(this);
         }
@@ -233,6 +253,16 @@ public abstract class ComparisonExpression extends BinaryExpression {
         @Override
         protected boolean compare(long v1, long v2) {
             return v1 == v2;
+        }
+
+        @Override
+        protected Object compareRNull(Object lv) {
+            return lv == null;
+        }
+
+        @Override
+        protected Object compareLNull(Object lv) {
+            return lv == null;
         }
 
         @Override
@@ -277,7 +307,7 @@ public abstract class ComparisonExpression extends BinaryExpression {
             pattern = pattern.replaceAll("%", ".*").replaceAll("_", ".");
 
             String l = (String) left.evaluate(context);
-            return l.contains(pattern);
+            return l != null && l.contains(pattern);
         }
 
         @Override
