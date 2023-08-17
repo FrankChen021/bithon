@@ -79,6 +79,7 @@ public abstract class ComparisonExpression extends BinaryExpression {
     protected Object compareRNull(Object lv) {
         return false;
     }
+
     protected Object compareLNull(Object lv) {
         return false;
     }
@@ -280,8 +281,44 @@ public abstract class ComparisonExpression extends BinaryExpression {
         @SuppressWarnings("unchecked")
         @Override
         public Object evaluate(IEvaluationContext context) {
+            Object l = left.evaluate(context);
+            if (l == null) {
+                return false;
+            }
+
             Set<Object> sets = (Set<Object>) right.evaluate(context);
-            return sets.contains(left.evaluate(context));
+            Object o = sets.iterator().next();
+            if (o instanceof String) {
+                return sets.contains(l.toString());
+            }
+            if (o instanceof Long) {
+                return sets.contains(toLong(l));
+            }
+            if (o instanceof Double) {
+                return sets.contains(toDouble(l));
+            }
+
+            throw new UnsupportedOperationException("Type of " + o.getClass().getSimpleName() + " is not supported by IN operator");
+        }
+
+        private Object toLong(Object o) {
+            if (o instanceof Long) {
+                return o;
+            }
+            if (o instanceof Number) {
+                return ((Number) o).longValue();
+            }
+            return Long.parseLong(o.toString());
+        }
+
+        private Object toDouble(Object o) {
+            if (o instanceof Double) {
+                return o;
+            }
+            if (o instanceof Number) {
+                return ((Number) o).doubleValue();
+            }
+            return Double.parseDouble(o.toString());
         }
 
         @Override
