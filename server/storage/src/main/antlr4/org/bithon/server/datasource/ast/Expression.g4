@@ -10,13 +10,18 @@ expression
   ;
 
 subExpression
-  : subExpression op=(ADD|SUB|MUL|DIV|LT|LTE|GT|GTE|NE|EQ|LIKE|NOT_LIKE) subExpression #binaryExpression
+  : subExpression operator subExpression #binaryExpression
   | subExpression IN '(' literalExpressionImpl (COMMA literalExpressionImpl)* ')' #inExpression
+  | NOT subExpression #notExpression
   | subExpression '[' NUMBER_LITERAL ']'    #arrayAccessExpression
   | LEFT_PARENTHESES expression RIGHT_PARENTHESES   #braceExpression
   | functionNameExpression LEFT_PARENTHESES (expression (COMMA expression)*)? RIGHT_PARENTHESES   #functionExpression
   | literalExpressionImpl #literalExpression
   | IDENTIFIER ('.' IDENTIFIER)*            #fieldExpression
+  ;
+
+operator
+  : ADD|SUB|MUL|DIV|LT|LTE|GT|GTE|NE|EQ|LIKE|NOT LIKE
   ;
 
 literalExpressionImpl
@@ -48,7 +53,6 @@ NE: '<>' | '!=';
 EQ: '=';
 LEFT_PARENTHESES: '(';
 RIGHT_PARENTHESES: ')';
-NOT_LIKE: NOT LIKE;
 AND: A N D;
 OR: O R;
 IN: I N;

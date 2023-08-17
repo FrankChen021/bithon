@@ -120,9 +120,14 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
     }
 
     @Override
+    public IExpression visitNotExpression(ExpressionParser.NotExpressionContext ctx) {
+        return new LogicalExpression.NOT(ctx.subExpression().accept(this));
+    }
+
+    @Override
     public IExpression visitBinaryExpression(ExpressionParser.BinaryExpressionContext ctx) {
         // There's only one TerminalNode in binaryExpression root definition, use index 0 to get that node
-        TerminalNode op = ctx.getChild(TerminalNode.class, 0);
+        TerminalNode op = ctx.operator().getChild(TerminalNode.class, 0);
 
         switch (op.getSymbol().getType()) {
             case ExpressionLexer.ADD:
@@ -169,7 +174,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
                 return new ComparisonExpression.LIKE(ctx.getChild(0).accept(this),
                                                      ctx.getChild(2).accept(this));
 
-            case ExpressionLexer.NOT_LIKE:
+            case ExpressionLexer.NOT:
                 return new LogicalExpression.NOT(
                     new ComparisonExpression.LIKE(ctx.getChild(0).accept(this),
                                                   ctx.getChild(2).accept(this))
