@@ -16,12 +16,14 @@
 
 package org.bithon.server.web.service.topo.api;
 
-import org.bithon.server.commons.matcher.EqualMatcher;
+import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.filter.ColumnFilter;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.datasource.query.Query;
@@ -87,10 +89,10 @@ public class TopoApi {
                                                           return spec.getResultColumn();
                                                       })
                                                       .collect(Collectors.toList()))
-                                 .filters(Arrays.asList(new ColumnFilter("srcEndpoint",
-                                                                         new EqualMatcher(request.getApplication())),
-                                                        new ColumnFilter("srcEndpointType",
-                                                                         new EqualMatcher(EndPointType.APPLICATION.name()))))
+                                 .filter(new LogicalExpression.AND(new ComparisonExpression.EQ(new IdentifierExpression("srcEndpoint"),
+                                                                                               new LiteralExpression(request.getApplication())),
+                                                                   new ComparisonExpression.EQ(new IdentifierExpression("srcEndpointType"),
+                                                                                               new LiteralExpression(EndPointType.APPLICATION.name()))))
                                  .interval(Interval.of(start, end))
                                  .groupBy(Arrays.asList("dstEndpoint", "dstEndpointType"))
                                  .build();
@@ -139,10 +141,10 @@ public class TopoApi {
                                                           return spec.getResultColumn();
                                                       })
                                                       .collect(Collectors.toList()))
-                                 .filters(Arrays.asList(new ColumnFilter("dstEndpoint",
-                                                                         new EqualMatcher(request.getApplication())),
-                                                        new ColumnFilter("dstEndpointType",
-                                                                         new EqualMatcher(EndPointType.APPLICATION.name()))))
+                                 .filter(new LogicalExpression.AND(new ComparisonExpression.EQ(new IdentifierExpression("dstEndpoint"),
+                                                                                               new LiteralExpression(request.getApplication())),
+                                                                   new ComparisonExpression.EQ(new IdentifierExpression("dstEndpointType"),
+                                                                                               new LiteralExpression(EndPointType.APPLICATION.name()))))
                                  .interval(Interval.of(start, end))
                                  .groupBy(Arrays.asList("srcEndpoint", "srcEndpointType")).build();
         List<Map<String, Object>> callers = (List<Map<String, Object>>) metricReader.groupBy(callerQuery);

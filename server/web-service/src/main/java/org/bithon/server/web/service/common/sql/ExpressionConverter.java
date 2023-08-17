@@ -25,6 +25,7 @@ import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.sql.util.SqlBasicVisitor;
 import org.apache.calcite.util.NlsString;
 import org.bithon.component.commons.expression.BinaryExpression;
+import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
@@ -114,17 +115,17 @@ public class ExpressionConverter extends SqlBasicVisitor<IExpression> {
                 }
                 return new LogicalExpression.NOT(operands);
             case EQUALS:
-                return new BinaryExpression.EQ(operands.get(0), operands.get(1));
+                return new ComparisonExpression.EQ(operands.get(0), operands.get(1));
             case NOT_EQUALS:
-                return new BinaryExpression.NE(operands.get(0), operands.get(1));
+                return new ComparisonExpression.NE(operands.get(0), operands.get(1));
             case GREATER_THAN:
-                return new BinaryExpression.GT(operands.get(0), operands.get(1));
+                return new ComparisonExpression.GT(operands.get(0), operands.get(1));
             case GREATER_THAN_OR_EQUAL:
-                return new BinaryExpression.GTE(operands.get(0), operands.get(1));
+                return new ComparisonExpression.GTE(operands.get(0), operands.get(1));
             case LESS_THAN:
-                return new BinaryExpression.LT(operands.get(0), operands.get(1));
+                return new ComparisonExpression.LT(operands.get(0), operands.get(1));
             case LESS_THAN_OR_EQUAL:
-                return new BinaryExpression.LTE(operands.get(0), operands.get(1));
+                return new ComparisonExpression.LTE(operands.get(0), operands.get(1));
             default:
                 throw new IllegalArgumentException("Unknown operator: " + operator);
         }

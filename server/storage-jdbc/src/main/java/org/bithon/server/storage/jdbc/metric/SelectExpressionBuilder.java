@@ -18,11 +18,11 @@ package org.bithon.server.storage.jdbc.metric;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
+import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
-import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.GroupBy;
@@ -38,12 +38,11 @@ import org.bithon.server.storage.datasource.query.ast.Table;
 import org.bithon.server.storage.datasource.query.ast.Where;
 import org.bithon.server.storage.datasource.query.parser.FieldExpressionVisitorAdaptor2;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
-import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
+import org.bithon.server.storage.jdbc.utils.SqlFilterStatement;
 import org.bithon.server.storage.metrics.Interval;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +59,7 @@ public class SelectExpressionBuilder {
 
     private List<ResultColumn> resultColumns;
 
-    private Collection<IColumnFilter> filters;
+    private IExpression filter;
     private Interval interval;
 
     private List<String> groupBy;
@@ -87,8 +86,8 @@ public class SelectExpressionBuilder {
         return this;
     }
 
-    public SelectExpressionBuilder filters(Collection<IColumnFilter> filters) {
-        this.filters = filters;
+    public SelectExpressionBuilder filters(IExpression filter) {
+        this.filter = filter;
         return this;
     }
 
@@ -391,8 +390,8 @@ public class SelectExpressionBuilder {
         Where where = new Where();
         where.addExpression(StringUtils.format("\"%s\" >= %s", timestampCol, sqlDialect.formatTimestamp(interval.getStartTime())));
         where.addExpression(StringUtils.format("\"%s\" < %s", timestampCol, sqlDialect.formatTimestamp(interval.getEndTime())));
-        for (IColumnFilter filter : filters) {
-            where.addExpression(filter.getMatcher().accept(new SQLFilterBuilder(dataSource, filter)));
+        if (filter != null) {
+            where.addExpression(SqlFilterStatement.from(dataSource, filter));
         }
 
         //

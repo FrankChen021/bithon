@@ -16,36 +16,38 @@
 
 package org.bithon.server.web.service.datasource.api;
 
-import org.bithon.component.commons.expression.BinaryExpression;
-import org.bithon.component.commons.expression.ExpressionList;
+import org.bithon.component.commons.expression.CollectionExpression;
+import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
-import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.matcher.BetweenMatcher;
 import org.bithon.server.commons.matcher.EqualMatcher;
 import org.bithon.server.commons.matcher.GreaterThanMatcher;
 import org.bithon.server.commons.matcher.GreaterThanOrEqualMatcher;
+import org.bithon.server.commons.matcher.IMatcherVisitor;
 import org.bithon.server.commons.matcher.InMatcher;
 import org.bithon.server.commons.matcher.LessThanMatcher;
 import org.bithon.server.commons.matcher.LessThanOrEqualMatcher;
 import org.bithon.server.commons.matcher.NotEqualMatcher;
 import org.bithon.server.commons.matcher.NotMatcher;
+import org.bithon.server.commons.matcher.StringAntPathMatcher;
+import org.bithon.server.commons.matcher.StringContainsMatcher;
+import org.bithon.server.commons.matcher.StringEndWithMatcher;
+import org.bithon.server.commons.matcher.StringIContainsMatcher;
 import org.bithon.server.commons.matcher.StringLikeMatcher;
-import org.bithon.server.storage.common.expression.FilterExpressionASTFactory;
+import org.bithon.server.commons.matcher.StringRegexMatcher;
+import org.bithon.server.commons.matcher.StringStartsWithMatcher;
+import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.filter.ColumnFilter;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -53,21 +55,126 @@ import java.util.Set;
  */
 public class FilterExpressionToFilters {
 
-    public static List<IColumnFilter> toFilter(DataSourceSchema schema, String filterExpression, List<IColumnFilter> otherFilters) {
+    public static IExpression toFilter(DataSourceSchema schema, String filterExpression, List<IColumnFilter> otherFilters) {
         if (StringUtils.isEmpty(filterExpression)) {
-            return otherFilters == null ? Collections.emptyList() : otherFilters;
+            return otherFilters == null ? null : toExpression(otherFilters);
         }
 
-        IExpression expressionAST = FilterExpressionASTFactory.create(filterExpression);
-        Visitor v = new Visitor(schema);
-        expressionAST.accept(v);
-        List<IColumnFilter> filters = v.filters;
-        if (CollectionUtils.isNotEmpty(otherFilters)) {
-            filters.addAll(otherFilters);
+        IExpression expression = ExpressionASTBuilder.build(filterExpression, null);
+        if (otherFilters != null) {
+            return new LogicalExpression.AND(expression, toExpression(otherFilters));
+        } else {
+            return expression;
         }
-        return filters;
     }
 
+    private static IExpression toExpression(List<IColumnFilter> filters) {
+        List<IExpression> expressions = new ArrayList<>();
+        FilterToExpression converter = new FilterToExpression();
+        for (IColumnFilter filter : filters) {
+            converter.setColumnFilter(filter);
+            expressions.add(filter.getMatcher().accept(converter));
+        }
+        return new LogicalExpression.AND(expressions);
+    }
+
+    static class FilterToExpression implements IMatcherVisitor<IExpression> {
+        private IdentifierExpression field;
+
+        public void setColumnFilter(IColumnFilter filter) {
+            this.field = new IdentifierExpression(filter.getName());
+        }
+
+        @Override
+        public IExpression visit(EqualMatcher matcher) {
+            return new ComparisonExpression.EQ(field, new LiteralExpression(matcher.getPattern()));
+        }
+
+        @Override
+        public IExpression visit(NotEqualMatcher matcher) {
+            return new ComparisonExpression.NE(field, new LiteralExpression(matcher.getValue()));
+        }
+
+        @Override
+        public IExpression visit(StringAntPathMatcher matcher) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public IExpression visit(StringContainsMatcher matcher) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public IExpression visit(StringEndWithMatcher matcher) {
+            return new FunctionExpression(null, "endsWith", field, new LiteralExpression(matcher.getPattern()));
+        }
+
+        @Override
+        public IExpression visit(StringIContainsMatcher matcher) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public IExpression visit(StringRegexMatcher matcher) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public IExpression visit(StringStartsWithMatcher matcher) {
+            return new FunctionExpression(null, "startsWith", field, new LiteralExpression(matcher.getPattern()));
+        }
+
+        @Override
+        public IExpression visit(BetweenMatcher matcher) {
+            return new LogicalExpression.AND(
+                new ComparisonExpression.GTE(field, new LiteralExpression(matcher.getLower())),
+                new ComparisonExpression.LT(field, new LiteralExpression(matcher.getUpper()))
+            );
+        }
+
+        @Override
+        public IExpression visit(InMatcher inMatcher) {
+            return new ComparisonExpression.IN(
+                field,
+                new CollectionExpression(inMatcher.getPattern().stream().map(LiteralExpression::new).collect(Collectors.toList()))
+            );
+        }
+
+        @Override
+        public IExpression visit(GreaterThanMatcher matcher) {
+            return new ComparisonExpression.GT(field, new LiteralExpression(matcher.getValue()));
+        }
+
+        @Override
+        public IExpression visit(GreaterThanOrEqualMatcher matcher) {
+            return new ComparisonExpression.GTE(field, new LiteralExpression(matcher.getValue()));
+        }
+
+        @Override
+        public IExpression visit(LessThanMatcher matcher) {
+            return new ComparisonExpression.LT(field, new LiteralExpression(matcher.getValue()));
+        }
+
+        @Override
+        public IExpression visit(LessThanOrEqualMatcher matcher) {
+            return new ComparisonExpression.LTE(field, new LiteralExpression(matcher.getValue()));
+        }
+
+        @Override
+        public IExpression visit(StringLikeMatcher matcher) {
+            return new ComparisonExpression.LIKE(field, new LiteralExpression(matcher.getPattern()));
+        }
+
+        @Override
+        public IExpression visit(NotMatcher matcher) {
+            return new LogicalExpression.NOT(
+                matcher.getMatcher().accept(this)
+            );
+        }
+    }
+
+    /*
     static class Visitor implements IExpressionVisitor<Void> {
         private final List<IColumnFilter> filters = new ArrayList<>();
         private final DataSourceSchema schema;
@@ -240,5 +347,5 @@ public class FilterExpressionToFilters {
 
             return null;
         }
-    }
+    }*/
 }

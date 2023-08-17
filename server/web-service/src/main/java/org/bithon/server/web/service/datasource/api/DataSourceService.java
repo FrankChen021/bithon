@@ -141,7 +141,7 @@ public class DataSourceService {
         return builder.groupBy(new ArrayList<>(groupBy))
                       .resultColumns(resultColumnList)
                       .dataSource(schema)
-                      .filters(FilterExpressionToFilters.toFilter(schema, query.getFilterExpression(), query.getFilters()))
+                      .filter(FilterExpressionToFilters.toFilter(schema, query.getFilterExpression(), query.getFilters()))
                       .interval(Interval.of(start, end, step))
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())

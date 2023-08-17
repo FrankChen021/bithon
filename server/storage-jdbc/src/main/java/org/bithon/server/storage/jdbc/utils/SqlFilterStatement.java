@@ -14,22 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.event;
+package org.bithon.server.storage.jdbc.utils;
 
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.server.commons.time.TimeSpan;
-
-import java.util.List;
+import org.bithon.server.storage.datasource.DataSourceSchema;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/14 4:18 下午
+ * @date 2023/8/17 22:08
  */
-public interface IEventReader extends AutoCloseable {
-    List<Event> getEventList(IExpression filter, TimeSpan start, TimeSpan end, int pageNumber, int pageSize);
-
-    int getEventListSize(IExpression filter, TimeSpan start, TimeSpan end);
-
-    default void close() {
+public class SqlFilterStatement {
+    public static String from(DataSourceSchema schema, IExpression expression) {
+        return expression.serializeToText();
     }
 }

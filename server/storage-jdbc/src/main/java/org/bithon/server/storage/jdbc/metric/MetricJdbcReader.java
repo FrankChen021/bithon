@@ -28,6 +28,7 @@ import org.bithon.server.storage.datasource.query.ast.SelectExpression;
 import org.bithon.server.storage.datasource.query.ast.StringNode;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
+import org.bithon.server.storage.jdbc.utils.SqlFilterStatement;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -61,7 +62,7 @@ public class MetricJdbcReader implements IMetricReader {
         SelectExpression selectExpression = SelectExpressionBuilder.builder()
                                                                    .dataSource(query.getDataSource())
                                                                    .fields(query.getResultColumns())
-                                                                   .filters(query.getFilters())
+                                                                   .filters(query.getFilter())
                                                                    .interval(query.getInterval())
                                                                    .groupBys(query.getGroupBy())
                                                                    .orderBy(OrderBy.builder().name(TIMESTAMP_ALIAS_NAME).build())
@@ -95,7 +96,7 @@ public class MetricJdbcReader implements IMetricReader {
         SelectExpression selectExpression = SelectExpressionBuilder.builder()
                                                                    .dataSource(query.getDataSource())
                                                                    .fields(query.getResultColumns())
-                                                                   .filters(query.getFilters())
+                                                                   .filters(query.getFilter())
                                                                    .interval(query.getInterval())
                                                                    .groupBys(query.getGroupBy())
                                                                    .orderBy(query.getOrderBy())
@@ -119,7 +120,7 @@ public class MetricJdbcReader implements IMetricReader {
     public List<Map<String, Object>> list(Query query) {
         String sqlTableName = query.getDataSource().getDataStoreSpec().getStore();
         String timestampCol = query.getDataSource().getTimestampSpec().getTimestampColumn();
-        String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
+        String filter = SqlFilterStatement.from(query.getDataSource(), query.getFilter());
         String sql = StringUtils.format(
             "SELECT %s FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s %s LIMIT %d OFFSET %d",
             query.getResultColumns().stream().map(field -> "\"" + field.getColumnExpression() + "\"").collect(Collectors.joining(",")),
@@ -133,7 +134,7 @@ public class MetricJdbcReader implements IMetricReader {
             getOrderBySQL(query.getOrderBy()),
             query.getLimit().getLimit(),
             query.getLimit().getOffset()
-        );
+                                       );
 
         return executeSql(sql);
     }
@@ -143,7 +144,7 @@ public class MetricJdbcReader implements IMetricReader {
         String sqlTableName = query.getDataSource().getDataStoreSpec().getStore();
         String timestampCol = query.getDataSource().getTimestampSpec().getTimestampColumn();
 
-        String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
+        String filter = SqlFilterStatement.from(query.getDataSource(), query.getFilter());
         String sql = StringUtils.format(
             "SELECT count(1) FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s",
             sqlTableName,
@@ -153,7 +154,7 @@ public class MetricJdbcReader implements IMetricReader {
             sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
             timestampCol,
             sqlDialect.formatTimestamp(query.getInterval().getEndTime())
-        );
+                                       );
 
         Record record = dsl.fetchOne(sql);
         return ((Number) record.get(0)).intValue();
@@ -215,7 +216,7 @@ public class MetricJdbcReader implements IMetricReader {
             sqlDialect.formatTimestamp(end),
             dimension,
             dimension
-        );
+                                       );
 
         log.info("Executing {}", sql);
         List<Record> records = dsl.fetch(sql);
