@@ -50,4 +50,6 @@ public interface IMatcherVisitor<T> {
     T visit(LessThanOrEqualMatcher matcher);
 
     T visit(StringLikeMatcher stringLikeMatcher);
+
+    T visit(NotMatcher notMatcher);
 }

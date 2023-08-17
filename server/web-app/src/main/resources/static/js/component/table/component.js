@@ -32,6 +32,7 @@ class TableComponent {
         this.mShowColumn = option.toolbar !== undefined ? (option.toolbar.showColumns === true) : false;
         this.mColumns = option.columns;
         this.mCreated = false;
+        this.mPopoverShown = false;
 
         this.mHasPagination = option.pagination !== undefined && option.pagination.length > 0;
         if (Array.isArray(option.pagination)) {
@@ -131,6 +132,21 @@ class TableComponent {
             window.gTableComponents = {};
         }
         window.gTableComponents[option.tableId] = this;
+
+        $('body').on('click', (e) => {
+            if (!this.mPopoverShown) {
+                return;
+            }
+
+            const target = $(e.target);
+            if (target.hasClass('popover-body')
+            || target.hasClass('popover-header')
+            || target.hasClass('popover')) {
+                return;
+            }
+
+            $(this._header).find('.header-text').popover('hide');
+        });
     }
 
     #ensureHeader() {
@@ -248,7 +264,26 @@ class TableComponent {
                 stickyHeader: true,
                 stickyHeaderOffsetLeft: parseInt($('body').css('padding-left'), 10),
                 stickyHeaderOffsetRight: parseInt($('body').css('padding-right'), 10),
-                theadClasses: 'thead-light'
+                theadClasses: 'thead-light',
+
+                onLoadError: (status, jqXHR) => {
+                    let message = jqXHR.responseText;
+                    if (jqXHR.responseJSON !== undefined && jqXHR.responseJSON.message !== undefined) {
+                        message = jqXHR.responseJSON.message;
+                    }
+    
+                    this.#ensureHeader().find('.header-text')
+                                        .popover({title: 'Error', trigger: 'focus', html: true, content: message, placement: 'bottom' })
+                                        .popover('show')
+                                        .on('shown.bs.popover', () => {
+                                           this.mPopoverShown = true;
+                                        })
+                                        .on('hidden.bs.popover', () => {
+                                           this.mPopoverShown = false;
+                                        });
+                },
+                onLoadSuccess: () => {
+                }
             };
             if (this.mHasPagination) {
                 tableOption.paginationPreText = '<';
@@ -262,7 +297,11 @@ class TableComponent {
 
             this.#createShowColumnDropdownList();
         } else {
-            this.vTable.bootstrapTable('refresh');
+            if (this.mHasPagination) {
+                this.vTable.bootstrapTable('refresh', {pageNumber: 1});
+            } else {
+                this.vTable.bootstrapTable('refresh');
+            }
         }
     }
 
@@ -276,7 +315,7 @@ class TableComponent {
         }
 
         // Build the dropdown list
-        let dropDownList = '<div class="btn-group dropright"><button type="button" class="btn btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' + headerText +
+        let dropDownList = '<div class="btn-group dropright"><button type="button" class="btn btn-sm dropdown-toggle header-text" data-toggle="dropdown" aria-expanded="false">' + headerText +
             '<div class="dropdown-menu dropdown-menu-lg-right">';
         {
             const tableId = this.vTable.attr('id');
