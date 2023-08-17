@@ -33,31 +33,67 @@ public interface IExpressionVisitor<T> {
         return null;
     }
 
-    default T visit(BinaryExpression.EQ expression) {
+    default T visit(ComparisonExpression.EQ expression) {
         return null;
     }
 
-    default T visit(BinaryExpression.GT expression) {
+    default T visit(ComparisonExpression.GT expression) {
         return null;
     }
 
-    default T visit(BinaryExpression.GTE expression) {
+    default T visit(ComparisonExpression.GTE expression) {
         return null;
     }
 
-    default T visit(BinaryExpression.LT expression) {
+    default T visit(ComparisonExpression.LT expression) {
         return null;
     }
 
-    default T visit(BinaryExpression.LTE expression) {
+    default T visit(ComparisonExpression.LTE expression) {
         return null;
     }
 
-    default T visit(BinaryExpression.NE expression) {
+    default T visit(ComparisonExpression.NE expression) {
         return null;
     }
 
-    default T visit(BinaryExpression.IN expression) { return null; }
+    default T visit(ComparisonExpression.IN expression) {
+        return null;
+    }
 
-    default T visit(BinaryExpression.LIKE expression) { return null; }
+    default T visit(ComparisonExpression.LIKE expression) {
+        return null;
+    }
+
+    default T visit(ArithmeticExpression.Add expression) {
+        return null;
+    }
+
+    default T visit(ArithmeticExpression.Sub expression) {
+        return null;
+    }
+
+    default T visit(ArithmeticExpression.Mul expression) {
+        return null;
+    }
+
+    default T visit(ArithmeticExpression.Div expression) {
+        return null;
+    }
+
+    default T visit(CollectionExpression expression) {
+        return null;
+    }
+
+    default T visit(FieldExpression expression) {
+        return null;
+    }
+
+    default T visit(FunctionExpression expression) {
+        return null;
+    }
+
+    default T visit(ArrayAccessExpression expression) {
+        return null;
+    }
 }

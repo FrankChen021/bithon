@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.bithon.component.commons.expression.BinaryExpression;
+import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -62,22 +62,22 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
             String type = typeNode.asText();
             switch (type) {
                 case "=":
-                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, BinaryExpression.EQ::new);
+                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.EQ::new);
                 case ">":
-                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, BinaryExpression.GT::new);
+                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.GT::new);
                 case ">=":
-                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, BinaryExpression.GTE::new);
+                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.GTE::new);
                 case "<":
-                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, BinaryExpression.LT::new);
+                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.LT::new);
                 case "<=":
-                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, BinaryExpression.LTE::new);
+                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.LTE::new);
                 case "<>":
                 case "!=":
-                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, BinaryExpression.NE::new);
-                case "in":
-                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, BinaryExpression.IN::new);
+                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.NE::new);
+                //case "in":
+                //    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.IN::new);
                 case "like":
-                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, BinaryExpression.LIKE::new);
+                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.LIKE::new);
                 case "literal":
                     return LiteralExpressionDeserializer.deserialize(jsonNode);
                 case "logical":

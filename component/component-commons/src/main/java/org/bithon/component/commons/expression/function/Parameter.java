@@ -14,26 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.commons.expression;
+package org.bithon.component.commons.expression.function;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/4/7 20:16
+ * @date 2022/11/2 17:37
  */
-public interface IExpression {
+public class Parameter {
+    private final IDataType type;
 
-    String getType();
-
-    Object evaluate(IEvaluationContext context);
-
-    <T> T accept(IExpressionVisitor<T> visitor);
-
-    default void serializeToText(StringBuilder sb) {
+    public Parameter(IDataType type) {
+        this.type = type;
     }
 
-    default String serializeToText() {
-        StringBuilder sb = new StringBuilder(64);
-        serializeToText(sb);
-        return sb.toString();
+    public IDataType getType() {
+        return type;
     }
 }

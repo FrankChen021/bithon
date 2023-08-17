@@ -123,7 +123,11 @@ public abstract class LogicalExpression implements IExpression {
     public static class OR extends LogicalExpression {
 
         public OR(List<IExpression> operands) {
-            super("OR", operands);
+            super("AND", operands);
+        }
+
+        public OR(IExpression... operands) {
+            super("OR", Arrays.asList(operands));
         }
 
         @Override

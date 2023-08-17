@@ -16,43 +16,42 @@
 
 package org.bithon.component.commons.expression;
 
+
 /**
- * @author frank.chen021@outlook.com
- * @date 2023/4/7 20:17
+ * @author Frank Chen
+ * @date 30/6/23 6:13 pm
  */
-public abstract class BinaryExpression implements IExpression {
+public class FieldExpression implements IExpression {
 
-    /**
-     * Don't change these property names because they're used in manual deserializer
-     */
-    protected final String type;
-    protected final IExpression left;
-    protected final IExpression right;
+    private final String name;
 
-    protected BinaryExpression(String type, IExpression left, IExpression right) {
-        this.type = type;
-        this.left = left;
-        this.right = right;
+    private final boolean isQualified;
+
+    public FieldExpression(String name) {
+        this.name = name;
+        this.isQualified = name.indexOf('.') > 0;
     }
 
-    public IExpression getLeft() {
-        return left;
+    public String getName() {
+        return name;
     }
 
-    public IExpression getRight() {
-        return right;
+    public boolean isQualified() {
+        return isQualified;
     }
 
     @Override
     public String getType() {
-        return type;
+        return null;
     }
 
-    /**
-     * Override for debugging
-     */
     @Override
-    public String toString() {
-        return this.left + " " + this.type + " " + this.right;
+    public Object evaluate(IEvaluationContext context) {
+        return context.get(name);
+    }
+
+    @Override
+    public <T> T accept(IExpressionVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 }

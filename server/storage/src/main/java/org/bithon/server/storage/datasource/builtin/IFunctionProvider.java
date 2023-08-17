@@ -16,18 +16,12 @@
 
 package org.bithon.server.storage.datasource.builtin;
 
-import lombok.Getter;
-import org.bithon.server.storage.datasource.typing.IDataType;
+import org.bithon.component.commons.expression.function.IFunction;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/11/2 17:37
+ * @date 2023/8/17 20:02
  */
-@Getter
-public class Parameter {
-    private final IDataType type;
-
-    public Parameter(IDataType type) {
-        this.type = type;
-    }
+public interface IFunctionProvider {
+    IFunction getFunction(String name);
 }

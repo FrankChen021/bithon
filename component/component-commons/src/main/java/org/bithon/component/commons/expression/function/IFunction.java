@@ -14,26 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.commons.expression;
+package org.bithon.component.commons.expression.function;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/4/7 20:16
+ * @date 2022/11/2 17:31
  */
-public interface IExpression {
+public interface IFunction {
 
-    String getType();
+    String getName();
 
-    Object evaluate(IEvaluationContext context);
+    List<Parameter> getParameters();
 
-    <T> T accept(IExpressionVisitor<T> visitor);
+    void validateParameter(int index, Object parameter);
 
-    default void serializeToText(StringBuilder sb) {
-    }
-
-    default String serializeToText() {
-        StringBuilder sb = new StringBuilder(64);
-        serializeToText(sb);
-        return sb.toString();
-    }
+    Object evaluate(List<Object> parameters);
 }
