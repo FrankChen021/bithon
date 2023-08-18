@@ -54,6 +54,8 @@ public class IdentifierExpression implements IExpression {
 
     @Override
     public void serializeToText(StringBuilder sb) {
+        sb.append('"');
         sb.append(identifier);
+        sb.append('"');
     }
 }

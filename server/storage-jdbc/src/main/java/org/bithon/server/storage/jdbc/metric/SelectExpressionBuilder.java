@@ -86,7 +86,7 @@ public class SelectExpressionBuilder {
         return this;
     }
 
-    public SelectExpressionBuilder filters(IExpression filter) {
+    public SelectExpressionBuilder filter(IExpression filter) {
         this.filter = filter;
         return this;
     }

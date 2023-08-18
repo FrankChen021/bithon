@@ -72,8 +72,14 @@ public abstract class LogicalExpression implements IExpression {
 
     @Override
     public void serializeToText(StringBuilder sb) {
-        String separator = " " + this.operator + " ";
-        sb.append(this.operands.stream().map(Object::toString).collect(Collectors.joining(separator)));
+        for (int i = 0, size = this.operands.size(); i < size; i++) {
+            if (i > 0) {
+                sb.append(' ');
+                sb.append(this.operator);
+                sb.append(' ');
+            }
+            this.operands.get(i).serializeToText(sb);
+        }
     }
 
     public abstract LogicalExpression copy(List<IExpression> expressionList);
