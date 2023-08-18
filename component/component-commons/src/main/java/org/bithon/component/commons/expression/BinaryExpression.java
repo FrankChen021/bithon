@@ -47,25 +47,4 @@ public abstract class BinaryExpression implements IExpression {
     public String getType() {
         return type;
     }
-
-    public void serializeToText(StringBuilder sb) {
-        if (left instanceof BinaryExpression) {
-            sb.append('(');
-        }
-        left.serializeToText(sb);
-        if (left instanceof BinaryExpression) {
-            sb.append(')');
-        }
-        sb.append(' ');
-        sb.append(this.getType());
-        sb.append(' ');
-
-        if (right instanceof BinaryExpression) {
-            sb.append('(');
-        }
-        right.serializeToText(sb);
-        if (right instanceof BinaryExpression) {
-            sb.append(')');
-        }
-    }
 }

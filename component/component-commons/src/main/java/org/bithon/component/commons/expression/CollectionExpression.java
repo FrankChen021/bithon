@@ -58,11 +58,4 @@ public class CollectionExpression implements IExpression {
     public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
     }
-
-    @Override
-    public void serializeToText(StringBuilder sb) {
-        sb.append('(');
-        sb.append(values.stream().map((val) -> val instanceof String ? "'" + val + "'" : val.toString()).collect(Collectors.joining(", ")));
-        sb.append(')');
-    }
 }

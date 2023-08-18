@@ -17,6 +17,8 @@
 package org.bithon.server.storage.jdbc.utils;
 
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 
 /**
@@ -25,6 +27,15 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
  */
 public class SqlFilterStatement {
     public static String from(DataSourceSchema schema, IExpression expression) {
-        return expression.serializeToText();
+        ExpressionSerializer serializer = new ExpressionSerializer() {
+            @Override
+            public Void visit(IdentifierExpression expression) {
+                sb.append('"');
+                sb.append(expression.getIdentifier());
+                sb.append('"');
+                return null;
+            }
+        };
+        return serializer.serialize(expression);
     }
 }

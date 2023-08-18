@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 /**
  * AND/OR
@@ -68,18 +67,6 @@ public abstract class LogicalExpression implements IExpression {
     @Override
     public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
-    }
-
-    @Override
-    public void serializeToText(StringBuilder sb) {
-        for (int i = 0, size = this.operands.size(); i < size; i++) {
-            if (i > 0) {
-                sb.append(' ');
-                sb.append(this.operator);
-                sb.append(' ');
-            }
-            this.operands.get(i).serializeToText(sb);
-        }
     }
 
     public abstract LogicalExpression copy(List<IExpression> expressionList);
@@ -172,13 +159,6 @@ public abstract class LogicalExpression implements IExpression {
         @Override
         public LogicalExpression copy(List<IExpression> expressionList) {
             return new NOT(expressionList);
-        }
-
-        @Override
-        public void serializeToText(StringBuilder sb) {
-            sb.append("NOT (");
-            operands.get(0).serializeToText(sb);
-            sb.append(")");
         }
     }
 }

@@ -51,11 +51,4 @@ public class IdentifierExpression implements IExpression {
     public Object evaluate(IEvaluationContext context) {
         return context.get(identifier);
     }
-
-    @Override
-    public void serializeToText(StringBuilder sb) {
-        sb.append('"');
-        sb.append(identifier);
-        sb.append('"');
-    }
 }

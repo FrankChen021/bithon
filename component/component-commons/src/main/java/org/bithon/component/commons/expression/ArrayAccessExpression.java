@@ -36,6 +36,14 @@ public class ArrayAccessExpression implements IExpression {
         this.index = index;
     }
 
+    public IExpression getArray() {
+        return array;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
     @Override
     public String getType() {
         return "[]";
@@ -116,13 +124,5 @@ public class ArrayAccessExpression implements IExpression {
     @Override
     public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
-    }
-
-    @Override
-    public void serializeToText(StringBuilder sb) {
-        array.serializeToText(sb);
-        sb.append('[');
-        sb.append(index);
-        sb.append(']');
     }
 }

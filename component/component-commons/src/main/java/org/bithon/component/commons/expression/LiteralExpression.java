@@ -45,15 +45,4 @@ public class LiteralExpression implements IExpression {
     public Object evaluate(IEvaluationContext context) {
         return value;
     }
-
-    @Override
-    public void serializeToText(StringBuilder sb) {
-        if (value instanceof String) {
-            sb.append('\'');
-            sb.append(value);
-            sb.append('\'');
-        } else {
-            sb.append(value);
-        }
-    }
 }

@@ -60,9 +60,4 @@ public class DebuggableLogicExpression extends LogicalExpression {
     public <T> T accept(IExpressionVisitor<T> visitor) {
         return delegate.accept(visitor);
     }
-
-    @Override
-    public void serializeToText(StringBuilder sb) {
-        delegate.serializeToText(sb);
-    }
 }

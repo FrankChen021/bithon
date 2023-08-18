@@ -42,6 +42,14 @@ public class FunctionExpression implements IExpression {
         this(function, name, Arrays.asList(parameters));
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public List<IExpression> getParameters() {
+        return parameters;
+    }
+
     @Override
     public String getType() {
         return "Function";
@@ -56,21 +64,5 @@ public class FunctionExpression implements IExpression {
     @Override
     public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
-    }
-
-    @Override
-    public void serializeToText(StringBuilder sb) {
-        boolean first = true;
-        sb.append(name);
-        sb.append('(');
-        for (IExpression p : parameters) {
-            if (first) {
-                first = false;
-            } else {
-                sb.append(',');
-            }
-            p.serializeToText(sb);
-        }
-        sb.append(')');
     }
 }

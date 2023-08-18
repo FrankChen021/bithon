@@ -16,6 +16,8 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/4/7 20:16
@@ -28,11 +30,8 @@ public interface IExpression {
 
     <T> T accept(IExpressionVisitor<T> visitor);
 
-    void serializeToText(StringBuilder sb);
-
     default String serializeToText() {
-        StringBuilder sb = new StringBuilder(64);
-        serializeToText(sb);
-        return sb.toString();
+        ExpressionSerializer serializer = new ExpressionSerializer();
+        return serializer.serialize(this);
     }
 }
