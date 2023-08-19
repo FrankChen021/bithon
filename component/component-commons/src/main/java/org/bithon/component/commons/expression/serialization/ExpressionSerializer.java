@@ -19,8 +19,8 @@ package org.bithon.component.commons.expression.serialization;
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ArrayAccessExpression;
 import org.bithon.component.commons.expression.BinaryExpression;
-import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
@@ -34,7 +34,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2023/8/18 21:08
  */
-public class ExpressionSerializer implements IExpressionVisitor<Void> {
+public class ExpressionSerializer implements IExpressionVisitor {
     protected final StringBuilder sb = new StringBuilder(512);
 
     public String serialize(IExpression expression) {
@@ -43,7 +43,7 @@ public class ExpressionSerializer implements IExpressionVisitor<Void> {
     }
 
     @Override
-    public Void visit(LiteralExpression expression) {
+    public boolean visit(LiteralExpression expression) {
         Object value = expression.getValue();
         if (value instanceof String) {
             sb.append('\'');
@@ -52,16 +52,16 @@ public class ExpressionSerializer implements IExpressionVisitor<Void> {
         } else {
             sb.append(value);
         }
-        return null;
+        return false;
     }
 
     @Override
-    public Void visit(LogicalExpression expression) {
+    public boolean visit(LogicalExpression expression) {
         if (expression instanceof LogicalExpression.NOT) {
             sb.append("NOT (");
             expression.getOperands().get(0).accept(this);
             sb.append(")");
-            return null;
+            return false;
         }
 
         for (int i = 0, size = expression.getOperands().size(); i < size; i++) {
@@ -72,77 +72,30 @@ public class ExpressionSerializer implements IExpressionVisitor<Void> {
             }
             expression.getOperands().get(i).accept(this);
         }
-        return null;
+        return false;
     }
 
+
     @Override
-    public Void visit(IdentifierExpression expression) {
+    public boolean visit(IdentifierExpression expression) {
         sb.append(expression.getIdentifier());
-        return null;
+        return false;
     }
 
     @Override
-    public Void visit(ComparisonExpression.EQ expression) {
-        return visitBinary(expression);
+    public boolean visit(ComparisonExpression expression) {
+        visitBinary(expression);
+        return false;
     }
 
     @Override
-    public Void visit(ComparisonExpression.GT expression) {
-        return visitBinary(expression);
+    public boolean visit(ArithmeticExpression expression) {
+        visitBinary(expression);
+        return false;
     }
 
     @Override
-    public Void visit(ComparisonExpression.GTE expression) {
-        return visitBinary(expression);
-    }
-
-    @Override
-    public Void visit(ComparisonExpression.LT expression) {
-        return visitBinary(expression);
-    }
-
-    @Override
-    public Void visit(ComparisonExpression.LTE expression) {
-        return visitBinary(expression);
-    }
-
-    @Override
-    public Void visit(ComparisonExpression.NE expression) {
-        return visitBinary(expression);
-    }
-
-    @Override
-    public Void visit(ComparisonExpression.IN expression) {
-        return visitBinary(expression);
-    }
-
-    @Override
-    public Void visit(ComparisonExpression.LIKE expression) {
-        return visitBinary(expression);
-    }
-
-    @Override
-    public Void visit(ArithmeticExpression.ADD expression) {
-        return visitBinary(expression);
-    }
-
-    @Override
-    public Void visit(ArithmeticExpression.SUB expression) {
-        return visitBinary(expression);
-    }
-
-    @Override
-    public Void visit(ArithmeticExpression.MUL expression) {
-        return visitBinary(expression);
-    }
-
-    @Override
-    public Void visit(ArithmeticExpression.DIV expression) {
-        return visitBinary(expression);
-    }
-
-    @Override
-    public Void visit(ExpressionList expression) {
+    public boolean visit(ExpressionList expression) {
         sb.append('(');
         {
             List<IExpression> expressionList = expression.getExpressions();
@@ -154,11 +107,11 @@ public class ExpressionSerializer implements IExpressionVisitor<Void> {
             }
         }
         sb.append(')');
-        return null;
+        return false;
     }
 
     @Override
-    public Void visit(FunctionExpression expression) {
+    public boolean visit(FunctionExpression expression) {
         boolean first = true;
         sb.append(expression.getName());
         sb.append('(');
@@ -171,19 +124,19 @@ public class ExpressionSerializer implements IExpressionVisitor<Void> {
             p.accept(this);
         }
         sb.append(')');
-        return null;
+        return false;
     }
 
     @Override
-    public Void visit(ArrayAccessExpression expression) {
+    public boolean visit(ArrayAccessExpression expression) {
         expression.getArray().accept(this);
         sb.append('[');
         sb.append(expression.getIndex());
         sb.append(']');
-        return null;
+        return false;
     }
 
-    protected Void visitBinary(BinaryExpression expression) {
+    protected void visitBinary(BinaryExpression expression) {
         IExpression left = expression.getLeft();
         if (left instanceof BinaryExpression) {
             sb.append('(');
@@ -204,6 +157,5 @@ public class ExpressionSerializer implements IExpressionVisitor<Void> {
         if (right instanceof BinaryExpression) {
             sb.append(')');
         }
-        return null;
     }
 }

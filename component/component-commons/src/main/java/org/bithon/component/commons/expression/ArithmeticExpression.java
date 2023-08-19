@@ -38,6 +38,19 @@ public abstract class ArithmeticExpression extends BinaryExpression {
         return evaluate(r1.longValue(), r2.longValue());
     }
 
+    @Override
+    public void accept(IExpressionVisitor visitor) {
+        if (visitor.visit(this)) {
+            left.accept(visitor);
+            right.accept(visitor);
+        }
+    }
+
+    @Override
+    public <T> T accept(IExpressionVisitor2<T> visitor) {
+        return visitor.visit(this);
+    }
+
     private Number asNumber(Object val) {
         if (val instanceof Number) {
             return (Number) val;
@@ -66,11 +79,6 @@ public abstract class ArithmeticExpression extends BinaryExpression {
         protected long evaluate(long v1, long v2) {
             return v1 + v2;
         }
-
-        @Override
-        public <T> T accept(IExpressionVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
     public static class SUB extends ArithmeticExpression {
@@ -86,11 +94,6 @@ public abstract class ArithmeticExpression extends BinaryExpression {
         @Override
         protected long evaluate(long v1, long v2) {
             return v1 - v2;
-        }
-
-        @Override
-        public <T> T accept(IExpressionVisitor<T> visitor) {
-            return visitor.visit(this);
         }
     }
 
@@ -108,11 +111,6 @@ public abstract class ArithmeticExpression extends BinaryExpression {
         protected long evaluate(long v1, long v2) {
             return v1 * v2;
         }
-
-        @Override
-        public <T> T accept(IExpressionVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
     public static class DIV extends ArithmeticExpression {
@@ -128,11 +126,6 @@ public abstract class ArithmeticExpression extends BinaryExpression {
         @Override
         protected long evaluate(long v1, long v2) {
             return v1 / v2;
-        }
-
-        @Override
-        public <T> T accept(IExpressionVisitor<T> visitor) {
-            return visitor.visit(this);
         }
     }
 }

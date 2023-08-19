@@ -62,7 +62,16 @@ public class FunctionExpression implements IExpression {
     }
 
     @Override
-    public <T> T accept(IExpressionVisitor<T> visitor) {
+    public void accept(IExpressionVisitor visitor) {
+        if (visitor.visit(this)) {
+            for (IExpression parameters : this.parameters) {
+                parameters.accept(visitor);
+            }
+        }
+    }
+
+    @Override
+    public <T> T accept(IExpressionVisitor2<T> visitor) {
         return visitor.visit(this);
     }
 }

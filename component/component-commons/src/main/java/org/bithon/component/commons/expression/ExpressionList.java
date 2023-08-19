@@ -55,7 +55,16 @@ public class ExpressionList implements IExpression {
     }
 
     @Override
-    public <T> T accept(IExpressionVisitor<T> visitor) {
+    public void accept(IExpressionVisitor visitor) {
+        if (visitor.visit(this)) {
+            for (IExpression subExpression : expressions) {
+                subExpression.accept(visitor);
+            }
+        }
+    }
+
+    @Override
+    public <T> T accept(IExpressionVisitor2<T> visitor) {
         return visitor.visit(this);
     }
 }

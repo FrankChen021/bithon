@@ -27,15 +27,18 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
  */
 public class SqlFilterStatement {
     public static String from(DataSourceSchema schema, IExpression expression) {
-        ExpressionSerializer serializer = new ExpressionSerializer() {
+        return from(schema, expression, new ExpressionSerializer() {
             @Override
-            public Void visit(IdentifierExpression expression) {
+            public boolean visit(IdentifierExpression expression) {
                 sb.append('"');
                 sb.append(expression.getIdentifier());
                 sb.append('"');
-                return null;
+                return false;
             }
-        };
+        });
+    }
+
+    public static String from(DataSourceSchema schema, IExpression expression, ExpressionSerializer serializer) {
         return serializer.serialize(expression);
     }
 }

@@ -65,7 +65,16 @@ public abstract class LogicalExpression implements IExpression {
     }
 
     @Override
-    public <T> T accept(IExpressionVisitor<T> visitor) {
+    public void accept(IExpressionVisitor visitor) {
+        if (visitor.visit(this)) {
+            for (IExpression operand : operands) {
+                operand.accept(visitor);
+            }
+        }
+    }
+
+    @Override
+    public <T> T accept(IExpressionVisitor2<T> visitor) {
         return visitor.visit(this);
     }
 

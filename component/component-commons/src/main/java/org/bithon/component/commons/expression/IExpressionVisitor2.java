@@ -16,24 +16,40 @@
 
 package org.bithon.component.commons.expression;
 
-import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
-
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/4/7 20:16
+ * @date 2023/4/8 11:41
  */
-public interface IExpression {
+public interface IExpressionVisitor2<T> {
+    default T visit(LiteralExpression expression) {
+        return null;
+    }
 
-    String getType();
+    default T visit(LogicalExpression expression) {
+        return null;
+    }
 
-    Object evaluate(IEvaluationContext context);
+    default T visit(IdentifierExpression expression) {
+        return null;
+    }
 
-    void accept(IExpressionVisitor visitor);
+    default T visit(ExpressionList expression) {
+        return null;
+    }
 
-    <T> T accept(IExpressionVisitor2<T> visitor);
+    default T visit(FunctionExpression expression) {
+        return null;
+    }
 
-    default String serializeToText() {
-        ExpressionSerializer serializer = new ExpressionSerializer();
-        return serializer.serialize(this);
+    default T visit(ArrayAccessExpression expression) {
+        return null;
+    }
+
+    default T visit(ArithmeticExpression expression) {
+        return null;
+    }
+
+    default T visit(ComparisonExpression expression) {
+        return null;
     }
 }

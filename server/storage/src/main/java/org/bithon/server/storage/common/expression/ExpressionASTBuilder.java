@@ -157,49 +157,39 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
         // There's only one TerminalNode in binaryExpression root definition, use index 0 to get that node
         TerminalNode op = (TerminalNode) ctx.getChild(1);
 
+        ParseTree left = ctx.getChild(0);
+        if (!(left instanceof ExpressionParser.IdentifierExpressionContext)) {
+            // For simply expression optimization later
+            throw new RuntimeException(StringUtils.format("For operator '%s', the left expression must be an identifier.", op));
+        }
+
         switch (op.getSymbol().getType()) {
-            case ExpressionLexer.ADD:
-                return new ArithmeticExpression.ADD(ctx.getChild(0).accept(this),
-                                                    ctx.getChild(2).accept(this));
-
-            case ExpressionLexer.SUB:
-                return new ArithmeticExpression.SUB(ctx.getChild(0).accept(this),
-                                                    ctx.getChild(2).accept(this));
-
-            case ExpressionLexer.MUL:
-                return new ArithmeticExpression.MUL(ctx.getChild(0).accept(this),
-                                                    ctx.getChild(2).accept(this));
-
-            case ExpressionLexer.DIV:
-                return new ArithmeticExpression.DIV(ctx.getChild(0).accept(this),
-                                                    ctx.getChild(2).accept(this));
-
             case ExpressionLexer.LT:
-                return new ComparisonExpression.LT(ctx.getChild(0).accept(this),
+                return new ComparisonExpression.LT(left.accept(this),
                                                    ctx.getChild(2).accept(this));
 
             case ExpressionLexer.LTE:
-                return new ComparisonExpression.LTE(ctx.getChild(0).accept(this),
+                return new ComparisonExpression.LTE(left.accept(this),
                                                     ctx.getChild(2).accept(this));
 
             case ExpressionLexer.GT:
-                return new ComparisonExpression.GT(ctx.getChild(0).accept(this),
+                return new ComparisonExpression.GT(left.accept(this),
                                                    ctx.getChild(2).accept(this));
 
             case ExpressionLexer.GTE:
-                return new ComparisonExpression.GTE(ctx.getChild(0).accept(this),
+                return new ComparisonExpression.GTE(left.accept(this),
                                                     ctx.getChild(2).accept(this));
 
             case ExpressionLexer.NE:
-                return new ComparisonExpression.NE(ctx.getChild(0).accept(this),
+                return new ComparisonExpression.NE(left.accept(this),
                                                    ctx.getChild(2).accept(this));
 
             case ExpressionLexer.EQ:
-                return new ComparisonExpression.EQ(ctx.getChild(0).accept(this),
+                return new ComparisonExpression.EQ(left.accept(this),
                                                    ctx.getChild(2).accept(this));
 
             case ExpressionLexer.LIKE:
-                return new ComparisonExpression.LIKE(ctx.getChild(0).accept(this),
+                return new ComparisonExpression.LIKE(left.accept(this),
                                                      ctx.getChild(2).accept(this));
 
             case ExpressionLexer.NOT:
@@ -207,11 +197,11 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
                 switch (operator.getSymbol().getType()) {
                     case ExpressionLexer.LIKE:
                         return new LogicalExpression.NOT(
-                            newLikeExpression(ctx.getChild(0), ctx.getChild(3))
+                            newLikeExpression(left, ctx.getChild(3))
                         );
                     case ExpressionLexer.IN:
                         return new LogicalExpression.NOT(
-                            newInExpression(ctx.getChild(0), ctx.getChild(3))
+                            newInExpression(left, ctx.getChild(3))
                         );
                     default:
                         break;
@@ -219,7 +209,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
                 throw new RuntimeException();
 
             case ExpressionLexer.IN:
-                return newInExpression(ctx.getChild(0), ctx.getChild(2));
+                return newInExpression(left, ctx.getChild(2));
             default:
                 throw new RuntimeException();
         }

@@ -37,7 +37,12 @@ public class LiteralExpression implements IExpression {
     }
 
     @Override
-    public <T> T accept(IExpressionVisitor<T> visitor) {
+    public void accept(IExpressionVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
+    public <T> T accept(IExpressionVisitor2<T> visitor) {
         return visitor.visit(this);
     }
 

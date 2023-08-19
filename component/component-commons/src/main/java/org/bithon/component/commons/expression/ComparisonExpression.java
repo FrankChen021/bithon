@@ -76,6 +76,19 @@ public abstract class ComparisonExpression extends BinaryExpression {
         throw new RuntimeException(StringUtils.format("Can't compare [%s] with [%s]", left, right));
     }
 
+    @Override
+    public void accept(IExpressionVisitor visitor) {
+        if (visitor.visit(this)) {
+            left.accept(visitor);
+            right.accept(visitor);
+        }
+    }
+
+    @Override
+    public final <T> T accept(IExpressionVisitor2<T> visitor) {
+        return visitor.visit(this);
+    }
+
     protected Object compareRNull(Object lv) {
         return false;
     }
@@ -110,11 +123,6 @@ public abstract class ComparisonExpression extends BinaryExpression {
         protected boolean compare(long v1, long v2) {
             return v1 < v2;
         }
-
-        @Override
-        public <T> T accept(IExpressionVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
     public static class LTE extends ComparisonExpression {
@@ -136,11 +144,6 @@ public abstract class ComparisonExpression extends BinaryExpression {
         @Override
         protected boolean compare(long v1, long v2) {
             return v1 <= v2;
-        }
-
-        @Override
-        public <T> T accept(IExpressionVisitor<T> visitor) {
-            return visitor.visit(this);
         }
     }
 
@@ -164,11 +167,6 @@ public abstract class ComparisonExpression extends BinaryExpression {
         protected boolean compare(long v1, long v2) {
             return v1 > v2;
         }
-
-        @Override
-        public <T> T accept(IExpressionVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
     public static class GTE extends ComparisonExpression {
@@ -190,11 +188,6 @@ public abstract class ComparisonExpression extends BinaryExpression {
         @Override
         protected boolean compare(long v1, long v2) {
             return v1 >= v2;
-        }
-
-        @Override
-        public <T> T accept(IExpressionVisitor<T> visitor) {
-            return visitor.visit(this);
         }
     }
 
@@ -228,15 +221,9 @@ public abstract class ComparisonExpression extends BinaryExpression {
         protected Object compareLNull(Object lv) {
             return lv != null;
         }
-
-        @Override
-        public <T> T accept(IExpressionVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
     public static class EQ extends ComparisonExpression {
-
         public EQ(IExpression left, IExpression right) {
             super("=", left, right);
         }
@@ -265,14 +252,9 @@ public abstract class ComparisonExpression extends BinaryExpression {
         protected Object compareLNull(Object lv) {
             return lv == null;
         }
-
-        @Override
-        public <T> T accept(IExpressionVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
-    public static class IN extends BinaryExpression {
+    public static class IN extends ComparisonExpression {
 
         public IN(IExpression left, ExpressionList right) {
             super("in", left, right);
@@ -301,6 +283,21 @@ public abstract class ComparisonExpression extends BinaryExpression {
             throw new UnsupportedOperationException("Type of " + o.getClass().getSimpleName() + " is not supported by IN operator");
         }
 
+        @Override
+        protected boolean compare(String v1, String v2) {
+            return false;
+        }
+
+        @Override
+        protected boolean compare(double v1, double v2) {
+            return false;
+        }
+
+        @Override
+        protected boolean compare(long v1, long v2) {
+            return false;
+        }
+
         private Object toLong(Object o) {
             if (o instanceof Long) {
                 return o;
@@ -320,14 +317,9 @@ public abstract class ComparisonExpression extends BinaryExpression {
             }
             return Double.parseDouble(o.toString());
         }
-
-        @Override
-        public <T> T accept(IExpressionVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
-    public static class LIKE extends BinaryExpression {
+    public static class LIKE extends ComparisonExpression {
 
         public LIKE(IExpression left, IExpression right) {
             super("like", left, right);
@@ -348,8 +340,18 @@ public abstract class ComparisonExpression extends BinaryExpression {
         }
 
         @Override
-        public <T> T accept(IExpressionVisitor<T> visitor) {
-            return visitor.visit(this);
+        protected boolean compare(String v1, String v2) {
+            return false;
+        }
+
+        @Override
+        protected boolean compare(double v1, double v2) {
+            return false;
+        }
+
+        @Override
+        protected boolean compare(long v1, long v2) {
+            return false;
         }
     }
 }
