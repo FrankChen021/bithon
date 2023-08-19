@@ -99,6 +99,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
     public IExpression visitLogicExpression(ExpressionParser.LogicExpressionContext ctx) {
         IExpression left = ctx.getChild(0).accept(this);
 
+        // TODO: optimize nested logical expression into one
         for (int i = 1; i < ctx.children.size(); i += 2) {
             TerminalNode op = (TerminalNode) ctx.getChild(i);
 
@@ -125,9 +126,35 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
     }
 
     @Override
-    public IExpression visitBinaryExpression(ExpressionParser.BinaryExpressionContext ctx) {
+    public IExpression visitArithmeticExpression(ExpressionParser.ArithmeticExpressionContext ctx) {
         // There's only one TerminalNode in binaryExpression root definition, use index 0 to get that node
-        TerminalNode op = ctx.operator().getChild(TerminalNode.class, 0);
+        TerminalNode op = (TerminalNode) ctx.getChild(1);
+
+        switch (op.getSymbol().getType()) {
+            case ExpressionLexer.ADD:
+                return new ArithmeticExpression.ADD(ctx.getChild(0).accept(this),
+                                                    ctx.getChild(2).accept(this));
+
+            case ExpressionLexer.SUB:
+                return new ArithmeticExpression.SUB(ctx.getChild(0).accept(this),
+                                                    ctx.getChild(2).accept(this));
+
+            case ExpressionLexer.MUL:
+                return new ArithmeticExpression.MUL(ctx.getChild(0).accept(this),
+                                                    ctx.getChild(2).accept(this));
+
+            case ExpressionLexer.DIV:
+                return new ArithmeticExpression.DIV(ctx.getChild(0).accept(this),
+                                                    ctx.getChild(2).accept(this));
+            default:
+                throw new RuntimeException();
+        }
+    }
+
+    @Override
+    public IExpression visitComparisonExpression(ExpressionParser.ComparisonExpressionContext ctx) {
+        // There's only one TerminalNode in binaryExpression root definition, use index 0 to get that node
+        TerminalNode op = (TerminalNode) ctx.getChild(1);
 
         switch (op.getSymbol().getType()) {
             case ExpressionLexer.ADD:
@@ -177,7 +204,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
             case ExpressionLexer.NOT:
                 return new LogicalExpression.NOT(
                     new ComparisonExpression.LIKE(ctx.getChild(0).accept(this),
-                                                  ctx.getChild(2).accept(this))
+                                                  ctx.getChild(3).accept(this))
                 );
 
             default:

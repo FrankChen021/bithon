@@ -10,7 +10,8 @@ expression
   ;
 
 subExpression
-  : subExpression operator subExpression #binaryExpression
+  : subExpression (ADD|SUB|MUL|DIV) subExpression #arithmeticExpression
+  | subExpression (LT|LTE|GT|GTE|NE|EQ|LIKE|NOT LIKE) subExpression #comparisonExpression
   | subExpression IN '(' literalExpressionImpl (COMMA literalExpressionImpl)* ')' #inExpression
   | NOT subExpression #notExpression
   | subExpression '[' NUMBER_LITERAL ']'    #arrayAccessExpression
@@ -18,10 +19,6 @@ subExpression
   | functionNameExpression LEFT_PARENTHESES (expression (COMMA expression)*)? RIGHT_PARENTHESES   #functionExpression
   | literalExpressionImpl #literalExpression
   | IDENTIFIER ('.' IDENTIFIER)*            #fieldExpression
-  ;
-
-operator
-  : ADD|SUB|MUL|DIV|LT|LTE|GT|GTE|NE|EQ|LIKE|NOT LIKE
   ;
 
 literalExpressionImpl
