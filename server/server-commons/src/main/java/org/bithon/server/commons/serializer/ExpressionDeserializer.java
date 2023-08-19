@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.bithon.component.commons.expression.CollectionExpression;
+import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -75,7 +75,7 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
                 case "!=":
                     return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.NE::new);
                 case "in":
-                    return new ComparisonExpression.IN(Expression.deserialize(jsonNode.get("left")), CollectionExpressionDeserializer.deserialize(jsonNode.get("right")));
+                    return new ComparisonExpression.IN(Expression.deserialize(jsonNode.get("left")), ExpressionListExpressionDeserializer.deserialize(jsonNode.get("right")));
                 case "like":
                     return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.LIKE::new);
                 case "literal":
@@ -178,10 +178,10 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
         }
     }
 
-    static class CollectionExpressionDeserializer {
-        static CollectionExpression deserialize(JsonNode jsonNode) throws IOException {
+    static class ExpressionListExpressionDeserializer {
+        static ExpressionList deserialize(JsonNode jsonNode) throws IOException {
 
-            JsonNode expressionList = jsonNode.get("elements");
+            JsonNode expressionList = jsonNode.get("expressions");
             if (expressionList == null) {
                 throw new RuntimeException("Missing 'elements' field");
             }
@@ -193,7 +193,7 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
             for (JsonNode node : expressionList) {
                 exprList.add(Expression.deserialize(node));
             }
-            return new CollectionExpression(exprList);
+            return new ExpressionList(exprList);
         }
     }
 }

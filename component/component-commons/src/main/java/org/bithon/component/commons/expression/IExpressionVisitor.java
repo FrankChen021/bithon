@@ -81,7 +81,7 @@ public interface IExpressionVisitor<T> {
         return null;
     }
 
-    default T visit(CollectionExpression expression) {
+    default T visit(ExpressionList expression) {
         return null;
     }
 

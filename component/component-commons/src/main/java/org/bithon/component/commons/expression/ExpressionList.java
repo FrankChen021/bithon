@@ -25,23 +25,23 @@ import java.util.stream.Collectors;
  * @author Frank Chen
  * @date 7/8/23 2:05 pm
  */
-public class CollectionExpression implements IExpression {
-    private final List<IExpression> elements;
+public class ExpressionList implements IExpression {
+    private final List<IExpression> expressions;
     private final Set<Object> values;
 
-    public CollectionExpression(IExpression... elements) {
-        this(Arrays.asList(elements));
+    public ExpressionList(IExpression... expressions) {
+        this(Arrays.asList(expressions));
     }
 
-    public CollectionExpression(List<IExpression> elements) {
-        this.elements = elements;
+    public ExpressionList(List<IExpression> expressions) {
+        this.expressions = expressions;
 
         // Only literal is supported now
-        this.values = this.elements.stream().map((element) -> ((LiteralExpression) element).getValue()).collect(Collectors.toSet());
+        this.values = this.expressions.stream().map((element) -> ((LiteralExpression) element).getValue()).collect(Collectors.toSet());
     }
 
-    public List<IExpression> getElements() {
-        return elements;
+    public List<IExpression> getExpressions() {
+        return expressions;
     }
 
     @Override

@@ -19,7 +19,7 @@ package org.bithon.server.commons.serializer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import org.bithon.component.commons.expression.CollectionExpression;
+import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -46,8 +46,8 @@ public class ExpressionDeserializerTest {
                                                            new LiteralExpression(true),
                                                            new IdentifierExpression("a"),
                                                            new ComparisonExpression.IN(new IdentifierExpression("a"),
-                                                                                       new CollectionExpression(new LiteralExpression(1),
-                                                                                                                new LiteralExpression(2))),
+                                                                                       new ExpressionList(new LiteralExpression(1),
+                                                                                                          new LiteralExpression(2))),
                                                            new ComparisonExpression.LIKE(new IdentifierExpression("a"), new LiteralExpression("c"))
         );
 

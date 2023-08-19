@@ -11,28 +11,22 @@ expression
 
 subExpression
   : subExpression (ADD|SUB|MUL|DIV) subExpression #arithmeticExpression
-  | subExpression (LT|LTE|GT|GTE|NE|EQ|LIKE|NOT LIKE) subExpression #comparisonExpression
-  | subExpression IN '(' literalExpressionImpl (COMMA literalExpressionImpl)* ')' #inExpression
-  | NOT subExpression #notExpression
+  | subExpression (LT|LTE|GT|GTE|NE|EQ|LIKE|NOT LIKE|IN|NOT IN) subExpression #comparisonExpression
+  | NOT subExpression                       #notExpression
   | subExpression '[' NUMBER_LITERAL ']'    #arrayAccessExpression
-  | LEFT_PARENTHESES expression RIGHT_PARENTHESES   #braceExpression
-  | functionNameExpression LEFT_PARENTHESES (expression (COMMA expression)*)? RIGHT_PARENTHESES   #functionExpression
-  | literalExpressionImpl #literalExpression
-  | IDENTIFIER ('.' IDENTIFIER)*            #fieldExpression
+  | IDENTIFIER expressionListImpl           #functionExpression
+  | (NUMBER_LITERAL | STRING_LITERAL)       #literalExpression
+  | expressionListImpl                      #expressionList
+  | IDENTIFIER ('.' IDENTIFIER)*            #identifierExpression
   ;
 
-literalExpressionImpl
-  : NUMBER_LITERAL
-  | STRING_LITERAL
-  ;
-
-functionNameExpression
-  : IDENTIFIER
+expressionListImpl
+  : '(' expression (COMMA expression)* ')'
+  | '(' ')'
   ;
 
 NUMBER_LITERAL: [0-9]+('.'?[0-9]+)?;
-STRING_LITERAL
- : SQUOTA_STRING;
+STRING_LITERAL: SQUOTA_STRING;
 
 fragment SQUOTA_STRING
   : '\'' ('\\'. | '\'\'' | ~('\'' | '\\'))* '\'';

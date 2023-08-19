@@ -274,7 +274,7 @@ public abstract class ComparisonExpression extends BinaryExpression {
 
     public static class IN extends BinaryExpression {
 
-        public IN(IExpression left, CollectionExpression right) {
+        public IN(IExpression left, ExpressionList right) {
             super("in", left, right);
         }
 

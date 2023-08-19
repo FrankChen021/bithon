@@ -459,6 +459,21 @@ public class ExpressionFilterTest {
     }
 
     @Test
+    public void testNOT_Logical() throws JsonProcessingException {
+        ObjectMapper om = new ObjectMapper();
+        String json = om.writeValueAsString(new ExpressionFilter("NOT (a = 'b' OR a = 'c')"));
+        IInputRowFilter filter = om.readValue(json, IInputRowFilter.class);
+
+        IInputRow row = new InputRow(new HashMap<>());
+
+        row.updateColumn("a", "c");
+        Assert.assertFalse(filter.shouldInclude(row));
+
+        row.updateColumn("a", "b");
+        Assert.assertFalse(filter.shouldInclude(row));
+    }
+
+    @Test
     public void testNOT_LIKE() throws JsonProcessingException {
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(new ExpressionFilter("a NOT LIKE 'b'"));

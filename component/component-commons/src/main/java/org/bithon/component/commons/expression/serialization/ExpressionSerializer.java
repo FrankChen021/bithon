@@ -19,7 +19,7 @@ package org.bithon.component.commons.expression.serialization;
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ArrayAccessExpression;
 import org.bithon.component.commons.expression.BinaryExpression;
-import org.bithon.component.commons.expression.CollectionExpression;
+import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -142,10 +142,10 @@ public class ExpressionSerializer implements IExpressionVisitor<Void> {
     }
 
     @Override
-    public Void visit(CollectionExpression expression) {
+    public Void visit(ExpressionList expression) {
         sb.append('(');
         {
-            List<IExpression> expressionList = expression.getElements();
+            List<IExpression> expressionList = expression.getExpressions();
             for (int i = 0, size = expressionList.size(); i < size; i++) {
                 if (i > 0) {
                     sb.append(", ");

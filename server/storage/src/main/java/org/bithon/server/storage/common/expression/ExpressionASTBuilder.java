@@ -24,11 +24,12 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ArrayAccessExpression;
-import org.bithon.component.commons.expression.CollectionExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -202,37 +203,45 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
                                                      ctx.getChild(2).accept(this));
 
             case ExpressionLexer.NOT:
-                return new LogicalExpression.NOT(
-                    new ComparisonExpression.LIKE(ctx.getChild(0).accept(this),
-                                                  ctx.getChild(3).accept(this))
-                );
+                TerminalNode operator = (TerminalNode) ctx.getChild(2);
+                switch (operator.getSymbol().getType()) {
+                    case ExpressionLexer.LIKE:
+                        return new LogicalExpression.NOT(
+                            newLikeExpression(ctx.getChild(0), ctx.getChild(3))
+                        );
+                    case ExpressionLexer.IN:
+                        return new LogicalExpression.NOT(
+                            newInExpression(ctx.getChild(0), ctx.getChild(3))
+                        );
+                    default:
+                        break;
+                }
+                throw new RuntimeException();
 
+            case ExpressionLexer.IN:
+                return newInExpression(ctx.getChild(0), ctx.getChild(2));
             default:
                 throw new RuntimeException();
         }
     }
 
-    @Override
-    public IExpression visitInExpression(ExpressionParser.InExpressionContext ctx) {
-        IExpression left = ctx.subExpression().accept(this);
+    private IExpression newLikeExpression(ParseTree left, ParseTree right) {
+        return new ComparisonExpression.LIKE(left.accept(this), right.accept(this));
+    }
 
-        List<ExpressionParser.LiteralExpressionImplContext> expressions = ctx.literalExpressionImpl();
-        List<IExpression> elements = new ArrayList<>();
-        for (ExpressionParser.LiteralExpressionImplContext expression : expressions) {
-            IExpression expr = expression.accept(this);
-            elements.add(expr);
+    private IExpression newInExpression(ParseTree left, ParseTree right) {
+        IExpression expression = right.accept(this);
+        if ((expression instanceof ExpressionList)) {
+            if (((ExpressionList) expression).getExpressions().isEmpty()) {
+                throw new RuntimeException("The elements of the IN operator is empty");
+            }
+            return new ComparisonExpression.IN(left.accept(this), (ExpressionList) expression);
         }
-
-        return new ComparisonExpression.IN(left, new CollectionExpression(elements));
+        return new ComparisonExpression.EQ(left.accept(this), expression);
     }
 
     @Override
-    public IExpression visitBraceExpression(ExpressionParser.BraceExpressionContext ctx) {
-        return ctx.getChild(1).accept(this);
-    }
-
-    @Override
-    public IExpression visitFieldExpression(ExpressionParser.FieldExpressionContext ctx) {
+    public IExpression visitIdentifierExpression(ExpressionParser.IdentifierExpressionContext ctx) {
         return new IdentifierExpression(ctx.getText());
     }
 
@@ -242,7 +251,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
     }
 
     @Override
-    public IExpression visitLiteralExpressionImpl(ExpressionParser.LiteralExpressionImplContext ctx) {
+    public IExpression visitLiteralExpression(ExpressionParser.LiteralExpressionContext ctx) {
         TerminalNode literalExpressionNode = ctx.getChild(TerminalNode.class, 0);
         switch (literalExpressionNode.getSymbol().getType()) {
             case ExpressionLexer.NUMBER_LITERAL: {
@@ -257,11 +266,27 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
     }
 
     @Override
+    public IExpression visitExpressionList(ExpressionParser.ExpressionListContext ctx) {
+        List<IExpression> expressions = new ArrayList<>();
+        for (ParseTree expr : ctx.expressionListImpl().children) {
+            if (expr instanceof ExpressionParser.ExpressionContext) {
+                expressions.add(expr.accept(this));
+            }
+        }
+        if (expressions.size() == 1) {
+            return expressions.get(0);
+        }
+
+        return new ExpressionList(expressions);
+    }
+
+    @Override
     public IExpression visitFunctionExpression(ExpressionParser.FunctionExpressionContext ctx) {
-        String functionName = ctx.functionNameExpression().getText();
+        String functionName = ctx.getChild(0).getText();
+
         IFunction function = this.functionProvider == null ? null : this.functionProvider.getFunction(functionName);
 
-        List<ExpressionParser.ExpressionContext> parameters = ctx.getRuleContexts(ExpressionParser.ExpressionContext.class);
+        List<ExpressionParser.ExpressionContext> parameters = ctx.expressionListImpl().expression();
         int inputParameterSize = parameters.size();
         if (function != null) {
             if (inputParameterSize != function.getParameters().size()) {
@@ -288,15 +313,16 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
             }
         }
 
-        IExpression expression = new FunctionExpression(function, functionName, parameterExpressionList);
+        IExpression functionExpression = new FunctionExpression(function, functionName, parameterExpressionList);
 
-        // Optimization
-        // Calculates the function now and replaces the function expression by the literal expression
+        // Apply optimization.
+        // ALL parameters are literal,
+        // calculates the function now and replaces the function expression by the literal expression
         if (countOfConstantParameter == parameterExpressionList.size()) {
-            expression = new LiteralExpression(expression.evaluate(null));
+            functionExpression = new LiteralExpression(functionExpression.evaluate(null));
         }
 
-        return expression;
+        return functionExpression;
     }
 
     static String getUnQuotedString(Token symbol) {
