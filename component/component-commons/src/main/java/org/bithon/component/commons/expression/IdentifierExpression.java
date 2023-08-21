@@ -21,10 +21,18 @@ package org.bithon.component.commons.expression;
  * @date 2023/4/7 20:16
  */
 public class IdentifierExpression implements IExpression {
-    private final String identifier;
-    private final boolean isQualified;
+
+    /**
+     * NOT final to allow AST optimization
+     */
+    private String identifier;
+    private boolean isQualified;
 
     public IdentifierExpression(String identifier) {
+        setIdentifier(identifier);
+    }
+
+    public void setIdentifier(String identifier) {
         this.identifier = identifier;
         this.isQualified = identifier.indexOf('.') > 0;
     }
