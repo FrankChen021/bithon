@@ -116,7 +116,7 @@ public class DataSourceApi implements IDataSourceApi {
                                                      Preconditions.checkNotNull(spec, "field [%s] does not exist in the schema.", field.getField());
                                                      return new ResultColumn(spec.getName(), field.getName());
                                                  }).collect(Collectors.toList()))
-                           .filter(FilterExpressionToFilters.toFilter(schema, request.getFilterExpression(), request.getFilters()))
+                           .filter(FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters()))
                            .interval(Interval.of(TimeSpan.fromISO8601(request.getInterval().getStartISO8601()),
                                                  TimeSpan.fromISO8601(request.getInterval().getEndISO8601())))
                            .orderBy(request.getOrderBy())

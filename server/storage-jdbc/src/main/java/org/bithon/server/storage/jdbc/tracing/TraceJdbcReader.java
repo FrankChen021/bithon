@@ -19,18 +19,24 @@ package org.bithon.server.storage.jdbc.tracing;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ExpressionList;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.matcher.EqualMatcher;
-import org.bithon.server.commons.matcher.InMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
-import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
+import org.bithon.server.storage.jdbc.utils.SqlFilterStatement;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
@@ -46,10 +52,8 @@ import org.jooq.SelectSeekStep1;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -99,16 +103,15 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public List<TraceSpan> getTraceList(List<IColumnFilter> filters,
-                                        Map<Integer, IColumnFilter> indexedTagFilter,
-                                        List<IColumnFilter> nonIndexedTagFilters,
+    public List<TraceSpan> getTraceList(IExpression filter,
+                                        Map<Integer, IExpression> indexedTagFilter,
                                         Timestamp start,
                                         Timestamp end,
                                         String orderBy,
                                         String order,
                                         int pageNumber,
                                         int pageSize) {
-        boolean isOnSummaryTable = isFilterOnRootSpan(filters);
+        boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
 
         Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
 
@@ -118,23 +121,24 @@ public class TraceJdbcReader implements ITraceReader {
         SelectConditionStep<Record> listQuery = dslContext.selectFrom(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.getUnqualifiedName().quotedName() : Tables.BITHON_TRACE_SPAN.getUnqualifiedName().quotedName())
                                                           .where(timestampField.greaterOrEqual(start.toLocalDateTime()).and(timestampField.le(end.toLocalDateTime())));
 
-        if (CollectionUtils.isNotEmpty(filters)) {
-            listQuery = listQuery.and(SQLFilterBuilder.build(traceSpanSchema, filters.stream(), false));
+        if (filter != null) {
+            listQuery = listQuery.and(SqlFilterStatement.from(traceSpanSchema, filter));
         }
 
+        /*
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
             listQuery = listQuery.and(nonIndexedTagFilters.stream()
                                                           .map(this::getTagPredicate)
                                                           .collect(Collectors.joining(" AND ")));
-        }
+        }*/
 
         // Build the tag query
         if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
             SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.traceTagIndexSchema)
-                    .dslContext(this.dslContext)
-                    .start(start.toLocalDateTime())
-                    .end(end.toLocalDateTime())
-                    .build(indexedTagFilter);
+                .dslContext(this.dslContext)
+                .start(start.toLocalDateTime())
+                .end(end.toLocalDateTime())
+                .build(indexedTagFilter);
 
             if (isOnSummaryTable) {
                 listQuery = listQuery.and(Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery));
@@ -164,13 +168,12 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public List<Map<String, Object>> getTraceDistribution(List<IColumnFilter> filters,
-                                                          Map<Integer, IColumnFilter> indexedTagFilter,
-                                                          List<IColumnFilter> nonIndexedTagFilters,
+    public List<Map<String, Object>> getTraceDistribution(IExpression filter,
+                                                          Map<Integer, IExpression> indexedTagFilter,
                                                           Timestamp start,
                                                           Timestamp end,
                                                           int interval) {
-        boolean isOnSummaryTable = isFilterOnRootSpan(filters);
+        boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
 
         String timeBucket = sqlDialect.timeFloorExpression("timestamp", interval);
         StringBuilder sqlBuilder = new StringBuilder(StringUtils.format("SELECT %s AS \"_timestamp\", count(1) AS \"count\", min(\"%s\") AS \"minResponse\", avg(\"%s\") AS \"avgResponse\", max(\"%s\") AS \"maxResponse\" FROM %s",
@@ -185,27 +188,28 @@ public class TraceJdbcReader implements ITraceReader {
                                              Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.getName(),
                                              DateTime.toYYYYMMDDhhmmss(end.getTime())));
 
-        if (CollectionUtils.isNotEmpty(filters)) {
+        if (filter != null) {
             sqlBuilder.append(" AND ");
-            sqlBuilder.append(SQLFilterBuilder.build(traceSpanSchema, filters.stream(), false));
+            sqlBuilder.append(SqlFilterStatement.from(traceSpanSchema, filter));
         }
 
+        /*
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
             sqlBuilder.append(" AND ");
             sqlBuilder.append(nonIndexedTagFilters.stream()
                                                   .map(this::getTagPredicate)
                                                   .collect(Collectors.joining(" AND ")));
-        }
+        }*/
 
         // Build the indexed tag sub query
         if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
             SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.traceTagIndexSchema)
-                    .dslContext(this.dslContext)
-                    .start(start.toLocalDateTime())
-                    .end(end.toLocalDateTime())
-                    .build(indexedTagFilter);
+                .dslContext(this.dslContext)
+                .start(start.toLocalDateTime())
+                .end(end.toLocalDateTime())
+                .build(indexedTagFilter);
             Condition subQuery = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery) :
-                    Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery);
+                Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery);
 
             sqlBuilder.append(" AND ");
             sqlBuilder.append(dslContext.renderInlined(subQuery));
@@ -219,12 +223,11 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public int getTraceListSize(List<IColumnFilter> filters,
-                                Map<Integer, IColumnFilter> indexedTagFilter,
-                                List<IColumnFilter> nonIndexedTagFilters,
+    public int getTraceListSize(IExpression filter,
+                                Map<Integer, IExpression> indexedTagFilters,
                                 Timestamp start,
                                 Timestamp end) {
-        boolean isOnSummaryTable = isFilterOnRootSpan(filters);
+        boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
 
         Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
 
@@ -237,22 +240,23 @@ public class TraceJdbcReader implements ITraceReader {
                                                                      .from(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN)
                                                                      .where(timestampField.ge(start.toLocalDateTime()).and(timestampField.lt(end.toLocalDateTime())));
 
-        if (CollectionUtils.isNotEmpty(filters)) {
-            countQuery = countQuery.and(SQLFilterBuilder.build(traceSpanSchema, filters.stream(), false));
+        if (filter != null) {
+            countQuery = countQuery.and(SqlFilterStatement.from(traceSpanSchema, filter));
         }
 
+        /*
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
             countQuery = countQuery.and(nonIndexedTagFilters.stream()
                                                             .map(this::getTagPredicate)
                                                             .collect(Collectors.joining(" AND ")));
-        }
+        }*/
 
         // Build the indexed tag query
         SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.traceTagIndexSchema)
-                .dslContext(this.dslContext)
-                .start(start.toLocalDateTime())
-                .end(end.toLocalDateTime())
-                .build(indexedTagFilter);
+            .dslContext(this.dslContext)
+            .start(start.toLocalDateTime())
+            .end(end.toLocalDateTime())
+            .build(indexedTagFilters);
         if (indexedTagQuery != null) {
             if (isOnSummaryTable) {
                 countQuery = countQuery.and(Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery));
@@ -319,42 +323,20 @@ public class TraceJdbcReader implements ITraceReader {
         return span;
     }
 
-    private boolean isFilterOnRootSpan(List<IColumnFilter> filters) {
-        final String kindFieldName = Tables.BITHON_TRACE_SPAN_SUMMARY.KIND.getName();
-
-        Iterator<IColumnFilter> iterator = filters.iterator();
-        while (iterator.hasNext()) {
-            IColumnFilter filter = iterator.next();
-
-            if (!kindFieldName.equals(filter.getName())) {
-                continue;
-            }
-
-            if (filter.getMatcher() instanceof EqualMatcher) {
-                String kindValue = ((EqualMatcher) filter.getMatcher()).getPattern().toString();
-
-                // RootSpan has been extracted into trace_span_summary table during ingestion
-                // If the filter is on the root spans, it SHOULD query on the summary table
-                if (SpanKind.isRootSpan(kindValue)) {
-                    return true;
-                }
-            }
-
-            if (filter.getMatcher() instanceof InMatcher) {
-                boolean isRootSpan = ((InMatcher) filter.getMatcher()).getPattern().stream().allMatch(SpanKind::isRootSpan);
-                if (isRootSpan) {
-                    if (((InMatcher) filter.getMatcher()).getPattern().size() == 3) {
-                        // Can remove this filter since the summary table contains all these records
-                        iterator.remove();
-                    }
-                    return true;
-                }
-            }
-
-            return false;
+    /**
+     * RootSpan has been extracted into trace_span_summary table during ingestion.
+     * If the filter on the 'kind'
+     * column selects those rows extracted into the summary table, later we only query the summary table.
+     */
+    private boolean isFilterOnRootSpanOnly(IExpression expression) {
+        if (expression == null) {
+            return true;
         }
 
-        return false;
+        final String kindFieldName = Tables.BITHON_TRACE_SPAN_SUMMARY.KIND.getName();
+        SpanKindIsRootDetector detector = new SpanKindIsRootDetector(kindFieldName);
+        expression.accept(detector);
+        return detector.isTrue;
     }
 
     /**
@@ -378,6 +360,58 @@ public class TraceJdbcReader implements ITraceReader {
             return objectMapper.readValue((String) attributes, TraceSpan.TagDeserializer.TYPE);
         } catch (JsonProcessingException ignored) {
             return Collections.emptyMap();
+        }
+    }
+
+    static class SpanKindIsRootDetector implements IExpressionVisitor {
+        private boolean isTrue = false;
+
+        private final String kindFieldName;
+
+        SpanKindIsRootDetector(String kindFieldName) {
+            this.kindFieldName = kindFieldName;
+        }
+
+        @Override
+        public boolean visit(ComparisonExpression expression) {
+            if (expression instanceof ComparisonExpression.EQ) {
+                IExpression left = expression.getLeft();
+                IExpression right = expression.getRight();
+
+                if (((IdentifierExpression) left).getIdentifier().equals(kindFieldName)) {
+                    if (right instanceof LiteralExpression) {
+                        String kindValue = (String) ((LiteralExpression) right).getValue();
+                        isTrue = SpanKind.isRootSpan(kindValue);
+                    }
+                }
+                return false;
+            }
+
+            if (expression instanceof ComparisonExpression.IN) {
+                IExpression left = expression.getLeft();
+                IExpression right = expression.getRight();
+
+                if (((IdentifierExpression) left).getIdentifier().equals(kindFieldName)) {
+                    isTrue = ((ExpressionList) right).getExpressions()
+                                                     .stream()
+                                                     .allMatch((s) -> (s instanceof LiteralExpression) && SpanKind.isRootSpan(((LiteralExpression) s).getValue()));
+
+                    // TODO: Apply more optimization here is the collection size equals to the size of all root spans
+                    // We can remove such filter
+                }
+            }
+
+            return true;
+        }
+
+        @Override
+        public boolean visit(LogicalExpression expression) {
+            if (expression instanceof LogicalExpression.NOT) {
+                // A little complicated to apply the optimization, ignore
+                return false;
+            }
+
+            return true;
         }
     }
 }

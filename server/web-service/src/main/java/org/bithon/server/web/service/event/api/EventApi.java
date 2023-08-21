@@ -55,7 +55,7 @@ public class EventApi implements IEventApi {
             request.getFilters().add(new ColumnFilter("appName", new EqualMatcher(request.getApplication())));
         }
 
-        IExpression filter = FilterExpressionToFilters.toFilter(null, null, request.getFilters());
+        IExpression filter = FilterExpressionToFilters.toExpression(null, null, request.getFilters());
         return new GetEventListResponse(eventReader.getEventListSize(filter,
                                                                      start,
                                                                      end),
