@@ -77,11 +77,17 @@
           "instanceName"
         ]
       }
-    ]
+    ],
+    "interval": {
+      "allowAutoRefresh": false
+    }
   },
   ...
 }
 ```
+
+> NOTE:
+> The `interval.allowAutoRefresh` is default to `true` if it's not provided.
 
 #### Text input filter example
 
