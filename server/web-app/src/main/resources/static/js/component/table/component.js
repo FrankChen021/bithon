@@ -153,7 +153,7 @@ class TableComponent {
         if (this._header == null) {
             this._header = $(this.vComponentContainer).prepend(
                 '<div class="card-header d-flex" style="padding: 0.5em 1em">' +
-                '<div class="header"><span class="header-text btn-sm"></span></div>' +
+                '<span class="header-text btn-sm"></span>' +
                 '<div class="tools ml-auto">' +
                 '<button class="btn btn-sm btn-toggle"><span class="far fa-window-minimize"></span></button>' +
                 '</div>' +
@@ -327,7 +327,7 @@ class TableComponent {
         dropDownList += '</div></button></div>';
 
         // Add the dropdown list to DOM
-        this.#ensureHeader().find('.header').replaceWith(dropDownList);
+        this.#ensureHeader().find('.header-text').replaceWith(dropDownList);
     }
 
     #compare(a, b) {
