@@ -70,8 +70,6 @@ public class FilterExpressionToFilters {
             throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "The given expression is neither a logical expression(and/or/not) nor a comparison expression.");
         }
 
-        // TODO:
-        //1. change the identifier(url) to raw name
         expression.accept(new IdentifierVerifier(schema));
 
         if (CollectionUtils.isNotEmpty(otherFilters)) {

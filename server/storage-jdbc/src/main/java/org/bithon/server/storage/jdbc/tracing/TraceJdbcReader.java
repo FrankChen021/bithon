@@ -19,6 +19,7 @@ package org.bithon.server.storage.jdbc.tracing;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IExpression;
@@ -48,6 +49,7 @@ import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectSeekStep1;
+import org.springframework.http.HttpStatus;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -374,6 +376,13 @@ public class TraceJdbcReader implements ITraceReader {
 
         @Override
         public boolean visit(ComparisonExpression expression) {
+            if (!(expression.getLeft() instanceof IdentifierExpression)) {
+                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                                "The left operator in the expression [%s] is type of %s, however only Identifier expression is supported now.",
+                                                expression.serializeToText(),
+                                                expression.getLeft().getClass().getSimpleName());
+            }
+
             if (expression instanceof ComparisonExpression.EQ) {
                 IExpression left = expression.getLeft();
                 IExpression right = expression.getRight();

@@ -19,6 +19,7 @@ package org.bithon.server.storage.common.expression;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
@@ -26,6 +27,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ArrayAccessExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
@@ -92,33 +94,55 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
     }
 
     /**
-     * a AND b AND c
+     * a AND b AND c NULL
      *
      * @param ctx the parse tree
      */
     @Override
     public IExpression visitLogicExpression(ExpressionParser.LogicExpressionContext ctx) {
-        IExpression left = ctx.getChild(0).accept(this);
+        IExpression returning = null;
 
-        // TODO: optimize nested logical expression into one
-        for (int i = 1; i < ctx.children.size(); i += 2) {
-            TerminalNode op = (TerminalNode) ctx.getChild(i);
+        TerminalNode op = (TerminalNode) ctx.getChild(1);
+        int prevLogicOperator = op.getSymbol().getType();
 
-            IExpression right = ctx.getChild(i + 1).accept(this);
-            switch (op.getSymbol().getType()) {
-                case ExpressionLexer.AND:
-                    left = new LogicalExpression.AND(left, right);
-                    break;
+        List<IExpression> leftOperands = new ArrayList<>();
+        leftOperands.add(ctx.getChild(0).accept(this));
 
-                case ExpressionLexer.OR:
-                    left = new LogicalExpression.OR(left, right);
-                    break;
+        // Add a placeholder to simply the processing below
+        List<ParseTree> children = new ArrayList(ctx.children);
+        children.add(new TerminalNodeImpl(new CommonToken(ExpressionLexer.NUMBER_LITERAL)));
 
-                default:
-                    throw new RuntimeException();
+        // This contains an OPTIMIZATION that turns multiple consecutive 'AND' or 'OR' into one LogicalExpression
+        for (int i = 1; i < children.size(); i += 2) {
+            op = (TerminalNode) children.get(i);
+
+            if (op.getSymbol().getType() != prevLogicOperator) {
+                IExpression left;
+                switch (prevLogicOperator) {
+                    case ExpressionLexer.AND:
+                        left = new LogicalExpression.AND(leftOperands);
+                        break;
+
+                    case ExpressionLexer.OR:
+                        left = new LogicalExpression.OR(leftOperands);
+                        break;
+
+                    default:
+                        throw new RuntimeException();
+                }
+                leftOperands = new ArrayList<>();
+                leftOperands.add(left);
+                returning = left;
             }
+            if (i + 1 != children.size()) {
+                IExpression right = children.get(i + 1).accept(this);
+                leftOperands.add(right);
+            }
+
+            prevLogicOperator = op.getSymbol().getType();
         }
-        return left;
+
+        return returning;
     }
 
     @Override
@@ -158,10 +182,6 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
         TerminalNode op = (TerminalNode) ctx.getChild(1);
 
         ParseTree left = ctx.getChild(0);
-        if (!(left instanceof ExpressionParser.IdentifierExpressionContext)) {
-            // For simply expression optimization later
-            throw new RuntimeException(StringUtils.format("For operator '%s', the left expression must be an identifier.", op));
-        }
 
         switch (op.getSymbol().getType()) {
             case ExpressionLexer.LT:
@@ -197,11 +217,11 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
                 switch (operator.getSymbol().getType()) {
                     case ExpressionLexer.LIKE:
                         return new LogicalExpression.NOT(
-                            newLikeExpression(left, ctx.getChild(3))
+                            createLikeExpression(left, ctx.getChild(3))
                         );
                     case ExpressionLexer.IN:
                         return new LogicalExpression.NOT(
-                            newInExpression(left, ctx.getChild(3))
+                            createInExpression(left, ctx.getChild(3))
                         );
                     default:
                         break;
@@ -209,17 +229,17 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
                 throw new RuntimeException();
 
             case ExpressionLexer.IN:
-                return newInExpression(left, ctx.getChild(2));
+                return createInExpression(left, ctx.getChild(2));
             default:
                 throw new RuntimeException();
         }
     }
 
-    private IExpression newLikeExpression(ParseTree left, ParseTree right) {
+    private IExpression createLikeExpression(ParseTree left, ParseTree right) {
         return new ComparisonExpression.LIKE(left.accept(this), right.accept(this));
     }
 
-    private IExpression newInExpression(ParseTree left, ParseTree right) {
+    private IExpression createInExpression(ParseTree left, ParseTree right) {
         IExpression expression = right.accept(this);
         if ((expression instanceof ExpressionList)) {
             if (((ExpressionList) expression).getExpressions().isEmpty()) {

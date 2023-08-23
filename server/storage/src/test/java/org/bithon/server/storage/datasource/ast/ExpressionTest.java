@@ -16,7 +16,9 @@
 
 package org.bithon.server.storage.datasource.ast;
 
+import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.function.IDataType;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.Parameter;
@@ -96,5 +98,36 @@ public class ExpressionTest {
     public void testIn_3() {
         IExpression expr = ExpressionASTBuilder.build("5 in (5,6)", null);
         Assert.assertTrue((Boolean) expr.evaluate(null));
+    }
+
+    @Test
+    public void testLogical_ConsecutiveAND() {
+        IExpression expr = ExpressionASTBuilder.build("a = 1 AND b = 1 AND c = 1 AND d = 1", null);
+        Assert.assertTrue(expr instanceof LogicalExpression.AND);
+        Assert.assertEquals(4, ((LogicalExpression.AND) expr).getOperands().size());
+        for (int i = 0; i < 4; i++) {
+            Assert.assertTrue(((LogicalExpression.AND) expr).getOperands().get(i) instanceof ComparisonExpression);
+        }
+    }
+
+    @Test
+    public void testLogical_ConsecutiveOR() {
+        IExpression expr = ExpressionASTBuilder.build("a = 1 OR b = 1 OR c = 1 OR d = 1", null);
+        Assert.assertTrue(expr instanceof LogicalExpression.OR);
+        Assert.assertEquals(4, ((LogicalExpression.OR) expr).getOperands().size());
+        for (int i = 0; i < 4; i++) {
+            Assert.assertTrue(((LogicalExpression.OR) expr).getOperands().get(i) instanceof ComparisonExpression);
+        }
+    }
+
+    @Test
+    public void testLogical_AND_OR() {
+        IExpression expr = ExpressionASTBuilder.build("a = 1 AND b = 1 AND c = 1 OR d = 1", null);
+        Assert.assertTrue(expr instanceof LogicalExpression.OR);
+        Assert.assertEquals(2, ((LogicalExpression.OR) expr).getOperands().size());
+
+        Assert.assertTrue(((LogicalExpression.OR) expr).getOperands().get(0) instanceof LogicalExpression.AND);
+        Assert.assertTrue(((LogicalExpression.OR) expr).getOperands().get(1) instanceof ComparisonExpression);
+
     }
 }
