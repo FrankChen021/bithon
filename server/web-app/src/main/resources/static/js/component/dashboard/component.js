@@ -123,15 +123,20 @@ class Dashboard {
         this._selectedInterval = this._timeSelector.getInterval();
 
         //
-        // Create AutoRefresher
+        // Create AutoRefresher by default
         // the filterBarForm is defined in the app-layout.html
         //
-        new AutoRefresher({
-            timerLength: 10
-        }).childOf(parent).registerRefreshListener(() => {
-            this._selectedInterval = this._timeSelector.getInterval();
-            this.refreshDashboard();
-        });
+        if (dashboard.filter === undefined
+         || dashboard.filter.interval === undefined
+         || dashboard.filter.interval.allowAutoRefresh === undefined
+         || dashboard.filter.interval.allowAutoRefresh === true) {
+            new AutoRefresher({
+                timerLength: 10
+            }).childOf(parent).registerRefreshListener(() => {
+                this._selectedInterval = this._timeSelector.getInterval();
+                this.refreshDashboard();
+            });
+        }
 
         $.each(dashboard.charts, (index, chartDescriptor) => {
 
