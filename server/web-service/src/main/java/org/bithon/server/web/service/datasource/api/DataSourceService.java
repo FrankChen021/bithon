@@ -65,6 +65,11 @@ public class DataSourceService {
         List<String> metrics = query.getResultColumns()
                                     .stream()
                                     .filter((resultColumn) -> {
+                                        if (resultColumn.getColumnExpression() != null) {
+                                            // Support the metrics defined directly at the client side.
+                                            // TODO: check if the fields involved in the expression are all metrics
+                                            return true;
+                                        }
                                         IColumn column = query.getDataSource().getColumnByName(resultColumn.getResultColumnName());
                                         return column instanceof IAggregatableColumn || column instanceof ExpressionColumn;
                                     })
