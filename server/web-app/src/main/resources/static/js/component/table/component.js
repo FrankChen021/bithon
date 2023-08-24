@@ -66,26 +66,30 @@ class TableComponent {
             return new Date(val).format(format);
         };
         this.mFormatters['template'] = (val, row, index, field) => {
-            // Get the column definition first
+            // Get the template from the column definition first
             let template = this.mColumnMap[field].template;
 
+            const interval = this.mStartTimestamp + '/' + this.mEndTimestamp;
+
             // Find all replacements
-            const replacement = new Map();
+            const referencedVariables = new Map();
             {
                 const extractVariable = /\{([^}]+)}/g;
                 let match;
                 while ((match = extractVariable.exec(template)) !== null) {
-                    let variable = match[1];
-                    replacement.set(variable, true);
+                    const varName = match[1];
+                    referencedVariables.set(varName, true);
                 }
             }
 
             // Do replacement
-            replacement.forEach((val, key) => {
-                const v = row[key];
-                if (v !== undefined && v !== null) {
-                    template = template.replaceAll(`{${key}}`, v);
+            referencedVariables.forEach((val, varName) => {
+                // interval is a special variable
+                const v = varName === 'interval' ? interval : row[varName];
+                if (v === undefined || v === null) {
+                    v = '';
                 }
+                template = template.replaceAll(`{${varName}}`, v);
             });
 
             return template;
