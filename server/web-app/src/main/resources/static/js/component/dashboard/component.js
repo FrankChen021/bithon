@@ -566,6 +566,10 @@ class Dashboard {
                 tableId: chartId + "_table",
                 parent: parentElement,
                 columns: tableColumns,
+
+                // If the query defines the LIMIT, the SORT should be done at the server side
+                serverSort: tableDescriptor.query !== undefined && tableDescriptor.query.limit !== undefined,
+
                 pagination: tableDescriptor.pagination,
                 detailView: false,
                 toolbar: {

@@ -34,6 +34,7 @@ class TableComponent {
         this.mCreated = false;
         this.mPopoverShown = false;
 
+        this.mServerSort = option.serverSort;
         this.mHasPagination = option.pagination !== undefined && option.pagination.length > 0;
         if (Array.isArray(option.pagination)) {
             this.mPagination = option.pagination;
@@ -249,7 +250,7 @@ class TableComponent {
                 sidePagination: this.mPaginationSide,
                 pagination: this.mHasPagination,
 
-                serverSort: this.mHasPagination,
+                serverSort: this.mServerSort,
                 sortName: this.mDefaultOrderBy,
                 sortOrder: this.mDefaultOrder,
 
