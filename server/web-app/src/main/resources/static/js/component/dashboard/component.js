@@ -312,7 +312,9 @@ class Dashboard {
                     {
                         start: startISO8601,
                         end: endISO8601
-                    });
+                    },
+                    true
+                    );
             },
             () => {
                 detailTableComponent.clear();
@@ -714,7 +716,7 @@ class Dashboard {
         return chartComponent;
     }
 
-    refreshTable(query, tableComponent, interval) {
+    refreshTable(query, tableComponent, interval, showInterval) {
         const filters = this.vFilter.getSelectedFilters();
         if (query.filters !== undefined) {
             $.each(query.filters, (index, filter) => {
@@ -750,7 +752,8 @@ class Dashboard {
                     total: res.total,
                     rows: res.data
                 }
-            }
+            },
+            showInterval: showInterval
         };
         tableComponent.load(loadOptions);
     }

@@ -158,7 +158,7 @@ class TableComponent {
         if (this._header == null) {
             this._header = $(this.vComponentContainer).prepend(
                 '<div class="card-header d-flex" style="padding: 0.5em 1em">' +
-                '<span class="header-text btn-sm"></span>' +
+                '<span class="header-text btn-sm"></span><span class="header-interval btn-sm"></span>' +
                 '<div class="tools ml-auto">' +
                 '<button class="btn btn-sm btn-toggle"><span class="far fa-window-minimize"></span></button>' +
                 '</div>' +
@@ -240,6 +240,13 @@ class TableComponent {
             this.mEndTimestamp = option.ajaxData.interval.endISO8601;
         }
         this.mQueryParam = option.ajaxData;
+        if (option.showInterval !== undefined && option.showInterval) {
+            const s = moment(this.mStartTimestamp).local().format('HH:mm:ss');
+            const e = moment(this.mEndTimestamp).local().format('HH:mm:ss');
+            this.#ensureHeader().find('.header-interval').html(s + ' - ' + e);
+        } else {
+            this.#ensureHeader().find('.header-interval').html('');
+        }
 
         if (!this.mCreated) {
             this.mCreated = true;
