@@ -20,8 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.storage.meta.ISchemaStorage;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.SmartLifecycle;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,16 +38,15 @@ import java.util.concurrent.TimeUnit;
  * @date 2020-08-21 15:13:41
  */
 @Slf4j
-public class DataSourceSchemaManager implements InitializingBean, DisposableBean {
+public class DataSourceSchemaManager implements SmartLifecycle {
     private final List<IDataSourceSchemaListener> listeners = Collections.synchronizedList(new ArrayList<>());
     private final ISchemaStorage schemaStorage;
-    private final ScheduledExecutorService loaderScheduler;
+    private ScheduledExecutorService loaderScheduler;
     private final Map<String, DataSourceSchema> schemas = new ConcurrentHashMap<>();
     private long lastLoadAt;
 
     public DataSourceSchemaManager(ISchemaStorage schemaStorage) {
         this.schemaStorage = schemaStorage;
-        loaderScheduler = Executors.newSingleThreadScheduledExecutor(NamedThreadFactory.of("schema-loader"));
     }
 
     public boolean addDataSourceSchema(DataSourceSchema schema) {
@@ -126,24 +124,8 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
         }
     }
 
-    @Override
-    public void afterPropertiesSet() {
-        log.info("Starting schema incremental loader...");
-        loaderScheduler.scheduleWithFixedDelay(this::incrementalLoadSchemas,
-                                               // no delay to execute the first task
-                                               0,
-                                               1,
-                                               TimeUnit.MINUTES);
-    }
-
-    @Override
-    public void destroy() {
-        log.info("Shutting down Schema Manager...");
-        loaderScheduler.shutdown();
-    }
-
     private void onChange(DataSourceSchema oldSchema, DataSourceSchema dataSourceSchema) {
-        // Copy to list first to avoid concurrency problem
+        // Copy to list first to avoid a concurrency problem
         IDataSourceSchemaListener[] listenerList = this.listeners.toArray(new IDataSourceSchemaListener[0]);
 
         for (IDataSourceSchemaListener listener : listenerList) {
@@ -153,6 +135,36 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
                 log.error("notify onAdd exception", e);
             }
         }
+    }
+
+    @Override
+    public void start() {
+        log.info("Starting schema incremental loader...");
+        loaderScheduler = Executors.newSingleThreadScheduledExecutor(NamedThreadFactory.of("schema-loader"));
+        loaderScheduler.scheduleWithFixedDelay(this::incrementalLoadSchemas,
+                                               // no delay to execute the first task
+                                               0,
+                                               1,
+                                               TimeUnit.MINUTES);
+    }
+
+    @Override
+    public void stop() {
+        if (loaderScheduler != null) {
+            log.info("Shutting down Schema Manager...");
+            loaderScheduler.shutdownNow();
+            try {
+                loaderScheduler.awaitTermination(5, TimeUnit.SECONDS);
+            } catch (InterruptedException ignored) {
+            } finally {
+                loaderScheduler = null;
+            }
+        }
+    }
+
+    @Override
+    public boolean isRunning() {
+        return loaderScheduler != null && !loaderScheduler.isShutdown();
     }
 
     public interface IDataSourceSchemaListener {
