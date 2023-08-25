@@ -121,10 +121,14 @@ public class DataSourceService {
                 if (columnSpec == null) {
                     throw new RuntimeException(StringUtils.format("field [%s] does not exist.", field.getField()));
                 }
-                resultColumnList.add(columnSpec.getResultColumn());
+                ResultColumn resultColumn = columnSpec.getResultColumn();
+                if (columnSpec.getAlias().equals(field.getName())) {
+                   resultColumn = resultColumn.withAlias(field.getName());
+                }
+                resultColumnList.add(resultColumn);
 
                 if (!containsGroupBy && columnSpec.getDataType().equals(IDataType.STRING)) {
-                    groupBy.add(columnSpec.getName());
+                    groupBy.add(field.getName());
                 }
             }
         }
