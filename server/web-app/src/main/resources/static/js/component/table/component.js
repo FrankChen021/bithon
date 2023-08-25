@@ -22,14 +22,20 @@ class TableComponent {
      *     columns: columns
      *     pagination: either a list or an object. If it's an object, should be { pages: [], side: 'server' | 'client' }
      *     tableId: an unique id for the table component
+     *     toolbar: {minimize: true, close: false}
      */
     constructor(option) {
+        this.vToolbar = Object.assign({
+            minimize: true,
+            close: false,
+            showColumns: false
+        }, option.toolbar);
+
         // view
         this.vComponentContainer = $(`<div class="card card-block rounded-0"></div>`);
         this.vTable = this.vComponentContainer.append(`<div class="table-container"><table id="${option.tableId}"></table></div>`).find('table');
         option.parent.append(this.vComponentContainer);
 
-        this.mShowColumn = option.toolbar !== undefined ? (option.toolbar.showColumns === true) : false;
         this.mColumns = option.columns;
         this.mCreated = false;
         this.mPopoverShown = false;
@@ -158,29 +164,39 @@ class TableComponent {
         if (this._header == null) {
             this._header = $(this.vComponentContainer).prepend(
                 '<div class="card-header d-flex" style="padding: 0.5em 1em">' +
-                '<span class="header-text btn-sm"></span><span class="header-interval btn-sm"></span>' +
+                '<span class="header-text btn-sm" style="display: none"></span><span class="header-interval btn-sm" style="padding-left: 0"></span>' +
                 '<div class="tools ml-auto">' +
-                '<button class="btn btn-sm btn-toggle"><span class="far fa-window-minimize"></span></button>' +
                 '</div>' +
                 '</div>');
 
-            const toggleButton = this._header.find('.btn-toggle');
-            toggleButton.click(() => {
-                const tableContainer = this.vComponentContainer.find('.table-container');
-                tableContainer.toggle();
+            if (this.vToolbar.minimize) {
+                const toggleButton = $('<button class="btn btn-sm btn-toggle"><span class="far fa-window-minimize"></span></button>');
+                this._header.find('.card-header').append(toggleButton);
+                toggleButton.click(() => {
+                    const tableContainer = this.vComponentContainer.find('.table-container');
+                    tableContainer.toggle();
 
-                if (tableContainer.is(':visible')) {
-                    toggleButton.find('span').removeClass('fa-window-maximize').addClass("fa-window-minimize");
-                } else {
-                    toggleButton.find('span').removeClass('fa-window-minimize').addClass("fa-window-maximize");
-                }
-            });
+                    if (tableContainer.is(':visible')) {
+                        toggleButton.find('span').removeClass('fa-window-maximize').addClass("fa-window-minimize");
+                    } else {
+                        toggleButton.find('span').removeClass('fa-window-minimize').addClass("fa-window-maximize");
+                    }
+                });
+            }
+
+            if (this.vToolbar.close) {
+                const closeButton = $('<button class="btn btn-sm btn-close"><span class="far fa-window-close"></span></button>');
+                this._header.find('.card-header').append(closeButton);
+                closeButton.click(() => {
+                    this.vComponentContainer.hide();
+                });
+            }
         }
         return this._header;
     }
 
     header(text) {
-        this.#ensureHeader().find('.header-text').html(text);
+        this.#ensureHeader().find('.header-text').html(text).show();
         return this;
     }
 
@@ -243,7 +259,7 @@ class TableComponent {
         if (option.showInterval !== undefined && option.showInterval) {
             const s = moment(this.mStartTimestamp).local().format('HH:mm:ss');
             const e = moment(this.mEndTimestamp).local().format('HH:mm:ss');
-            this.#ensureHeader().find('.header-interval').html(s + ' - ' + e);
+            this.#ensureHeader().find('.header-interval').html(`from ${s} to ${e}`);
         } else {
             this.#ensureHeader().find('.header-interval').html('');
         }
@@ -315,10 +331,11 @@ class TableComponent {
                 this.vTable.bootstrapTable('refresh');
             }
         }
+        this.vComponentContainer.show();
     }
 
     #createShowColumnDropdownList() {
-        if (!this.mShowColumn)
+        if (!this.vToolbar.showColumns)
             return;
 
         let headerText = this.#ensureHeader().find('.header-text').html();

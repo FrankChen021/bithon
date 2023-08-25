@@ -279,9 +279,9 @@ class Dashboard {
             chartDescriptor.details.query.dataSource = chartDescriptor.query.dataSource !== undefined ? chartDescriptor.query.dataSource : chartDescriptor.dataSource;
         }
 
-        let buttons = undefined;
+        let columnButtons = undefined;
         if (chartDescriptor.details.tracing !== undefined) {
-            buttons = [{
+            columnButtons = [{
                 title: "Tracing Log",
                 text: "Search...",
                 onClick: (index, row, start, end) => this.#openTraceSearchPage(chartDescriptor, start, end, row)
@@ -290,12 +290,17 @@ class Dashboard {
 
         const chartComponent = this._chartComponents[chartDescriptor.id];
 
-        // Create component
+        // Create detailed component
         const detailTableComponent = this.createTableComponent(detailViewId,
             chartComponent.getUIContainer(),
             chartDescriptor.details,
+            // Insert index column
             true,
-            buttons
+            columnButtons,
+            {
+                minimize: false,
+                close: true
+            }
         )
 
         // Bind event on parent component
@@ -492,7 +497,12 @@ class Dashboard {
         window.open(`/web/trace/search?interval=c:${startTime}/${endTime}&filter=${encodeURIComponent(filterExpression)}`);
     }
 
-    createTableComponent(chartId, parentElement, tableDescriptor, insertIndexColumn, buttons) {
+    createTableComponent(chartId,
+                         parentElement,
+                         tableDescriptor,
+                         insertIndexColumn,
+                         columnButtons,
+                         toolbar) {
 
         //
         // type of string column is allowed in definition, convert it to object first to simply further processing
@@ -574,10 +584,10 @@ class Dashboard {
 
                 pagination: tableDescriptor.pagination,
                 detailView: false,
-                toolbar: {
+                toolbar: Object.assign({
                     showColumns: tableDescriptor.showColumns
-                },
-                buttons: buttons,
+                }, toolbar),
+                buttons: columnButtons,
 
                 // default order
                 order: tableDescriptor.query.orderBy?.order,
