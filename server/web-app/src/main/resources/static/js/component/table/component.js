@@ -22,18 +22,25 @@ class TableComponent {
      *     columns: columns
      *     pagination: either a list or an object. If it's an object, should be { pages: [], side: 'server' | 'client' }
      *     tableId: an unique id for the table component
+     *     toolbar: {minimize: true, close: false}
      */
     constructor(option) {
+        this.vToolbar = Object.assign({
+            minimize: true,
+            close: false,
+            showColumns: false
+        }, option.toolbar);
+
         // view
         this.vComponentContainer = $(`<div class="card card-block rounded-0"></div>`);
         this.vTable = this.vComponentContainer.append(`<div class="table-container"><table id="${option.tableId}"></table></div>`).find('table');
         option.parent.append(this.vComponentContainer);
 
-        this.mShowColumn = option.toolbar !== undefined ? (option.toolbar.showColumns === true) : false;
         this.mColumns = option.columns;
         this.mCreated = false;
         this.mPopoverShown = false;
 
+        this.mServerSort = option.serverSort;
         this.mHasPagination = option.pagination !== undefined && option.pagination.length > 0;
         if (Array.isArray(option.pagination)) {
             this.mPagination = option.pagination;
@@ -65,26 +72,30 @@ class TableComponent {
             return new Date(val).format(format);
         };
         this.mFormatters['template'] = (val, row, index, field) => {
-            // Get the column definition first
+            // Get the template from the column definition first
             let template = this.mColumnMap[field].template;
 
+            const interval = this.mStartTimestamp + '/' + this.mEndTimestamp;
+
             // Find all replacements
-            const replacement = new Map();
+            const referencedVariables = new Map();
             {
                 const extractVariable = /\{([^}]+)}/g;
                 let match;
                 while ((match = extractVariable.exec(template)) !== null) {
-                    let variable = match[1];
-                    replacement.set(variable, true);
+                    const varName = match[1];
+                    referencedVariables.set(varName, true);
                 }
             }
 
             // Do replacement
-            replacement.forEach((val, key) => {
-                const v = row[key];
-                if (v !== undefined && v !== null) {
-                    template = template.replaceAll(`{${key}}`, v);
+            referencedVariables.forEach((val, varName) => {
+                // interval is a special variable
+                let v = varName === 'interval' ? interval : row[varName];
+                if (v === undefined || v === null) {
+                    v = '';
                 }
+                template = template.replaceAll(`{${varName}}`, v);
             });
 
             return template;
@@ -153,29 +164,39 @@ class TableComponent {
         if (this._header == null) {
             this._header = $(this.vComponentContainer).prepend(
                 '<div class="card-header d-flex" style="padding: 0.5em 1em">' +
-                '<span class="header-text btn-sm"></span>' +
+                '<span class="header-text btn-sm" style="display: none"></span><span class="header-interval btn-sm" style="padding-left: 0"></span>' +
                 '<div class="tools ml-auto">' +
-                '<button class="btn btn-sm btn-toggle"><span class="far fa-window-minimize"></span></button>' +
                 '</div>' +
                 '</div>');
 
-            const toggleButton = this._header.find('.btn-toggle');
-            toggleButton.click(() => {
-                const tableContainer = this.vComponentContainer.find('.table-container');
-                tableContainer.toggle();
+            if (this.vToolbar.minimize) {
+                const toggleButton = $('<button class="btn btn-sm btn-toggle"><span class="far fa-window-minimize"></span></button>');
+                this._header.find('.card-header').append(toggleButton);
+                toggleButton.click(() => {
+                    const tableContainer = this.vComponentContainer.find('.table-container');
+                    tableContainer.toggle();
 
-                if (tableContainer.is(':visible')) {
-                    toggleButton.find('span').removeClass('fa-window-maximize').addClass("fa-window-minimize");
-                } else {
-                    toggleButton.find('span').removeClass('fa-window-minimize').addClass("fa-window-maximize");
-                }
-            });
+                    if (tableContainer.is(':visible')) {
+                        toggleButton.find('span').removeClass('fa-window-maximize').addClass("fa-window-minimize");
+                    } else {
+                        toggleButton.find('span').removeClass('fa-window-minimize').addClass("fa-window-maximize");
+                    }
+                });
+            }
+
+            if (this.vToolbar.close) {
+                const closeButton = $('<button class="btn btn-sm btn-close"><span class="far fa-window-close"></span></button>');
+                this._header.find('.card-header').append(closeButton);
+                closeButton.click(() => {
+                    this.vComponentContainer.hide();
+                });
+            }
         }
         return this._header;
     }
 
     header(text) {
-        this.#ensureHeader().find('.header-text').html(text);
+        this.#ensureHeader().find('.header-text').html(text).show();
         return this;
     }
 
@@ -235,6 +256,13 @@ class TableComponent {
             this.mEndTimestamp = option.ajaxData.interval.endISO8601;
         }
         this.mQueryParam = option.ajaxData;
+        if (option.showInterval !== undefined && option.showInterval) {
+            const s = moment(this.mStartTimestamp).local().format('HH:mm:ss');
+            const e = moment(this.mEndTimestamp).local().format('HH:mm:ss');
+            this.#ensureHeader().find('.header-interval').html(`from ${s} to ${e}`);
+        } else {
+            this.#ensureHeader().find('.header-interval').html('');
+        }
 
         if (!this.mCreated) {
             this.mCreated = true;
@@ -249,7 +277,7 @@ class TableComponent {
                 sidePagination: this.mPaginationSide,
                 pagination: this.mHasPagination,
 
-                serverSort: this.mHasPagination,
+                serverSort: this.mServerSort,
                 sortName: this.mDefaultOrderBy,
                 sortOrder: this.mDefaultOrder,
 
@@ -303,10 +331,11 @@ class TableComponent {
                 this.vTable.bootstrapTable('refresh');
             }
         }
+        this.vComponentContainer.show();
     }
 
     #createShowColumnDropdownList() {
-        if (!this.mShowColumn)
+        if (!this.vToolbar.showColumns)
             return;
 
         let headerText = this.#ensureHeader().find('.header-text').html();

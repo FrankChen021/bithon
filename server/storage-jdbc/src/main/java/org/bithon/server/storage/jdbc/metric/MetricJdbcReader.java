@@ -122,7 +122,21 @@ public class MetricJdbcReader implements IMetricReader {
         String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
         String sql = StringUtils.format(
             "SELECT %s FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s %s LIMIT %d OFFSET %d",
-            query.getResultColumns().stream().map(field -> "\"" + field.getColumnExpression() + "\"").collect(Collectors.joining(",")),
+            query.getResultColumns()
+                 .stream()
+                 .map(field -> {
+                     String expr = field.getColumnExpression().toString();
+                     String alias = field.getResultColumnName();
+
+                     return expr.equals(alias) ?
+                         StringUtils.format("\"%s\"",
+                                            field.getColumnExpression())
+                         :
+                         StringUtils.format("\"%s\" AS \"%s\"",
+                                            field.getColumnExpression(),
+                                            field.getResultColumnName());
+                 })
+                 .collect(Collectors.joining(",")),
             sqlTableName,
             filter,
             StringUtils.hasText(filter) ? "AND" : "",
@@ -132,8 +146,7 @@ public class MetricJdbcReader implements IMetricReader {
             sqlDialect.formatTimestamp(query.getInterval().getEndTime()),
             getOrderBySQL(query.getOrderBy()),
             query.getLimit().getLimit(),
-            query.getLimit().getOffset()
-        );
+            query.getLimit().getOffset());
 
         return executeSql(sql);
     }
@@ -153,7 +166,7 @@ public class MetricJdbcReader implements IMetricReader {
             sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
             timestampCol,
             sqlDialect.formatTimestamp(query.getInterval().getEndTime())
-        );
+                                       );
 
         Record record = dsl.fetchOne(sql);
         return ((Number) record.get(0)).intValue();
@@ -215,7 +228,7 @@ public class MetricJdbcReader implements IMetricReader {
             sqlDialect.formatTimestamp(end),
             dimension,
             dimension
-        );
+                                       );
 
         log.info("Executing {}", sql);
         List<Record> records = dsl.fetch(sql);

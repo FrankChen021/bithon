@@ -30,7 +30,8 @@
       "query": {
         "dataSource": "http-outgoing-metrics",
         "fields": [
-          "qps"
+          "qps",
+          "requestCount"
         ]
       },
       "details": {
