@@ -107,7 +107,7 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
     public void addListener(IDataSourceSchemaListener listener) {
         listeners.add(listener);
 
-        this.schemas.forEach((name, schema) -> onChange(null, schema));
+        this.schemas.forEach((name, schema) -> listener.onChange(null, schema));
     }
 
     private void incrementalLoadSchemas() {
