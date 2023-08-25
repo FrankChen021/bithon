@@ -1,4 +1,10 @@
+server:
+  shutdown: graceful
+
 spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 120s # Default is 60s
+
   application:
     name: bithon-server
   cloud:
