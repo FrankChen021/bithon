@@ -91,7 +91,7 @@ class TableComponent {
             // Do replacement
             referencedVariables.forEach((val, varName) => {
                 // interval is a special variable
-                const v = varName === 'interval' ? interval : row[varName];
+                let v = varName === 'interval' ? interval : row[varName];
                 if (v === undefined || v === null) {
                     v = '';
                 }
