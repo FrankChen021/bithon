@@ -98,9 +98,16 @@ public class FilterExpressionToFilters {
 
         @Override
         public boolean visit(IdentifierExpression expression) {
+            String identifier = expression.getIdentifier();
+            if (identifier.startsWith("tags.")) {
+                return true;
+            }
+
             IColumn column = schema.getColumnByName(expression.getIdentifier());
             if (column == null) {
-                throw new RuntimeException("Unable to find identifier: " + expression.getIdentifier());
+                throw new RuntimeException(StringUtils.format("Unable to find identifier [%s] in data source [%s]",
+                                                              expression.getIdentifier(),
+                                                              schema.getName()));
             }
 
             // Change to raw name

@@ -137,7 +137,8 @@ public class TraceService {
         splitter.split(FilterExpressionToFilters.toExpression(traceSpanSummarySchema, filterExpression, filters));
 
         return traceReader.getTraceListSize(splitter.expression,
-                                            splitter.tagFilterExpressions,
+                                            splitter.nonIndexedTagFilters,
+                                            splitter.indexedTagFilters,
                                             start,
                                             end);
     }
@@ -154,7 +155,8 @@ public class TraceService {
         splitter.split(FilterExpressionToFilters.toExpression(traceSpanSummarySchema, filterExpression, filters));
 
         return traceReader.getTraceList(splitter.expression,
-                                        splitter.tagFilterExpressions,
+                                        splitter.nonIndexedTagFilters,
+                                        splitter.indexedTagFilters,
                                         start,
                                         end,
                                         orderBy,
@@ -172,7 +174,8 @@ public class TraceService {
 
         int interval = TimeBucket.calculate(start.getMilliseconds(), end.getMilliseconds(), bucketCount).getLength();
         List<Map<String, Object>> dataPoints = traceReader.getTraceDistribution(splitter.expression,
-                                                                                splitter.tagFilterExpressions,
+                                                                                splitter.nonIndexedTagFilters,
+                                                                                splitter.indexedTagFilters,
                                                                                 start.toTimestamp(),
                                                                                 end.toTimestamp(),
                                                                                 interval);
@@ -189,7 +192,8 @@ public class TraceService {
     static class FilterSplitter {
         private final TraceStorageConfig traceStorageConfig;
         private IExpression expression;
-        private Map<Integer, IExpression> tagFilterExpressions;
+        private Map<Integer, IExpression> indexedTagFilters;
+        private List<IExpression> nonIndexedTagFilters;
 
         public FilterSplitter(TraceStorageConfig traceStorageConfig) {
             this.traceStorageConfig = traceStorageConfig;
@@ -201,7 +205,8 @@ public class TraceService {
             }
             TagFilterExtractor extractor = new TagFilterExtractor(this.traceStorageConfig);
             expression.accept(extractor);
-            this.tagFilterExpressions = extractor.indexedTagFilter;
+            this.indexedTagFilters = extractor.indexedTagFilter;
+            this.nonIndexedTagFilters = extractor.nonIndexedTagFilter;
             this.expression = expression;
         }
     }
@@ -211,10 +216,13 @@ public class TraceService {
         private int currentTagIndex = -1;
 
         private final Map<Integer, IExpression> indexedTagFilter;
+        private final List<IExpression> nonIndexedTagFilter;
+
         private final TagIndexConfig indexedTagConfig;
 
         public TagFilterExtractor(TraceStorageConfig traceStorageConfig) {
             this.indexedTagFilter = new TreeMap<>();
+            this.nonIndexedTagFilter = new ArrayList<>();
             indexedTagConfig = traceStorageConfig.getIndexes();
         }
 
@@ -242,7 +250,11 @@ public class TraceService {
                 IExpression subExpression = iterator.next();
                 if (subExpression.accept(this)) {
                     iterator.remove();
-                    indexedTagFilter.put(currentTagIndex, subExpression);
+                    if (currentTagIndex > 0) {
+                        indexedTagFilter.put(currentTagIndex, subExpression);
+                    } else {
+                        nonIndexedTagFilter.add(subExpression);
+                    }
                 }
             }
 
@@ -259,7 +271,7 @@ public class TraceService {
                 }
 
                 currentTagIndex = indexedTagConfig == null ? 0 : indexedTagConfig.getColumnPos(tagName);
-                return currentTagIndex > 0;
+                return true;
             }
             return false;
         }

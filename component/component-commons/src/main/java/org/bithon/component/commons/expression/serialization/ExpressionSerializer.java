@@ -37,6 +37,16 @@ import java.util.List;
 public class ExpressionSerializer implements IExpressionVisitor {
     protected final StringBuilder sb = new StringBuilder(512);
 
+    private final boolean quoteIdentifier;
+
+    public ExpressionSerializer() {
+        this(true);
+    }
+
+    public ExpressionSerializer(boolean quoteIdentifier) {
+        this.quoteIdentifier = quoteIdentifier;
+    }
+
     public String serialize(IExpression expression) {
         expression.accept(this);
         return sb.toString();
@@ -78,7 +88,13 @@ public class ExpressionSerializer implements IExpressionVisitor {
 
     @Override
     public boolean visit(IdentifierExpression expression) {
-        sb.append(expression.getIdentifier());
+        if (quoteIdentifier) {
+            sb.append('"');
+            sb.append(expression.getIdentifier());
+            sb.append('"');
+        } else {
+            sb.append(expression.getIdentifier());
+        }
         return false;
     }
 

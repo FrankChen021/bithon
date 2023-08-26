@@ -31,10 +31,8 @@ import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.commons.matcher.EqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.jdbc.utils.SqlFilterStatement;
@@ -56,6 +54,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -106,6 +105,7 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public List<TraceSpan> getTraceList(IExpression filter,
+                                        List<IExpression> nonIndexedTagFilters,
                                         Map<Integer, IExpression> indexedTagFilter,
                                         Timestamp start,
                                         Timestamp end,
@@ -127,12 +127,11 @@ public class TraceJdbcReader implements ITraceReader {
             listQuery = listQuery.and(SqlFilterStatement.from(traceSpanSchema, filter));
         }
 
-        /*
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
             listQuery = listQuery.and(nonIndexedTagFilters.stream()
                                                           .map(this::getTagPredicate)
                                                           .collect(Collectors.joining(" AND ")));
-        }*/
+        }
 
         // Build the tag query
         if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
@@ -171,7 +170,7 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public List<Map<String, Object>> getTraceDistribution(IExpression filter,
-                                                          Map<Integer, IExpression> indexedTagFilter,
+                                                          List<IExpression> nonIndexedTagFilters, Map<Integer, IExpression> indexedTagFilter,
                                                           Timestamp start,
                                                           Timestamp end,
                                                           int interval) {
@@ -195,13 +194,12 @@ public class TraceJdbcReader implements ITraceReader {
             sqlBuilder.append(SqlFilterStatement.from(traceSpanSchema, filter));
         }
 
-        /*
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
             sqlBuilder.append(" AND ");
             sqlBuilder.append(nonIndexedTagFilters.stream()
                                                   .map(this::getTagPredicate)
                                                   .collect(Collectors.joining(" AND ")));
-        }*/
+        }
 
         // Build the indexed tag sub query
         if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
@@ -226,7 +224,7 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public int getTraceListSize(IExpression filter,
-                                Map<Integer, IExpression> indexedTagFilters,
+                                List<IExpression> nonIndexedTagFilters, Map<Integer, IExpression> indexedTagFilters,
                                 Timestamp start,
                                 Timestamp end) {
         boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
@@ -246,12 +244,11 @@ public class TraceJdbcReader implements ITraceReader {
             countQuery = countQuery.and(SqlFilterStatement.from(traceSpanSchema, filter));
         }
 
-        /*
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
             countQuery = countQuery.and(nonIndexedTagFilters.stream()
                                                             .map(this::getTagPredicate)
                                                             .collect(Collectors.joining(" AND ")));
-        }*/
+        }
 
         // Build the indexed tag query
         SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.traceTagIndexSchema)
@@ -345,16 +342,27 @@ public class TraceJdbcReader implements ITraceReader {
      * Get the SQL predicate expression for give tag filter.
      * For the default implementation, ONLY the 'equal' filter is supported, and it's turned into a LIKE search.
      */
-    protected String getTagPredicate(IColumnFilter filter) {
-        if (!(filter.getMatcher() instanceof EqualMatcher)) {
+    protected String getTagPredicate(IExpression tagFilter) {
+        if (!(tagFilter instanceof ComparisonExpression.EQ)) {
             throw new UnsupportedOperationException(StringUtils.format("[%s] matcher on tag field is not supported on this database.",
-                                                                       filter.getMatcher().getClass().getSimpleName()));
+                                                                       tagFilter.getClass().getSimpleName()));
+        }
+
+        IExpression left = ((ComparisonExpression.EQ) tagFilter).getLeft();
+        IExpression right = ((ComparisonExpression.EQ) tagFilter).getRight();
+        if (!(left instanceof IdentifierExpression)) {
+            throw new UnsupportedOperationException(StringUtils.format("The left operator in expression [%s] should be identifier only.",
+                                                                       tagFilter.serializeToText()));
+        }
+        if (!(right instanceof LiteralExpression)) {
+            throw new UnsupportedOperationException(StringUtils.format("The right operator in expression [%s] should be literal only.",
+                                                                       tagFilter.serializeToText()));
         }
 
         return StringUtils.format("\"%s\" LIKE '%%\"%s\":\"%s\"%%'",
                                   Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName(),
-                                  filter.getName().substring(SPAN_TAGS_PREFIX.length()),
-                                  ((EqualMatcher) filter.getMatcher()).getPattern());
+                                  ((IdentifierExpression) left).getIdentifier().substring(SPAN_TAGS_PREFIX.length()),
+                                  ((LiteralExpression) right).getValue());
     }
 
     protected Map<String, String> toTagMap(Object attributes) {

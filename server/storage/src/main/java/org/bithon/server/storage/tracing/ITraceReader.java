@@ -33,6 +33,7 @@ public interface ITraceReader {
     List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end);
 
     List<TraceSpan> getTraceList(IExpression filter,
+                                 List<IExpression> nonIndexedTagFilters,
                                  Map<Integer, IExpression> indexedTagFilters,
                                  Timestamp start,
                                  Timestamp end,
@@ -42,13 +43,13 @@ public interface ITraceReader {
                                  int pageSize);
 
     List<Map<String, Object>> getTraceDistribution(IExpression filter,
-                                                   Map<Integer, IExpression> indexedTagFilters,
+                                                   List<IExpression> nonIndexedTagFilters, Map<Integer, IExpression> indexedTagFilters,
                                                    Timestamp start,
                                                    Timestamp end,
                                                    int interval);
 
     int getTraceListSize(IExpression filter,
-                         Map<Integer, IExpression> indexedTagFilters,
+                         List<IExpression> nonIndexedTagFilters, Map<Integer, IExpression> indexedTagFilters,
                          Timestamp start,
                          Timestamp end);
 

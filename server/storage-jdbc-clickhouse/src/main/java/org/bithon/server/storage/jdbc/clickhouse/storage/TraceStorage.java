@@ -22,21 +22,24 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.filter.IColumnFilter;
-import org.bithon.server.storage.datasource.typing.IDataType;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcReader;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
-import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.jdbc.utils.SqlDialectManager;
+import org.bithon.server.storage.jdbc.utils.SqlFilterStatement;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
@@ -133,13 +136,27 @@ public class TraceStorage extends TraceJdbcStorage {
              * We need to use map accessor expression to search in the map
              */
             @Override
-            protected String getTagPredicate(IColumnFilter filter) {
-                String tag = StringUtils.format("%s['%s']", Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName(), filter.getName().substring(SPAN_TAGS_PREFIX.length()));
-                return filter.getMatcher().accept(new SQLFilterBuilder(traceSpanSchema.getName(),
-                                                                       tag,
-                                                                       IDataType.STRING,
-                                                                       false,
-                                                                       false));
+            protected String getTagPredicate(IExpression tagFilter) {
+                if (!(tagFilter instanceof ComparisonExpression)) {
+                    throw new UnsupportedOperationException(StringUtils.format("[%s] matcher on tag field is not supported on this database.",
+                                                                               tagFilter.getClass().getSimpleName()));
+                }
+
+                IExpression left = ((ComparisonExpression.EQ) tagFilter).getLeft();
+                IExpression right = ((ComparisonExpression.EQ) tagFilter).getRight();
+                if (!(left instanceof IdentifierExpression)) {
+                    throw new UnsupportedOperationException(StringUtils.format("The left operator in expression [%s] should be identifier only.",
+                                                                               tagFilter.serializeToText()));
+                }
+                if (!(right instanceof LiteralExpression)) {
+                    throw new UnsupportedOperationException(StringUtils.format("The right operator in expression [%s] should be literal only.",
+                                                                               tagFilter.serializeToText()));
+                }
+
+                String tag = StringUtils.format("%s['%s']", Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName(), ((IdentifierExpression) left).getIdentifier().substring(SPAN_TAGS_PREFIX.length()));
+                ((IdentifierExpression) left).setIdentifier(tag);
+
+                return SqlFilterStatement.from(traceSpanSchema, tagFilter, new ExpressionSerializer(false));
             }
 
             @Override
