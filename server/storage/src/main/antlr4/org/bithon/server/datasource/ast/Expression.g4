@@ -18,6 +18,7 @@ subExpression
   | (NUMBER_LITERAL | STRING_LITERAL)       #literalExpression
   | expressionListImpl                      #expressionList
   | IDENTIFIER ('.' IDENTIFIER)*            #identifierExpression
+  | '{' IDENTIFIER '}'                      #macroExpression
   ;
 
 expressionListImpl

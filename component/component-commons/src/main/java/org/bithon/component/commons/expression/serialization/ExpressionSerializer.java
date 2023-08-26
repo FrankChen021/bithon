@@ -27,6 +27,7 @@ import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.MacroExpression;
 
 import java.util.List;
 
@@ -149,6 +150,14 @@ public class ExpressionSerializer implements IExpressionVisitor {
         sb.append('[');
         sb.append(expression.getIndex());
         sb.append(']');
+        return false;
+    }
+
+    @Override
+    public boolean visit(MacroExpression expression) {
+        sb.append('{');
+        sb.append(expression.getMacro());
+        sb.append('}');
         return false;
     }
 

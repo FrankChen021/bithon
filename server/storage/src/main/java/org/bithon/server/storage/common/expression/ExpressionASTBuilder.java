@@ -37,6 +37,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.ast.ExpressionBaseVisitor;
@@ -333,6 +334,11 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
         }
 
         return functionExpression;
+    }
+
+    @Override
+    public IExpression visitMacroExpression(ExpressionParser.MacroExpressionContext ctx) {
+        return new MacroExpression(ctx.IDENTIFIER().getText());
     }
 
     static String getUnQuotedString(Token symbol) {
