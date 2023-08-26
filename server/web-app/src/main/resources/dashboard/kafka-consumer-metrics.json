@@ -40,12 +40,18 @@
         ]
       },
       "details": {
-        "columns": ["cluster","topic","groupId","consumedRecordsRate","consumedRecords"],
+        "columns": ["cluster",
+          "topic",
+          "groupId",
+          {"name": "count", "format": "compact_number" },
+          {"name": "consumedRecordsRate","format": "rate"},
+          {"name": "consumedRecords", "format": "compact_number"}
+        ],
         "query": {
           "type": "groupBy",
           "dataSource": "kafka-consumer-metrics",
           "fields": [
-            "cluster","topic","groupId","consumedRecordsRate","consumedRecords"
+            "cluster","topic","groupId","count","consumedRecordsRate","consumedRecords"
           ],
           "orderBy": {
             "name": "consumedRecordsRate",
