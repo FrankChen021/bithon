@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.tracing.service;
 
+import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor2;
@@ -39,6 +40,7 @@ import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -203,6 +205,11 @@ public class TraceService {
             if (expression == null) {
                 return;
             }
+
+            if (!(expression instanceof LogicalExpression) && !(expression instanceof ComparisonExpression)) {
+                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "The given expression is neither a logical expression(and/or/not) nor a comparison expression.");
+            }
+
             TagFilterExtractor extractor = new TagFilterExtractor(this.traceStorageConfig);
             expression.accept(extractor);
             this.indexedTagFilters = extractor.indexedTagFilter;
