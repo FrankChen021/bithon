@@ -115,7 +115,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
 
         // Add a placeholder to simply the processing below
         List<ParseTree> children = new ArrayList(ctx.children);
-        children.add(new TerminalNodeImpl(new CommonToken(ExpressionLexer.NUMBER_LITERAL)));
+        children.add(new TerminalNodeImpl(new CommonToken(ExpressionLexer.RIGHT_PARENTHESES)));
 
         // This contains an OPTIMIZATION that turns multiple consecutive 'AND' or 'OR' into one LogicalExpression
         for (int i = 1; i < children.size(); i += 2) {
@@ -262,15 +262,18 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
 
     @Override
     public IExpression visitArrayAccessExpression(ExpressionParser.ArrayAccessExpressionContext ctx) {
-        return new ArrayAccessExpression(ctx.subExpression().accept(this), Integer.parseInt(ctx.NUMBER_LITERAL().getText()));
+        return new ArrayAccessExpression(ctx.subExpression().accept(this), Integer.parseInt(ctx.INTEGER_LITERAL().getText()));
     }
 
     @Override
     public IExpression visitLiteralExpression(ExpressionParser.LiteralExpressionContext ctx) {
         TerminalNode literalExpressionNode = ctx.getChild(TerminalNode.class, 0);
         switch (literalExpressionNode.getSymbol().getType()) {
-            case ExpressionLexer.NUMBER_LITERAL: {
+            case ExpressionLexer.INTEGER_LITERAL: {
                 return new LiteralExpression(Long.parseLong(literalExpressionNode.getText()));
+            }
+            case ExpressionLexer.DECIMAL_LITERAL: {
+                return new LiteralExpression(Double.parseDouble(literalExpressionNode.getText()));
             }
             case ExpressionLexer.STRING_LITERAL: {
                 return new LiteralExpression(getUnQuotedString(literalExpressionNode.getSymbol()));

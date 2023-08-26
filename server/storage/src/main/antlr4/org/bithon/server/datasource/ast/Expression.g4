@@ -12,13 +12,13 @@ expression
 subExpression
   : subExpression (ADD|SUB|MUL|DIV) subExpression #arithmeticExpression
   | subExpression (LT|LTE|GT|GTE|NE|EQ|LIKE|NOT LIKE|IN|NOT IN) subExpression #comparisonExpression
-  | NOT subExpression                       #notExpression
-  | subExpression '[' NUMBER_LITERAL ']'    #arrayAccessExpression
-  | IDENTIFIER expressionListImpl           #functionExpression
-  | (NUMBER_LITERAL | STRING_LITERAL)       #literalExpression
-  | expressionListImpl                      #expressionList
-  | IDENTIFIER ('.' IDENTIFIER)*            #identifierExpression
-  | '{' IDENTIFIER '}'                      #macroExpression
+  | NOT subExpression                                           #notExpression
+  | subExpression '[' INTEGER_LITERAL ']'                       #arrayAccessExpression
+  | IDENTIFIER expressionListImpl                               #functionExpression
+  | (INTEGER_LITERAL | DECIMAL_LITERAL | STRING_LITERAL)        #literalExpression
+  | expressionListImpl                                          #expressionList
+  | IDENTIFIER ('.' IDENTIFIER)*                                #identifierExpression
+  | '{' IDENTIFIER '}'                                          #macroExpression
   ;
 
 expressionListImpl
@@ -26,7 +26,8 @@ expressionListImpl
   | '(' ')'
   ;
 
-NUMBER_LITERAL: [0-9]+('.'?[0-9]+)?;
+INTEGER_LITERAL: '-'?[0-9]+;
+DECIMAL_LITERAL: '-'?[0-9]+'.'[0-9]*;
 STRING_LITERAL: SQUOTA_STRING;
 
 fragment SQUOTA_STRING
