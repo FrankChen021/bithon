@@ -22,8 +22,7 @@ import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.storage.web.Dashboard;
 import org.bithon.server.storage.web.IDashboardStorage;
 import org.bithon.server.webapp.WebAppModuleEnabler;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
@@ -43,13 +42,14 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @Conditional(value = WebAppModuleEnabler.class)
-public class DashboardManager implements InitializingBean, DisposableBean {
+public class DashboardManager implements SmartLifecycle {
+
     public interface IDashboardChangedListener {
         void onChanged();
     }
 
     private final IDashboardStorage storage;
-    private final ScheduledExecutorService loaderScheduler;
+    private ScheduledExecutorService loaderScheduler;
     private long lastLoadAt;
     private final Map<String, Dashboard> dashboards = new ConcurrentHashMap<>(9);
 
@@ -57,8 +57,6 @@ public class DashboardManager implements InitializingBean, DisposableBean {
 
     public DashboardManager(IDashboardStorage storage) {
         this.storage = storage;
-
-        loaderScheduler = Executors.newSingleThreadScheduledExecutor(NamedThreadFactory.of("dashboard-loader"));
     }
 
     public void update(String name, String payload) {
@@ -73,18 +71,33 @@ public class DashboardManager implements InitializingBean, DisposableBean {
     }
 
     @Override
-    public void destroy() throws Exception {
-        loaderScheduler.shutdownNow();
-    }
+    public void start() {
+        log.info("Starting dashboard incremental loader...");
 
-    @Override
-    public void afterPropertiesSet() {
-        log.info("Starting schema incremental loader...");
+        loaderScheduler = Executors.newSingleThreadScheduledExecutor(NamedThreadFactory.of("dashboard-loader"));
         loaderScheduler.scheduleWithFixedDelay(this::incrementalLoad,
                                                // no delay to execute the first task
                                                0,
-                                               1,
-                                               TimeUnit.MINUTES);
+                                               30,
+                                               TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void stop() {
+        if (loaderScheduler != null) {
+            loaderScheduler.shutdownNow();
+            try {
+                loaderScheduler.awaitTermination(10, TimeUnit.SECONDS);
+            } catch (InterruptedException ignored) {
+            } finally {
+                loaderScheduler = null;
+            }
+        }
+    }
+
+    @Override
+    public boolean isRunning() {
+        return loaderScheduler != null && !loaderScheduler.isShutdown();
     }
 
     private void incrementalLoad() {
