@@ -62,7 +62,7 @@ public class FilterExpressionToFilters {
 
     public static IExpression toExpression(DataSourceSchema schema, String filterExpression, List<IColumnFilter> otherFilters) {
         if (StringUtils.isEmpty(filterExpression)) {
-            return CollectionUtils.isEmpty(otherFilters) ? null : toExpression(otherFilters);
+            return CollectionUtils.isEmpty(otherFilters) ? null : toExpression(schema, otherFilters);
         }
 
         IExpression expression = ExpressionASTBuilder.build(filterExpression, null);
@@ -73,16 +73,24 @@ public class FilterExpressionToFilters {
         expression.accept(new IdentifierVerifier(schema));
 
         if (CollectionUtils.isNotEmpty(otherFilters)) {
-            return new LogicalExpression.AND(expression, toExpression(otherFilters));
+            return new LogicalExpression.AND(expression, toExpression(schema, otherFilters));
         } else {
             return expression;
         }
     }
 
-    private static IExpression toExpression(List<IColumnFilter> filters) {
+    private static IExpression toExpression(DataSourceSchema schema, List<IColumnFilter> filters) {
         List<IExpression> expressions = new ArrayList<>();
         FilterToExpressionConverter converter = new FilterToExpressionConverter();
         for (IColumnFilter filter : filters) {
+            IColumn col = schema.getColumnByName(filter.getName());
+            if (col == null) {
+                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "The field (%s) does not exist.", filter.getName());
+            }
+            if (!col.getName().equals(filter.getName())) {
+                // client side uses the alias name, we turn the alias into the real name for further search
+                filter = filter.with(filter.getName());
+            }
             converter.setColumnFilter(filter);
             expressions.add(filter.getMatcher().accept(converter));
         }
