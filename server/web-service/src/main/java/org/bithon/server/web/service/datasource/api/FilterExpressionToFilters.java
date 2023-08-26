@@ -131,7 +131,7 @@ public class FilterExpressionToFilters {
 
         @Override
         public IExpression visit(NotEqualMatcher matcher) {
-            return new ComparisonExpression.NE(field, new LiteralExpression(matcher.getValue()));
+            return new ComparisonExpression.NE(field, new LiteralExpression(matcher.getPattern()));
         }
 
         @Override

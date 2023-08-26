@@ -117,7 +117,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
             pattern = "%s <> %s";
         }
 
-        return StringUtils.format(pattern, fieldName, matcher.getValue());
+        return StringUtils.format(pattern, fieldName, matcher.getPattern());
     }
 
     @Override
