@@ -66,7 +66,6 @@ public class FieldExpressionTest {
     public void testMoreArgumentInFunctionExpression() {
         String functionExpression = "round(100,99,98)";
 
-
         try {
             ExpressionGenerator g = new ExpressionGenerator();
             FieldExpressionParserImpl.create(functionExpression).visit(g);

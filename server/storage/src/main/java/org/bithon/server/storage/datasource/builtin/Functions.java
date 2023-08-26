@@ -16,6 +16,12 @@
 
 package org.bithon.server.storage.datasource.builtin;
 
+import org.bithon.component.commons.expression.function.IDataType;
+import org.bithon.component.commons.expression.function.Parameter;
+import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.ast.FieldExpressionParser;
+
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -36,7 +42,6 @@ public class Functions {
     private final Map<String, Function> functionMap = new HashMap<>(17);
 
     public Functions() {
-        /*
         register(new Function("round",
                               Arrays.asList(new Parameter(IDataType.DOUBLE), new Parameter(IDataType.LONG)),
                               (index, expression) -> {
@@ -46,7 +51,7 @@ public class Functions {
                                           expression.getText()));
                                   }
                               }
-        ));*/
+        ));
     }
 
     private void register(Function function) {
