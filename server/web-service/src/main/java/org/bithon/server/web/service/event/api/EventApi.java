@@ -39,9 +39,11 @@ import java.util.ArrayList;
 public class EventApi implements IEventApi {
 
     private final IEventReader eventReader;
+    private final IEventStorage storage;
 
     public EventApi(IEventStorage eventStorage) {
         this.eventReader = eventStorage.createReader();
+        this.storage = eventStorage;
     }
 
     @Override
@@ -55,7 +57,9 @@ public class EventApi implements IEventApi {
             request.getFilters().add(new ColumnFilter("appName", new EqualMatcher(request.getApplication())));
         }
 
-        IExpression filter = FilterExpressionToFilters.toExpression(null, null, request.getFilters());
+        IExpression filter = FilterExpressionToFilters.toExpression(this.storage.getSchema(),
+                                                                    null,
+                                                                    request.getFilters());
         return new GetEventListResponse(eventReader.getEventListSize(filter,
                                                                      start,
                                                                      end),

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.common.IExpirable;
 import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.common.IStorage;
+import org.bithon.server.storage.datasource.DataSourceSchema;
 
 /**
  * @author frank.chen021@outlook.com
@@ -34,6 +35,8 @@ public interface IEventStorage extends IStorage, IExpirable {
 
     default void initialize() {
     }
+
+    DataSourceSchema getSchema();
 
     IEventWriter createWriter();
 

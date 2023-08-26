@@ -66,10 +66,6 @@ public class FilterExpressionToFilters {
         }
 
         IExpression expression = ExpressionASTBuilder.build(filterExpression, null);
-        if (!(expression instanceof LogicalExpression) && !(expression instanceof ComparisonExpression)) {
-            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "The given expression is neither a logical expression(and/or/not) nor a comparison expression.");
-        }
-
         expression.accept(new IdentifierVerifier(schema));
 
         if (CollectionUtils.isNotEmpty(otherFilters)) {
@@ -89,7 +85,7 @@ public class FilterExpressionToFilters {
             }
             if (!col.getName().equals(filter.getName())) {
                 // client side uses the alias name, we turn the alias into the real name for further search
-                filter = filter.with(filter.getName());
+                filter = filter.with(col.getName());
             }
             converter.setColumnFilter(filter);
             expressions.add(filter.getMatcher().accept(converter));
