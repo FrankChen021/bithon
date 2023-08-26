@@ -19,6 +19,9 @@ package org.bithon.server.storage.jdbc.metric;
 import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.MacroExpression;
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -188,11 +191,14 @@ public class SelectExpressionBuilder {
 
         public StringNode visit(Expression expression) {
 
-            final StringBuilder sb = new StringBuilder(32);
-            expression.visitExpression(new FieldExpressionVisitorAdaptor2() {
-
+            ExpressionSerializer serializer = new ExpressionSerializer() {
                 @Override
-                public void visitField(IColumn columnSpec) {
+                public boolean visit(IdentifierExpression expression) {
+                    String field = expression.getIdentifier();
+                    IColumn columnSpec = schema.getColumnByName(field);
+                    if (columnSpec == null) {
+                        throw new RuntimeException(StringUtils.format("field [%s] can't be found in [%s].", field, schema.getName()));
+                    }
 
                     IAggregatableColumn metricSpec = (IAggregatableColumn) columnSpec;
 
@@ -210,63 +216,24 @@ public class SelectExpressionBuilder {
                         // generate a aggregation expression
                         sb.append(metricSpec.getAggregateExpression().accept(sqlGenerator4SimpleAggregationFunction));
                     }
+
+                    return true;
                 }
 
                 @Override
-                protected DataSourceSchema getSchema() {
-                    return schema;
-                }
-
-                @Override
-                public void visitConstant(String number) {
-                    sb.append(number);
-                }
-
-                @Override
-                public void visitorOperator(String operator) {
-                    sb.append(operator);
-                }
-
-                @Override
-                public void beginSubExpression() {
-                    sb.append('(');
-                }
-
-                @Override
-                public void endSubExpression() {
-                    sb.append(')');
-                }
-
-                @Override
-                public void visitVariable(String variable) {
-                    Object variableValue = internalVariables.get(variable);
+                public boolean visit(MacroExpression expression) {
+                    Object variableValue = internalVariables.get(expression.getMacro());
                     if (variableValue == null) {
                         throw new RuntimeException(StringUtils.format("variable (%s) not provided in context",
-                                                                      variable));
+                                                                      expression.getMacro()));
                     }
                     sb.append(variableValue);
-                }
 
-                @Override
-                public void beginFunction(String name) {
-                    sb.append(name);
-                    sb.append('(');
+                    return true;
                 }
+            };
 
-                @Override
-                public void endFunction() {
-                    sb.append(')');
-                }
-
-                @Override
-                public void endFunctionArgument(int argIndex, int count) {
-                    if (argIndex < count - 1) {
-                        sb.append(',');
-                    }
-                }
-            });
-
-            return new StringNode(sb.toString());
+            return new StringNode(serializer.serialize(expression.getParsedExpression()));
         }
     }
 
@@ -369,7 +336,7 @@ public class SelectExpressionBuilder {
         FieldExpressionAnalyzer fieldExpressionAnalyzer = new FieldExpressionAnalyzer(this.dataSource, aggregatedFields, this.sqlDialect);
         this.resultColumns.stream()
                           .filter((f) -> f.getColumnExpression() instanceof Expression)
-                          .forEach((f) -> ((Expression) f.getColumnExpression()).visitExpression(fieldExpressionAnalyzer));
+                          .forEach((f) -> ((Expression) f.getColumnExpression()).getParsedExpression().accept(fieldExpressionAnalyzer));
         for (String metric : fieldExpressionAnalyzer.getMetrics()) {
             subSelectExpression.getResultColumnList().add(metric);
         }

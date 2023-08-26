@@ -17,7 +17,6 @@
 package org.bithon.server.storage.datasource.query.ast;
 
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.bithon.server.storage.datasource.query.parser.FieldExpressionParserImpl;
 import org.junit.Assert;
 import org.junit.Test;
 
