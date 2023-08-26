@@ -65,6 +65,11 @@ public class DataSourceService {
         List<String> metrics = query.getResultColumns()
                                     .stream()
                                     .filter((resultColumn) -> {
+                                        if (resultColumn.getColumnExpression() instanceof Expression) {
+                                            // Support the metrics defined directly at the client side.
+                                            // TODO: check if the fields involved in the expression are all metrics
+                                            return true;
+                                        }
                                         IColumn column = query.getDataSource().getColumnByName(resultColumn.getResultColumnName());
                                         return column instanceof IAggregatableColumn || column instanceof ExpressionColumn;
                                     })
@@ -116,10 +121,14 @@ public class DataSourceService {
                 if (columnSpec == null) {
                     throw new RuntimeException(StringUtils.format("field [%s] does not exist.", field.getField()));
                 }
-                resultColumnList.add(columnSpec.getResultColumn());
+                ResultColumn resultColumn = columnSpec.getResultColumn();
+                if (columnSpec.getAlias().equals(field.getName())) {
+                   resultColumn = resultColumn.withAlias(field.getName());
+                }
+                resultColumnList.add(resultColumn);
 
                 if (!containsGroupBy && columnSpec.getDataType().equals(IDataType.STRING)) {
-                    groupBy.add(columnSpec.getName());
+                    groupBy.add(field.getName());
                 }
             }
         }

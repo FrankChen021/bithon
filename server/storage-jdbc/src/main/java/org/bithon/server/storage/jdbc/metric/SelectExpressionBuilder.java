@@ -359,7 +359,7 @@ public class SelectExpressionBuilder {
                 selectExpression.getResultColumnList().add(sqlGenerator4Expression.visit((Expression) columnExpression),
                                                            resultColumn.getAlias());
             } else if (columnExpression instanceof Column) {
-                selectExpression.getResultColumnList().add(columnExpression);
+                selectExpression.getResultColumnList().add(columnExpression, resultColumn.getAlias());
             } else {
                 throw new RuntimeException(StringUtils.format("Invalid field[%s] with type[%s]", resultColumn.toString(), resultColumn.getClass().getName()));
             }
