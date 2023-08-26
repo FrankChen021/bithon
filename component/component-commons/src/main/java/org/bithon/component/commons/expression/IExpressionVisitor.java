@@ -18,46 +18,38 @@ package org.bithon.component.commons.expression;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/4/8 11:41
+ * @date 2023/8/19 20:24
  */
-public interface IExpressionVisitor<T> {
-    default T visit(LiteralExpression expression) {
-        return null;
+public interface IExpressionVisitor {
+    default boolean visit(LiteralExpression expression) {
+        return true;
     }
 
-    default T visit(LogicalExpression expression) {
-        return null;
+    default boolean visit(LogicalExpression expression) {
+        return true;
     }
 
-    default T visit(IdentifierExpression expression) {
-        return null;
+    default boolean visit(IdentifierExpression expression) {
+        return true;
     }
 
-    default T visit(BinaryExpression.EQ expression) {
-        return null;
+    default boolean visit(ExpressionList expression) {
+        return true;
     }
 
-    default T visit(BinaryExpression.GT expression) {
-        return null;
+    default boolean visit(FunctionExpression expression) {
+        return true;
     }
 
-    default T visit(BinaryExpression.GTE expression) {
-        return null;
+    default boolean visit(ArrayAccessExpression expression) {
+        return true;
     }
 
-    default T visit(BinaryExpression.LT expression) {
-        return null;
+    default boolean visit(ArithmeticExpression expression) {
+        return true;
     }
 
-    default T visit(BinaryExpression.LTE expression) {
-        return null;
+    default boolean visit(ComparisonExpression expression) {
+        return true;
     }
-
-    default T visit(BinaryExpression.NE expression) {
-        return null;
-    }
-
-    default T visit(BinaryExpression.IN expression) { return null; }
-
-    default T visit(BinaryExpression.LIKE expression) { return null; }
 }

@@ -16,49 +16,56 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.function.IFunction;
+
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
- * @date 7/8/23 2:05 pm
+ * @date 30/6/23 6:21 pm
  */
-public class ExpressionList implements IExpression {
-    private final List<IExpression> expressions;
-    private final Set<Object> values;
+public class FunctionExpression implements IExpression {
+    private final IFunction function;
 
-    public ExpressionList(IExpression... expressions) {
-        this(Arrays.asList(expressions));
+    private final String name;
+    private final List<IExpression> parameters;
+
+    public FunctionExpression(IFunction function, String name, List<IExpression> parameters) {
+        this.function = function;
+        this.name = name;
+        this.parameters = parameters;
     }
 
-    public ExpressionList(List<IExpression> expressions) {
-        this.expressions = expressions;
-
-        // Only literal is supported now
-        this.values = this.expressions.stream().map((element) -> ((LiteralExpression) element).getValue()).collect(Collectors.toSet());
+    public FunctionExpression(IFunction function, String name, IExpression... parameters) {
+        this(function, name, Arrays.asList(parameters));
     }
 
-    public List<IExpression> getExpressions() {
-        return expressions;
+    public String getName() {
+        return name;
+    }
+
+    public List<IExpression> getParameters() {
+        return parameters;
     }
 
     @Override
     public String getType() {
-        return "()";
+        return "Function";
     }
 
     @Override
     public Object evaluate(IEvaluationContext context) {
-        return values;
+        List<Object> arguments = this.parameters.stream().map((parameter) -> parameter.evaluate(context)).collect(Collectors.toList());
+        return function.evaluate(arguments);
     }
 
     @Override
     public void accept(IExpressionVisitor visitor) {
         if (visitor.visit(this)) {
-            for (IExpression subExpression : expressions) {
-                subExpression.accept(visitor);
+            for (IExpression parameters : this.parameters) {
+                parameters.accept(visitor);
             }
         }
     }

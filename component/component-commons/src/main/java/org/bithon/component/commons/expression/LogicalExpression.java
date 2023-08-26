@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 /**
  * AND/OR
@@ -66,14 +65,17 @@ public abstract class LogicalExpression implements IExpression {
     }
 
     @Override
-    public <T> T accept(IExpressionVisitor<T> visitor) {
-        return visitor.visit(this);
+    public void accept(IExpressionVisitor visitor) {
+        if (visitor.visit(this)) {
+            for (IExpression operand : operands) {
+                operand.accept(visitor);
+            }
+        }
     }
 
     @Override
-    public String toString() {
-        String separator = " " + this.operator + " ";
-        return this.operands.stream().map(Object::toString).collect(Collectors.joining(separator));
+    public <T> T accept(IExpressionVisitor2<T> visitor) {
+        return visitor.visit(this);
     }
 
     public abstract LogicalExpression copy(List<IExpression> expressionList);
@@ -123,7 +125,11 @@ public abstract class LogicalExpression implements IExpression {
     public static class OR extends LogicalExpression {
 
         public OR(List<IExpression> operands) {
-            super("OR", operands);
+            super("AND", operands);
+        }
+
+        public OR(IExpression... operands) {
+            super("OR", Arrays.asList(operands));
         }
 
         @Override

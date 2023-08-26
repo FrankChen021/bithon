@@ -49,7 +49,7 @@ public interface IMatcherVisitor<T> {
 
     T visit(LessThanOrEqualMatcher matcher);
 
-    T visit(StringLikeMatcher stringLikeMatcher);
+    T visit(StringLikeMatcher matcher);
 
-    T visit(NotMatcher notMatcher);
+    T visit(NotMatcher matcher);
 }

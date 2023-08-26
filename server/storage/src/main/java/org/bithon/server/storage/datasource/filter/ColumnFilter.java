@@ -59,4 +59,9 @@ public class ColumnFilter implements IColumnFilter {
     public String getType() {
         return type;
     }
+
+    @Override
+    public IColumnFilter with(String name) {
+        return new ColumnFilter(name, nameType, matcher);
+    }
 }

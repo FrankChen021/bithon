@@ -21,10 +21,20 @@ package org.bithon.component.commons.expression;
  * @date 2023/4/7 20:16
  */
 public class IdentifierExpression implements IExpression {
-    private final String identifier;
+
+    /**
+     * NOT final to allow AST optimization
+     */
+    private String identifier;
+    private boolean isQualified;
 
     public IdentifierExpression(String identifier) {
+        setIdentifier(identifier);
+    }
+
+    public void setIdentifier(String identifier) {
         this.identifier = identifier;
+        this.isQualified = identifier.indexOf('.') > 0;
     }
 
     public String getIdentifier() {
@@ -36,18 +46,22 @@ public class IdentifierExpression implements IExpression {
         return "identifier";
     }
 
+    public boolean isQualified() {
+        return isQualified;
+    }
+
     @Override
-    public <T> T accept(IExpressionVisitor<T> visitor) {
+    public void accept(IExpressionVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
+    public <T> T accept(IExpressionVisitor2<T> visitor) {
         return visitor.visit(this);
     }
 
     @Override
     public Object evaluate(IEvaluationContext context) {
         return context.get(identifier);
-    }
-
-    @Override
-    public String toString() {
-        return identifier;
     }
 }

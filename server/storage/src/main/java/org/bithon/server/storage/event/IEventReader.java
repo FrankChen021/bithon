@@ -16,8 +16,8 @@
 
 package org.bithon.server.storage.event;
 
+import org.bithon.component.commons.expression.IExpression;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.filter.IColumnFilter;
 
 import java.util.List;
 
@@ -26,9 +26,9 @@ import java.util.List;
  * @date 2021/2/14 4:18 下午
  */
 public interface IEventReader extends AutoCloseable {
-    List<Event> getEventList(List<IColumnFilter> filters, TimeSpan start, TimeSpan end, int pageNumber, int pageSize);
+    List<Event> getEventList(IExpression filter, TimeSpan start, TimeSpan end, int pageNumber, int pageSize);
 
-    int getEventListSize(List<IColumnFilter> filters, TimeSpan start, TimeSpan end);
+    int getEventListSize(IExpression filter, TimeSpan start, TimeSpan end);
 
     default void close() {
     }

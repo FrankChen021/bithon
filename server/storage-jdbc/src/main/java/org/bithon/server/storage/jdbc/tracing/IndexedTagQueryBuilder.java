@@ -16,12 +16,12 @@
 
 package org.bithon.server.storage.jdbc.tracing;
 
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.filter.ColumnFilter;
-import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.jdbc.jooq.Tables;
-import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 
@@ -40,20 +40,20 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
     }
 
     @Override
-    public SelectConditionStep<Record1<String>> build(Map<Integer, IColumnFilter> filters) {
+    public SelectConditionStep<Record1<String>> build(Map<Integer, IExpression> filters) {
         if (filters.isEmpty()) {
             return null;
         }
 
         SelectConditionStep<Record1<String>> query = null;
 
-        for (Map.Entry<Integer, IColumnFilter> entry : filters.entrySet()) {
+        for (Map.Entry<Integer, IExpression> entry : filters.entrySet()) {
             Integer index = entry.getKey();
-            IColumnFilter filter = entry.getValue();
+            IExpression filter = entry.getValue();
 
             if (index > Tables.BITHON_TRACE_SPAN_TAG_INDEX.fieldsRow().size() - 2) {
                 throw new RuntimeException(StringUtils.format("Tag [%s] is configured to use wrong index [%d]. Should be in the range [1, %d]",
-                                                              filter.getName(),
+                                                              filter.serializeToText(),
                                                               index,
                                                               Tables.BITHON_TRACE_SPAN_TAG_INDEX.fieldsRow().size() - 2));
             }
@@ -64,8 +64,7 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
                                   .where(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.ge(this.start))
                                   .and(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.lt(this.end));
             }
-            query = query.and(filter.getMatcher().accept(new SQLFilterBuilder(this.traceTagIndexSchema,
-                                                                              new ColumnFilter("f" + index, filter.getMatcher()))));
+            query = query.and(new TagFilterSerializer(index).serialize(filter));
         }
 
         if (query != null) {
@@ -76,6 +75,23 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
             }
         } else {
             return this.in;
+        }
+    }
+
+    static class TagFilterSerializer extends ExpressionSerializer {
+        private final int index;
+
+        TagFilterSerializer(int index) {
+            this.index = index;
+        }
+
+        @Override
+        public boolean visit(IdentifierExpression expression) {
+            sb.append('"');
+            sb.append('f');
+            sb.append(index);
+            sb.append('"');
+            return false;
         }
     }
 }

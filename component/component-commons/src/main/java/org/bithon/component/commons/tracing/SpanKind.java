@@ -63,8 +63,8 @@ public enum SpanKind {
     SpanKind() {
     }
 
-    public static boolean isRootSpan(String kind) {
-        kind = kind.toUpperCase(Locale.ENGLISH);
+    public static boolean isRootSpan(Object kind) {
+        kind = kind.toString().toUpperCase(Locale.ENGLISH);
         return SERVER.name().equals(kind) || TIMER.name().equals(kind) || CONSUMER.name().equals(kind);
     }
 }

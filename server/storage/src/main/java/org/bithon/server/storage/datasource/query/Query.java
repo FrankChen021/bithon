@@ -18,9 +18,9 @@ package org.bithon.server.storage.datasource.query;
 
 import lombok.Builder;
 import lombok.Data;
+import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.metrics.Interval;
 
@@ -38,7 +38,7 @@ public class Query {
 
     private final List<ResultColumn> resultColumns;
 
-    private final List<IColumnFilter> filters;
+    private final IExpression filter;
     private final Interval interval;
 
     private final List<String> groupBy;
@@ -61,7 +61,7 @@ public class Query {
 
     public Query(DataSourceSchema dataSource,
                  List<ResultColumn> resultColumns,
-                 List<IColumnFilter> filters,
+                 IExpression filter,
                  Interval interval,
                  @Nullable List<String> groupBy,
                  @Nullable OrderBy orderBy,
@@ -69,7 +69,7 @@ public class Query {
                  @Nullable ResultFormat resultFormat) {
         this.dataSource = dataSource;
         this.resultColumns = resultColumns;
-        this.filters = filters;
+        this.filter = filter;
         this.interval = interval;
         this.groupBy = CollectionUtils.emptyOrOriginal(groupBy);
         this.orderBy = orderBy;

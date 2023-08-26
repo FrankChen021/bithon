@@ -64,6 +64,11 @@ public class EventJdbcStorage implements IEventStorage {
     }
 
     @Override
+    public DataSourceSchema getSchema() {
+        return eventTableSchema;
+    }
+
+    @Override
     public IEventWriter createWriter() {
         return new EventJdbcWriter(dslContext);
     }

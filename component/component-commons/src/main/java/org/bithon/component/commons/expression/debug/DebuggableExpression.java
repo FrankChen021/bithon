@@ -20,6 +20,7 @@ import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.IExpressionVisitor2;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -53,12 +54,12 @@ public class DebuggableExpression implements IExpression {
     }
 
     @Override
-    public <T> T accept(IExpressionVisitor<T> visitor) {
-        return delegate.accept(visitor);
+    public void accept(IExpressionVisitor visitor) {
+        delegate.accept(visitor);
     }
 
     @Override
-    public String toString() {
-        return delegate.toString();
+    public <T> T accept(IExpressionVisitor2<T> visitor) {
+        return delegate.accept(visitor);
     }
 }

@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.event.api;
 
+import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.matcher.EqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
@@ -23,6 +24,7 @@ import org.bithon.server.storage.datasource.filter.ColumnFilter;
 import org.bithon.server.storage.event.IEventReader;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.bithon.server.web.service.datasource.api.FilterExpressionToFilters;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,9 +39,11 @@ import java.util.ArrayList;
 public class EventApi implements IEventApi {
 
     private final IEventReader eventReader;
+    private final IEventStorage storage;
 
     public EventApi(IEventStorage eventStorage) {
         this.eventReader = eventStorage.createReader();
+        this.storage = eventStorage;
     }
 
     @Override
@@ -53,10 +57,13 @@ public class EventApi implements IEventApi {
             request.getFilters().add(new ColumnFilter("appName", new EqualMatcher(request.getApplication())));
         }
 
-        return new GetEventListResponse(eventReader.getEventListSize(request.getFilters(),
+        IExpression filter = FilterExpressionToFilters.toExpression(this.storage.getSchema(),
+                                                                    null,
+                                                                    request.getFilters());
+        return new GetEventListResponse(eventReader.getEventListSize(filter,
                                                                      start,
                                                                      end),
-                                        eventReader.getEventList(request.getFilters(),
+                                        eventReader.getEventList(filter,
                                                                  start,
                                                                  end,
                                                                  request.getPageNumber(),

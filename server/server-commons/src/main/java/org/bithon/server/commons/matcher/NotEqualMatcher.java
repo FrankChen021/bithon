@@ -29,22 +29,22 @@ import javax.validation.constraints.NotNull;
 public class NotEqualMatcher implements IMatcher {
     @Getter
     @NotNull
-    private final Object value;
+    private final Object pattern;
 
     @JsonCreator
-    public NotEqualMatcher(@JsonProperty("value") @NotNull Object value) {
-        this.value = value;
+    public NotEqualMatcher(@JsonProperty("pattern") @NotNull Object pattern) {
+        this.pattern = pattern;
     }
 
     @Override
     public boolean matches(Object input) {
         if (input instanceof Number) {
             if (input instanceof Integer || input instanceof Long) {
-                return ((Number) input).longValue() != ((Number) value).longValue();
+                return ((Number) input).longValue() != ((Number) pattern).longValue();
             }
-            return ((Number) input).doubleValue() != ((Number) value).doubleValue();
+            return ((Number) input).doubleValue() != ((Number) pattern).doubleValue();
         }
-        return input.toString().compareTo(value.toString()) != 0;
+        return input.toString().compareTo(pattern.toString()) != 0;
     }
 
     @Override

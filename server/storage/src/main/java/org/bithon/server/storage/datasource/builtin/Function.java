@@ -17,6 +17,8 @@
 package org.bithon.server.storage.datasource.builtin;
 
 import lombok.Getter;
+import org.bithon.component.commons.expression.function.IFunction;
+import org.bithon.component.commons.expression.function.Parameter;
 import org.bithon.server.datasource.ast.FieldExpressionParser;
 
 import java.util.Collections;
@@ -28,7 +30,7 @@ import java.util.function.BiConsumer;
  * @date 2022/11/2 17:31
  */
 @Getter
-public class Function {
+public class Function implements IFunction {
     private final String name;
     private final List<Parameter> parameters;
 
@@ -43,4 +45,14 @@ public class Function {
     }
 
     private final BiConsumer<Integer, FieldExpressionParser.FieldExpressionContext> validator;
+
+    @Override
+    public void validateParameter(int index, Object parameter) {
+
+    }
+
+    @Override
+    public Object evaluate(List<Object> parameters) {
+        return null;
+    }
 }

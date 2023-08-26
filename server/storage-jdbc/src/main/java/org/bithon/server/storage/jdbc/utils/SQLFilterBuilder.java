@@ -40,7 +40,6 @@ import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.typing.IDataType;
 
-import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,10 +49,6 @@ import java.util.stream.Stream;
  * @author frank.chenling
  */
 public class SQLFilterBuilder implements IMatcherVisitor<String> {
-
-    public static String build(DataSourceSchema schema, Collection<IColumnFilter> filters) {
-        return build(schema, filters.stream());
-    }
 
     public static String build(DataSourceSchema schema, Stream<IColumnFilter> filterStream) {
         return build(schema, filterStream, true);
@@ -122,7 +117,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
             pattern = "%s <> %s";
         }
 
-        return StringUtils.format(pattern, fieldName, matcher.getValue());
+        return StringUtils.format(pattern, fieldName, matcher.getPattern());
     }
 
     @Override
@@ -236,7 +231,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     }
 
     @Override
-    public String visit(NotMatcher notMatcher) {
-        return StringUtils.format("NOT (%s)", notMatcher.getMatcher().accept(this));
+    public String visit(NotMatcher matcher) {
+        return StringUtils.format("NOT (%s)", matcher.getMatcher().accept(this));
     }
 }

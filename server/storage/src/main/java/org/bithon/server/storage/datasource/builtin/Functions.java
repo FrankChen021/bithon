@@ -16,9 +16,10 @@
 
 package org.bithon.server.storage.datasource.builtin;
 
+import org.bithon.component.commons.expression.function.IDataType;
+import org.bithon.component.commons.expression.function.Parameter;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.ast.FieldExpressionParser;
-import org.bithon.server.storage.datasource.typing.IDataType;
 
 import java.util.Arrays;
 import java.util.HashMap;
