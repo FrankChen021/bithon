@@ -54,6 +54,10 @@ import java.util.List;
  */
 public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
 
+    public static IExpression build(String expression) {
+        return build(expression, null);
+    }
+
     public static IExpression build(String expression, IFunctionProvider functionProvider) {
         ExpressionLexer lexer = new ExpressionLexer(CharStreams.fromString(expression));
         lexer.getErrorListeners().clear();
@@ -329,7 +333,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
         // Apply optimization.
         // ALL parameters are literal,
         // calculates the function now and replaces the function expression by the literal expression
-        if (countOfConstantParameter == parameterExpressionList.size()) {
+        if (function != null && countOfConstantParameter == parameterExpressionList.size()) {
             functionExpression = new LiteralExpression(functionExpression.evaluate(null));
         }
 
