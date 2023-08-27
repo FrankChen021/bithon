@@ -113,6 +113,13 @@ public class ExpressionTest {
     }
 
     @Test
+    public void testLogical_OR() {
+        IExpression expr = ExpressionASTBuilder.build("a = 1 OR b = 1", null);
+        Assert.assertTrue(expr instanceof LogicalExpression.OR);
+        Assert.assertEquals("OR", ((LogicalExpression.OR) expr).getOperator());
+    }
+
+    @Test
     public void testLogical_ConsecutiveOR() {
         IExpression expr = ExpressionASTBuilder.build("a = 1 OR b = 1 OR c = 1 OR d = 1", null);
         Assert.assertTrue(expr instanceof LogicalExpression.OR);
