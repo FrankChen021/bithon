@@ -39,7 +39,6 @@ bithon:
       type: jdbc
     providers:
       jdbc:
-        enabled: true
         url: jdbc:h2:mem:bithon;DB_CLOSE_DELAY=-1;MODE=mysql;
         username: sa
 
