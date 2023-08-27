@@ -17,6 +17,8 @@
 package org.bithon.server.storage.datasource.query.parser;
 
 
+import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -25,13 +27,17 @@ import org.bithon.server.storage.datasource.column.IColumn;
  * @author frank.chen021@outlook.com
  * @date 2020/12/23
  */
-public abstract class FieldExpressionVisitorAdaptor2 implements FieldExpressionVisitorAdaptor {
-    public final void visitField(String field) {
+public abstract class FieldExpressionVisitorAdaptor2 implements IExpressionVisitor {
+
+    @Override
+    public boolean visit(IdentifierExpression expression) {
+        String field = expression.getIdentifier();
         IColumn columnSpec = getSchema().getColumnByName(field);
         if (columnSpec == null) {
             throw new RuntimeException(StringUtils.format("field [%s] can't be found in [%s].", field, getSchema().getName()));
         }
         visitField(columnSpec);
+        return true;
     }
 
     public abstract void visitField(IColumn columnSpec);

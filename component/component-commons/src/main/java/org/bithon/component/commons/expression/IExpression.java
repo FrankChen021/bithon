@@ -33,7 +33,11 @@ public interface IExpression {
     <T> T accept(IExpressionVisitor2<T> visitor);
 
     default String serializeToText() {
-        ExpressionSerializer serializer = new ExpressionSerializer();
+        return serializeToText(true);
+    }
+
+    default String serializeToText(boolean quoteIdentifier) {
+        ExpressionSerializer serializer = new ExpressionSerializer(quoteIdentifier);
         return serializer.serialize(this);
     }
 }

@@ -37,6 +37,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.ast.ExpressionBaseVisitor;
@@ -52,6 +53,10 @@ import java.util.List;
  * @date 1/7/23 8:37 pm
  */
 public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
+
+    public static IExpression build(String expression) {
+        return build(expression, null);
+    }
 
     public static IExpression build(String expression, IFunctionProvider functionProvider) {
         ExpressionLexer lexer = new ExpressionLexer(CharStreams.fromString(expression));
@@ -110,7 +115,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
 
         // Add a placeholder to simply the processing below
         List<ParseTree> children = new ArrayList(ctx.children);
-        children.add(new TerminalNodeImpl(new CommonToken(ExpressionLexer.NUMBER_LITERAL)));
+        children.add(new TerminalNodeImpl(new CommonToken(ExpressionLexer.RIGHT_PARENTHESES)));
 
         // This contains an OPTIMIZATION that turns multiple consecutive 'AND' or 'OR' into one LogicalExpression
         for (int i = 1; i < children.size(); i += 2) {
@@ -257,15 +262,18 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
 
     @Override
     public IExpression visitArrayAccessExpression(ExpressionParser.ArrayAccessExpressionContext ctx) {
-        return new ArrayAccessExpression(ctx.subExpression().accept(this), Integer.parseInt(ctx.NUMBER_LITERAL().getText()));
+        return new ArrayAccessExpression(ctx.subExpression().accept(this), Integer.parseInt(ctx.INTEGER_LITERAL().getText()));
     }
 
     @Override
     public IExpression visitLiteralExpression(ExpressionParser.LiteralExpressionContext ctx) {
         TerminalNode literalExpressionNode = ctx.getChild(TerminalNode.class, 0);
         switch (literalExpressionNode.getSymbol().getType()) {
-            case ExpressionLexer.NUMBER_LITERAL: {
+            case ExpressionLexer.INTEGER_LITERAL: {
                 return new LiteralExpression(Long.parseLong(literalExpressionNode.getText()));
+            }
+            case ExpressionLexer.DECIMAL_LITERAL: {
+                return new LiteralExpression(Double.parseDouble(literalExpressionNode.getText()));
             }
             case ExpressionLexer.STRING_LITERAL: {
                 return new LiteralExpression(getUnQuotedString(literalExpressionNode.getSymbol()));
@@ -300,7 +308,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
         int inputParameterSize = parameters.size();
         if (function != null) {
             if (inputParameterSize != function.getParameters().size()) {
-                throw new IllegalStateException(StringUtils.format("In expression [%s], function [%s] has [%d] parameters, but only given [%d]",
+                throw new IllegalStateException(StringUtils.format("In expression [%s], function [%s] can only accept [%d] parameters, but got [%d]",
                                                                    ctx.getText(),
                                                                    function.getName(),
                                                                    function.getParameters().size(),
@@ -328,11 +336,16 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
         // Apply optimization.
         // ALL parameters are literal,
         // calculates the function now and replaces the function expression by the literal expression
-        if (countOfConstantParameter == parameterExpressionList.size()) {
+        if (function != null && countOfConstantParameter == parameterExpressionList.size()) {
             functionExpression = new LiteralExpression(functionExpression.evaluate(null));
         }
 
         return functionExpression;
+    }
+
+    @Override
+    public IExpression visitMacroExpression(ExpressionParser.MacroExpressionContext ctx) {
+        return new MacroExpression(ctx.IDENTIFIER().getText());
     }
 
     static String getUnQuotedString(Token symbol) {

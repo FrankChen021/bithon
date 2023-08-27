@@ -19,11 +19,9 @@ package org.bithon.server.storage.datasource.builtin;
 import lombok.Getter;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.Parameter;
-import org.bithon.server.datasource.ast.FieldExpressionParser;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BiConsumer;
 
 /**
  * @author frank.chen021@outlook.com
@@ -34,17 +32,14 @@ public class Function implements IFunction {
     private final String name;
     private final List<Parameter> parameters;
 
-    public Function(String name, BiConsumer<Integer, FieldExpressionParser.FieldExpressionContext> validator) {
-        this(name, Collections.emptyList(), validator);
+    public Function(String name) {
+        this(name, Collections.emptyList());
     }
 
-    public Function(String name, List<Parameter> parameters, BiConsumer<Integer, FieldExpressionParser.FieldExpressionContext> validator) {
+    public Function(String name, List<Parameter> parameters) {
         this.name = name;
         this.parameters = parameters;
-        this.validator = validator;
     }
-
-    private final BiConsumer<Integer, FieldExpressionParser.FieldExpressionContext> validator;
 
     @Override
     public void validateParameter(int index, Object parameter) {

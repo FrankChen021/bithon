@@ -139,7 +139,7 @@ public class MetricJdbcReader implements IMetricReader {
                  })
                  .collect(Collectors.joining(",")),
             sqlTableName,
-            filter,
+            StringUtils.hasText(filter) ? filter : "",
             StringUtils.hasText(filter) ? "AND" : "",
             timestampCol,
             sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
@@ -162,7 +162,7 @@ public class MetricJdbcReader implements IMetricReader {
         String sql = StringUtils.format(
             "SELECT count(1) FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s",
             sqlTableName,
-            filter,
+            StringUtils.hasText(filter) ? filter : "",
             StringUtils.hasText(filter) ? "AND" : "",
             timestampCol,
             sqlDialect.formatTimestamp(query.getInterval().getStartTime()),

@@ -14,31 +14,40 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.ast;
-
-import lombok.Getter;
-import org.bithon.component.commons.expression.IExpression;
-import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
+package org.bithon.component.commons.expression;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2022/11/3 22:18
+ * @author Frank Chen
+ * @date 26/8/23 9:37 pm
  */
-public class Expression implements IASTNode {
+public class MacroExpression implements IExpression {
+    private final String macro;
 
-    @Getter
-    private final String expression;
+    public MacroExpression(String macro) {
+        this.macro = macro;
+    }
 
-    @Getter
-    private final IExpression parsedExpression;
-
-    public Expression(String expression) {
-        this.expression = expression;
-        this.parsedExpression = ExpressionASTBuilder.build(expression, null);
+    public String getMacro() {
+        return macro;
     }
 
     @Override
-    public void accept(IASTNodeVisitor visitor) {
+    public String getType() {
+        return "macro";
+    }
+
+    @Override
+    public Object evaluate(IEvaluationContext context) {
+        return context.get(macro);
+    }
+
+    @Override
+    public void accept(IExpressionVisitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public <T> T accept(IExpressionVisitor2<T> visitor) {
+        return visitor.visit(this);
     }
 }

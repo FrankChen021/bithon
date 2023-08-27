@@ -17,8 +17,10 @@
 package org.bithon.server.storage.datasource.ast;
 
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.function.IDataType;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.Parameter;
@@ -111,6 +113,13 @@ public class ExpressionTest {
     }
 
     @Test
+    public void testLogical_OR() {
+        IExpression expr = ExpressionASTBuilder.build("a = 1 OR b = 1", null);
+        Assert.assertTrue(expr instanceof LogicalExpression.OR);
+        Assert.assertEquals("OR", ((LogicalExpression.OR) expr).getOperator());
+    }
+
+    @Test
     public void testLogical_ConsecutiveOR() {
         IExpression expr = ExpressionASTBuilder.build("a = 1 OR b = 1 OR c = 1 OR d = 1", null);
         Assert.assertTrue(expr instanceof LogicalExpression.OR);
@@ -128,6 +137,14 @@ public class ExpressionTest {
 
         Assert.assertTrue(((LogicalExpression.OR) expr).getOperands().get(0) instanceof LogicalExpression.AND);
         Assert.assertTrue(((LogicalExpression.OR) expr).getOperands().get(1) instanceof ComparisonExpression);
+    }
 
+    @Test
+    public void testMacroExpression() {
+        IExpression expr = ExpressionASTBuilder.build("{a}", null);
+        Assert.assertTrue(expr instanceof MacroExpression);
+        Assert.assertEquals("a", ((MacroExpression) expr).getMacro());
+
+        Assert.assertEquals("1", expr.evaluate(name -> name.equals("a") ? "1" : null));
     }
 }
