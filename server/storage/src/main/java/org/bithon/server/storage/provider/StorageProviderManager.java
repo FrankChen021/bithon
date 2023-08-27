@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.InjectableValues;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.InvalidConfigurationException;
 import org.springframework.stereotype.Service;
@@ -48,12 +49,12 @@ public class StorageProviderManager {
             old = this.delegation.getInjectableValues();
             this.delegation.setInjectableValues(new InjectableValues() {
                 @Override
-                public Object findInjectableValue(Object valueId, DeserializationContext ctxt, BeanProperty forProperty, Object beanInstance) throws JsonMappingException {
-                    Object obj = values.findInjectableValue(valueId, ctxt, forProperty, beanInstance);
+                public Object findInjectableValue(Object valueId, DeserializationContext ctx, BeanProperty forProperty, Object beanInstance) throws JsonMappingException {
+                    Object obj = values.findInjectableValue(valueId, ctx, forProperty, beanInstance);
                     if (obj != null) {
                         return obj;
                     }
-                    return old.findInjectableValue(valueId, ctxt, forProperty, beanInstance);
+                    return old.findInjectableValue(valueId, ctx, forProperty, beanInstance);
                 }
             });
         }
@@ -76,7 +77,7 @@ public class StorageProviderManager {
         }
 
         @Override
-        public Object findInjectableValue(Object valueId, DeserializationContext ctxt, BeanProperty forProperty, Object beanInstance) throws JsonMappingException {
+        public Object findInjectableValue(Object valueId, DeserializationContext ctx, BeanProperty forProperty, Object beanInstance) {
             Class<?> targetClass = forProperty.getType().getRawClass();
             if (configuration.getClass().isAssignableFrom(targetClass)) {
                 return configuration;
@@ -102,7 +103,7 @@ public class StorageProviderManager {
         this.objectMapper = objectMapper;
     }
 
-    public IStorageConfiguration getProvider(String name) {
+    public IStorageConfiguration computeIfAbsent(String name) {
         return this.configurations.computeIfAbsent(name, (k) -> {
             IStorageConfiguration provider = this.configurations.get(name);
             if (provider != null) {
@@ -111,10 +112,13 @@ public class StorageProviderManager {
 
             // Initialize the provider
             Map<String, Object> config = configs.getProviders().get(name);
-            InvalidConfigurationException.throwIf(config == null, name + " Not provided");
+            InvalidConfigurationException.throwIf(config == null, StringUtils.format("Storage [%s] not provided in the configurations.", name));
 
             String type = (String) config.get("type");
-            InvalidConfigurationException.throwIf(StringUtils.isEmpty(type), " 'type' property is empty in the storage configuration: " + name);
+            if (StringUtils.isEmpty(type)) {
+                // Use the 'name' property which can simplify the configuration
+                type = name;
+            }
 
             Map<String, Object> obj = new HashMap<>();
             obj.put("type", type);
@@ -123,18 +127,20 @@ public class StorageProviderManager {
             try {
                 String text = objectMapper.writeValueAsString(obj);
                 return objectMapper.readValue(text, IStorageConfiguration.class);
+            } catch (InvalidTypeIdException e) {
+                throw new InvalidConfigurationException(StringUtils.format("Storage [%s] is not supported.", type));
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new InvalidConfigurationException(StringUtils.format("Unable to create storage [%s]: %s", type, e.getMessage()),
+                                                        e);
             }
         });
     }
 
     public <T> T createStorage(String providerName, Class<T> clazz) throws IOException {
-        IStorageConfiguration provider = getProvider(providerName);
+        IStorageConfiguration configuration = computeIfAbsent(providerName);
 
-        String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", provider.getType());
-
-        try (ScopedObjectMapper om = new ScopedObjectMapper(this.objectMapper, new StorageConfigurationInjector(provider))) {
+        try (ScopedObjectMapper om = new ScopedObjectMapper(this.objectMapper, new StorageConfigurationInjector(configuration))) {
+            String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", configuration.getType());
             return om.readValue(jsonType, clazz);
         }
     }

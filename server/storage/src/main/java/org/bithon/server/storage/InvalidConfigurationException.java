@@ -24,12 +24,16 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @date 17/12/21 10:17 AM
  */
 public class InvalidConfigurationException extends RuntimeException {
-    private InvalidConfigurationException(String s) {
+    public InvalidConfigurationException(String s) {
         super(s);
     }
 
+    public InvalidConfigurationException(String s, Throwable cause) {
+        super(s, cause);
+    }
+
     /**
-     * @param messagePattern the pattern must contain only one %s pattern which indicates the configuration item name
+     * @param messagePattern the pattern must contain only one %s pattern, which indicates the configuration item name
      */
     public static void throwIf(boolean isTrue,
                                String messagePattern,
@@ -39,7 +43,7 @@ public class InvalidConfigurationException extends RuntimeException {
             ConfigurationProperties prop = configurationClass.getAnnotation(ConfigurationProperties.class);
 
             // Spring may enhance the configuration class,
-            // so we need to search its parent class to see if there's annotation class defined
+            // so we need to search its parent class to see if there's an annotation class defined
             while (prop == null && configurationClass.getSuperclass() != null) {
                 configurationClass = configurationClass.getSuperclass();
                 prop = configurationClass.getAnnotation(ConfigurationProperties.class);
