@@ -57,7 +57,7 @@ import java.util.Map;
  * @date 2021/1/30 8:34 下午
  */
 @Configuration
-public class StorageAutoConfiguration {
+public class StorageModuleAutoConfiguration {
 
 
     @Bean

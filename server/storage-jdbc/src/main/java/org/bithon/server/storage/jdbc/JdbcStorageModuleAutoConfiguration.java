@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @AutoConfigureBefore({DataSourceAutoConfiguration.class})
-public class JdbcStorageAutoConfiguration {
+public class JdbcStorageModuleAutoConfiguration {
 
     @Bean
     public Module jdbcStorageModel() {
