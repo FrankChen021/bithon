@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.common.IExpirationRunnable;
-import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
+import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonApplicationInstanceRecord;
 import org.bithon.server.storage.meta.IMetaStorage;
@@ -49,10 +49,10 @@ public class MetadataJdbcStorage implements IMetaStorage {
     protected final MetaStorageConfig storageConfig;
 
     @JsonCreator
-    public MetadataJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder,
+    public MetadataJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageConfiguration storageConfigurationProvider,
                                @JacksonInject(useInput = OptBoolean.FALSE) MetaStorageConfig metaStorageConfig
     ) {
-        this(dslContextHolder.getDslContext(), metaStorageConfig);
+        this(storageConfigurationProvider.getDslContext(), metaStorageConfig);
     }
 
     public MetadataJdbcStorage(DSLContext dslContext, MetaStorageConfig metaStorageConfig) {
