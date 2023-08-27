@@ -19,7 +19,6 @@ package org.bithon.server.storage.jdbc.clickhouse;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.bithon.component.commons.utils.StringUtils;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.net.URI;
 import java.net.URISyntaxException;
