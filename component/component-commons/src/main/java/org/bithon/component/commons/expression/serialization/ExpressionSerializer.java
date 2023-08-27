@@ -75,6 +75,7 @@ public class ExpressionSerializer implements IExpressionVisitor {
             return false;
         }
 
+        sb.append('(');
         for (int i = 0, size = expression.getOperands().size(); i < size; i++) {
             if (i > 0) {
                 sb.append(' ');
@@ -83,6 +84,7 @@ public class ExpressionSerializer implements IExpressionVisitor {
             }
             expression.getOperands().get(i).accept(this);
         }
+        sb.append(')');
         return false;
     }
 
