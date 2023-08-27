@@ -29,7 +29,7 @@ import java.net.URISyntaxException;
  * @date 1/11/21 4:54 pm
  */
 @Data
-public class ClickHouseConfig implements InitializingBean {
+public class ClickHouseConfig {
     // JDBC url
     private String url;
     private String cluster;
@@ -49,7 +49,6 @@ public class ClickHouseConfig implements InitializingBean {
      */
     private String tableEngine;
 
-    @Override
     public void afterPropertiesSet() throws URISyntaxException {
         if (!StringUtils.hasText(engine)) {
             throw new RuntimeException("'engine' should not be null");
