@@ -17,9 +17,8 @@
 package org.bithon.server.storage.datasource.builtin;
 
 import org.bithon.component.commons.expression.function.IDataType;
+import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.Parameter;
-import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.datasource.ast.FieldExpressionParser;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,33 +31,25 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2022/11/2 17:34
  */
-public class Functions {
+public class Functions implements IFunctionProvider {
     private static final Functions INSTANCE = new Functions();
 
     public static Functions getInstance() {
         return INSTANCE;
     }
 
-    private final Map<String, Function> functionMap = new HashMap<>(17);
+    private final Map<String, IFunction> functionMap = new HashMap<>(17);
 
     public Functions() {
-        register(new Function("round",
-                              Arrays.asList(new Parameter(IDataType.DOUBLE), new Parameter(IDataType.LONG)),
-                              (index, expression) -> {
-                                  if (index == 1 && expression.getToken(FieldExpressionParser.NUMBER, 0) == null) {
-                                      throw new RuntimeException(StringUtils.format(
-                                          "Function [round] requires the 2nd parameter as a constant value, but given an expression as %s",
-                                          expression.getText()));
-                                  }
-                              }
-        ));
+        register(new Function("round", Arrays.asList(new Parameter(IDataType.DOUBLE), new Parameter(IDataType.LONG))));
     }
 
     private void register(Function function) {
         functionMap.put(function.getName().toLowerCase(Locale.ENGLISH), function);
     }
 
-    public Function getFunction(String name) {
+    @Override
+    public IFunction getFunction(String name) {
         return functionMap.get(name.toLowerCase(Locale.ENGLISH));
     }
 }

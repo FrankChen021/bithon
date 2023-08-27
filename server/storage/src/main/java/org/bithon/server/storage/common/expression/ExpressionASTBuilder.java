@@ -308,7 +308,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
         int inputParameterSize = parameters.size();
         if (function != null) {
             if (inputParameterSize != function.getParameters().size()) {
-                throw new IllegalStateException(StringUtils.format("In expression [%s], function [%s] has [%d] parameters, but only given [%d]",
+                throw new IllegalStateException(StringUtils.format("In expression [%s], function [%s] can only accept [%d] parameters, but got [%d]",
                                                                    ctx.getText(),
                                                                    function.getName(),
                                                                    function.getParameters().size(),

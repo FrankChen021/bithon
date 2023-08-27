@@ -14,9 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.ast;
+package org.bithon.server.storage.datasource.ast;
 
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
+import org.bithon.server.storage.datasource.builtin.Functions;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -54,12 +55,12 @@ public class FieldExpressionTest {
         String functionExpression = "round(100,99,98)";
 
         try {
-            ExpressionASTBuilder.build(functionExpression).serializeToText();
+            ExpressionASTBuilder.build(functionExpression, Functions.getInstance()).serializeToText();
 
             // Should never go here
             Assert.fail();
         } catch (IllegalStateException e) {
-            Assert.assertEquals("In expression [round(100,99,98)], function [round] has [2] parameters, but only given [3]", e.getMessage());
+            Assert.assertEquals("In expression [round(100,99,98)], function [round] can only accept [2] parameters, but got [3]", e.getMessage());
         }
     }
 }
