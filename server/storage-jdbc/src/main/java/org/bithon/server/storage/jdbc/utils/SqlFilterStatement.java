@@ -27,6 +27,10 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
  */
 public class SqlFilterStatement {
     public static String from(DataSourceSchema schema, IExpression expression) {
+        if (expression == null) {
+            return null;
+        }
+
         return from(schema, expression, new ExpressionSerializer() {
             @Override
             public boolean visit(IdentifierExpression expression) {
@@ -39,6 +43,9 @@ public class SqlFilterStatement {
     }
 
     public static String from(DataSourceSchema schema, IExpression expression, ExpressionSerializer serializer) {
+        if (expression == null) {
+            return null;
+        }
         return serializer.serialize(expression);
     }
 }
