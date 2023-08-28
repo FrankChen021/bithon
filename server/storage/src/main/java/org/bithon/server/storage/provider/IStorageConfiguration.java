@@ -14,21 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.clickhouse;
+package org.bithon.server.storage.provider;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.jooq.DSLContext;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
- * A class that used to hold DSLContext in case of DSLContext conflicts with other jooq-based module
- * We also can use bean alias to distinguish different DSLContext, but that require each dependent to use alias which is easy to lead to errors
- *
  * @author frank.chen021@outlook.com
- * @date 8/4/22 2:56 PM
+ * @date 2023/8/27 14:33
  */
-@Getter
-@AllArgsConstructor
-public class ClickHouseJooqContextHolder {
-    private DSLContext dslContext;
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+public interface IStorageConfiguration {
+    @JsonIgnore
+    String getType();
 }

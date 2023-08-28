@@ -27,7 +27,7 @@ import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
-import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
+import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.jdbc.utils.SqlDialectManager;
 import org.bithon.server.storage.metrics.IMetricReader;
@@ -66,11 +66,11 @@ public class MetricJdbcStorage implements IMetricStorage {
     private final SqlDialectManager sqlDialectManager;
 
     @JsonCreator
-    public MetricJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder,
+    public MetricJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageConfiguration provider,
                              @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
                              @JacksonInject(useInput = OptBoolean.FALSE) MetricStorageConfig storageConfig,
                              @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
-        this(dslContextHolder.getDslContext(), schemaManager, storageConfig, sqlDialectManager);
+        this(provider.getDslContext(), schemaManager, storageConfig, sqlDialectManager);
     }
 
     public MetricJdbcStorage(DSLContext dslContext,

@@ -19,7 +19,6 @@ package org.bithon.server.storage.jdbc.clickhouse;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.bithon.component.commons.utils.StringUtils;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -29,7 +28,7 @@ import java.net.URISyntaxException;
  * @date 1/11/21 4:54 pm
  */
 @Data
-public class ClickHouseConfig implements InitializingBean {
+public class ClickHouseConfig {
     // JDBC url
     private String url;
     private String cluster;
@@ -49,7 +48,6 @@ public class ClickHouseConfig implements InitializingBean {
      */
     private String tableEngine;
 
-    @Override
     public void afterPropertiesSet() throws URISyntaxException {
         if (!StringUtils.hasText(engine)) {
             throw new RuntimeException("'engine' should not be null");

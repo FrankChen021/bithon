@@ -27,7 +27,7 @@ import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
-import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
+import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageConfiguration;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 
@@ -43,13 +43,12 @@ public class EventStorage extends EventJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public EventStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseJooqContextHolder dslContextHolder,
+    public EventStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageConfiguration storageConfiguration,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
-                        @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config,
                         @JacksonInject(useInput = OptBoolean.FALSE) EventStorageConfig storageConfig,
                         @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
-        super(dslContextHolder.getDslContext(), objectMapper, storageConfig, schemaManager);
-        this.config = config;
+        super(storageConfiguration.getDslContext(), objectMapper, storageConfig, schemaManager);
+        this.config = storageConfiguration.getClickHouseConfig();
     }
 
     @Override

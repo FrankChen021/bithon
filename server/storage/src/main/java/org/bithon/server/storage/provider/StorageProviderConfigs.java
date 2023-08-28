@@ -14,21 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc;
+package org.bithon.server.storage.provider;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.jooq.DSLContext;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.Map;
 
 /**
- * A class that used to hold DSLContext in case of DSLContext conflicts with other jooq-based module
- * We also can use bean alias to distinguish different DSLContext, but that require each dependent to use alias which is easy to lead to errors
- *
  * @author frank.chen021@outlook.com
- * @date 8/4/22 3:15 PM
+ * @date 2023/8/27 14:36
  */
-@Getter
-@AllArgsConstructor
-public class JdbcJooqContextHolder {
-    private DSLContext dslContext;
+@Data
+@Configuration
+@ConfigurationProperties("bithon.storage")
+public class StorageProviderConfigs {
+    private Map<String, Map<String, Object>> providers;
 }

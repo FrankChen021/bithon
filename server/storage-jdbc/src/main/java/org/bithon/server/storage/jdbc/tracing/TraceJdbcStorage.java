@@ -27,7 +27,7 @@ import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
+import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.utils.SqlDialectManager;
 import org.bithon.server.storage.tracing.ITraceReader;
@@ -55,13 +55,13 @@ public class TraceJdbcStorage implements ITraceStorage {
     protected final SqlDialectManager sqlDialectManager;
 
     @JsonCreator
-    public TraceJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder,
+    public TraceJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageConfiguration storageConfigurationProvider,
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                             @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
                             @JacksonInject(useInput = OptBoolean.FALSE) TraceSinkConfig traceSinkConfig,
                             @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
                             @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
-        this(dslContextHolder.getDslContext(), objectMapper, storageConfig, traceSinkConfig, schemaManager, sqlDialectManager);
+        this(storageConfigurationProvider.getDslContext(), objectMapper, storageConfig, traceSinkConfig, schemaManager, sqlDialectManager);
     }
 
     public TraceJdbcStorage(DSLContext dslContext,

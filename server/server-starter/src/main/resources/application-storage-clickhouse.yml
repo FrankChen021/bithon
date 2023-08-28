@@ -38,7 +38,6 @@ bithon:
       type: clickhouse
     providers:
       clickhouse:
-        enabled: true
         #
         # Data source parameters
         #   NOTE: nullAsDefault = 2, this tells the JDBC to assign default values to all non-nullable columns if corresponding values are null

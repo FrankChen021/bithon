@@ -29,7 +29,7 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
-import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
+import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageConfiguration;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
@@ -61,13 +61,12 @@ public class MetricStorage extends MetricJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseJooqContextHolder dslContextHolder,
+    public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageConfiguration storageConfiguration,
                          @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
                          @JacksonInject(useInput = OptBoolean.FALSE) MetricStorageConfig storageConfig,
-                         @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config,
                          @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
-        super(dslContextHolder.getDslContext(), schemaManager, storageConfig, sqlDialectManager);
-        this.config = config;
+        super(storageConfiguration.getDslContext(), schemaManager, storageConfig, sqlDialectManager);
+        this.config = storageConfiguration.getClickHouseConfig();
     }
 
     @Override

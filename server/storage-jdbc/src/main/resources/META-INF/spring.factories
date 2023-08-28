@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.bithon.server.storage.jdbc.JdbcStorageAutoConfiguration
+org.bithon.server.storage.jdbc.JdbcStorageModuleAutoConfiguration
