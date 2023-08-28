@@ -28,6 +28,7 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.List;
 
@@ -39,12 +40,22 @@ public class ExpressionSerializer implements IExpressionVisitor {
     protected final StringBuilder sb = new StringBuilder(512);
 
     private final boolean quoteIdentifier;
+    private final String qualifier;
 
     public ExpressionSerializer() {
-        this(true);
+        this(null, true);
     }
 
     public ExpressionSerializer(boolean quoteIdentifier) {
+        this(null, quoteIdentifier);
+    }
+
+    /**
+     * @param qualifier       the qualifier of the identifier if the identifier is not a qualified name
+     * @param quoteIdentifier if the identifier should be quoted
+     */
+    public ExpressionSerializer(String qualifier, boolean quoteIdentifier) {
+        this.qualifier = qualifier == null ? null : qualifier.trim();
         this.quoteIdentifier = quoteIdentifier;
     }
 
@@ -91,14 +102,23 @@ public class ExpressionSerializer implements IExpressionVisitor {
 
     @Override
     public boolean visit(IdentifierExpression expression) {
+        if (StringUtils.hasText(qualifier)
+            && !expression.isQualified()) {
+            quoteIdentifierIfNeeded(qualifier);
+            sb.append('.');
+        }
+        quoteIdentifierIfNeeded(expression.getIdentifier());
+        return false;
+    }
+
+    protected void quoteIdentifierIfNeeded(String name) {
         if (quoteIdentifier) {
             sb.append('"');
-            sb.append(expression.getIdentifier());
+            sb.append(name);
             sb.append('"');
         } else {
-            sb.append(expression.getIdentifier());
+            sb.append(name);
         }
-        return false;
     }
 
     @Override

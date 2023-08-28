@@ -16,7 +16,6 @@
 
 package org.bithon.server.web.service.datasource.api;
 
-import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
@@ -48,7 +47,6 @@ import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
-import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,26 +67,28 @@ public class FilterExpressionToFilters {
         expression.accept(new IdentifierVerifier(schema));
 
         if (CollectionUtils.isNotEmpty(otherFilters)) {
-            return new LogicalExpression.AND(expression, toExpression(schema, otherFilters));
+            if (expression instanceof LogicalExpression.AND) {
+                ((LogicalExpression.AND) expression).getOperands().add(toExpression(schema, otherFilters));
+                return expression;
+            } else {
+                return new LogicalExpression.AND(expression, toExpression(schema, otherFilters));
+            }
         } else {
             return expression;
         }
     }
 
     private static IExpression toExpression(DataSourceSchema schema, List<IColumnFilter> filters) {
+        IdentifierVerifier identifierVerifier = new IdentifierVerifier(schema);
+
         List<IExpression> expressions = new ArrayList<>();
         FilterToExpressionConverter converter = new FilterToExpressionConverter();
         for (IColumnFilter filter : filters) {
-            IColumn col = schema.getColumnByName(filter.getName());
-            if (col == null) {
-                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "The field (%s) does not exist.", filter.getName());
-            }
-            if (!col.getName().equals(filter.getName())) {
-                // client side uses the alias name, we turn the alias into the real name for further search
-                filter = filter.with(col.getName());
-            }
             converter.setColumnFilter(filter);
-            expressions.add(filter.getMatcher().accept(converter));
+            IExpression expr = filter.getMatcher().accept(converter);
+            expr.accept(identifierVerifier);
+
+            expressions.add(expr);
         }
         return new LogicalExpression.AND(expressions);
     }
