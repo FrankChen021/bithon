@@ -292,6 +292,7 @@
                 <exclude>**/*.properties</exclude>
                 <exclude>**/*.sh</exclude>
                 <exclude>**/*.yml</exclude>
+                <exclude>**/*.yaml</exclude>
                 <exclude>**/.editorconfig</exclude>
                 <exclude>**/.gitignore</exclude>
                 <exclude>**/*.md</exclude>
