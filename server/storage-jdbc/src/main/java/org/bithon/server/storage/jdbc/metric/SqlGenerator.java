@@ -72,7 +72,7 @@ public class SqlGenerator implements IASTNodeVisitor {
         sql.append(orderBy.getField());
         sql.append('\"');
 
-        if (!StringUtils.isEmpty(orderBy.getOrder())) {
+        if (orderBy.getOrder() != null) {
             sql.append(' ');
             sql.append(orderBy.getOrder());
             sql.append(' ');

@@ -21,7 +21,6 @@ import lombok.Getter;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.MacroExpression;
-import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -40,8 +39,8 @@ import org.bithon.server.storage.datasource.query.ast.StringNode;
 import org.bithon.server.storage.datasource.query.ast.Table;
 import org.bithon.server.storage.datasource.query.ast.Where;
 import org.bithon.server.storage.datasource.query.parser.FieldExpressionVisitorAdaptor2;
+import org.bithon.server.storage.jdbc.utils.Expression2Sql;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
-import org.bithon.server.storage.jdbc.utils.SqlFilterStatement;
 import org.bithon.server.storage.metrics.Interval;
 
 import javax.annotation.Nullable;
@@ -191,7 +190,7 @@ public class SelectExpressionBuilder {
 
         public StringNode visit(Expression expression) {
 
-            ExpressionSerializer serializer = new ExpressionSerializer() {
+            Expression2Sql serializer = new Expression2Sql(null, true) {
                 @Override
                 public boolean visit(IdentifierExpression expression) {
                     String field = expression.getIdentifier();
@@ -293,8 +292,8 @@ public class SelectExpressionBuilder {
                                                                                       generator,
                                                                                       ImmutableMap.of("interval",
                                                                                                       interval.getStep() == null
-                                                                                                      ? interval.getTotalLength()
-                                                                                                      : interval.getStep(),
+                                                                                                          ? interval.getTotalLength()
+                                                                                                          : interval.getStep(),
                                                                                                       "instanceCount",
                                                                                                       "count(distinct \"instanceName\")"));
 
@@ -358,7 +357,7 @@ public class SelectExpressionBuilder {
         where.addExpression(StringUtils.format("\"%s\" >= %s", timestampCol, sqlDialect.formatTimestamp(interval.getStartTime())));
         where.addExpression(StringUtils.format("\"%s\" < %s", timestampCol, sqlDialect.formatTimestamp(interval.getEndTime())));
         if (filter != null) {
-            where.addExpression(SqlFilterStatement.from(dataSource, filter));
+            where.addExpression(Expression2Sql.from(dataSource, filter));
         }
 
         //

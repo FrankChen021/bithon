@@ -17,24 +17,22 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.SelectExpression;
 import org.bithon.server.storage.datasource.query.ast.StringNode;
+import org.bithon.server.storage.jdbc.utils.Expression2Sql;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
-import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
-import org.bithon.server.storage.jdbc.utils.SqlFilterStatement;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,7 +72,7 @@ public class MetricJdbcReader implements IMetricReader {
             // Has a sub-query, timestampExpression will be put in sub-query
             timestampFilterExpression = (SelectExpression) selectExpression.getFrom().getExpression();
 
-            // Add timestamp field to outer query at first position
+            // Add timestamp field to an outer query at first position
             selectExpression.getResultColumnList().insert(new Column(TIMESTAMP_ALIAS_NAME));
         }
 
@@ -120,7 +118,7 @@ public class MetricJdbcReader implements IMetricReader {
     public List<Map<String, Object>> list(Query query) {
         String sqlTableName = query.getDataSource().getDataStoreSpec().getStore();
         String timestampCol = query.getDataSource().getTimestampSpec().getTimestampColumn();
-        String filter = SqlFilterStatement.from(query.getDataSource(), query.getFilter());
+        String filter = Expression2Sql.from(query.getDataSource(), query.getFilter());
         String sql = StringUtils.format(
             "SELECT %s FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s %s LIMIT %d OFFSET %d",
             query.getResultColumns()
@@ -158,7 +156,7 @@ public class MetricJdbcReader implements IMetricReader {
         String sqlTableName = query.getDataSource().getDataStoreSpec().getStore();
         String timestampCol = query.getDataSource().getTimestampSpec().getTimestampColumn();
 
-        String filter = SqlFilterStatement.from(query.getDataSource(), query.getFilter());
+        String filter = Expression2Sql.from(query.getDataSource(), query.getFilter());
         String sql = StringUtils.format(
             "SELECT count(1) FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s",
             sqlTableName,
@@ -214,18 +212,16 @@ public class MetricJdbcReader implements IMetricReader {
     public List<Map<String, String>> getDistinctValues(TimeSpan start,
                                                        TimeSpan end,
                                                        DataSourceSchema dataSourceSchema,
-                                                       Collection<IColumnFilter> conditions,
+                                                       IExpression filter,
                                                        String dimension) {
-        String condition = conditions.stream()
-                                     .map(d -> d.getMatcher().accept(new SQLFilterBuilder(dataSourceSchema, d)) + " AND ")
-                                     .collect(Collectors.joining());
+        String filterText = filter == null ? "" : Expression2Sql.from(dataSourceSchema, filter) + " AND ";
 
         String sql = StringUtils.format(
             "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s AND \"%s\" IS NOT NULL ORDER BY \"%s\"",
             dimension,
             dimension,
             dataSourceSchema.getDataStoreSpec().getStore(),
-            condition,
+            filterText,
             sqlDialect.formatTimestamp(start),
             sqlDialect.formatTimestamp(end),
             dimension,

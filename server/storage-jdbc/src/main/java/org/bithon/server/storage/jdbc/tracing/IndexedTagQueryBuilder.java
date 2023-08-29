@@ -18,10 +18,10 @@ package org.bithon.server.storage.jdbc.tracing;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
-import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.utils.Expression2Sql;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 
@@ -78,10 +78,11 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
         }
     }
 
-    static class TagFilterSerializer extends ExpressionSerializer {
+    static class TagFilterSerializer extends Expression2Sql {
         private final int index;
 
         TagFilterSerializer(int index) {
+            super(null, true);
             this.index = index;
         }
 

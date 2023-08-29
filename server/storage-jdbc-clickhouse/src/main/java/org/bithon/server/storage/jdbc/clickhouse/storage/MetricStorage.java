@@ -21,20 +21,20 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageConfiguration;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
+import org.bithon.server.storage.jdbc.utils.Expression2Sql;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
-import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.jdbc.utils.SqlDialectManager;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
@@ -44,7 +44,6 @@ import org.jooq.Record;
 
 import java.sql.Timestamp;
 import java.time.Duration;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,14 +106,12 @@ public class MetricStorage extends MetricJdbcStorage {
             public List<Map<String, String>> getDistinctValues(TimeSpan start,
                                                                TimeSpan end,
                                                                DataSourceSchema dataSourceSchema,
-                                                               Collection<IColumnFilter> conditions,
+                                                               IExpression filter,
                                                                String dimension) {
                 start = start.floor(Duration.ofMinutes(1));
                 end = end.ceil(Duration.ofMinutes(1));
 
-                String condition = conditions.stream()
-                                             .map(d -> d.getMatcher().accept(new SQLFilterBuilder(dataSourceSchema, d)) + " AND ")
-                                             .collect(Collectors.joining());
+                String condition = filter == null ? "" : Expression2Sql.from(dataSourceSchema, filter) + " AND ";
 
                 String sql = StringUtils.format(
                     "SELECT \"%s\" FROM \"%s\" WHERE %s toStartOfMinute(\"timestamp\") >= %s AND toStartOfMinute(\"timestamp\") < %s GROUP BY \"%s\" ORDER BY \"%s\"",

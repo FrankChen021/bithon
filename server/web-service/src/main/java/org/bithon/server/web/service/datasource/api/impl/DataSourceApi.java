@@ -220,7 +220,7 @@ public class DataSourceApi implements IDataSourceApi {
                                  .getDistinctValues(TimeSpan.fromISO8601(request.getStartTimeISO8601()),
                                                     TimeSpan.fromISO8601(request.getEndTimeISO8601()),
                                                     schema,
-                                                    request.getFilters(),
+                                                    FilterExpressionToFilters.toExpression(schema, null, request.getFilters()),
                                                     column.getName());
     }
 

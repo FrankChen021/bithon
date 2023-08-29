@@ -17,6 +17,7 @@
 package org.bithon.server.storage.jdbc.utils;
 
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 
@@ -24,19 +25,35 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
  * @author frank.chen021@outlook.com
  * @date 2023/8/17 22:08
  */
-public class SqlFilterStatement {
-    public static String from(DataSourceSchema schema, IExpression expression) {
-        if (expression == null) {
-            return null;
-        }
+public class Expression2Sql extends ExpressionSerializer {
 
-        return new ExpressionSerializer(schema.getDataStoreSpec().getStore(), true).serialize(expression);
+    public static String from(DataSourceSchema schema, IExpression expression) {
+        return from(schema, expression, true);
     }
 
-    public static String from(DataSourceSchema schema, IExpression expression, ExpressionSerializer serializer) {
+    public static String from(DataSourceSchema schema, IExpression expression, boolean quoteIdentifier) {
         if (expression == null) {
             return null;
         }
-        return serializer.serialize(expression);
+        return new Expression2Sql(schema.getDataStoreSpec().getStore(), quoteIdentifier).serialize(expression);
+    }
+
+    public Expression2Sql(String qualifier, boolean quoteIdentifier) {
+        super(qualifier, quoteIdentifier);
+    }
+
+    @Override
+    public boolean visit(LiteralExpression expression) {
+        Object value = expression.getValue();
+        if (value instanceof String) {
+            sb.append('\'');
+            // Escape the single quote to ensure the user input is safe
+            sb.append(((String) value).replace("'", "\\'"));
+            sb.append('\'');
+        } else {
+            sb.append(value);
+        }
+        return false;
     }
 }
+

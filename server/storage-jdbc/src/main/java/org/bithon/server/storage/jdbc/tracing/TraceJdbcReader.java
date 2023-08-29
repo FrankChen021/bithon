@@ -34,8 +34,8 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.utils.Expression2Sql;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
-import org.bithon.server.storage.jdbc.utils.SqlFilterStatement;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
@@ -124,7 +124,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                           .where(timestampField.greaterOrEqual(start.toLocalDateTime()).and(timestampField.le(end.toLocalDateTime())));
 
         if (filter != null) {
-            listQuery = listQuery.and(SqlFilterStatement.from(traceSpanSchema, filter));
+            listQuery = listQuery.and(Expression2Sql.from(traceSpanSchema, filter));
         }
 
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
@@ -191,7 +191,7 @@ public class TraceJdbcReader implements ITraceReader {
 
         if (filter != null) {
             sqlBuilder.append(" AND ");
-            sqlBuilder.append(SqlFilterStatement.from(traceSpanSchema, filter));
+            sqlBuilder.append(Expression2Sql.from(traceSpanSchema, filter));
         }
 
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
@@ -241,7 +241,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                                      .where(timestampField.ge(start.toLocalDateTime()).and(timestampField.lt(end.toLocalDateTime())));
 
         if (filter != null) {
-            countQuery = countQuery.and(SqlFilterStatement.from(traceSpanSchema, filter));
+            countQuery = countQuery.and(Expression2Sql.from(traceSpanSchema, filter));
         }
 
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
