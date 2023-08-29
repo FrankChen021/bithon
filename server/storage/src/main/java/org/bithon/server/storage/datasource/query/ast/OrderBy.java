@@ -17,6 +17,7 @@
 package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
+import org.bithon.server.storage.datasource.query.Order;
 
 /**
  * @author frank.chen021@outlook.com
@@ -28,13 +29,13 @@ public class OrderBy implements IASTNode {
     private final String field;
 
     @Getter
-    private final String order;
+    private final Order order;
 
     /**
      * @param field
      * @param order ASC or DESC
      */
-    public OrderBy(String field, String order) {
+    public OrderBy(String field, Order order) {
         this.field = field;
         this.order = order;
     }

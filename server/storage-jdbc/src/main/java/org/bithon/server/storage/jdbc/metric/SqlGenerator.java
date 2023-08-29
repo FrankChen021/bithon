@@ -16,7 +16,6 @@
 
 package org.bithon.server.storage.jdbc.metric;
 
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.ColumnAlias;
 import org.bithon.server.storage.datasource.query.ast.Expression;
