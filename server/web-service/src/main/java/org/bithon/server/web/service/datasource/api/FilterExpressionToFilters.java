@@ -63,7 +63,7 @@ public class FilterExpressionToFilters {
             return CollectionUtils.isEmpty(otherFilters) ? null : toExpression(schema, otherFilters);
         }
 
-        IExpression expression = ExpressionASTBuilder.build(filterExpression, null);
+        IExpression expression = ExpressionASTBuilder.build(filterExpression);
         expression.accept(new IdentifierVerifier(schema));
 
         if (CollectionUtils.isNotEmpty(otherFilters)) {
