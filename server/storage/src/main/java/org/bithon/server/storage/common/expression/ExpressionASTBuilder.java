@@ -318,7 +318,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
             function = this.functionProvider.getFunction(functionName);
             if (function == null) {
                 // Only allow defined functions for safe
-                throw new InvalidExpressionException("Function [%s] is not support.", functionName);
+                throw new InvalidExpressionException("Function [%s] is not supported.", functionName);
             }
             function.validateParameter(parameterExpressionList);
         }
