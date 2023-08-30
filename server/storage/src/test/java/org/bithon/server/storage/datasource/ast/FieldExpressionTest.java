@@ -40,8 +40,8 @@ public class FieldExpressionTest {
 
     @Test
     public void testFunctionExpression() {
-        String expression = "round(100,2)";
-        Assert.assertEquals(expression, ExpressionASTBuilder.build(expression).serializeToText());
+        String expression = "round(100,3)";
+        Assert.assertEquals("100.000", ExpressionASTBuilder.build(expression).serializeToText());
     }
 
     @Test

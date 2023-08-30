@@ -24,5 +24,6 @@ public enum IDataType {
 
     STRING,
     LONG,
+    BOOLEAN,
     DOUBLE
 }
