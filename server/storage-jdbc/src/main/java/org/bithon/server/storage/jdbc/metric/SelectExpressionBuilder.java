@@ -380,7 +380,6 @@ public class SelectExpressionBuilder {
             }
         }
 
-
         //
         // build OrderBy/Limit expression
         //

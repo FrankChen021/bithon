@@ -124,7 +124,8 @@ public class TraceJdbcReader implements ITraceReader {
                                                           .where(timestampField.greaterOrEqual(start.toLocalDateTime()).and(timestampField.le(end.toLocalDateTime())));
 
         if (filter != null) {
-            listQuery = listQuery.and(Expression2Sql.from(traceSpanSchema, filter));
+            listQuery = listQuery.and(Expression2Sql.from((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).getName(),
+                                                          filter));
         }
 
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
@@ -191,7 +192,8 @@ public class TraceJdbcReader implements ITraceReader {
 
         if (filter != null) {
             sqlBuilder.append(" AND ");
-            sqlBuilder.append(Expression2Sql.from(traceSpanSchema, filter));
+            sqlBuilder.append(Expression2Sql.from((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).getName(),
+                                                  filter));
         }
 
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
@@ -241,7 +243,8 @@ public class TraceJdbcReader implements ITraceReader {
                                                                      .where(timestampField.ge(start.toLocalDateTime()).and(timestampField.lt(end.toLocalDateTime())));
 
         if (filter != null) {
-            countQuery = countQuery.and(Expression2Sql.from(traceSpanSchema, filter));
+            countQuery = countQuery.and(Expression2Sql.from((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).getName(),
+                                                            filter));
         }
 
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {

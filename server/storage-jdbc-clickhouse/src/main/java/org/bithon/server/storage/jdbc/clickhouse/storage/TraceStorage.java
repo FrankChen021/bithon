@@ -154,7 +154,7 @@ public class TraceStorage extends TraceJdbcStorage {
                 String tag = StringUtils.format("%s['%s']", Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName(), ((IdentifierExpression) left).getIdentifier().substring(SPAN_TAGS_PREFIX.length()));
                 ((IdentifierExpression) left).setIdentifier(tag);
 
-                return Expression2Sql.from(traceSpanSchema, tagFilter, false);
+                return Expression2Sql.from(null/*do not use qualified name*/, tagFilter, false);
             }
 
             @Override
