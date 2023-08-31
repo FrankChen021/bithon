@@ -245,6 +245,12 @@ class TableComponent {
     resize() {
     }
 
+    /**
+     * public interface of component in dashboard
+     */
+    showHint(hint) {
+    }
+
     load(option) {
         console.log(option);
 

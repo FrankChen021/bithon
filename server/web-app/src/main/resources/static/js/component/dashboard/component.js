@@ -76,7 +76,7 @@ class Dashboard {
                 html: true,
                 trigger: 'hover',
                 title: 'Syntax',
-                content: '<b>Comparator</b>: &lt;, &lt;=, &gt, &gt;=, =, !=, LIKE, NOT LIKE, IN, NOT IN<br/>' +
+                content: '<b>Comparators</b>: &lt;, &lt;=, &gt, &gt;=, =, !=, LIKE, NOT LIKE, IN, NOT IN<br/>' +
                        '<b>Operators</b>: AND, OR, NOT<br/>' +
                        '<b>Functions</b>: startsWith(field, \'prefix\'), endsWith(field, \'suffix\'), hasToken(field, \'xxx\')<br/><br/>' +
                        '<b>Example 1</b>: <u>level in (\'DEBUG\', \'INFO\')</u><br/>' +
@@ -1072,10 +1072,12 @@ class Dashboard {
         const query = chartDescriptor.query;
         if (query.precondition !== undefined
             && query.precondition.filters !== undefined) {
-            const satisfied = query.precondition.filters.every((f) => this.vFilter.getSelectedFilter(f) != null);
-            if (!satisfied) {
-                console.log('Not satisfied');
-                return;
+            for (let i = 0; i < query.precondition.filters.length; i++) {
+                const filter = query.precondition.filters[i];
+                if (this.vFilter.getSelectedFilter(filter) == null) {
+                    chartComponent.showHint(`Select ${filter} to load`);
+                    return;
+                }
             }
         }
 

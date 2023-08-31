@@ -322,6 +322,13 @@ class ChartComponent {
         return this._chart;
     }
 
+    showHint(hint) {
+        this._chart.showLoading({
+            text: hint,
+             showSpinner: false
+        });
+    }
+
     setOpenHandler(openHandler) {
         if ($(this._card).find('btn-open').length === 0) {
             const ctrl = $(this._card).find('.tools');
