@@ -16,13 +16,16 @@
 
 package org.bithon.server.web.service.datasource.api.impl;
 
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.datasource.DataSourceExistException;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
@@ -79,6 +82,8 @@ public class DataSourceApi implements IDataSourceApi {
     public GeneralQueryResponse timeseriesV3(@Validated @RequestBody GeneralQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
+        validateQueryRequest(schema, request);
+
         Query query = this.dataSourceService.convertToQuery(schema, request, false, true);
         TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
         return GeneralQueryResponse.builder()
@@ -92,6 +97,8 @@ public class DataSourceApi implements IDataSourceApi {
     @Override
     public GeneralQueryResponse timeseriesV4(@Validated @RequestBody GeneralQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+        validateQueryRequest(schema, request);
 
         Query query = this.dataSourceService.convertToQuery(schema, request, true, true);
         TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
@@ -107,13 +114,15 @@ public class DataSourceApi implements IDataSourceApi {
     public GeneralQueryResponse list(GeneralQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
+        validateQueryRequest(schema, request);
+
         Query query = Query.builder()
                            .dataSource(schema)
                            .resultColumns(request.getFields()
                                                  .stream()
                                                  .map((field) -> {
                                                      IColumn spec = schema.getColumnByName(field.getField());
-                                                     Preconditions.checkNotNull(spec, "field [%s] does not exist in the schema.", field.getField());
+                                                     Preconditions.checkNotNull(spec, "Field [%s] does not exist in the schema.", field.getField());
                                                      return new ResultColumn(spec.getName(), field.getName());
                                                  }).collect(Collectors.toList()))
                            .filter(FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters()))
@@ -136,6 +145,8 @@ public class DataSourceApi implements IDataSourceApi {
     public GeneralQueryResponse groupBy(GeneralQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
+        validateQueryRequest(schema, request);
+
         Query query = this.dataSourceService.convertToQuery(schema, request, false, false);
         return GeneralQueryResponse.builder()
                                    .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
@@ -147,6 +158,8 @@ public class DataSourceApi implements IDataSourceApi {
     @Override
     public GeneralQueryResponse groupByV3(GeneralQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+        validateQueryRequest(schema, request);
 
         Query query = this.dataSourceService.convertToQuery(schema, request, true, false);
         return GeneralQueryResponse.builder()
@@ -214,7 +227,7 @@ public class DataSourceApi implements IDataSourceApi {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         IColumn column = schema.getColumnByName(request.getName());
-        Preconditions.checkNotNull(column, "column [%s] not found.", request.getName());
+        Preconditions.checkNotNull(column, "Field [%s] does not exist in the schema.", request.getName());
 
         return this.metricStorage.createMetricReader(schema)
                                  .getDistinctValues(TimeSpan.fromISO8601(request.getStartTimeISO8601()),
@@ -228,5 +241,25 @@ public class DataSourceApi implements IDataSourceApi {
     public void updateSpecifiedDataSourceTTL(@RequestBody UpdateTTLRequest request) {
         ExpirationConfig expirationConfig = this.storageConfig.getTtl();
         expirationConfig.setTtl(request.getTtl());
+    }
+
+    /**
+     * Validate the request to ensure the safety
+     */
+    private void validateQueryRequest(DataSourceSchema schema, GeneralQueryRequest request) {
+        if (CollectionUtils.isNotEmpty(request.getGroupBy())) {
+            for (String field : request.getGroupBy()) {
+                Preconditions.checkNotNull(schema.getColumnByName(field),
+                                           "GroupBy field [%s] does not exist in the schema.",
+                                           field);
+            }
+        }
+
+        OrderBy orderBy = request.getOrderBy();
+        if (orderBy != null && StringUtils.hasText(orderBy.getName())) {
+            Preconditions.checkNotNull(schema.getColumnByName(orderBy.getName()),
+                                       "OrderBy field [%s] does not exist in the schema.",
+                                       orderBy.getName());
+        }
     }
 }

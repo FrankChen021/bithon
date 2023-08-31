@@ -33,6 +33,7 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.utils.Expression2Sql;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
@@ -110,7 +111,7 @@ public class TraceJdbcReader implements ITraceReader {
                                         Timestamp start,
                                         Timestamp end,
                                         String orderBy,
-                                        String order,
+                                        Order order,
                                         int pageNumber,
                                         int pageSize) {
         boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
@@ -158,7 +159,7 @@ public class TraceJdbcReader implements ITraceReader {
             orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
         }
         SelectSeekStep1<?, ?> orderedListQuery;
-        if ("desc".equals(order)) {
+        if (Order.desc.equals(order)) {
             orderedListQuery = listQuery.orderBy(orderField.desc());
         } else {
             orderedListQuery = listQuery.orderBy(orderField.asc());

@@ -21,12 +21,14 @@ import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor2;
 import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
+import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.TraceSpan;
@@ -47,7 +49,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -150,7 +151,7 @@ public class TraceService {
                                         Timestamp start,
                                         Timestamp end,
                                         String orderBy,
-                                        String order,
+                                        Order order,
                                         int pageNumber,
                                         int pageSize) {
         FilterSplitter splitter = new FilterSplitter(this.traceStorageConfig);
@@ -252,18 +253,23 @@ public class TraceService {
                 throw new RuntimeException("Only AND operator is supported to search tracing.");
             }
 
-            Iterator<IExpression> iterator = expression.getOperands().iterator();
-            while (iterator.hasNext()) {
-                IExpression subExpression = iterator.next();
+            List<IExpression> nonTagsFilters = new ArrayList<>();
+            for (IExpression subExpression : expression.getOperands()) {
                 if (subExpression.accept(this)) {
-                    iterator.remove();
                     if (currentTagIndex > 0) {
                         indexedTagFilter.put(currentTagIndex, subExpression);
                     } else {
                         nonIndexedTagFilter.add(subExpression);
                     }
+                } else {
+                    nonTagsFilters.add(subExpression);
                 }
             }
+            if (nonTagsFilters.isEmpty()) {
+                // Add a placeholder expression so simple further processing
+                nonTagsFilters.add(new ComparisonExpression.EQ(new LiteralExpression(1), new LiteralExpression(1)));
+            }
+            expression.setOperands(nonTagsFilters);
 
             return false;
         }
