@@ -19,6 +19,7 @@ package org.bithon.server.storage.datasource.builtin;
 import lombok.Getter;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.function.IDataType;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.Parameter;
 import org.bithon.server.storage.common.expression.InvalidExpressionException;
@@ -62,8 +63,13 @@ public abstract class AbstractFunction implements IFunction {
 
     protected void validateParameter(IExpression parameter, int index) {
         if (parameter instanceof LiteralExpression) {
-            if (!((LiteralExpression) parameter).getDataType().equals(this.getParameters().get(index).getType())) {
-                throw new InvalidExpressionException("The 1st parameter of function substring must only be type of string.");
+            IDataType declaredType = this.getParameters().get(index).getType();
+            IDataType inputType = ((LiteralExpression) parameter).getDataType();
+            if (!declaredType.isCompatible(inputType)) {
+                throw new InvalidExpressionException("The parameter at index %d of function [%s] must be type of %s",
+                                                     index,
+                                                     name,
+                                                     declaredType);
             }
         }
     }

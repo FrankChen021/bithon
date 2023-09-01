@@ -22,8 +22,34 @@ package org.bithon.component.commons.expression.function;
  */
 public enum IDataType {
 
-    STRING,
-    LONG,
-    BOOLEAN,
-    DOUBLE
+    STRING {
+        @Override
+        public boolean isCompatible(IDataType dataType) {
+            return STRING.equals(dataType);
+        }
+    },
+
+    LONG {
+        @Override
+        public boolean isCompatible(IDataType dataType) {
+            return dataType == LONG || dataType == DOUBLE;
+        }
+    },
+
+    BOOLEAN {
+        @Override
+        public boolean isCompatible(IDataType dataType) {
+            return dataType == BOOLEAN;
+        }
+    },
+
+    DOUBLE {
+        @Override
+        public boolean isCompatible(IDataType dataType) {
+            return dataType == LONG || dataType == DOUBLE;
+        }
+    };
+
+
+    public abstract boolean isCompatible(IDataType dataType);
 }
