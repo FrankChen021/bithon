@@ -19,6 +19,7 @@ package org.bithon.server.web.service.datasource.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.server.storage.datasource.query.Order;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -46,7 +47,7 @@ public class GeneralQueryRequestTest {
                                                         .readValue(json, GeneralQueryRequest.class);
 
         Assert.assertEquals("instanceUpTime", request.getOrderBy().getName());
-        Assert.assertEquals("desc", request.getOrderBy().getOrder());
+        Assert.assertEquals(Order.desc, request.getOrderBy().getOrder());
     }
 
     @Test
@@ -68,7 +69,7 @@ public class GeneralQueryRequestTest {
                                                         .readValue(json, GeneralQueryRequest.class);
 
         Assert.assertEquals("instanceUpTime", request.getOrderBy().getName());
-        Assert.assertEquals("desc", request.getOrderBy().getOrder());
+        Assert.assertEquals(Order.desc, request.getOrderBy().getOrder());
         Assert.assertEquals(15, request.getLimit().getLimit());
     }
 
@@ -91,7 +92,7 @@ public class GeneralQueryRequestTest {
                                                         .readValue(json, GeneralQueryRequest.class);
 
         Assert.assertEquals("instanceUpTime", request.getOrderBy().getName());
-        Assert.assertEquals("desc", request.getOrderBy().getOrder());
+        Assert.assertEquals(Order.desc, request.getOrderBy().getOrder());
         Assert.assertEquals(15, request.getLimit().getLimit());
     }
 
@@ -114,7 +115,7 @@ public class GeneralQueryRequestTest {
                                                         .readValue(json, GeneralQueryRequest.class);
 
         Assert.assertEquals("instanceUpTime", request.getOrderBy().getName());
-        Assert.assertEquals("desc", request.getOrderBy().getOrder());
+        Assert.assertEquals(Order.desc, request.getOrderBy().getOrder());
         Assert.assertEquals(4, request.getLimit().getLimit());
         Assert.assertEquals(6, request.getLimit().getOffset());
     }
