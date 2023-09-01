@@ -39,11 +39,14 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.InflaterInputStream;
 
 /**
  * @author frank.chen021@outlook.com
@@ -64,11 +67,28 @@ public class OtelHttpTraceCollector {
     public void collectBinaryFormattedTrace(HttpServletRequest request,
                                             HttpServletResponse response) throws IOException {
 
+        InputStream is = null;
+        String encoding = request.getHeader("Content-Encoding");
+        if (!StringUtils.isEmpty(encoding)) {
+            if ("gzip".equals(encoding)) {
+                is = new GZIPInputStream(request.getInputStream());
+            } else if ("deflate".equals(encoding)) {
+                is = new InflaterInputStream(request.getInputStream());
+            } else {
+                String message = StringUtils.format("Not supported Content-Encoding [%s] from remote [%s]", encoding, request.getRemoteAddr());
+                response.getWriter().println(message);
+                response.setStatus(HttpStatus.BAD_REQUEST.value());
+                return;
+            }
+        } else {
+            is = request.getInputStream();
+        }
+
         List<TraceSpan> spans;
         if ("application/x-protobuf".equals(request.getContentType())) {
-            spans = fromBinary(request);
+            spans = fromBinary(is);
         } else if ("application/json".equals(request.getContentType())) {
-            spans = fromJson(request);
+            spans = fromJson(request, is);
         } else {
             String message = StringUtils.format("Not supported Content-Type [%s] from remote [%s]", request.getContentType(), request.getRemoteAddr());
             response.getWriter().println(message);
@@ -82,16 +102,16 @@ public class OtelHttpTraceCollector {
         this.traceSink.process("trace", spans);
     }
 
-    private List<TraceSpan> fromJson(HttpServletRequest request) {
+    private List<TraceSpan> fromJson(HttpServletRequest request, InputStream is) {
         return Collections.emptyList();
     }
 
-    private List<TraceSpan> fromBinary(HttpServletRequest request) throws IOException {
+    private List<TraceSpan> fromBinary(InputStream is) throws IOException {
         List<TraceSpan> spans = new ArrayList<>(32);
 
         ResourceSpans.Builder builder = ResourceSpans.newBuilder();
-        CodedInputStream is = CodedInputStream.newInstance(request.getInputStream());
-        is.readMessage(builder, ExtensionRegistryLite.getEmptyRegistry());
+        CodedInputStream codedInputStream = CodedInputStream.newInstance(is);
+        codedInputStream.readMessage(builder, ExtensionRegistryLite.getEmptyRegistry());
         ResourceSpans resourceSpans = builder.build();
         for (ScopeSpans scopeSpans : resourceSpans.getScopeSpansList()) {
             for (Span span : scopeSpans.getSpansList()) {
