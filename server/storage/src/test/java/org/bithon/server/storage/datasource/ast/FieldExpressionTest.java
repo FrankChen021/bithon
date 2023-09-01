@@ -17,7 +17,7 @@
 package org.bithon.server.storage.datasource.ast;
 
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.bithon.server.storage.datasource.builtin.Functions;
+import org.bithon.server.storage.common.expression.InvalidExpressionException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -40,8 +40,8 @@ public class FieldExpressionTest {
 
     @Test
     public void testFunctionExpression() {
-        String expression = "round(100,2)";
-        Assert.assertEquals(expression, ExpressionASTBuilder.build(expression).serializeToText());
+        String expression = "round(100,3)";
+        Assert.assertEquals("100.000", ExpressionASTBuilder.build(expression).serializeToText());
     }
 
     @Test
@@ -54,13 +54,6 @@ public class FieldExpressionTest {
     public void testMoreArgumentInFunctionExpression() {
         String functionExpression = "round(100,99,98)";
 
-        try {
-            ExpressionASTBuilder.build(functionExpression, Functions.getInstance()).serializeToText();
-
-            // Should never go here
-            Assert.fail();
-        } catch (IllegalStateException e) {
-            Assert.assertEquals("In expression [round(100,99,98)], function [round] can only accept [2] parameters, but got [3]", e.getMessage());
-        }
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build(functionExpression));
     }
 }

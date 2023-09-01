@@ -50,25 +50,39 @@ class Dashboard {
             }
 
             // Insert the filter expression before the dashboard container
-            this._container.before( '<div class="input-group" style="padding-left: 5px; padding-right: 5px">      ' +
+            const p = this._container.before( '<div class="input-group" style="padding-left: 5px; padding-right: 5px">      ' +
                                     '     <div class="input-group-prepend">                                       ' +
-                                    '         <span class="input-group-text rounded-0" id="filter-input-span">Filter</span> ' +
+                                    '         <span class="input-group-text rounded-0" id="filter-input-span">Filter&nbsp;<i id="tooltip" class="far fa-question-circle"></i></span> ' +
                                     '     </div>                                                                  ' +
                                     '    <input type="text"                                                       ' +
                                     '           class="form-control"                                              ' +
-                                    '           id="filter-input" placeholder="SQL style filter, such as: message like \'%a%\'"' +
-                                    '            aria-describedby="filter-input-span"/>                           ' +
+                                    '           id="filter-input" placeholder="SQL style filter expression, hover your mouse on the question mark to learn more. Press Enter once input complete."' +
+                                    '           aria-describedby="filter-input-span" tooltip/>                           ' +
                                     ' </div>')
-                                    .parent()
-                                    .find('#filter-input')
-                                    .val(inputFilterExpression)
-                                    .on('keydown', (event) => {
-                                        if (event.keyCode === 13) {
-                                            this.#updatePageURL();
+                                    .parent();
 
-                                            this.refreshDashboard();
-                                        }
-                                    });
+            p.find('#filter-input')
+            .val(inputFilterExpression)
+            .on('keydown', (event) => {
+                if (event.keyCode === 13) {
+                    this.#updatePageURL();
+
+                    this.refreshDashboard();
+                }
+            });
+
+            p.find('#tooltip').popover({
+                placement: 'bottom',
+                html: true,
+                trigger: 'hover',
+                title: 'Syntax',
+                content: '<b>Comparators</b>: &lt;, &lt;=, &gt, &gt;=, =, !=, LIKE, NOT LIKE, IN, NOT IN<br/>' +
+                       '<b>Operators</b>: AND, OR, NOT<br/>' +
+                       '<b>Functions</b>: startsWith(field, \'prefix\'), endsWith(field, \'suffix\'), hasToken(field, \'xxx\')<br/><br/>' +
+                       '<b>Example 1</b>: <u>level in (\'DEBUG\', \'INFO\')</u><br/>' +
+                       '<b>Example 2</b>: <u>message like \'%start%\' AND level = \'INFO\'</u><br/>' +
+                       '<b>Example 3</b>: <u>message like \'%start%\' AND message like \'%complete%\'</u><br/>'
+            });
         }
 
         //
@@ -1058,10 +1072,12 @@ class Dashboard {
         const query = chartDescriptor.query;
         if (query.precondition !== undefined
             && query.precondition.filters !== undefined) {
-            const satisfied = query.precondition.filters.every((f) => this.vFilter.getSelectedFilter(f) != null);
-            if (!satisfied) {
-                console.log('Not satisfied');
-                return;
+            for (let i = 0; i < query.precondition.filters.length; i++) {
+                const filter = query.precondition.filters[i];
+                if (this.vFilter.getSelectedFilter(filter) == null) {
+                    chartComponent.showHint(`Select ${filter} to load`);
+                    return;
+                }
             }
         }
 

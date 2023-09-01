@@ -44,7 +44,7 @@ public abstract class LogicalExpression implements IExpression {
     }
 
     protected final String operator;
-    protected final List<IExpression> operands;
+    protected List<IExpression> operands;
 
     protected LogicalExpression(String operator, List<IExpression> operands) {
         this.operator = operator.toUpperCase(Locale.ENGLISH);
@@ -57,6 +57,13 @@ public abstract class LogicalExpression implements IExpression {
 
     public List<IExpression> getOperands() {
         return operands;
+    }
+
+    /**
+     * Allow to be modified so that the expressions can be optimized
+     */
+    public void setOperands(List<IExpression> operands) {
+        this.operands = operands;
     }
 
     @Override

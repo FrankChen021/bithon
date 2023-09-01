@@ -19,7 +19,6 @@ package org.bithon.server.storage.jdbc.tracing;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IExpression;
@@ -33,9 +32,10 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.utils.Expression2Sql;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
-import org.bithon.server.storage.jdbc.utils.SqlFilterStatement;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
@@ -47,7 +47,6 @@ import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectSeekStep1;
-import org.springframework.http.HttpStatus;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -110,7 +109,7 @@ public class TraceJdbcReader implements ITraceReader {
                                         Timestamp start,
                                         Timestamp end,
                                         String orderBy,
-                                        String order,
+                                        Order order,
                                         int pageNumber,
                                         int pageSize) {
         boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
@@ -124,7 +123,8 @@ public class TraceJdbcReader implements ITraceReader {
                                                           .where(timestampField.greaterOrEqual(start.toLocalDateTime()).and(timestampField.le(end.toLocalDateTime())));
 
         if (filter != null) {
-            listQuery = listQuery.and(SqlFilterStatement.from(traceSpanSchema, filter));
+            listQuery = listQuery.and(Expression2Sql.from((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).getName(),
+                                                          filter));
         }
 
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
@@ -157,7 +157,7 @@ public class TraceJdbcReader implements ITraceReader {
             orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
         }
         SelectSeekStep1<?, ?> orderedListQuery;
-        if ("desc".equals(order)) {
+        if (Order.desc.equals(order)) {
             orderedListQuery = listQuery.orderBy(orderField.desc());
         } else {
             orderedListQuery = listQuery.orderBy(orderField.asc());
@@ -191,7 +191,8 @@ public class TraceJdbcReader implements ITraceReader {
 
         if (filter != null) {
             sqlBuilder.append(" AND ");
-            sqlBuilder.append(SqlFilterStatement.from(traceSpanSchema, filter));
+            sqlBuilder.append(Expression2Sql.from((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).getName(),
+                                                  filter));
         }
 
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
@@ -241,7 +242,8 @@ public class TraceJdbcReader implements ITraceReader {
                                                                      .where(timestampField.ge(start.toLocalDateTime()).and(timestampField.lt(end.toLocalDateTime())));
 
         if (filter != null) {
-            countQuery = countQuery.and(SqlFilterStatement.from(traceSpanSchema, filter));
+            countQuery = countQuery.and(Expression2Sql.from((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).getName(),
+                                                            filter));
         }
 
         if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
@@ -385,10 +387,10 @@ public class TraceJdbcReader implements ITraceReader {
         @Override
         public boolean visit(ComparisonExpression expression) {
             if (!(expression.getLeft() instanceof IdentifierExpression)) {
-                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
-                                                "The left operator in the expression [%s] is type of %s, however only Identifier expression is supported now.",
-                                                expression.serializeToText(),
-                                                expression.getLeft().getClass().getSimpleName());
+                // Only support the IdentifierExpression in the left for simplicity.
+                // Do not throw exception here 'cause the AST might contain some other internal optimization rule
+                // such as 1 = 1 for simple processing
+                return false;
             }
 
             if (expression instanceof ComparisonExpression.EQ) {

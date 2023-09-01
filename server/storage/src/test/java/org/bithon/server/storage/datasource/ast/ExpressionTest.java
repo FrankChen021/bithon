@@ -17,7 +17,6 @@
 package org.bithon.server.storage.datasource.ast;
 
 import org.bithon.component.commons.expression.ComparisonExpression;
-import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
@@ -54,7 +53,7 @@ public class ExpressionTest {
                 }
 
                 @Override
-                public void validateParameter(int index, Object parameter) {
+                public void validateParameter(List<IExpression> parameters) {
                 }
 
                 @Override

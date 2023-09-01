@@ -156,7 +156,7 @@ class TableComponent {
                 return;
             }
 
-            $(this._header).find('.header-text').popover('hide');
+            $(this._header).find('.header-text').popover('dispose');
         });
     }
 
@@ -245,6 +245,12 @@ class TableComponent {
     resize() {
     }
 
+    /**
+     * public interface of component in dashboard
+     */
+    showHint(hint) {
+    }
+
     load(option) {
         console.log(option);
 
@@ -301,6 +307,7 @@ class TableComponent {
                     }
     
                     this.#ensureHeader().find('.header-text')
+                                        .popover('dispose')
                                         .popover({title: 'Error', trigger: 'focus', html: true, content: message, placement: 'bottom' })
                                         .popover('show')
                                         .on('shown.bs.popover', () => {

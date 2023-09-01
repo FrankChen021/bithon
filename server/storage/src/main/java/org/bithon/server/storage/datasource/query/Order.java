@@ -14,34 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.ast;
-
-import lombok.Getter;
-import org.bithon.server.storage.datasource.query.Order;
+package org.bithon.server.storage.datasource.query;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2022/9/4 14:55
+ * @author Frank Chen
+ * @date 29/8/23 8:57 pm
  */
-public class OrderBy implements IASTNode {
-
-    @Getter
-    private final String field;
-
-    @Getter
-    private final Order order;
-
-    /**
-     * @param field
-     * @param order ASC or DESC
-     */
-    public OrderBy(String field, Order order) {
-        this.field = field;
-        this.order = order;
-    }
-
-    @Override
-    public void accept(IASTNodeVisitor visitor) {
-        visitor.visit(this);
-    }
+public enum Order {
+    desc,
+    asc
 }

@@ -63,7 +63,7 @@ public class FilterExpressionToFilters {
             return CollectionUtils.isEmpty(otherFilters) ? null : toExpression(schema, otherFilters);
         }
 
-        IExpression expression = ExpressionASTBuilder.build(filterExpression, null);
+        IExpression expression = ExpressionASTBuilder.build(filterExpression);
         expression.accept(new IdentifierVerifier(schema));
 
         if (CollectionUtils.isNotEmpty(otherFilters)) {
@@ -90,7 +90,7 @@ public class FilterExpressionToFilters {
 
             expressions.add(expr);
         }
-        return new LogicalExpression.AND(expressions);
+        return expressions.size() == 1 ? expressions.get(0) : new LogicalExpression.AND(expressions);
     }
 
     static class IdentifierVerifier implements IExpressionVisitor {
@@ -102,13 +102,16 @@ public class FilterExpressionToFilters {
 
         @Override
         public boolean visit(IdentifierExpression expression) {
-            String identifier = expression.getIdentifier();
-            if (identifier.startsWith("tags.")) {
-                return true;
-            }
-
             IColumn column = schema.getColumnByName(expression.getIdentifier());
             if (column == null) {
+                // A special and ugly check.
+                // For indexed tags filter, when querying the dimensions, we need to convert its alias to its field name
+                // However, when searching spans with tag filters, the schema here does not contain the tags.
+                // We need to ignore this case.
+                // The ignored tags will be processed later in the trace module.
+                if (expression.getIdentifier().startsWith("tags.")) {
+                    return true;
+                }
                 throw new RuntimeException(StringUtils.format("Unable to find identifier [%s] in data source [%s]",
                                                               expression.getIdentifier(),
                                                               schema.getName()));

@@ -26,7 +26,6 @@ import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
-import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.common.ExpirationConfig;
@@ -38,8 +37,8 @@ import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcReader;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
+import org.bithon.server.storage.jdbc.utils.Expression2Sql;
 import org.bithon.server.storage.jdbc.utils.SqlDialectManager;
-import org.bithon.server.storage.jdbc.utils.SqlFilterStatement;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
@@ -155,7 +154,7 @@ public class TraceStorage extends TraceJdbcStorage {
                 String tag = StringUtils.format("%s['%s']", Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName(), ((IdentifierExpression) left).getIdentifier().substring(SPAN_TAGS_PREFIX.length()));
                 ((IdentifierExpression) left).setIdentifier(tag);
 
-                return SqlFilterStatement.from(traceSpanSchema, tagFilter, new ExpressionSerializer(false));
+                return Expression2Sql.from(null/*do not use qualified name*/, tagFilter, false);
             }
 
             @Override

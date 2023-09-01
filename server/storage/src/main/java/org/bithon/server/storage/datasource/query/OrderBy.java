@@ -31,5 +31,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OrderBy {
     private String name;
-    private String order;
+    private Order order;
 }

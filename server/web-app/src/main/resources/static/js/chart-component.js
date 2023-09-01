@@ -58,7 +58,7 @@ class ChartComponent {
                 return;
             }
 
-            $(this._card).find('.header-text').popover('hide');
+            $(this._card).find('.header-text').popover('dispose');
         });
     }
 
@@ -255,6 +255,7 @@ class ChartComponent {
                 }
 
                 $(this._card).find('.header-text')
+                             .popover('dispose')
                              .popover({title: 'Error', trigger: 'focus', html: true, content: message, placement: 'bottom' })
                              .popover('show')
                              .on('shown.bs.popover', () => {
@@ -319,6 +320,13 @@ class ChartComponent {
 
     getEchartInstance() {
         return this._chart;
+    }
+
+    showHint(hint) {
+        this._chart.showLoading({
+            text: hint,
+             showSpinner: false
+        });
     }
 
     setOpenHandler(openHandler) {

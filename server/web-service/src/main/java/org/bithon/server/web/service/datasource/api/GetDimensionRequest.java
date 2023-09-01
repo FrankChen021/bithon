@@ -22,8 +22,8 @@ import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -42,7 +42,7 @@ public class GetDimensionRequest {
     private String dataSource;
 
     @Valid
-    private Collection<IColumnFilter> filters = Collections.emptyList();
+    private List<IColumnFilter> filters = Collections.emptyList();
 
     /**
      * dimension name
