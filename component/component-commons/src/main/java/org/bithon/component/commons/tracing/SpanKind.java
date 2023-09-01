@@ -24,7 +24,7 @@ import java.util.Locale;
  */
 public enum SpanKind {
     /**
-     * Unspecified.
+     * .
      */
     INTERNAL,
 
@@ -58,7 +58,9 @@ public enum SpanKind {
      * For timer-based routines such as spring-quartz or spring-scheduling or sth else.
      * Maybe it's not a good name.
      */
-    TIMER;
+    TIMER,
+
+    UNSPECIFIED;
 
     SpanKind() {
     }

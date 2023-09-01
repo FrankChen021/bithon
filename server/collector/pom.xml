@@ -63,6 +63,11 @@
       <groupId>org.bithon</groupId>
       <artifactId>service-discovery-declaration</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>opentelemetry-proto</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
