@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.sink.common.service.UriNormalizer;
 import org.bithon.server.sink.tracing.transform.TraceSpanTransformer;
@@ -136,7 +137,7 @@ public class LocalTraceSink implements ITraceMessageSink {
 
     @Override
     public void process(String messageType, List<TraceSpan> spans) {
-        if (spans.isEmpty()) {
+        if (CollectionUtils.isEmpty(spans)) {
             return;
         }
 
