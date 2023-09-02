@@ -18,6 +18,7 @@ package org.bithon.server.collector.source.otel;
 
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.ExtensionRegistryLite;
+import com.google.protobuf.util.JsonFormat;
 import io.opentelemetry.proto.common.v1.KeyValue;
 import io.opentelemetry.proto.trace.v1.ResourceSpans;
 import io.opentelemetry.proto.trace.v1.ScopeSpans;
@@ -40,6 +41,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -67,7 +70,7 @@ public class OtelHttpTraceCollector {
     public void collectBinaryFormattedTrace(HttpServletRequest request,
                                             HttpServletResponse response) throws IOException {
 
-        InputStream is = null;
+        InputStream is;
         String encoding = request.getHeader("Content-Encoding");
         if (!StringUtils.isEmpty(encoding)) {
             if ("gzip".equals(encoding)) {
@@ -84,17 +87,25 @@ public class OtelHttpTraceCollector {
             is = request.getInputStream();
         }
 
-        List<TraceSpan> spans;
+        ResourceSpans resourceSpans;
         if ("application/x-protobuf".equals(request.getContentType())) {
-            spans = fromBinary(is);
+            resourceSpans = fromBinary(is);
         } else if ("application/json".equals(request.getContentType())) {
-            spans = fromJson(request, is);
+            resourceSpans = fromJson(is);
         } else {
             String message = StringUtils.format("Not supported Content-Type [%s] from remote [%s]", request.getContentType(), request.getRemoteAddr());
             response.getWriter().println(message);
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             return;
         }
+
+        List<TraceSpan> spans = new ArrayList<>(32);
+        for (ScopeSpans scopeSpans : resourceSpans.getScopeSpansList()) {
+            for (Span span : scopeSpans.getSpansList()) {
+                spans.add(toInternalSpan(scopeSpans, span));
+            }
+        }
+
         if (CollectionUtils.isEmpty(spans)) {
             return;
         }
@@ -102,24 +113,24 @@ public class OtelHttpTraceCollector {
         this.traceSink.process("trace", spans);
     }
 
-    private List<TraceSpan> fromJson(HttpServletRequest request, InputStream is) {
-        return Collections.emptyList();
-    }
-
-    private List<TraceSpan> fromBinary(InputStream is) throws IOException {
-        List<TraceSpan> spans = new ArrayList<>(32);
-
+    private ResourceSpans fromJson(InputStream is) throws IOException {
         ResourceSpans.Builder builder = ResourceSpans.newBuilder();
-        CodedInputStream codedInputStream = CodedInputStream.newInstance(is);
-        codedInputStream.readMessage(builder, ExtensionRegistryLite.getEmptyRegistry());
-        ResourceSpans resourceSpans = builder.build();
-        for (ScopeSpans scopeSpans : resourceSpans.getScopeSpansList()) {
-            for (Span span : scopeSpans.getSpansList()) {
-                spans.add(toInternalSpan(scopeSpans, span));
-            }
+
+        try (InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
+            JsonFormat.parser().merge(reader, builder);
         }
 
-        return spans;
+        return builder.build();
+    }
+
+    private ResourceSpans fromBinary(InputStream is) throws IOException {
+        ResourceSpans.Builder builder = ResourceSpans.newBuilder();
+
+        CodedInputStream.newInstance(is)
+                        .readMessage(builder,
+                                     ExtensionRegistryLite.getEmptyRegistry());
+
+        return builder.build();
     }
 
     private TraceSpan toInternalSpan(ScopeSpans scopeSpans, Span span) {

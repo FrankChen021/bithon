@@ -64,10 +64,16 @@
       <artifactId>service-discovery-declaration</artifactId>
     </dependency>
 
+    <!-- Otel Protobuf Interface Support -->
     <dependency>
       <groupId>org.bithon</groupId>
       <artifactId>opentelemetry-proto</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java-util</artifactId>
+    </dependency>
+
   </dependencies>
 
   <build>
