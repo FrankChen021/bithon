@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Locale;
 
 /**
@@ -27,6 +28,9 @@ import java.util.Locale;
  * @date 13/11/21 12:42 pm
  */
 public class StringUtils {
+
+    private static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
+    private static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
 
     public static String format(String message, Object... formatArgs) {
         return String.format(Locale.ENGLISH, message, formatArgs);
@@ -72,5 +76,13 @@ public class StringUtils {
         bos.flush();
 
         return new String(bos.toByteArray(), StandardCharsets.UTF_8);
+    }
+
+    public static String encodeBase64String(byte[] input) {
+        return BASE64_ENCODER.encodeToString(input);
+    }
+
+    public static byte[] decodeBase64String(String input) {
+        return BASE64_DECODER.decode(input);
     }
 }

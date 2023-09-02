@@ -16,7 +16,6 @@
 
 package org.bithon.server.collector.source.otel;
 
-import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.ExtensionRegistryLite;
@@ -60,12 +59,12 @@ class OtelSpanConverter {
         return new OtelSpanConverter(builder.build().getResourceSpansList()) {
             @Override
             protected String getTraceId(ByteString id) {
-                return BaseEncoding.base64().encode(id.toByteArray()).toLowerCase(Locale.ENGLISH);
+                return StringUtils.encodeBase64String(id.toByteArray()).toLowerCase(Locale.ENGLISH);
             }
 
             @Override
             protected String getSpanId(ByteString id) {
-                return BaseEncoding.base64().encode(id.toByteArray()).toLowerCase(Locale.ENGLISH);
+                return StringUtils.encodeBase64String(id.toByteArray()).toLowerCase(Locale.ENGLISH);
             }
         };
     }
