@@ -48,16 +48,16 @@ import java.util.TreeMap;
  * @author frank.chen021@outlook.com
  * @date 2023/9/2 11:12
  */
-class SpanConverter {
+class OtelSpanConverter {
 
-    public static SpanConverter fromJson(InputStream is) throws IOException {
+    public static OtelSpanConverter fromJson(InputStream is) throws IOException {
         TracesData.Builder builder = TracesData.newBuilder();
 
         try (InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
             JsonFormat.parser().merge(reader, builder);
         }
 
-        return new SpanConverter(builder.build().getResourceSpansList()) {
+        return new OtelSpanConverter(builder.build().getResourceSpansList()) {
             @Override
             protected String getTraceId(ByteString id) {
                 return BaseEncoding.base64().encode(id.toByteArray()).toLowerCase(Locale.ENGLISH);
@@ -70,19 +70,19 @@ class SpanConverter {
         };
     }
 
-    public static SpanConverter fromBinary(InputStream is) throws IOException {
+    public static OtelSpanConverter fromBinary(InputStream is) throws IOException {
         TracesData.Builder builder = TracesData.newBuilder();
 
         CodedInputStream.newInstance(is)
                         .readMessage(builder,
                                      ExtensionRegistryLite.getEmptyRegistry());
 
-        return new SpanConverter(builder.build().getResourceSpansList());
+        return new OtelSpanConverter(builder.build().getResourceSpansList());
     }
 
     private final List<ResourceSpans> resourceSpansList;
 
-    SpanConverter(List<ResourceSpans> resourceSpansList) {
+    OtelSpanConverter(List<ResourceSpans> resourceSpansList) {
         this.resourceSpansList = resourceSpansList;
     }
 

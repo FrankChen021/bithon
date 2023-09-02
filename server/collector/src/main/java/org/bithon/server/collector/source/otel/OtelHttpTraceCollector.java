@@ -68,11 +68,11 @@ public class OtelHttpTraceCollector {
             is = request.getInputStream();
         }
 
-        SpanConverter spanConverter;
+        OtelSpanConverter spanConverter;
         if ("application/x-protobuf".equals(request.getContentType())) {
-            spanConverter = SpanConverter.fromBinary(is);
+            spanConverter = OtelSpanConverter.fromBinary(is);
         } else if ("application/json".equals(request.getContentType())) {
-            spanConverter = SpanConverter.fromJson(is);
+            spanConverter = OtelSpanConverter.fromJson(is);
         } else {
             String message = StringUtils.format("Not supported Content-Type [%s] from remote [%s]", request.getContentType(), request.getRemoteAddr());
             response.getWriter().println(message);
