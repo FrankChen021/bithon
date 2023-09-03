@@ -154,7 +154,8 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
             }
         }
 
-        ResponseBody responseBody = response.body();
+        // When an exception occurs, the response might be NULL
+        ResponseBody responseBody = response == null ? null : response.body();
         if (responseBody != null) {
             long size = responseBody.contentLength();
             if (size > 0) {
