@@ -34,7 +34,7 @@ public class Expression implements IASTNode {
 
     public Expression(String expression) {
         this.expression = expression;
-        this.parsedExpression = ExpressionASTBuilder.build(expression, null);
+        this.parsedExpression = ExpressionASTBuilder.build(expression);
     }
 
     @Override

@@ -48,7 +48,7 @@ public class ExpressionFilter implements IInputRowFilter {
                             @JsonProperty("debug") Boolean debug) {
         this.expression = expression;
         this.debug = debug != null && debug;
-        this.delegation = ExpressionASTBuilder.build(this.expression, null);
+        this.delegation = ExpressionASTBuilder.build(this.expression);
     }
 
     @Override

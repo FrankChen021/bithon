@@ -19,6 +19,7 @@ package org.bithon.server.storage.tracing;
 import lombok.Data;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 
 import java.sql.Timestamp;
@@ -38,7 +39,7 @@ public interface ITraceReader {
                                  Timestamp start,
                                  Timestamp end,
                                  String orderBy,
-                                 String order,
+                                 Order order,
                                  int pageNumber,
                                  int pageSize);
 

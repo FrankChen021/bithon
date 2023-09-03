@@ -1,41 +1,67 @@
 {
   "name": "application-overview",
-  "title": "Application Overview",
   "folder": "metrics",
+  "title": "Application Overview",
   "charts": [
     {
       "title": "Instance List",
       "width": 4,
       "type": "table",
       "columns": [
-        {"name": "instanceName", "title": "instance" },
-        {"name" : "processCpuLoad", "title": "processCpuLoad(%)" },
+        {
+          "name": "instanceName",
+          "title": "instance",
+          "format": "template",
+          "template": "<a target='_blank' href='/web/metrics/jvm-metrics?appName={appName}&instanceName={instanceName}&interval=c:{interval}'>{instanceName}</a>"
+        },
+        {
+          "name": "processCpuLoad",
+          "title": "processCpuLoad(%)"
+        },
         "processors",
-        {"name": "instanceStartTime", "title": "startTime", "format": "dateTime" },
-        {"name": "instanceUpTime", "title": "upTime", "format": "timeDuration" },
-        {"name": "heapUsed", "title": "heapUsed(%)" },
-        {"name": "heapMax", "format": "binary_byte" }
+        {
+          "name": "instanceStartTime",
+          "title": "startTime",
+          "format": "dateTime"
+        },
+        {
+          "name": "instanceUpTime",
+          "title": "upTime",
+          "format": "timeDuration"
+        },
+        {
+          "name": "heapUsed",
+          "title": "heapUsed(%)"
+        },
+        {
+          "name": "heapMax",
+          "format": "binary_byte"
+        }
       ],
-      "pagination": {
-        "pages": [15, 30, 50],
-        "side": "client"
-      },
       "query": {
         "dataSource": "jvm-metrics",
         "type": "groupBy",
         "fields": [
+          "appName",
           "instanceName",
           "processors",
           "instanceStartTime",
           "instanceUpTime",
-          {"name": "heapUsed", "expression": "round(heapUsed * 100.0/heapMax, 2)"},
+          {
+            "name": "heapUsed",
+            "expression": "round(heapUsed * 100.0/heapMax, 2)"
+          },
           "heapMax",
           "processCpuLoad"
         ],
-        "groupBy": ["instanceName"],
         "orderBy": {
           "name": "instanceUpTime",
           "order": "asc"
+        },
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
         }
       }
     },
@@ -44,31 +70,53 @@
       "width": 4,
       "type": "table",
       "columns": [
-        "uri",
+        {
+          "name": "uri",
+          "format": "template",
+          "template": "<a target='_blank' href='/web/metrics/http-incoming-metrics/?appName={appName}&uri={uri}&interval=c:{interval}'>{uri}</a>"
+        },
         "qps",
-        {"name": "totalCount",      "format": "compact_number"},
-        {"name": "errorCount",      "format": "compact_number"},
-        {"name": "errorRate",       "format": "percentage"},
-        {"name": "avgResponseTime", "format": "nanosecond"}
+        {
+          "name": "totalCount",
+          "format": "compact_number"
+        },
+        {
+          "name": "errorCount",
+          "format": "compact_number"
+        },
+        {
+          "name": "errorRate",
+          "title": "errorRate(%)"
+        },
+        {
+          "name": "avgResponseTime",
+          "format": "nanosecond"
+        }
       ],
       "query": {
         "dataSource": "http-incoming-metrics",
         "type": "groupBy",
         "fields": [
+          "appName",
           "uri",
           "qps",
           "totalCount",
           "errorCount",
-          {"name": "errorRate", "expression": "round(errorCount*100.0/totalCount, 2)"},
+          {
+            "name": "errorRate",
+            "expression": "round(errorCount*100.0/totalCount, 2)"
+          },
           "avgResponseTime"
-        ],
-        "groupBy": [
-          "uri"
         ],
         "limit": "10",
         "orderBy": {
           "name": "totalCount",
           "order": "desc"
+        },
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
         }
       }
     },
@@ -77,31 +125,57 @@
       "width": 4,
       "type": "table",
       "columns": [
-        "path",
+        {
+          "name": "path",
+          "format": "template",
+          "template": "<a target='_blank' href='/web/metrics/http-outgoing-metrics/?appName={appName}&path={path}&interval=c:{interval}'>{path}</a>"
+        },
         "qps",
-        {"name": "requestCount",    "format": "compact_number", "title": "totalCount"},
-        {"name": "errorCount",      "format": "compact_number"},
-        {"name": "errorRate",       "format": "percentage"},
-        {"name": "avgResponseTime", "format": "nanosecond"}
+        {
+          "name": "requestCount",
+          "format": "compact_number",
+          "title": "totalCount"
+        },
+        {
+          "name": "errorCount",
+          "format": "compact_number"
+        },
+        {
+          "name": "errorRate",
+          "title": "errorRate(%)"
+        },
+        {
+          "name": "avgResponseTime",
+          "format": "nanosecond"
+        }
       ],
       "query": {
         "dataSource": "http-outgoing-metrics",
         "type": "groupBy",
         "fields": [
+          "appName",
           "path",
           "qps",
           "requestCount",
-          {"name": "errorCount", "expression": "count4xx + count5xx"},
-          {"name": "errorRate",  "expression": "round((count4xx + count5xx)*100.0/requestCount, 2)"},
+          {
+            "name": "errorCount",
+            "expression": "count4xx + count5xx"
+          },
+          {
+            "name": "errorRate",
+            "expression": "round((count4xx + count5xx)*100.0/requestCount, 2)"
+          },
           "avgResponseTime"
-        ],
-        "groupBy": [
-          "path"
         ],
         "limit": "10",
         "orderBy": {
           "name": "requestCount",
           "order": "desc"
+        },
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
         }
       }
     },
@@ -110,23 +184,33 @@
       "width": 4,
       "type": "table",
       "columns": [
-        "exceptionClass",
-        {"name": "eventCount", "title": "exceptionCount"}
+        {
+          "name": "exceptionClass",
+          "format": "template",
+          "template": "<a target='_blank' href='/web/metrics/exception-metrics/?appName={appName}&exceptionClass={exceptionClass}&interval=c:{interval}'>{exceptionClass}</a>"
+        },
+        {
+          "name": "eventCount",
+          "title": "exceptionCount"
+        }
       ],
       "query": {
         "dataSource": "exception-metrics",
         "type": "groupBy",
         "fields": [
+          "appName",
           "exceptionClass",
           "eventCount"
-        ],
-        "groupBy": [
-          "exceptionClass"
         ],
         "limit": 10,
         "orderBy": {
           "name": "eventCount",
           "order": "desc"
+        },
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
         }
       }
     }

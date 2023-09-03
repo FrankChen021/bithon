@@ -27,4 +27,8 @@ public class InvalidExpressionException extends RuntimeException {
     public InvalidExpressionException(@NotNull String expression, int charPos, String parseExceptionMessage) {
         super(String.format(Locale.ENGLISH, "Invalid expression [%s] at position %d, %s", expression, charPos, parseExceptionMessage));
     }
+
+    public InvalidExpressionException(String format, Object...args) {
+        super(String.format(Locale.ENGLISH, format, args));
+    }
 }

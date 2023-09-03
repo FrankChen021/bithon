@@ -23,7 +23,7 @@ import org.bithon.server.storage.event.Event;
 import org.bithon.server.storage.event.IEventReader;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonEventRecord;
-import org.bithon.server.storage.jdbc.utils.SqlFilterStatement;
+import org.bithon.server.storage.jdbc.utils.Expression2Sql;
 import org.jooq.DSLContext;
 import org.jooq.SelectConditionStep;
 import org.jooq.impl.DSL;
@@ -56,7 +56,7 @@ public class EventJdbcReader implements IEventReader {
                                                                 .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp().toLocalDateTime()));
 
         if (filter != null) {
-            step = step.and(SqlFilterStatement.from(eventTableSchema, filter));
+            step = step.and(Expression2Sql.from(eventTableSchema, filter));
         }
 
         return step.orderBy(Tables.BITHON_EVENT.TIMESTAMP.desc())
@@ -81,7 +81,7 @@ public class EventJdbcReader implements IEventReader {
                                                 .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp().toLocalDateTime()));
 
         if (filter != null) {
-            step = step.and(SqlFilterStatement.from(eventTableSchema, filter));
+            step = step.and(Expression2Sql.from(eventTableSchema, filter));
         }
 
         return (int) step.fetchOne(0);

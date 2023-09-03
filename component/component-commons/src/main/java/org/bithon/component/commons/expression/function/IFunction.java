@@ -16,6 +16,8 @@
 
 package org.bithon.component.commons.expression.function;
 
+import org.bithon.component.commons.expression.IExpression;
+
 import java.util.List;
 
 /**
@@ -28,7 +30,7 @@ public interface IFunction {
 
     List<Parameter> getParameters();
 
-    void validateParameter(int index, Object parameter);
+    void validateParameter(List<IExpression> parameters);
 
     Object evaluate(List<Object> parameters);
 }

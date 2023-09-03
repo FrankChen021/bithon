@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.datasource.api;
 
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.ExpressionColumn;
@@ -118,9 +118,8 @@ public class DataSourceService {
                 resultColumnList.add(new ResultColumn(function, field.getName()));
             } else {
                 IColumn columnSpec = schema.getColumnByName(field.getField());
-                if (columnSpec == null) {
-                    throw new RuntimeException(StringUtils.format("field [%s] does not exist.", field.getField()));
-                }
+                Preconditions.checkNotNull(columnSpec, "Field [%s] does not exist in the schema.", field.getField());
+
                 ResultColumn resultColumn = columnSpec.getResultColumn();
                 if (columnSpec.getAlias().equals(field.getName())) {
                    resultColumn = resultColumn.withAlias(field.getName());

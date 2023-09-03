@@ -18,6 +18,7 @@ package org.bithon.server.web.service.tracing.api;
 
 import lombok.Data;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
+import org.bithon.server.storage.datasource.query.Order;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -44,7 +45,7 @@ public class GetTraceListRequest {
      */
     private String expression;
 
-    private String order = "desc";
+    private Order order = Order.desc;
     private String orderBy = "";
 
     @Min(0)

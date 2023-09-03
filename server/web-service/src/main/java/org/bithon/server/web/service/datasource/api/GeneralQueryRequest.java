@@ -57,9 +57,9 @@ public class GeneralQueryRequest {
     @Nullable
     private OrderBy orderBy;
 
+    @Valid
     @Nullable
     private Limit limit;
-
 
     private Query.ResultFormat resultFormat;
 }
