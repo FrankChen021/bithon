@@ -25,12 +25,12 @@ import java.util.Locale;
  * @author frank.chen021@outlook.com
  * @date 28/12/21 10:31 AM
  */
-public class CascadingClassLoader extends ClassLoader {
+public class PluginClassLoader extends ClassLoader {
     private final JarClassLoader pluginClassLoader;
 
     private final ClassLoader appClassLoader;
 
-    public CascadingClassLoader(JarClassLoader pluginClassLoader, ClassLoader appClassLoader) {
+    public PluginClassLoader(JarClassLoader pluginClassLoader, ClassLoader appClassLoader) {
         // NOTE: parent is assigned to parent class loader
         // This is the key to implement agent lib isolation from app libs
         super(null);

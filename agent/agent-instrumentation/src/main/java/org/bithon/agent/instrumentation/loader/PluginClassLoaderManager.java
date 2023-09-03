@@ -19,7 +19,6 @@ package org.bithon.agent.instrumentation.loader;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
 
 import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -40,8 +39,8 @@ public final class PluginClassLoaderManager {
         return appClassLoader == null
                ? defaultLoader
                : LOADER_MAPPING.computeIfAbsent(appClassLoader,
-                                                k -> new CascadingClassLoader(defaultLoader,
-                                                                              appClassLoader));
+                                                k -> new PluginClassLoader(defaultLoader,
+                                                                           appClassLoader));
     }
 
     public static JarClassLoader getDefaultLoader() {
