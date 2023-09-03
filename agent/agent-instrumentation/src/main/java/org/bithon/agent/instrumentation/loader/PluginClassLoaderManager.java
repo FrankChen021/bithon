@@ -19,6 +19,7 @@ package org.bithon.agent.instrumentation.loader;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
 
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**

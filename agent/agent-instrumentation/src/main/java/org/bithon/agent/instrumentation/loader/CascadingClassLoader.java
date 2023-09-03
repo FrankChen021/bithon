@@ -18,60 +18,84 @@ package org.bithon.agent.instrumentation.loader;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 28/12/21 10:31 AM
  */
 public class CascadingClassLoader extends ClassLoader {
-    private final ClassLoader[] parents;
+    private final JarClassLoader pluginClassLoader;
 
-    public CascadingClassLoader(ClassLoader... parents) {
-        // NOTE:  parent is assigned to parent class loader
+    private final ClassLoader appClassLoader;
+
+    public CascadingClassLoader(JarClassLoader pluginClassLoader, ClassLoader appClassLoader) {
+        // NOTE: parent is assigned to parent class loader
         // This is the key to implement agent lib isolation from app libs
         super(null);
-        this.parents = parents;
+
+        this.pluginClassLoader = pluginClassLoader;
+        this.appClassLoader = appClassLoader;
     }
 
+    /**
+     * For classes under org.bithon.agent.plugin, we need to make sure the classes are loaded in this class loader,
+     * instead of the parent class loader.
+     * <p>
+     * This makes sure that this class loader can find those classes referenced in the plugin.
+     *
+     */
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
-        for (ClassLoader parent : parents) {
+        if (name.startsWith("org.bithon.agent.plugin.")) {
             try {
-                if (parent != this) {
-                    // parent is a provider, it could be set dynamically to be instance of current class
-                    return parent.loadClass(name);
+                byte[] classBytes = pluginClassLoader.getClassByteCode(name);
+                if (classBytes != null) {
+                    // define the package object for customer-loaded classes,
+                    // so that getPackage could work
+                    int lastIndex = name.lastIndexOf(".");
+                    if (lastIndex > 0) {
+                        String pkg = name.substring(0, lastIndex);
+                        if (getPackage(pkg) == null) {
+                            definePackage(pkg, null, null, null, null, null, null, null);
+                        }
+                    }
+                    return defineClass(name, classBytes, 0, classBytes.length);
                 }
-            } catch (ClassNotFoundException ignored) {
+            } catch (IOException ignored) {
             }
         }
-        throw new ClassNotFoundException(String.format(Locale.ENGLISH,
-                                                       "%s not found in parents:%s",
-                                                       name,
-                                                       Arrays.stream(this.parents)
-                                                             .map(p -> p.getClass().getName())
-                                                             .collect(Collectors.joining(","))));
+
+        // Find class in parent, they might be classes in the agent library
+        try {
+            return pluginClassLoader.loadClass(name);
+        } catch (ClassNotFoundException ignored) {
+        }
+
+        // Find in application class loader if it's referenced by the class in the plugin
+        try {
+            return appClassLoader.loadClass(name);
+        } catch (ClassNotFoundException e) {
+            throw new ClassNotFoundException(String.format(Locale.ENGLISH,
+                                                           "%s not found in parent [%s] and agent plugins.",
+                                                           name,
+                                                           appClassLoader.getClass().getName()));
+        }
     }
 
     @Override
     public URL getResource(String name) {
         // delegate to parent to get resource
-        for (ClassLoader parent : parents) {
-            if (parent != this) {
-                URL url = parent.getResource(name);
-                if (url != null) {
-                    return url;
-                }
-            }
+        URL url = this.pluginClassLoader.getResource(name);
+        if (url != null) {
+            return url;
         }
-        return null;
+        return appClassLoader.getResource(name);
     }
 
     @Override
     public Enumeration<URL> getResources(String name) throws IOException {
-        return parents[0].getResources(name);
+        return appClassLoader.getResources(name);
     }
 }
