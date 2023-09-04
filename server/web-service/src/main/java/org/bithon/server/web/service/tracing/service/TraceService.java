@@ -17,12 +17,17 @@
 package org.bithon.server.web.service.tracing.service;
 
 import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.component.commons.expression.ArithmeticExpression;
+import org.bithon.component.commons.expression.ArrayAccessExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ExpressionList;
+import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor2;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -232,6 +237,31 @@ public class TraceService {
             this.indexedTagFilter = new TreeMap<>();
             this.nonIndexedTagFilter = new ArrayList<>();
             indexedTagConfig = traceStorageConfig.getIndexes();
+        }
+
+        @Override
+        public Boolean visit(ExpressionList expression) {
+            return false;
+        }
+
+        @Override
+        public Boolean visit(ArrayAccessExpression expression) {
+            return false;
+        }
+
+        @Override
+        public Boolean visit(ArithmeticExpression expression) {
+            return false;
+        }
+
+        @Override
+        public Boolean visit(MacroExpression expression) {
+            return false;
+        }
+
+        @Override
+        public Boolean visit(FunctionExpression expression) {
+            return false;
         }
 
         @Override
