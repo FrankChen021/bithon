@@ -170,6 +170,14 @@ public class Functions implements IFunctionProvider {
                 return str == null ? 0 : str.length();
             }
         });
+
+        register(new AbstractFunction("toStartOfMinute", new Parameter(IDataType.LONG)) {
+            @Override
+            public Object evaluate(List<Object> parameters) {
+                Object o = parameters.get(0);
+                return (o instanceof Number) ? ((Number) o).longValue() / 1000 / 60 : 0;
+            }
+        });
     }
 
     private void register(IFunction function) {

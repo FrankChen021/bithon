@@ -18,7 +18,9 @@ package org.bithon.server.web.service.datasource.api;
 
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -92,6 +94,7 @@ public class DataSourceService {
                                 GeneralQueryRequest query,
                                 boolean containsGroupBy,
                                 boolean bucketTimestamp) {
+
         Query.QueryBuilder builder = Query.builder();
 
         List<String> groupBy;
@@ -101,7 +104,7 @@ public class DataSourceService {
             groupBy = new ArrayList<>(4);
         }
 
-        // Turn into internal objects(post aggregators...)
+        // Turn into internal objects (post aggregators...)
         List<ResultColumn> resultColumnList = new ArrayList<>(query.getFields().size());
         for (QueryField field : query.getFields()) {
             if (field.getExpression() != null) {
@@ -122,7 +125,7 @@ public class DataSourceService {
 
                 ResultColumn resultColumn = columnSpec.getResultColumn();
                 if (columnSpec.getAlias().equals(field.getName())) {
-                   resultColumn = resultColumn.withAlias(field.getName());
+                    resultColumn = resultColumn.withAlias(field.getName());
                 }
                 resultColumnList.add(resultColumn);
 
@@ -146,11 +149,16 @@ public class DataSourceService {
             }
         }
 
+        String timestampColumn = schema.getTimestampSpec().getTimestampColumn();
+        if (StringUtils.hasText(query.getInterval().getTimestampColumn())) {
+            timestampColumn = query.getInterval().getTimestampColumn();
+        }
+
         return builder.groupBy(new ArrayList<>(groupBy))
                       .resultColumns(resultColumnList)
                       .dataSource(schema)
                       .filter(FilterExpressionToFilters.toExpression(schema, query.getFilterExpression(), query.getFilters()))
-                      .interval(Interval.of(start, end, step))
+                      .interval(Interval.of(start, end, step, ExpressionASTBuilder.build(timestampColumn)))
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())
                       .resultFormat(query.getResultFormat() == null
