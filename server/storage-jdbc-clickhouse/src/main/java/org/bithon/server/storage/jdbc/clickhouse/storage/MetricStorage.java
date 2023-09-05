@@ -32,14 +32,17 @@ import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageConfiguration;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
+import org.bithon.server.storage.jdbc.metric.MetricJdbcWriter;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
 import org.bithon.server.storage.jdbc.utils.Expression2Sql;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.jdbc.utils.SqlDialectManager;
 import org.bithon.server.storage.metrics.IMetricReader;
+import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.storage.metrics.ttl.MetricStorageCleaner;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.Record;
 
 import java.sql.Timestamp;
@@ -92,6 +95,19 @@ public class MetricStorage extends MetricJdbcStorage {
             protected void expireImpl(DataSourceSchema schema, Timestamp before) {
                 String table = schema.getDataStoreSpec().getStore();
                 new DataCleaner(config, dslContext).deleteFromPartition(table, before);
+            }
+        };
+    }
+
+    @Override
+    protected IMetricWriter createWriter(DSLContext dslContext, MetricTable table) {
+        return new MetricJdbcWriter(dslContext, table) {
+            /**
+             * No length constraint in ClickHouse
+             */
+            @Override
+            protected String getOrTruncateDimension(Field<?> dimensionField, String value) {
+                return value;
             }
         };
     }

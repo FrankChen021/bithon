@@ -187,7 +187,22 @@ public class TraceTopoBuilder {
     }
 
     /**
-     * Search spans that cross two instances and then create a directed graph
+     * Search spans that cross two instances and then create a directed graph.
+     * <p> case 1.
+     * Spans: SERVER --> CLIENT ---> SERVER
+     * Topo: SERVER ---> CLIENT ---> SERVER
+     * <p> case 2.
+     * Spans: SERVER --> CLIENT
+     * Topo: SERVER ---> CLIENT ---> CLIENT_TARGET
+     * <p> case 3.
+     * Spans: SERVER --> CLIENT(1) ---> CLIENT(2)
+     * Topo: SERVER --> CLIENT(2) ---> CLIENT2_TARGET
+     * <p> case 4.
+     * Span: SERVER ---> PRODUCER
+     * Topo: SERVER ---> PRODUCER ---> PRODUCER_TARGET
+     * <p> case 5.
+     * Span: SERVER ---> PRODUCER ---> CONSUMER
+     * Topo: SERVER ---> PRODUCER ---> CONSUMER
      */
     private boolean buildLink(TraceSpanBo parentSpan, List<?> childSpans) {
         // Determine if a tree path has a termination node.
@@ -223,17 +238,18 @@ public class TraceTopoBuilder {
                     hasTermination = true;
                 }
             } else {
+                // There's a link from the parentSpan to the childSpan,
+                // for this parentSpan, it terminates
+                hasTermination = true;
                 this.addLink(parentSpan, childSpan).incrCount();
 
-                if (buildLink(childSpan, childSpan.children)) {
-                    hasTermination = true;
-                }
+                buildLink(childSpan, childSpan.children);
             }
 
             // This childSpan is a CLIENT termination.
             // When there are no children, it means the next hop might be another system.
             // So, we need to create a link for this situation
-            if (childSpan.children.size() == 0 || !hasTermination) {
+            if (childSpan.children.isEmpty() || !hasTermination) {
                 String scheme = "";
                 String peer = null;
                 if (SpanKind.CLIENT.name().equals(childSpan.getKind())) {

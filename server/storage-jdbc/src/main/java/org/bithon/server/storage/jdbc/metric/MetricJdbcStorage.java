@@ -93,7 +93,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     }
 
     @Override
-    public IMetricWriter createMetricWriter(DataSourceSchema schema) {
+    public final IMetricWriter createMetricWriter(DataSourceSchema schema) {
         MetricTable table = new MetricTable(schema);
         initialize(schema, table);
         return new MetricJdbcWriter(dslContext, table);
@@ -126,6 +126,10 @@ public class MetricJdbcStorage implements IMetricStorage {
         });
 
         return this.createReader(context, sqlDialectManager.getSqlDialect(context));
+    }
+
+    protected IMetricWriter createWriter(DSLContext dslContext, MetricTable table) {
+        return new MetricJdbcWriter(dslContext, table);
     }
 
     protected IMetricReader createReader(DSLContext dslContext, ISqlDialect sqlDialect) {
