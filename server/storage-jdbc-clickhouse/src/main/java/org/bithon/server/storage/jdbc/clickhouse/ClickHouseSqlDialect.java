@@ -17,6 +17,8 @@
 package org.bithon.server.storage.jdbc.clickhouse;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import org.bithon.component.commons.expression.FunctionExpression;
+import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
@@ -29,8 +31,34 @@ import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 public class ClickHouseSqlDialect implements ISqlDialect {
 
     @Override
-    public String timeFloorExpression(String field, long interval) {
-        return StringUtils.format("CAST(toUnixTimestamp(%s)/ %d AS Int64) * %d", field, interval, interval);
+    public String timeFloorExpression(IExpression timestampExpression, long interval) {
+        if (interval == 60L) {
+            if (timestampExpression instanceof FunctionExpression) {
+                if ("toStartOfMinute".equals(((FunctionExpression) timestampExpression).getName())) {
+                    // If the user already specifies the toStartOfMinute function call,
+                    // there's no need to apply the function once more
+                    return StringUtils.format("toUnixTimestamp(%s)", timestampExpression.serializeToText(true));
+                }
+            }
+            return StringUtils.format("toUnixTimestamp(toStartOfMinute(%s))", timestampExpression.serializeToText(true));
+        }
+        if (interval == 60 * 5) {
+            return StringUtils.format("toUnixTimestamp(toStartOfFiveMinute(%s))", timestampExpression.serializeToText(true));
+        }
+        if (interval == 60 * 15) {
+            return StringUtils.format("toUnixTimestamp(toStartOfFifteenMinutes(%s))", timestampExpression.serializeToText(true));
+        }
+        if (interval == 3600) {
+            return StringUtils.format("toUnixTimestamp(toStartOfHour(%s))", timestampExpression.serializeToText(true));
+        }
+
+        if (interval > 60 && interval % 60 == 0) {
+            return StringUtils.format("toUnixTimestamp(toStartOfInterval(%s, INTERVAL %d MINUTE))",
+                                      timestampExpression.serializeToText(true),
+                                      interval / 60);
+        } else {
+            return StringUtils.format("CAST(toUnixTimestamp(%s)/ %d AS Int64) * %d", timestampExpression.serializeToText(true), interval, interval);
+        }
     }
 
     @Override

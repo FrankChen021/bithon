@@ -147,6 +147,9 @@ public class DataSourceService {
                                             end.getMilliseconds(),
                                             query.getInterval().getBucketCount()).getLength();
             }
+            if (query.getInterval().getMinBucketLength() != null) {
+                step = Math.max(step, query.getInterval().getMinBucketLength());
+            }
         }
 
         String timestampColumn = schema.getTimestampSpec().getTimestampColumn();
