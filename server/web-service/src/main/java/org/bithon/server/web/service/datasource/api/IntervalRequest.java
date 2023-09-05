@@ -41,10 +41,21 @@ public class IntervalRequest {
     private String endISO8601;
 
     /**
+     * An expression that allows the client to change the default timestamp column,
+     * so that some functions can be used upon the timestamp column before aggregation.
+     * This helps if the underlying datasource provides PROJECTION support upoon the timestamp column.
+     */
+    @Nullable
+    private String timestampColumn;
+
+    /**
      * The count of time buckets if the query is going to group the result by a time interval.
      * In most cases, users don't need to set this value.
-     * If it's null, it defaults to {@link org.bithon.server.storage.metrics.Interval#calculateDefaultStep(TimeSpan, TimeSpan)}
+     * If it's null, it defaults to {@link org.bithon.server.web.service.common.bucket.TimeBucket#calculate(TimeSpan, TimeSpan)}
      */
     @Nullable
     private Integer bucketCount;
+
+    @Nullable
+    private Integer minBucketLength;
 }

@@ -749,10 +749,11 @@ class Dashboard {
         }
 
         const thisQuery = Object.assign({}, query);
-        thisQuery.interval = {
-            startISO8601: interval.start,
-            endISO8601: interval.end
-        };
+        if (thisQuery.interval === undefined) {
+            thisQuery.interval = {};
+        }
+        thisQuery.interval.startISO8601 = interval.start;
+        thisQuery.interval.endISO8601 = interval.end;
         thisQuery.filters = filters;
 
         if (thisQuery.filter === undefined) {
@@ -925,10 +926,11 @@ class Dashboard {
         if (thisQuery.dataSource === undefined) {
             thisQuery.dataSource = chartDescriptor.dataSource;
         }
-        thisQuery.interval = {
-            startISO8601: interval.start,
-            endISO8601: interval.end
-        };
+        if (thisQuery.interval === undefined) {
+            thisQuery.interval = {};
+        }
+        thisQuery.interval.startISO8601 = interval.start;
+        thisQuery.interval.endISO8601 = interval.end;
         if (chartDescriptor.query.bucketCount !== undefined && chartDescriptor.query.bucketCount != null) {
             thisQuery.interval.bucketCount = chartDescriptor.query.bucketCount;
         }

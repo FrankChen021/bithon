@@ -17,13 +17,15 @@
 package org.bithon.server.storage.metrics;
 
 import lombok.Getter;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.server.commons.time.TimeSpan;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 1/11/21 3:03 pm
  */
-
+@Getter
 public class Interval {
     private final TimeSpan startTime;
     private final TimeSpan endTime;
@@ -31,29 +33,23 @@ public class Interval {
     /**
      * in second
      */
-    @Getter
     private final Integer step;
 
-    private Interval(TimeSpan startTime, TimeSpan endTime, Integer step) {
+    private final IExpression timestampColumn;
+
+    private Interval(TimeSpan startTime, TimeSpan endTime, Integer step, IExpression timestampColumn) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.step = step;
+        this.timestampColumn = timestampColumn;
     }
 
     public static Interval of(TimeSpan start, TimeSpan end) {
-        return of(start, end, null);
+        return of(start, end, null, new LiteralExpression("timestamp"));
     }
 
-    public static Interval of(TimeSpan start, TimeSpan end, Integer step) {
-        return new Interval(start, end, step);
-    }
-
-    public TimeSpan getStartTime() {
-        return startTime;
-    }
-
-    public TimeSpan getEndTime() {
-        return endTime;
+    public static Interval of(TimeSpan start, TimeSpan end, Integer step, IExpression timestampColumn) {
+        return new Interval(start, end, step, timestampColumn);
     }
 
     /**

@@ -18,6 +18,7 @@ package org.bithon.server.storage.jdbc.utils;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 
@@ -39,8 +40,8 @@ public interface ISqlDialect {
      *
      * @param interval in seconds
      */
-    default String timeFloorExpression(String field, long interval) {
-        return StringUtils.format("UNIX_TIMESTAMP(\"%s\")/ %d * %d", field, interval, interval);
+    default String timeFloorExpression(IExpression timestampExpression, long interval) {
+        return StringUtils.format("UNIX_TIMESTAMP(\"%s\")/ %d * %d", timestampExpression.serializeToText(), interval, interval);
     }
 
     /**

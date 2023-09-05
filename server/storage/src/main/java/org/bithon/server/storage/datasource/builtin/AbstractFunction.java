@@ -41,6 +41,10 @@ public abstract class AbstractFunction implements IFunction {
         this(name, Collections.emptyList());
     }
 
+    public AbstractFunction(String name, Parameter parameter) {
+        this(name, Collections.singletonList(parameter));
+    }
+
     public AbstractFunction(String name, List<Parameter> parameters) {
         this.name = name;
         this.parameters = parameters;

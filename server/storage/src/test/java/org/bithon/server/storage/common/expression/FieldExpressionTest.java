@@ -14,10 +14,8 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.ast;
+package org.bithon.server.storage.common.expression;
 
-import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.bithon.server.storage.common.expression.InvalidExpressionException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -47,7 +45,7 @@ public class FieldExpressionTest {
     @Test
     public void testExpressionInFunctionExpression() {
         String expression = "round(a*b/c+d,2)";
-        Assert.assertEquals("round(((a * b) / c) + d,2)", ExpressionASTBuilder.build(expression).serializeToText(false));
+        Assert.assertEquals("round(((a * b) / c) + d, 2)", ExpressionASTBuilder.build(expression).serializeToText(false));
     }
 
     @Test

@@ -79,7 +79,8 @@ public class MetricJdbcReader implements IMetricReader {
         // Add timestamp expression to sub-query
         timestampFilterExpression.getResultColumnList()
                                  .insert(new StringNode(StringUtils.format("%s AS \"%s\"",
-                                                                           sqlDialect.timeFloorExpression(query.getDataSource().getTimestampSpec().getTimestampColumn(), query.getInterval().getStep()),
+                                                                           sqlDialect.timeFloorExpression(query.getInterval().getTimestampColumn(),
+                                                                                                          query.getInterval().getStep()),
                                                                            TIMESTAMP_ALIAS_NAME)));
 
         selectExpression.getGroupBy().addField(TIMESTAMP_ALIAS_NAME);
@@ -146,7 +147,7 @@ public class MetricJdbcReader implements IMetricReader {
             getOrderBySQL(query.getOrderBy()),
             query.getLimit().getLimit(),
             query.getLimit().getOffset()
-        );
+                                       );
 
         return executeSql(sql);
     }
@@ -166,7 +167,7 @@ public class MetricJdbcReader implements IMetricReader {
             sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
             timestampCol,
             sqlDialect.formatTimestamp(query.getInterval().getEndTime())
-        );
+                                       );
 
         Record record = dsl.fetchOne(sql);
         return ((Number) record.get(0)).intValue();
@@ -226,7 +227,7 @@ public class MetricJdbcReader implements IMetricReader {
             sqlDialect.formatTimestamp(end),
             dimension,
             dimension
-        );
+                                       );
 
         log.info("Executing {}", sql);
         List<Record> records = dsl.fetch(sql);

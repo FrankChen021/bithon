@@ -28,7 +28,7 @@ import java.util.List;
  */
 public class ArrayAccessExpression implements IExpression {
 
-    private final IExpression array;
+    private IExpression array;
     private final int index;
 
     public ArrayAccessExpression(IExpression array, int index) {
@@ -38,6 +38,10 @@ public class ArrayAccessExpression implements IExpression {
 
     public IExpression getArray() {
         return array;
+    }
+
+    public void setArray(IExpression array) {
+        this.array = array;
     }
 
     public int getIndex() {

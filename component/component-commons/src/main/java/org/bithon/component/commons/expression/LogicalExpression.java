@@ -18,6 +18,7 @@ package org.bithon.component.commons.expression;
 
 import org.bithon.component.commons.utils.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -109,7 +110,7 @@ public abstract class LogicalExpression implements IExpression {
         }
 
         public AND(IExpression... expressions) {
-            super("AND", Arrays.asList(expressions));
+            super("AND", new ArrayList<>(Arrays.asList(expressions)));
         }
 
         @Override
@@ -136,7 +137,7 @@ public abstract class LogicalExpression implements IExpression {
         }
 
         public OR(IExpression... operands) {
-            super("OR", Arrays.asList(operands));
+            super("OR", new ArrayList<>(Arrays.asList(operands)));
         }
 
         @Override
@@ -163,7 +164,7 @@ public abstract class LogicalExpression implements IExpression {
         }
 
         public NOT(IExpression expression) {
-            super("NOT", Collections.singletonList(expression));
+            super("NOT", new ArrayList<>(Collections.singletonList(expression)));
         }
 
         @Override

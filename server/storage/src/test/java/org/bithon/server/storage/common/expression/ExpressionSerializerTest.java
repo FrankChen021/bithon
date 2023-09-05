@@ -14,11 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.ast;
+package org.bithon.server.storage.common.expression;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
-import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 

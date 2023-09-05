@@ -158,7 +158,7 @@ public class ExpressionSerializer implements IExpressionVisitor {
             if (first) {
                 first = false;
             } else {
-                sb.append(',');
+                sb.append(", ");
             }
             p.accept(this);
         }

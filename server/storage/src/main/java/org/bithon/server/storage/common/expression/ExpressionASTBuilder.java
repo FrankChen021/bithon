@@ -42,6 +42,7 @@ import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.server.datasource.ast.ExpressionBaseVisitor;
 import org.bithon.server.datasource.ast.ExpressionLexer;
 import org.bithon.server.datasource.ast.ExpressionParser;
+import org.bithon.server.storage.common.expression.optimizer.ExpressionOptimizer;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.builtin.IFunctionProvider;
 
@@ -87,9 +88,10 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
             }
         });
 
-        return parser.parse()
-                     .expression()
-                     .accept(new ExpressionASTBuilder(functionProvider));
+        IExpression ast = parser.parse()
+                                .expression()
+                                .accept(new ExpressionASTBuilder(functionProvider));
+        return ExpressionOptimizer.optimize(ast);
     }
 
     private final IFunctionProvider functionProvider;
@@ -301,15 +303,10 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
     @Override
     public IExpression visitFunctionExpression(ExpressionParser.FunctionExpressionContext ctx) {
         List<ExpressionParser.ExpressionContext> parameters = ctx.expressionListImpl().expression();
-        int numberOfConstantParameter = 0;
         List<IExpression> parameterExpressionList = new ArrayList<>(parameters.size());
         for (ExpressionParser.ExpressionContext parameter : parameters) {
             IExpression parameterExpression = parameter.accept(this);
             parameterExpressionList.add(parameterExpression);
-
-            if (parameterExpression instanceof LiteralExpression) {
-                numberOfConstantParameter++;
-            }
         }
 
         IFunction function = null;
@@ -323,16 +320,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
             function.validateParameter(parameterExpressionList);
         }
 
-        IExpression functionExpression = new FunctionExpression(function, functionName, parameterExpressionList);
-
-        // Apply optimization.
-        // ALL parameters are literal,
-        // calculates the function now and replaces the function expression by the literal expression
-        if (function != null && numberOfConstantParameter == parameterExpressionList.size()) {
-            functionExpression = new LiteralExpression(functionExpression.evaluate(null));
-        }
-
-        return functionExpression;
+        return new FunctionExpression(function, functionName, parameterExpressionList);
     }
 
     @Override
