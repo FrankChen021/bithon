@@ -18,6 +18,7 @@ package org.bithon.server.webapp.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactor;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.storage.web.Dashboard;
 import org.bithon.server.storage.web.IDashboardStorage;
@@ -31,7 +32,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -74,7 +74,7 @@ public class DashboardManager implements SmartLifecycle {
     public void start() {
         log.info("Starting dashboard incremental loader...");
 
-        loaderScheduler = Executors.newSingleThreadScheduledExecutor(NamedThreadFactory.of("dashboard-loader"));
+        loaderScheduler = ScheduledExecutorServiceFactor.newSingleThreadScheduledExecutor(NamedThreadFactory.of("dashboard-loader"));
         loaderScheduler.scheduleWithFixedDelay(this::incrementalLoad,
                                                // no delay to execute the first task
                                                0,
