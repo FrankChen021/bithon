@@ -71,6 +71,14 @@ public class LiteralExpression implements IExpression {
         return value;
     }
 
+    public String asString() {
+        return (String) value;
+    }
+
+    public Object[] asArray() {
+        return (Object[]) value;
+    }
+
     @Override
     public String getType() {
         return "literal";

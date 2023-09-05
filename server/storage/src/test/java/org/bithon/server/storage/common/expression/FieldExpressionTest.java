@@ -14,10 +14,8 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.ast;
+package org.bithon.server.storage.common.expression;
 
-import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.bithon.server.storage.common.expression.InvalidExpressionException;
 import org.junit.Assert;
 import org.junit.Test;
 

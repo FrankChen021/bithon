@@ -16,9 +16,12 @@
 
 package org.bithon.server.storage.datasource.builtin;
 
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.function.IDataType;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.Parameter;
+import org.bithon.server.storage.common.expression.InvalidExpressionException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -81,6 +84,17 @@ public class Functions implements IFunctionProvider {
         });
 
         register(new AbstractFunction("hasToken", Arrays.asList(new Parameter(IDataType.STRING), new Parameter(IDataType.STRING))) {
+
+            @Override
+            protected void validateParameter(IExpression parameter, int index) {
+                if (index == 1) {
+                    if (!(parameter instanceof LiteralExpression)) {
+                        throw new InvalidExpressionException("The 2nd parameter of hasToken must be a constant");
+                    }
+                }
+                super.validateParameter(parameter, index);
+            }
+
             @Override
             public Object evaluate(List<Object> parameters) {
                 String str = (String) parameters.get(0);

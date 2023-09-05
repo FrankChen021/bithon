@@ -26,8 +26,8 @@ public abstract class BinaryExpression implements IExpression {
      * Don't change these property names because they're used in manual deserializer
      */
     protected final String type;
-    protected final IExpression left;
-    protected final IExpression right;
+    protected IExpression left;
+    protected IExpression right;
 
     protected BinaryExpression(String type, IExpression left, IExpression right) {
         this.type = type;
@@ -41,6 +41,14 @@ public abstract class BinaryExpression implements IExpression {
 
     public IExpression getRight() {
         return right;
+    }
+
+    public void setLeft(IExpression left) {
+        this.left = left;
+    }
+
+    public void setRight(IExpression right) {
+        this.right = right;
     }
 
     @Override

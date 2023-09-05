@@ -14,10 +14,8 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.ast;
+package org.bithon.server.storage.common.expression;
 
-import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.bithon.server.storage.common.expression.InvalidExpressionException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -55,10 +53,10 @@ public class FunctionsTest {
         // Check if it works if the given are all variables
         Assert.assertEquals(true,
                             ExpressionASTBuilder.build("startsWith(a, b)").evaluate(name -> {
-                                if (name.equals("a")) {
+                                if ("a".equals(name)) {
                                     return "bithon";
                                 }
-                                if (name.equals("b")) {
+                                if ("b".equals(name)) {
                                     return "b";
                                 }
                                 return null;
@@ -86,13 +84,13 @@ public class FunctionsTest {
         // Check if it works if the given are all variables
         Assert.assertEquals(true,
                             ExpressionASTBuilder.build("endsWith(a, b)").evaluate(name -> {
-                                if (name.equals("a")) {
+                                if ("a".equals(name)) {
                                     return "bithon";
-                                }
-                                if (name.equals("b")) {
+                                } else if ("b".equals(name)) {
                                     return "on";
+                                } else {
+                                    return null;
                                 }
-                                return null;
                             }));
     }
 
@@ -111,17 +109,19 @@ public class FunctionsTest {
         Assert.assertEquals(false,
                             ExpressionASTBuilder.build("hasToken(a, 'x')").evaluate(name -> null));
 
-        Assert.assertEquals(false,
-                            ExpressionASTBuilder.build("hasToken('bithon', a)").evaluate(name -> null));
+        // The 2nd parameter must be a constant
+        Assert.assertThrows(InvalidExpressionException.class,
+                            () -> ExpressionASTBuilder.build("hasToken('bithon', a)").evaluate(name -> null));
+
+        // The 2nd parameter must be type of string
+        Assert.assertThrows(InvalidExpressionException.class,
+                            () -> ExpressionASTBuilder.build("hasToken('bithon', 1)").evaluate(name -> null));
 
         // Check if it works if the given are all variables
         Assert.assertEquals(true,
-                            ExpressionASTBuilder.build("hasToken(a, b)").evaluate(name -> {
-                                if (name.equals("a")) {
+                            ExpressionASTBuilder.build("hasToken(a, 'b')").evaluate(name -> {
+                                if ("a".equals(name)) {
                                     return "bithon";
-                                }
-                                if (name.equals("b")) {
-                                    return "th";
                                 }
                                 return null;
                             }));
@@ -129,7 +129,7 @@ public class FunctionsTest {
 
     @Test
     public void test_lower() {
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("lower()"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("lower()"));
 
         Assert.assertEquals("bithon",
                             ExpressionASTBuilder.build("lower('bithon')").evaluate(null));
@@ -146,7 +146,7 @@ public class FunctionsTest {
 
     @Test
     public void test_upper() {
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("upper()"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("upper()"));
 
         Assert.assertEquals("BITHON",
                             ExpressionASTBuilder.build("upper('bithon')").evaluate(null));
@@ -164,16 +164,16 @@ public class FunctionsTest {
     @Test
     public void test_substring() {
         // invalid parameter number
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("substring()"));
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("substring(a)"));
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("substring(a,b)"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("substring()"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("substring(a)"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("substring(a,b)"));
 
         //
         // invalid parameter type
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("substring(1,2,3)"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("substring(1,2,3)"));
         // 2nd or 3rd should be integer
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("substring('a','a',3)"));
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("substring('a','a','a')"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("substring('a','a',3)"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("substring('a','a','a')"));
 
         Assert.assertEquals("bi",
                             ExpressionASTBuilder.build("substring('bithon', 0, 2)").evaluate(null));
@@ -188,12 +188,12 @@ public class FunctionsTest {
     @Test
     public void test_trim() {
         // invalid parameter number
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("trim()"));
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("trim(a, b)"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("trim()"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("trim(a, b)"));
 
         //
         // invalid parameter type
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("trim(1)"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("trim(1)"));
 
         Assert.assertEquals("a",
                             ExpressionASTBuilder.build("trim(' a ')").evaluate(null));
@@ -205,12 +205,12 @@ public class FunctionsTest {
     @Test
     public void test_trimLeft() {
         // invalid parameter number
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("trimLeft()"));
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("trimLeft(a, b)"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("trimLeft()"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("trimLeft(a, b)"));
 
         //
         // invalid parameter type
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("trimLeft(1)"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("trimLeft(1)"));
 
         Assert.assertEquals("a ",
                             ExpressionASTBuilder.build("trimLeft(' a ')").evaluate(null));
@@ -222,12 +222,12 @@ public class FunctionsTest {
     @Test
     public void test_trimRight() {
         // invalid parameter number
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("trimRight()"));
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("trimRight(a, b)"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("trimRight()"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("trimRight(a, b)"));
 
         //
         // invalid parameter type
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("trimRight(1)"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("trimRight(1)"));
 
         Assert.assertEquals(" a",
                             ExpressionASTBuilder.build("trimRight(' a ')").evaluate(null));
@@ -239,12 +239,12 @@ public class FunctionsTest {
     @Test
     public void test_length() {
         // invalid parameter number
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("length()"));
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("length(a, b)"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("length()"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("length(a, b)"));
 
         //
         // invalid parameter type
-        Assert.assertThrows(InvalidExpressionException.class, ()-> ExpressionASTBuilder.build("length(1)"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build("length(1)"));
 
         Assert.assertEquals(" a",
                             ExpressionASTBuilder.build("trimRight(' a ')").evaluate(null));
