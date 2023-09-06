@@ -18,7 +18,7 @@ package org.bithon.server.storage.metrics;
 
 import lombok.Getter;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.server.commons.time.TimeSpan;
 
 /**
@@ -45,7 +45,7 @@ public class Interval {
     }
 
     public static Interval of(TimeSpan start, TimeSpan end) {
-        return of(start, end, null, new LiteralExpression("timestamp"));
+        return of(start, end, null, new IdentifierExpression("timestamp"));
     }
 
     public static Interval of(TimeSpan start, TimeSpan end, Integer step, IExpression timestampColumn) {

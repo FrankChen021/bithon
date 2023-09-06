@@ -263,8 +263,8 @@ class TableComponent {
         }
         this.mQueryParam = option.ajaxData;
         if (option.showInterval !== undefined && option.showInterval) {
-            const s = moment(this.mStartTimestamp).local().format('HH:mm:ss');
-            const e = moment(this.mEndTimestamp).local().format('HH:mm:ss');
+            const s = moment(this.mStartTimestamp).local().format('YYYY-MM-DD HH:mm:ss');
+            const e = moment(this.mEndTimestamp).local().format('YYYY-MM-DD HH:mm:ss');
             this.#ensureHeader().find('.header-interval').html(`from ${s} to ${e}`);
         } else {
             this.#ensureHeader().find('.header-interval').html('');
