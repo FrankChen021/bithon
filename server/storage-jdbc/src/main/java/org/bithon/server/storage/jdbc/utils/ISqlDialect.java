@@ -41,7 +41,7 @@ public interface ISqlDialect {
      * @param interval in seconds
      */
     default String timeFloorExpression(IExpression timestampExpression, long interval) {
-        return StringUtils.format("UNIX_TIMESTAMP(\"%s\")/ %d * %d", timestampExpression.serializeToText(), interval, interval);
+        return StringUtils.format("UNIX_TIMESTAMP(%s)/ %d * %d", timestampExpression.serializeToText(), interval, interval);
     }
 
     /**
