@@ -55,8 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Claims user = null;
             try {
                 user = jwtTokenComponent.tokenToUser(token);
-            } catch (JwtException e) {
-                logger.error("an error occurred during getting username from token", e);
+            } catch (JwtException ignored) {
             }
 
             if (user != null && SecurityContextHolder.getContext().getAuthentication() == null) {
