@@ -47,7 +47,7 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
     public void saveAuthorizationRequest(OAuth2AuthorizationRequest authorizationRequest,
                                          HttpServletRequest request,
                                          HttpServletResponse response) {
-        if(authorizationRequest == null) {
+        if (authorizationRequest == null) {
             CookieHelper.delete(request, response, AUTHORIZATION_REQUEST_COOKIE_NAME);
         }
         CookieHelper.Builder

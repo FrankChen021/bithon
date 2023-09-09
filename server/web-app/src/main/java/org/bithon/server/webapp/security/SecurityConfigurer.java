@@ -83,8 +83,7 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
             .and()
             .logout().logoutSuccessUrl("/")
             .and()
-            .exceptionHandling().authenticationEntryPoint(new LoginAuthenticationEntryPoint("/oauth2/authorization/google"))
-        ;
+            .exceptionHandling().authenticationEntryPoint(new LoginAuthenticationEntryPoint("/oauth2/authorization/google"));
     }
 
     private ClientRegistrationRepository newClientRegistrationRepo() {
