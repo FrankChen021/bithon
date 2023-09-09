@@ -29,6 +29,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * An exception safe version of {@link java.util.concurrent.ScheduledThreadPoolExecutor}.
+ * It's safe for the scheduled task to throw exception while the task can be further scheduled.
+ *
  * @author Frank Chen
  * @date 5/9/23 11:11 am
  */

@@ -101,26 +101,22 @@ public class DashboardManager implements SmartLifecycle {
     }
 
     private void incrementalLoad() {
-        try {
-            List<Dashboard> changedDashboards = storage.getDashboard(this.lastLoadAt);
-            log.info("{} dashboards have been changed since {}.", changedDashboards.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
+        List<Dashboard> changedDashboards = storage.getDashboard(this.lastLoadAt);
+        log.info("{} dashboards have been changed since {}.", changedDashboards.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
 
-            if (!changedDashboards.isEmpty()) {
-                for (Dashboard dashboard : changedDashboards) {
-                    if (dashboard.isDeleted()) {
-                        this.dashboards.remove(dashboard.getName());
-                    } else {
-                        this.dashboards.put(dashboard.getName(), dashboard);
-                    }
+        if (!changedDashboards.isEmpty()) {
+            for (Dashboard dashboard : changedDashboards) {
+                if (dashboard.isDeleted()) {
+                    this.dashboards.remove(dashboard.getName());
+                } else {
+                    this.dashboards.put(dashboard.getName(), dashboard);
                 }
-
-                onChanged();
             }
 
-            this.lastLoadAt = System.currentTimeMillis();
-        } catch (Exception e) {
-            log.error("Exception occurs when loading schemas", e);
+            onChanged();
         }
+
+        this.lastLoadAt = System.currentTimeMillis();
     }
 
     public Dashboard getDashboard(String boardName) {

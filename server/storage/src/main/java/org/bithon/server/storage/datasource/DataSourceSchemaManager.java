@@ -109,19 +109,15 @@ public class DataSourceSchemaManager implements SmartLifecycle {
     }
 
     private void incrementalLoadSchemas() {
-        try {
-            List<DataSourceSchema> changedSchemaList = schemaStorage.getSchemas(this.lastLoadAt);
+        List<DataSourceSchema> changedSchemaList = schemaStorage.getSchemas(this.lastLoadAt);
 
-            log.info("{} schema(s) have been changed since {}.", changedSchemaList.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
+        log.info("{} schema(s) have been changed since {}.", changedSchemaList.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
 
-            for (DataSourceSchema changedSchema : changedSchemaList) {
-                this.onChange(this.schemas.put(changedSchema.getName(), changedSchema), changedSchema);
-            }
-
-            this.lastLoadAt = System.currentTimeMillis();
-        } catch (Exception e) {
-            log.error("Exception occurs when loading schemas", e);
+        for (DataSourceSchema changedSchema : changedSchemaList) {
+            this.onChange(this.schemas.put(changedSchema.getName(), changedSchema), changedSchema);
         }
+
+        this.lastLoadAt = System.currentTimeMillis();
     }
 
     private void onChange(DataSourceSchema oldSchema, DataSourceSchema dataSourceSchema) {
