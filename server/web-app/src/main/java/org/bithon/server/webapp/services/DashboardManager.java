@@ -18,6 +18,7 @@ package org.bithon.server.webapp.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactor;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.storage.web.Dashboard;
 import org.bithon.server.storage.web.IDashboardStorage;
@@ -31,7 +32,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -74,7 +74,7 @@ public class DashboardManager implements SmartLifecycle {
     public void start() {
         log.info("Starting dashboard incremental loader...");
 
-        loaderScheduler = Executors.newSingleThreadScheduledExecutor(NamedThreadFactory.of("dashboard-loader"));
+        loaderScheduler = ScheduledExecutorServiceFactor.newSingleThreadScheduledExecutor(NamedThreadFactory.of("dashboard-loader"));
         loaderScheduler.scheduleWithFixedDelay(this::incrementalLoad,
                                                // no delay to execute the first task
                                                0,
@@ -101,26 +101,22 @@ public class DashboardManager implements SmartLifecycle {
     }
 
     private void incrementalLoad() {
-        try {
-            List<Dashboard> changedDashboards = storage.getDashboard(this.lastLoadAt);
-            log.info("{} dashboards have been changed since {}.", changedDashboards.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
+        List<Dashboard> changedDashboards = storage.getDashboard(this.lastLoadAt);
+        log.info("{} dashboards have been changed since {}.", changedDashboards.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
 
-            if (!changedDashboards.isEmpty()) {
-                for (Dashboard dashboard : changedDashboards) {
-                    if (dashboard.isDeleted()) {
-                        this.dashboards.remove(dashboard.getName());
-                    } else {
-                        this.dashboards.put(dashboard.getName(), dashboard);
-                    }
+        if (!changedDashboards.isEmpty()) {
+            for (Dashboard dashboard : changedDashboards) {
+                if (dashboard.isDeleted()) {
+                    this.dashboards.remove(dashboard.getName());
+                } else {
+                    this.dashboards.put(dashboard.getName(), dashboard);
                 }
-
-                onChanged();
             }
 
-            this.lastLoadAt = System.currentTimeMillis();
-        } catch (Exception e) {
-            log.error("Exception occurs when loading schemas", e);
+            onChanged();
         }
+
+        this.lastLoadAt = System.currentTimeMillis();
     }
 
     public Dashboard getDashboard(String boardName) {
