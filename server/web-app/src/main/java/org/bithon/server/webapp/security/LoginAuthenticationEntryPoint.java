@@ -17,6 +17,7 @@
 package org.bithon.server.webapp.security;
 
 import groovy.util.logging.Slf4j;
+import org.bithon.component.commons.utils.StringUtils;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
@@ -53,7 +54,12 @@ public class LoginAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPo
                                                  HttpServletResponse response,
                                                  AuthenticationException authException) {
 
-        CookieHelper.Builder.newCookie(LOGIN_REDIRECT, request.getRequestURI())
+        String uri = request.getRequestURI();
+        if (StringUtils.hasText(request.getQueryString())) {
+            uri += "?" + request.getQueryString();
+        }
+
+        CookieHelper.Builder.newCookie(LOGIN_REDIRECT, uri)
                             .path("/")
                             .expiration(300)
                             .saveTo(response);
