@@ -16,8 +16,10 @@
 
 package org.bithon.server.webapp.security;
 
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.webapp.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesRegistrationAdapter;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -30,6 +32,7 @@ import org.springframework.security.oauth2.client.registration.InMemoryClientReg
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * @author Frank Chen
@@ -40,17 +43,27 @@ import java.util.Map;
 public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
 
     private final SecurityConfig securityConfig;
+    private final String contextPath;
 
-    public SecurityConfigurer(SecurityConfig securityConfig) {
+    public SecurityConfigurer(ServerProperties serverProperties,
+                              SecurityConfig securityConfig) {
         this.securityConfig = securityConfig;
+        String contextPath = serverProperties.getServlet().getContextPath();
+        this.contextPath = StringUtils.hasText(contextPath) ? contextPath : "";
     }
 
     @Override
     public void configure(WebSecurity web) {
+        String[] ignoreList = Stream.of("/images/**",
+                                        "/css/**",
+                                        "/lib/**",
+                                        "/js/**",
+                                        "/login",
+                                        "/actuator/**"
+                                       ).map((path) -> this.contextPath + path).toArray(String[]::new);
+
         // Configure to ignore security check on static resources
-        web.ignoring()
-           .antMatchers("/images/**", "/css/**", "/lib/**", "/js/**")
-           .antMatchers("/login");
+        web.ignoring().antMatchers(ignoreList);
     }
 
     @Override
@@ -83,7 +96,7 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
             .and()
             .logout().logoutSuccessUrl("/")
             .and()
-            .exceptionHandling().authenticationEntryPoint(new LoginAuthenticationEntryPoint("/oauth2/authorization/google"));
+            .exceptionHandling().authenticationEntryPoint(new LoginAuthenticationEntryPoint(this.contextPath + "/oauth2/authorization/google"));
     }
 
     private ClientRegistrationRepository newClientRegistrationRepo() {
