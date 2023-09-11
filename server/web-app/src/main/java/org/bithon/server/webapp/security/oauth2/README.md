@@ -108,9 +108,30 @@ In this filter,
 it first checks if the received URL parameters in this request matches the authorization request
 that is saved when `/oauth2/authorization/google` is processed.
 
-If it matches,
-this filter will generate a `OAuth2AuthenticationToken` token and stores it in current
+If it matches, this filter will send requests to Google for token and user information.
+![img.png](img.png)
+
+And then generates a `OAuth2AuthenticationToken` token and stores it in current
 `SecurityContextHolder` so that the following security filters know this request has been authenticated.
+
+# Summary
+
+The following diagram shows the full picture of the sequences. 
+
+```mermaid
+sequenceDiagram
+    Client->>Application: /a_uri
+    John-->>Alice: Great!
+    Application-)Client: HTTP_302, Please go to /oauth2/authorization/google
+    Client->>Application: /oauth2/authorization/google
+    Application-)Client: HTTP_302, Please go to https://accounts.google.com/o/oauth2/v2/auth?xxxx
+    Client->>Google: Authentication
+    Google-)Client: HTTP_302, Please go back to your application at login/oauth2/code/google
+    Client->>Application: login/oauth2/code/google
+    Application->>Google: /oauth2/v4/token
+    Application->>Google: /oauth2/v3/userinfo
+    Application-)Client: (determined how your application is implemented, can be a HTTP_302 to redirect back to /a_uri)
+``` 
 
 # How the JWT works together with Google OAuth2
 
