@@ -30,9 +30,9 @@ import java.time.Duration;
 @Data
 @Configuration
 @ConfigurationProperties("bithon.web.security")
-public class SecurityConfig {
+public class WebSecurityConfig {
     private boolean enabled = false;
-    private String jwtTokenSignKey = "BithonIsAObservabilityPlatformThatMakesUEasy9";
+    private String jwtTokenSignKey = "BithonIsAObservabilityPlatformThatMakesUEasy10";
     private long jwtTokenValiditySeconds = Duration.ofDays(1).getSeconds();
 
     private OAuth2Config oauth2;

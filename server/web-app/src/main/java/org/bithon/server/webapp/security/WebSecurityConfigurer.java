@@ -16,7 +16,9 @@
 
 package org.bithon.server.webapp.security;
 
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.storage.InvalidConfigurationException;
 import org.bithon.server.webapp.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesRegistrationAdapter;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -40,13 +42,13 @@ import java.util.stream.Stream;
  */
 @Configuration
 @EnableWebSecurity
-public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
 
-    private final SecurityConfig securityConfig;
+    private final WebSecurityConfig securityConfig;
     private final String contextPath;
 
-    public SecurityConfigurer(ServerProperties serverProperties,
-                              SecurityConfig securityConfig) {
+    public WebSecurityConfigurer(ServerProperties serverProperties,
+                                 WebSecurityConfig securityConfig) {
         this.securityConfig = securityConfig;
         String contextPath = serverProperties.getServlet().getContextPath();
         this.contextPath = StringUtils.hasText(contextPath) ? contextPath : "";
@@ -100,6 +102,16 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
     }
 
     private ClientRegistrationRepository newClientRegistrationRepo() {
+        if (securityConfig.getOauth2() == null) {
+            throw new InvalidConfigurationException("bithon.web.security.oauth2 is not configured.");
+        }
+        if (securityConfig.getOauth2().getClient() == null) {
+            throw new InvalidConfigurationException("bithon.web.security.oauth2.client is not configured.");
+        }
+        if (CollectionUtils.isEmpty(securityConfig.getOauth2().getClient().getRegistration())) {
+            throw new InvalidConfigurationException("bithon.web.security.oauth2.client.registration is not configured.");
+        }
+
         Map<String, ClientRegistration> registrationMap = OAuth2ClientPropertiesRegistrationAdapter.getClientRegistrations(securityConfig.getOauth2().getClient());
         return new InMemoryClientRegistrationRepository(registrationMap);
     }

@@ -37,7 +37,7 @@ public class JwtTokenComponent {
     private final SecretKey signKey;
     private final long validity;
 
-    public JwtTokenComponent(SecurityConfig securityConfig) {
+    public JwtTokenComponent(WebSecurityConfig securityConfig) {
         this.signKey = Keys.hmacShaKeyFor(securityConfig.getJwtTokenSignKey().getBytes(StandardCharsets.UTF_8));
         this.validity = securityConfig.getJwtTokenValiditySeconds();
     }

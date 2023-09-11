@@ -36,9 +36,9 @@ import java.util.Collections;
  */
 public class AuthSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtTokenComponent jwtTokenComponent;
-    private final SecurityConfig securityConfig;
+    private final WebSecurityConfig securityConfig;
 
-    public AuthSuccessHandler(JwtTokenComponent jwtTokenComponent, SecurityConfig securityConfig) {
+    public AuthSuccessHandler(JwtTokenComponent jwtTokenComponent, WebSecurityConfig securityConfig) {
         this.jwtTokenComponent = jwtTokenComponent;
         this.securityConfig = securityConfig;
     }
@@ -61,10 +61,11 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
         // Store the JWT in a cookie
         CookieHelper.Builder.newCookie(JwtTokenComponent.COOKIE_NAME_TOKEN, newJwtToken)
                             .expiration(securityConfig.getJwtTokenValiditySeconds())
-                            .path("/").saveTo(response);
+                            .path("/")
+                            .addTo(response);
 
         // Redirect based on the value stored in cookie
-        String redirect = CookieHelper.fetchValue(request, LoginAuthenticationEntryPoint.LOGIN_REDIRECT);
+        String redirect = CookieHelper.get(request, LoginAuthenticationEntryPoint.LOGIN_REDIRECT);
         if (StringUtils.isEmpty(redirect)) {
             redirect = "/web/home";
         }

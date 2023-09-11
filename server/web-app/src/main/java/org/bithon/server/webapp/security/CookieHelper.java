@@ -46,12 +46,12 @@ public class CookieHelper {
             return this;
         }
 
-        public void saveTo(HttpServletResponse response) {
+        public void addTo(HttpServletResponse response) {
             response.addCookie(cookie);
         }
     }
 
-    public static String fetchValue(HttpServletRequest request, String cookieName) {
+    public static String get(HttpServletRequest request, String cookieName) {
         Cookie[] cookies = request.getCookies();
 
         if (cookies != null) {
