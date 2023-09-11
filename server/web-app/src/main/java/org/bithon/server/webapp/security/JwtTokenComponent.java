@@ -35,11 +35,11 @@ public class JwtTokenComponent {
 
     public static final String COOKIE_NAME_TOKEN = "token";
     private final SecretKey signKey;
-    private final long validity;
+    private final long validityMilliseconds;
 
     public JwtTokenComponent(WebSecurityConfig securityConfig) {
         this.signKey = Keys.hmacShaKeyFor(securityConfig.getJwtTokenSignKey().getBytes(StandardCharsets.UTF_8));
-        this.validity = securityConfig.getJwtTokenValiditySeconds();
+        this.validityMilliseconds = securityConfig.getJwtTokenValiditySeconds() * 1000L;
     }
 
     public Claims tokenToUser(String token) {
@@ -58,16 +58,21 @@ public class JwtTokenComponent {
                    .setClaims(claims)
                    .setIssuer("https://bithon.org.cn")
                    .setIssuedAt(new Date(System.currentTimeMillis()))
-                   .setExpiration(new Date(System.currentTimeMillis() + validity * 1000))
+                   // We don't use the expiration in the token to check, but just set it
+                   .setExpiration(new Date(System.currentTimeMillis() + validityMilliseconds))
                    .signWith(signKey, SignatureAlgorithm.HS256)
                    .compact();
     }
 
     public boolean validateToken(Claims claims) {
-        return claims.getSubject() != null && !isTokenExpired(claims);
+        return claims.getSubject() != null && isTokenValid(claims);
     }
 
-    private boolean isTokenExpired(Claims claims) {
-        return claims.getExpiration().before(new Date());
+    /**
+     * Always compare with the latest validity setting for flexibility.
+     * For a valid token, its issue_time + validity should be greater than current timestamp
+     */
+    private boolean isTokenValid(Claims claims) {
+        return claims.getIssuedAt().getTime() + validityMilliseconds > System.currentTimeMillis();
     }
 }
