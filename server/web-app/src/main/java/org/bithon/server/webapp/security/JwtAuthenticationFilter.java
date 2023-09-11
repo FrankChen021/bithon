@@ -18,6 +18,7 @@ package org.bithon.server.webapp.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import org.bithon.component.commons.utils.StringUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -50,8 +51,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
-        String token = CookieHelper.fetchValue(req, JwtTokenComponent.COOKIE_NAME_TOKEN);
-        if (token != null) {
+        String token = CookieHelper.get(req, JwtTokenComponent.COOKIE_NAME_TOKEN);
+        if (token == null) {
+            // Get the token from header to support APIs
+            token = req.getHeader("X-Bithon-Token");
+        }
+
+        if (StringUtils.hasText(token)) {
             Claims user = null;
             try {
                 user = jwtTokenComponent.tokenToUser(token);
