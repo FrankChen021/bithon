@@ -23,6 +23,7 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.time.Duration;
 
 /**
  * @author Frank Chen
@@ -30,6 +31,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @Slf4j
 public class LoginAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
+    public static final long MAX_AGE = Duration.ofDays(7).getSeconds();
 
     public static final String LOGIN_REDIRECT = "login_redirect";
 
@@ -61,8 +63,8 @@ public class LoginAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPo
 
         CookieHelper.Builder.newCookie(LOGIN_REDIRECT, uri)
                             .path("/")
-                            .expiration(300)
-                            .saveTo(response);
+                            .expiration(MAX_AGE)
+                            .addTo(response);
 
         return super.buildRedirectUrlToLoginPage(request, response, authException);
     }

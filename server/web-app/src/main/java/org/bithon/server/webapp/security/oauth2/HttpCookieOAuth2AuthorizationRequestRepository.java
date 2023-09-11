@@ -18,13 +18,15 @@ package org.bithon.server.webapp.security.oauth2;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.webapp.security.CookieHelper;
+import org.bithon.server.webapp.security.LoginAuthenticationEntryPoint;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.util.SerializationUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.time.Duration;
 import java.util.Base64;
 
 /**
@@ -39,7 +41,7 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
 
     @Override
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
-        String text = CookieHelper.fetchValue(request, AUTHORIZATION_REQUEST_COOKIE_NAME);
+        String text = CookieHelper.get(request, AUTHORIZATION_REQUEST_COOKIE_NAME);
         return StringUtils.hasText(text) ? deserialize(text) : null;
     }
 
@@ -49,24 +51,32 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
                                          HttpServletResponse response) {
         if (authorizationRequest == null) {
             CookieHelper.delete(request, response, AUTHORIZATION_REQUEST_COOKIE_NAME);
+            return;
         }
-        CookieHelper.Builder
-            .newCookie(AUTHORIZATION_REQUEST_COOKIE_NAME, serialize(authorizationRequest))
-            .path("/")
-            .expiration(Duration.ofSeconds(60).getSeconds())
-            .saveTo(response);
+
+        // If the cookie exists at the client side, it will be overwritten
+        CookieHelper.Builder.newCookie(AUTHORIZATION_REQUEST_COOKIE_NAME, serialize(authorizationRequest))
+                            .path("/")
+                            .expiration(LoginAuthenticationEntryPoint.MAX_AGE)
+                            .addTo(response);
     }
 
     @Override
     public OAuth2AuthorizationRequest removeAuthorizationRequest(HttpServletRequest request) {
+        // This interface has been deprecated, no need to implement
         return null;
     }
 
     @Override
     public OAuth2AuthorizationRequest removeAuthorizationRequest(HttpServletRequest request, HttpServletResponse response) {
         OAuth2AuthorizationRequest authorizationRequest = loadAuthorizationRequest(request);
-        CookieHelper.delete(request, response, AUTHORIZATION_REQUEST_COOKIE_NAME);
-        return authorizationRequest;
+        if (authorizationRequest != null) {
+            CookieHelper.delete(request, response, AUTHORIZATION_REQUEST_COOKIE_NAME);
+            return authorizationRequest;
+        } else {
+            throw new OAuth2AuthenticationException(new OAuth2Error("authorization_not_found"),
+                                                    "Can't find authorization request. You need to sign-in again.");
+        }
     }
 
     private String serialize(OAuth2AuthorizationRequest authorizationRequest) {
