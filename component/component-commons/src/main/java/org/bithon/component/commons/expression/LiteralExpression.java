@@ -88,7 +88,7 @@ public class LiteralExpression implements IExpression {
             return (boolean) value;
         }
         if (this.dataType.equals(IDataType.LONG)) {
-            return ((long) value) > 0;
+            return ((long) value) != 0;
         }
         if (this.dataType.equals(IDataType.DOUBLE)) {
             return ((double) value) != 0;
