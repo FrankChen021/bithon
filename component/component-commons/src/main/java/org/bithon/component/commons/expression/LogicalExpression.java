@@ -95,8 +95,23 @@ public abstract class LogicalExpression implements IExpression {
         if (value instanceof Boolean) {
             return (boolean) value;
         }
-        if (value instanceof Number) {
-            return ((Number) value).intValue() == 1;
+        if (value instanceof Long) {
+            return ((long) value) != 0;
+        }
+        if (value instanceof Integer) {
+            return ((int) value) != 0;
+        }
+        if (value instanceof Short) {
+            return ((short) value) != 0;
+        }
+        if (value instanceof Byte) {
+            return ((byte) value) != 0;
+        }
+        if (value instanceof Float) {
+            return (float) value != 0;
+        }
+        if (value instanceof Double) {
+            return ((double) value) != 0;
         }
         if (value instanceof String) {
             return "true".equals(value);

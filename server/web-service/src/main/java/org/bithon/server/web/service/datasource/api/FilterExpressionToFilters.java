@@ -44,6 +44,7 @@ import org.bithon.server.commons.matcher.StringLikeMatcher;
 import org.bithon.server.commons.matcher.StringRegexMatcher;
 import org.bithon.server.commons.matcher.StringStartsWithMatcher;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
+import org.bithon.server.storage.common.expression.InvalidExpressionException;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
@@ -112,9 +113,9 @@ public class FilterExpressionToFilters {
                 if (expression.getIdentifier().startsWith("tags.")) {
                     return true;
                 }
-                throw new RuntimeException(StringUtils.format("Unable to find identifier [%s] in data source [%s]",
-                                                              expression.getIdentifier(),
-                                                              schema.getName()));
+                throw new InvalidExpressionException("Unable to find identifier [%s] in data source [%s].",
+                                                     expression.getIdentifier(),
+                                                     schema.getName());
             }
 
             // Change to raw name

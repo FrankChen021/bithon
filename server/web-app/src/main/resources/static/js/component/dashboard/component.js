@@ -593,8 +593,8 @@ class Dashboard {
                 parent: parentElement,
                 columns: tableColumns,
 
-                // If the query defines the LIMIT, the SORT should be done at the server side
-                serverSort: tableDescriptor.query !== undefined && tableDescriptor.query.limit !== undefined,
+                // If the table has pagination OR the table query defines the LIMIT, the SORT should be done at the server side
+                serverSort: (tableDescriptor.pagination !== undefined) || (tableDescriptor.query !== undefined && tableDescriptor.query.limit !== undefined),
 
                 pagination: tableDescriptor.pagination,
                 detailView: false,

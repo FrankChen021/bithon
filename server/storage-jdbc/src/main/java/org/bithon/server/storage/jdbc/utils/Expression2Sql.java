@@ -18,6 +18,7 @@ package org.bithon.server.storage.jdbc.utils;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.function.IDataType;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 
@@ -49,13 +50,18 @@ public class Expression2Sql extends ExpressionSerializer {
     @Override
     public boolean visit(LiteralExpression expression) {
         Object value = expression.getValue();
-        if (value instanceof String) {
+        if (IDataType.STRING.equals(expression.getDataType())) {
             sb.append('\'');
             // Escape the single quote to ensure the user input is safe
             sb.append(((String) value).replace("'", "\\'"));
             sb.append('\'');
-        } else {
+        } else if (expression.isNumber()) {
             sb.append(value);
+        } else if (expression.getDataType().equals(IDataType.BOOLEAN)) {
+            // Some old versions of CK do not support true/false literal, we use integer instead
+            sb.append(expression.asBoolean() ? 1 : 0);
+        } else {
+            throw new RuntimeException("Not supported type " + expression.getDataType());
         }
         return false;
     }

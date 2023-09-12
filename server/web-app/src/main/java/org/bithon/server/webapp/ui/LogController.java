@@ -17,6 +17,7 @@
 package org.bithon.server.webapp.ui;
 
 import org.bithon.component.commons.Experimental;
+import org.bithon.server.storage.web.Dashboard;
 import org.bithon.server.webapp.WebAppModuleEnabler;
 import org.bithon.server.webapp.services.DashboardManager;
 import org.bithon.server.webapp.services.ServiceDiscovery;
@@ -48,13 +49,15 @@ public class LogController {
 
     @GetMapping("/web/log/{store}")
     public String log(@PathVariable("store") String store, Model model, HttpServletResponse servletResponse) {
-        if (dashboardManager.getDashboard(store) == null) {
+        Dashboard dashboard = dashboardManager.getDashboard(store);
+        if (dashboard == null) {
             servletResponse.setStatus(HttpStatus.NOT_FOUND.value());
             return null;
         }
 
         model.addAttribute("apiHost", serviceDiscovery.getApiHost());
         model.addAttribute("store", store);
+        model.addAttribute("storeDisplayName", dashboard.getMetadata() == null ? store : dashboard.getMetadata().getTitle());
         return "log/detail";
     }
 }
