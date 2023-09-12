@@ -40,7 +40,7 @@ public class ExpressionOptimizer {
     public static IExpression optimize(IExpression expression) {
         return expression.accept(new HasTokenFunctionOptimizer())
                          .accept(new ConstantFoldingOptimizer())
-                         .accept(new RemoveConditionOptimizer());
+                         .accept(new LogicalExpressionOptimizer());
     }
 
     static class AbstractOptimizer implements IExpressionVisitor2<IExpression> {
@@ -202,7 +202,12 @@ public class ExpressionOptimizer {
         }
     }
 
-    static class RemoveConditionOptimizer extends AbstractOptimizer {
+    /**
+     * Simplifies constant expressions in logical AND/OR/NOT.
+     * For example, the expression '1 = 1 AND condition2' can be simplified as condition2.
+     * '1 = 1 OR condition2' can be simplified as true.
+     */
+    static class LogicalExpressionOptimizer extends AbstractOptimizer {
         @Override
         public IExpression visit(LogicalExpression expression) {
             expression.getOperands().replaceAll(iExpression -> iExpression.accept(this));
