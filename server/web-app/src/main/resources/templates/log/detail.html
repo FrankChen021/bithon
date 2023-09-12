@@ -54,28 +54,137 @@
 <div layout:fragment="content">
     <!-- page-content  -->
     <main class="page-content">
-        <nav id="filterContainer" class="navbar navbar-expand-lg navbar-light bg-light" style="padding-left: 5px; padding-right: 5px">
+        <nav id="filterContainer" class="navbar navbar-expand-lg navbar-light bg-light"
+             style="padding-left: 5px; padding-right: 5px">
             <div class="collapse navbar-collapse">
+
                 <ul class="navbar-nav mr-auto mt-2 mt-lg-0" id="filterBar">
+                    <!-- Log store filter -->
+                    <li class="nav-item active">
+                        <select id="logStore" style="width:220px">
+                        </select>
+                    </li>
+
+                    <!-- Dashboard filters-->
                 </ul>
                 <form class="form-inline my-2 my-lg-0" id="filterBarForm">
-                    <!-- Auto Refresher -->
-
-                    <!-- TimeInterval Component -->
                 </form>
             </div>
         </nav>
 
-        <div style="padding-top: 10px; padding-left: 5px; padding-right: 5px" id="dashboard"></div>
+        <div style="padding-top: 10px; padding-left: 5px; padding-right: 5px" id="logContainer"></div>
     </main>
 
     <script th:inline="javascript">
-        const logStore = [[${store}]];
+        const g_logStore = [[${store}]];
+        const g_logStoreDisplayName = [[${storeDisplayName}]];
+
+        /**
+         * @param search keyword of the search
+         * @param data { results: [] }
+         */
+        function filterUserInput(search, data) {
+            if (search === undefined || search == null || search.length === 0) {
+                return data;
+            }
+            search = search.toLowerCase();
+
+            const newItems = [];
+            for (let i = 0; i < data.results.length; i++) {
+                const item = data.results[i];
+                if (item.search.indexOf(search) > -1) {
+                    newItems.push(item);
+                }
+            }
+
+            // because the 'data' has been cached, we can't change it
+            // So, return a new object instead
+            return {results: newItems};
+        }
+
+        var g_storeList = {};
+        // The following 'transport' function is based on: https://github.com/select2/select2/issues/110#issuecomment-694495292
+        function getAndCache(cacheName, params, success, failure, processResults) {
+            const search = params.data['search'];
+            delete params.data['search'];
+
+            if (g_storeList.results !== undefined) {
+                success(filterUserInput(search, g_storeList));
+                return; /* noop */
+            }
+
+            const $request = $.ajax(params);
+            $request.then((data) => {
+                if (processResults !== undefined) {
+                    data = processResults(data);
+                }
+
+                //store data in cache
+                g_storeList = data;
+
+                //display the results
+                success(g_storeList);
+            });
+            $request.fail(failure);
+            return $request;
+        }
+
+        const logStoreFilter = $('#logStore').select2({
+            theme: 'bootstrap4',
+            dropdownAutoWidth: true,
+            placeholder: 'Choose a log store',
+            ajax: {
+                cache: true,
+                type: 'GET',
+                url: apiHost + '/web/api/dashboard/names?folder=log',
+                dataType: "json",
+                contentType: "application/json",
+
+                transport: (params, success, failure) => getAndCache('applications',
+                    params,
+                    success,
+                    failure,
+                    (itemList) => {
+                        return {
+                            results: itemList.map(item => {
+                                return {
+                                    id: item.value,
+                                    text: item.text,
+                                    search: item.text.toLowerCase()
+                                };
+                            })
+                        };
+                    })
+            },
+        });
+
+        logStoreFilter.append(`<option value=${g_logStore}>${g_logStoreDisplayName}</option>`).change();
+        logStoreFilter.on('change', (event) => {
+            if (event.target.selectedIndex !== null && event.target.selectedIndex >= 0) {
+                const selectedStore = event.target.selectedOptions[0].value;
+
+                if (selectedStore === g_logStore) {
+                    return;
+                }
+
+                // Check if the log store exists because the current select2 allows to edit,
+                // use might key in a valid log store name
+                if (g_storeList.results !== undefined) {
+                    const foundStore = g_storeList.results.filter((store) => store.id === selectedStore);
+                    if (foundStore.length > 0) {
+                        window.location.href = '/web/log/' + selectedStore;
+                    }
+                }
+            }
+        });
+
         $(document).ready(function () {
-            new DashboardApi().getDashboardConfig(logStore,
+
+            new DashboardApi().getDashboardConfig(g_logStore,
                 (boardConfig) => {
-                    const dashboard = new Dashboard('dashboard',
-                        logStore,
+                    // Initialize dashboard
+                    const dashboard = new Dashboard('logContainer',
+                        g_logStore,
                         window.queryParams['interval'],
                         false);
                     dashboard.load(boardConfig);
