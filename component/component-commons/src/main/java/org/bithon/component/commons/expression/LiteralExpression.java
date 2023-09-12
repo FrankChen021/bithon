@@ -71,12 +71,29 @@ public class LiteralExpression implements IExpression {
         return value;
     }
 
+    public boolean isNumber() {
+        return this.dataType.equals(IDataType.DOUBLE) || this.dataType.equals(IDataType.LONG);
+    }
+
     public String asString() {
         return (String) value;
     }
 
     public Object[] asArray() {
         return (Object[]) value;
+    }
+
+    public boolean asBoolean() {
+        if (this.dataType.equals(IDataType.BOOLEAN)) {
+            return (boolean) value;
+        }
+        if (this.dataType.equals(IDataType.LONG)) {
+            return ((long) value) > 0;
+        }
+        if (this.dataType.equals(IDataType.DOUBLE)) {
+            return ((double) value) != 0;
+        }
+        throw new RuntimeException("Unable to convert to boolean for expression: " + this.serializeToText());
     }
 
     @Override

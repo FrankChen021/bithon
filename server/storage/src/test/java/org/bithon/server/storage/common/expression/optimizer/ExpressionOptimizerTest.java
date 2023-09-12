@@ -132,4 +132,137 @@ public class ExpressionOptimizerTest {
 
         Assert.assertEquals("a like '%a_b%'", expr.serializeToText(false));
     }
+
+    @Test
+    public void test_RemoveAlwaysTrueCondition() {
+        IExpression expr = ExpressionASTBuilder.build("1 AND a = 'Good'");
+
+        Assert.assertEquals("a = 'Good'", expr.serializeToText(false));
+    }
+
+    @Test
+    public void test_RemoveAlwaysTrueCondition_2() {
+        IExpression expr = ExpressionASTBuilder.build("1 = 1 AND a = 'Good'");
+
+        Assert.assertEquals("a = 'Good'", expr.serializeToText(false));
+    }
+
+    @Test
+    public void test_RemoveAlwaysTrueCondition_3() {
+        IExpression expr = ExpressionASTBuilder.build("a = 'Good' AND 1 = 1");
+
+        Assert.assertEquals("a = 'Good'", expr.serializeToText(false));
+    }
+
+    @Test
+    public void test_RemoveAlwaysTrueCondition_4() {
+        IExpression expr = ExpressionASTBuilder.build("2 > 1 AND 1 = 1");
+
+        Assert.assertEquals("true", expr.serializeToText(false));
+    }
+
+    @Test
+    public void test_RemoveAlwaysFalseCondition() {
+        IExpression expr = ExpressionASTBuilder.build("0 AND a = 'God'");
+
+        Assert.assertTrue(expr instanceof LiteralExpression);
+        Assert.assertEquals("false", expr.serializeToText(false));
+    }
+
+    @Test
+    public void test_RemoveAlwaysFalseCondition_2() {
+        IExpression expr = ExpressionASTBuilder.build("a = 'God' AND b = 'is' AND 'good' = 'bad'");
+
+        Assert.assertTrue(expr instanceof LiteralExpression);
+        Assert.assertEquals("false", expr.serializeToText(false));
+    }
+
+    @Test
+    public void test_OptimizeOR_1() {
+        IExpression expr = ExpressionASTBuilder.build("1 OR a = 'Good'");
+
+        Assert.assertTrue(expr instanceof LiteralExpression);
+        Assert.assertEquals("true", expr.serializeToText(false));
+    }
+
+    @Test
+    public void test_OptimizeOR_2() {
+        IExpression expr = ExpressionASTBuilder.build("1 = 1 OR a = 'Good'");
+
+        Assert.assertTrue(expr instanceof LiteralExpression);
+        Assert.assertEquals("true", expr.serializeToText(false));
+    }
+
+    @Test
+    public void test_OptimizeOR_3() {
+        IExpression expr = ExpressionASTBuilder.build("a = 'Good' OR 1 = 1");
+
+        Assert.assertTrue(expr instanceof LiteralExpression);
+        Assert.assertEquals("true", expr.serializeToText(false));
+    }
+
+    @Test
+    public void test_OptimizeOR_4() {
+        IExpression expr = ExpressionASTBuilder.build("2 > 1 OR 1 = 1");
+
+        Assert.assertTrue(expr instanceof LiteralExpression);
+        Assert.assertEquals("true", expr.serializeToText(false));
+    }
+
+    @Test
+    public void test_OptimizeOR_5() {
+        IExpression expr = ExpressionASTBuilder.build("0 OR a = 'God'");
+
+        Assert.assertEquals("a = 'God'", expr.serializeToText(false));
+    }
+
+    @Test
+    public void test_OptimizeOR_6() {
+        IExpression expr = ExpressionASTBuilder.build("a = 'God' OR 1 > 2 OR b = 'c'");
+
+        Assert.assertEquals("(a = 'God' OR b = 'c')", expr.serializeToText(false));
+    }
+
+    @Test
+    public void test_OptimizeLogical() {
+        IExpression expr = ExpressionASTBuilder.build("a = 'God' OR 1 > 2 OR b = 'c' AND 1 = 1");
+
+        Assert.assertEquals("(a = 'God' OR b = 'c')", expr.serializeToText(false));
+    }
+
+    @Test
+    public void test_Optimize_NOT() {
+        IExpression expr = ExpressionASTBuilder.build("NOT 1 = 1");
+
+        Assert.assertEquals("false", expr.serializeToText(false));
+    }
+
+    @Test
+    public void test_Optimize_NOT_2() {
+        IExpression expr = ExpressionASTBuilder.build("NOT 1 > 1");
+
+        Assert.assertEquals("true", expr.serializeToText(false));
+    }
+
+    @Test
+    public void test_Optimize_NOT_3() {
+        IExpression expr = ExpressionASTBuilder.build("NOT 1 >= 1");
+
+        Assert.assertEquals("false", expr.serializeToText(false));
+    }
+
+    @Test
+    public void test_Optimize_NOT_4() {
+        IExpression expr = ExpressionASTBuilder.build("NOT (a = 'God' AND 0)");
+
+        Assert.assertEquals("true", expr.serializeToText(false));
+    }
+
+    @Test
+    public void test_Optimize_Constant() {
+        IExpression expr = ExpressionASTBuilder.build("1 AND 2");
+
+        Assert.assertTrue(expr instanceof LiteralExpression);
+        Assert.assertEquals("true", expr.serializeToText(false));
+    }
 }

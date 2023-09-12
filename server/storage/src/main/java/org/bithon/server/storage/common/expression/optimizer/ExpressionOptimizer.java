@@ -27,6 +27,9 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
+import org.bithon.component.commons.expression.function.IDataType;
+
+import java.util.Iterator;
 
 /**
  * @author Frank Chen
@@ -36,10 +39,11 @@ public class ExpressionOptimizer {
 
     public static IExpression optimize(IExpression expression) {
         return expression.accept(new HasTokenFunctionOptimizer())
-                         .accept(new ConstantFoldingOptimizer());
+                         .accept(new ConstantFoldingOptimizer())
+                         .accept(new RemoveConditionOptimizer());
     }
 
-    static class DefaultOptimizer implements IExpressionVisitor2<IExpression> {
+    static class AbstractOptimizer implements IExpressionVisitor2<IExpression> {
         @Override
         public IExpression visit(LiteralExpression expression) {
             return expression;
@@ -86,7 +90,7 @@ public class ExpressionOptimizer {
         }
     }
 
-    static class ConstantFoldingOptimizer extends DefaultOptimizer {
+    static class ConstantFoldingOptimizer extends AbstractOptimizer {
         @Override
         public IExpression visit(LogicalExpression expression) {
             int literalCount = 0;
@@ -166,7 +170,7 @@ public class ExpressionOptimizer {
         }
     }
 
-    static class HasTokenFunctionOptimizer extends DefaultOptimizer {
+    static class HasTokenFunctionOptimizer extends AbstractOptimizer {
         @Override
         public IExpression visit(FunctionExpression expression) {
             if (!"hasToken".equals(expression.getName())) {
@@ -195,6 +199,133 @@ public class ExpressionOptimizer {
          */
         private boolean isTokenSeparator(char chr) {
             return !(Character.isLetterOrDigit(chr) || (chr > 127));
+        }
+    }
+
+    static class RemoveConditionOptimizer extends AbstractOptimizer {
+        @Override
+        public IExpression visit(LogicalExpression expression) {
+            expression.getOperands().replaceAll(iExpression -> iExpression.accept(this));
+
+            if (expression instanceof LogicalExpression.AND) {
+                return handleAndExpression((LogicalExpression.AND) expression);
+            }
+            if (expression instanceof LogicalExpression.OR) {
+                return handleOrExpression((LogicalExpression.OR) expression);
+            }
+            if (expression instanceof LogicalExpression.NOT) {
+                return handleNotExpression(expression);
+            }
+            return expression;
+        }
+
+        private IExpression handleNotExpression(LogicalExpression expression) {
+            // When the sub expression is optimized into one expression,
+            // we can only apply the optimization to it again for simplicity.
+            if (expression.getOperands().size() != 1) {
+                return expression;
+            }
+
+            IExpression subExpression = expression.getOperands().get(0);
+            if (!(subExpression instanceof LiteralExpression)) {
+                return expression;
+            }
+
+            if (((LiteralExpression) subExpression).isNumber()) {
+                if (((LiteralExpression) subExpression).asBoolean()) {
+                    // the sub expression is true, the whole expression is false
+                    return new LiteralExpression(false);
+                } else {
+                    return new LiteralExpression(true);
+                }
+            } else if (IDataType.BOOLEAN.equals(((LiteralExpression) subExpression).getDataType())) {
+                if (((LiteralExpression) subExpression).asBoolean()) {
+                    // the sub expression is true, the whole expression is false
+                    return new LiteralExpression(false);
+                } else {
+                    return new LiteralExpression(true);
+                }
+            }
+            return expression;
+        }
+
+        private IExpression handleOrExpression(LogicalExpression.OR expression) {
+            Iterator<IExpression> subExpressionIterator = expression.getOperands().iterator();
+
+            while (subExpressionIterator.hasNext()) {
+                IExpression subExpression = subExpressionIterator.next();
+
+                if (!(subExpression instanceof LiteralExpression)) {
+                    continue;
+                }
+
+                if (((LiteralExpression) subExpression).isNumber()) {
+                    if (((LiteralExpression) subExpression).asBoolean()) {
+                        // the sub expression is true, the whole expression is true
+                        return new LiteralExpression(true);
+                    } else {
+                        // The sub expression is false, it should be removed from the expression list
+                        subExpressionIterator.remove();
+
+                    }
+                } else if (IDataType.BOOLEAN.equals(((LiteralExpression) subExpression).getDataType())) {
+                    if (((LiteralExpression) subExpression).asBoolean()) {
+                        // the sub expression is true, the whole expression is true
+                        return subExpression;
+                    } else {
+                        // The sub expression is false, it should be removed from the expression list
+                        subExpressionIterator.remove();
+                    }
+                }
+            }
+
+            int subExprSize = expression.getOperands().size();
+            if (subExprSize == 0) {
+                return new LiteralExpression(true);
+            }
+            if (subExprSize == 1) {
+                return expression.getOperands().get(0);
+            }
+            return expression;
+        }
+
+        private IExpression handleAndExpression(LogicalExpression.AND andExpression) {
+            Iterator<IExpression> subExpressionIterator = andExpression.getOperands().iterator();
+
+            while (subExpressionIterator.hasNext()) {
+                IExpression subExpression = subExpressionIterator.next();
+
+                if (!(subExpression instanceof LiteralExpression)) {
+                    continue;
+                }
+
+                if (((LiteralExpression) subExpression).isNumber()) {
+                    if (((LiteralExpression) subExpression).asBoolean()) {
+                        // true, remove this always true expression
+                        subExpressionIterator.remove();
+                    } else {
+                        // The sub expression is false, the whole expression is FALSE
+                        return new LiteralExpression(false);
+                    }
+                } else if (IDataType.BOOLEAN.equals(((LiteralExpression) subExpression).getDataType())) {
+                    if (((LiteralExpression) subExpression).asBoolean()) {
+                        // sub expression is true, remove it from the AND expression
+                        subExpressionIterator.remove();
+                    } else {
+                        // The sub expression is false, the whole expression is FALSE
+                        return subExpression;
+                    }
+                }
+            }
+
+            int subExprSize = andExpression.getOperands().size();
+            if (subExprSize == 0) {
+                return new LiteralExpression(true);
+            }
+            if (subExprSize == 1) {
+                return andExpression.getOperands().get(0);
+            }
+            return andExpression;
         }
     }
 }
