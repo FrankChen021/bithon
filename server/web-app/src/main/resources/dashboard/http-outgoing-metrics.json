@@ -16,7 +16,8 @@
           "statusCode"
         ]
       }
-    ]
+    ],
+    "showFilterInput": true
   },
   "charts": [
     {
