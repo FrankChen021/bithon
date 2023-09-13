@@ -188,7 +188,7 @@ class AppSelector {
 
         // bind query params if applicable
         const queryValue = window.queryParams[filterName];
-        if (queryValue != null) {
+        if (queryValue !== undefined && queryValue !== null && queryValue !== '') {
             appendedSelect.append(`<option value="${this.mDataSource}">${queryValue}</option>`).change();
 
             this.#addFilter(filterName, queryValue);
