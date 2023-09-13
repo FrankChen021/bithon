@@ -94,8 +94,8 @@
       "columns": [
         {
           "name": "timestamp",
-          "title": "Time",
-          "format": "shortDateTime",
+          "format": "time",
+          "template": "MM-dd hh:mm:ss.S",
           "width": 150
         },
         "instanceName",
