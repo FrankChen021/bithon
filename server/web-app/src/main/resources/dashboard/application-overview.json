@@ -2,6 +2,17 @@
   "name": "application-overview",
   "folder": "metrics",
   "title": "Application Overview",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "jvm-metrics",
+        "fields": [
+          {"name": "appName", "width": 200, "allowClear":  false}
+        ]
+      }
+    ]
+  },
   "charts": [
     {
       "title": "Instance List",
@@ -16,7 +27,7 @@
         },
         {
           "name": "processCpuLoad",
-          "title": "processCpuLoad(%)"
+          "format": "percentage"
         },
         "processors",
         {
@@ -31,7 +42,7 @@
         },
         {
           "name": "heapUsed",
-          "title": "heapUsed(%)"
+          "format": "percentage"
         },
         {
           "name": "heapMax",
@@ -86,7 +97,7 @@
         },
         {
           "name": "errorRate",
-          "title": "errorRate(%)"
+          "format": "percentage"
         },
         {
           "name": "avgResponseTime",
@@ -142,7 +153,7 @@
         },
         {
           "name": "errorRate",
-          "title": "errorRate(%)"
+          "format": "percentage"
         },
         {
           "name": "avgResponseTime",

@@ -166,6 +166,9 @@ class AppSelector {
      *    name:
      *    alias:
      *    displayText:
+     *    width:
+     *    allowClear:
+     *    allowEdit:
      *    onPreviousFilters: true | false
      * }
      */
@@ -184,7 +187,8 @@ class AppSelector {
         const filterName = this.mQueryVariablePrefix + filterSpec.alias;
 
         // create selector
-        const appendedSelect = this.vParent.append(`<li class="nav-item"><select id="${filterName}" style="width:150px"></select></li>`).find('select').last();
+        const width = filterSpec.width === undefined ? 150 : filterSpec.width;
+        const appendedSelect = this.vParent.append(`<li class="nav-item"><select id="${filterName}" style="width:${width}px"></select></li>`).find('select').last();
 
         // bind query params if applicable
         const queryValue = window.queryParams[filterName];
@@ -196,7 +200,7 @@ class AppSelector {
 
         appendedSelect.select2({
             theme: 'bootstrap4',
-            allowClear: true,
+            allowClear: filterSpec.allowClear === undefined ? true : filterSpec.allowClear,
             dropdownAutoWidth: true,
             placeholder: filterSpec.displayText,
             ajax: this.getDimensionAjaxOptions(dimensionIndex),
