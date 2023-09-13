@@ -105,8 +105,8 @@
         var g_storeList = {};
         // The following 'transport' function is based on: https://github.com/select2/select2/issues/110#issuecomment-694495292
         function getAndCache(cacheName, params, success, failure, processResults) {
-            const search = params.data['search'];
-            delete params.data['search'];
+            const search = params.data['term'];
+            delete params.data['term'];
 
             if (g_storeList.results !== undefined) {
                 success(filterUserInput(search, g_storeList));
