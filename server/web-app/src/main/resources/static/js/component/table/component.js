@@ -32,6 +32,7 @@ class TableComponent {
         }, option.toolbar);
 
         // view
+        this.mStickyHeader = option.stickyHeader !== undefined ? option.stickyHeader : false;
         this.vComponentContainer = $(`<div class="card card-block rounded-0"></div>`);
         this.vTable = this.vComponentContainer.append(`<div class="table-container"><table id="${option.tableId}"></table></div>`).find('table');
         option.parent.append(this.vComponentContainer);
@@ -273,6 +274,20 @@ class TableComponent {
         if (!this.mCreated) {
             this.mCreated = true;
 
+            // 1 is the border
+            let stickyHeaderOffsetLeft = 1;
+            let stickyHeaderOffsetRight = 1;
+            if (this.mStickyHeader) {
+                this.vComponentContainer
+                    .parentsUntil('body')
+                    .each(function() {
+                        // Convert the DOM element to a jQuery object if needed
+                        var parent = $(this);
+                        stickyHeaderOffsetLeft += parseInt(parent.css('padding-left'), 10);
+                        stickyHeaderOffsetRight += parseInt(parent.css('padding-right'), 10);
+                });
+            }
+
             const tableOption = {
                 url: option.url,
                 method: 'post',
@@ -284,6 +299,7 @@ class TableComponent {
                 pagination: this.mHasPagination,
 
                 serverSort: this.mServerSort,
+                silentSort: !this.mServerSort,
                 sortName: this.mDefaultOrderBy,
                 sortOrder: this.mDefaultOrder,
 
@@ -295,9 +311,9 @@ class TableComponent {
                 detailView: this.mTableHasDetailView,
                 detailFormatter: (index, row) => this.#showDetail(index, row),
 
-                stickyHeader: true,
-                stickyHeaderOffsetLeft: parseInt($('body').css('padding-left'), 10),
-                stickyHeaderOffsetRight: parseInt($('body').css('padding-right'), 10),
+                stickyHeader: this.mStickyHeader,
+                stickyHeaderOffsetLeft: stickyHeaderOffsetLeft,
+                stickyHeaderOffsetRight: stickyHeaderOffsetRight,
                 theadClasses: 'thead-light',
 
                 onLoadError: (status, jqXHR) => {

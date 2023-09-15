@@ -10,6 +10,8 @@
       "title": "Instance",
       "width": 4,
       "type": "table",
+      "showColumns": true,
+      "stickyHeader": true,
       "columns": [
         {"name": "instanceName", "title": "instance" },
         "processors",
@@ -39,6 +41,10 @@
   ]
 }
 ```
+
+> NOTE:
+> The `showColumns` is only for table, and is default to `false` if it's not provided.
+> The `stickyHeader` is only for table, and is default to `false` if not provided.
 
 ### Column configuration
 
@@ -78,6 +84,7 @@
         ]
       }
     ],
+    "showFilterInput": true,
     "interval": {
       "allowAutoRefresh": false
     }
@@ -88,6 +95,7 @@
 
 > NOTE:
 > The `interval.allowAutoRefresh` is default to `true` if it's not provided.
+> The `showFilterInput` is default to `false` if not provided.
 
 #### Text input filter example
 

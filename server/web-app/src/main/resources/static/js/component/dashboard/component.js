@@ -603,6 +603,8 @@ class Dashboard {
                 }, toolbar),
                 buttons: columnButtons,
 
+                stickyHeader: tableDescriptor.stickyHeader,
+
                 // default order
                 order: tableDescriptor.query.orderBy?.order,
                 orderBy: tableDescriptor.query.orderBy?.name,
