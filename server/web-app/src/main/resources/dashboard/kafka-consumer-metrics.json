@@ -8,7 +8,7 @@
         "type": "datasource",
         "name": "kafka-consumer-metrics",
         "fields": [
-          "appName",
+          {"name": "appName", "width": 200, "allowClear": false},
           "instanceName",
           "cluster",
           "topic",

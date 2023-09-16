@@ -8,7 +8,6 @@ class Dashboard {
         this._stackLayoutRow = $('<div style="display: flex"></div>');
         this._container.append(this._stackLayoutRow);
         this._timeSelector = null;
-        this._showAppSelector = (showAppSelector === undefined || showAppSelector === null) ? true : showAppSelector;
 
         // Model
         this._chartComponents = {};
@@ -106,9 +105,6 @@ class Dashboard {
 
             this.#updatePageURL();
         });
-        if (this._showAppSelector) {
-            this.vFilter.createAppSelector();
-        }
 
         //
         // Set up id
@@ -194,17 +190,35 @@ class Dashboard {
             $.each(dashboard.filter.selectors, (index, selector) => {
                 if (selector.type === 'datasource') {
                     $.each(selector.fields, (fieldIndex, field) => {
-                        if (this._showAppSelector && field === 'appName') {
-                            return;
+                        let name;
+                        let alias;
+                        let displayText;
+                        let width;
+                        let allowClear = true;
+                        let allowEdit = true;
+                        if (typeof field === 'object') {
+                            name = field.name;
+                            alias = field.alias === undefined ? name : field.alias;
+                            displayText = field.displayText === undefined ? name : field.displayText;
+                            width = field.width === undefined ? 150 : field.width;
+                            allowClear = field.allowClear === undefined ? true : field.allowClear;
+                            allowEdit = field.allowEdit === undefined ? true : field.allowEdit;
+                        } else {
+                            name = field;
+                            alias = field;
+                            displayText = field;
+                            width = 150;
                         }
-
                         filterSpecs.push({
                             filterType: 'select',
                             sourceType: 'datasource',
                             source: selector.name,
-                            name: field,
-                            alias: field,
-                            displayText: field,
+                            name: name,
+                            alias: alias,
+                            displayText: displayText,
+                            width: width,
+                            allowClear: allowClear,
+                            allowEdit: allowEdit,
                             onPreviousFilters: true
                         });
                     });
