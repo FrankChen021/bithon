@@ -8,7 +8,7 @@
         "type": "datasource",
         "name": "web-server-metrics",
         "fields": [
-          "appName",
+          {"name": "appName", "width": 200, "allowClear": false},
           "instanceName"
         ]
       }
