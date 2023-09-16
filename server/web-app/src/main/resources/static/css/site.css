@@ -22,3 +22,8 @@
 .popover {
   max-width: 600px !important;
 }
+
+/*Override the default margin from 1em to 0*/
+td pre {
+  margin-bottom: 0 !important
+}

@@ -47,8 +47,18 @@ public class LogController {
         this.dashboardManager = dashboardManager;
     }
 
+    @GetMapping("/web/log")
+    public String log(Model model, HttpServletResponse servletResponse) {
+        model.addAttribute("apiHost", serviceDiscovery.getApiHost());
+        model.addAttribute("store", "");
+        model.addAttribute("storeDisplayName", "");
+        return "log/detail";
+    }
+
     @GetMapping("/web/log/{store}")
-    public String log(@PathVariable("store") String store, Model model, HttpServletResponse servletResponse) {
+    public String log(@PathVariable("store") String store,
+                      Model model,
+                      HttpServletResponse servletResponse) {
         Dashboard dashboard = dashboardManager.getDashboard(store);
         if (dashboard == null) {
             servletResponse.setStatus(HttpStatus.NOT_FOUND.value());
