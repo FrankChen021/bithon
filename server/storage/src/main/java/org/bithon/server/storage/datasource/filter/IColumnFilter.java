@@ -42,4 +42,6 @@ public interface IColumnFilter {
     String getType();
 
     IMatcher getMatcher();
+
+    IColumnFilter with(String name);
 }

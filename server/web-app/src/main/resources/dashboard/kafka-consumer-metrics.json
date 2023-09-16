@@ -2,9 +2,25 @@
   "name": "kafka-consumer-metrics",
   "title": "Kafka Consumer",
   "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "kafka-consumer-metrics",
+        "fields": [
+          {"name": "appName", "width": 200, "allowClear": false},
+          "instanceName",
+          "cluster",
+          "topic",
+          "partition",
+          "groupId",
+          "clientId"
+        ]
+      }
+    ]
+  },
   "charts": [
     {
-      "dataSource": "kafka-consumer-metrics",
       "title": "Consumed Records",
       "width": 4,
       "type": "line",
@@ -24,12 +40,18 @@
         ]
       },
       "details": {
-        "columns": ["cluster","topic","groupId","consumedRecordsRate","consumedRecords"],
+        "columns": ["cluster",
+          "topic",
+          "groupId",
+          {"name": "count", "format": "compact_number" },
+          {"name": "consumedRecordsRate","format": "rate"},
+          {"name": "consumedRecords", "format": "compact_number"}
+        ],
         "query": {
           "type": "groupBy",
           "dataSource": "kafka-consumer-metrics",
           "fields": [
-            "cluster","topic","groupId","consumedRecordsRate","consumedRecords"
+            "cluster","topic","groupId","count","consumedRecordsRate","consumedRecords"
           ],
           "orderBy": {
             "name": "consumedRecordsRate",
@@ -48,7 +70,6 @@
       }
     },
     {
-      "dataSource": "kafka-consumer-metrics",
       "title": "Consumed Bytes",
       "width": 4,
       "type": "line",

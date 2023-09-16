@@ -16,14 +16,16 @@
 
 package org.bithon.server.webapp.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactor;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.storage.web.Dashboard;
 import org.bithon.server.storage.web.IDashboardStorage;
 import org.bithon.server.webapp.WebAppModuleEnabler;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +34,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -43,22 +44,23 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @Conditional(value = WebAppModuleEnabler.class)
-public class DashboardManager implements InitializingBean, DisposableBean {
+public class DashboardManager implements SmartLifecycle {
+
     public interface IDashboardChangedListener {
         void onChanged();
     }
 
+    private final ObjectMapper objectMapper;
     private final IDashboardStorage storage;
-    private final ScheduledExecutorService loaderScheduler;
+    private ScheduledExecutorService loaderScheduler;
     private long lastLoadAt;
     private final Map<String, Dashboard> dashboards = new ConcurrentHashMap<>(9);
 
     private final List<IDashboardChangedListener> listeners = Collections.synchronizedList(new ArrayList<>());
 
-    public DashboardManager(IDashboardStorage storage) {
+    public DashboardManager(ObjectMapper objectMapper, IDashboardStorage storage) {
+        this.objectMapper = objectMapper;
         this.storage = storage;
-
-        loaderScheduler = Executors.newSingleThreadScheduledExecutor(NamedThreadFactory.of("dashboard-loader"));
     }
 
     public void update(String name, String payload) {
@@ -73,35 +75,61 @@ public class DashboardManager implements InitializingBean, DisposableBean {
     }
 
     @Override
-    public void destroy() throws Exception {
-        loaderScheduler.shutdownNow();
+    public void start() {
+        log.info("Starting dashboard incremental loader...");
+
+        loaderScheduler = ScheduledExecutorServiceFactor.newSingleThreadScheduledExecutor(NamedThreadFactory.of("dashboard-loader"));
+        loaderScheduler.scheduleWithFixedDelay(this::incrementalLoad,
+                                               // no delay to execute the first task
+                                               0,
+                                               30,
+                                               TimeUnit.SECONDS);
     }
 
     @Override
-    public void afterPropertiesSet() {
-        log.info("Starting schema incremental loader...");
-        loaderScheduler.scheduleWithFixedDelay(this::incrementalLoad,
-                                               0, // no delay to execute the first task
-                                               1,
-                                               TimeUnit.MINUTES);
+    public void stop() {
+        if (loaderScheduler != null) {
+            loaderScheduler.shutdownNow();
+            try {
+                loaderScheduler.awaitTermination(10, TimeUnit.SECONDS);
+            } catch (InterruptedException ignored) {
+            } finally {
+                loaderScheduler = null;
+            }
+        }
+    }
+
+    @Override
+    public boolean isRunning() {
+        return loaderScheduler != null && !loaderScheduler.isShutdown();
     }
 
     private void incrementalLoad() {
-        try {
-            List<Dashboard> changedDashboards = storage.getDashboard(this.lastLoadAt);
-            log.info("{} dashboards have been changed since {}.", changedDashboards.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
+        List<Dashboard> changedDashboards = storage.getDashboard(this.lastLoadAt);
+        log.info("{} dashboards have been changed since {}.", changedDashboards.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
 
-            if (!changedDashboards.isEmpty()) {
-                for (Dashboard dashboard : changedDashboards) {
+        if (!changedDashboards.isEmpty()) {
+            for (Dashboard dashboard : changedDashboards) {
+                if (dashboard.isDeleted()) {
+                    this.dashboards.remove(dashboard.getName());
+                } else {
+                    dashboard.setMetadata(getMetadata(dashboard));
+
                     this.dashboards.put(dashboard.getName(), dashboard);
                 }
-
-                onChanged();
             }
 
-            this.lastLoadAt = System.currentTimeMillis();
-        } catch (Exception e) {
-            log.error("Exception occurs when loading schemas", e);
+            onChanged();
+        }
+
+        this.lastLoadAt = System.currentTimeMillis();
+    }
+
+    private Dashboard.Metadata getMetadata(Dashboard dashboard) {
+        try {
+            return objectMapper.readValue(dashboard.getPayload(), Dashboard.Metadata.class);
+        } catch (JsonProcessingException ignored) {
+            return null;
         }
     }
 

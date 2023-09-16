@@ -6,6 +6,7 @@ class ChartComponent {
         this._selectionShowHandler = null;
         this._selectionClearHandler = null;
         this._openHandler = null;
+        this.popoverShown = false;
 
         this._selectionState = false;
 
@@ -44,6 +45,20 @@ class ChartComponent {
 
         window.addEventListener("resize", () => {
             this._chart.resize();
+        });
+        $('body').on('click', (e) => {
+            if (!this.popoverShown) {
+                return;
+            }
+
+            const target = $(e.target);
+            if (target.hasClass('popover-body')
+            || target.hasClass('popover-header')
+            || target.hasClass('popover')) {
+                return;
+            }
+
+            $(this._card).find('.header-text').popover('dispose');
         });
     }
 
@@ -233,6 +248,22 @@ class ChartComponent {
             },
             error: (data) => {
                 this._chart.hideLoading();
+
+                let message = data.responseText;
+                if (data.responseJSON !== undefined && data.responseJSON.message !== undefined) {
+                    message = data.responseJSON.message;
+                }
+
+                $(this._card).find('.header-text')
+                             .popover('dispose')
+                             .popover({title: 'Error', trigger: 'focus', html: true, content: message, placement: 'bottom' })
+                             .popover('show')
+                             .on('shown.bs.popover', () => {
+                                this.popoverShown = true;
+                             })
+                             .on('hidden.bs.popover', () => {
+                                this.popoverShown = false;
+                             });
                 console.log(data);
             }
         });
@@ -289,6 +320,13 @@ class ChartComponent {
 
     getEchartInstance() {
         return this._chart;
+    }
+
+    showHint(hint) {
+        this._chart.showLoading({
+            text: hint,
+             showSpinner: false
+        });
     }
 
     setOpenHandler(openHandler) {

@@ -81,9 +81,9 @@
     {
       "type": "post",
       "name": "avgResponseTime",
-      "expression": "round(responseTime/1000.0/1000/callCount, 2)",
+      "expression": "round(responseTime * 1.0 /callCount, 2)",
       "displayText": "AVG Response Time",
-      "unit": "millisecond",
+      "unit": "nanosecond",
       "valueType": "double"
     }
   ],

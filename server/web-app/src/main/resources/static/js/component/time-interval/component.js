@@ -100,9 +100,9 @@ class TimeInterval {
                     label: "OK",
                     className: 'btn-info',
                     callback: () => {
-                        // truncate seconds the millis seconds
-                        const startTimestamp = $('#intervalPickerStart').data(tempusDominus.Namespace.dataKey).viewDate.getTime().basedOn(1000 * 60);
-                        const endTimestamp = $('#intervalPickerEnd').data(tempusDominus.Namespace.dataKey).viewDate.getTime().basedOn(1000 * 60);
+                        // Truncate milliseconds
+                        const startTimestamp = $('#intervalPickerStart').data(tempusDominus.Namespace.dataKey).viewDate.getTime().basedOn(1000);
+                        const endTimestamp = $('#intervalPickerEnd').data(tempusDominus.Namespace.dataKey).viewDate.getTime().basedOn(1000);
                         if (endTimestamp <= startTimestamp) {
                             $("#dateTimePickAlert").text('start time is less than or equal to the end time').show();
                             return false;

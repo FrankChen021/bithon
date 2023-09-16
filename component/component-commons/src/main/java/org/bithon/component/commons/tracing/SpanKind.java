@@ -24,7 +24,7 @@ import java.util.Locale;
  */
 public enum SpanKind {
     /**
-     * Unspecified.
+     * .
      */
     INTERNAL,
 
@@ -58,13 +58,15 @@ public enum SpanKind {
      * For timer-based routines such as spring-quartz or spring-scheduling or sth else.
      * Maybe it's not a good name.
      */
-    TIMER;
+    TIMER,
+
+    UNSPECIFIED;
 
     SpanKind() {
     }
 
-    public static boolean isRootSpan(String kind) {
-        kind = kind.toUpperCase(Locale.ENGLISH);
+    public static boolean isRootSpan(Object kind) {
+        kind = kind.toString().toUpperCase(Locale.ENGLISH);
         return SERVER.name().equals(kind) || TIMER.name().equals(kind) || CONSUMER.name().equals(kind);
     }
 }

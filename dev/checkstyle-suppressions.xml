@@ -24,10 +24,11 @@
     "https://checkstyle.org/dtds/suppressions_1_2.dtd">
 
 <suppressions>
+  <suppress files="opentelemetry-proto" checks=".*"/>
+
   <!-- See http://checkstyle.sourceforge.net/config_filters.html#SuppressionFilter for examples -->
 
   <suppress files="[\\/]brpc[\\/]example[\\/]protobuf[\\/]" checks=".*"/>
-  <suppress files="[/\\]agent-rpc-thrift[/\\]" checks=".*"/>
   <suppress files="[/\\]jooq[/\\]" checks=".*"/>
   <suppress files="[/\\]generated-sources[/\\]" checks=".*"/>
   <suppress files="[/\\]ast[/\\]" checks=".*"/>

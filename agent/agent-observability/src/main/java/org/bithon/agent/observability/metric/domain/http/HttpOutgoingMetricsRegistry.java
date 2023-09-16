@@ -43,10 +43,10 @@ public class HttpOutgoingMetricsRegistry extends MetricRegistry<HttpOutgoingMetr
     }
 
     public HttpOutgoingMetrics addExceptionRequest(String uri,
-                                    String method,
-                                    long responseTime) {
+                                                   String method,
+                                                   long responseTime) {
         String path = uri.split("\\?")[0];
-        return getOrCreateMetrics(path, method, "-").addException(responseTime, 1);
+        return getOrCreateMetrics(path, method, "").addException(responseTime, 1);
     }
 
     /**
@@ -77,6 +77,6 @@ public class HttpOutgoingMetricsRegistry extends MetricRegistry<HttpOutgoingMetr
                          long requestBytes,
                          long responseBytes) {
         String path = uri.split("\\?")[0];
-        getOrCreateMetrics(path, method, "-").addByteSize(requestBytes, responseBytes);
+        getOrCreateMetrics(path, method, "").addByteSize(requestBytes, responseBytes);
     }
 }

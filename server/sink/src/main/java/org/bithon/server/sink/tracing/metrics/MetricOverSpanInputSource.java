@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.sink.common.input.IInputSource;
@@ -145,6 +146,10 @@ public class MetricOverSpanInputSource implements IInputSource {
 
         @Override
         public void process(String messageType, List<TraceSpan> spans) {
+            if (CollectionUtils.isEmpty(spans)) {
+                return;
+            }
+
             //
             // transform the spans to target metrics
             //

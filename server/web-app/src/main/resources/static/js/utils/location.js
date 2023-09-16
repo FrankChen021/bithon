@@ -1,6 +1,5 @@
-function toQueryParameters(query) {
+function toQueryParameters(uri) {
     const parameters = {};
-    const uri = decodeURI(query);
     const paramPos = uri.indexOf('?') + 1;
 
     if (paramPos <= 0) {
@@ -17,7 +16,7 @@ function toQueryParameters(query) {
             continue;
         }
 
-        parameters[name] = value;
+        parameters[name] = decodeURIComponent(value);
     }
 
     if (parameters['appName'] != null) {

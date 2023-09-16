@@ -30,6 +30,7 @@ import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.event.IEventReader;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.event.IEventWriter;
+import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.jooq.DSLContext;
 
@@ -48,10 +49,21 @@ public class EventJdbcStorage implements IEventStorage {
     protected final EventStorageConfig storageConfig;
 
     @JsonCreator
-    public EventJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
+    public EventJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageConfiguration storageConfigurationProvider,
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                             @JacksonInject(useInput = OptBoolean.FALSE) EventStorageConfig storageConfig,
                             @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
+        this(storageConfigurationProvider.getDslContext(),
+             objectMapper,
+             storageConfig,
+             schemaManager);
+    }
+
+
+    protected EventJdbcStorage(DSLContext dslContext,
+                               ObjectMapper objectMapper,
+                               EventStorageConfig storageConfig,
+                               DataSourceSchemaManager schemaManager) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
         this.storageConfig = storageConfig;
@@ -61,6 +73,11 @@ public class EventJdbcStorage implements IEventStorage {
     @Override
     public void initialize() {
         this.dslContext.createTableIfNotExists(Tables.BITHON_EVENT).columns(Tables.BITHON_EVENT.fields()).indexes(Tables.BITHON_EVENT.getIndexes()).execute();
+    }
+
+    @Override
+    public DataSourceSchema getSchema() {
+        return eventTableSchema;
     }
 
     @Override

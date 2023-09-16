@@ -51,6 +51,13 @@ public class ASTResultColumn implements IASTNode {
         this.alias = alias;
     }
 
+    public ASTResultColumn withAlias(String alias) {
+        if (this.alias != null && this.alias.getName().equals(alias)) {
+            return this;
+        }
+        return new ASTResultColumn(this.columnExpression, alias);
+    }
+
     public String getResultColumnName() {
         if (alias != null) {
             return alias.getName();

@@ -16,10 +16,8 @@
 
 package org.bithon.server.storage.jdbc.clickhouse;
 
-import com.alibaba.druid.pool.DruidDataSource;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
-import org.bithon.server.storage.jdbc.clickhouse.exception.ClickHouseExceptionTranslator;
 import org.bithon.server.storage.jdbc.clickhouse.storage.EventStorage;
 import org.bithon.server.storage.jdbc.clickhouse.storage.MetadataStorage;
 import org.bithon.server.storage.jdbc.clickhouse.storage.MetricStorage;
@@ -27,18 +25,8 @@ import org.bithon.server.storage.jdbc.clickhouse.storage.SchemaStorage;
 import org.bithon.server.storage.jdbc.clickhouse.storage.SettingStorage;
 import org.bithon.server.storage.jdbc.clickhouse.storage.TraceStorage;
 import org.bithon.server.storage.jdbc.clickhouse.storage.web.DashboardStorage;
-import org.jooq.impl.DSL;
-import org.jooq.impl.DefaultConfiguration;
-import org.jooq.impl.DefaultExecuteListenerProvider;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import javax.sql.DataSource;
 
 /**
  * @author frank.chen021@outlook.com
@@ -46,29 +34,6 @@ import javax.sql.DataSource;
  */
 @Configuration
 public class ClickHouseStorageAutoConfiguration {
-
-    @Bean("bithon-clickhouse-dataSource")
-    @ConfigurationProperties(prefix = "bithon.storage.providers.clickhouse")
-    @ConditionalOnProperty(prefix = "bithon.storage.providers.clickhouse", name = "enabled", havingValue = "true")
-    DataSource createDataSource() {
-        return new DruidDataSource();
-    }
-
-    @Bean
-    @ConfigurationProperties(prefix = "bithon.storage.providers.clickhouse")
-    @ConditionalOnProperty(prefix = "bithon.storage.providers.clickhouse", name = "enabled", havingValue = "true")
-    ClickHouseConfig clickHouseConfig() {
-        return new ClickHouseConfig();
-    }
-
-    @Bean
-    @ConditionalOnProperty(prefix = "bithon.storage.providers.clickhouse", name = "enabled", havingValue = "true")
-    ClickHouseJooqContextHolder clickHouseDSLContextHolder(@Qualifier("bithon-clickhouse-dataSource") DataSource dataSource) {
-        JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
-        return new ClickHouseJooqContextHolder(DSL.using(new DefaultConfiguration().set(autoConfiguration.dataSourceConnectionProvider(dataSource))
-                                                                                   .set(new JooqProperties().determineSqlDialect(dataSource))
-                                                                                   .set(new DefaultExecuteListenerProvider(new ClickHouseExceptionTranslator()))));
-    }
 
     @Bean
     public Module clickHouseStorageModule() {
@@ -85,7 +50,8 @@ public class ClickHouseStorageAutoConfiguration {
 
             @Override
             public void setupModule(SetupContext context) {
-                context.registerSubtypes(TraceStorage.class,
+                context.registerSubtypes(ClickHouseStorageConfiguration.class,
+                                         TraceStorage.class,
                                          MetricStorage.class,
                                          EventStorage.class,
                                          MetadataStorage.class,

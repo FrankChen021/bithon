@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.web;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -36,4 +37,14 @@ public class Dashboard {
     private String payload;
     private String signature;
     private Timestamp timestamp;
+    private boolean deleted;
+
+    @Data
+    public static class Metadata {
+        private String title;
+        private String folder;
+    }
+
+    @JsonIgnore
+    private Metadata metadata;
 }

@@ -75,7 +75,7 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
                      .map((clazz) -> {
                          ClassInfo classInfo = new ClassInfo();
                          classInfo.name = clazz.getTypeName();
-                         classInfo.classLoader = (clazz.getClassLoader() == null ? "bootstrap" : clazz.getClassLoader().getClass().getName());
+                         classInfo.classLoader = (clazz.getClassLoader() == null ? "bootstrap" : clazz.getClassLoader().getClass().getName() + "@" + System.identityHashCode(clazz.getClassLoader()));
                          classInfo.isAnnotation = (clazz.isAnnotation());
                          classInfo.isInterface = (clazz.isInterface());
                          classInfo.isSynthetic = (clazz.isSynthetic());

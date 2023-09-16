@@ -1,6 +1,6 @@
 # Dashboard Configuration
 
-## Example - Application Overview
+## Example—Application Overview
 
 ```json
 {
@@ -10,6 +10,8 @@
       "title": "Instance",
       "width": 4,
       "type": "table",
+      "showColumns": true,
+      "stickyHeader": true,
       "columns": [
         {"name": "instanceName", "title": "instance" },
         "processors",
@@ -40,6 +42,10 @@
 }
 ```
 
+> NOTE:
+> The `showColumns` is only for table, and is default to `false` if it's not provided.
+> The `stickyHeader` is only for table, and is default to `false` if not provided.
+
 ### Column configuration
 
 - title
@@ -58,6 +64,66 @@
 
 ### Data Configuration
 
+### Filter Configuration
+
+#### Selector filter example
+
+```json
+{
+  "name": "jvm-metrics",
+  "title": "JVM",
+  "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "jvm-metrics",
+        "fields": [
+          "appName",
+          "instanceName"
+        ]
+      }
+    ],
+    "showFilterInput": true,
+    "interval": {
+      "allowAutoRefresh": false
+    }
+  },
+  ...
+}
+```
+
+> NOTE:
+> The `interval.allowAutoRefresh` is default to `true` if it's not provided.
+> The `showFilterInput` is default to `false` if not provided.
+
+#### Text input filter example
+
+By setting the `filter.showFilterInput` to `true` to enable the text filter on pages.
+
+```json
+{
+  "name": "exception-metrics",
+  "title": "Exceptions",
+  "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "exception-metrics",
+        "fields": [
+          "appName",
+          "instanceName",
+          "exceptionClass"
+        ]
+      }
+    ],
+    "showFilterInput": true
+  },
+  ...
+}
+```
+
 #### Timeseries
 
 #### groupBy
@@ -72,9 +138,9 @@ This is the ultimate way.
 }
 ```
 
-## Example - Get cardinality of application instances
+## Example—Get cardinality of application instances
 
-To illustrate cardinality of application instances in chart, add following column to columns of a char description file.
+To illustrate the cardinality of application instances in charts, add the following column to columns of a char description file.
 
 ```json
 {

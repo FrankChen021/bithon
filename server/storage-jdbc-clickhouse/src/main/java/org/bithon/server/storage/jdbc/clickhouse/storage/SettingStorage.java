@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
-import org.bithon.server.storage.jdbc.clickhouse.ClickHouseJooqContextHolder;
+import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageConfiguration;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcReader;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
@@ -40,10 +40,9 @@ public class SettingStorage extends SettingJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public SettingStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseJooqContextHolder dslContextHolder,
-                          @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
-        super(dslContextHolder.getDslContext());
-        this.config = config;
+    public SettingStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageConfiguration configuration) {
+        super(configuration.getDslContext());
+        this.config = configuration.getClickHouseConfig();
     }
 
     @Override

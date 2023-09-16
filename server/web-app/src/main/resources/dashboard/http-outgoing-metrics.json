@@ -2,9 +2,25 @@
   "name": "http-outgoing-metrics",
   "title": "HTTP Outgoing",
   "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "http-outgoing-metrics",
+        "fields": [
+          {"name": "appName", "width": 200, "allowClear": false},
+          "instanceName",
+          "targetHostPort",
+          "method",
+          "path",
+          "statusCode"
+        ]
+      }
+    ],
+    "showFilterInput": true
+  },
   "charts": [
     {
-      "dataSource": "http-outgoing-metrics",
       "title": "QPS",
       "width": 4,
       "type": "line",
@@ -15,7 +31,8 @@
       "query": {
         "dataSource": "http-outgoing-metrics",
         "fields": [
-          "qps"
+          "qps",
+          "requestCount"
         ]
       },
       "details": {
@@ -57,7 +74,6 @@
       }
     },
     {
-      "dataSource": "http-outgoing-metrics",
       "title": "Response Time",
       "width": 4,
       "type": "line",
@@ -116,7 +132,6 @@
       }
     },
     {
-      "dataSource": "http-outgoing-metrics",
       "title": "Errors",
       "width": 4,
       "type": "line",
@@ -178,7 +193,6 @@
       }
     },
     {
-      "dataSource": "http-outgoing-metrics",
       "title": "IO",
       "width": 4,
       "type": "line",

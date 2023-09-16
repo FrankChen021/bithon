@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.security.HashGenerator;
-import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
+import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.web.Dashboard;
 import org.bithon.server.storage.web.IDashboardStorage;
@@ -42,8 +42,8 @@ public class JdbcDashboardStorage implements IDashboardStorage {
     protected final DSLContext dslContext;
 
     @JsonCreator
-    public JdbcDashboardStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder) {
-        this(dslContextHolder.getDslContext());
+    public JdbcDashboardStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageConfiguration storageConfigurationProvider) {
+        this(storageConfigurationProvider.getDslContext());
     }
 
     public JdbcDashboardStorage(DSLContext dslContext) {
@@ -54,7 +54,6 @@ public class JdbcDashboardStorage implements IDashboardStorage {
     public List<Dashboard> getDashboard(long afterTimestamp) {
         return dslContext.selectFrom(Tables.BITHON_WEB_DASHBOARD)
                          .where(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.ge(new Timestamp(afterTimestamp).toLocalDateTime()))
-                         .and(Tables.BITHON_WEB_DASHBOARD.DELETED.eq(0))
                          .fetch(this::toDashboard);
     }
 
@@ -117,6 +116,7 @@ public class JdbcDashboardStorage implements IDashboardStorage {
         dashboard.setPayload(record.get(Tables.BITHON_WEB_DASHBOARD.PAYLOAD));
         dashboard.setTimestamp(Timestamp.valueOf(record.get(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP)));
         dashboard.setSignature(record.get(Tables.BITHON_WEB_DASHBOARD.SIGNATURE));
+        dashboard.setDeleted(record.get(Tables.BITHON_WEB_DASHBOARD.DELETED) == 1);
         return dashboard;
     }
 }

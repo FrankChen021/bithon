@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.jdbc.utils;
 
+import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 
@@ -46,7 +47,7 @@ public class H2SqlDialect implements ISqlDialect {
         return StringUtils.format(
                 "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\") AS \"%s\"",
                 field,
-                this.timeFloorExpression("timestamp", window),
+                this.timeFloorExpression(new IdentifierExpression("timestamp"), window),
                 name);
     }
 
@@ -56,7 +57,7 @@ public class H2SqlDialect implements ISqlDialect {
         return StringUtils.format(
                 "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC)",
                 field,
-                this.timeFloorExpression("timestamp", window));
+                this.timeFloorExpression(new IdentifierExpression("timestamp"), window));
     }
 
     @Override

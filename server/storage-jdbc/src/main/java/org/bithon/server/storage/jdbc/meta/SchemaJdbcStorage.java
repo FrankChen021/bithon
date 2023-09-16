@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
+import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.meta.ISchemaStorage;
 import org.jooq.DSLContext;
@@ -48,9 +48,9 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     protected final ObjectMapper objectMapper;
 
     @JsonCreator
-    public SchemaJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder,
+    public SchemaJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageConfiguration storageConfigurationProvider,
                              @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
-        this(dslContextHolder.getDslContext(), objectMapper);
+        this(storageConfigurationProvider.getDslContext(), objectMapper);
     }
 
     public SchemaJdbcStorage(DSLContext dslContext,

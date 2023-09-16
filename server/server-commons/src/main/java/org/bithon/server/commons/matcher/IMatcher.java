@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = "contains", value = StringContainsMatcher.class),
-    @JsonSubTypes.Type(name = "equal", value = StringEqualMatcher.class),
+    @JsonSubTypes.Type(name = "equal", value = EqualMatcher.class),
     @JsonSubTypes.Type(name = "notEqual", value = NotEqualMatcher.class),
     @JsonSubTypes.Type(name = "icontains", value = StringIContainsMatcher.class),
     @JsonSubTypes.Type(name = "startwith", value = StringStartsWithMatcher.class),

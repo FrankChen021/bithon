@@ -39,8 +39,8 @@ public final class PluginClassLoaderManager {
         return appClassLoader == null
                ? defaultLoader
                : LOADER_MAPPING.computeIfAbsent(appClassLoader,
-                                                k -> new CascadingClassLoader(defaultLoader,
-                                                                              appClassLoader));
+                                                k -> new PluginClassLoader(defaultLoader,
+                                                                           appClassLoader));
     }
 
     public static JarClassLoader getDefaultLoader() {

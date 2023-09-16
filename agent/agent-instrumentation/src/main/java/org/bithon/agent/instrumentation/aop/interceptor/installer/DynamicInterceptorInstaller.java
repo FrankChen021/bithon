@@ -16,17 +16,20 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.installer;
 
+import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.agent.instrumentation.aop.advice.AdviceAnnotation;
 import org.bithon.agent.instrumentation.aop.advice.AroundAdvice;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptorManager;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
+import org.bithon.shaded.net.bytebuddy.ByteBuddy;
 import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import org.bithon.shaded.net.bytebuddy.asm.Advice;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
+import org.bithon.shaded.net.bytebuddy.dynamic.scaffold.TypeValidation;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 import org.bithon.shaded.net.bytebuddy.matcher.NameMatcher;
@@ -54,7 +57,8 @@ public class DynamicInterceptorInstaller {
      * Install one interceptor
      */
     public void installOne(AopDescriptor descriptor) {
-        new AgentBuilder.Default()
+        new AgentBuilder
+            .Default(new ByteBuddy().with(TypeValidation.DISABLED))
             .ignore(ElementMatchers.nameStartsWith("org.bithon.shaded.net.bytebuddy."))
             .disableClassFormatChanges()
             .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
@@ -71,7 +75,8 @@ public class DynamicInterceptorInstaller {
     public void install(Map<String, AopDescriptor> descriptors) {
         ElementMatcher<? super TypeDescription> typeMatcher = new NameMatcher<>(new StringSetMatcher(new HashSet<>(descriptors.keySet())));
 
-        new AgentBuilder.Default()
+        new AgentBuilder
+            .Default(new ByteBuddy().with(TypeValidation.DISABLED))
             .ignore(ElementMatchers.nameStartsWith("org.bithon.shaded.net.bytebuddy."))
             .disableClassFormatChanges()
             .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
@@ -88,6 +93,11 @@ public class DynamicInterceptorInstaller {
                 if (descriptor == null) {
                     // this must be an error
                     LOG.error("Can't find BeanAopDescriptor for [{}]", typeDescription.getTypeName());
+                    return builder;
+                }
+
+                if (typeDescription.isAssignableTo(IBithonObject.class)) {
+                    // Avoid instrument types which have been instrumented by agent-plugins
                     return builder;
                 }
 

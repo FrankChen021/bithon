@@ -2,9 +2,22 @@
   "name": "jdbc-pool-metrics",
   "title": "JDBC Connection Pool",
   "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "jdbc-pool-metrics",
+        "fields": [
+          {"name": "appName", "width": 200, "allowClear": false},
+          "instanceName",
+          "server",
+          "database"
+        ]
+      }
+    ]
+  },
   "charts": [
     {
-      "dataSource": "jdbc-pool-metrics",
       "title": "JDBC Connection Pool",
       "width": 4,
       "type": "line",
@@ -28,7 +41,6 @@
       }
     },
     {
-      "dataSource": "jdbc-pool-metrics",
       "title": "Transaction",
       "width": 4,
       "type": "line",

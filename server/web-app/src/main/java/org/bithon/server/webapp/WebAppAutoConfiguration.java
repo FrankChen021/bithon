@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.InvalidConfigurationException;
+import org.bithon.server.storage.provider.StorageProviderManager;
 import org.bithon.server.storage.web.IDashboardStorage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -40,13 +41,13 @@ public class WebAppAutoConfiguration {
 
     @Bean
     public IDashboardStorage createDashboardStorage(ObjectMapper om,
+                                                    StorageProviderManager storageProviderManager,
                                                     @Value("${bithon.storage.web.type}") String type) throws IOException {
         InvalidConfigurationException.throwIf(!StringUtils.hasText(type),
                                               "[bithon.storage.web.type] can't be blank");
 
         // create storage
-        String jsonType = StringUtils.format("{\"type\":\"%s\"}", type);
-        IDashboardStorage storage = om.readValue(jsonType, IDashboardStorage.class);
+        IDashboardStorage storage = storageProviderManager.createStorage(type, IDashboardStorage.class);
         storage.initialize();
 
         // load or update schemas

@@ -1,17 +1,13 @@
 class Dashboard {
-    constructor(containerId, dashboardName, defaultInterval, schemaApi, showAppSelector) {
-        this._schemaApi = schemaApi;
-        this._dashboardName = dashboardName;
+    constructor(containerId, dashboardName, defaultInterval, showAppSelector) {
         this._defaultInterval = defaultInterval;
 
         // View
-        this._containerId = containerId;
         this._container = $('#' + containerId);
         this._stackLayoutRowFill = 0;
         this._stackLayoutRow = $('<div style="display: flex"></div>');
         this._container.append(this._stackLayoutRow);
         this._timeSelector = null;
-        this._showAppSelector = (showAppSelector === undefined || showAppSelector === null) ? true : showAppSelector;
 
         // Model
         this._chartComponents = {};
@@ -53,25 +49,39 @@ class Dashboard {
             }
 
             // Insert the filter expression before the dashboard container
-            this._container.before( '<div class="input-group" style="padding-left: 5px; padding-right: 5px">      ' +
+            const p = this._container.before( '<div class="input-group" style="padding-left: 5px; padding-right: 5px">      ' +
                                     '     <div class="input-group-prepend">                                       ' +
-                                    '         <span class="input-group-text rounded-0" id="filter-input-span">Filter</span> ' +
+                                    '         <span class="input-group-text rounded-0" id="filter-input-span">Filter&nbsp;<i id="tooltip" class="far fa-question-circle"></i></span> ' +
                                     '     </div>                                                                  ' +
                                     '    <input type="text"                                                       ' +
                                     '           class="form-control"                                              ' +
-                                    '           id="filter-input" placeholder="SQL style filter, such as: message like \'%a%\'"' +
-                                    '            aria-describedby="filter-input-span"/>                           ' +
+                                    '           id="filter-input" placeholder="SQL style filter expression, hover your mouse on the question mark to learn more. Press Enter once input complete."' +
+                                    '           aria-describedby="filter-input-span" tooltip/>                           ' +
                                     ' </div>')
-                                    .parent()
-                                    .find('#filter-input')
-                                    .val(inputFilterExpression)
-                                    .on('keydown', (event) => {
-                                        if (event.keyCode === 13) {
-                                            this.#updatePageURL();
+                                    .parent();
 
-                                            this.refreshDashboard();
-                                        }
-                                    });
+            p.find('#filter-input')
+            .val(inputFilterExpression)
+            .on('keydown', (event) => {
+                if (event.keyCode === 13) {
+                    this.#updatePageURL();
+
+                    this.refreshDashboard();
+                }
+            });
+
+            p.find('#tooltip').popover({
+                placement: 'bottom',
+                html: true,
+                trigger: 'hover',
+                title: 'Syntax',
+                content: '<b>Comparators</b>: &lt;, &lt;=, &gt, &gt;=, =, !=, LIKE, NOT LIKE, IN, NOT IN<br/>' +
+                       '<b>Operators</b>: AND, OR, NOT<br/>' +
+                       '<b>Functions</b>: startsWith(field, \'prefix\'), endsWith(field, \'suffix\'), hasToken(field, \'xxx\')<br/><br/>' +
+                       '<b>Example 1</b>: <u>level in (\'DEBUG\', \'INFO\')</u><br/>' +
+                       '<b>Example 2</b>: <u>message like \'%start%\' AND level = \'INFO\'</u><br/>' +
+                       '<b>Example 3</b>: <u>message like \'%start%\' AND message like \'%complete%\'</u><br/>'
+            });
         }
 
         //
@@ -95,34 +105,13 @@ class Dashboard {
 
             this.#updatePageURL();
         });
-        if (this._showAppSelector) {
-            this.vFilter.createAppSelector();
-        }
 
         //
-        // dataSource --> Charts
+        // Set up id
         //
-        const dataSource2Charts = {};
         $.each(this._dashboard.charts, (index, chartDescriptor) => {
             const chartId = 'chart_' + index;
             chartDescriptor['id'] = chartId;
-
-            //
-            // Set up a data source to charts mapping
-            //
-            // dataSource property on chart is a legacy property
-            let dataSourceName = chartDescriptor.dataSource;
-            if (dataSourceName === undefined) {
-                if (chartDescriptor.query !== undefined) {
-                    dataSourceName = chartDescriptor.query.dataSource;
-                }
-            }
-            if (dataSourceName !== undefined) {
-                if (dataSource2Charts[dataSourceName] == null) {
-                    dataSource2Charts[dataSourceName] = [];
-                }
-                dataSource2Charts[dataSourceName].push(chartId);
-            }
         });
 
         const parent = $('#filterBarForm');
@@ -144,15 +133,20 @@ class Dashboard {
         this._selectedInterval = this._timeSelector.getInterval();
 
         //
-        // Create AutoRefresher
+        // Create AutoRefresher by default
         // the filterBarForm is defined in the app-layout.html
         //
-        new AutoRefresher({
-            timerLength: 10
-        }).childOf(parent).registerRefreshListener(() => {
-            this._selectedInterval = this._timeSelector.getInterval();
-            this.refreshDashboard();
-        });
+        if (dashboard.filter === undefined
+         || dashboard.filter.interval === undefined
+         || dashboard.filter.interval.allowAutoRefresh === undefined
+         || dashboard.filter.interval.allowAutoRefresh === true) {
+            new AutoRefresher({
+                timerLength: 10
+            }).childOf(parent).registerRefreshListener(() => {
+                this._selectedInterval = this._timeSelector.getInterval();
+                this.refreshDashboard();
+            });
+        }
 
         $.each(dashboard.charts, (index, chartDescriptor) => {
 
@@ -165,6 +159,8 @@ class Dashboard {
                 });
 
             this._chartDescriptors[chartDescriptor.id] = chartDescriptor;
+
+            this.createChartDetail(chartDescriptor);
         });
 
         //
@@ -185,64 +181,60 @@ class Dashboard {
         }
         echarts.connect(charts);
 
-        const dataSourceFilter = this._dashboard.charts[0].dataSource;
-
         //
         // Loaded Dimension Filter
         // This is legacy implementation. Should be refactored to decouple the filter from the dataSource field
         //
-        let hasSchema = false;
-        for (const dataSourceName in dataSource2Charts) {
-            hasSchema = true;
-            this._schemaApi.getSchema({
-                name: dataSourceName,
-                successCallback: (schema) => {
-                    let index;
-                    if (schema.name === dataSourceFilter) {
-                        // create filters for dimensions
-                        this.vFilter.createFilterFromSchema(schema);
-                    }
-
-                    //
-                    // This should be changed in future
-                    // converts metricsSpec from Array to Map
-                    //
-                    //const metricMap = {};
-                    //for (index = 0; index < schema.metricsSpec.length; index++) {
-                    //    const metric = schema.metricsSpec[index];
-                    //    metricMap[metric.name] = metric;
-                    //}
-                    //schema.metricsSpec = metricMap;
-
-                    //
-                    // Build Transformers
-                    //
-                    //this.createTransformers(schema);
-
-                    // refresh dashboard after schema has been retrieved
-                    // because there may be value transformers on different units
-                    const charts = dataSource2Charts[schema.name];
-                    $.each(charts, (index, chartId) => {
-                        this.refreshChart(this._chartDescriptors[chartId], this._chartComponents[chartId], this.getSelectedTimeInterval());
-
-                        // Create detail for this chart
-                        this.createChartDetail(this._chartDescriptors[chartId]);
+        const filterSpecs = [];
+        if (dashboard.filter !== undefined) {
+            $.each(dashboard.filter.selectors, (index, selector) => {
+                if (selector.type === 'datasource') {
+                    $.each(selector.fields, (fieldIndex, field) => {
+                        let name;
+                        let alias;
+                        let displayText;
+                        let width;
+                        let allowClear = true;
+                        let allowEdit = true;
+                        if (typeof field === 'object') {
+                            name = field.name;
+                            alias = field.alias === undefined ? name : field.alias;
+                            displayText = field.displayText === undefined ? name : field.displayText;
+                            width = field.width === undefined ? 150 : field.width;
+                            allowClear = field.allowClear === undefined ? true : field.allowClear;
+                            allowEdit = field.allowEdit === undefined ? true : field.allowEdit;
+                        } else {
+                            name = field;
+                            alias = field;
+                            displayText = field;
+                            width = 150;
+                        }
+                        filterSpecs.push({
+                            filterType: 'select',
+                            sourceType: 'datasource',
+                            source: selector.name,
+                            name: name,
+                            alias: alias,
+                            displayText: displayText,
+                            width: width,
+                            allowClear: allowClear,
+                            allowEdit: allowEdit,
+                            onPreviousFilters: true
+                        });
                     });
-                },
-                errorCallback: (error) => {
                 }
             });
+            this.vFilter.createFilters(filterSpecs);
         }
-        if (!hasSchema) {
-            this.refreshDashboard();
-        }
+
+        this.refreshDashboard();
     }
 
     #updatePageURL() {
         let url = window.location.pathname + '?';
 
         const filters = this.vFilter.getSelectedFilters();
-        $.each(filters, (index, filter)=>{
+        $.each(filters, (index, filter) => {
             url += `${filter.dimension}=${filter.matcher.pattern}&`;
         });
         url += `interval=${this._selectedInterval.id}&`;
@@ -263,13 +255,6 @@ class Dashboard {
 
         const detailViewId = chartDescriptor.id + '_detailView';
         if (chartDescriptor.details.query === undefined) {
-            //
-            // Convert from old definition
-            //
-            chartDescriptor.details.query = {
-                dataSource: chartDescriptor.dataSource
-            };
-
             if (chartDescriptor.details.columns !== undefined) {
                 const pair = this.#fromDetailV2(chartDescriptor);
                 chartDescriptor.details.query.fields = pair[0];
@@ -319,12 +304,12 @@ class Dashboard {
             }
         }
         if (chartDescriptor.details.query.dataSource === undefined) {
-            chartDescriptor.details.query.dataSource = chartDescriptor.dataSource;
+            chartDescriptor.details.query.dataSource = chartDescriptor.query.dataSource !== undefined ? chartDescriptor.query.dataSource : chartDescriptor.dataSource;
         }
 
-        let buttons = undefined;
+        let columnButtons = undefined;
         if (chartDescriptor.details.tracing !== undefined) {
-            buttons = [{
+            columnButtons = [{
                 title: "Tracing Log",
                 text: "Search...",
                 onClick: (index, row, start, end) => this.#openTraceSearchPage(chartDescriptor, start, end, row)
@@ -333,12 +318,17 @@ class Dashboard {
 
         const chartComponent = this._chartComponents[chartDescriptor.id];
 
-        // Create component
+        // Create detailed component
         const detailTableComponent = this.createTableComponent(detailViewId,
             chartComponent.getUIContainer(),
             chartDescriptor.details,
+            // Insert index column
             true,
-            buttons
+            columnButtons,
+            {
+                minimize: false,
+                close: true
+            }
         )
 
         // Bind event on parent component
@@ -355,7 +345,9 @@ class Dashboard {
                     {
                         start: startISO8601,
                         end: endISO8601
-                    });
+                    },
+                    true
+                    );
             },
             () => {
                 detailTableComponent.clear();
@@ -429,7 +421,6 @@ class Dashboard {
         // create columns for metrics
         //
         $.each(chartDescriptor.details.metrics, (index, metric) => {
-            let metricName;
             if (typeof metric === 'object') {
                 fields.push(metric.name);
                 columns.push({name: metric.name, format: metric.formatter, sortable: true});
@@ -534,7 +525,12 @@ class Dashboard {
         window.open(`/web/trace/search?interval=c:${startTime}/${endTime}&filter=${encodeURIComponent(filterExpression)}`);
     }
 
-    createTableComponent(chartId, parentElement, tableDescriptor, insertIndexColumn, buttons) {
+    createTableComponent(chartId,
+                         parentElement,
+                         tableDescriptor,
+                         insertIndexColumn,
+                         columnButtons,
+                         toolbar) {
 
         //
         // type of string column is allowed in definition, convert it to object first to simply further processing
@@ -543,7 +539,7 @@ class Dashboard {
             let column = tableDescriptor.columns[i];
 
             // string type of column is allowed for simple configuration
-            // during rendering, it's turned into object for simple processing
+            // during rendering, it's turned into an object for simple processing
             if (typeof column === 'string') {
                 tableDescriptor.columns[i] = {name: column};
             }
@@ -610,12 +606,18 @@ class Dashboard {
                 tableId: chartId + "_table",
                 parent: parentElement,
                 columns: tableColumns,
+
+                // If the table has pagination OR the table query defines the LIMIT, the SORT should be done at the server side
+                serverSort: (tableDescriptor.pagination !== undefined) || (tableDescriptor.query !== undefined && tableDescriptor.query.limit !== undefined),
+
                 pagination: tableDescriptor.pagination,
                 detailView: false,
-                toolbar: {
+                toolbar: Object.assign({
                     showColumns: tableDescriptor.showColumns
-                },
-                buttons: buttons,
+                }, toolbar),
+                buttons: columnButtons,
+
+                stickyHeader: tableDescriptor.stickyHeader,
 
                 // default order
                 order: tableDescriptor.query.orderBy?.order,
@@ -644,7 +646,7 @@ class Dashboard {
             let column = chartDescriptor.columns[i];
 
             // string type of column is allowed for simple configuration
-            // during rendering, it's turned into object for simple processing
+            // during rendering, it's turned into an object for simple processing
             if (typeof column === 'string') {
                 chartDescriptor.columns[i] = {name: column};
                 column = chartDescriptor.columns[i];
@@ -661,7 +663,7 @@ class Dashboard {
 
             // formatter
             const yAxisIndex = column.yAxis || 0;
-            // Make sure the array has enough object for further access
+            // Make sure the array has enough objects for further access
             while (chartDescriptor.yAxis.length < yAxisIndex + 1) {
                 chartDescriptor.yAxis.push({});
             }
@@ -675,7 +677,7 @@ class Dashboard {
             }
         }
 
-        chartOption.yAxis = chartDescriptor.yAxis.map((yAxis, index) => {
+        chartOption.yAxis = chartDescriptor.yAxis.map((yAxis) => {
             return {
                 type: 'value',
                 min: 0 || yAxis.min,
@@ -703,7 +705,7 @@ class Dashboard {
             const interval = currentChartComponent.getInterval(dataIndex);
 
             let tooltip = moment(interval.start).local().format('MM-DD HH:mm:ss') + '<br/>'
-            + moment(interval.end).local().format('MM-DD HH:mm:ss');
+                + moment(interval.end).local().format('MM-DD HH:mm:ss');
             seriesList.forEach(s => {
                 //Use the yAxis defined formatter to format the data
                 const yAxisIndex = currentChartOption.series[s.seriesIndex].yAxisIndex;
@@ -737,12 +739,12 @@ class Dashboard {
         const chartComponent = new ChartComponent({
             containerId: chartId,
 
-            // Keep query object in the chart for further query
+            // Keep the query object in the chart for further queries
             query: chartDescriptor.query
         }).header('<b>' + chartDescriptor.title + '</b>')
             .setChartOption(chartOption);
 
-        // Apply click event to refresh time interval
+        // Apply click event to refresh the time interval
         if (chartDescriptor.zoomOnTime === true) {
             chartComponent.setClickHandler((e) => {
                 const interval = chartComponent.getInterval(e.dataIndex);
@@ -755,7 +757,7 @@ class Dashboard {
         return chartComponent;
     }
 
-    refreshTable(query, tableComponent, interval) {
+    refreshTable(query, tableComponent, interval, showInterval) {
         const filters = this.vFilter.getSelectedFilters();
         if (query.filters !== undefined) {
             $.each(query.filters, (index, filter) => {
@@ -764,12 +766,19 @@ class Dashboard {
         }
 
         const thisQuery = Object.assign({}, query);
-        thisQuery.interval = {
-            startISO8601: interval.start,
-            endISO8601: interval.end
-        };
+        if (thisQuery.interval === undefined) {
+            thisQuery.interval = {};
+        }
+        thisQuery.interval.startISO8601 = interval.start;
+        thisQuery.interval.endISO8601 = interval.end;
         thisQuery.filters = filters;
-        thisQuery.filterExpression = $('#filter-input').val();
+
+        if (thisQuery.filter === undefined) {
+            thisQuery.filterExpression = this.#getInputFilterExpression();
+        } else {
+            thisQuery.filterExpression = thisQuery.filter;
+            delete thisQuery.filter;
+        }
 
         let path;
         if (query.type === 'list') {
@@ -785,7 +794,8 @@ class Dashboard {
                     total: res.total,
                     rows: res.data
                 }
-            }
+            },
+            showInterval: showInterval
         };
         tableComponent.load(loadOptions);
     }
@@ -798,7 +808,7 @@ class Dashboard {
 
         // Process legacy list type
         if (chartDescriptor.type === 'list') {
-            // Convert old format to new format
+            // Convert an old format to new format
             const query = {
                 type: 'list',
                 dataSource: chartDescriptor.dataSource,
@@ -933,15 +943,22 @@ class Dashboard {
         if (thisQuery.dataSource === undefined) {
             thisQuery.dataSource = chartDescriptor.dataSource;
         }
-        thisQuery.interval = {
-            startISO8601: interval.start,
-            endISO8601: interval.end
-        };
+        if (thisQuery.interval === undefined) {
+            thisQuery.interval = {};
+        }
+        thisQuery.interval.startISO8601 = interval.start;
+        thisQuery.interval.endISO8601 = interval.end;
         if (chartDescriptor.query.bucketCount !== undefined && chartDescriptor.query.bucketCount != null) {
             thisQuery.interval.bucketCount = chartDescriptor.query.bucketCount;
         }
         thisQuery.filters = filters;
-        thisQuery.filterExpression = $('#filter-input').val();
+
+        if (thisQuery.filter === undefined) {
+            thisQuery.filterExpression = this.#getInputFilterExpression();
+        } else {
+            thisQuery.filterExpression = thisQuery.filter;
+            delete thisQuery.filter;
+        }
 
         const queryFieldsCount = chartDescriptor.query.fields.length;
         const chartId = chartDescriptor.id;
@@ -1034,7 +1051,7 @@ class Dashboard {
                         mode = 'replace';
                     } else {
                         // If the returned count of series is less than the given fields count, that's a group-by.
-                        // In this case, we always replace the series because one group may not exist in a following query.
+                        // In this case, we always replace the series because one group may not exist in following queries.
                         mode = data.data.length < queryFieldsCount ? 'replace' : 'refresh'
                     }
                 }
@@ -1046,17 +1063,17 @@ class Dashboard {
 
                 // save the timestamp for further processing
                 chartComponent.getInterval = (startIndex, endIndex) => {
-                     if (endIndex === undefined) {
-                         endIndex = startIndex + 1;
-                     }
+                    if (endIndex === undefined) {
+                        endIndex = startIndex + 1;
+                    }
 
-                     const startTimestamp = roundDownStart + startIndex * bucketLength;
-                     const endTimestamp = roundDownStart + endIndex * bucketLength;
-                     return {
-                         start: startTimestamp < absoluteStart? absoluteStart : startTimestamp,
-                         end: endTimestamp > absoluteEnd?  absoluteEnd: endTimestamp
-                     }
-                 };
+                    const startTimestamp = roundDownStart + startIndex * bucketLength;
+                    const endTimestamp = roundDownStart + endIndex * bucketLength;
+                    return {
+                        start: startTimestamp < absoluteStart ? absoluteStart : startTimestamp,
+                        end: endTimestamp > absoluteEnd ? absoluteEnd : endTimestamp
+                    }
+                };
 
                 const option = {
                     refreshMode: mode,
@@ -1080,11 +1097,13 @@ class Dashboard {
         // Check if the filter satisfies the requirement of this chart
         const query = chartDescriptor.query;
         if (query.precondition !== undefined
-        && query.precondition.filters !== undefined ) {
-            const satisfied = query.precondition.filters.every((f) => this.vFilter.getSelectedFilter(f) != null);
-            if (!satisfied) {
-                console.log('Not satisfied');
-                return;
+            && query.precondition.filters !== undefined) {
+            for (let i = 0; i < query.precondition.filters.length; i++) {
+                const filter = query.precondition.filters[i];
+                if (this.vFilter.getSelectedFilter(filter) == null) {
+                    chartComponent.showHint(`Select ${filter} to load`);
+                    return;
+                }
             }
         }
 
@@ -1098,35 +1117,6 @@ class Dashboard {
         }
 
         console.log('Unknown chart type: ' + chartDescriptor.type);
-    }
-
-    // Unit conversion
-    // PRIVATE
-    createTransformers(schema) {
-        $.each(this._dashboard.charts, (index, chartDescriptor) => {
-            if (chartDescriptor.dataSource === schema.name) {
-                // create transformers for those charts associated with this datasource
-                $.each(chartDescriptor.columns, (columnIndex, column) => {
-                    column.transformer = this.createTransformer(schema, chartDescriptor, column);
-                });
-            }
-        });
-    }
-
-    createTransformer(schema, chartDescriptor, column) {
-        if (chartDescriptor.yAxis != null) {
-            // get yAxis config for this metric
-            const name = column.name;
-            const yIndex = column.yAxis || 0;
-            if (yIndex < chartDescriptor.yAxis.length) {
-                const yAxis = chartDescriptor.yAxis[yIndex];
-                const metricSpec = schema.metricsSpec[name];
-                if (metricSpec != null && yAxis.format === 'millisecond' && metricSpec.unit === 'nanosecond') {
-                    return (val) => val == null ? 0 : (val / 1000 / 1000);
-                }
-            }
-        }
-        return (val) => val === null || val === 'NaN' ? 0 : val;
     }
 
     // PRIVATE
@@ -1347,7 +1337,7 @@ class Dashboard {
 
     #getInputFilterExpression() {
         const v = $('#filter-input').val();
-        return v === undefined || v === null ? '' : v;
+        return v === undefined || v === null ? '' : v.trim();
     }
 
     #setInputFilterExpression(val) {
@@ -1355,8 +1345,8 @@ class Dashboard {
     }
 
     #onNavigateBack(e) {
-        if(e.state === null) {
-            // We set the state manually, so if the state is null, it's triggered by other source that needs to be ignored
+        if (e.state === null) {
+            // We set the state manually, so if the state is null, it's triggered by another source that needs to be ignored
             return;
         }
 

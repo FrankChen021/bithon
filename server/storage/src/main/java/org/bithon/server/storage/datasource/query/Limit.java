@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.bithon.component.commons.utils.Preconditions;
 
 import javax.annotation.Nullable;
 
@@ -29,17 +29,19 @@ import javax.annotation.Nullable;
  * @date 17/4/22 5:23 PM
  */
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class Limit {
-    private int limit = 10;
-    private int offset = 0;
+    private final int limit;
+    private final int offset;
 
     @JsonCreator
-    public Limit(@JsonProperty("limit") Integer limit,
+    public Limit(@Nullable @JsonProperty("limit") Integer limit,
                  @Nullable @JsonProperty("offset") Integer offset) {
-        this.limit = limit;
+        this.limit = limit == null ? 10 : limit;
         this.offset = offset == null ? 0 : offset;
+
+        Preconditions.checkIfTrue(this.limit > 0 && this.limit <= 65536, "limit must be in the range of [1, 65536]");
+        Preconditions.checkIfTrue(this.offset >= 0, "offset must be >= 0");
     }
 
     /**
@@ -48,7 +50,11 @@ public class Limit {
      */
     @JsonCreator
     public static Limit fromString(String limit) {
-        return new Limit(Integer.parseInt(limit), 0);
+        try {
+            return new Limit(Integer.parseInt(limit), 0);
+        } catch (NumberFormatException ignored) {
+            throw new Preconditions.InvalidValueException("Given limit [%s] is not a valid number", limit);
+        }
     }
 
     @JsonCreator

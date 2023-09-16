@@ -17,8 +17,8 @@
 package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
-import org.bithon.server.storage.datasource.query.parser.FieldExpressionParserImpl;
-import org.bithon.server.storage.datasource.query.parser.FieldExpressionVisitorAdaptor;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 
 /**
  * @author frank.chen021@outlook.com
@@ -29,17 +29,12 @@ public class ASTExpression implements IASTNode {
     @Getter
     private final String expression;
 
-    private FieldExpressionParserImpl parser;
+    @Getter
+    private final IExpression parsedExpression;
 
     public ASTExpression(String expression) {
         this.expression = expression;
-    }
-
-    public void visitExpression(FieldExpressionVisitorAdaptor visitorAdaptor) {
-        if (parser == null) {
-            parser = FieldExpressionParserImpl.create(this.expression);
-        }
-        parser.visit(visitorAdaptor);
+        this.parsedExpression = ExpressionASTBuilder.build(expression);
     }
 
     @Override

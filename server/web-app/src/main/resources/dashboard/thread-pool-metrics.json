@@ -2,9 +2,22 @@
   "name": "thread-pool-metrics",
   "title": "Thread Pool",
   "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "thread-pool-metrics",
+        "fields": [
+          {"name": "appName", "width": 200, "allowClear": false},
+          "instanceName",
+          "executorClass",
+          "poolName"
+        ]
+      }
+    ]
+  },
   "charts": [
     {
-      "dataSource": "thread-pool-metrics",
       "title": "Thread Pool Count",
       "width": 2,
       "type": "line",
@@ -20,7 +33,6 @@
       }
     },
     {
-      "dataSource": "thread-pool-metrics",
       "title": "Thread Pool",
       "width": 2,
       "type": "line",
@@ -38,7 +50,6 @@
       }
     },
     {
-      "dataSource": "thread-pool-metrics",
       "title": "Tasks",
       "width": 4,
       "type": "line",
@@ -85,7 +96,6 @@
       }
     },
     {
-      "dataSource": "thread-pool-metrics",
       "title": "Tasks Duration",
       "width": 4,
       "type": "line",
@@ -151,7 +161,6 @@
       }
     },
     {
-      "dataSource": "thread-pool-metrics",
       "title": "Rejected Policy",
       "width": 4,
       "type": "line",
@@ -198,14 +207,7 @@
             "discardedOldestTaskCount",
             "userRejectedPolicyCount"
           ],
-          "filters": [{
-            "type": "metric",
-            "name": "totalRejectedCount",
-            "matcher": {
-              "type": "gt",
-              "value": 0
-            }
-          }],
+          "filter": "totalRejectedCount > 0",
           "orderBy": {
             "name": "totalRejectedCount",
             "order": "desc"

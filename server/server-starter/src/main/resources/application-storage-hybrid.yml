@@ -27,24 +27,32 @@ bithon:
     meta:
       type: clickhouse
       enabled: true
+
     setting:
       type: jdbc
       enabled: true
+
+    web:
+      type: jdbc2
+
     providers:
       jdbc:
-        enabled: true
         url: jdbc:h2:mem:bithon;MODE=mysql;
         username: sa
+      jdbc2:
+        type: jdbc
+        url: jdbc:h2:mem:bithon2;MODE=mysql;
+        username: sa
       clickhouse:
-        enabled: true
         # data source parameters
-        url: jdbc:clickhouse://localhost:8123/bithon
-        driverClassName: ru.yandex.clickhouse.ClickHouseDriver
+        url: jdbc:clickhouse://localhost:8123/bithon?decompress=1&compress=1&nullAsDefault=2
+        driverClassName: com.clickhouse.jdbc.ClickHouseDriver
         username: default
         password:
         # cluster parameters
         # cluster: test_cluster_two_shards_localhost
         # engine: MergeTree
+
 spring:
   h2:
     console:

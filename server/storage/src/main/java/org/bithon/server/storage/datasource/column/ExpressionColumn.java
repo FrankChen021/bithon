@@ -42,9 +42,6 @@ public class ExpressionColumn implements IColumn {
     private final String alias;
 
     @Getter
-    private final String displayText;
-
-    @Getter
     private final String expression;
 
     @Getter
@@ -53,12 +50,10 @@ public class ExpressionColumn implements IColumn {
     @JsonCreator
     public ExpressionColumn(@JsonProperty("name") @NotNull String name,
                             @JsonProperty("alias") @Nullable String alias,
-                            @JsonProperty("displayText") @NotNull String displayText,
                             @JsonProperty("expression") @NotNull String expression,
                             @JsonProperty("valueType") @Nullable String valueType) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.displayText = displayText;
         this.expression = Preconditions.checkArgumentNotNull("expression", expression).trim();
         this.valueType = "long".equalsIgnoreCase(valueType) ? IDataType.LONG : IDataType.DOUBLE;
     }

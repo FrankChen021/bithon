@@ -34,17 +34,12 @@ public abstract class AggregateMaxColumn implements IAggregatableColumn {
     @Getter
     private final String alias;
 
-    @Getter
-    protected final String displayText;
-
     protected final SimpleAggregateExpression aggregateExpression;
 
     public AggregateMaxColumn(String name,
-                              String alias,
-                              String displayText) {
+                              String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.displayText = displayText;
         this.aggregateExpression = new SimpleAggregateExpressions.MaxAggregateExpression(name);
     }
 

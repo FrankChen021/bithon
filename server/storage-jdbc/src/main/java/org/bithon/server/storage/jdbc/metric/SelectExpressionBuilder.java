@@ -18,11 +18,13 @@ package org.bithon.server.storage.jdbc.metric;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
-import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.ast.ASTColumn;
@@ -39,13 +41,12 @@ import org.bithon.server.storage.datasource.query.ast.ASTWhere;
 import org.bithon.server.storage.datasource.query.ast.IASTNode;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.query.parser.FieldExpressionVisitorAdaptor2;
+import org.bithon.server.storage.jdbc.utils.Expression2Sql;
 import org.bithon.server.storage.jdbc.utils.ISqlDialect;
-import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.metrics.Interval;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +63,7 @@ public class SelectExpressionBuilder {
 
     private List<ASTResultColumn> resultColumns;
 
-    private Collection<IColumnFilter> filters;
+    private IExpression filter;
     private Interval interval;
 
     private List<String> groupBy;
@@ -89,8 +90,8 @@ public class SelectExpressionBuilder {
         return this;
     }
 
-    public SelectExpressionBuilder filters(Collection<IColumnFilter> filters) {
-        this.filters = filters;
+    public SelectExpressionBuilder filter(IExpression filter) {
+        this.filter = filter;
         return this;
     }
 
@@ -191,11 +192,14 @@ public class SelectExpressionBuilder {
 
         public ASTStringLiteral visit(ASTExpression expression) {
 
-            final StringBuilder sb = new StringBuilder(32);
-            expression.visitExpression(new FieldExpressionVisitorAdaptor2() {
-
+            Expression2Sql serializer = new Expression2Sql(null, true) {
                 @Override
-                public void visitField(IColumn columnSpec) {
+                public boolean visit(IdentifierExpression expression) {
+                    String field = expression.getIdentifier();
+                    IColumn columnSpec = schema.getColumnByName(field);
+                    if (columnSpec == null) {
+                        throw new RuntimeException(StringUtils.format("field [%s] can't be found in [%s].", field, schema.getName()));
+                    }
 
                     IAggregatableColumn metricSpec = (IAggregatableColumn) columnSpec;
 
@@ -213,63 +217,24 @@ public class SelectExpressionBuilder {
                         // generate a aggregation expression
                         sb.append(metricSpec.getAggregateExpression().accept(sqlGenerator4SimpleAggregationFunction));
                     }
+
+                    return true;
                 }
 
                 @Override
-                protected DataSourceSchema getSchema() {
-                    return schema;
-                }
-
-                @Override
-                public void visitConstant(String number) {
-                    sb.append(number);
-                }
-
-                @Override
-                public void visitorOperator(String operator) {
-                    sb.append(operator);
-                }
-
-                @Override
-                public void beginSubExpression() {
-                    sb.append('(');
-                }
-
-                @Override
-                public void endSubExpression() {
-                    sb.append(')');
-                }
-
-                @Override
-                public void visitVariable(String variable) {
-                    Object variableValue = internalVariables.get(variable);
+                public boolean visit(MacroExpression expression) {
+                    Object variableValue = internalVariables.get(expression.getMacro());
                     if (variableValue == null) {
                         throw new RuntimeException(StringUtils.format("variable (%s) not provided in context",
-                                                                      variable));
+                                                                      expression.getMacro()));
                     }
                     sb.append(variableValue);
-                }
 
-                @Override
-                public void beginFunction(String name) {
-                    sb.append(name);
-                    sb.append('(');
+                    return true;
                 }
+            };
 
-                @Override
-                public void endFunction() {
-                    sb.append(')');
-                }
-
-                @Override
-                public void endFunctionArgument(int argIndex, int count) {
-                    if (argIndex < count - 1) {
-                        sb.append(',');
-                    }
-                }
-            });
-
-            return new ASTStringLiteral(sb.toString());
+            return new ASTStringLiteral(serializer.serialize(expression.getParsedExpression()));
         }
     }
 
@@ -372,7 +337,7 @@ public class SelectExpressionBuilder {
         FieldExpressionAnalyzer fieldExpressionAnalyzer = new FieldExpressionAnalyzer(this.dataSource, aggregatedFields, this.sqlDialect);
         this.resultColumns.stream()
                           .filter((f) -> f.getColumnExpression() instanceof ASTExpression)
-                          .forEach((f) -> ((ASTExpression) f.getColumnExpression()).visitExpression(fieldExpressionAnalyzer));
+                          .forEach((f) -> ((ASTExpression) f.getColumnExpression()).getParsedExpression().accept(fieldExpressionAnalyzer));
         for (String metric : fieldExpressionAnalyzer.getMetrics()) {
             subSelectExpression.getResultColumnList().add(metric);
         }
@@ -389,12 +354,12 @@ public class SelectExpressionBuilder {
         //
         // build WhereExpression
         //
-        String timestampCol = dataSource.getTimestampSpec().getTimestampColumn();
+        IExpression timestampCol = this.interval.getTimestampColumn();
         ASTWhere where = new ASTWhere();
-        where.addExpression(StringUtils.format("\"%s\" >= %s", timestampCol, sqlDialect.formatTimestamp(interval.getStartTime())));
-        where.addExpression(StringUtils.format("\"%s\" < %s", timestampCol, sqlDialect.formatTimestamp(interval.getEndTime())));
-        for (IColumnFilter filter : filters) {
-            where.addExpression(filter.getMatcher().accept(new SQLFilterBuilder(dataSource, filter)));
+        where.addExpression(StringUtils.format("%s >= %s", Expression2Sql.from((String) null, timestampCol), sqlDialect.formatTimestamp(interval.getStartTime())));
+        where.addExpression(StringUtils.format("%s < %s", Expression2Sql.from((String) null, timestampCol), sqlDialect.formatTimestamp(interval.getEndTime())));
+        if (filter != null) {
+            where.addExpression(Expression2Sql.from(dataSource, filter));
         }
 
         //
@@ -416,7 +381,6 @@ public class SelectExpressionBuilder {
                 }
             }
         }
-
 
         //
         // build OrderBy/Limit expression

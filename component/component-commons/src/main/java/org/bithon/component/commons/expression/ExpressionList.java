@@ -18,47 +18,53 @@ package org.bithon.component.commons.expression;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
- * @date 8/5/23 1:47 pm
+ * @date 7/8/23 2:05 pm
  */
 public class ExpressionList implements IExpression {
-    private final List<IExpression> expressionList;
+    private final List<IExpression> expressions;
+    private final Set<Object> values;
 
     public ExpressionList(IExpression... expressions) {
         this(Arrays.asList(expressions));
     }
 
     public ExpressionList(List<IExpression> expressions) {
-        this.expressionList = expressions;
+        this.expressions = expressions;
+
+        // Only literal is supported now
+        this.values = this.expressions.stream().map((element) -> ((LiteralExpression) element).getValue()).collect(Collectors.toSet());
+    }
+
+    public List<IExpression> getExpressions() {
+        return expressions;
     }
 
     @Override
     public String getType() {
-        return "expressionList";
+        return "()";
     }
 
-    /**
-     * Evaluate on this expression has no meaning, but we return a String copy of this expression for debug purpose
-     */
     @Override
     public Object evaluate(IEvaluationContext context) {
-        return toString();
+        return values;
     }
 
     @Override
-    public <T> T accept(IExpressionVisitor<T> visitor) {
-        return null;
-    }
-
-    public List<IExpression> getExpressionList() {
-        return expressionList;
+    public void accept(IExpressionVisitor visitor) {
+        if (visitor.visit(this)) {
+            for (IExpression subExpression : expressions) {
+                subExpression.accept(visitor);
+            }
+        }
     }
 
     @Override
-    public String toString() {
-        return "(" + this.getExpressionList().stream().map(Object::toString).collect(Collectors.joining(",")) + ")";
+    public <T> T accept(IExpressionVisitor2<T> visitor) {
+        return visitor.visit(this);
     }
 }

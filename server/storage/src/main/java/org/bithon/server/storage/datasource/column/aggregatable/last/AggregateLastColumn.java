@@ -37,18 +37,13 @@ public abstract class AggregateLastColumn implements IAggregatableColumn {
     @Getter
     private final String alias;
 
-    @Getter
-    protected final String displayText;
-
     protected final SimpleAggregateExpression aggregateExpression;
 
     @JsonCreator
     public AggregateLastColumn(String name,
-                               String alias,
-                               String displayText) {
+                               String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.displayText = displayText;
         this.aggregateExpression = new SimpleAggregateExpressions.LastAggregateExpression(name);
     }
 

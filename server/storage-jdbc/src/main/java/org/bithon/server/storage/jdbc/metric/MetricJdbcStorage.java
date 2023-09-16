@@ -27,7 +27,8 @@ import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
-import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
+import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
+import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.bithon.server.storage.jdbc.utils.SqlDialectManager;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
@@ -65,11 +66,11 @@ public class MetricJdbcStorage implements IMetricStorage {
     private final SqlDialectManager sqlDialectManager;
 
     @JsonCreator
-    public MetricJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder,
+    public MetricJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageConfiguration provider,
                              @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
                              @JacksonInject(useInput = OptBoolean.FALSE) MetricStorageConfig storageConfig,
                              @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
-        this(dslContextHolder.getDslContext(), schemaManager, storageConfig, sqlDialectManager);
+        this(provider.getDslContext(), schemaManager, storageConfig, sqlDialectManager);
     }
 
     public MetricJdbcStorage(DSLContext dslContext,
@@ -92,14 +93,14 @@ public class MetricJdbcStorage implements IMetricStorage {
     }
 
     @Override
-    public IMetricWriter createMetricWriter(DataSourceSchema schema) {
+    public final IMetricWriter createMetricWriter(DataSourceSchema schema) {
         MetricTable table = new MetricTable(schema);
         initialize(schema, table);
         return new MetricJdbcWriter(dslContext, table);
     }
 
     @Override
-    public IMetricReader createMetricReader(DataSourceSchema schema) {
+    public final IMetricReader createMetricReader(DataSourceSchema schema) {
         DSLContext context = this.dslContextMap.computeIfAbsent(schema.getName(), (name) -> {
             IDataStoreSpec dataStoreSpec = schema.getDataStoreSpec();
             if (dataStoreSpec == null || dataStoreSpec.isInternal()) {
@@ -124,7 +125,15 @@ public class MetricJdbcStorage implements IMetricStorage {
                                      .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
         });
 
-        return new MetricJdbcReader(context, sqlDialectManager.getSqlDialect(context));
+        return this.createReader(context, sqlDialectManager.getSqlDialect(context));
+    }
+
+    protected IMetricWriter createWriter(DSLContext dslContext, MetricTable table) {
+        return new MetricJdbcWriter(dslContext, table);
+    }
+
+    protected IMetricReader createReader(DSLContext dslContext, ISqlDialect sqlDialect) {
+        return new MetricJdbcReader(dslContext, sqlDialect);
     }
 
     protected void initialize(DataSourceSchema schema, MetricTable table) {

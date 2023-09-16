@@ -17,11 +17,9 @@
 package org.bithon.server.webapp.ui;
 
 import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
@@ -72,12 +70,6 @@ public class DashboardController {
         private final String folder;
     }
 
-    @Data
-    public static class DashboardMetadata {
-        private String title;
-        private String folder;
-    }
-
     private List<DisplayableText> dashboardList;
 
     public DashboardController(DashboardManager dashboardManager,
@@ -91,13 +83,12 @@ public class DashboardController {
         dashboardList = this.dashboardManager.getDashboards()
                                              .stream()
                                              .map(dashboard -> {
-                                                 try {
-                                                     DashboardMetadata metadata = objectMapper.readValue(dashboard.getPayload(), DashboardMetadata.class);
-                                                     return new DisplayableText(dashboard.getName(), metadata.getTitle(), metadata.getFolder());
-                                                 } catch (JsonProcessingException ignored) {
+                                                 Dashboard.Metadata metadata = dashboard.getMetadata();
+                                                 if (metadata == null) {
                                                      return null;
+                                                 } else {
+                                                     return new DisplayableText(dashboard.getName(), metadata.getTitle(), metadata.getFolder());
                                                  }
-
                                              })
                                              .filter(Objects::nonNull)
                                              .sorted(Comparator.comparing(o -> o.text))
@@ -148,11 +139,11 @@ public class DashboardController {
         }
     }
 
-    @GetMapping("/web/api/dashboard/get/{boardName}")
-    public void getDashboard(@PathVariable("boardName") String boardName, HttpServletResponse response) throws IOException {
+    @GetMapping("/web/api/dashboard/get/{name}")
+    public void getDashboard(@PathVariable("name") String name, HttpServletResponse response) throws IOException {
         response.setContentType("application/json");
 
-        Dashboard board = this.dashboardManager.getDashboard(boardName);
+        Dashboard board = this.dashboardManager.getDashboard(name);
         if (board == null) {
             response.setStatus(HttpStatus.NOT_FOUND.value());
             return;

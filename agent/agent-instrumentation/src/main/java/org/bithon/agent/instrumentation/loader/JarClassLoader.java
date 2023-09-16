@@ -72,7 +72,7 @@ public class JarClassLoader extends ClassLoader {
      * @param name used for logging
      */
     public JarClassLoader(String name, File directory, IClassLoaderProvider... parents) {
-        // NOTE:  parent is assigned to parent class loader
+        // NOTE: parent is assigned to parent class loader
         // This is the key to implement agent lib isolation from app libs
         super(null);
         this.name = name;
@@ -82,17 +82,10 @@ public class JarClassLoader extends ClassLoader {
 
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
-        String path = name.replace('.', '/').concat(".class");
-        for (JarFile jarFile : jars) {
-            JarEntry entry = jarFile.getJarEntry(path);
-            if (entry == null) {
-                continue;
-            }
-
-            try {
-                byte[] classBytes = JarUtils.openClassFile(jarFile, path);
-
-                // define package object for customer loaded classes,
+        try {
+            byte[] classBytes = getClassByteCode(name);
+            if (classBytes != null) {
+                // define the package object for customer-loaded classes,
                 // so that getPackage could work
                 int lastIndex = name.lastIndexOf(".");
                 if (lastIndex > 0) {
@@ -102,8 +95,8 @@ public class JarClassLoader extends ClassLoader {
                     }
                 }
                 return defineClass(name, classBytes, 0, classBytes.length);
-            } catch (IOException ignored) {
             }
+        } catch (IOException ignored) {
         }
 
         for (IClassLoaderProvider parent : parents) {
@@ -135,7 +128,7 @@ public class JarClassLoader extends ClassLoader {
             try {
                 return JarUtils.getClassURL(jarFile, name);
             } catch (IOException ignored) {
-                // resource didn't exist in current jarFile, search the next one
+                // resource didn't exist in the current jarFile, search the next one
             }
         }
 
@@ -187,6 +180,19 @@ public class JarClassLoader extends ClassLoader {
             return jarFile.getInputStream(entry);
         }
         throw new AgentException("Can't find clazz [%s].", name);
+    }
+
+    public byte[] getClassByteCode(String name) throws IOException {
+        String path = name.replace('.', '/').concat(".class");
+        for (JarFile jarFile : jars) {
+            JarEntry entry = jarFile.getJarEntry(path);
+            if (entry == null) {
+                continue;
+            }
+
+            return JarUtils.openClassFile(jarFile, path);
+        }
+        return null;
     }
 
     @Override

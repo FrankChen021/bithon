@@ -16,7 +16,6 @@
 
 package org.bithon.server.storage.jdbc.metric;
 
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.ast.ASTColumn;
 import org.bithon.server.storage.datasource.query.ast.ASTColumnAlias;
@@ -80,7 +79,7 @@ public class SqlGenerator implements IASTNodeVisitor {
             sql.append(order.getName());
             sql.append('\"');
 
-            if (!StringUtils.isEmpty(order.getOrder())) {
+            if (order.getOrder() != null) {
                 sql.append(' ');
                 sql.append(order.getOrder());
                 sql.append(' ');

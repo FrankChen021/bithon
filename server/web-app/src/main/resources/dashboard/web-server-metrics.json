@@ -2,9 +2,20 @@
   "name": "web-server-metrics",
   "title": "Web Server",
   "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "web-server-metrics",
+        "fields": [
+          {"name": "appName", "width": 200, "allowClear": false},
+          "instanceName"
+        ]
+      }
+    ]
+  },
   "charts": [
     {
-      "dataSource": "web-server-metrics",
       "title": "Web Server Connections",
       "width": 4,
       "type": "line",
@@ -22,7 +33,6 @@
       }
     },
     {
-      "dataSource": "web-server-metrics",
       "title": "Queued Tasks",
       "width": 4,
       "type": "line",
@@ -38,7 +48,6 @@
       }
     },
     {
-      "dataSource": "web-server-metrics",
       "title": "Web Server Threads",
       "width": 4,
       "type": "line",

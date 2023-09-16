@@ -113,9 +113,9 @@ class TracingSpan implements ITraceSpan {
     @Override
     public TracingSpan tag(Throwable throwable) {
         if (throwable != null) {
-            tags.put(Tags.Exception.TYPE, throwable.getClass().getName());
-            tags.put(Tags.Exception.MESSAGE, throwable.getMessage());
-            tags.put(Tags.Exception.STACKTRACE, ExceptionUtils.getStackTrace(throwable));
+            this.tag(Tags.Exception.TYPE, throwable.getClass().getName())
+                .tag(Tags.Exception.MESSAGE, throwable.getMessage())
+                .tag(Tags.Exception.STACKTRACE, ExceptionUtils.getStackTrace(throwable));
         }
         return this;
     }

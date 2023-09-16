@@ -17,3 +17,13 @@
 .card-header {
     padding: 0.25em 0.5em !important
 }
+
+/*Override the default width which is 276px*/
+.popover {
+  max-width: 600px !important;
+}
+
+/*Override the default margin from 1em to 0*/
+td pre {
+  margin-bottom: 0 !important
+}

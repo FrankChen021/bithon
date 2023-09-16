@@ -22,17 +22,26 @@ class TableComponent {
      *     columns: columns
      *     pagination: either a list or an object. If it's an object, should be { pages: [], side: 'server' | 'client' }
      *     tableId: an unique id for the table component
+     *     toolbar: {minimize: true, close: false}
      */
     constructor(option) {
+        this.vToolbar = Object.assign({
+            minimize: true,
+            close: false,
+            showColumns: false
+        }, option.toolbar);
+
         // view
+        this.mStickyHeader = option.stickyHeader !== undefined ? option.stickyHeader : false;
         this.vComponentContainer = $(`<div class="card card-block rounded-0"></div>`);
         this.vTable = this.vComponentContainer.append(`<div class="table-container"><table id="${option.tableId}"></table></div>`).find('table');
         option.parent.append(this.vComponentContainer);
 
-        this.mShowColumn = option.toolbar !== undefined ? (option.toolbar.showColumns === true) : false;
         this.mColumns = option.columns;
         this.mCreated = false;
+        this.mPopoverShown = false;
 
+        this.mServerSort = option.serverSort;
         this.mHasPagination = option.pagination !== undefined && option.pagination.length > 0;
         if (Array.isArray(option.pagination)) {
             this.mPagination = option.pagination;
@@ -64,26 +73,30 @@ class TableComponent {
             return new Date(val).format(format);
         };
         this.mFormatters['template'] = (val, row, index, field) => {
-            // Get the column definition first
+            // Get the template from the column definition first
             let template = this.mColumnMap[field].template;
 
+            const interval = this.mStartTimestamp + '/' + this.mEndTimestamp;
+
             // Find all replacements
-            const replacement = new Map();
+            const referencedVariables = new Map();
             {
                 const extractVariable = /\{([^}]+)}/g;
                 let match;
                 while ((match = extractVariable.exec(template)) !== null) {
-                    let variable = match[1];
-                    replacement.set(variable, true);
+                    const varName = match[1];
+                    referencedVariables.set(varName, true);
                 }
             }
 
             // Do replacement
-            replacement.forEach((val, key) => {
-                const v = row[key];
-                if (v !== undefined && v !== null) {
-                    template = template.replaceAll(`{${key}}`, v);
+            referencedVariables.forEach((val, varName) => {
+                // interval is a special variable
+                let v = varName === 'interval' ? interval : row[varName];
+                if (v === undefined || v === null) {
+                    v = '';
                 }
+                template = template.replaceAll(`{${varName}}`, v);
             });
 
             return template;
@@ -131,35 +144,60 @@ class TableComponent {
             window.gTableComponents = {};
         }
         window.gTableComponents[option.tableId] = this;
+
+        $('body').on('click', (e) => {
+            if (!this.mPopoverShown) {
+                return;
+            }
+
+            const target = $(e.target);
+            if (target.hasClass('popover-body')
+            || target.hasClass('popover-header')
+            || target.hasClass('popover')) {
+                return;
+            }
+
+            $(this._header).find('.header-text').popover('dispose');
+        });
     }
 
     #ensureHeader() {
         if (this._header == null) {
             this._header = $(this.vComponentContainer).prepend(
                 '<div class="card-header d-flex" style="padding: 0.5em 1em">' +
-                '<div class="header"><span class="header-text btn-sm"></span></div>' +
+                '<span class="header-text btn-sm" style="display: none"></span><span class="header-interval btn-sm" style="padding-left: 0"></span>' +
                 '<div class="tools ml-auto">' +
-                '<button class="btn btn-sm btn-toggle"><span class="far fa-window-minimize"></span></button>' +
                 '</div>' +
                 '</div>');
 
-            const toggleButton = this._header.find('.btn-toggle');
-            toggleButton.click(() => {
-                const tableContainer = this.vComponentContainer.find('.table-container');
-                tableContainer.toggle();
+            if (this.vToolbar.minimize) {
+                const toggleButton = $('<button class="btn btn-sm btn-toggle"><span class="far fa-window-minimize"></span></button>');
+                this._header.find('.card-header').append(toggleButton);
+                toggleButton.click(() => {
+                    const tableContainer = this.vComponentContainer.find('.table-container');
+                    tableContainer.toggle();
 
-                if (tableContainer.is(':visible')) {
-                    toggleButton.find('span').removeClass('fa-window-maximize').addClass("fa-window-minimize");
-                } else {
-                    toggleButton.find('span').removeClass('fa-window-minimize').addClass("fa-window-maximize");
-                }
-            });
+                    if (tableContainer.is(':visible')) {
+                        toggleButton.find('span').removeClass('fa-window-maximize').addClass("fa-window-minimize");
+                    } else {
+                        toggleButton.find('span').removeClass('fa-window-minimize').addClass("fa-window-maximize");
+                    }
+                });
+            }
+
+            if (this.vToolbar.close) {
+                const closeButton = $('<button class="btn btn-sm btn-close"><span class="far fa-window-close"></span></button>');
+                this._header.find('.card-header').append(closeButton);
+                closeButton.click(() => {
+                    this.vComponentContainer.hide();
+                });
+            }
         }
         return this._header;
     }
 
     header(text) {
-        this.#ensureHeader().find('.header-text').html(text);
+        this.#ensureHeader().find('.header-text').html(text).show();
         return this;
     }
 
@@ -208,6 +246,12 @@ class TableComponent {
     resize() {
     }
 
+    /**
+     * public interface of component in dashboard
+     */
+    showHint(hint) {
+    }
+
     load(option) {
         console.log(option);
 
@@ -219,9 +263,30 @@ class TableComponent {
             this.mEndTimestamp = option.ajaxData.interval.endISO8601;
         }
         this.mQueryParam = option.ajaxData;
+        if (option.showInterval !== undefined && option.showInterval) {
+            const s = moment(this.mStartTimestamp).local().format('YYYY-MM-DD HH:mm:ss');
+            const e = moment(this.mEndTimestamp).local().format('YYYY-MM-DD HH:mm:ss');
+            this.#ensureHeader().find('.header-interval').html(`from ${s} to ${e}`);
+        } else {
+            this.#ensureHeader().find('.header-interval').html('');
+        }
 
         if (!this.mCreated) {
             this.mCreated = true;
+
+            // 1 is the border
+            let stickyHeaderOffsetLeft = 1;
+            let stickyHeaderOffsetRight = 1;
+            if (this.mStickyHeader) {
+                this.vComponentContainer
+                    .parentsUntil('body')
+                    .each(function() {
+                        // Convert the DOM element to a jQuery object if needed
+                        var parent = $(this);
+                        stickyHeaderOffsetLeft += parseInt(parent.css('padding-left'), 10);
+                        stickyHeaderOffsetRight += parseInt(parent.css('padding-right'), 10);
+                });
+            }
 
             const tableOption = {
                 url: option.url,
@@ -233,7 +298,8 @@ class TableComponent {
                 sidePagination: this.mPaginationSide,
                 pagination: this.mHasPagination,
 
-                serverSort: this.mHasPagination,
+                serverSort: this.mServerSort,
+                silentSort: !this.mServerSort,
                 sortName: this.mDefaultOrderBy,
                 sortOrder: this.mDefaultOrder,
 
@@ -245,10 +311,30 @@ class TableComponent {
                 detailView: this.mTableHasDetailView,
                 detailFormatter: (index, row) => this.#showDetail(index, row),
 
-                stickyHeader: true,
-                stickyHeaderOffsetLeft: parseInt($('body').css('padding-left'), 10),
-                stickyHeaderOffsetRight: parseInt($('body').css('padding-right'), 10),
-                theadClasses: 'thead-light'
+                stickyHeader: this.mStickyHeader,
+                stickyHeaderOffsetLeft: stickyHeaderOffsetLeft,
+                stickyHeaderOffsetRight: stickyHeaderOffsetRight,
+                theadClasses: 'thead-light',
+
+                onLoadError: (status, jqXHR) => {
+                    let message = jqXHR.responseText;
+                    if (jqXHR.responseJSON !== undefined && jqXHR.responseJSON.message !== undefined) {
+                        message = jqXHR.responseJSON.message;
+                    }
+    
+                    this.#ensureHeader().find('.header-text')
+                                        .popover('dispose')
+                                        .popover({title: 'Error', trigger: 'focus', html: true, content: message, placement: 'bottom' })
+                                        .popover('show')
+                                        .on('shown.bs.popover', () => {
+                                           this.mPopoverShown = true;
+                                        })
+                                        .on('hidden.bs.popover', () => {
+                                           this.mPopoverShown = false;
+                                        });
+                },
+                onLoadSuccess: () => {
+                }
             };
             if (this.mHasPagination) {
                 tableOption.paginationPreText = '<';
@@ -262,12 +348,17 @@ class TableComponent {
 
             this.#createShowColumnDropdownList();
         } else {
-            this.vTable.bootstrapTable('refresh');
+            if (this.mHasPagination) {
+                this.vTable.bootstrapTable('refresh', {pageNumber: 1});
+            } else {
+                this.vTable.bootstrapTable('refresh');
+            }
         }
+        this.vComponentContainer.show();
     }
 
     #createShowColumnDropdownList() {
-        if (!this.mShowColumn)
+        if (!this.vToolbar.showColumns)
             return;
 
         let headerText = this.#ensureHeader().find('.header-text').html();
@@ -276,7 +367,7 @@ class TableComponent {
         }
 
         // Build the dropdown list
-        let dropDownList = '<div class="btn-group dropright"><button type="button" class="btn btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' + headerText +
+        let dropDownList = '<div class="btn-group dropright"><button type="button" class="btn btn-sm dropdown-toggle header-text" data-toggle="dropdown" aria-expanded="false">' + headerText +
             '<div class="dropdown-menu dropdown-menu-lg-right">';
         {
             const tableId = this.vTable.attr('id');
@@ -288,7 +379,7 @@ class TableComponent {
         dropDownList += '</div></button></div>';
 
         // Add the dropdown list to DOM
-        this.#ensureHeader().find('.header').replaceWith(dropDownList);
+        this.#ensureHeader().find('.header-text').replaceWith(dropDownList);
     }
 
     #compare(a, b) {

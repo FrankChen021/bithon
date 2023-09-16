@@ -71,20 +71,20 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
         public String effectiveLevel;
     }
 
-    static class OneFilter implements IExpressionVisitor<Void> {
+    static class OneFilter implements IExpressionVisitor {
         private String name;
         private Object value;
 
         @Override
-        public Void visit(LiteralExpression expression) {
+        public boolean visit(LiteralExpression expression) {
             value = expression.getValue();
-            return null;
+            return false;
         }
 
         @Override
-        public Void visit(IdentifierExpression expression) {
+        public boolean visit(IdentifierExpression expression) {
             name = expression.getIdentifier();
-            return null;
+            return false;
         }
     }
 

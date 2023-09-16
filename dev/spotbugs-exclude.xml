@@ -80,6 +80,10 @@
         <Class name="~org\.bithon\.agent\.observability\.metric\.domain.*"/>
         <Bug pattern="UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
+    <Match>
+        <Class name="org.bithon.agent.observability.aop.BeanMethodAopInstaller"/>
+        <Bug pattern="LI_LAZY_INIT_STATIC" />
+    </Match>
 
     <!-- agent-plugin -->
     <Match>

@@ -3,11 +3,21 @@
   "title": "Exceptions",
   "folder": "metrics",
   "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "exception-metrics",
+        "fields": [
+          {"name": "appName", "width": 200, "allowClear": false},
+          "instanceName",
+          "exceptionClass"
+        ]
+      }
+    ],
     "showFilterInput": true
   },
   "charts": [
     {
-      "dataSource": "exception-metrics",
       "title": "Exceptions",
       "width": 4,
       "type": "line",
@@ -77,7 +87,6 @@
       }
     },
     {
-      "dataSource": "exception-metrics",
       "title": "Exception List",
       "width": 4,
       "type": "table",
@@ -85,8 +94,8 @@
       "columns": [
         {
           "name": "timestamp",
-          "title": "Time",
-          "format": "shortDateTime",
+          "format": "time",
+          "template": "MM-dd hh:mm:ss.S",
           "width": 150
         },
         "instanceName",

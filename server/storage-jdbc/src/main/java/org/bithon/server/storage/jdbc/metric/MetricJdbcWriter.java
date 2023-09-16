@@ -34,7 +34,7 @@ import java.util.List;
  * @date 2021/1/31 1:39 下午
  */
 @Slf4j
-class MetricJdbcWriter implements IMetricWriter {
+public class MetricJdbcWriter implements IMetricWriter {
     private final DSLContext dsl;
     private final MetricTable table;
 
@@ -63,8 +63,9 @@ class MetricJdbcWriter implements IMetricWriter {
 
             // dimensions
             for (Field dimension : table.getDimensions()) {
+                // the value might be type of integer, so Object should be used
                 Object value = inputRow.getCol(dimension.getName(), "");
-                values[index++] = getOrTruncateDimension(dimension, value);
+                values[index++] = getOrTruncateDimension(dimension, value.toString());
             }
 
             // metrics
@@ -89,15 +90,14 @@ class MetricJdbcWriter implements IMetricWriter {
     public void close() {
     }
 
-    private String getOrTruncateDimension(Field<?> dimensionField, Object value) {
+    protected String getOrTruncateDimension(Field<?> dimensionField, String value) {
         if (dimensionField.getDataType().hasLength()) {
             int len = dimensionField.getDataType().length();
 
-            String v = value.toString();
-            if (v.length() > len) {
-                return v.substring(0, len - 3) + "...";
+            if (value.length() > len) {
+                return value.substring(0, len - 3) + "...";
             }
         }
-        return value.toString();
+        return value;
     }
 }

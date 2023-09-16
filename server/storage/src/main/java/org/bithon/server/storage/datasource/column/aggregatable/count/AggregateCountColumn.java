@@ -54,11 +54,6 @@ public class AggregateCountColumn implements IAggregatableColumn {
     }
 
     @Override
-    public String getDisplayText() {
-        return "次数";
-    }
-
-    @Override
     public IDataType getDataType() {
         return IDataType.LONG;
     }

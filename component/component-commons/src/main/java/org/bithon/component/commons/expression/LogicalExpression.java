@@ -18,10 +18,11 @@ package org.bithon.component.commons.expression;
 
 import org.bithon.component.commons.utils.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 /**
  * AND/OR
@@ -44,7 +45,7 @@ public abstract class LogicalExpression implements IExpression {
     }
 
     protected final String operator;
-    protected final List<IExpression> operands;
+    protected List<IExpression> operands;
 
     protected LogicalExpression(String operator, List<IExpression> operands) {
         this.operator = operator.toUpperCase(Locale.ENGLISH);
@@ -59,20 +60,30 @@ public abstract class LogicalExpression implements IExpression {
         return operands;
     }
 
+    /**
+     * Allow to be modified so that the expressions can be optimized
+     */
+    public void setOperands(List<IExpression> operands) {
+        this.operands = operands;
+    }
+
     @Override
     public String getType() {
         return "logical";
     }
 
     @Override
-    public <T> T accept(IExpressionVisitor<T> visitor) {
-        return visitor.visit(this);
+    public void accept(IExpressionVisitor visitor) {
+        if (visitor.visit(this)) {
+            for (IExpression operand : operands) {
+                operand.accept(visitor);
+            }
+        }
     }
 
     @Override
-    public String toString() {
-        String separator = " " + this.operator + " ";
-        return this.operands.stream().map(Object::toString).collect(Collectors.joining(separator));
+    public <T> T accept(IExpressionVisitor2<T> visitor) {
+        return visitor.visit(this);
     }
 
     public abstract LogicalExpression copy(List<IExpression> expressionList);
@@ -84,8 +95,23 @@ public abstract class LogicalExpression implements IExpression {
         if (value instanceof Boolean) {
             return (boolean) value;
         }
-        if (value instanceof Number) {
-            return ((Number) value).intValue() == 1;
+        if (value instanceof Long) {
+            return ((long) value) != 0;
+        }
+        if (value instanceof Integer) {
+            return ((int) value) != 0;
+        }
+        if (value instanceof Short) {
+            return ((short) value) != 0;
+        }
+        if (value instanceof Byte) {
+            return ((byte) value) != 0;
+        }
+        if (value instanceof Float) {
+            return (float) value != 0;
+        }
+        if (value instanceof Double) {
+            return ((double) value) != 0;
         }
         if (value instanceof String) {
             return "true".equals(value);
@@ -99,7 +125,7 @@ public abstract class LogicalExpression implements IExpression {
         }
 
         public AND(IExpression... expressions) {
-            super("AND", Arrays.asList(expressions));
+            super("AND", new ArrayList<>(Arrays.asList(expressions)));
         }
 
         @Override
@@ -125,6 +151,10 @@ public abstract class LogicalExpression implements IExpression {
             super("OR", operands);
         }
 
+        public OR(IExpression... operands) {
+            super("OR", new ArrayList<>(Arrays.asList(operands)));
+        }
+
         @Override
         public Object evaluate(IEvaluationContext context) {
             for (IExpression expression : this.operands) {
@@ -146,6 +176,10 @@ public abstract class LogicalExpression implements IExpression {
 
         public NOT(List<IExpression> operands) {
             super("NOT", operands);
+        }
+
+        public NOT(IExpression expression) {
+            super("NOT", new ArrayList<>(Collections.singletonList(expression)));
         }
 
         @Override

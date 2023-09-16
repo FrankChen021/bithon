@@ -64,9 +64,7 @@ public class MetricTable extends TableImpl {
             Field dimensionField = createField(dimension.getName(), dimension.getDataType());
             dimensions.add(dimensionField);
 
-            if (dimension.isVisible()) {
-                indexesFields.add(dimensionField);
-            }
+            indexesFields.add(dimensionField);
         }
 
         for (IColumn metric : schema.getMetricsSpec()) {

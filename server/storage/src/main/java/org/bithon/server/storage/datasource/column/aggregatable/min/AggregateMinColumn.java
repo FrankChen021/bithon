@@ -35,18 +35,13 @@ public abstract class AggregateMinColumn implements IAggregatableColumn {
     @Getter
     private final String alias;
 
-    @Getter
-    protected final String displayText;
-
     protected final SimpleAggregateExpression aggregateExpression;
 
     @JsonCreator
     public AggregateMinColumn(String name,
-                              String alias,
-                              String displayText) {
+                              String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.displayText = displayText;
 
         // For IMetricSpec, the `name` property is the right text mapped a column in the underlying database,
         // So the two parameters of the following ctor are all `name` properties

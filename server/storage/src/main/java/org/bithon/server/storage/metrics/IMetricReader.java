@@ -16,12 +16,11 @@
 
 package org.bithon.server.storage.metrics;
 
+import org.bithon.component.commons.expression.IExpression;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.query.Query;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +45,6 @@ public interface IMetricReader {
     List<Map<String, String>> getDistinctValues(TimeSpan start,
                                                 TimeSpan end,
                                                 DataSourceSchema dataSourceSchema,
-                                                Collection<IColumnFilter> dimensions,
+                                                IExpression filter,
                                                 String dimension);
 }

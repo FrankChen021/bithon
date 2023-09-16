@@ -15,9 +15,9 @@ collector-brpc:
 
 collector-http:
   enabled: true
-  tracing:
-    clickhouseApplications:
-      - clickhouse
+
+collector-otel:
+  enabled: true
 
 collector-controller:
   permission:
