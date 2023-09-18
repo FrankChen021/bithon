@@ -21,6 +21,7 @@ import feign.Contract;
 import feign.Feign;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
@@ -39,7 +40,6 @@ import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.ByteArrayInputStream;
@@ -52,6 +52,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -62,6 +63,7 @@ import java.util.concurrent.Future;
  * @author frank.chen021@outlook.com
  * @date 2023/4/9 16:27
  */
+@Slf4j
 public class AgentServiceProxyFactory {
 
     private final InvocationManager invocationManager = new InvocationManager();
@@ -115,7 +117,9 @@ public class AgentServiceProxyFactory {
                                              InvocationManager brpcServiceInvoker) {
             this.proxyServiceName = proxyServiceName;
             this.brpcServiceInvoker = brpcServiceInvoker;
-            this.context = context;
+
+            // Make sure the context is modifiable because we' going to add token into the context
+            this.context = new TreeMap<>(context);
         }
 
         @Override
@@ -125,6 +129,14 @@ public class AgentServiceProxyFactory {
             if (serviceDiscoveryClient == null) {
                 throw new HttpMappableException(HttpStatus.SERVICE_UNAVAILABLE.value(),
                                                 "This API is unavailable because Service Discovery is not configured.");
+            }
+
+            // Since the real invocation is issued from a dedicated thread-pool,
+            // to make sure the task in that thread pool can access the security context, we have to explicitly
+            Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.getCredentials() != null) {
+
+                context.put("X-Bithon-Token", authentication.getCredentials());
             }
 
             // Get all instances first
@@ -234,20 +246,10 @@ public class AgentServiceProxyFactory {
                                                                              .decoder(applicationContext.getBean(Decoder.class))
                                                                              .errorDecoder(new ErrorResponseDecoder(applicationContext.getBean(ObjectMapper.class)))
                                                                              .requestInterceptor(template -> {
-                                                                                 SecurityContext securityContext = SecurityContextHolder.getContext();
-                                                                                 if (securityContext == null) {
-                                                                                     return;
+                                                                                 Object token = context.get("X-Bithon-Token");
+                                                                                 if (token != null) {
+                                                                                     template.header("X-Bithon-Token", token.toString());
                                                                                  }
-                                                                                 Authentication authentication = securityContext.getAuthentication();
-                                                                                 if (authentication == null) {
-                                                                                     return;
-                                                                                 }
-
-                                                                                 Object token = authentication.getCredentials();
-                                                                                 if (token == null) {
-                                                                                     return;
-                                                                                 }
-                                                                                 template.header("X-Bithon-Token", token.toString());
                                                                              })
                                                                              .target(IAgentProxyApi.class, "http://" + proxyHost.getHost() + ":" + proxyHost.getPort());
 
