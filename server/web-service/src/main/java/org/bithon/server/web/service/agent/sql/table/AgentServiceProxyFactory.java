@@ -38,6 +38,9 @@ import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -143,9 +146,9 @@ public class AgentServiceProxyFactory {
                                                                          args);
                     } catch (HttpMappableException e) {
                         if (SessionNotFoundException.class.getName().equals(e.getException())) {
-                            // We're issuing broadcast invocation on all proxy servers,
+                            // We're issuing broadcast invocations on all proxy servers,
                             // but there will be only one proxy server that connects to the target agent instance.
-                            // For any other proxy servers, a SessionNotFoundException is thrown, we need to ignore such exception
+                            // For any other proxy servers, a SessionNotFoundException is thrown which should be ignored.
                             return Collections.emptyList();
                         }
                         throw e;
@@ -158,6 +161,7 @@ public class AgentServiceProxyFactory {
             }
 
             // Since the deserialized rows object might be unmodifiable, we always create a new array to hold the final result
+            //noinspection rawtypes
             List mergedRows = new ArrayList<>();
 
             //
@@ -168,6 +172,7 @@ public class AgentServiceProxyFactory {
                     Collection<?> response = future.get();
 
                     // Merge response
+                    // noinspection unchecked
                     mergedRows.addAll(response);
                 } catch (InterruptedException | ExecutionException e) {
                     if (e.getCause() instanceof RuntimeException) {
@@ -228,6 +233,22 @@ public class AgentServiceProxyFactory {
                                                                              .encoder(applicationContext.getBean(Encoder.class))
                                                                              .decoder(applicationContext.getBean(Decoder.class))
                                                                              .errorDecoder(new ErrorResponseDecoder(applicationContext.getBean(ObjectMapper.class)))
+                                                                             .requestInterceptor(template -> {
+                                                                                 SecurityContext securityContext = SecurityContextHolder.getContext();
+                                                                                 if (securityContext == null) {
+                                                                                     return;
+                                                                                 }
+                                                                                 Authentication authentication = securityContext.getAuthentication();
+                                                                                 if (authentication == null) {
+                                                                                     return;
+                                                                                 }
+
+                                                                                 Object token = authentication.getCredentials();
+                                                                                 if (token == null) {
+                                                                                     return;
+                                                                                 }
+                                                                                 template.header("X-Bithon-Token", token.toString());
+                                                                             })
                                                                              .target(IAgentProxyApi.class, "http://" + proxyHost.getHost() + ":" + proxyHost.getPort());
 
                                               try {

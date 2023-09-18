@@ -68,7 +68,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (jwtTokenComponent.validateToken(user)) {
                     //noinspection unchecked
                     Authentication authentication = new UsernamePasswordAuthenticationToken(user.getSubject(),
-                                                                                            null,
+                                                                                            token,
                                                                                             (Collection<? extends GrantedAuthority>) user.get("scope"));
 
                     if (logger.isDebugEnabled()) {
