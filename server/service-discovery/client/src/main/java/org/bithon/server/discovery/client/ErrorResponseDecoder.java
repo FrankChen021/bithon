@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 
 /**
  * @author Frank Chen
@@ -56,20 +57,26 @@ public class ErrorResponseDecoder implements ErrorDecoder {
             }
 
             // Try to decode the message
-            ErrorResponse errorResponse = this.objectMapper.readValue(body, ErrorResponse.class);
-            if (errorResponse.getException() != null) {
-                return new HttpMappableException(errorResponse.getException(),
-                                                 response.status(),
-                                                 "Error when requesting [%s]: %s",
-                                                 path,
-                                                 errorResponse.getMessage());
-            } else {
-                return new HttpMappableException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                                                 "Error from remote [%s]: %s, Status = %d",
-                                                 path,
-                                                 body,
-                                                 response.status());
+            Collection<String> contentTypeHeaders = response.headers().get("Content-Type");
+            if (contentTypeHeaders != null
+                && !contentTypeHeaders.isEmpty()
+                && contentTypeHeaders.iterator().next().startsWith("application/json")) {
+                ErrorResponse errorResponse = this.objectMapper.readValue(body, ErrorResponse.class);
+                if (errorResponse.getException() != null) {
+                    return new HttpMappableException(errorResponse.getException(),
+                                                     response.status(),
+                                                     "Error when requesting [%s]: %s",
+                                                     path,
+                                                     errorResponse.getMessage());
+                }
             }
+
+            return new HttpMappableException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                             "Error from remote [%s]: %s, Status = %d",
+                                             path,
+                                             body,
+                                             response.status());
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

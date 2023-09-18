@@ -22,6 +22,7 @@ import feign.Feign;
 import feign.FeignException;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
+import lombok.Getter;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.declaration.DiscoverableService;
@@ -30,6 +31,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -45,28 +48,21 @@ import java.util.concurrent.Future;
  * @date 23/2/23 12:47 am
  */
 public class ServiceBroadcastInvoker implements ApplicationContextAware {
+    @Getter
     private IDiscoveryClient serviceDiscoveryClient;
-    private ApplicationContext applicationContext;
 
+    @Getter
     private final ServiceInvocationExecutor executor;
-    private ObjectMapper objectMapper;
+
+    @Getter
     private final IDiscoveryClient discoveryClient;
+
+    private ObjectMapper objectMapper;
+    private ApplicationContext applicationContext;
 
     public ServiceBroadcastInvoker(IDiscoveryClient discoveryClient, ServiceInvocationExecutor executor) {
         this.discoveryClient = discoveryClient;
         this.executor = executor;
-    }
-
-    public IDiscoveryClient getServiceDiscoveryClient() {
-        return serviceDiscoveryClient;
-    }
-
-    public ServiceInvocationExecutor getExecutor() {
-        return executor;
-    }
-
-    public IDiscoveryClient getDiscoveryClient() {
-        return discoveryClient;
     }
 
     @Override
@@ -118,6 +114,11 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
                                                 "This API is unavailable because Service Discovery is not configured.");
             }
 
+            // The discovered client might be the current process that enables the security module,
+            // Under current security implementation, an API is needed.
+            Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
+            Object token = authentication == null ? null : authentication.getCredentials();
+
             // Get all instances first
             List<IDiscoveryClient.HostAndPort> instanceList = serviceDiscoveryClient.getInstanceList(serviceName);
 
@@ -126,7 +127,7 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
             //
             List<Future<ServiceResponse<?>>> futures = new ArrayList<>(instanceList.size());
             for (IDiscoveryClient.HostAndPort hostAndPort : instanceList) {
-                futures.add(executor.submit(new RemoteServiceCaller<>(objectMapper, type, hostAndPort, method, args)));
+                futures.add(executor.submit(new RemoteServiceCaller<>(objectMapper, type, hostAndPort, method, args, token)));
             }
 
             // Since the deserialized rows object might be unmodifiable, we always create a new array to hold the final result
@@ -165,15 +166,24 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
         private final Method method;
         private final Object[] args;
 
+        /**
+         * The Bithon API token
+         */
+        private final Object token;
+
         private RemoteServiceCaller(ObjectMapper objectMapper,
                                     Class<T> type,
                                     IDiscoveryClient.HostAndPort hostAndPort,
-                                    Method method, Object[] args) {
+                                    Method method,
+                                    Object[] args,
+                                    Object token) {
             this.objectMapper = objectMapper;
             this.type = type;
             this.hostAndPort = hostAndPort;
             this.method = method;
             this.args = args;
+            Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
+            this.token = authentication == null ? null : authentication.getCredentials();
         }
 
         @Override
@@ -183,11 +193,16 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
                                       .encoder(applicationContext.getBean(Encoder.class))
                                       .decoder(applicationContext.getBean(Decoder.class))
                                       .errorDecoder(new ErrorResponseDecoder(objectMapper))
+                                      .requestInterceptor(template -> {
+                                          if (token != null) {
+                                              template.header("X-Bithon-Token", token.toString());
+                                          }
+                                      })
                                       .target(type, "http://" + hostAndPort.getHost() + ":" + hostAndPort.getPort());
 
             InvocationHandler handler = Proxy.getInvocationHandler(proxyObject);
             try {
-                // The remote service must return type of Collection
+                // The remote service must return a type of Collection
                 return (ServiceResponse<?>) handler.invoke(proxyObject, method, args);
             } catch (FeignException.NotFound e) {
                 // Ignore the exception that the target service does not have data of given args
