@@ -12,7 +12,7 @@
     <description>OpenTelemetry</description>
 
     <modules>
-        <module>proto</module>
+        <module>opentelemetry-proto</module>
     </modules>
 
 </project>
