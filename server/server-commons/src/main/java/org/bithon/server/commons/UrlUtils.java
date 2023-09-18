@@ -41,33 +41,42 @@ public class UrlUtils {
             return Collections.emptyMap();
         }
 
-        String query = uri.getQuery();
-        if (!StringUtils.hasText(query)) {
+        String queryString = uri.getQuery();
+        if (!StringUtils.hasText(queryString)) {
             return Collections.emptyMap();
         }
 
         Map<String, String> variables = new TreeMap<>();
-        int fromIndex = 0;
-        int toIndex = 0;
-        while (toIndex != -1) {
-            String name;
-            String value;
-            toIndex = query.indexOf('=', fromIndex);
-            if (toIndex - fromIndex > 1) {
-                name = query.substring(fromIndex, toIndex);
-                fromIndex = toIndex + 1;
-                toIndex = query.indexOf('&', fromIndex);
-                if (toIndex == -1) {
-                    value = query.substring(fromIndex);
+        int tokenStart = 0;
+        int tokenEnd = 0;
+        do {
+            tokenEnd = queryString.indexOf('=', tokenStart);
+            if (tokenEnd > tokenStart) {
+                // Find the parameter name
+                String name = queryString.substring(tokenStart, tokenEnd);
+
+                // +1 to skip the '='
+                tokenStart = tokenEnd + 1;
+
+                // Find the parameter value
+                tokenEnd = queryString.indexOf('&', tokenStart);
+                if (tokenEnd == -1) {
+                    // If there's no '&' found, the whole is the value
+                    variables.put(name, queryString.substring(tokenStart));
                 } else {
-                    value = query.substring(fromIndex, toIndex);
+                    // If there's a '&' found, get the substring as value
+                    variables.put(name, queryString.substring(tokenStart, tokenEnd));
                 }
-                variables.put(name, value);
-                fromIndex = toIndex + 1;
+
+                tokenStart = tokenEnd + 1;
+            } else if (tokenEnd == tokenStart) {
+                // extra '=' found, e.g: queryString equals to '='
+                tokenStart = tokenEnd + 1;
             } else {
-                fromIndex = query.indexOf('&', toIndex) + 1;
+                // Not found '=', tokenEnd is -1,
             }
-        }
+        } while (tokenEnd != -1);
+
         return variables;
     }
 }
