@@ -161,7 +161,7 @@
       <dependency>
         <groupId>org.bithon</groupId>
         <artifactId>opentelemetry-proto</artifactId>
-        <version>${project.version}</version>
+        <version>1.0</version>
       </dependency>
 
       <dependency>
@@ -498,7 +498,7 @@
         <module>server/storage</module>
         <module>server/storage-jdbc</module>
         <module>server/storage-jdbc-clickhouse</module>
-        <module>server/opentelemetry-proto</module>
+        <module>server/opentelemetry</module>
         <module>server/collector</module>
         <module>server/web-service</module>
         <module>server/web-app</module>
