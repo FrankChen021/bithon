@@ -81,8 +81,9 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
 
         JwtTokenComponent jwtTokenComponent = new JwtTokenComponent(securityConfig);
 
-        http.csrf()
-            .disable()
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            .csrf().disable()
             .authorizeRequests()
             .antMatchers("/error").permitAll()
             .anyRequest().authenticated()
@@ -93,8 +94,6 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
             .authorizationEndpoint().authorizationRequestRepository(new HttpCookieOAuth2AuthorizationRequestRepository())
             .and()
             .successHandler(new AuthSuccessHandler(jwtTokenComponent, securityConfig))
-            .and()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .logout().logoutSuccessUrl("/")
             .and()
