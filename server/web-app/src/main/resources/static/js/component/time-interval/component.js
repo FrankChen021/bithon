@@ -1,26 +1,32 @@
 class TimeInterval {
 
-    constructor(defaultIntervalId, includeAll) {
+    constructor(defaultIntervalId, includeAll, selectList) {
         this._listeners = [];
 
-        this._viewModel = [
-            {id: "P1M", value: 1, unit: "minute", text: "Last 1m"},
-            {id: "P3M", value: 3, unit: "minute", text: "Last 3m"},
-            {id: "P5M", value: 5, unit: "minute", text: "Last 5m"},
-            {id: "P15M", value: 15, unit: "minute", text: "Last 15m"},
-            {id: "P30M", value: 30, unit: "minute", text: "Last 30m"},
-            {id: "P1H", value: 1, unit: "hour", text: "Last 1h"},
-            {id: "P3H", value: 3, unit: "hour", text: "Last 3h"},
-            {id: "P6H", value: 6, unit: "hour", text: "Last 6h"},
-            {id: "P12H", value: 12, unit: "hour", text: "Last 12h"},
-            {id: "P1D", value: 24, unit: "hour", text: "Last 1d"},
-            {id: "P2D", value: 48, unit: "hour", text: "Last 2d"},
-            {id: "P3D", value: 72, unit: "hour", text: "Last 3d"},
-            {id: "P5D", value: 120, unit: "hour", text: "Last 5d"},
-            {id: "P7D", value: 144, unit: "hour", text: "Last 7d"},
-            {id: "today", value: "today", unit: "day", text: "Today"},
-            {id: "yesterday", value: "yesterday", unit: "day", text: "Yesterday"},
-        ];
+        let isBuiltInList = true;
+        if (selectList === undefined || selectList === null) {
+            this._viewModel = [
+                {id: "P1M", value: 1, unit: "minute", text: "Last 1m"},
+                {id: "P3M", value: 3, unit: "minute", text: "Last 3m"},
+                {id: "P5M", value: 5, unit: "minute", text: "Last 5m"},
+                {id: "P15M", value: 15, unit: "minute", text: "Last 15m"},
+                {id: "P30M", value: 30, unit: "minute", text: "Last 30m"},
+                {id: "P1H", value: 1, unit: "hour", text: "Last 1h"},
+                {id: "P3H", value: 3, unit: "hour", text: "Last 3h"},
+                {id: "P6H", value: 6, unit: "hour", text: "Last 6h"},
+                {id: "P12H", value: 12, unit: "hour", text: "Last 12h"},
+                {id: "P1D", value: 24, unit: "hour", text: "Last 1d"},
+                {id: "P2D", value: 48, unit: "hour", text: "Last 2d"},
+                {id: "P3D", value: 72, unit: "hour", text: "Last 3d"},
+                {id: "P5D", value: 120, unit: "hour", text: "Last 5d"},
+                {id: "P7D", value: 144, unit: "hour", text: "Last 7d"},
+                {id: "today", value: "today", unit: "day", text: "Today"},
+                {id: "yesterday", value: "yesterday", unit: "day", text: "Yesterday"},
+            ];
+        } else {
+            isBuiltInList = false;
+            this._viewModel = selectList;
+        }
 
         if (defaultIntervalId !== undefined && defaultIntervalId.startsWith("c:")) {
             const interval = defaultIntervalId.substring(2);
@@ -42,7 +48,9 @@ class TimeInterval {
         }
 
         // Must be the last one
-        this._viewModel.push({id: "input", value: "", text: "Customization"});
+        if (isBuiltInList) {
+            this._viewModel.push({id: "input", value: "", text: "Customization"});
+        }
 
         //
         // Create select control

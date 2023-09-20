@@ -119,7 +119,10 @@ class Dashboard {
         //
         // Create TimeInterval
         //
-        this._timeSelector = new TimeInterval(this._defaultInterval).childOf(parent).registerIntervalChangedListener((selectedModel) => {
+        const intervalList = dashboard.filter === undefined || dashboard.filter.interval === undefined ? null : dashboard.filter.interval.list;
+        this._timeSelector = new TimeInterval(this._defaultInterval, false, intervalList)
+                                .childOf(parent)
+                                .registerIntervalChangedListener((selectedModel) => {
             g_MetricSelectedInterval = selectedModel.id;
             this._selectedInterval = {
                 id: selectedModel.id,
@@ -136,17 +139,17 @@ class Dashboard {
         // Create AutoRefresher by default
         // the filterBarForm is defined in the app-layout.html
         //
-        if (dashboard.filter === undefined
+        const allowAutoRefresh = dashboard.filter === undefined
          || dashboard.filter.interval === undefined
          || dashboard.filter.interval.allowAutoRefresh === undefined
-         || dashboard.filter.interval.allowAutoRefresh === true) {
-            new AutoRefresher({
-                timerLength: 10
-            }).childOf(parent).registerRefreshListener(() => {
-                this._selectedInterval = this._timeSelector.getInterval();
-                this.refreshDashboard();
-            });
-        }
+         || dashboard.filter.interval.allowAutoRefresh;
+        new AutoRefresher({
+            timerLength: 10,
+            allowAutoRefresh: allowAutoRefresh
+        }).childOf(parent).registerRefreshListener(() => {
+            this._selectedInterval = this._timeSelector.getInterval();
+            this.refreshDashboard();
+        });
 
         $.each(dashboard.charts, (index, chartDescriptor) => {
 
