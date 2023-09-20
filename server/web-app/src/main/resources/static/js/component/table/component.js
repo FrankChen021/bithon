@@ -33,7 +33,7 @@ class TableComponent {
 
         // view
         this.mStickyHeader = option.stickyHeader !== undefined ? option.stickyHeader : false;
-        this.vComponentContainer = $(`<div class="card card-block rounded-0"></div>`);
+        this.vComponentContainer = $(`<div class="card card-block rounded-0" style="display:none"></div>`);
         this.vTable = this.vComponentContainer.append(`<div class="table-container"><table id="${option.tableId}"></table></div>`).find('table');
         option.parent.append(this.vComponentContainer);
 
@@ -256,8 +256,6 @@ class TableComponent {
             const s = moment(this.mStartTimestamp).local().format('YYYY-MM-DD HH:mm:ss');
             const e = moment(this.mEndTimestamp).local().format('YYYY-MM-DD HH:mm:ss');
             this.#ensureHeader().find('.header-interval').html(`from ${s} to ${e}`);
-        } else {
-            this.#ensureHeader().find('.header-interval').html('');
         }
 
         if (!this.mCreated) {

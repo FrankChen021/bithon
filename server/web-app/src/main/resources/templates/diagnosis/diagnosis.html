@@ -123,24 +123,116 @@
 </head>
 <body>
 <div layout:fragment="content">
-    <div class="form-row">
-        <div class="col">
-            <input type="text" id="sql" class="form-control" onkeydown="handleKeyDown(event)"/>
-        </div>
-        <div class="col-md-1">
-            <button type="submit" class="btn btn-primary mb-2" onclick="getData()">Query</button>
+    <div id="dashboard"></div>
+
+    <div class="input-group mt-3">
+        <input type="text" id="sql" class="form-control" placeholder="Input the diagnose expression here" onkeydown="handleKeyDown(event)"/>
+        <div class="input-group-append">
+            <button type="submit" class="btn btn-primary mb-2" onclick="getData()">Execute</button>
         </div>
     </div>
     <div class="d-flex justify-content-center align-items-center">
         <i id="progress" class="fas fa-spinner fa-spin" style="padding: 10px; display: none"></i>
     </div>
+
     <div id="resultContainer" style="background: rgba(0,0,0,.03)">
         <table id="resultTable"></table>
         <pre id="errorMessage" style="display: none"></pre>
     </div>
     <script type="text/javascript">
+        const instanceList = {
+  "name": "application-overview",
+  "folder": "metrics",
+  "title": "Application Overview",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "jvm-metrics",
+        "fields": [
+          {"name": "appName", "width": 200, "allowClear":  false}
+        ]
+      }
+    ],
+    "interval": {
+        "allowAutoRefresh": false
+    }
+  },
+  "charts": [
+    {
+      "title": "",
+      "width": 4,
+      "type": "table",
+      "toolbar": {minimize: false, close: false},
+      "columns": [
+        {
+          "name": "instanceName",
+          "title": "instance",
+          "format": "template",
+          "template": "<a target='_blank' href='/web/metrics/jvm-metrics?appName={appName}&instanceName={instanceName}&interval=c:{interval}'>{instanceName}</a>"
+        },
+        {
+          "name": "processCpuLoad",
+          "format": "percentage"
+        },
+        "processors",
+        {
+          "name": "instanceStartTime",
+          "title": "startTime",
+          "format": "dateTime"
+        },
+        {
+          "name": "instanceUpTime",
+          "title": "upTime",
+          "format": "timeDuration"
+        },
+        {
+          "name": "heapUsed",
+          "format": "percentage"
+        },
+        {
+          "name": "heapMax",
+          "format": "binary_byte"
+        }
+      ],
+<!--      "pagination": [10],-->
+      "query": {
+        "dataSource": "jvm-metrics",
+        "type": "groupBy",
+        "fields": [
+          "appName",
+          "instanceName",
+          "processors",
+          "instanceStartTime",
+          "instanceUpTime",
+          {
+            "name": "heapUsed",
+            "expression": "round(heapUsed * 100.0/heapMax, 2)"
+          },
+          "heapMax",
+          "processCpuLoad"
+        ],
+        "orderBy": {
+          "name": "instanceUpTime",
+          "order": "asc"
+        },
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    }]};
+
         $(document).ready(() => {
-            $('#filterContainer').hide();
+            const dashboard = new Dashboard('dashboard',
+                'no-use-parameter',
+                'P5M');
+            dashboard.load(instanceList);
+
+            $(window).bind('resize', () => {
+                dashboard.resize();
+            });
         });
     </script>
 </div>

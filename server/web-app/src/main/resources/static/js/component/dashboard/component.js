@@ -602,6 +602,7 @@ class Dashboard {
                 }
             });
         }
+
         const vTable = new TableComponent({
                 tableId: chartId + "_table",
                 parent: parentElement,
@@ -613,7 +614,8 @@ class Dashboard {
                 pagination: tableDescriptor.pagination,
                 detailView: false,
                 toolbar: Object.assign({
-                    showColumns: tableDescriptor.showColumns
+                    showColumns: tableDescriptor.showColumns,
+                    ...tableDescriptor.toolbar
                 }, toolbar),
                 buttons: columnButtons,
 
@@ -624,7 +626,7 @@ class Dashboard {
                 orderBy: tableDescriptor.query.orderBy?.name,
             }
         );
-        if (tableDescriptor.title !== undefined) {
+        if (tableDescriptor.title !== undefined && tableDescriptor.title !== null && tableDescriptor.title !== '') {
             vTable.header('<b>' + tableDescriptor.title + '</b>');
         }
 
