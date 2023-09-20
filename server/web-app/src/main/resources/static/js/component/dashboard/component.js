@@ -117,10 +117,10 @@ class Dashboard {
         const parent = $('#filterBarForm');
 
         //
-        // Create TimeInterval
+        // Create TimeSpanSelector
         //
         const intervalList = dashboard.filter === undefined || dashboard.filter.interval === undefined ? null : dashboard.filter.interval.list;
-        this._timeSelector = new TimeInterval(this._defaultInterval, false, intervalList)
+        this._timeSelector = new TimeSpanSelector(this._defaultInterval, false, intervalList)
                                 .childOf(parent)
                                 .registerIntervalChangedListener((selectedModel) => {
             g_MetricSelectedInterval = selectedModel.id;

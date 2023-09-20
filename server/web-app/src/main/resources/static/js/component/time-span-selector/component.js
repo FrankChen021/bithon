@@ -1,4 +1,4 @@
-class TimeInterval {
+class TimeSpanSelector {
 
     constructor(defaultIntervalId, includeAll, selectList) {
         this._listeners = [];
