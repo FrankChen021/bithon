@@ -16,14 +16,19 @@
 
 package org.bithon.server.web.service.datasource.api;
 
+import org.bithon.component.commons.expression.ArithmeticExpression;
+import org.bithon.component.commons.expression.ArrayAccessExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.IExpressionVisitor2;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.MacroExpression;
+import org.bithon.component.commons.expression.function.IDataType;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.matcher.BetweenMatcher;
@@ -64,8 +69,7 @@ public class FilterExpressionToFilters {
             return CollectionUtils.isEmpty(otherFilters) ? null : toExpression(schema, otherFilters);
         }
 
-        IExpression expression = ExpressionASTBuilder.build(filterExpression);
-        expression.accept(new IdentifierVerifier(schema));
+        IExpression expression = validateExpression(schema, ExpressionASTBuilder.build(filterExpression));
 
         if (CollectionUtils.isNotEmpty(otherFilters)) {
             if (expression instanceof LogicalExpression.AND) {
@@ -94,6 +98,82 @@ public class FilterExpressionToFilters {
         return expressions.size() == 1 ? expressions.get(0) : new LogicalExpression.AND(expressions);
     }
 
+    private static IExpression validateExpression(DataSourceSchema schema, IExpression expression) {
+        // Validate all identifier expressions recursively
+        expression.accept(new IdentifierVerifier(schema));
+
+        // Validate if the expression is a filter
+        // and optimize if possible
+        return expression.accept(new IExpressionVisitor2<IExpression>() {
+            @Override
+            public IExpression visit(LiteralExpression expression) {
+                if (!expression.getDataType().equals(IDataType.BOOLEAN)) {
+                    throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
+                                                         expression.serializeToText());
+                }
+                return expression;
+            }
+
+            @Override
+            public IExpression visit(IdentifierExpression expression) {
+                throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
+                                                     // Output the identifier without quotation
+                                                     expression.serializeToText(false));
+            }
+
+            @Override
+            public IExpression visit(ExpressionList expression) {
+                throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
+                                                     expression.serializeToText(false));
+            }
+
+            @Override
+            public IExpression visit(ArrayAccessExpression expression) {
+                throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
+                                                     expression.serializeToText(false));
+            }
+
+            @Override
+            public IExpression visit(ArithmeticExpression expression) {
+                throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
+                                                     expression.serializeToText(false));
+            }
+
+            @Override
+            public IExpression visit(MacroExpression expression) {
+                throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
+                                                     expression.serializeToText(false));
+            }
+
+            @Override
+            public IExpression visit(LogicalExpression expression) {
+                return expression;
+            }
+
+            @Override
+            public IExpression visit(FunctionExpression expression) {
+                switch (expression.getReturnType()) {
+                    case STRING:
+                        throw new InvalidExpressionException("Function expression [%s] returns type of String, is not a valid filter. Consider to add comparators to your expression.",
+                                                             expression.serializeToText());
+                    case LONG:
+                    case DOUBLE:
+                        // Turn into binary expression
+                        return new ComparisonExpression.NE(expression, new LiteralExpression(0));
+
+                    case BOOLEAN:
+                    default:
+                        return expression;
+                }
+            }
+
+            @Override
+            public IExpression visit(ComparisonExpression expression) {
+                return expression;
+            }
+        });
+    }
+
     static class IdentifierVerifier implements IExpressionVisitor {
         private final DataSourceSchema schema;
 
@@ -106,7 +186,7 @@ public class FilterExpressionToFilters {
             IColumn column = schema.getColumnByName(expression.getIdentifier());
             if (column == null) {
                 // A special and ugly check.
-                // For indexed tags filter, when querying the dimensions, we need to convert its alias to its field name
+                // For indexed tags filter, when querying the dimensions, we need to convert its alias to its field name.
                 // However, when searching spans with tag filters, the schema here does not contain the tags.
                 // We need to ignore this case.
                 // The ignored tags will be processed later in the trace module.
