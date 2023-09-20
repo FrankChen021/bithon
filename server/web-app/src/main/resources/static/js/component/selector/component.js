@@ -266,7 +266,9 @@ class AppSelector {
     }
 
     #onSelectionChanged(name, value) {
-        if (name === 'instanceName') {
+        if (name === 'appName') {
+            g_SelectedApp = value;
+        } else if (name === 'instanceName') {
             g_SelectedInstance = value;
         }
         if (!this.vSuppressChangeEvent) {
