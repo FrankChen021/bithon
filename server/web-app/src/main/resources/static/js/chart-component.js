@@ -47,18 +47,7 @@ class ChartComponent {
             this._chart.resize();
         });
         $('body').on('click', (e) => {
-            if (!this.popoverShown) {
-                return;
-            }
-
-            const target = $(e.target);
-            if (target.hasClass('popover-body')
-            || target.hasClass('popover-header')
-            || target.hasClass('popover')) {
-                return;
-            }
-
-            $(this._card).find('.header-text').popover('dispose');
+            this.#hidePopover();
         });
     }
 
@@ -154,6 +143,8 @@ class ChartComponent {
             contentType: "application/json",
             success: (data) => {
                 this._chart.hideLoading();
+                this.#hidePopover();
+
                 const returnedOption = option.processResult(data);
                 if (returnedOption == null) {
                     return;
@@ -254,6 +245,7 @@ class ChartComponent {
                     message = data.responseJSON.message;
                 }
 
+                // Open popover
                 $(this._card).find('.header-text')
                              .popover('dispose')
                              .popover({title: 'Error', trigger: 'focus', html: true, content: message, placement: 'bottom' })
@@ -416,5 +408,13 @@ class ChartComponent {
         if (this._selectionHideHandler != null) {
             this._selectionHideHandler();
         }
+    }
+
+    #hidePopover() {
+        if (!this.popoverShown) {
+            return;
+        }
+
+        $(this._card).find('.header-text').popover('dispose');
     }
 }

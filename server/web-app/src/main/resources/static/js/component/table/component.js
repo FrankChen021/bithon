@@ -146,18 +146,7 @@ class TableComponent {
         window.gTableComponents[option.tableId] = this;
 
         $('body').on('click', (e) => {
-            if (!this.mPopoverShown) {
-                return;
-            }
-
-            const target = $(e.target);
-            if (target.hasClass('popover-body')
-            || target.hasClass('popover-header')
-            || target.hasClass('popover')) {
-                return;
-            }
-
-            $(this._header).find('.header-text').popover('dispose');
+            this.#hidePopover();
         });
     }
 
@@ -321,7 +310,8 @@ class TableComponent {
                     if (jqXHR.responseJSON !== undefined && jqXHR.responseJSON.message !== undefined) {
                         message = jqXHR.responseJSON.message;
                     }
-    
+
+                    // Show Popover
                     this.#ensureHeader().find('.header-text')
                                         .popover('dispose')
                                         .popover({title: 'Error', trigger: 'focus', html: true, content: message, placement: 'bottom' })
@@ -334,6 +324,7 @@ class TableComponent {
                                         });
                 },
                 onLoadSuccess: () => {
+                    this.#hidePopover();
                 }
             };
             if (this.mHasPagination) {
@@ -431,6 +422,14 @@ class TableComponent {
 
     getColumns() {
         return this.mColumns;
+    }
+
+    #hidePopover() {
+        if (!this.mPopoverShown) {
+            return;
+        }
+
+        $(this._header).find('.header-text').popover('dispose');
     }
 }
 

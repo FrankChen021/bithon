@@ -36,18 +36,20 @@ import java.util.stream.Collectors;
 public abstract class AbstractFunction implements IFunction {
     private final String name;
     private final List<Parameter> parameters;
+    private final IDataType returnType;
 
-    public AbstractFunction(String name) {
-        this(name, Collections.emptyList());
+    public AbstractFunction(String name, IDataType returnType) {
+        this(name, Collections.emptyList(), returnType);
     }
 
-    public AbstractFunction(String name, Parameter parameter) {
-        this(name, Collections.singletonList(parameter));
+    public AbstractFunction(String name, Parameter parameter, IDataType returnType) {
+        this(name, Collections.singletonList(parameter), returnType);
     }
 
-    public AbstractFunction(String name, List<Parameter> parameters) {
+    public AbstractFunction(String name, List<Parameter> parameters, IDataType returnType) {
         this.name = name;
         this.parameters = parameters;
+        this.returnType = returnType;
     }
 
     @Override

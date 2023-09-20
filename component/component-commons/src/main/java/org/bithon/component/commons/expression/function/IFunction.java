@@ -33,4 +33,6 @@ public interface IFunction {
     void validateParameter(List<IExpression> parameters);
 
     Object evaluate(List<Object> parameters);
+
+    IDataType getReturnType();
 }

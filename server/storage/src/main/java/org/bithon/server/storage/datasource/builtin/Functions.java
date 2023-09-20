@@ -55,7 +55,9 @@ public class Functions implements IFunctionProvider {
      * <a href="https://clickhouse.com/docs/en/sql-reference/functions/string-functions">ClickHouse Functions</a>
      */
     public Functions() {
-        register(new AbstractFunction("round", Arrays.asList(new Parameter(IDataType.DOUBLE), new Parameter(IDataType.LONG))) {
+        register(new AbstractFunction("round",
+                                      Arrays.asList(new Parameter(IDataType.DOUBLE), new Parameter(IDataType.LONG)),
+                                      IDataType.DOUBLE) {
             @Override
             public Object evaluate(List<Object> parameters) {
                 double i0 = ((Number) parameters.get(0)).doubleValue();
@@ -65,7 +67,9 @@ public class Functions implements IFunctionProvider {
         });
 
         // CK Only
-        register(new AbstractFunction("startsWith", Arrays.asList(new Parameter(IDataType.STRING), new Parameter(IDataType.STRING))) {
+        register(new AbstractFunction("startsWith",
+                                      Arrays.asList(new Parameter(IDataType.STRING), new Parameter(IDataType.STRING)),
+                                      IDataType.BOOLEAN) {
             @Override
             public Object evaluate(List<Object> parameters) {
                 String str = (String) parameters.get(0);
@@ -74,7 +78,9 @@ public class Functions implements IFunctionProvider {
             }
         });
 
-        register(new AbstractFunction("endsWith", Arrays.asList(new Parameter(IDataType.STRING), new Parameter(IDataType.STRING))) {
+        register(new AbstractFunction("endsWith",
+                                      Arrays.asList(new Parameter(IDataType.STRING), new Parameter(IDataType.STRING)),
+                                      IDataType.BOOLEAN) {
             @Override
             public Object evaluate(List<Object> parameters) {
                 String str = (String) parameters.get(0);
@@ -83,7 +89,9 @@ public class Functions implements IFunctionProvider {
             }
         });
 
-        register(new AbstractFunction("hasToken", Arrays.asList(new Parameter(IDataType.STRING), new Parameter(IDataType.STRING))) {
+        register(new AbstractFunction("hasToken",
+                                      Arrays.asList(new Parameter(IDataType.STRING), new Parameter(IDataType.STRING)),
+                                      IDataType.BOOLEAN) {
 
             @Override
             protected void validateParameter(IExpression parameter, int index) {
@@ -103,7 +111,9 @@ public class Functions implements IFunctionProvider {
             }
         });
 
-        register(new AbstractFunction("lower", Collections.singletonList(new Parameter(IDataType.STRING))) {
+        register(new AbstractFunction("lower",
+                                      Collections.singletonList(new Parameter(IDataType.STRING)),
+                                      IDataType.STRING) {
             @Override
             public Object evaluate(List<Object> parameters) {
                 String str = (String) parameters.get(0);
@@ -111,7 +121,9 @@ public class Functions implements IFunctionProvider {
             }
         });
 
-        register(new AbstractFunction("upper", Collections.singletonList(new Parameter(IDataType.STRING))) {
+        register(new AbstractFunction("upper",
+                                      Collections.singletonList(new Parameter(IDataType.STRING)),
+                                      IDataType.STRING) {
             @Override
             public Object evaluate(List<Object> parameters) {
                 String str = (String) parameters.get(0);
@@ -119,9 +131,11 @@ public class Functions implements IFunctionProvider {
             }
         });
 
-        register(new AbstractFunction("substring", Arrays.asList(new Parameter(IDataType.STRING),
-                                                                 new Parameter(IDataType.LONG),
-                                                                 new Parameter(IDataType.LONG))) {
+        register(new AbstractFunction("substring",
+                                      Arrays.asList(new Parameter(IDataType.STRING),
+                                                    new Parameter(IDataType.LONG),
+                                                    new Parameter(IDataType.LONG)),
+                                      IDataType.STRING) {
 
             @Override
             public Object evaluate(List<Object> parameters) {
@@ -132,7 +146,9 @@ public class Functions implements IFunctionProvider {
             }
         });
 
-        register(new AbstractFunction("trim", Collections.singletonList(new Parameter(IDataType.STRING))) {
+        register(new AbstractFunction("trim",
+                                      Collections.singletonList(new Parameter(IDataType.STRING)),
+                                      IDataType.STRING) {
             @Override
             public Object evaluate(List<Object> parameters) {
                 String str = (String) parameters.get(0);
@@ -140,7 +156,9 @@ public class Functions implements IFunctionProvider {
             }
         });
 
-        register(new AbstractFunction("trimLeft", Collections.singletonList(new Parameter(IDataType.STRING))) {
+        register(new AbstractFunction("trimLeft",
+                                      Collections.singletonList(new Parameter(IDataType.STRING)),
+                                      IDataType.STRING) {
             @Override
             public Object evaluate(List<Object> parameters) {
                 String str = (String) parameters.get(0);
@@ -158,7 +176,9 @@ public class Functions implements IFunctionProvider {
             }
         });
 
-        register(new AbstractFunction("trimRight", Collections.singletonList(new Parameter(IDataType.STRING))) {
+        register(new AbstractFunction("trimRight",
+                                      Collections.singletonList(new Parameter(IDataType.STRING)),
+                                      IDataType.STRING) {
             @Override
             public Object evaluate(List<Object> parameters) {
                 String str = (String) parameters.get(0);
@@ -177,7 +197,9 @@ public class Functions implements IFunctionProvider {
         });
 
         // CK Only
-        register(new AbstractFunction("length", Collections.singletonList(new Parameter(IDataType.STRING))) {
+        register(new AbstractFunction("length",
+                                      Collections.singletonList(new Parameter(IDataType.STRING)),
+                                      IDataType.LONG) {
             @Override
             public Object evaluate(List<Object> parameters) {
                 String str = (String) parameters.get(0);
@@ -185,7 +207,9 @@ public class Functions implements IFunctionProvider {
             }
         });
 
-        register(new AbstractFunction("toStartOfMinute", new Parameter(IDataType.LONG)) {
+        register(new AbstractFunction("toStartOfMinute",
+                                      new Parameter(IDataType.LONG),
+                                      IDataType.LONG) {
             @Override
             public Object evaluate(List<Object> parameters) {
                 Object o = parameters.get(0);

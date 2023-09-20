@@ -41,6 +41,11 @@ public class ExpressionOptimizerTest {
         public IFunction getFunction(String name) {
             return new IFunction() {
                 @Override
+                public IDataType getReturnType() {
+                    return IDataType.LONG;
+                }
+
+                @Override
                 public String getName() {
                     return "sum";
                 }
