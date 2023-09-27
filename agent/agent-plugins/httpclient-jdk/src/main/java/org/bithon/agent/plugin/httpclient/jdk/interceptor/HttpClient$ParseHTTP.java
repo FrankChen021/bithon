@@ -31,7 +31,6 @@ import sun.net.www.MessageHeader;
 import sun.net.www.protocol.http.HttpURLConnection;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -83,7 +82,7 @@ public class HttpClient$ParseHTTP extends AfterInterceptor {
                              for (String name : traceConfig.getHeaders().getResponse()) {
                                  List<String> values = headers.get(name);
                                  if (values != null && !values.isEmpty()) {
-                                     s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + name.toLowerCase(Locale.ENGLISH), values.get(0));
+                                     s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + name, values.get(0));
                                  }
                              }
                          })
@@ -92,9 +91,9 @@ public class HttpClient$ParseHTTP extends AfterInterceptor {
     }
 
     /**
-     * Eg:
-     * HTTP/1.0 200 OK
-     * HTTP/1.0 401 Unauthorized
+     * The input statusLine has a format of the following examples:
+     *  HTTP/1.0 200 OK
+     *  HTTP/1.0 401 Unauthorized
      * It will return 200 and 401 respectively. Returns -1 if no code can be discerned
      */
     private int parseStatusCode(String statusLine) {

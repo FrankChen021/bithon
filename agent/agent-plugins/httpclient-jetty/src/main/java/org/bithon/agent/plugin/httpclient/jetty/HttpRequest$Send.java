@@ -33,7 +33,6 @@ import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.util.Callback;
 
 import java.nio.ByteBuffer;
-import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
@@ -132,7 +131,7 @@ public class HttpRequest$Send extends BeforeInterceptor {
                                               for (String name : traceConfig.getHeaders().getResponse()) {
                                                   String val = result.getResponse().getHeaders().get(name);
                                                   if (val != null) {
-                                                      s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + name.toLowerCase(Locale.ENGLISH), val);
+                                                      s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + name, val);
                                                   }
                                               }
                                           })
