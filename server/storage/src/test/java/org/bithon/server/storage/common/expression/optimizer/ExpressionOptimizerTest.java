@@ -139,6 +139,13 @@ public class ExpressionOptimizerTest {
     }
 
     @Test
+    public void testHasTokenReplacer_Replaced_In_CompoundExpression() {
+        IExpression expr = ExpressionASTBuilder.build("hasToken(a, 'a_b') AND hasToken(a, 'c_d')");
+
+        Assert.assertEquals("(a like '%a_b%' AND a like '%c_d%')", expr.serializeToText(false));
+    }
+
+    @Test
     public void test_RemoveAlwaysTrueCondition() {
         IExpression expr = ExpressionASTBuilder.build("1 AND a = 'Good'");
 

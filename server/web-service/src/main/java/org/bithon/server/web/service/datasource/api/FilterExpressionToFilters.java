@@ -108,7 +108,7 @@ public class FilterExpressionToFilters {
             @Override
             public IExpression visit(LiteralExpression expression) {
                 if (!expression.getDataType().equals(IDataType.BOOLEAN)) {
-                    throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
+                    throw new InvalidExpressionException("Literal expression [%s] is not a valid filter. Consider to add comparators to your expression.",
                                                          expression.serializeToText());
                 }
                 return expression;
@@ -116,32 +116,32 @@ public class FilterExpressionToFilters {
 
             @Override
             public IExpression visit(IdentifierExpression expression) {
-                throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
+                throw new InvalidExpressionException("Identifier expression [%s] is not a valid filter. Consider to add comparators to your expression.",
                                                      // Output the identifier without quotation
                                                      expression.serializeToText(false));
             }
 
             @Override
             public IExpression visit(ExpressionList expression) {
-                throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
+                throw new InvalidExpressionException("Expression list [%s] is not a valid filter. Consider to add comparators to your expression.",
                                                      expression.serializeToText(false));
             }
 
             @Override
             public IExpression visit(ArrayAccessExpression expression) {
-                throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
+                throw new InvalidExpressionException("Array access expression [%s] is not a valid filter. Consider to add comparators to your expression.",
                                                      expression.serializeToText(false));
             }
 
             @Override
             public IExpression visit(ArithmeticExpression expression) {
-                throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
+                throw new InvalidExpressionException("Arithmetic expression [%s] is not a valid filter. Consider to add comparators to your expression.",
                                                      expression.serializeToText(false));
             }
 
             @Override
             public IExpression visit(MacroExpression expression) {
-                throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
+                throw new InvalidExpressionException("Macro expression [%s] is not a valid filter. Consider to add comparators to your expression.",
                                                      expression.serializeToText(false));
             }
 
