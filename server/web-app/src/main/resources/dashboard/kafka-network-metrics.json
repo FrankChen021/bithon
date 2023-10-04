@@ -59,6 +59,40 @@
           "avgResponseTime",
           "maxResponseTime"
         ]
+      },
+      "details": {
+        "columns": [
+          "cluster",
+          "type",
+          {
+            "name": "minResponseTime",
+            "format": "millisecond"
+          },
+          {
+            "name": "avgResponseTime",
+            "format": "millisecond"
+          },
+          {
+            "name": "maxResponseTime",
+            "format": "millisecond"
+          }
+        ],
+        "query": {
+          "type": "groupBy",
+          "dataSource": "kafka-network-metrics",
+          "fields": [
+            "cluster",
+            "type",
+            "count",
+            "minResponseTime",
+            "avgResponseTime",
+            "maxResponseTime"
+          ],
+          "orderBy": {
+            "name": "avgResponseTime",
+            "order": "desc"
+          }
+        }
       }
     }
   ]
