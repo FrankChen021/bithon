@@ -51,7 +51,7 @@ class TracePage {
         const parent = $('#filterBarForm');
 
         // View
-        this.vIntervalSelector = new TimeInterval(window.queryParams['interval'])
+        this.vIntervalSelector = new TimeSpanSelector(window.queryParams['interval'])
             .childOf(parent)
             .registerIntervalChangedListener((selectedModel) => {
                 this.mInterval = this.vIntervalSelector.getInterval();

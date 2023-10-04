@@ -49,7 +49,7 @@ class ProfilingPage {
         });
 
         // View
-        this.vIntervalSelector = new TimeInterval(window.queryParams['interval']).childOf(parent).registerIntervalChangedListener((selectedModel) => {
+        this.vIntervalSelector = new TimeSpanSelector(window.queryParams['interval']).childOf(parent).registerIntervalChangedListener((selectedModel) => {
             this.mInterval = this.vIntervalSelector.getInterval();
             this.#refreshPage();
         });

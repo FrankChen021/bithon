@@ -27,10 +27,10 @@ class TopoComponent {
         }).createAppSelector('[[${appName}]]');
 
         //
-        // Create TimeInterval
+        // Create TimeSpanSelector
         //
         const parent = $('#filterBarForm');
-        this._timeSelector = new TimeInterval().childOf(parent).registerIntervalChangedListener((selectedModel)=>{
+        this._timeSelector = new TimeSpanSelector().childOf(parent).registerIntervalChangedListener((selectedModel)=>{
             this.refreshTopo();
         });
 

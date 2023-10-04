@@ -29,7 +29,7 @@ class EventPage {
         });
 
         // View
-        this.vIntervalSelector = new TimeInterval('all', true).childOf(parent).registerIntervalChangedListener((selectedModel) => {
+        this.vIntervalSelector = new TimeSpanSelector('all', true).childOf(parent).registerIntervalChangedListener((selectedModel) => {
             this.mInterval = this.vIntervalSelector.getInterval();
             this.#refreshPage();
         });
