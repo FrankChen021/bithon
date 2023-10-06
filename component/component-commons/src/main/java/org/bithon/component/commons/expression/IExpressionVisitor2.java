@@ -53,5 +53,11 @@ public interface IExpressionVisitor2<T> {
         return null;
     }
 
-    default T visit(MacroExpression expression) { return null; }
+    default T visit(MacroExpression expression) {
+        return null;
+    }
+
+    default T visit(MapAccessExpression expression) {
+        return null;
+    }
 }

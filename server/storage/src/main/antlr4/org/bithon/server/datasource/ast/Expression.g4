@@ -14,6 +14,7 @@ subExpression
   | subExpression (LT|LTE|GT|GTE|NE|EQ|LIKE|NOT LIKE|IN|NOT IN) subExpression #comparisonExpression
   | NOT subExpression                                           #notExpression
   | subExpression '[' INTEGER_LITERAL ']'                       #arrayAccessExpression
+  | subExpression '[' STRING_LITERAL ']'                        #mapAccessExpression
   | IDENTIFIER expressionListImpl                               #functionExpression
   | (INTEGER_LITERAL | DECIMAL_LITERAL | STRING_LITERAL)        #literalExpression
   | expressionListImpl                                          #expressionList

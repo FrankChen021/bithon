@@ -27,6 +27,7 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
+import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.function.IDataType;
 
 import java.util.Iterator;
@@ -75,6 +76,11 @@ public class ExpressionOptimizer {
 
         @Override
         public IExpression visit(ArrayAccessExpression expression) {
+            return expression;
+        }
+
+        @Override
+        public IExpression visit(MapAccessExpression expression) {
             return expression;
         }
 

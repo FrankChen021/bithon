@@ -127,7 +127,9 @@ public class ArrayAccessExpression implements IExpression {
 
     @Override
     public void accept(IExpressionVisitor visitor) {
-        visitor.visit(this);
+        if (visitor.visit(this)) {
+            this.array.accept(visitor);
+        }
     }
 
     @Override
