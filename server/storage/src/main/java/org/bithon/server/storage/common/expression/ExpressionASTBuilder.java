@@ -38,6 +38,7 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
+import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.server.datasource.ast.ExpressionBaseVisitor;
 import org.bithon.server.datasource.ast.ExpressionLexer;
@@ -265,6 +266,11 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
     @Override
     public IExpression visitArrayAccessExpression(ExpressionParser.ArrayAccessExpressionContext ctx) {
         return new ArrayAccessExpression(ctx.subExpression().accept(this), Integer.parseInt(ctx.INTEGER_LITERAL().getText()));
+    }
+
+    @Override
+    public IExpression visitMapAccessExpression(ExpressionParser.MapAccessExpressionContext ctx) {
+        return new MapAccessExpression(ctx.subExpression().accept(this), getUnQuotedString(ctx.STRING_LITERAL().getSymbol()));
     }
 
     @Override

@@ -27,6 +27,7 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
+import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.function.IDataType;
 
 import java.util.Iterator;
@@ -61,6 +62,10 @@ public class ExpressionOptimizer {
 
         @Override
         public IExpression visit(ExpressionList expression) {
+            for (int i = 0; i < expression.getExpressions().size(); i++) {
+                IExpression newSubExpression = expression.getExpressions().get(i);
+                expression.getExpressions().set(i, newSubExpression);
+            }
             return expression;
         }
 
@@ -75,7 +80,14 @@ public class ExpressionOptimizer {
         }
 
         @Override
+        public IExpression visit(MapAccessExpression expression) {
+            return expression;
+        }
+
+        @Override
         public IExpression visit(ArithmeticExpression expression) {
+            expression.setLeft(expression.getLeft().accept(this));
+            expression.setRight(expression.getRight().accept(this));
             return expression;
         }
 
@@ -111,15 +123,6 @@ public class ExpressionOptimizer {
         }
 
         @Override
-        public IExpression visit(ExpressionList expression) {
-            for (int i = 0; i < expression.getExpressions().size(); i++) {
-                IExpression newSubExpression = expression.getExpressions().get(i);
-                expression.getExpressions().set(i, newSubExpression);
-            }
-            return expression;
-        }
-
-        @Override
         public IExpression visit(FunctionExpression expression) {
             int literalCount = 0;
             for (int i = 0; i < expression.getParameters().size(); i++) {
@@ -151,8 +154,8 @@ public class ExpressionOptimizer {
 
         @Override
         public IExpression visit(ArithmeticExpression expression) {
-            expression.setLeft(expression.getLeft().accept(this));
-            expression.setRight(expression.getRight().accept(this));
+            super.visit(expression);
+
             if (expression.getLeft() instanceof LiteralExpression && expression.getRight() instanceof LiteralExpression) {
                 return new LiteralExpression(expression.evaluate(null));
             }
@@ -171,6 +174,19 @@ public class ExpressionOptimizer {
     }
 
     static class HasTokenFunctionOptimizer extends AbstractOptimizer {
+        @Override
+        public IExpression visit(LogicalExpression expression) {
+            expression.getOperands().replaceAll(iExpression -> iExpression.accept(this));
+            return expression;
+        }
+
+        @Override
+        public IExpression visit(ComparisonExpression expression) {
+            expression.setLeft(expression.getLeft().accept(this));
+            expression.setRight(expression.getRight().accept(this));
+            return expression;
+        }
+
         @Override
         public IExpression visit(FunctionExpression expression) {
             if (!"hasToken".equals(expression.getName())) {

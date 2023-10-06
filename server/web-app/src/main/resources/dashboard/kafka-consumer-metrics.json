@@ -8,7 +8,11 @@
         "type": "datasource",
         "name": "kafka-consumer-metrics",
         "fields": [
-          {"name": "appName", "width": 200, "allowClear": false},
+          {
+            "name": "appName",
+            "width": 200,
+            "allowClear": false
+          },
           "instanceName",
           "cluster",
           "topic",
@@ -24,12 +28,15 @@
       "title": "Consumed Records",
       "width": 4,
       "type": "line",
-      "yAxis": [
-        { "format": "rate" }
-      ],
       "columns": [
-        "consumedRecordsRate",
-        { "name": "consumedRecords", "yAxis": 1}
+        {
+          "name": "consumedRecordsRate",
+          "format": "rate"
+        },
+        {
+          "name": "consumedRecords",
+          "yAxis": 1
+        }
       ],
       "query": {
         "type": "timeseries",
@@ -40,24 +47,40 @@
         ]
       },
       "details": {
-        "columns": ["cluster",
+        "columns": [
+          "cluster",
           "topic",
           "groupId",
-          {"name": "count", "format": "compact_number" },
-          {"name": "consumedRecordsRate","format": "rate"},
-          {"name": "consumedRecords", "format": "compact_number"}
+          "partition",
+          {
+            "name": "count",
+            "format": "compact_number"
+          },
+          {
+            "name": "consumedRecordsRate",
+            "format": "rate"
+          },
+          {
+            "name": "consumedRecords",
+            "format": "compact_number"
+          }
         ],
         "query": {
           "type": "groupBy",
           "dataSource": "kafka-consumer-metrics",
           "fields": [
-            "cluster","topic","groupId","count","consumedRecordsRate","consumedRecords"
+            "cluster",
+            "topic",
+            "groupId",
+            "partition",
+            "count",
+            "consumedRecordsRate",
+            "consumedRecords"
           ],
           "orderBy": {
             "name": "consumedRecordsRate",
             "order": "desc"
-          },
-          "limit": 15
+          }
         },
         "tracing": {
           "mappings": {
@@ -95,6 +118,51 @@
           "consumedBytesRate",
           "consumedBytes"
         ]
+      },
+      "details": {
+        "columns": [
+          "cluster",
+          "topic",
+          "groupId",
+          "partition",
+          {
+            "name": "count",
+            "format": "compact_number"
+          },
+          {
+            "name": "consumedBytesRate",
+            "format": "rate"
+          },
+          {
+            "name": "consumedBytes",
+            "format": "binary_byte"
+          }
+        ],
+        "query": {
+          "type": "groupBy",
+          "dataSource": "kafka-consumer-metrics",
+          "fields": [
+            "cluster",
+            "topic",
+            "groupId",
+            "partition",
+            "count",
+            "consumedBytesRate",
+            "consumedBytes"
+          ],
+          "orderBy": {
+            "name": "consumedBytesRate",
+            "order": "desc"
+          }
+        },
+        "tracing": {
+          "mappings": {
+            "cluster": "tags.net.peer",
+            "topic": "tags.messaging.kafka.topic",
+            "groupId": "tags.messaging.kafka.consumer.group"
+          },
+          "filter": "name= 'kafka' AND kind = 'CONSUMER'"
+        }
       }
     }
   ]

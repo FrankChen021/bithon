@@ -54,4 +54,6 @@ public interface IExpressionVisitor {
     }
 
     default boolean visit(MacroExpression expression) { return true; }
+
+    default boolean visit(MapAccessExpression expression) { return true; }
 }

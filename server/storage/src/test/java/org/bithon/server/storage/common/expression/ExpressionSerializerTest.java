@@ -48,4 +48,11 @@ public class ExpressionSerializerTest {
         Assert.assertEquals("default.a = 1", new ExpressionSerializer("default", false).serialize(expr));
         Assert.assertEquals("\"default\".\"a\" = 1", new ExpressionSerializer("default", true).serialize(expr));
     }
+
+    @Test
+    public void testMapAccessExpression() {
+        IExpression expr = ExpressionASTBuilder.build("a ['b']");
+
+        Assert.assertEquals("a['b']", expr.serializeToText(false));
+    }
 }

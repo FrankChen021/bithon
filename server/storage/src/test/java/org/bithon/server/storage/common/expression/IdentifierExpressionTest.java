@@ -19,7 +19,7 @@ package org.bithon.server.storage.common.expression;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class FieldExpressionTest {
+public class IdentifierExpressionTest {
 
     @Test
     public void testVariableExpression() {

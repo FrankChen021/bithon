@@ -66,6 +66,15 @@ class TableComponent {
         this.mFormatters['detail'] = (val, row, index) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="toggleTableDetailView('${option.tableId}', ${index})">Toggle</button>` : '';
         this.mFormatters['dialog'] = (val, row, index, field) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="showTableDetailViewInDlg('${option.tableId}', ${index}, '${field}')">Show</button>` : '';
         this.mFormatters['block'] = (val, row, index) => `<pre>${val}</pre>`;
+        this.mFormatters['kv'] = (val, row, index) => {
+            let text = '<pre style="margin-bottom: 0">';
+            for (const propName in val) {
+                const propVal = val[propName];
+                text += `<b>${propName}</b>: ${propVal.htmlEncode()}<br/>`;
+            }
+            text += '</pre>';
+            return text;
+        };
         this.mFormatters['time'] = (val, row, index, field) => {
             // Get the column definition first
             let format = this.mColumnMap[field].template;
