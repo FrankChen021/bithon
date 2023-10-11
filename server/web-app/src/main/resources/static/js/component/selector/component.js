@@ -166,6 +166,7 @@ class AppSelector {
      *    name:
      *    alias:
      *    displayText:
+     *    defaultValue:
      *    width:
      *    allowClear:
      *    allowEdit:
@@ -177,11 +178,11 @@ class AppSelector {
             const filterSpec = filterSpecs[index];
 
             const idx = this.mFilterSpecs.push(filterSpec) - 1;
-            this.#createDimensionFilter(idx, filterSpec);
+            this.#createDropdownFilter(idx, filterSpec);
         }
     }
 
-    #createDimensionFilter(dimensionIndex, filterSpec) {
+    #createDropdownFilter(dimensionIndex, filterSpec) {
         this.mFilterNames.push(filterSpec.alias);
 
         const filterName = this.mQueryVariablePrefix + filterSpec.alias;
@@ -196,6 +197,10 @@ class AppSelector {
             appendedSelect.append(`<option value="${this.mDataSource}">${queryValue}</option>`).change();
 
             this.#addFilter(filterName, queryValue);
+        } else if (filterSpec.defaultValue !== undefined && filterSpec.defaultValue !== '' ) {
+            appendedSelect.append(`<option value="${this.mDataSource}">${filterSpec.defaultValue}</option>`).change();
+
+            this.#addFilter(filterName, filterSpec.defaultValue);
         }
 
         appendedSelect.select2({
