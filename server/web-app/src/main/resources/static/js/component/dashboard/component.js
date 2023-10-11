@@ -199,6 +199,7 @@ class Dashboard {
                         let width;
                         let allowClear = true;
                         let allowEdit = true;
+                        let defaultValue = '';
                         if (typeof field === 'object') {
                             name = field.name;
                             alias = field.alias === undefined ? name : field.alias;
@@ -206,6 +207,7 @@ class Dashboard {
                             width = field.width === undefined ? 150 : field.width;
                             allowClear = field.allowClear === undefined ? true : field.allowClear;
                             allowEdit = field.allowEdit === undefined ? true : field.allowEdit;
+                            defaultValue = field.defaultValue === undefined ? '' : field.defaultValue;
                         } else {
                             name = field;
                             alias = field;
@@ -219,6 +221,7 @@ class Dashboard {
                             name: name,
                             alias: alias,
                             displayText: displayText,
+                            defaultValue: defaultValue,
                             width: width,
                             allowClear: allowClear,
                             allowEdit: allowEdit,
