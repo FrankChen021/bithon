@@ -45,16 +45,16 @@ public abstract class MetricStorageCleaner implements IExpirationRunnable {
     }
 
     private void expire(DataSourceSchema schema, Timestamp before) {
-        if (schema.isVirtual()) {
+        if (schema.isVirtual() || !schema.getDataStoreSpec().isInternal()) {
             return;
         }
 
-        Period dataSourceLevelTTL = schema.getTtl();
-        if (dataSourceLevelTTL != null && dataSourceLevelTTL.getMilliseconds() != 0) {
-            //use datasource ttl
+        Period ttl = schema.getTtl();
+        if (ttl != null && ttl.getMilliseconds() != 0) {
+            // Use datasource ttl to override the global TTL
             before = TimeSpan.now()
                              .floor(Duration.ofMinutes(1))
-                             .before(dataSourceLevelTTL.getMilliseconds(), TimeUnit.MILLISECONDS)
+                             .before(ttl.getMilliseconds(), TimeUnit.MILLISECONDS)
                              .toTimestamp();
         }
 
