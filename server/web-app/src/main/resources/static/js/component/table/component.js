@@ -70,7 +70,11 @@ class TableComponent {
             let text = '<pre style="margin-bottom: 0">';
             for (const propName in val) {
                 const propVal = val[propName];
-                text += `<b>${propName}</b>: ${propVal.htmlEncode()}<br/>`;
+                if (typeof propVal === 'string') {
+                    text += `<b>${propName}</b>: ${propVal.htmlEncode()}<br/>`;
+                } else {
+                    text += `<b>${propName}</b>: ${propVal}<br/>`;
+                }
             }
             text += '</pre>';
             return text;
