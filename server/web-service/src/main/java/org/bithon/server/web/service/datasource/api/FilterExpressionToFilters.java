@@ -51,9 +51,12 @@ import org.bithon.server.commons.matcher.StringStartsWithMatcher;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.bithon.server.storage.common.expression.InvalidExpressionException;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -64,7 +67,9 @@ import java.util.stream.Collectors;
  */
 public class FilterExpressionToFilters {
 
-    public static IExpression toExpression(DataSourceSchema schema, String filterExpression, List<IColumnFilter> otherFilters) {
+    public static IExpression toExpression(DataSourceSchema schema,
+                                           @Nullable String filterExpression,
+                                           @Nonnull List<IColumnFilter> otherFilters) {
         if (StringUtils.isEmpty(filterExpression)) {
             return CollectionUtils.isEmpty(otherFilters) ? null : toExpression(schema, otherFilters);
         }
@@ -234,7 +239,7 @@ public class FilterExpressionToFilters {
 
         @Override
         public IExpression visit(StringEndWithMatcher matcher) {
-            return new FunctionExpression(null, "endsWith", field, new LiteralExpression(matcher.getPattern()));
+            return new FunctionExpression(Functions.getInstance().getFunction("endsWith"), new LiteralExpression(matcher.getPattern()));
         }
 
         @Override
@@ -249,7 +254,7 @@ public class FilterExpressionToFilters {
 
         @Override
         public IExpression visit(StringStartsWithMatcher matcher) {
-            return new FunctionExpression(null, "startsWith", field, new LiteralExpression(matcher.getPattern()));
+            return new FunctionExpression(Functions.getInstance().getFunction("startsWith"), new LiteralExpression(matcher.getPattern()));
         }
 
         @Override

@@ -42,6 +42,7 @@ import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
 import org.bithon.server.web.service.datasource.api.GeneralQueryResponse;
 import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
+import org.bithon.server.web.service.datasource.api.QueryField;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.datasource.api.UpdateTTLRequest;
 import org.springframework.context.annotation.Conditional;
@@ -233,7 +234,7 @@ public class DataSourceApi implements IDataSourceApi {
                                  .getDistinctValues(TimeSpan.fromISO8601(request.getStartTimeISO8601()),
                                                     TimeSpan.fromISO8601(request.getEndTimeISO8601()),
                                                     schema,
-                                                    FilterExpressionToFilters.toExpression(schema, null, request.getFilters()),
+                                                    FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters()),
                                                     column.getName());
     }
 
@@ -257,9 +258,21 @@ public class DataSourceApi implements IDataSourceApi {
 
         OrderBy orderBy = request.getOrderBy();
         if (orderBy != null && StringUtils.hasText(orderBy.getName())) {
-            Preconditions.checkNotNull(schema.getColumnByName(orderBy.getName()),
-                                       "OrderBy field [%s] does not exist in the schema.",
-                                       orderBy.getName());
+            IColumn column = schema.getColumnByName(orderBy.getName());
+            if (column == null) {
+                // ORDER BY field might be an aggregated field,
+                QueryField queryField = request.getFields()
+                                               .stream()
+                                               .filter((filter) -> filter.getName().equals(orderBy.getName()))
+                                               .findFirst()
+                                               .orElse(null);
+
+                Preconditions.checkIfTrue(queryField != null
+                                              && schema.getColumnByName(queryField.getField()) != null,
+                                          "OrderBy field [%s] does not exist in the schema.",
+                                          orderBy.getName());
+
+            }
         }
     }
 }
