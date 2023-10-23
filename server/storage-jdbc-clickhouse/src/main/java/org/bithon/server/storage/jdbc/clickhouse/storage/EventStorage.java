@@ -30,6 +30,7 @@ import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageConfiguration;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.utils.SqlDialectManager;
 
 import java.sql.Timestamp;
 
@@ -46,8 +47,9 @@ public class EventStorage extends EventJdbcStorage {
     public EventStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageConfiguration storageConfiguration,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                         @JacksonInject(useInput = OptBoolean.FALSE) EventStorageConfig storageConfig,
+                        @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
                         @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
-        super(storageConfiguration.getDslContext(), objectMapper, storageConfig, schemaManager);
+        super(storageConfiguration.getDslContext(), objectMapper, storageConfig, sqlDialectManager, schemaManager);
         this.config = storageConfiguration.getClickHouseConfig();
     }
 

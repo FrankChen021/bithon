@@ -30,22 +30,20 @@ import java.util.stream.Collectors;
 public class FunctionExpression implements IExpression {
     private final IFunction function;
 
-    private final String name;
     private final List<IExpression> parameters;
 
-    public FunctionExpression(IFunction function, String name, List<IExpression> parameters) {
+    public FunctionExpression(IFunction function, List<IExpression> parameters) {
         this.function = function;
-        this.name = name;
         this.parameters = parameters;
     }
 
-    public FunctionExpression(IFunction function, String name, IExpression... parameters) {
-        this(function, name, Arrays.asList(parameters));
+    public FunctionExpression(IFunction function, IExpression... parameters) {
+        this(function, Arrays.asList(parameters));
     }
 
 
     public String getName() {
-        return name;
+        return function.getName();
     }
 
     public List<IExpression> getParameters() {

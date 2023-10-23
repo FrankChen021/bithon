@@ -66,11 +66,16 @@ class TableComponent {
         this.mFormatters['detail'] = (val, row, index) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="toggleTableDetailView('${option.tableId}', ${index})">Toggle</button>` : '';
         this.mFormatters['dialog'] = (val, row, index, field) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="showTableDetailViewInDlg('${option.tableId}', ${index}, '${field}')">Show</button>` : '';
         this.mFormatters['block'] = (val, row, index) => `<pre>${val}</pre>`;
+        this.mFormatters['index'] = (val, row, index) => index + 1;
         this.mFormatters['kv'] = (val, row, index) => {
             let text = '<pre style="margin-bottom: 0">';
             for (const propName in val) {
                 const propVal = val[propName];
-                text += `<b>${propName}</b>: ${propVal.htmlEncode()}<br/>`;
+                if (typeof propVal === 'string') {
+                    text += `<b>${propName}</b>: ${propVal.htmlEncode()}<br/>`;
+                } else {
+                    text += `<b>${propName}</b>: ${propVal}<br/>`;
+                }
             }
             text += '</pre>';
             return text;

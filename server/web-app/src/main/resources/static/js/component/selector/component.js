@@ -171,6 +171,7 @@ class AppSelector {
      *    allowClear:
      *    allowEdit:
      *    onPreviousFilters: true | false
+     *    filterExpression: extra filter expression
      * }
      */
     createFilters(filterSpecs) {
@@ -198,6 +199,7 @@ class AppSelector {
 
             this.#addFilter(filterName, queryValue);
         } else if (filterSpec.defaultValue !== undefined && filterSpec.defaultValue !== '' ) {
+            // Use the default value defined in the spec
             appendedSelect.append(`<option value="${this.mDataSource}">${filterSpec.defaultValue}</option>`).change();
 
             this.#addFilter(filterName, filterSpec.defaultValue);
@@ -386,6 +388,7 @@ class AppSelector {
 
                     dataSource: thisFilterSpec.source,
                     name: thisFilterSpec.alias,
+                    filterExpression: thisFilterSpec.filterExpression,
                     filters: filters,
                     type: "alias",
                     startTimeISO8601: interval.start,

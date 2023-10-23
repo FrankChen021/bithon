@@ -119,7 +119,7 @@ public class MetricJdbcReader implements IMetricReader {
     public List<Map<String, Object>> list(Query query) {
         String sqlTableName = query.getDataSource().getDataStoreSpec().getStore();
         String timestampCol = query.getDataSource().getTimestampSpec().getTimestampColumn();
-        String filter = Expression2Sql.from(query.getDataSource(), query.getFilter());
+        String filter = Expression2Sql.from(query.getDataSource(), sqlDialect, query.getFilter());
         String sql = StringUtils.format(
             "SELECT %s FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s %s LIMIT %d OFFSET %d",
             query.getResultColumns()
@@ -157,7 +157,7 @@ public class MetricJdbcReader implements IMetricReader {
         String sqlTableName = query.getDataSource().getDataStoreSpec().getStore();
         String timestampCol = query.getDataSource().getTimestampSpec().getTimestampColumn();
 
-        String filter = Expression2Sql.from(query.getDataSource(), query.getFilter());
+        String filter = Expression2Sql.from(query.getDataSource(), sqlDialect, query.getFilter());
         String sql = StringUtils.format(
             "SELECT count(1) FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s",
             sqlTableName,
@@ -215,7 +215,7 @@ public class MetricJdbcReader implements IMetricReader {
                                                        DataSourceSchema dataSourceSchema,
                                                        IExpression filter,
                                                        String dimension) {
-        String filterText = filter == null ? "" : Expression2Sql.from(dataSourceSchema, filter) + " AND ";
+        String filterText = filter == null ? "" : Expression2Sql.from(dataSourceSchema, sqlDialect, filter) + " AND ";
 
         String sql = StringUtils.format(
             "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s AND \"%s\" IS NOT NULL ORDER BY \"%s\"",

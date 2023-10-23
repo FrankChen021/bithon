@@ -108,4 +108,8 @@ public interface ISqlDialect {
     default boolean useWindowFunctionAsAggregator(String aggregator) {
         return false;
     }
+
+    default IExpression transform(IExpression expression) {
+        return expression;
+    }
 }

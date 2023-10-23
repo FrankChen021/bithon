@@ -223,6 +223,7 @@ class Dashboard {
                             displayText: displayText,
                             defaultValue: defaultValue,
                             width: width,
+                            filterExpression: field.filterExpression,
                             allowClear: allowClear,
                             allowEdit: allowEdit,
                             onPreviousFilters: true
