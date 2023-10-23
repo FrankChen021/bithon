@@ -216,6 +216,17 @@ public class Functions implements IFunctionProvider {
                 return (o instanceof Number) ? ((Number) o).longValue() / 1000 / 60 : 0;
             }
         });
+
+        register(new AbstractFunction("concat",
+                                      Arrays.asList(new Parameter(IDataType.STRING), new Parameter(IDataType.STRING)),
+                                      IDataType.STRING) {
+            @Override
+            public Object evaluate(List<Object> parameters) {
+                String v1 = parameters.get(0).toString();
+                String v2 = parameters.get(0).toString();
+                return v1 + v2;
+            }
+        });
     }
 
     private void register(IFunction function) {

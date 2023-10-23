@@ -326,7 +326,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
             function.validateParameter(parameterExpressionList);
         }
 
-        return new FunctionExpression(function, functionName, parameterExpressionList);
+        return new FunctionExpression(function, parameterExpressionList);
     }
 
     @Override

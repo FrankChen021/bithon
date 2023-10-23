@@ -124,6 +124,7 @@ public class TraceJdbcReader implements ITraceReader {
 
         if (filter != null) {
             listQuery = listQuery.and(Expression2Sql.from((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).getName(),
+                                                          sqlDialect,
                                                           filter));
         }
 
@@ -192,6 +193,7 @@ public class TraceJdbcReader implements ITraceReader {
         if (filter != null) {
             sqlBuilder.append(" AND ");
             sqlBuilder.append(Expression2Sql.from((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).getName(),
+                                                  sqlDialect,
                                                   filter));
         }
 
@@ -243,6 +245,7 @@ public class TraceJdbcReader implements ITraceReader {
 
         if (filter != null) {
             countQuery = countQuery.and(Expression2Sql.from((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).getName(),
+                                                            sqlDialect,
                                                             filter));
         }
 

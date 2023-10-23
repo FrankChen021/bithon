@@ -24,6 +24,7 @@ import org.bithon.server.storage.event.IEventReader;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonEventRecord;
 import org.bithon.server.storage.jdbc.utils.Expression2Sql;
+import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 import org.jooq.DSLContext;
 import org.jooq.SelectConditionStep;
 import org.jooq.impl.DSL;
@@ -38,9 +39,11 @@ import java.util.List;
 public class EventJdbcReader implements IEventReader {
     private final DSLContext dslContext;
     private final DataSourceSchema eventTableSchema;
+    private final ISqlDialect sqlDialect;
 
-    EventJdbcReader(DSLContext dslContext, DataSourceSchema eventTableSchema) {
+    EventJdbcReader(DSLContext dslContext, ISqlDialect sqlDialect, DataSourceSchema eventTableSchema) {
         this.dslContext = dslContext;
+        this.sqlDialect = sqlDialect;
         this.eventTableSchema = eventTableSchema;
     }
 
@@ -56,7 +59,7 @@ public class EventJdbcReader implements IEventReader {
                                                                 .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp().toLocalDateTime()));
 
         if (filter != null) {
-            step = step.and(Expression2Sql.from(eventTableSchema, filter));
+            step = step.and(Expression2Sql.from(eventTableSchema, sqlDialect, filter));
         }
 
         return step.orderBy(Tables.BITHON_EVENT.TIMESTAMP.desc())
@@ -81,7 +84,7 @@ public class EventJdbcReader implements IEventReader {
                                                 .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp().toLocalDateTime()));
 
         if (filter != null) {
-            step = step.and(Expression2Sql.from(eventTableSchema, filter));
+            step = step.and(Expression2Sql.from(eventTableSchema, sqlDialect, filter));
         }
 
         return (int) step.fetchOne(0);

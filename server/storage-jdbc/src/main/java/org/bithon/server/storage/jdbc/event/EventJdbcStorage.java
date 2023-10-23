@@ -32,6 +32,8 @@ import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.event.IEventWriter;
 import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.utils.ISqlDialect;
+import org.bithon.server.storage.jdbc.utils.SqlDialectManager;
 import org.jooq.DSLContext;
 
 import java.sql.Timestamp;
@@ -47,15 +49,18 @@ public class EventJdbcStorage implements IEventStorage {
     protected final ObjectMapper objectMapper;
     protected final DataSourceSchema eventTableSchema;
     protected final EventStorageConfig storageConfig;
+    private final ISqlDialect sqlDialect;
 
     @JsonCreator
     public EventJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageConfiguration storageConfigurationProvider,
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                             @JacksonInject(useInput = OptBoolean.FALSE) EventStorageConfig storageConfig,
+                            @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
                             @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
         this(storageConfigurationProvider.getDslContext(),
              objectMapper,
              storageConfig,
+             sqlDialectManager,
              schemaManager);
     }
 
@@ -63,10 +68,12 @@ public class EventJdbcStorage implements IEventStorage {
     protected EventJdbcStorage(DSLContext dslContext,
                                ObjectMapper objectMapper,
                                EventStorageConfig storageConfig,
+                               SqlDialectManager sqlDialectManager,
                                DataSourceSchemaManager schemaManager) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
         this.storageConfig = storageConfig;
+        this.sqlDialect = sqlDialectManager.getSqlDialect(dslContext);
         this.eventTableSchema = schemaManager.getDataSourceSchema("event");
     }
 
@@ -87,7 +94,7 @@ public class EventJdbcStorage implements IEventStorage {
 
     @Override
     public IEventReader createReader() {
-        return new EventJdbcReader(dslContext, eventTableSchema);
+        return new EventJdbcReader(dslContext, sqlDialect, eventTableSchema);
     }
 
     @Override

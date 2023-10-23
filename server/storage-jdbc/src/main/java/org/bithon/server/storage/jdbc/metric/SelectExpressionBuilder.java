@@ -354,10 +354,10 @@ public class SelectExpressionBuilder {
         //
         IExpression timestampCol = this.interval.getTimestampColumn();
         Where where = new Where();
-        where.addExpression(StringUtils.format("%s >= %s", Expression2Sql.from((String) null, timestampCol), sqlDialect.formatTimestamp(interval.getStartTime())));
-        where.addExpression(StringUtils.format("%s < %s", Expression2Sql.from((String) null, timestampCol), sqlDialect.formatTimestamp(interval.getEndTime())));
+        where.addExpression(StringUtils.format("%s >= %s", Expression2Sql.from((String) null, sqlDialect, timestampCol), sqlDialect.formatTimestamp(interval.getStartTime())));
+        where.addExpression(StringUtils.format("%s < %s", Expression2Sql.from((String) null, sqlDialect, timestampCol), sqlDialect.formatTimestamp(interval.getEndTime())));
         if (filter != null) {
-            where.addExpression(Expression2Sql.from(dataSource, filter));
+            where.addExpression(Expression2Sql.from(dataSource, sqlDialect, filter));
         }
 
         //

@@ -127,7 +127,7 @@ public class MetricStorage extends MetricJdbcStorage {
                 start = start.floor(Duration.ofMinutes(1));
                 end = end.ceil(Duration.ofMinutes(1));
 
-                String condition = filter == null ? "" : Expression2Sql.from(dataSourceSchema, filter) + " AND ";
+                String condition = filter == null ? "" : Expression2Sql.from(dataSourceSchema, sqlDialect, filter) + " AND ";
 
                 String sql = StringUtils.format(
                     "SELECT \"%s\" FROM \"%s\" WHERE %s toStartOfMinute(\"timestamp\") >= %s AND toStartOfMinute(\"timestamp\") < %s GROUP BY \"%s\" ORDER BY \"%s\"",

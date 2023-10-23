@@ -44,7 +44,7 @@ public class ExpressionOptimizer {
                          .accept(new LogicalExpressionOptimizer());
     }
 
-    static class AbstractOptimizer implements IExpressionVisitor2<IExpression> {
+    public static class AbstractOptimizer implements IExpressionVisitor2<IExpression> {
         @Override
         public IExpression visit(LiteralExpression expression) {
             return expression;
