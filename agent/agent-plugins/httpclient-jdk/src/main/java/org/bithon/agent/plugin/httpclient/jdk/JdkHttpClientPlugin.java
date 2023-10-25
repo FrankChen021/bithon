@@ -57,7 +57,7 @@ public class JdkHttpClientPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("getOutputStream")
                                                    .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetOutputStream")
-                ),
+                        ),
 
             // for HTTPS
             forClass("sun.security.ssl.SSLSocketImpl")
@@ -69,14 +69,14 @@ public class JdkHttpClientPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("getOutputStream")
                                                    .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetOutputStream")
-                ),
+                        ),
 
             forClass("sun.net.NetworkClient")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("doConnect")
                                                    .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.NetworkClient$DoConnect")
-                ),
+                        ),
 
             forClass("sun.net.www.http.HttpClient")
                 .methods(
@@ -101,6 +101,13 @@ public class JdkHttpClientPlugin implements IPlugin {
                                                    .onMethod(ElementMatchers.named("parseHTTP").and(Matchers.takesArgument(0, "sun.net.www.MessageHeader")))
                                                    .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$ParseHTTP")),
 
+            forClass("java.net.HttpURLConnection")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndNoArgs("connect")
+                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.connect")
+                        ),
+
             // HttpsClient inherits from HttpClient
             forClass("sun.net.www.protocol.https.HttpsClient")
                 .methods(
@@ -115,6 +122,6 @@ public class JdkHttpClientPlugin implements IPlugin {
                                                                                                         "sun.net.www.protocol.http.HttpURLConnection")))
                                                    .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpsClient$New"))
 
-        );
+                            );
     }
 }
