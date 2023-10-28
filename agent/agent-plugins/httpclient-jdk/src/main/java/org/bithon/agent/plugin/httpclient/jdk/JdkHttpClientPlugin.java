@@ -101,11 +101,17 @@ public class JdkHttpClientPlugin implements IPlugin {
                                                    .onMethod(ElementMatchers.named("parseHTTP").and(Matchers.takesArgument(0, "sun.net.www.MessageHeader")))
                                                    .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$ParseHTTP")),
 
-            forClass("java.net.HttpURLConnection")
+            forClass("sun.net.www.protocol.https.HttpsURLConnectionImpl")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("connect")
-                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.connect")
+                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpURLConnection$Connect")
+                        ),
+            forClass("sun.net.www.protocol.http.HttpURLConnection")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndNoArgs("connect")
+                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpURLConnection$Connect")
                         ),
 
             // HttpsClient inherits from HttpClient

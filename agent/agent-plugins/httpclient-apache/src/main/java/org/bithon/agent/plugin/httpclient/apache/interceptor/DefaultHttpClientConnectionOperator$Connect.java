@@ -14,8 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpclient.jdk.interceptor;
+package org.bithon.agent.plugin.httpclient.apache.interceptor;
 
+import org.apache.http.HttpHost;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.ManagedHttpClientConnection;
+import org.apache.http.protocol.HttpContext;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
@@ -23,16 +27,16 @@ import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.tracing.Tags;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.InetSocketAddress;
 
 /**
- * {@link HttpURLConnection#connect()}
+ * {@link org.apache.http.impl.conn.DefaultHttpClientConnectionOperator#connect(ManagedHttpClientConnection, HttpHost, InetSocketAddress, int, SocketConfig, HttpContext)}
  *
- * @author Frank Chen
- * @date 25/10/23 4:49 pm
+ * @author frank.chen021@outlook.com
+ * @date 2023/10/25 17:42
  */
-public class HttpURLConnection$Connect extends AroundInterceptor {
+public class DefaultHttpClientConnectionOperator$Connect extends AroundInterceptor {
+
     @Override
     public InterceptionDecision before(AopContext aopContext) {
         ITraceSpan span = TraceSpanFactory.newSpan("httpclient");
@@ -40,18 +44,10 @@ public class HttpURLConnection$Connect extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        HttpURLConnection connection = aopContext.getTargetAs();
-        URL url = connection.getURL();
-
-        /*
-         * starts a span which will be finished after HttpClient.parseHttp
-         */
+        HttpHost httpHost = aopContext.getArgAs(1);
         aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .tag(Tags.Http.CLIENT, "jdk")
-                                      .tag(Tags.Net.PEER, url.getPort() == -1 ? url.getHost() : (url.getHost() + ":" + url.getPort()))
-                                      // No need to write URL and method to avoid repetition
-                                      //.tag(Tags.Http.URL, connection.getURL().toString())
-                                      //.tag(Tags.Http.METHOD, connection.getRequestMethod())
+                                      .tag(Tags.Http.CLIENT, "apache")
+                                      .tag(Tags.Net.PEER, httpHost.getPort() == -1 ? httpHost.getHostName() : httpHost.getHostName() + ":" + httpHost.getPort())
                                       .start());
 
         return InterceptionDecision.CONTINUE;

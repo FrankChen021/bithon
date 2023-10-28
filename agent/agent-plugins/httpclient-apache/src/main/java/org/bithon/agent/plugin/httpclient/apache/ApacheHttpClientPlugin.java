@@ -44,7 +44,7 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.HttpRequest",
                                                                     "org.apache.http.protocol.HttpContext")
                                                    .to("org.bithon.agent.plugin.httpclient.apache.interceptor.InternalHttpClient$DoExecute")
-                ),
+                        ),
 
             //
             // http client 4.3.4~4.5.3: RedirectExec"
@@ -58,7 +58,7 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.client.protocol.HttpClientContext",
                                                                     "org.apache.http.client.methods.HttpExecutionAware")
                                                    .to("org.bithon.agent.plugin.httpclient.apache.interceptor.RedirectExec$Execute")
-                ),
+                        ),
 
             //
             // "http client 4.3.4~4.5.3: MinimalClientExec"
@@ -72,7 +72,7 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.client.protocol.HttpClientContext",
                                                                     "org.apache.http.client.methods.HttpExecutionAware")
                                                    .to("org.bithon.agent.plugin.httpclient.apache.interceptor.MinimalClientExec$Execute")
-                ),
+                        ),
 
             forClass("org.apache.http.impl.client.DefaultRequestDirector")
                 .methods(
@@ -86,7 +86,7 @@ public class ApacheHttpClientPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("releaseConnection")
                                                    .to("org.bithon.agent.plugin.httpclient.apache.interceptor.DefaultRequestDirector$ReleaseConnection")
-                ),
+                        ),
 
             //
             // tracing
@@ -99,7 +99,23 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.HttpClientConnection",
                                                                     "org.apache.http.protocol.HttpContext")
                                                    .to("org.bithon.agent.plugin.httpclient.apache.interceptor.HttpRequestExecutor$Execute")
-                )
-        );
+                        ),
+
+            // 4.3 and before
+            forClass("org.apache.http.impl.conn.DefaultClientConnectionOperator")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("openConnection")
+                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.DefaultClientConnectionOperator$OpenConnection")
+                        ),
+
+            // Since 4.4
+            forClass("org.apache.http.impl.conn.DefaultHttpClientConnectionOperator")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("connect")
+                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.DefaultHttpClientConnectionOperator$Connect")
+                        )
+                            );
     }
 }
