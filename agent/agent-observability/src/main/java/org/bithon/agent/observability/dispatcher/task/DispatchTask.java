@@ -71,11 +71,12 @@ public class DispatchTask {
                     return;
                 }
 
-                if (queue instanceof BatchMessageQueue) {
-                    LOG.info("Sending message, size = {}, max batch = {}", size, ((BatchMessageQueue) this.queue).getBatchSize());
-
-                } else {
-                    LOG.info("Sending message, size = {}", size);
+                if (LOG.isDebugEnabled()) {
+                    if (queue instanceof BatchMessageQueue) {
+                        LOG.info("Sending message, size = {}, max batch = {}", size, ((BatchMessageQueue) this.queue).getBatchSize());
+                    } else {
+                        LOG.info("Sending message, size = {}", size);
+                    }
                 }
             }
             this.underlyingSender.accept(message);
@@ -94,7 +95,7 @@ public class DispatchTask {
         //
         // To solve the problem, it requires some lock mechanism between this method and below 'stop' method,
         // but because the underlying queue is already a concurrency-supported structure,
-        // adding such lock to solve this edge case does not gain much
+        // adding such a lock to solve this edge case does not gain much
         //
         if (DispatcherConfig.QueueFullStrategy.DISCARD.equals(this.queueFullStrategy)) {
             // The return is ignored if the 'offer' fails to run
