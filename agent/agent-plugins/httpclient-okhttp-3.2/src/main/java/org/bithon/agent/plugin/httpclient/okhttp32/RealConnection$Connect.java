@@ -43,9 +43,11 @@ public class RealConnection$Connect extends AroundInterceptor {
         Route route = (Route) ReflectionUtils.getFieldValue(aopContext.getTargetAs(), "route");
         if (route != null) {
             HttpUrl httpUrl = route.address().url();
-            peer = httpUrl.host() + ":" + httpUrl.port();
+            peer = httpUrl.port() == -1 ? httpUrl.host() : (httpUrl.host() + ":" + httpUrl.port());
         }
         aopContext.setUserContext(span.tag(Tags.Http.CLIENT, "okhttp3")
+                                      // Since this span does not propagate the tracing context to next hop,
+                                      // it's not marked as SpanKind.CLIENT
                                       .method(aopContext.getTargetClass().getName(), "connect")
                                       .tag(Tags.Net.PEER, peer)
                                       .start());
