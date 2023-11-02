@@ -158,6 +158,10 @@ public class InterceptorInstaller {
             AdviceAnnotation.InterceptorNameResolver nameResolver = new AdviceAnnotation.InterceptorNameResolver(descriptor.getInterceptorClassName());
             AdviceAnnotation.InterceptorIndexResolver indexResolver = new AdviceAnnotation.InterceptorIndexResolver(InterceptorManager.INSTANCE.getOrCreateSupplier(descriptor.getInterceptorClassName(),
                                                                                                                                                                     classLoader));
+            if (descriptor.getInterceptorType() == null) {
+                log.error("Interceptor [{}] not installed due to interceptor type is null.", descriptor.getInterceptorClassName());
+                return;
+            }
             switch (descriptor.getInterceptorType()) {
                 case BEFORE:
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
