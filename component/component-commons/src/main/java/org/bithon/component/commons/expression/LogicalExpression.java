@@ -31,13 +31,17 @@ import java.util.Locale;
  */
 public abstract class LogicalExpression implements IExpression {
 
+    public static final String AND = "AND";
+    public static final String OR = "OR";
+    public static final String NOT = "NOT";
+
     public static LogicalExpression create(String operator, List<IExpression> expressions) {
         switch (operator) {
-            case "AND":
+            case AND:
                 return new AND(expressions);
-            case "OR":
+            case OR:
                 return new OR(expressions);
-            case "NOT":
+            case NOT:
                 return new NOT(expressions);
             default:
                 throw new UnsupportedOperationException("Unsupported operator " + operator);
@@ -121,11 +125,11 @@ public abstract class LogicalExpression implements IExpression {
 
     public static class AND extends LogicalExpression {
         public AND(List<IExpression> operands) {
-            super("AND", operands);
+            super(AND, operands);
         }
 
         public AND(IExpression... expressions) {
-            super("AND", new ArrayList<>(Arrays.asList(expressions)));
+            super(AND, new ArrayList<>(Arrays.asList(expressions)));
         }
 
         @Override
@@ -148,11 +152,11 @@ public abstract class LogicalExpression implements IExpression {
     public static class OR extends LogicalExpression {
 
         public OR(List<IExpression> operands) {
-            super("OR", operands);
+            super(OR, operands);
         }
 
         public OR(IExpression... operands) {
-            super("OR", new ArrayList<>(Arrays.asList(operands)));
+            super(OR, new ArrayList<>(Arrays.asList(operands)));
         }
 
         @Override
@@ -175,11 +179,11 @@ public abstract class LogicalExpression implements IExpression {
     public static class NOT extends LogicalExpression {
 
         public NOT(List<IExpression> operands) {
-            super("NOT", operands);
+            super(NOT, operands);
         }
 
         public NOT(IExpression expression) {
-            super("NOT", new ArrayList<>(Collections.singletonList(expression)));
+            super(NOT, new ArrayList<>(Collections.singletonList(expression)));
         }
 
         @Override

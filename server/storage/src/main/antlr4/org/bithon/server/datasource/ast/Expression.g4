@@ -5,16 +5,14 @@ parse
    ;
 
 expression
-  : subExpression ((AND|OR) subExpression)+    #logicExpression
-  | subExpression                              #subExpressionOnly
-  ;
-
-subExpression
-  : subExpression (ADD|SUB|MUL|DIV) subExpression #arithmeticExpression
-  | subExpression (LT|LTE|GT|GTE|NE|EQ|LIKE|NOT LIKE|IN|NOT IN) subExpression #comparisonExpression
-  | NOT subExpression                                           #notExpression
-  | subExpression '[' INTEGER_LITERAL ']'                       #arrayAccessExpression
-  | subExpression '[' STRING_LITERAL ']'                        #mapAccessExpression
+  : expression (MUL|DIV) expression                                     #arithmeticExpression
+  | expression (ADD|SUB) expression                                     #arithmeticExpression
+  | expression (LT|LTE|GT|GTE|NE|EQ|LIKE|NOT LIKE|IN|NOT IN) expression #comparisonExpression
+  | NOT expression                                              #notExpression
+  | expression AND expression                                   #logicalExpression
+  | expression OR expression                                    #logicalExpression
+  | expression '[' INTEGER_LITERAL ']'                          #arrayAccessExpression
+  | expression '[' STRING_LITERAL ']'                           #mapAccessExpression
   | IDENTIFIER expressionListImpl                               #functionExpression
   | (INTEGER_LITERAL | DECIMAL_LITERAL | STRING_LITERAL)        #literalExpression
   | expressionListImpl                                          #expressionList
