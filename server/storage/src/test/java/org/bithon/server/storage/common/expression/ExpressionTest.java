@@ -92,4 +92,37 @@ public class ExpressionTest {
 
         Assert.assertEquals("1", expr.evaluate(name -> "a".equals(name) ? "1" : null));
     }
+
+    @Test
+    public void testArithmeticExpression_Precedence() {
+        Assert.assertEquals(7L, ExpressionASTBuilder.build("1 + 2 * 3").evaluate(null));
+        Assert.assertEquals(-5L, ExpressionASTBuilder.build("1 - 2 * 3").evaluate(null));
+
+        Assert.assertEquals(7L, ExpressionASTBuilder.build("2 * 3 + 1").evaluate(null));
+        Assert.assertEquals(5L, ExpressionASTBuilder.build("2 * 3 - 1").evaluate(null));
+
+        Assert.assertEquals(9L, ExpressionASTBuilder.build("(1 + 2) * 3").evaluate(null));
+        Assert.assertEquals(10L, ExpressionASTBuilder.build("3 * 3 + 1").evaluate(null));
+
+        Assert.assertEquals(9L, ExpressionASTBuilder.build("3 * 6 / 2").evaluate(null));
+
+        Assert.assertEquals(4L, ExpressionASTBuilder.build("1 + 6 / 2").evaluate(null));
+        Assert.assertEquals(-2L, ExpressionASTBuilder.build("1 - 6 / 2").evaluate(null));
+
+        Assert.assertEquals(3L, ExpressionASTBuilder.build("2 + 3 * 4 / 2 - 5").evaluate(null));
+        Assert.assertEquals(-2L, ExpressionASTBuilder.build("2 + 3 * 4 / 2 - 15 / 3 * 2").evaluate(null));
+    }
+
+    @Test
+    public void testLogicalExpression_Precedence() {
+        Assert.assertEquals(true, ExpressionASTBuilder.build("3 > 2 AND 4 > 3").evaluate(null));
+        Assert.assertEquals(true, ExpressionASTBuilder.build("3 > 2 OR 4 > 3").evaluate(null));
+        Assert.assertEquals(true, ExpressionASTBuilder.build("1 > 2 OR 4 > 3").evaluate(null));
+        Assert.assertEquals(false, ExpressionASTBuilder.build("1 > 2 OR 1 > 3").evaluate(null));
+
+        Assert.assertEquals(true, ExpressionASTBuilder.build("3 > 2 AND 4").evaluate(null));
+
+        // equivalent to NOT( 3 > 2 AND 4 > 2)
+        Assert.assertEquals(false, ExpressionASTBuilder.build("NOT 3 > 2 AND 4 > 2").evaluate(null));
+    }
 }

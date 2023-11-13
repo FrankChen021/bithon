@@ -19,7 +19,6 @@ package org.bithon.server.storage.common.expression;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
@@ -27,7 +26,6 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ArrayAccessExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
@@ -102,60 +100,75 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
     }
 
     /**
+     * <pre>
+     * The grammar defined in ANTLR4 for logical expression is as left recursive, that's to say for the expression:
+     * A > B AND B > C AND C > D
+     * The parsed structure in ANTLR4 is as:
+     *
+     *           AND
+     *          /   \
+     *        AND   C > D
+     *      /   \
+     *  A > B    B > C
+     *
+     * For such case, we can flatten this AST tree to make it much simpler as:
+     *
+     *            AND
+     *        /    |   \
+     *      /      |    \
+     *    /        |     \
+     *  A > B    B > C   C > D
+     * </pre>
+     */
+    private void flattenLogicalExpression(List<IExpression> flattenList, int logicalOperatorType, IExpression subexpression) {
+        if (subexpression instanceof LogicalExpression) {
+            String subExpressionLogicalOperator = ((LogicalExpression) subexpression).getOperator();
+            if (logicalOperatorType == ExpressionLexer.AND && LogicalExpression.AND.equals(subExpressionLogicalOperator)) {
+                // flatten when the parent and sub logical expression have same operator
+                flattenList.addAll(((LogicalExpression) subexpression).getOperands());
+            } else if (logicalOperatorType == ExpressionLexer.OR && LogicalExpression.OR.equals(subExpressionLogicalOperator)) {
+                // flatten when the parent and sub logical expression have same operator
+                flattenList.addAll(((LogicalExpression) subexpression).getOperands());
+            } else {
+                flattenList.add(subexpression);
+            }
+        } else {
+            flattenList.add(subexpression);
+        }
+    }
+
+    /**
      * a AND b AND c NULL
      *
      * @param ctx the parse tree
      */
     @Override
-    public IExpression visitLogicExpression(ExpressionParser.LogicExpressionContext ctx) {
-        IExpression returning = null;
-
+    public IExpression visitLogicalExpression(ExpressionParser.LogicalExpressionContext ctx) {
         TerminalNode op = (TerminalNode) ctx.getChild(1);
-        int prevLogicOperator = op.getSymbol().getType();
+        int logicalOperatorType = op.getSymbol().getType();
 
-        List<IExpression> leftOperands = new ArrayList<>();
-        leftOperands.add(ctx.getChild(0).accept(this));
+        List<IExpression> operands = new ArrayList<>();
 
-        // Add a placeholder to simply the processing below
-        List<ParseTree> children = new ArrayList<>(ctx.children);
-        children.add(new TerminalNodeImpl(new CommonToken(ExpressionLexer.RIGHT_PARENTHESES)));
+        // Apply optimization rules to fold sub expressions together
+        flattenLogicalExpression(operands, logicalOperatorType, ctx.getChild(0).accept(this));
+        flattenLogicalExpression(operands, logicalOperatorType, ctx.getChild(2).accept(this));
 
-        // This contains an OPTIMIZATION that turns multiple consecutive 'AND' or 'OR' into one LogicalExpression
-        for (int i = 1; i < children.size(); i += 2) {
-            op = (TerminalNode) children.get(i);
+        switch (logicalOperatorType) {
+            case ExpressionLexer.AND:
+                return new LogicalExpression.AND(operands);
 
-            if (op.getSymbol().getType() != prevLogicOperator) {
-                IExpression left;
-                switch (prevLogicOperator) {
-                    case ExpressionLexer.AND:
-                        left = new LogicalExpression.AND(leftOperands);
-                        break;
+            case ExpressionLexer.OR:
+                return new LogicalExpression.OR(operands);
 
-                    case ExpressionLexer.OR:
-                        left = new LogicalExpression.OR(leftOperands);
-                        break;
-
-                    default:
-                        throw new RuntimeException();
-                }
-                leftOperands = new ArrayList<>();
-                leftOperands.add(left);
-                returning = left;
-            }
-            if (i + 1 != children.size()) {
-                IExpression right = children.get(i + 1).accept(this);
-                leftOperands.add(right);
-            }
-
-            prevLogicOperator = op.getSymbol().getType();
+            default:
+                // NOT logical expression is defined as NotExpression below, not here
+                throw new RuntimeException();
         }
-
-        return returning;
     }
 
     @Override
     public IExpression visitNotExpression(ExpressionParser.NotExpressionContext ctx) {
-        return new LogicalExpression.NOT(ctx.subExpression().accept(this));
+        return new LogicalExpression.NOT(ctx.expression().accept(this));
     }
 
     @Override
@@ -265,12 +278,12 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
 
     @Override
     public IExpression visitArrayAccessExpression(ExpressionParser.ArrayAccessExpressionContext ctx) {
-        return new ArrayAccessExpression(ctx.subExpression().accept(this), Integer.parseInt(ctx.INTEGER_LITERAL().getText()));
+        return new ArrayAccessExpression(ctx.expression().accept(this), Integer.parseInt(ctx.INTEGER_LITERAL().getText()));
     }
 
     @Override
     public IExpression visitMapAccessExpression(ExpressionParser.MapAccessExpressionContext ctx) {
-        return new MapAccessExpression(ctx.subExpression().accept(this), getUnQuotedString(ctx.STRING_LITERAL().getSymbol()));
+        return new MapAccessExpression(ctx.expression().accept(this), getUnQuotedString(ctx.STRING_LITERAL().getSymbol()));
     }
 
     @Override
