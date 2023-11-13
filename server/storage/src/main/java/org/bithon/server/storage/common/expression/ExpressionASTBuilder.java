@@ -124,8 +124,10 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
         if (subexpression instanceof LogicalExpression) {
             String subExpressionLogicalOperator = ((LogicalExpression) subexpression).getOperator();
             if (logicalOperatorType == ExpressionLexer.AND && LogicalExpression.AND.equals(subExpressionLogicalOperator)) {
+                // flatten when the parent and sub logical expression have same operator
                 flattenList.addAll(((LogicalExpression) subexpression).getOperands());
-            } else if (logicalOperatorType == ExpressionLexer.OR && LogicalExpression.NOT.equals(subExpressionLogicalOperator)) {
+            } else if (logicalOperatorType == ExpressionLexer.OR && LogicalExpression.OR.equals(subExpressionLogicalOperator)) {
+                // flatten when the parent and sub logical expression have same operator
                 flattenList.addAll(((LogicalExpression) subexpression).getOperands());
             } else {
                 flattenList.add(subexpression);
