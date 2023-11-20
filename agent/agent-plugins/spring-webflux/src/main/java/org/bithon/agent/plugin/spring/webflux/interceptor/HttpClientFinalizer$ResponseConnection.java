@@ -16,11 +16,13 @@
 
 package org.bithon.agent.plugin.spring.webflux.interceptor;
 
+import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
+import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.plugin.spring.webflux.context.HttpClientContext;
 import org.bithon.component.commons.tracing.Tags;
@@ -40,6 +42,8 @@ import java.util.function.BiFunction;
  * @date 27/11/21 1:57 pm
  */
 public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
+
+    private final TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
@@ -71,6 +75,15 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
                 if (httpClientSpan != null) {
                     httpClientSpan.tag(Tags.Http.STATUS, String.valueOf(httpClientResponse.status().code()))
                                   .tag(Tags.Http.URL, uri)
+                                  .configIfTrue(!traceConfig.getHeaders().getResponse().isEmpty(),
+                                                (s) -> {
+                                                    for (String name : traceConfig.getHeaders().getResponse()) {
+                                                        String val = httpClientResponse.responseHeaders().get(name);
+                                                        if (val != null) {
+                                                            s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + name, val);
+                                                        }
+                                                    }
+                                                })
                                   .finish();
                 }
 

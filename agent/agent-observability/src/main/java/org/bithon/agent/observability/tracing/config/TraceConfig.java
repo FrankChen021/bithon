@@ -20,6 +20,8 @@ import org.bithon.agent.configuration.ConfigurationProperties;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -37,7 +39,10 @@ public class TraceConfig {
         }
 
         public void setRequest(List<String> request) {
-            this.request = request;
+            // Headers in HTTP protocols are case-insensitive
+            this.request = request.stream()
+                                  .map((header) -> header.toLowerCase(Locale.ENGLISH))
+                                  .collect(Collectors.toList());
         }
 
         public List<String> getResponse() {
@@ -45,7 +50,10 @@ public class TraceConfig {
         }
 
         public void setResponse(List<String> response) {
-            this.response = response;
+            // Headers in HTTP protocols are case-insensitive
+            this.response = response.stream()
+                                    .map((header) -> header.toLowerCase(Locale.ENGLISH))
+                                    .collect(Collectors.toList());
         }
     }
 
@@ -64,7 +72,7 @@ public class TraceConfig {
     }
 
     /**
-     * If this field is set, the trace id(if the current request has) will be added to the header of response.
+     * If this field is set, the trace id (if the current request has) will be added to the header of response.
      * The header name is the value of this field, header value is the trace id.
      */
     private String traceIdInResponse;

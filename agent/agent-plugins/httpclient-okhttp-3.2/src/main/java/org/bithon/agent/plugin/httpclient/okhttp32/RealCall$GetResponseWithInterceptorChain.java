@@ -120,7 +120,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
                                   for (String name : responseHeaders) {
                                       String value = response.header(name);
                                       if (StringUtils.hasText(value)) {
-                                          s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + name.toLowerCase(Locale.ENGLISH), value);
+                                          s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + name, value);
                                       }
                                   }
                               })
