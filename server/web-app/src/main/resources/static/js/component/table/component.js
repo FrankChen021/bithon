@@ -5,13 +5,14 @@ function onTableComponentButtonClick(id, rowIndex, buttonIndex) {
     }
 }
 
-function onTableComponentColumnToggle(id, col) {
-    if (window.event.target.localName === 'input') {
+function onTableComponentColumnToggle(event, id, col) {
+    if (event.target.localName === 'input') {
         const tableComponent = window.gTableComponents[id];
         if (tableComponent != null) {
             tableComponent.toggleColumn(col);
         }
     }
+    event.stopPropagation();
 }
 
 class TableComponent {
@@ -36,6 +37,10 @@ class TableComponent {
         this.vComponentContainer = $(`<div class="card card-block rounded-0" style="display:none"></div>`);
         this.vTable = this.vComponentContainer.append(`<div class="table-container"><table id="${option.tableId}"></table></div>`).find('table');
         option.parent.append(this.vComponentContainer);
+
+        // view state
+        this.mColumnStateKey = 'bithon.table.column' + window.location.pathname + '/' + option.tableId;
+        this.mColumnState = this.#loadColumnState();
 
         this.mColumns = option.columns;
         this.mCreated = false;
@@ -65,9 +70,9 @@ class TableComponent {
         this.mFormatters['shortDateTime'] = (v) => new Date(v).format('MM-dd hh:mm:ss');
         this.mFormatters['detail'] = (val, row, index) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="toggleTableDetailView('${option.tableId}', ${index})">Toggle</button>` : '';
         this.mFormatters['dialog'] = (val, row, index, field) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="showTableDetailViewInDlg('${option.tableId}', ${index}, '${field}')">Show</button>` : '';
-        this.mFormatters['block'] = (val, row, index) => `<pre>${val}</pre>`;
+        this.mFormatters['block'] = (val) => `<pre>${val}</pre>`;
         this.mFormatters['index'] = (val, row, index) => index + 1;
-        this.mFormatters['kv'] = (val, row, index) => {
+        this.mFormatters['kv'] = (val) => {
             let text = '<pre style="margin-bottom: 0">';
             for (const propName in val) {
                 const propVal = val[propName];
@@ -121,8 +126,6 @@ class TableComponent {
 
             const column = this.mColumns[i];
 
-            this.mColumnMap[column.field] = column;
-
             if (column.format !== undefined && column.formatter == null) {
                 // formatter is an option provided by bootstrap-table
                 column.formatter = this.mFormatters[column.format];
@@ -132,9 +135,15 @@ class TableComponent {
             }
 
             // original sorter uses string.localeCompare
-            // That comparator returns different order from the result ordered by the server
+            // That comparator returns different order from the result ordered by the server,
             // So here we define a new comparator
             column.sorter = (a, b) => this.#compare(a, b);
+
+            // Use the stored state if exists
+            const storedState = this.mColumnState[column.field];
+            column.visible = storedState === undefined || storedState === null ? true : storedState;
+
+            this.mColumnMap[column.field] = column;
         }
         this.mTableHasDetailView = this.mDetailViewField != null;
 
@@ -146,7 +155,7 @@ class TableComponent {
                     title: button.title,
                     align: 'center',
                     visible: button.visible,
-                    formatter: (cell, row, rowIndex, field) => {
+                    formatter: (cell, row, rowIndex) => {
                         // href is not set, so a 'class' is needed to make default global css render it as an Anchor
                         // style cursor is explicitly set
                         return `<a class="non-exist" style="cursor: pointer" onclick="onTableComponentButtonClick('${option.tableId}', ${rowIndex}, ${buttonIndex})"><span class="fa fa-forward"></span></a>`;
@@ -159,7 +168,7 @@ class TableComponent {
         }
         window.gTableComponents[option.tableId] = this;
 
-        $('body').on('click', (e) => {
+        $('body').on('click', () => {
             this.#hidePopover();
         });
     }
@@ -205,30 +214,40 @@ class TableComponent {
     }
 
     toggleColumn(columnName) {
-        let visible = null;
-
-        const cols = this.vTable.bootstrapTable('getVisibleColumns');
-        for (let i = 0; i < cols.length; i++) {
-            if (cols[i].field === columnName) {
-                visible = true;
-                break;
-            }
+        let oldState = this.mColumnState[columnName];
+        if (oldState === undefined || oldState === null) {
+            oldState = true;
         }
 
-        if (visible != true) {
-            const cols = this.vTable.bootstrapTable('getHiddenColumns');
-            for (let i = 0; i < cols.length; i++) {
-                if (cols[i].field === columnName) {
-                    visible = false;
-                    break;
-                }
-            }
-        }
-
-        if (visible === true) {
+        if (oldState === true) {
             this.vTable.bootstrapTable('hideColumn', columnName);
-        } else if (visible === false) {
+        } else if (oldState === false) {
             this.vTable.bootstrapTable('showColumn', columnName);
+        }
+
+        //
+        // Save UI state storage
+        //
+        this.mColumnState[columnName] = !oldState;
+        this.#saveColumnState();
+    }
+
+    #loadColumnState() {
+        if (this.vToolbar.showColumns) {
+            const uiState = localStorage.getItem(this.mColumnStateKey);
+            if (uiState !== null) {
+                return JSON.parse(uiState);
+            } else {
+                return {};
+            }
+        } else {
+            return {};
+        }
+    }
+
+    #saveColumnState() {
+        if (this.vToolbar.showColumns) {
+            localStorage.setItem(this.mColumnStateKey, JSON.stringify(this.mColumnState));
         }
     }
 
@@ -238,19 +257,19 @@ class TableComponent {
     }
 
     /**
-     * public interface of component in dashboard
+     * public interface of the component in dashboard
      */
     setOpenHandler(openHandler) {
     }
 
     /**
-     * public interface of component in dashboard
+     * public interface of the component in dashboard
      */
     resize() {
     }
 
     /**
-     * public interface of component in dashboard
+     * public interface of the component in dashboard
      */
     showHint(hint) {
     }
@@ -283,7 +302,7 @@ class TableComponent {
                     .parentsUntil('body')
                     .each(function() {
                         // Convert the DOM element to a jQuery object if needed
-                        var parent = $(this);
+                        const parent = $(this);
                         stickyHeaderOffsetLeft += parseInt(parent.css('padding-left'), 10);
                         stickyHeaderOffsetRight += parseInt(parent.css('padding-right'), 10);
                 });
@@ -376,7 +395,8 @@ class TableComponent {
             const tableId = this.vTable.attr('id');
             for (let i = 0; i < this.mColumns.length; i++) {
                 const col = this.mColumns[i];
-                dropDownList += `<label class="dropdown-item dropdown-item-marker" onclick="onTableComponentColumnToggle('${tableId}', '${col.field}'); event.stopPropagation();"><input type="checkbox" checked=${col.visible || true} ><span>&nbsp;${col.title}</span></label>`;
+                const checkedAttribute = col.visible ? 'checked' : '';
+                dropDownList += `<label class="dropdown-item dropdown-item-marker" onclick="onTableComponentColumnToggle(event, '${tableId}', '${col.field}');"><input type="checkbox" ${checkedAttribute}><span>&nbsp;${col.title}</span></label>`;
             }
         }
         dropDownList += '</div></button></div>';
