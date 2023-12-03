@@ -20,6 +20,7 @@ FROM maven:3.8.6-jdk-${JDK}-slim as builder
 
 ARG BUILD_FROM_SOURCE="true"
 
+# The git is required to get the branch info during build
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get -qq update \
     && apt-get -qq -y install --no-install-recommends git
@@ -61,6 +62,8 @@ RUN chmod +x /startup.sh \
 ENV JAVA_OPTS ""
 ENV APP_OPTS ""
 ENV WITH_AGENT=true
+
+# Remember to replace the URI to the URI of your own distribution
 ENV AGENT_URI https://repo1.maven.org/maven2/org/bithon/agent/agent-distribution/1.1.0-RELEASE/agent-distribution-1.1.0-RELEASE.zip
 
 VOLUME /opt/shared/conf

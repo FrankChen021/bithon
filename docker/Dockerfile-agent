@@ -16,6 +16,7 @@
 
 FROM maven:3.8.6-jdk-8-slim as builder
 
+# The git is required to get the branch info during build
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get -qq update \
     && apt-get -qq -y install --no-install-recommends git
