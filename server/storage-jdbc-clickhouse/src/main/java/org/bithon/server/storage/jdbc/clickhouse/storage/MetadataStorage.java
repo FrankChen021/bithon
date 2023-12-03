@@ -28,8 +28,7 @@ import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 import org.bithon.server.storage.meta.Instance;
 import org.bithon.server.storage.meta.MetaStorageConfig;
-import org.jooq.InsertSetStep;
-import org.jooq.InsertValuesStepN;
+import org.jooq.BatchBindStep;
 import org.jooq.Record;
 
 import java.sql.Timestamp;
@@ -89,28 +88,23 @@ public class MetadataStorage extends MetadataJdbcStorage {
         }).collect(Collectors.toSet());
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
     public void saveApplicationInstance(Collection<Instance> instanceList) {
-        InsertSetStep step = dslContext.insertInto(Tables.BITHON_APPLICATION_INSTANCE);
+        BatchBindStep step = dslContext.batch(dslContext.insertInto(Tables.BITHON_APPLICATION_INSTANCE).values(new Object[4]));
 
-        InsertValuesStepN valueStep = null;
         for (Instance inputRow : instanceList) {
             Object[] values = new Object[4];
             values[0] = new Timestamp(System.currentTimeMillis()).toLocalDateTime();
             values[1] = inputRow.getAppName();
             values[2] = inputRow.getAppType();
             values[3] = inputRow.getInstanceName();
-            if (valueStep == null) {
-                valueStep = step.values(values);
-            } else {
-                valueStep = valueStep.values(values);
-            }
+
+            step.bind(values);
         }
 
         // No need to ignore or update because we use ReplacingMergeTree for this table
         // The duplication will be handled by the underlying storage
-        valueStep.execute();
+        step.execute();
     }
 
     @Override
