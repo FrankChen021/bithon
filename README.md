@@ -123,6 +123,7 @@ The following matrix lists the JDKs that have been tested on macOS. And in theor
 | JDK 15.0.2    | &check;   |
 | JDK 16.02     | &check;   |
 | JDK 17        | &check;   |
+| JDK 21        | &check;   |
 
 ## JDK 11 and above
 
