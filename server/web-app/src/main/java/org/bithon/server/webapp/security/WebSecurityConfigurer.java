@@ -70,6 +70,11 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        // H2 web UI requires disabling frameOptions.
+        // This is not a graceful way. The better way is to check whether the H2 web UI is enabled in this module.
+        // For simplicity, we just disable the frame option in global.
+        http.headers().frameOptions().disable();
+
         if (!securityConfig.isEnabled()) {
             // Permit all
             http.csrf()
