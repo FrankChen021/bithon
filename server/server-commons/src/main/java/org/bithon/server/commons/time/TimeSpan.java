@@ -64,9 +64,15 @@ public class TimeSpan {
         return new Timestamp(milliseconds);
     }
 
+    public String toString(String format) {
+        return toString(format, null);
+    }
+
     public String toString(String format, TimeZone tz) {
         SimpleDateFormat df = new SimpleDateFormat(format, Locale.ENGLISH);
-        df.setTimeZone(tz);
+        if (tz != null) {
+            df.setTimeZone(tz);
+        }
         return df.format(new Date(milliseconds));
     }
 

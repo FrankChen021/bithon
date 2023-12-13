@@ -30,6 +30,7 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageConfiguration;
+import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcWriter;
@@ -46,10 +47,14 @@ import org.jooq.Field;
 import org.jooq.Record;
 
 import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -92,9 +97,40 @@ public class MetricStorage extends MetricJdbcStorage {
             }
 
             @Override
-            protected void expireImpl(DataSourceSchema schema, Timestamp before) {
+            protected List<TimeSpan> getSkipDateList() {
+                String sql = dslContext.select(Tables.BITHON_METRICS_BASELINE.DATE, Tables.BITHON_METRICS_BASELINE.KEEP_DAYS)
+                                       .from(Tables.BITHON_METRICS_BASELINE)
+                                       .getSQL() + " FINAL ";
+
+                return dslContext.fetch(sql)
+                                 .stream()
+                                 .map((record) -> {
+                                     try {
+                                         String date = record.get(Tables.BITHON_METRICS_BASELINE.DATE);
+
+                                         TimeSpan startTimestamp = TimeSpan.of(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date + " 00:00:00").getTime());
+                                         int keepDays = record.get(Tables.BITHON_METRICS_BASELINE.KEEP_DAYS);
+                                         if (keepDays > 0) {
+                                             if (startTimestamp.after(keepDays, TimeUnit.DAYS).getMilliseconds() > System.currentTimeMillis()) {
+                                                 return startTimestamp;
+                                             } else {
+                                                 // Will be ignored
+                                                 return null;
+                                             }
+                                         } else {
+                                             return startTimestamp;
+                                         }
+                                     } catch (ParseException e) {
+                                         return null;
+                                     }
+                                 }).filter(Objects::nonNull)
+                                 .collect(Collectors.toList());
+            }
+
+            @Override
+            protected void expireImpl(DataSourceSchema schema, Timestamp before, List<TimeSpan> skipDateList) {
                 String table = schema.getDataStoreSpec().getStore();
-                new DataCleaner(config, dslContext).deleteFromPartition(table, before);
+                new DataCleaner(config, dslContext).deleteFromPartition(table, before, skipDateList);
             }
         };
     }
@@ -148,5 +184,14 @@ public class MetricStorage extends MetricJdbcStorage {
                 }).collect(Collectors.toList());
             }
         };
+    }
+
+    @Override
+    public void initialize() {
+        new TableCreator(config, this.dslContext).useReplacingMergeTree(Tables.BITHON_METRICS_BASELINE.CREATE_TIME.getName())
+                                                 // No partition for this table
+                                                 .partitionByExpression(null)
+                                                 // Add minmax index to timestamp column
+                                                 .createIfNotExist(Tables.BITHON_METRICS_BASELINE);
     }
 }

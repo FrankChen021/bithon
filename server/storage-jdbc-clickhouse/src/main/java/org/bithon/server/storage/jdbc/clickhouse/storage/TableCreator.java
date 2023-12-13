@@ -127,7 +127,7 @@ public class TableCreator {
 
                     // Remove the close first
                     fullEngine = fullEngine.substring(0, closeParentheses);
-                    if (params.length() > 0) {
+                    if (!params.isEmpty()) {
                         fullEngine += ", ";
                     }
 
