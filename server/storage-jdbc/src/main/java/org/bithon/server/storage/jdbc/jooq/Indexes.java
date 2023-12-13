@@ -9,6 +9,7 @@ import org.bithon.server.storage.jdbc.jooq.tables.BithonApplicationInstance;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonEvent;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonMetaApplicationMetricMap;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonMetaSchema;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonMetricsBaseline;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceMapping;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpan;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
@@ -40,6 +41,7 @@ public class Indexes {
     public static final Index BITHON_META_APPLICATION_METRIC_MAP_IDX_META_APPLICATION_METRIC_MAP_TIMESTAMP = Indexes0.BITHON_META_APPLICATION_METRIC_MAP_IDX_META_APPLICATION_METRIC_MAP_TIMESTAMP;
     public static final Index BITHON_META_SCHEMA_IDX_META_SCHEMA_NAME = Indexes0.BITHON_META_SCHEMA_IDX_META_SCHEMA_NAME;
     public static final Index BITHON_META_SCHEMA_IDX_META_SCHEMA_TIMESTAMP = Indexes0.BITHON_META_SCHEMA_IDX_META_SCHEMA_TIMESTAMP;
+    public static final Index BITHON_METRICS_BASELINE_BITHON_METRICS_BASELINE_DATE = Indexes0.BITHON_METRICS_BASELINE_BITHON_METRICS_BASELINE_DATE;
     public static final Index BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_USER_TX_ID = Indexes0.BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_USER_TX_ID;
     public static final Index BITHON_TRACE_SPAN_IDX_TS_1_TRACEID = Indexes0.BITHON_TRACE_SPAN_IDX_TS_1_TRACEID;
     public static final Index BITHON_TRACE_SPAN_IDX_TS_2_TIMESTAMP = Indexes0.BITHON_TRACE_SPAN_IDX_TS_2_TIMESTAMP;
@@ -70,6 +72,7 @@ public class Indexes {
         public static Index BITHON_META_APPLICATION_METRIC_MAP_IDX_META_APPLICATION_METRIC_MAP_TIMESTAMP = Internal.createIndex("idx_meta_application_metric_map_timestamp", BithonMetaApplicationMetricMap.BITHON_META_APPLICATION_METRIC_MAP, new OrderField[] { BithonMetaApplicationMetricMap.BITHON_META_APPLICATION_METRIC_MAP.TIMESTAMP }, false);
         public static Index BITHON_META_SCHEMA_IDX_META_SCHEMA_NAME = Internal.createIndex("idx_meta_schema_name", BithonMetaSchema.BITHON_META_SCHEMA, new OrderField[] { BithonMetaSchema.BITHON_META_SCHEMA.NAME }, true);
         public static Index BITHON_META_SCHEMA_IDX_META_SCHEMA_TIMESTAMP = Internal.createIndex("idx_meta_schema_timestamp", BithonMetaSchema.BITHON_META_SCHEMA, new OrderField[] { BithonMetaSchema.BITHON_META_SCHEMA.TIMESTAMP }, false);
+        public static Index BITHON_METRICS_BASELINE_BITHON_METRICS_BASELINE_DATE = Internal.createIndex("bithon_metrics_baseline_date", BithonMetricsBaseline.BITHON_METRICS_BASELINE, new OrderField[] { BithonMetricsBaseline.BITHON_METRICS_BASELINE.DATE }, true);
         public static Index BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_USER_TX_ID = Internal.createIndex("idx_trace_mapping_user_tx_id", BithonTraceMapping.BITHON_TRACE_MAPPING, new OrderField[] { BithonTraceMapping.BITHON_TRACE_MAPPING.USER_TX_ID }, false);
         public static Index BITHON_TRACE_SPAN_IDX_TS_1_TRACEID = Internal.createIndex("idx_ts_1_traceId", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.TRACEID }, false);
         public static Index BITHON_TRACE_SPAN_IDX_TS_2_TIMESTAMP = Internal.createIndex("idx_ts_2_timestamp", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.TIMESTAMP }, false);

@@ -9,6 +9,7 @@ import org.bithon.server.storage.jdbc.jooq.tables.BithonApplicationInstance;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonEvent;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonMetaApplicationMetricMap;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonMetaSchema;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonMetricsBaseline;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceMapping;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpan;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
@@ -46,6 +47,11 @@ public class Tables {
      * The table <code>bithon_meta_schema</code>.
      */
     public static final BithonMetaSchema BITHON_META_SCHEMA = BithonMetaSchema.BITHON_META_SCHEMA;
+
+    /**
+     * This table keeps the date when the metrics will be kept for ever
+     */
+    public static final BithonMetricsBaseline BITHON_METRICS_BASELINE = BithonMetricsBaseline.BITHON_METRICS_BASELINE;
 
     /**
      * The table <code>bithon_trace_mapping</code>.
