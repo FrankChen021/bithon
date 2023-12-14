@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -69,4 +70,7 @@ public interface IDataSourceApi {
 
     @PostMapping("api/datasource/ttl/update")
     void updateSpecifiedDataSourceTTL(@RequestBody UpdateTTLRequest request);
+
+    @PostMapping("api/datasource/baseline/get")
+    List<String> getBaselineDate();
 }

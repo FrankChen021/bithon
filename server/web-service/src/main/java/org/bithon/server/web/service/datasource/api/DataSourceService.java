@@ -170,4 +170,7 @@ public class DataSourceService {
                       .build();
     }
 
+    public List<String> getBaseline() {
+        return metricStorage.getBaselineDates();
+    }
 }

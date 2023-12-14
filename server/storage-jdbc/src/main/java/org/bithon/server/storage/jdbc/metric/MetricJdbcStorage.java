@@ -41,6 +41,8 @@ import org.bithon.server.storage.metrics.ttl.MetricStorageCleaner;
 import org.jooq.CreateTableIndexStep;
 import org.jooq.DSLContext;
 import org.jooq.DeleteConditionStep;
+import org.jooq.Record;
+import org.jooq.Result;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
@@ -137,6 +139,33 @@ public class MetricJdbcStorage implements IMetricStorage {
         return this.createReader(context, sqlDialectManager.getSqlDialect(context));
     }
 
+    @Override
+    final public List<String> getBaselineDates() {
+        return getBaselineRecords().stream()
+                                   .map((record) -> {
+                                       try {
+                                           String date = record.get(Tables.BITHON_METRICS_BASELINE.DATE);
+                                           TimeSpan startTimestamp = TimeSpan.of(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date + " 00:00:00").getTime());
+
+                                           int keepDays = record.get(Tables.BITHON_METRICS_BASELINE.KEEP_DAYS);
+                                           if (keepDays > 0) {
+                                               if (startTimestamp.after(keepDays, TimeUnit.DAYS).getMilliseconds() > System.currentTimeMillis()) {
+                                                   return startTimestamp.toString("yyyy-MM-dd");
+                                               } else {
+                                                   // Will be ignored
+                                                   return null;
+                                               }
+                                           } else {
+                                               return startTimestamp.toString("yyyy-MM-dd");
+                                           }
+                                       } catch (ParseException e) {
+                                           return null;
+                                       }
+                                   })
+                                   .filter(Objects::nonNull)
+                                   .collect(Collectors.toList());
+    }
+
     protected IMetricWriter createWriter(DSLContext dslContext, MetricTable table) {
         return new MetricJdbcWriter(dslContext, table);
     }
@@ -157,67 +186,7 @@ public class MetricJdbcStorage implements IMetricStorage {
 
     @Override
     public IExpirationRunnable getExpirationRunnable() {
-        return new MetricStorageCleaner() {
-            @Override
-            public ExpirationConfig getRule() {
-                return storageConfig.getTtl();
-            }
-
-            @Override
-            protected DataSourceSchemaManager getSchemaManager() {
-                return schemaManager;
-            }
-
-            @Override
-            protected List<TimeSpan> getSkipDateList() {
-                return dslContext.selectFrom(Tables.BITHON_METRICS_BASELINE)
-                                 .fetch()
-                                 .stream()
-                                 .map((record) -> {
-                                     try {
-                                         TimeSpan startTimestamp = TimeSpan.of(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(record.getDate() + " 00:00:00").getTime());
-                                         if (record.getKeepDays() > 0) {
-                                             if (startTimestamp.after(record.getKeepDays(), TimeUnit.DAYS).getMilliseconds() > System.currentTimeMillis()) {
-                                                 return startTimestamp;
-                                             } else {
-                                                 // Will be ignored
-                                                 return null;
-                                             }
-                                         } else {
-                                             return startTimestamp;
-                                         }
-                                     } catch (ParseException e) {
-                                         return null;
-                                     }
-                                 }).filter(Objects::nonNull)
-                                 .collect(Collectors.toList());
-            }
-
-            @SuppressWarnings({"unchecked", "rawtypes"})
-            @Override
-            protected void expireImpl(DataSourceSchema schema, Timestamp before, List<TimeSpan> skipDateList) {
-
-                final MetricTable table = new MetricTable(schema);
-                String timestampField = table.getTimestampField().getName();
-
-                DeleteConditionStep delete = dslContext.deleteFrom(table)
-                                                       .where(table.getTimestampField().le(before));
-                if (!skipDateList.isEmpty()) {
-                    String skipSql = skipDateList.stream()
-                                                 .map((skipDate) -> {
-                                                     TimeSpan endTimestamp = skipDate.after(1, TimeUnit.DAYS);
-                                                     return StringUtils.format("NOT (\"%s\" >= '%s' AND \"%s\" < '%s')", timestampField, skipDate.toISO8601(), timestampField, endTimestamp.toISO8601());
-                                                 })
-                                                 .filter((s) -> !s.isEmpty())
-                                                 .collect(Collectors.joining(" AND "));
-                    if (!skipSql.isEmpty()) {
-                        delete = delete.and(skipSql);
-                    }
-                }
-
-                delete.execute();
-            }
-        };
+        return new MetricStorageJdbcCleaner(dslContext, schemaManager, this.storageConfig.getTtl());
     }
 
     @Override
@@ -226,5 +195,88 @@ public class MetricJdbcStorage implements IMetricStorage {
                        .columns(Tables.BITHON_METRICS_BASELINE.fields())
                        .indexes(Tables.BITHON_METRICS_BASELINE.getIndexes())
                        .execute();
+    }
+
+    protected Result<Record> getBaselineRecords() {
+        return dslContext.selectFrom(Tables.BITHON_METRICS_BASELINE.getName())
+                         .fetch();
+    }
+
+    protected static class MetricStorageJdbcCleaner extends MetricStorageCleaner {
+        protected final DSLContext dslContext;
+        protected final DataSourceSchemaManager schemaManager;
+        protected final ExpirationConfig ttlConfig;
+
+        protected MetricStorageJdbcCleaner(DSLContext dslContext, DataSourceSchemaManager schemaManager, ExpirationConfig ttlConfig) {
+            this.dslContext = dslContext;
+            this.schemaManager = schemaManager;
+            this.ttlConfig = ttlConfig;
+        }
+
+        @Override
+        public ExpirationConfig getRule() {
+            return ttlConfig;
+        }
+
+        @Override
+        protected DataSourceSchemaManager getSchemaManager() {
+            return schemaManager;
+        }
+
+        @Override
+        final protected List<TimeSpan> getSkipDateList() {
+            return getSkipDateRecords().stream()
+                                       .map((record) -> {
+                                           try {
+                                               String date = record.get(Tables.BITHON_METRICS_BASELINE.DATE);
+                                               TimeSpan startTimestamp = TimeSpan.of(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date + " 00:00:00").getTime());
+
+                                               int keepDays = record.get(Tables.BITHON_METRICS_BASELINE.KEEP_DAYS);
+                                               if (keepDays > 0) {
+                                                   if (startTimestamp.after(keepDays, TimeUnit.DAYS).getMilliseconds() > System.currentTimeMillis()) {
+                                                       return startTimestamp;
+                                                   } else {
+                                                       // Will be ignored
+                                                       return null;
+                                                   }
+                                               } else {
+                                                   return startTimestamp;
+                                               }
+                                           } catch (ParseException e) {
+                                               return null;
+                                           }
+                                       }).filter(Objects::nonNull)
+                                       .collect(Collectors.toList());
+        }
+
+        protected Result<Record> getSkipDateRecords() {
+            return dslContext.selectFrom(Tables.BITHON_METRICS_BASELINE.getName())
+                             .fetch();
+        }
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        @Override
+        protected void expireImpl(DataSourceSchema schema, Timestamp before, List<TimeSpan> skipDateList) {
+
+            final MetricTable table = new MetricTable(schema);
+            String timestampField = table.getTimestampField().getName();
+
+            DeleteConditionStep delete = dslContext.deleteFrom(table)
+                                                   .where(table.getTimestampField().le(before));
+            if (!skipDateList.isEmpty()) {
+                String skipSql = skipDateList.stream()
+                                             .map((skipDate) -> {
+                                                 TimeSpan endTimestamp = skipDate.after(1, TimeUnit.DAYS);
+                                                 return StringUtils.format("NOT (\"%s\" >= '%s' AND \"%s\" < '%s')", timestampField, skipDate.toISO8601(), timestampField, endTimestamp.toISO8601());
+                                             })
+                                             .filter((s) -> !s.isEmpty())
+                                             .collect(Collectors.joining(" AND "));
+                if (!skipSql.isEmpty()) {
+                    delete = delete.and(skipSql);
+                }
+            }
+
+            delete.execute();
+        }
     }
 }

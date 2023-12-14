@@ -41,20 +41,16 @@ import org.bithon.server.storage.jdbc.utils.SqlDialectManager;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
-import org.bithon.server.storage.metrics.ttl.MetricStorageCleaner;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.Result;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -85,54 +81,32 @@ public class MetricStorage extends MetricJdbcStorage {
 
     @Override
     public IExpirationRunnable getExpirationRunnable() {
-        return new MetricStorageCleaner() {
-            @Override
-            public ExpirationConfig getRule() {
-                return storageConfig.getTtl();
-            }
+        return new StorageCleaner(dslContext, schemaManager, this.storageConfig.getTtl(), config);
+    }
 
-            @Override
-            protected DataSourceSchemaManager getSchemaManager() {
-                return schemaManager;
-            }
+    static class StorageCleaner extends MetricStorageJdbcCleaner {
+        private final ClickHouseConfig config;
+        protected StorageCleaner(DSLContext dslContext,
+                                 DataSourceSchemaManager schemaManager,
+                                 ExpirationConfig ttlConfig,
+                                 ClickHouseConfig config) {
+            super(dslContext, schemaManager, ttlConfig);
+            this.config = config;
+        }
 
-            @Override
-            protected List<TimeSpan> getSkipDateList() {
-                String sql = dslContext.select(Tables.BITHON_METRICS_BASELINE.DATE, Tables.BITHON_METRICS_BASELINE.KEEP_DAYS)
-                                       .from(Tables.BITHON_METRICS_BASELINE)
-                                       .getSQL() + " FINAL ";
+        @Override
+        protected Result<Record> getSkipDateRecords() {
+            String sql = dslContext.select(Tables.BITHON_METRICS_BASELINE.DATE, Tables.BITHON_METRICS_BASELINE.KEEP_DAYS)
+                                   .from(Tables.BITHON_METRICS_BASELINE)
+                                   .getSQL() + " FINAL ";
+            return dslContext.fetch(sql);
+        }
 
-                return dslContext.fetch(sql)
-                                 .stream()
-                                 .map((record) -> {
-                                     try {
-                                         String date = record.get(Tables.BITHON_METRICS_BASELINE.DATE);
-
-                                         TimeSpan startTimestamp = TimeSpan.of(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date + " 00:00:00").getTime());
-                                         int keepDays = record.get(Tables.BITHON_METRICS_BASELINE.KEEP_DAYS);
-                                         if (keepDays > 0) {
-                                             if (startTimestamp.after(keepDays, TimeUnit.DAYS).getMilliseconds() > System.currentTimeMillis()) {
-                                                 return startTimestamp;
-                                             } else {
-                                                 // Will be ignored
-                                                 return null;
-                                             }
-                                         } else {
-                                             return startTimestamp;
-                                         }
-                                     } catch (ParseException e) {
-                                         return null;
-                                     }
-                                 }).filter(Objects::nonNull)
-                                 .collect(Collectors.toList());
-            }
-
-            @Override
-            protected void expireImpl(DataSourceSchema schema, Timestamp before, List<TimeSpan> skipDateList) {
-                String table = schema.getDataStoreSpec().getStore();
-                new DataCleaner(config, dslContext).deleteFromPartition(table, before, skipDateList);
-            }
-        };
+        @Override
+        protected void expireImpl(DataSourceSchema schema, Timestamp before, List<TimeSpan> skipDateList) {
+            String table = schema.getDataStoreSpec().getStore();
+            new DataCleaner(config, dslContext).deleteFromPartition(table, before, skipDateList);
+        }
     }
 
     @Override
@@ -193,5 +167,13 @@ public class MetricStorage extends MetricJdbcStorage {
                                                  .partitionByExpression(null)
                                                  // Add minmax index to timestamp column
                                                  .createIfNotExist(Tables.BITHON_METRICS_BASELINE);
+    }
+
+    @Override
+    protected Result<Record> getBaselineRecords() {
+        String sql = dslContext.select(Tables.BITHON_METRICS_BASELINE.DATE, Tables.BITHON_METRICS_BASELINE.KEEP_DAYS)
+                               .from(Tables.BITHON_METRICS_BASELINE)
+                               .getSQL() + " FINAL ";
+        return dslContext.fetch(sql);
     }
 }

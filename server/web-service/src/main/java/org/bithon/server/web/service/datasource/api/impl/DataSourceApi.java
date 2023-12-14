@@ -52,6 +52,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -242,6 +243,11 @@ public class DataSourceApi implements IDataSourceApi {
     public void updateSpecifiedDataSourceTTL(@RequestBody UpdateTTLRequest request) {
         ExpirationConfig expirationConfig = this.storageConfig.getTtl();
         expirationConfig.setTtl(request.getTtl());
+    }
+
+    @Override
+    public List<String> getBaselineDate() {
+        return this.dataSourceService.getBaseline();
     }
 
     /**
