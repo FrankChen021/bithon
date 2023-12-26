@@ -16,46 +16,50 @@
 
 package org.bithon.server.web.service.datasource.api;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
+import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.OrderBy;
-import org.bithon.server.web.service.datasource.api.impl.QueryAggregator;
+import org.bithon.server.storage.datasource.query.Query;
 
+import javax.annotation.Nullable;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
-import java.util.Collections;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2022/11/01 14:28
+ * @author Frank Chen
+ * @date 29/10/22 9:04 pm
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class GroupByQueryRequest {
-    @NotEmpty
-    private String startTimeISO8601;
-
-    @NotEmpty
-    private String endTimeISO8601;
+public class GeneralQueryRequest2 {
 
     @NotEmpty
     private String dataSource;
 
-    private List<IColumnFilter> filters = Collections.emptyList();
-
-    private List<String> metrics = Collections.emptyList();
-    private List<QueryAggregator> aggregators = Collections.emptyList();
-
+    @NotNull
     @Valid
-    @Size(min = 1)
+    private IntervalRequest interval;
+
+    @Nullable
+    private List<IColumnFilter> filters;
+
+    @Nullable
+    private String filterExpression;
+
+    @NotEmpty
+    private List<QueryField> fields;
+
+    @Nullable
     private List<String> groupBy;
 
+    @Nullable
     private OrderBy orderBy;
+
+    @Valid
+    @Nullable
+    private Limit limit;
+
+    private Query.ResultFormat resultFormat;
 }

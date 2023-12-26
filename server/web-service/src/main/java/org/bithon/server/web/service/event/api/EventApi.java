@@ -17,18 +17,13 @@
 package org.bithon.server.web.service.event.api;
 
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.commons.matcher.EqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.filter.ColumnFilter;
 import org.bithon.server.storage.event.IEventReader;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.FilterExpressionToFilters;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.ArrayList;
 
 /**
  * @author frank.chen021@outlook.com
@@ -51,15 +46,10 @@ public class EventApi implements IEventApi {
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
 
-        // backward compatibility
-        if (StringUtils.hasText(request.getApplication())) {
-            request.setFilters(new ArrayList<>(request.getFilters()));
-            request.getFilters().add(new ColumnFilter("appName", new EqualMatcher(request.getApplication())));
-        }
-
         IExpression filter = FilterExpressionToFilters.toExpression(this.storage.getSchema(),
                                                                     null,
                                                                     request.getFilters());
+
         return new GetEventListResponse(eventReader.getEventListSize(filter,
                                                                      start,
                                                                      end),

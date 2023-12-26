@@ -242,7 +242,7 @@ class Dashboard {
 
         const filters = this.vFilter.getSelectedFilters();
         $.each(filters, (index, filter) => {
-            url += `${filter.dimension}=${filter.matcher.pattern}&`;
+            url += `${filter.field}=${filter.expected}&`;
         });
         url += `interval=${this._selectedInterval.id}&`;
 
