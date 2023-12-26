@@ -31,10 +31,7 @@ import java.util.List;
  */
 @Data
 public class GetEventListRequest {
-
-    @Deprecated
-    private String application;
-
+    
     @NotBlank
     private String startTimeISO8601;
 
