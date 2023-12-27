@@ -56,7 +56,7 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
         String email = (String) user.getAttributes().get("email");
         OAuth2UserAuthority newAuthority = new OAuth2UserAuthority(ImmutableMap.of("name", user.getAttributes().get("name")));
 
-        String newJwtToken = jwtTokenComponent.userToToken(email, Collections.singletonList(newAuthority));
+        String newJwtToken = jwtTokenComponent.createToken(email, Collections.singletonList(newAuthority));
 
         // Store the JWT in a cookie
         CookieHelper.Builder.newCookie(JwtTokenComponent.COOKIE_NAME_TOKEN, newJwtToken)

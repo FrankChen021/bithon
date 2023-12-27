@@ -17,6 +17,8 @@
 package org.bithon.server.webapp.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -35,44 +37,55 @@ public class JwtTokenComponent {
 
     public static final String COOKIE_NAME_TOKEN = "token";
     private final SecretKey signKey;
-    private final long validityMilliseconds;
+    private final long globalValidityMilliseconds;
 
     public JwtTokenComponent(WebSecurityConfig securityConfig) {
         this.signKey = Keys.hmacShaKeyFor(securityConfig.getJwtTokenSignKey().getBytes(StandardCharsets.UTF_8));
-        this.validityMilliseconds = securityConfig.getJwtTokenValiditySeconds() * 1000L;
+        this.globalValidityMilliseconds = securityConfig.getJwtTokenValiditySeconds() * 1000L;
     }
 
-    public Claims tokenToUser(String token) {
+    public Jws<Claims> decodeToken(String tokenText) {
         return Jwts.parserBuilder()
                    .setSigningKey(signKey)
                    .build()
-                   .parseClaimsJws(token)
-                   .getBody();
+                   .parseClaimsJws(tokenText);
     }
 
-    public String userToToken(String name, Collection<? extends GrantedAuthority> authorities) {
+    public String createToken(String name, Collection<? extends GrantedAuthority> authorities) {
+        return createToken(name, authorities, "system", 0);
+    }
+
+    public String createToken(String name,
+                              Collection<? extends GrantedAuthority> authorities,
+                              String issuer,
+                              long validityMilliseconds) {
         Claims claims = Jwts.claims().setSubject(name);
         claims.put("scopes", authorities);
 
         return Jwts.builder()
                    .setClaims(claims)
-                   .setIssuer("https://bithon.org.cn")
+                   .setIssuer("https://bithon.org/token/issuer/" + issuer)
                    .setIssuedAt(new Date(System.currentTimeMillis()))
-                   // We don't use the expiration in the token to check, but just set it
+                   .setHeaderParam("useExpirationInToken", validityMilliseconds != 0)
+                   // The expiration is
                    .setExpiration(new Date(System.currentTimeMillis() + validityMilliseconds))
                    .signWith(signKey, SignatureAlgorithm.HS256)
                    .compact();
     }
 
-    public boolean validateToken(Claims claims) {
-        return claims.getSubject() != null && isTokenValid(claims);
-    }
+    public boolean isValidToken(Jws<Claims> token) {
+        Claims claims = token.getBody();
+        if (claims == null || claims.getSubject() == null) {
+            return false;
+        }
 
-    /**
-     * Always compare with the latest validity setting for flexibility.
-     * For a valid token, its issue_time + validity should be greater than current timestamp
-     */
-    private boolean isTokenValid(Claims claims) {
-        return claims.getIssuedAt().getTime() + validityMilliseconds > System.currentTimeMillis();
+        //noinspection rawtypes
+        JwsHeader header = token.getHeader();
+        if (header != null && Boolean.TRUE.equals(header.get("useExpirationInToken"))) {
+            return claims.getExpiration().getTime() > System.currentTimeMillis();
+        } else {
+            // Compare with the latest validity setting for flexibility.
+            return claims.getIssuedAt().getTime() + globalValidityMilliseconds > System.currentTimeMillis();
+        }
     }
 }
