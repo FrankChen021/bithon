@@ -79,15 +79,7 @@
           "qps",
           "requestCount"
         ],
-        "filters": [
-          {
-            "dimension": "type",
-            "matcher": {
-              "type": "equal",
-              "pattern": "Produce"
-            }
-          }
-        ]
+        "filter": "type = 'Produce'"
       }
     },
     {

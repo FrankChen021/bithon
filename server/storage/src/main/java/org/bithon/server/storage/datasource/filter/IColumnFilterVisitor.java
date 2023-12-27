@@ -14,36 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.event.api;
-
-import lombok.Data;
-import org.bithon.server.storage.datasource.filter.IColumnFilter;
-
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import java.util.Collections;
-import java.util.List;
+package org.bithon.server.storage.datasource.filter;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 22/12/21 11:19 AM
+ * @date 2023/12/26 13:30
  */
-@Data
-public class GetEventListRequest {
-    
-    @NotBlank
-    private String startTimeISO8601;
+public interface IColumnFilterVisitor<T> {
+    T visit(IColumnFilter.GreaterThanFilter filter);
 
-    @NotBlank
-    private String endTimeISO8601;
+    T visit(IColumnFilter.GreaterThanOrEqualFilter filter);
 
-    private List<IColumnFilter> filters = Collections.emptyList();
+    T visit(IColumnFilter.EqualFilter filter);
 
-    @Min(0)
-    private int pageNumber = 0;
+    T visit(IColumnFilter.LessThanFilter filter);
 
-    @Min(0)
-    @Max(100)
-    private int pageSize = 10;
+    T visit(IColumnFilter.LessThanOrEqualFilter filter);
+
+    T visit(IColumnFilter.NotEqualFilter filter);
 }
