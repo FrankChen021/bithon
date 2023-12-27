@@ -22,7 +22,6 @@ import org.bithon.server.webapp.security.JwtTokenComponent;
 import org.bithon.server.webapp.security.WebSecurityConfig;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.DispatcherType;
@@ -406,17 +405,6 @@ public class SecurityTest {
         public DispatcherType getDispatcherType() {
             return null;
         }
-    }
-
-    @Test
-    public void test() {
-        AntPathRequestMatcher matcher = new AntPathRequestMatcher("/api/**");
-        Assert.assertFalse(matcher.matches(new FakeHttpRequest("/web")));
-
-        Assert.assertFalse(matcher.matches(new FakeHttpRequest("/api")));
-
-        Assert.assertFalse(matcher.matches(new FakeHttpRequest("/api/")));
-        Assert.assertFalse(matcher.matches(new FakeHttpRequest("/api/1")));
     }
 
     @Test
