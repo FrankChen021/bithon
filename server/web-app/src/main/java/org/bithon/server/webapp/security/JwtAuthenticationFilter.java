@@ -21,18 +21,17 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.ws.http.HTTPException;
 import java.io.IOException;
 import java.util.Collection;
 
@@ -48,11 +47,9 @@ import java.util.Collection;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenComponent jwtTokenComponent;
-    private final AntPathRequestMatcher apiRequestMatcher;
 
     public JwtAuthenticationFilter(JwtTokenComponent jwtTokenComponent) {
         this.jwtTokenComponent = jwtTokenComponent;
-        this.apiRequestMatcher = new AntPathRequestMatcher("**/api/**");
     }
 
     @Override
@@ -88,8 +85,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        if (!authenticated && apiRequestMatcher.matches(req)) {
-            throw new HTTPException(HttpStatus.UNAUTHORIZED.value());
+        if (!authenticated && req.getRequestURI().contains("/api/")) {
+            // For API endpoints, returns the 403
+            // For other endpoints, we continue the processing, and a login filter will be triggered to login
+            res.setStatus(HttpStatus.UNAUTHORIZED.value());
+            res.setContentType(MediaType.TEXT_PLAIN.getType());
+            res.getWriter().println(StringUtils.format("%s not authorized.", req.getRequestURI()));
+            return;
         }
 
         chain.doFilter(req, res);
