@@ -26,7 +26,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.expression.optimizer.ExpressionOptimizer;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
-import org.bithon.server.storage.jdbc.utils.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 
 import java.util.Arrays;
 

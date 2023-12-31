@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.utils;
+package org.bithon.server.storage.jdbc.common.dialect;
 
 /**
  * @author Frank Chen

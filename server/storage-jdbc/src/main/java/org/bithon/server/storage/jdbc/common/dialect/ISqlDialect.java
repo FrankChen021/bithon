@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.utils;
+package org.bithon.server.storage.jdbc.common.dialect;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.component.commons.expression.IExpression;
