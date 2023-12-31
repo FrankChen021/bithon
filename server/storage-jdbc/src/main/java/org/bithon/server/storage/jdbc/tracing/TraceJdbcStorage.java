@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -49,7 +48,6 @@ public class TraceJdbcStorage implements ITraceStorage {
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
     protected final TraceStorageConfig traceStorageConfig;
-    protected final TraceSinkConfig traceSinkConfig;
     protected final DataSourceSchema traceSpanSchema;
     protected final DataSourceSchema traceTagIndexSchema;
     protected final SqlDialectManager sqlDialectManager;
@@ -58,22 +56,19 @@ public class TraceJdbcStorage implements ITraceStorage {
     public TraceJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageConfiguration storageConfigurationProvider,
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                             @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
-                            @JacksonInject(useInput = OptBoolean.FALSE) TraceSinkConfig traceSinkConfig,
                             @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
                             @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
-        this(storageConfigurationProvider.getDslContext(), objectMapper, storageConfig, traceSinkConfig, schemaManager, sqlDialectManager);
+        this(storageConfigurationProvider.getDslContext(), objectMapper, storageConfig, schemaManager, sqlDialectManager);
     }
 
     public TraceJdbcStorage(DSLContext dslContext,
                             ObjectMapper objectMapper,
                             TraceStorageConfig storageConfig,
-                            TraceSinkConfig traceSinkConfig,
                             DataSourceSchemaManager schemaManager,
                             SqlDialectManager sqlDialectManager) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
         this.traceStorageConfig = storageConfig;
-        this.traceSinkConfig = traceSinkConfig;
         this.traceSpanSchema = schemaManager.getDataSourceSchema("trace_span_summary");
         this.traceTagIndexSchema = schemaManager.getDataSourceSchema("trace_span_tag_index");
         this.sqlDialectManager = sqlDialectManager;
