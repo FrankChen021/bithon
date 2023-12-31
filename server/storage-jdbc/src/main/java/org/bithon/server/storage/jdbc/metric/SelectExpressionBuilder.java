@@ -39,8 +39,8 @@ import org.bithon.server.storage.datasource.query.ast.StringNode;
 import org.bithon.server.storage.datasource.query.ast.Table;
 import org.bithon.server.storage.datasource.query.ast.Where;
 import org.bithon.server.storage.datasource.query.parser.FieldExpressionVisitorAdaptor2;
-import org.bithon.server.storage.jdbc.utils.Expression2Sql;
-import org.bithon.server.storage.jdbc.utils.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
+import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.metrics.Interval;
 
 import javax.annotation.Nullable;

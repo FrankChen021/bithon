@@ -27,18 +27,17 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.common.ExpirationConfig;
 import org.bithon.server.storage.common.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageConfiguration;
+import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
+import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcReader;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
-import org.bithon.server.storage.jdbc.utils.Expression2Sql;
-import org.bithon.server.storage.jdbc.utils.SqlDialectManager;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
@@ -60,13 +59,11 @@ public class TraceStorage extends TraceJdbcStorage {
     public TraceStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageConfiguration configuration,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
-                        @JacksonInject(useInput = OptBoolean.FALSE) TraceSinkConfig traceConfig,
                         @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
                         @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
         super(configuration.getDslContext(),
               objectMapper,
               storageConfig,
-              traceConfig,
               schemaManager,
               sqlDialectManager);
         this.config = configuration.getClickHouseConfig();
