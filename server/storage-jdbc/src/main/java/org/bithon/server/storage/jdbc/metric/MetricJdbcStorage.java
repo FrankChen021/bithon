@@ -51,6 +51,7 @@ import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -168,10 +169,15 @@ public class MetricJdbcStorage implements IMetricStorage {
 
     @Override
     public void saveBaseline(String date, int keepDays) {
+        LocalDateTime now = new Timestamp(System.currentTimeMillis()).toLocalDateTime();
         dslContext.insertInto(Tables.BITHON_METRICS_BASELINE)
                   .set(Tables.BITHON_METRICS_BASELINE.DATE, date)
                   .set(Tables.BITHON_METRICS_BASELINE.KEEP_DAYS, keepDays)
-                  .set(Tables.BITHON_METRICS_BASELINE.CREATE_TIME, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                  .set(Tables.BITHON_METRICS_BASELINE.CREATE_TIME, now)
+                  .onDuplicateKeyUpdate()
+                  .set(Tables.BITHON_METRICS_BASELINE.DATE, date)
+                  .set(Tables.BITHON_METRICS_BASELINE.KEEP_DAYS, keepDays)
+                  .set(Tables.BITHON_METRICS_BASELINE.CREATE_TIME, now)
                   .execute();
     }
 

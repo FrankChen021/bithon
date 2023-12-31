@@ -48,6 +48,7 @@ import org.jooq.Result;
 
 import java.sql.Timestamp;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -176,5 +177,15 @@ public class MetricStorage extends MetricJdbcStorage {
                                .from(Tables.BITHON_METRICS_BASELINE)
                                .getSQL() + " FINAL ";
         return dslContext.fetch(sql);
+    }
+
+    @Override
+    public void saveBaseline(String date, int keepDays) {
+        LocalDateTime now = new Timestamp(System.currentTimeMillis()).toLocalDateTime();
+        dslContext.insertInto(Tables.BITHON_METRICS_BASELINE)
+                  .set(Tables.BITHON_METRICS_BASELINE.DATE, date)
+                  .set(Tables.BITHON_METRICS_BASELINE.KEEP_DAYS, keepDays)
+                  .set(Tables.BITHON_METRICS_BASELINE.CREATE_TIME, now)
+                  .execute();
     }
 }
