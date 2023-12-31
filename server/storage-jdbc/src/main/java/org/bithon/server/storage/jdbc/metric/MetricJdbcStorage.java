@@ -53,6 +53,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -146,7 +147,7 @@ public class MetricJdbcStorage implements IMetricStorage {
                                    .map((record) -> {
                                        try {
                                            String date = record.get(Tables.BITHON_METRICS_BASELINE.DATE);
-                                           TimeSpan startTimestamp = TimeSpan.of(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date + " 00:00:00").getTime());
+                                           TimeSpan startTimestamp = TimeSpan.of(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH).parse(date + " 00:00:00").getTime());
 
                                            int keepDays = record.get(Tables.BITHON_METRICS_BASELINE.KEEP_DAYS);
                                            if (keepDays > 0) {
@@ -240,11 +241,11 @@ public class MetricJdbcStorage implements IMetricStorage {
 
         @Override
         protected final List<TimeSpan> getSkipDateList() {
-            return getSkipDateRecords().stream()
-                                       .map((record) -> {
+            return getSkipDateRecordList().stream()
+                                          .map((record) -> {
                                            try {
                                                String date = record.get(Tables.BITHON_METRICS_BASELINE.DATE);
-                                               TimeSpan startTimestamp = TimeSpan.of(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date + " 00:00:00").getTime());
+                                               TimeSpan startTimestamp = TimeSpan.of(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH).parse(date + " 00:00:00").getTime());
 
                                                int keepDays = record.get(Tables.BITHON_METRICS_BASELINE.KEEP_DAYS);
                                                if (keepDays > 0) {
@@ -261,10 +262,10 @@ public class MetricJdbcStorage implements IMetricStorage {
                                                return null;
                                            }
                                        }).filter(Objects::nonNull)
-                                       .collect(Collectors.toList());
+                                          .collect(Collectors.toList());
         }
 
-        protected Result<Record> getSkipDateRecords() {
+        protected Result<Record> getSkipDateRecordList() {
             return dslContext.selectFrom(Tables.BITHON_METRICS_BASELINE.getName())
                              .fetch();
         }
