@@ -711,9 +711,8 @@ class Dashboard {
 
             const dataIndex = series[0].dataIndex;
             const interval = currentChartComponent.getInterval(dataIndex);
-
-            let tooltip = moment(interval.start).local().format('MM-DD HH:mm:ss') + '<br/>'
-                + moment(interval.end).local().format('MM-DD HH:mm:ss');
+            const format = currentChartComponent.isWithinOneDay() ? 'HH:mm:ss' : 'MM-DD HH:mm:ss';
+            let tooltip = moment(interval.start).local().format(format) + '<br/>' + moment(interval.end).local().format(format);
             series.forEach(s => {
                 //Use the yAxis defined formatter to format the data
                 const yAxisIndex = currentChartOption.series[s.seriesIndex].yAxisIndex;
@@ -1082,6 +1081,10 @@ class Dashboard {
                     }
                 };
 
+                // endTimestamp is exclusive, so we use (endTimestamp-1) to get the inclusive date
+                const inOneDay = moment(data.startTimestamp).format('yyyy-MM-DD') === moment(data.endTimestamp - 1).format('yyyy-MM-DD');
+                chartComponent.isWithinOneDay = () => inOneDay;
+
                 return {
                     refreshMode: mode,
 
@@ -1195,9 +1198,23 @@ class Dashboard {
 
     //PRIVATE
     openChart(chartId) {
-        const chartDescriptor = this._chartDescriptors[chartId];
+        let baseline = [];
+        $.ajax({
+            type: 'POST',
+            url: apiHost + "/api/metric/baseline/get",
+            data: JSON.stringify({}),
+            async: false,
+            dataType: "json",
+            contentType: "application/json",
+            success: (data) => {
+                baseline = data;
+            },
+            error: (data) => {
+            }
+        });
 
-        const dialogContent =
+        const chartDescriptor = this._chartDescriptors[chartId];
+        let dialogContent =
             '<ul class="nav nav-tabs">' +
             '  <li class="nav-item">' +
             '    <a class="nav-link active" data-toggle="tab" href="#nav-current" role="tab" aria-controls="nav-current" aria-selected="true">Latest</a>' +
@@ -1223,16 +1240,22 @@ class Dashboard {
             '       <div class="btn-group btn-group-sm dropright" role="group" aria-label="..." style="padding-top:5px">' +
             '           <button class="btn btn-compare-remove-add dropdown-toggle" style="border-color: #ced4da" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Adds</button>' +
             '           <div class="dropdown-menu" style="min-width: 0">      ' +
-            '               <a class="dropdown-item btn-compare-add" href="#" data-value="0">today</a>' +
-            '               <a class="dropdown-item btn-compare-add" href="#" data-value="1">-1d</a>' +
-            '               <a class="dropdown-item btn-compare-add" href="#" data-value="3">-3d</a>     ' +
-            '               <a class="dropdown-item btn-compare-add" href="#" data-value="7">-7d</a>     ' +
+            '               <a class="dropdown-item btn-compare-add" href="#" data-id="0" data-value="0">today</a>' +
+            '               <a class="dropdown-item btn-compare-add" href="#" data-id="1" data-value="1">-1d</a>' +
+            '               <a class="dropdown-item btn-compare-add" href="#" data-id="3" data-value="3">-3d</a>     ' +
+            '               <a class="dropdown-item btn-compare-add" href="#" data-id="7" data-value="7">-7d</a>     ' +
+            ' {baseline}' +
             '           </div>' +
             '       </div>' +
             '       <div id="compare_charts" style="padding-top:5px;height:470px;width:100%"></div>' +
             '   </div>' +
-
             '</div>';
+
+        let baselineDropdown = '';
+        $.each(baseline, (index, l) => {
+            baselineDropdown += `<a class='dropdown-item btn-compare-add' href='#' data-id='${l}' data-date='${l}' data-absolute='true'>${l}</a>`;
+        })
+        dialogContent = dialogContent.replace('{baseline}', baselineDropdown);
 
         bootbox.dialog({
             centerVertical: true,
@@ -1264,11 +1287,12 @@ class Dashboard {
 
                 // Add line
                 $('.btn-compare-add').click((e) => {
-                    const day = $(e.target).attr('data-value');
-                    const removeButtonId = 'btn-popup-compare-' + day;
+                    const removeButtonId = 'btn-popup-compare-' + $(e.target).attr('data-id');
                     if ($('#btn-remove-buttons').find('#' + removeButtonId).length > 0) {
                         return;
                     }
+
+                    const day = $(e.target).attr('data-value');
 
                     // remove line
                     const text = $(e.target).text();
@@ -1285,15 +1309,23 @@ class Dashboard {
                         });
                     $('#btn-remove-buttons').append(removeButton);
 
-                    const todayStart = moment().startOf('day');
-                    const baseStart = todayStart.clone().subtract(day, 'day');
-                    const baseEnd = baseStart.clone().add(1, 'day');
-
+                    let start, end;
+                    if ($(e.target).attr('data-absolute') === 'true') {
+                        const date = moment($(e.target).attr('data-date'));
+                        start = date.toISOString(true);
+                        end = date.add(1, 'day').toISOString(true);
+                    } else {
+                        const todayStart = moment().startOf('day');
+                        const baseStart = todayStart.clone().subtract(day, 'day');
+                        const baseEnd = baseStart.clone().add(1, 'day');
+                        start = baseStart.toISOString(true);
+                        end = baseEnd.toISOString(true);
+                    }
                     this.refreshChart(chartDescriptor,
                         compareChart,
                         {
-                            start: baseStart.toISOString(true),
-                            end: baseEnd.toISOString(true)
+                            start: start,
+                            end: end
                         },
                         text + '-',
                         'add');
