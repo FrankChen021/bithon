@@ -122,6 +122,11 @@
       </dependency>
       <dependency>
         <groupId>org.bithon</groupId>
+        <artifactId>server-storage-jdbc-h2</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bithon</groupId>
         <artifactId>server-storage-jdbc-clickhouse</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -497,6 +502,7 @@
         <module>server/storage</module>
         <module>server/storage-jdbc</module>
         <module>server/storage-jdbc-clickhouse</module>
+        <module>server/storage-jdbc-h2</module>
         <module>server/opentelemetry</module>
         <module>server/collector</module>
         <module>server/web-service</module>

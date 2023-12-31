@@ -14,8 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.utils;
+package org.bithon.server.storage.jdbc.h2;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -25,6 +26,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.expression.optimizer.ExpressionOptimizer;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
+import org.bithon.server.storage.jdbc.utils.ISqlDialect;
 
 import java.util.Arrays;
 
@@ -32,6 +34,7 @@ import java.util.Arrays;
  * @author Frank Chen
  * @date 17/4/23 11:20 pm
  */
+@JsonTypeName("H2")
 public class H2SqlDialect implements ISqlDialect {
 
     @Override
