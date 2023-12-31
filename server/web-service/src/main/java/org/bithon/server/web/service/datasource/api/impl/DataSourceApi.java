@@ -250,6 +250,11 @@ public class DataSourceApi implements IDataSourceApi {
         return this.dataSourceService.getBaseline();
     }
 
+    @Override
+    public void saveMetricBaseline(SaveMetricBaselineRequest request) {
+        this.dataSourceService.addToBaseline(request.getDate(), request.getKeepDays());
+    }
+
     /**
      * Validate the request to ensure the safety
      */

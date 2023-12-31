@@ -43,6 +43,8 @@ public interface IMetricStorage extends IStorage, IExpirable {
 
     List<String> getBaselineDates();
 
+    void saveBaseline(String date, int keepDays);
+
     default void initialize() {
     }
 }

@@ -140,7 +140,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     }
 
     @Override
-    final public List<String> getBaselineDates() {
+    public final List<String> getBaselineDates() {
         return getBaselineRecords().stream()
                                    .map((record) -> {
                                        try {
@@ -164,6 +164,15 @@ public class MetricJdbcStorage implements IMetricStorage {
                                    })
                                    .filter(Objects::nonNull)
                                    .collect(Collectors.toList());
+    }
+
+    @Override
+    public void saveBaseline(String date, int keepDays) {
+        dslContext.insertInto(Tables.BITHON_METRICS_BASELINE)
+                  .set(Tables.BITHON_METRICS_BASELINE.DATE, date)
+                  .set(Tables.BITHON_METRICS_BASELINE.KEEP_DAYS, keepDays)
+                  .set(Tables.BITHON_METRICS_BASELINE.CREATE_TIME, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                  .execute();
     }
 
     protected IMetricWriter createWriter(DSLContext dslContext, MetricTable table) {
@@ -198,7 +207,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     }
 
     protected Result<Record> getBaselineRecords() {
-        return dslContext.selectFrom(Tables.BITHON_METRICS_BASELINE.getName())
+        return dslContext.selectFrom(Tables.BITHON_METRICS_BASELINE.getQualifiedName())
                          .fetch();
     }
 
@@ -224,7 +233,7 @@ public class MetricJdbcStorage implements IMetricStorage {
         }
 
         @Override
-        final protected List<TimeSpan> getSkipDateList() {
+        protected final List<TimeSpan> getSkipDateList() {
             return getSkipDateRecords().stream()
                                        .map((record) -> {
                                            try {

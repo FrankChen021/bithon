@@ -86,6 +86,7 @@ public class MetricStorage extends MetricJdbcStorage {
 
     static class StorageCleaner extends MetricStorageJdbcCleaner {
         private final ClickHouseConfig config;
+
         protected StorageCleaner(DSLContext dslContext,
                                  DataSourceSchemaManager schemaManager,
                                  ExpirationConfig ttlConfig,
