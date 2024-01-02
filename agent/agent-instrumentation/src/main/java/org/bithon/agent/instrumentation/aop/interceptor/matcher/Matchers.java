@@ -26,6 +26,7 @@ import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.description.method.ParameterList;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -240,8 +241,8 @@ public class Matchers {
             } else {
                 for (int i = 0; i < args.length; i++) {
                     String paramType = matchRawArgType
-                                       ? parameterList.get(i).getType().asRawType().getTypeName()
-                                       : parameterList.get(i).getType().getTypeName();
+                        ? parameterList.get(i).getType().asRawType().getTypeName()
+                        : parameterList.get(i).getType().getTypeName();
                     if (!paramType.equals(args[i])) {
                         if (debug) {
                             log.info("matching [{}]: type of parameter {} not match. Given is {}, actual is {}",
@@ -271,5 +272,17 @@ public class Matchers {
             sb.append("]");
             return sb.toString();
         }
+    }
+
+    public static <T extends MethodDescription> ElementMatcher.Junction<T> implement(String interfaceName) {
+        return ElementMatchers.isPublic()
+                              .and(ElementMatchers.isOverriddenFrom(ElementMatchers.named(interfaceName)))
+                              .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()));
+    }
+
+    public static <T extends MethodDescription> ElementMatcher.Junction<T> implement(String... interfaceNames) {
+        return ElementMatchers.isPublic()
+                              .and(ElementMatchers.isOverriddenFrom(ElementMatchers.namedOneOf(interfaceNames)))
+                              .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()));
     }
 }

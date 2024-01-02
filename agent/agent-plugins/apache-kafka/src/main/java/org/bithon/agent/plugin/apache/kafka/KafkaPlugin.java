@@ -21,7 +21,6 @@ import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCu
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
-import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.Arrays;
 import java.util.List;
@@ -131,10 +130,7 @@ public class KafkaPlugin implements IPlugin {
             forClass("org.apache.kafka.clients.admin.KafkaAdminClient")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(ElementMatchers.isPublic()
-                                                                            .and(ElementMatchers.isOverriddenFrom(ElementMatchers.named("org.apache.kafka.clients.admin.Admin")))
-                                                                            .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()))
-                                                            )
+                                                   .onMethod(Matchers.implement("org.apache.kafka.clients.admin.Admin"))
                                                    .to("org.bithon.agent.plugin.apache.kafka.admin.interceptor.KafkaAdminClient$All")
                         )
 

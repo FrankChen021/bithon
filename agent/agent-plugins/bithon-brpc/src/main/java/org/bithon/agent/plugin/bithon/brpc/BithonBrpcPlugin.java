@@ -20,8 +20,8 @@ import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.ConfigurationProperties;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
+import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.Collections;
 import java.util.List;
@@ -61,11 +61,9 @@ public class BithonBrpcPlugin implements IPlugin {
 
             return forClass(provider).methods(
                 MethodPointCutDescriptorBuilder.build()
-                                               .onMethod(ElementMatchers.isPublic()
-                                                                        .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()))
-                                                                        .and(ElementMatchers.isOverriddenFrom(ElementMatchers.namedOneOf(interfaces))))
+                                               .onMethod(Matchers.implement(interfaces))
                                                .to("org.bithon.agent.plugin.bithon.brpc.interceptor.BrpcMethodInterceptor")
-            );
+                                             );
         }).collect(Collectors.toList());
     }
 }
