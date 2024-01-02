@@ -16,6 +16,7 @@
 
 package org.bithon.agent.dispatcher.brpc;
 
+import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.observability.dispatcher.IMessageConverter;
 import org.bithon.agent.observability.event.EventMessage;
 import org.bithon.agent.observability.metric.collector.IMeasurement;
@@ -40,6 +41,9 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSpec;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.FieldType;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.shaded.com.fasterxml.jackson.databind.SerializationFeature;
@@ -56,6 +60,8 @@ import java.util.Map;
  * @date 2021/6/27 20:13
  */
 public class BrpcMessageConverter implements IMessageConverter {
+
+    private static final ILogAdaptor logger = LoggerFactory.getLogger(BrpcMessageConverter.class);
 
     private final ObjectMapper objectMapper;
 
@@ -120,8 +126,23 @@ public class BrpcMessageConverter implements IMessageConverter {
                                                                    .setKind(span.kind().toString())
                                                                    .setName(span.component())
                                                                    .setClazz(span.clazz())
-                                                                   .setMethod(span.method())
-                                                                   .putAllTags(span.tags());
+                                                                   .setMethod(span.method());
+
+        // The 'putllAllTags' on the Builder internally checks the NULL of each k-v pair.
+        // To avoid unexpected exception, we do the check by ourselves so that we know which tag has the NULL value.
+        for (Map.Entry<String, String> entry : span.tags().entrySet()) {
+            String k = entry.getKey();
+            String v = entry.getValue();
+            if (v != null) {
+                builder.putTags(k, v);
+            } else {
+                // An exception is construct to parse to the error method,
+                // so tha that the logback/log4j plugin can record the exception into the exception log.
+                logger.error(StringUtils.format("Unexpected exception",
+                                                new AgentException("Value of tag [%s] is null", k)));
+            }
+        }
+
         if (span.parentApplication() != null) {
             builder.setParentAppName(span.parentApplication());
         }
