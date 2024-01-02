@@ -53,6 +53,9 @@ public class AdminClient$Create extends AfterInterceptor {
         ctx.clientId = (String) ReflectionUtils.getFieldValue(aopContext.getReturning(), "clientId");
         ctx.clusterSupplier = () -> boostrapServer;
 
+        IBithonObject bithonObject = aopContext.getReturningAs();
+        bithonObject.setInjectedObject(ctx);
+
         Object networkClient = ReflectionUtils.getFieldValue(aopContext.getReturning(), "client");
         if (networkClient instanceof IBithonObject) {
             ((IBithonObject) networkClient).setInjectedObject(ctx);
