@@ -20,7 +20,6 @@ import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDe
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.Arrays;
 import java.util.List;
@@ -39,22 +38,20 @@ public class OzonePlugin implements IPlugin {
             forClass("org.apache.hadoop.ozone.client.rpc.RpcClient")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(ElementMatchers.isOverriddenFrom(ElementMatchers.named(
-                                                       "org.apache.hadoop.ozone.client.protocol.ClientProtocol")))
+                                                   .onMethod(Matchers.implement("org.apache.hadoop.ozone.client.protocol.ClientProtocol"))
                                                    .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
-                ),
+                        ),
 
             forClass("org.apache.hadoop.ozone.om.protocolPB.OzoneManagerProtocolClientSideTranslatorPB")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(ElementMatchers.isOverriddenFrom(ElementMatchers.named(
-                                                       "org.apache.hadoop.ozone.om.protocol.OzoneManagerProtocol")))
+                                                   .onMethod(Matchers.implement("org.apache.hadoop.ozone.om.protocol.OzoneManagerProtocol"))
                                                    .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("close")
                                                    .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
-                ),
+                        ),
 
             // s3g -> scm
             forClass("org.apache.hadoop.hdds.scm.XceiverClientGrpc")
@@ -75,7 +72,7 @@ public class OzonePlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethod(Matchers.withName("sendCommandAsync").and(Matchers.takesArguments(2)))
                                                    .to("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientGrpc$SendCommandAsync")
-                ),
+                        ),
 
             forClass("org.apache.hadoop.hdds.scm.XceiverClientRatis")
                 .methods(
@@ -87,14 +84,14 @@ public class OzonePlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethod(Matchers.withName("sendCommandAsync").and(Matchers.takesArguments(1)))
                                                    .to("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientRatis$SendCommandAsync")
-                ),
+                        ),
 
             forClass("org.apache.hadoop.hdds.scm.XceiverClientSpi")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("sendCommand")
                                                    .to("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientSpi$SendCommand")
-                )
-        );
+                        )
+                            );
     }
 }

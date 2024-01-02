@@ -14,35 +14,39 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.mysql.trace;
+package org.bithon.agent.plugin.apache.kafka.admin.interceptor;
 
+import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
-import org.bithon.component.commons.logging.ILogAdaptor;
-import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
+import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
 /**
- * @author frankchen
+ * @author Frank Chen
+ * @date 2/1/24 11:47 am
  */
-public class PreparedStatementTraceInterceptor extends AroundInterceptor {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(PreparedStatementTraceInterceptor.class);
-
+public class KafkaAdminClient$All extends AroundInterceptor {
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan("mysql");
+        ITraceSpan span = TraceSpanFactory.newSpan(Components.KAFKA);
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        // create a span and save it in user-context
+        IBithonObject bithonObject = aopContext.getTargetAs();
+        KafkaPluginContext pluginContext = (KafkaPluginContext) bithonObject.getInjectedObject();
+
         aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
+                                      .tag(Tags.Messaging.SYSTEM, "kafka")
+                                      .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
+                                      .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
                                       .start());
 
         return InterceptionDecision.CONTINUE;
@@ -50,20 +54,7 @@ public class PreparedStatementTraceInterceptor extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan mysqlSpan = aopContext.getUserContextAs();
-        try {
-            String sql;
-            if ((sql = (String) InterceptorContext.get(ConnectionTraceInterceptor.KEY)) != null) {
-                mysqlSpan.tag(Tags.Database.STATEMENT, sql);
-            }
-        } finally {
-            try {
-                mysqlSpan.finish();
-            } catch (Exception e) {
-                log.warn(e.getMessage(), e);
-            }
-
-            InterceptorContext.remove(ConnectionTraceInterceptor.KEY);
-        }
+        ITraceSpan span = aopContext.getUserContextAs();
+        span.tag(aopContext.getException()).finish();
     }
 }

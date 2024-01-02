@@ -37,9 +37,11 @@ public class FilterUtils {
         }
 
         for (Map.Entry<String, String> entry : filterConfig.getAttributes().entrySet()) {
-            Object attribValue = exchange.getAttribute(entry.getKey());
+            String attribName = entry.getKey();
+            String tagName = entry.getValue();
+            Object attribValue = exchange.getAttribute(attribName);
             if (attribValue != null) {
-                span.tag(entry.getValue(), attribValue.toString());
+                span.tag(tagName, attribValue.toString());
             }
         }
     }

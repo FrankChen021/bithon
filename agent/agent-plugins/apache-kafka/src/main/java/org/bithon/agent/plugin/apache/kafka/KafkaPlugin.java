@@ -49,7 +49,7 @@ public class KafkaPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethod(Matchers.withName("poll").and(Matchers.visibility(Visibility.PRIVATE)))
                                                    .to("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Poll")
-                ),
+                        ),
 
             forClass("org.apache.kafka.clients.consumer.internals.Fetcher")
                 .methods(
@@ -60,7 +60,7 @@ public class KafkaPlugin implements IPlugin {
                                                                     "org.apache.kafka.common.record.RecordBatch",
                                                                     "org.apache.kafka.common.record.Record")
                                                    .to("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.Fetcher$ParseRecord")
-                ),
+                        ),
 
             // Spring Kafka, can move to an independent plugin
             forClass("org.springframework.kafka.listener.KafkaMessageListenerContainer$ListenerConsumer")
@@ -72,7 +72,7 @@ public class KafkaPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("pollAndInvoke")
                                                    .to("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.ListenerConsumer$PollAndInvoke")
-                ),
+                        ),
 
             forClass("org.apache.kafka.clients.producer.KafkaProducer")
                 .methods(
@@ -85,7 +85,7 @@ public class KafkaPlugin implements IPlugin {
                                                    .onAllMethods("doSend")
                                                    .to("org.bithon.agent.plugin.apache.kafka.producer.interceptor.KafkaProducer$DoSend")
 
-                ),
+                        ),
 
             // Producer metrics helper
             forClass("org.apache.kafka.clients.producer.internals.Sender")
@@ -94,7 +94,7 @@ public class KafkaPlugin implements IPlugin {
                                                    .onMethod(Matchers.withName("handleProduceResponse")
                                                                      .and(Matchers.takesFirstArgument("org.apache.kafka.clients.ClientResponse")))
                                                    .to("org.bithon.agent.plugin.apache.kafka.producer.interceptor.Sender$HandleProduceResponse")
-                ),
+                        ),
 
             // Producer metrics
             forClass("org.apache.kafka.clients.producer.internals.Sender$SenderMetrics")
@@ -110,14 +110,30 @@ public class KafkaPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("recordErrors")
                                                    .to("org.bithon.agent.plugin.apache.kafka.producer.interceptor.SenderMetrics$RecordErrors")
-                ),
+                        ),
 
             forClass("org.apache.kafka.clients.NetworkClient")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("completeResponses")
                                                    .to("org.bithon.agent.plugin.apache.kafka.network.interceptor.NetworkClient$CompleteResponses")
-                )
-        );
+                        ),
+
+            // AdminClient
+            forClass("org.apache.kafka.clients.admin.AdminClient")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("create")
+                                                   .to("org.bithon.agent.plugin.apache.kafka.admin.interceptor.AdminClient$Create")
+                        ),
+
+            forClass("org.apache.kafka.clients.admin.KafkaAdminClient")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.implement("org.apache.kafka.clients.admin.Admin"))
+                                                   .to("org.bithon.agent.plugin.apache.kafka.admin.interceptor.KafkaAdminClient$All")
+                        )
+
+                            );
     }
 }

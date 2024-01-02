@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * key - the class name of implementation of {@link org.springframework.cloud.gateway.filter.GatewayFilter} or {@link org.springframework.cloud.gateway.filter.GlobalFilter}
+ *
  * @author frank.chen021@outlook.com
  * @date 31/12/21 11:25 PM
  */
@@ -32,7 +34,8 @@ public class GatewayFilterConfigs extends HashMap<String, GatewayFilterConfigs.F
         private String mode;
 
         /**
-         * defines which attributes on the {@link import org.springframework.web.server.ServerWebExchange} object should be recorded to the span log
+         * key - the attribute name in the {@link import org.springframework.web.server.ServerWebExchange}
+         * val - the attribute name in the span log
          */
         private Map<String, String> attributes = Collections.emptyMap();
 
