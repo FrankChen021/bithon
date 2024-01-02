@@ -21,7 +21,7 @@ import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.jdbc.utils.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 
 /**
  * @author frank.chen021@outlook.com

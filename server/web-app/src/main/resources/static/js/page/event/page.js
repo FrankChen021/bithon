@@ -60,7 +60,6 @@ class EventPage {
                     pageSize: params.pageSize,
                     pageNumber: params.pageNumber - 1,
                     traceId: params.searchText,
-                    application: g_SelectedApp,
                     filters: this.vFilter.getSelectedFilters(),
                     startTimeISO8601: interval.start,
                     endTimeISO8601: interval.end,

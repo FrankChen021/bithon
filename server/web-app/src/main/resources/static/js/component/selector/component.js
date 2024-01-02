@@ -226,13 +226,9 @@ class AppSelector {
 
     #addFilter(dimensionName, dimensionValue) {
         this.mSelectedFilters[dimensionName] = {
-            dimension: dimensionName,
-            type: 'dimension',
-            nameType: 'alias',
-            matcher: {
-                type: 'equal',
-                pattern: dimensionValue
-            }
+            field: dimensionName,
+            predicate: '=',
+            expected: dimensionValue
         };
     }
 
@@ -366,13 +362,7 @@ class AppSelector {
                         // Get the filtered value from stored state
                         const filter = this.mSelectedFilters[this.mQueryVariablePrefix + filterSpec.alias];
                         if (filter != null) {
-                            filters.push({
-                                // use name instead of alias to query dimensions
-                                 type: 'dimension',
-                                 nameType: 'alias',
-                                dimension: filter.dimension,
-                                matcher: filter.matcher
-                            });
+                            filters.push(filter);
                         }
                     }
                 }

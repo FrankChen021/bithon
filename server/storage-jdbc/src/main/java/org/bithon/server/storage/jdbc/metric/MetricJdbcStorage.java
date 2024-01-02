@@ -30,9 +30,9 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
+import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.jooq.Tables;
-import org.bithon.server.storage.jdbc.utils.ISqlDialect;
-import org.bithon.server.storage.jdbc.utils.SqlDialectManager;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
@@ -133,9 +133,9 @@ public class MetricJdbcStorage implements IMetricStorage {
             // Create a new one
             JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
             return DSL.using(new DefaultConfiguration()
-                                 .set(autoConfiguration.dataSourceConnectionProvider(jdbcDataSource))
-                                 .set(new JooqProperties().determineSqlDialect(jdbcDataSource))
-                                 .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
+                                     .set(autoConfiguration.dataSourceConnectionProvider(jdbcDataSource))
+                                     .set(new JooqProperties().determineSqlDialect(jdbcDataSource))
+                                     .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
         });
 
         return this.createReader(context, sqlDialectManager.getSqlDialect(context));

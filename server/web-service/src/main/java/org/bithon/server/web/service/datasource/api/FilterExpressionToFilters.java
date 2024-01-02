@@ -214,7 +214,7 @@ public class FilterExpressionToFilters {
         private IdentifierExpression field;
 
         public void setColumnFilter(IColumnFilter filter) {
-            this.field = new IdentifierExpression(filter.getName());
+            this.field = new IdentifierExpression(filter.getField());
         }
 
         @Override

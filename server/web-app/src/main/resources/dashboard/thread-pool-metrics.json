@@ -117,14 +117,7 @@
           "avgDuration",
           "maxDuration"
         ],
-        "filters": [{
-          "type": "metric",
-          "name": "totalTaskCount",
-          "matcher": {
-            "type": "gt",
-            "value": 0
-          }
-        }]
+        "filter": "totalTaskCount > 0"
       },
       "details": {
         "columns": [
@@ -145,14 +138,7 @@
             "avgDuration",
             "maxDuration"
           ],
-          "filters": [{
-            "type": "metric",
-            "name": "totalTaskCount",
-            "matcher": {
-              "type": "gt",
-              "value": 0
-            }
-          }],
+          "filter": "totalTaskCount > 0",
           "orderBy": {
             "name": "totalTaskCount",
             "order": "desc"

@@ -22,10 +22,6 @@
       <groupId>org.bithon</groupId>
       <artifactId>server-storage</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>server-sink</artifactId>
-    </dependency>
 
     <!-- JOOQ -->
     <dependency>
@@ -51,13 +47,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jdbc</artifactId>
-    </dependency>
-
-    <!-- Built in H2 Database -->
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <version>2.2.220</version>
     </dependency>
 
     <dependency>
