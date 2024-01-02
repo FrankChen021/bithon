@@ -117,7 +117,15 @@ public class KafkaPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("completeResponses")
                                                    .to("org.bithon.agent.plugin.apache.kafka.network.interceptor.NetworkClient$CompleteResponses")
-                )
+                ),
+
+            // AdminClient
+            forClass("org.apache.kafka.clients.admin.AdminClient")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("create")
+                                                   .to("org.bithon.agent.plugin.apache.kafka.admin.interceptor.AdminClient$Create")
+                        )
         );
     }
 }
