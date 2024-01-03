@@ -38,23 +38,13 @@ public class TraceTopo {
         private final String application;
         private final String instance;
 
-        private int level;
-
-        /**
-         * node index in a level from one
-         */
-        private int nodeIndex;
-
-        /**
-         * node count of the level that this node belongs to
-         */
-        private int nodeCount;
+        private int hop;
 
         public Node(String name, String application, String instance) {
             this.name = name;
             this.application = application;
             this.instance = instance;
-            this.level = 1;
+            this.hop = 1;
         }
     }
 
@@ -62,26 +52,35 @@ public class TraceTopo {
     public static class Link {
         private String source;
         private String target;
+        private int count;
+        private int errors;
+        private long minResponseTime;
+        private long maxResponseTime;
+        private long totalResponseTime;
 
         public Link(String source, String target) {
             this.source = source;
             this.target = target;
+            this.count = 0;
+            this.errors = 0;
+            this.minResponseTime = Long.MAX_VALUE;
+            this.maxResponseTime = 0;
+            this.totalResponseTime = 0;
         }
 
-        private int count;
-
-        public Link incrCount() {
+        public Link incrCount(long responseTime, boolean hasException) {
             count++;
+            if (hasException) {
+                errors++;
+            }
+            minResponseTime = Math.min(minResponseTime, responseTime);
+            maxResponseTime = Math.max(maxResponseTime, responseTime);
+            totalResponseTime += responseTime;
             return this;
         }
     }
 
     private Collection<Node> nodes;
     private Collection<Link> links;
-    private int maxLevel;
-
-    /**
-     * max node count in a level
-     */
-    private int maxNodeCount;
+    private int maxHops;
 }

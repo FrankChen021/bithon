@@ -27,11 +27,13 @@ import org.bithon.server.web.service.tracing.api.TraceTopo;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Build application topo for a specific tracing
@@ -74,58 +76,40 @@ public class TraceTopoBuilder {
         }
     }
 
-    private final Map<String, TraceTopo.Link> links = new HashMap<>();
-
+    // Use LinkedHashMap to keep the insert order which is the order of calls
+    private final Map<String, TraceTopo.Link> links = new LinkedHashMap<>();
     private final Map<String, TraceTopo.Node> nodes = new HashMap<>();
-
-    /**
-     * key: level
-     * val: count of nodes in this level
-     */
-    private final Map<Integer, Integer> nodeCountOfLevels = new HashMap<>();
 
     /**
      * A map from instance to generated node name
      */
     private final Map<Instance, String> nodeNameMap = new HashMap<>();
-    private int nodeNumber = 0;
-    private int maxLevel = -1;
-    private int maxNodeCount = -1;
+    private int nodeIndex = 0;
+    private int maxHops = -1;
 
     private String getNodeName(TraceSpan span) {
         return nodeNameMap.computeIfAbsent(Instance.of(span.getAppName(), span.getInstanceName()),
-                                           (key) -> "n" + nodeNumber++);
+                                           (key) -> "n" + nodeIndex++);
     }
 
     private TraceTopo.Link addLink(TraceSpan source, TraceSpan target) {
         String srcNodeName = getNodeName(source);
-        TraceTopo.Node srcNode = nodes.get(srcNodeName);
-        if (srcNode == null) {
-            srcNode = new TraceTopo.Node(srcNodeName, source.getAppName(), source.getInstanceName());
-            srcNode.setNodeIndex(getAndIncreaseNodeCount(srcNode.getLevel()));
-
-            nodes.put(srcNodeName, srcNode);
-        }
+        TraceTopo.Node srcNode = nodes.computeIfAbsent(srcNodeName, n -> new TraceTopo.Node(n, source.getAppName(), source.getInstanceName()));
 
         String dstNodeName = getNodeName(target);
         TraceTopo.Node dstNode = nodes.get(dstNodeName);
         if (dstNode == null) {
             dstNode = new TraceTopo.Node(dstNodeName, target.getAppName(), target.getInstanceName());
-            dstNode.setLevel(srcNode.getLevel() + 1);
-            dstNode.setNodeIndex(getAndIncreaseNodeCount(dstNode.getLevel()));
-
+            dstNode.setHop(srcNode.getHop() + 1);
             nodes.put(dstNodeName, dstNode);
         }
 
-        maxLevel = Math.max(maxLevel, dstNode.getLevel());
-        maxNodeCount = Math.max(maxNodeCount, dstNode.getNodeIndex() + 1);
+        maxHops = Math.max(maxHops, dstNode.getHop());
 
-        return this.links.computeIfAbsent(srcNodeName + "->" + dstNodeName,
-                                          v -> new TraceTopo.Link(srcNodeName, dstNodeName));
-    }
-
-    private int getAndIncreaseNodeCount(int level) {
-        return nodeCountOfLevels.compute(level, (k, old) -> old == null ? 1 : old + 1);
+        TraceTopo.Link link = this.links.computeIfAbsent(srcNodeName + "->" + dstNodeName,
+                                                         v -> new TraceTopo.Link(srcNodeName, dstNodeName));
+        link.incrCount(source.costTime, !"200".equals(source.status));
+        return link;
     }
 
     @SuppressWarnings("unchecked")
@@ -151,10 +135,8 @@ public class TraceTopoBuilder {
                 }
                 if (StringUtils.hasText(userAgent)) {
                     // Use the user agent as the name of the USER node
-                    user.setAppName(userAgent);
+                    user.setAppName(new UserAgentAnalyzer().shorten(userAgent));
                 }
-
-                this.addLink(user, root).incrCount();
             } else if (SpanKind.CONSUMER.name().equals(root.kind)) {
 
                 if ("kafka".equals(root.name)) {
@@ -172,18 +154,54 @@ public class TraceTopoBuilder {
                     user.setAppName("producer");
                     user.setInstanceName(null);
                 }
-
-                this.addLink(user, root).incrCount();
+            } else {
+                continue;
             }
+
+            user.setStatus(root.getStatus());
+            user.setCostTime(root.getCostTime());
+            this.addLink(user, root);
         }
 
-        // Step 3. Set level/node property for each node
-        Collection<TraceTopo.Node> topoNodes = nodes.values();
-        topoNodes.forEach((node) -> {
-            int nodeCount = this.nodeCountOfLevels.getOrDefault(node.getLevel(), 1);
-            node.setNodeCount(nodeCount);
-        });
-        return new TraceTopo(topoNodes, links.values(), maxLevel, maxNodeCount);
+        return new TraceTopo(nodes.values(), links.values(), maxHops);
+    }
+
+    public static class UserAgentAnalyzer {
+        private final Pattern browserLeadingPattern = Pattern.compile("^Mozilla/\\d+\\.\\d+ ");
+        private final Pattern osPattern = Pattern.compile("(^\\([^)]+\\)) ");
+
+        /**
+         * Analyze user agent that from web browser so that the UI shows shorter text
+         */
+        private String shorten(String userAgent) {
+            // If the user agent has a pattern as 'Mozilla/5.0', we treat it as a request from a web browser
+            Matcher leadingMatcher = browserLeadingPattern.matcher(userAgent);
+            if (leadingMatcher.find()) {
+                userAgent = userAgent.substring(leadingMatcher.end());
+
+                String os = "";
+                Matcher osMatcher = osPattern.matcher(userAgent);
+                if (osMatcher.find()) {
+                    os = osMatcher.group(1);
+                }
+
+                String[][] browserPatterList = new String[][]{
+                    {" OPR/\\d+", "Opera"},
+                    {" Safari/\\d+", "Safari"},
+                    {" Firefox/\\d+", "Firefox"},
+                    {" Edg/\\d++", "Microsoft Edge"},
+
+                    // Must the last one because Edge/Opera also contains this part
+                    {" Chrome/\\d++", "Chrome"},
+                };
+                for (String[] browserPattern : browserPatterList) {
+                    if (Pattern.compile(browserPattern[0]).matcher(userAgent).find()) {
+                        return browserPattern[1] + os;
+                    }
+                }
+            }
+            return userAgent;
+        }
     }
 
     /**
@@ -225,9 +243,9 @@ public class TraceTopoBuilder {
         for (TraceSpanBo childSpan : (List<TraceSpanBo>) childSpans) {
 
             if (parentSpan.getAppName().equals(childSpan.getAppName())
-                    && Objects.equals(parentSpan.getInstanceName(), childSpan.getInstanceName())
-                    && !SpanKind.SERVER.name().equals(childSpan.getKind())
-                    && !SpanKind.CONSUMER.name().equals(childSpan.getKind())) {
+                && Objects.equals(parentSpan.getInstanceName(), childSpan.getInstanceName())
+                && !SpanKind.SERVER.name().equals(childSpan.getKind())
+                && !SpanKind.CONSUMER.name().equals(childSpan.getKind())) {
                 // The instance of childSpan is the same as the parentSpan,
                 // no need to create a link, but just recursively search next level,
                 //
@@ -241,7 +259,7 @@ public class TraceTopoBuilder {
                 // There's a link from the parentSpan to the childSpan,
                 // for this parentSpan, it terminates
                 hasTermination = true;
-                this.addLink(parentSpan, childSpan).incrCount();
+                this.addLink(parentSpan, childSpan);
 
                 buildLink(childSpan, childSpan.children);
             }
@@ -256,6 +274,8 @@ public class TraceTopoBuilder {
                     peer = childSpan.getTag(Tags.Net.PEER);
                     if (childSpan.getTag(Tags.Http.CLIENT) != null) {
                         scheme = "http";
+                    } else if (childSpan.getTag(Tags.Messaging.SYSTEM) != null) {
+                        scheme = childSpan.getTag(Tags.Messaging.SYSTEM);
                     } else {
                         scheme = "Unknown";
                     }
@@ -276,7 +296,7 @@ public class TraceTopoBuilder {
                     TraceSpan next = new TraceSpan();
                     next.setAppName(scheme);
                     next.setInstanceName(peer);
-                    this.addLink(childSpan, next).incrCount();
+                    this.addLink(childSpan, next);
 
                     hasTermination = true;
                 }
