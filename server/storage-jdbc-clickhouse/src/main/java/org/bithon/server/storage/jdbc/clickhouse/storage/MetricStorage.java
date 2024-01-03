@@ -33,6 +33,7 @@ import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageConfiguration;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
+import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcWriter;
@@ -40,13 +41,14 @@ import org.bithon.server.storage.jdbc.metric.MetricTable;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
-import org.bithon.server.storage.metrics.ttl.MetricStorageCleaner;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.Result;
 
 import java.sql.Timestamp;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,23 +82,33 @@ public class MetricStorage extends MetricJdbcStorage {
 
     @Override
     public IExpirationRunnable getExpirationRunnable() {
-        return new MetricStorageCleaner() {
-            @Override
-            public ExpirationConfig getRule() {
-                return storageConfig.getTtl();
-            }
+        return new StorageCleaner(dslContext, schemaManager, this.storageConfig.getTtl(), config);
+    }
 
-            @Override
-            protected DataSourceSchemaManager getSchemaManager() {
-                return schemaManager;
-            }
+    static class StorageCleaner extends MetricStorageJdbcCleaner {
+        private final ClickHouseConfig config;
 
-            @Override
-            protected void expireImpl(DataSourceSchema schema, Timestamp before) {
-                String table = schema.getDataStoreSpec().getStore();
-                new DataCleaner(config, dslContext).deleteFromPartition(table, before);
-            }
-        };
+        protected StorageCleaner(DSLContext dslContext,
+                                 DataSourceSchemaManager schemaManager,
+                                 ExpirationConfig ttlConfig,
+                                 ClickHouseConfig config) {
+            super(dslContext, schemaManager, ttlConfig);
+            this.config = config;
+        }
+
+        @Override
+        protected Result<Record> getSkipDateRecordList() {
+            String sql = dslContext.select(Tables.BITHON_METRICS_BASELINE.DATE, Tables.BITHON_METRICS_BASELINE.KEEP_DAYS)
+                                   .from(Tables.BITHON_METRICS_BASELINE)
+                                   .getSQL() + " FINAL ";
+            return dslContext.fetch(sql);
+        }
+
+        @Override
+        protected void expireImpl(DataSourceSchema schema, Timestamp before, List<TimeSpan> skipDateList) {
+            String table = schema.getDataStoreSpec().getStore();
+            new DataCleaner(config, dslContext).deleteFromPartition(table, before, skipDateList);
+        }
     }
 
     @Override
@@ -148,5 +160,32 @@ public class MetricStorage extends MetricJdbcStorage {
                 }).collect(Collectors.toList());
             }
         };
+    }
+
+    @Override
+    public void initialize() {
+        new TableCreator(config, this.dslContext).useReplacingMergeTree(Tables.BITHON_METRICS_BASELINE.CREATE_TIME.getName())
+                                                 // No partition for this table
+                                                 .partitionByExpression(null)
+                                                 // Add minmax index to timestamp column
+                                                 .createIfNotExist(Tables.BITHON_METRICS_BASELINE);
+    }
+
+    @Override
+    protected Result<Record> getBaselineRecords() {
+        String sql = dslContext.select(Tables.BITHON_METRICS_BASELINE.DATE, Tables.BITHON_METRICS_BASELINE.KEEP_DAYS)
+                               .from(Tables.BITHON_METRICS_BASELINE)
+                               .getSQL() + " FINAL ";
+        return dslContext.fetch(sql);
+    }
+
+    @Override
+    public void saveBaseline(String date, int keepDays) {
+        LocalDateTime now = new Timestamp(System.currentTimeMillis()).toLocalDateTime();
+        dslContext.insertInto(Tables.BITHON_METRICS_BASELINE)
+                  .set(Tables.BITHON_METRICS_BASELINE.DATE, date)
+                  .set(Tables.BITHON_METRICS_BASELINE.KEEP_DAYS, keepDays)
+                  .set(Tables.BITHON_METRICS_BASELINE.CREATE_TIME, now)
+                  .execute();
     }
 }

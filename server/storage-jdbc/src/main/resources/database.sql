@@ -186,3 +186,13 @@ CREATE TABLE `bithon_web_dashboard`
     KEY `idx_web_dashboard_timestamp` (`timestamp`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='';
+
+DROP TABLE IF EXISTS `bithon_metrics_baseline`;
+CREATE TABLE `bithon_metrics_baseline`
+(
+    `date`         VARCHAR(10) NOT NULL COMMENT 'On which day the metrics will be kept.In the format of yyyy-MM-dd',
+    `keep_days`    INT NOT NULL COMMENT 'How many days the metrics will be kept. If 0, the metrics will be kept forever ',
+    `create_time`  TIMESTAMP(3) NOT NULL COMMENT 'Created Timestamp',
+    UNIQUE `bithon_metrics_baseline_date` (`date`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT ='This table keeps the date when the metrics will be kept for ever';

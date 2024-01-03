@@ -170,4 +170,11 @@ public class DataSourceService {
                       .build();
     }
 
+    public List<String> getBaseline() {
+        return metricStorage.getBaselineDates();
+    }
+
+    public void addToBaseline(String date, int keepDays) {
+        metricStorage.saveBaseline(date, keepDays);
+    }
 }

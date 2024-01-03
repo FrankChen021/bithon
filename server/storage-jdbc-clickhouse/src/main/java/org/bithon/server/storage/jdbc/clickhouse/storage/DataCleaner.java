@@ -19,12 +19,16 @@ package org.bithon.server.storage.jdbc.clickhouse.storage;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.jooq.DSLContext;
 import org.jooq.Table;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -41,11 +45,15 @@ public class DataCleaner {
         this.dsl = dsl;
     }
 
+    public void deleteFromPartition(String table, Timestamp before) {
+        deleteFromPartition(table, before, Collections.emptyList());
+    }
+
     /**
      * DELETE PARTITION is a very lightweight operation
      */
     @SuppressWarnings("unchecked")
-    public void deleteFromPartition(String table, Timestamp before) {
+    public void deleteFromPartition(String table, Timestamp before, List<TimeSpan> skipDateList) {
         String fromTable;
         if (StringUtils.isEmpty(config.getCluster())) {
             fromTable = "system.parts";
@@ -53,18 +61,26 @@ public class DataCleaner {
             fromTable = StringUtils.format("clusterAllReplicas('%s', system, parts)", config.getCluster());
         }
 
+        Set<String> skipPartitions = skipDateList.stream()
+                                                 .map((timestamp) -> DateTime.toYYYYMMDD(timestamp.getMilliseconds()))
+                                                 .collect(Collectors.toSet());
+
         String localTable = config.getLocalTableName(table);
-        String selectPartitionSQL = StringUtils.format(
+        String selectPartitionSql = StringUtils.format(
             "SELECT distinct partition FROM %s WHERE database = '%s' AND table = '%s' AND partition < '%s'",
             fromTable,
             config.getDatabase(),
             localTable,
             DateTime.toYYYYMMDD(before.getTime()));
 
-        List<String> partitions = (List<String>) dsl.fetch(selectPartitionSQL)
+        List<String> partitions = (List<String>) dsl.fetch(selectPartitionSql)
                                                     .getValues(0);
 
         for (String partition : partitions) {
+            if (skipPartitions.contains(partition)) {
+                log.info("\tDrop [{}] on [{}] is skipped due to it's configured to be kept", table, partition);
+                continue;
+            }
             log.info("\tDrop [{}] on [{}]", table, partition);
             dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DROP PARTITION %s;",
                                            config.getDatabase(),

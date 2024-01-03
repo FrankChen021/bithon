@@ -13,6 +13,7 @@ import org.bithon.server.storage.jdbc.jooq.tables.BithonApplicationInstance;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonEvent;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonMetaApplicationMetricMap;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonMetaSchema;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonMetricsBaseline;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceMapping;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpan;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
@@ -29,7 +30,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DefaultSchema extends SchemaImpl {
 
-    private static final long serialVersionUID = 593373252;
+    private static final long serialVersionUID = -1934261052;
 
     /**
      * The reference instance of <code></code>
@@ -60,6 +61,11 @@ public class DefaultSchema extends SchemaImpl {
      * The table <code>bithon_meta_schema</code>.
      */
     public final BithonMetaSchema BITHON_META_SCHEMA = org.bithon.server.storage.jdbc.jooq.tables.BithonMetaSchema.BITHON_META_SCHEMA;
+
+    /**
+     * This table keeps the date when the metrics will be kept for ever
+     */
+    public final BithonMetricsBaseline BITHON_METRICS_BASELINE = org.bithon.server.storage.jdbc.jooq.tables.BithonMetricsBaseline.BITHON_METRICS_BASELINE;
 
     /**
      * The table <code>bithon_trace_mapping</code>.
@@ -113,6 +119,7 @@ public class DefaultSchema extends SchemaImpl {
             BithonEvent.BITHON_EVENT,
             BithonMetaApplicationMetricMap.BITHON_META_APPLICATION_METRIC_MAP,
             BithonMetaSchema.BITHON_META_SCHEMA,
+            BithonMetricsBaseline.BITHON_METRICS_BASELINE,
             BithonTraceMapping.BITHON_TRACE_MAPPING,
             BithonTraceSpan.BITHON_TRACE_SPAN,
             BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY,

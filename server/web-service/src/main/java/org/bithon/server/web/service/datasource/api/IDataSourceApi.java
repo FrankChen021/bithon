@@ -16,13 +16,16 @@
 
 package org.bithon.server.web.service.datasource.api;
 
+import lombok.Data;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import javax.validation.constraints.Min;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -67,6 +70,20 @@ public interface IDataSourceApi {
     @PostMapping("/api/datasource/dimensions/v2")
     Collection<Map<String, String>> getDimensions(@Validated @RequestBody GetDimensionRequest request);
 
-    @PostMapping("api/datasource/ttl/update")
+    @PostMapping("/api/datasource/ttl/update")
     void updateSpecifiedDataSourceTTL(@RequestBody UpdateTTLRequest request);
+
+    @Data
+    class SaveMetricBaselineRequest {
+        private String date;
+
+        @Min(0)
+        private int keepDays = 0;
+    }
+
+    @PostMapping("/api/metric/baseline/save")
+    void saveMetricBaseline(@Validated @RequestBody SaveMetricBaselineRequest request);
+
+    @PostMapping("/api/metric/baseline/get")
+    List<String> getBaselineDate();
 }
