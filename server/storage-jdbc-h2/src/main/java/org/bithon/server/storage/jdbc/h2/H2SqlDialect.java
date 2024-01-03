@@ -38,6 +38,16 @@ import java.util.Arrays;
 public class H2SqlDialect implements ISqlDialect {
 
     @Override
+    public String quoteIdentifier(String identifier) {
+        return "\"" + identifier + "\"";
+    }
+
+    @Override
+    public String timeFloorExpression(IExpression timestampExpression, long interval) {
+        return StringUtils.format("UNIX_TIMESTAMP(%s)/ %d * %d", timestampExpression.serializeToText(), interval, interval);
+    }
+
+    @Override
     public boolean groupByUseRawExpression() {
         return true;
     }

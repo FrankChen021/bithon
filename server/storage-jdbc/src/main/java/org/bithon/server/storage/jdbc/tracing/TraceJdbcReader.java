@@ -136,7 +136,7 @@ public class TraceJdbcReader implements ITraceReader {
 
         // Build the tag query
         if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
-            SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.traceTagIndexSchema)
+            SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect)
                 .dslContext(this.dslContext)
                 .start(start.toLocalDateTime())
                 .end(end.toLocalDateTime())
@@ -206,7 +206,7 @@ public class TraceJdbcReader implements ITraceReader {
 
         // Build the indexed tag sub query
         if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
-            SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.traceTagIndexSchema)
+            SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect)
                 .dslContext(this.dslContext)
                 .start(start.toLocalDateTime())
                 .end(end.toLocalDateTime())
@@ -256,7 +256,7 @@ public class TraceJdbcReader implements ITraceReader {
         }
 
         // Build the indexed tag query
-        SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.traceTagIndexSchema)
+        SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect)
             .dslContext(this.dslContext)
             .start(start.toLocalDateTime())
             .end(end.toLocalDateTime())

@@ -85,7 +85,7 @@ public class MetricJdbcReader implements IMetricReader {
 
         selectExpression.getGroupBy().addField(TIMESTAMP_ALIAS_NAME);
 
-        SqlGenerator sqlGenerator = new SqlGenerator();
+        SqlGenerator sqlGenerator = new SqlGenerator(this.sqlDialect);
         selectExpression.accept(sqlGenerator);
         return executeSql(sqlGenerator.getSQL());
     }
@@ -103,7 +103,7 @@ public class MetricJdbcReader implements IMetricReader {
                                                                    .sqlDialect(this.sqlDialect)
                                                                    .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator();
+        SqlGenerator sqlGenerator = new SqlGenerator(this.sqlDialect);
         selectExpression.accept(sqlGenerator);
         return fetch(sqlGenerator.getSQL(), query.getResultFormat());
     }

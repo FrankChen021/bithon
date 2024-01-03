@@ -30,6 +30,7 @@ import org.bithon.server.storage.datasource.query.ast.SelectExpression;
 import org.bithon.server.storage.datasource.query.ast.StringNode;
 import org.bithon.server.storage.datasource.query.ast.Table;
 import org.bithon.server.storage.datasource.query.ast.Where;
+import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 
 /**
  * @author frank.chen021@outlook.com
@@ -38,7 +39,12 @@ import org.bithon.server.storage.datasource.query.ast.Where;
 public class SqlGenerator implements IASTNodeVisitor {
 
     private final StringBuilder sql = new StringBuilder(512);
+    private final ISqlDialect sqlDialect;
     private int nestedSelect = 0;
+
+    public SqlGenerator(ISqlDialect sqlDialect) {
+        this.sqlDialect = sqlDialect;
+    }
 
     public String getSQL() {
         return sql.toString();
@@ -67,9 +73,7 @@ public class SqlGenerator implements IASTNodeVisitor {
     @Override
     public void visit(OrderBy orderBy) {
         sql.append("ORDER BY ");
-        sql.append('\"');
-        sql.append(orderBy.getField());
-        sql.append('\"');
+        sql.append(sqlDialect.quoteIdentifier(orderBy.getField()));
 
         if (orderBy.getOrder() != null) {
             sql.append(' ');
@@ -121,18 +125,13 @@ public class SqlGenerator implements IASTNodeVisitor {
 
     @Override
     public void visit(Column column) {
-        sql.append('\"');
-        sql.append(column);
-        sql.append('\"');
-        sql.append(' ');
+        sql.append(sqlDialect.quoteIdentifier(column.getName()));
     }
 
     @Override
     public void visit(ColumnAlias alias) {
         sql.append(" AS ");
-        sql.append('\"');
-        sql.append(alias.getName());
-        sql.append('\"');
+        sql.append(sqlDialect.quoteIdentifier(alias.getName()));
     }
 
     @Override
@@ -142,9 +141,7 @@ public class SqlGenerator implements IASTNodeVisitor {
 
     @Override
     public void visit(Table table) {
-        sql.append('\"');
-        sql.append(table.getName());
-        sql.append('\"');
+        sql.append(sqlDialect.quoteIdentifier(table.getName()));
         sql.append(' ');
     }
 
@@ -162,9 +159,7 @@ public class SqlGenerator implements IASTNodeVisitor {
     public void visit(GroupBy groupBy) {
         sql.append("GROUP BY ");
         for (String field : groupBy.getFields()) {
-            sql.append('\"');
-            sql.append(field);
-            sql.append('\"');
+            sql.append(sqlDialect.quoteIdentifier(field));
             sql.append(" ,");
         }
         sql.delete(sql.length() - 1, sql.length());

@@ -31,28 +31,28 @@ public class ExpressionSerializerTest {
     public void testQuotedIdentifier() {
         IExpression expr = ExpressionASTBuilder.build("a = 1");
 
-        Assert.assertEquals("\"a\" = 1", expr.serializeToText(true));
+        Assert.assertEquals("\"a\" = 1", expr.serializeToText());
     }
 
     @Test
     public void testUnQuotedIdentifier() {
         IExpression expr = ExpressionASTBuilder.build("a = 1");
 
-        Assert.assertEquals("a = 1", expr.serializeToText(false));
+        Assert.assertEquals("a = 1", expr.serializeToText(null));
     }
 
     @Test
     public void testQualifiedIdentifier() {
         IExpression expr = ExpressionASTBuilder.build("a = 1");
 
-        Assert.assertEquals("default.a = 1", new ExpressionSerializer("default", false).serialize(expr));
-        Assert.assertEquals("\"default\".\"a\" = 1", new ExpressionSerializer("default", true).serialize(expr));
+        Assert.assertEquals("default.a = 1", new ExpressionSerializer("default", null).serialize(expr));
+        Assert.assertEquals("\"default\".\"a\" = 1", new ExpressionSerializer("default", (s) -> "\"" + s + "\"").serialize(expr));
     }
 
     @Test
     public void testMapAccessExpression() {
         IExpression expr = ExpressionASTBuilder.build("a ['b']");
 
-        Assert.assertEquals("a['b']", expr.serializeToText(false));
+        Assert.assertEquals("a['b']", expr.serializeToText(null));
     }
 }

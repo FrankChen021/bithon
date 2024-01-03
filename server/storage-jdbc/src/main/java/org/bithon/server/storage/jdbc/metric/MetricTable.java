@@ -96,7 +96,7 @@ public class MetricTable extends TableImpl {
         } else if (dataType.equals(IDataType.STRING)) {
             // Note that the length defined here will be used in the MetricJdbcWriter to limit the size of input.
             // This only works on the H2 database.
-            return this.createField(DSL.name(name), SQLDataType.VARCHAR.length(8192).nullable(false).defaultValue(""));
+            return this.createField(DSL.name(name), SQLDataType.VARCHAR.length(64).nullable(false).defaultValue(""));
         } else {
             throw new RuntimeException("unknown type:" + dataType);
         }

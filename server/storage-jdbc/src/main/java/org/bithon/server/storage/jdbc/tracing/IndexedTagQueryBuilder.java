@@ -16,11 +16,12 @@
 
 package org.bithon.server.storage.jdbc.tracing;
 
+import lombok.Setter;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
+import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
@@ -33,10 +34,10 @@ import java.util.Map;
  */
 class IndexedTagQueryBuilder extends NestQueryBuilder {
 
-    private final DataSourceSchema traceTagIndexSchema;
+    private final ISqlDialect sqlDialect;
 
-    IndexedTagQueryBuilder(DataSourceSchema traceTagIndexSchema) {
-        this.traceTagIndexSchema = traceTagIndexSchema;
+    IndexedTagQueryBuilder(ISqlDialect sqlDialect) {
+        this.sqlDialect = sqlDialect;
     }
 
     @Override
@@ -45,8 +46,9 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
             return null;
         }
 
-        SelectConditionStep<Record1<String>> query = null;
+        TagFilterSerializer tagFilterSerializer = new TagFilterSerializer(sqlDialect);
 
+        SelectConditionStep<Record1<String>> query = null;
         for (Map.Entry<Integer, IExpression> entry : filters.entrySet()) {
             Integer index = entry.getKey();
             IExpression filter = entry.getValue();
@@ -64,7 +66,9 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
                                   .where(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.ge(this.start))
                                   .and(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.lt(this.end));
             }
-            query = query.and(new TagFilterSerializer(index).serialize(filter));
+
+            tagFilterSerializer.setIndex(index);
+            query = query.and(tagFilterSerializer.serialize(filter));
         }
 
         if (query != null) {
@@ -79,19 +83,16 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
     }
 
     static class TagFilterSerializer extends Expression2Sql {
-        private final int index;
+        @Setter
+        private int index;
 
-        TagFilterSerializer(int index) {
-            super(null, true);
-            this.index = index;
+        TagFilterSerializer(ISqlDialect sqlDialect) {
+            super(null, sqlDialect);
         }
 
         @Override
         public boolean visit(IdentifierExpression expression) {
-            sb.append('"');
-            sb.append('f');
-            sb.append(index);
-            sb.append('"');
+            sb.append(this.quoteIdentifier.apply("f" + index));
             return false;
         }
     }

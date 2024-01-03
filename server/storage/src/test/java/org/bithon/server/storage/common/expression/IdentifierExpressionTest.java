@@ -45,7 +45,7 @@ public class IdentifierExpressionTest {
     @Test
     public void testExpressionInFunctionExpression() {
         String expression = "round(a*b/c+d,2)";
-        Assert.assertEquals("round(((a * b) / c) + d, 2)", ExpressionASTBuilder.build(expression).serializeToText(false));
+        Assert.assertEquals("round(((a * b) / c) + d, 2)", ExpressionASTBuilder.build(expression).serializeToText(null));
     }
 
     @Test

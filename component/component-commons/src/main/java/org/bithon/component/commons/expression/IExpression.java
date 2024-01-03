@@ -18,6 +18,8 @@ package org.bithon.component.commons.expression;
 
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 
+import java.util.function.Function;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/4/7 20:16
@@ -33,10 +35,10 @@ public interface IExpression {
     <T> T accept(IExpressionVisitor2<T> visitor);
 
     default String serializeToText() {
-        return serializeToText(true);
+        return serializeToText((s) -> "\"" + s + "\"");
     }
 
-    default String serializeToText(boolean quoteIdentifier) {
+    default String serializeToText(Function<String, String> quoteIdentifier) {
         ExpressionSerializer serializer = new ExpressionSerializer(quoteIdentifier);
         return serializer.serialize(this);
     }

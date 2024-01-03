@@ -29,22 +29,22 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 public class Expression2Sql extends ExpressionSerializer {
 
     public static String from(DataSourceSchema schema, ISqlDialect sqlDialect, IExpression expression) {
-        return from(schema.getDataStoreSpec().getStore(), sqlDialect, expression, true);
+        return from(schema.getDataStoreSpec().getStore(), sqlDialect, expression);
     }
 
-    public static String from(String schema, ISqlDialect sqlDialect, IExpression expression) {
-        return from(schema, sqlDialect, expression, true);
-    }
-
-    public static String from(String schema, ISqlDialect sqlDialect, IExpression expression, boolean quoteIdentifier) {
+    public static String from(String qualifier, ISqlDialect sqlDialect, IExpression expression) {
         if (expression == null) {
             return null;
         }
-        return new Expression2Sql(schema, quoteIdentifier).serialize(sqlDialect.transform(expression));
+        return new Expression2Sql(qualifier, sqlDialect).serialize(sqlDialect.transform(expression));
     }
 
-    public Expression2Sql(String qualifier, boolean quoteIdentifier) {
-        super(qualifier, quoteIdentifier);
+    public static String from(ISqlDialect sqlDialect, IExpression expression) {
+        return new Expression2Sql(null, sqlDialect).serialize(sqlDialect.transform(expression));
+    }
+
+    public Expression2Sql(String qualifier, ISqlDialect sqlDialect) {
+        super(qualifier, sqlDialect::quoteIdentifier);
     }
 
     @Override

@@ -28,14 +28,15 @@ import org.bithon.server.commons.time.TimeSpan;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface ISqlDialect {
+
+    String quoteIdentifier(String identifier);
+
     /**
      * different DBMS has different functions to support time_floor semantics
      *
      * @param interval in seconds
      */
-    default String timeFloorExpression(IExpression timestampExpression, long interval) {
-        return StringUtils.format("UNIX_TIMESTAMP(%s)/ %d * %d", timestampExpression.serializeToText(), interval, interval);
-    }
+    String timeFloorExpression(IExpression timestampExpression, long interval);
 
     /**
      * Some DBMS requires the group-by expression to be the same as the expression in field list

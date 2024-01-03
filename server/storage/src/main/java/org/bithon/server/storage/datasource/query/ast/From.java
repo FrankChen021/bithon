@@ -25,10 +25,14 @@ import lombok.Data;
 @Data
 public class From implements IASTNode {
     private IASTNode expression;
+    private ColumnAlias alias;
 
     @Override
     public void accept(IASTNodeVisitor visitor) {
         visitor.visit(this);
         expression.accept(visitor);
+        if (alias != null) {
+            alias.accept(visitor);
+        }
     }
 }

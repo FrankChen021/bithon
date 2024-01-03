@@ -60,12 +60,12 @@ public class SqlGenerator4SimpleAggregationFunction implements ISimpleAggregateF
 
     @Override
     public String visit(SimpleAggregateExpressions.CardinalityAggregateExpression aggregator) {
-        return StringUtils.format("count(DISTINCT \"%s\")", aggregator.getTargetColumn());
+        return StringUtils.format("count(DISTINCT %s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
     }
 
     @Override
     public String visit(SimpleAggregateExpressions.SumAggregateExpression aggregator) {
-        return StringUtils.format("sum(\"%s\")", aggregator.getTargetColumn());
+        return StringUtils.format("sum(%s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
     }
 
     @Override
@@ -81,7 +81,7 @@ public class SqlGenerator4SimpleAggregationFunction implements ISimpleAggregateF
 
     @Override
     public String visit(SimpleAggregateExpressions.AvgAggregateExpression aggregator) {
-        return StringUtils.format("avg(\"%s\")", aggregator.getTargetColumn());
+        return StringUtils.format("avg(%s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
     }
 
     @Override
@@ -96,16 +96,16 @@ public class SqlGenerator4SimpleAggregationFunction implements ISimpleAggregateF
 
     @Override
     public String visit(SimpleAggregateExpressions.RateAggregateExpression aggregator) {
-        return StringUtils.format("sum(\"%s\")/%d", aggregator.getTargetColumn(), step);
+        return StringUtils.format("sum(%s)/%d", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()), step);
     }
 
     @Override
     public String visit(SimpleAggregateExpressions.MaxAggregateExpression aggregator) {
-        return StringUtils.format("max(\"%s\")", aggregator.getTargetColumn());
+        return StringUtils.format("max(%s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
     }
 
     @Override
     public String visit(SimpleAggregateExpressions.MinAggregateExpression aggregator) {
-        return StringUtils.format("min(\"%s\")", aggregator.getTargetColumn());
+        return StringUtils.format("min(%s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
     }
 }
