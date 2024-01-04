@@ -79,8 +79,8 @@ public class ExpirationScheduler {
         final long now = System.currentTimeMillis();
 
         IExpirationRunnable cleaner = ((IExpirable) storage).getExpirationRunnable();
-        ExpirationConfig expirationConfig = cleaner.getRule();
-        if (expirationConfig == null || !cleaner.getRule().isEnabled()) {
+        ExpirationConfig expirationConfig = cleaner.getExpirationConfig();
+        if (expirationConfig == null || !cleaner.getExpirationConfig().isEnabled()) {
             // In case the configuration changed
             return;
         }

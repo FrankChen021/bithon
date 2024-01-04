@@ -82,7 +82,7 @@ public class TraceStorage extends TraceJdbcStorage {
     public IExpirationRunnable getExpirationRunnable() {
         return new IExpirationRunnable() {
             @Override
-            public ExpirationConfig getRule() {
+            public ExpirationConfig getExpirationConfig() {
                 return traceStorageConfig.getTtl();
             }
 

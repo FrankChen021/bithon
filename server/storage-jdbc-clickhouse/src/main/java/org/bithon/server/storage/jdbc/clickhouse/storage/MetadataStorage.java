@@ -111,7 +111,7 @@ public class MetadataStorage extends MetadataJdbcStorage {
     public IExpirationRunnable getExpirationRunnable() {
         return new IExpirationRunnable() {
             @Override
-            public ExpirationConfig getRule() {
+            public ExpirationConfig getExpirationConfig() {
                 return storageConfig.getTtl();
             }
 

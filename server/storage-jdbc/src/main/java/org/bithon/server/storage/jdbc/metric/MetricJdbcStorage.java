@@ -230,7 +230,7 @@ public class MetricJdbcStorage implements IMetricStorage {
         }
 
         @Override
-        public ExpirationConfig getRule() {
+        public ExpirationConfig getExpirationConfig() {
             return ttlConfig;
         }
 

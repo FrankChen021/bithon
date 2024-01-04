@@ -101,7 +101,7 @@ public class EventJdbcStorage implements IEventStorage {
     public IExpirationRunnable getExpirationRunnable() {
         return new IExpirationRunnable() {
             @Override
-            public ExpirationConfig getRule() {
+            public ExpirationConfig getExpirationConfig() {
                 return storageConfig.getTtl();
             }
 

@@ -24,7 +24,7 @@ import java.sql.Timestamp;
  */
 public interface IExpirationRunnable {
 
-    ExpirationConfig getRule();
+    ExpirationConfig getExpirationConfig();
 
     /**
      * Delete data whose timestamp is less than or equal to the given timestamp
