@@ -5,38 +5,38 @@
 bithon:
   storage:
     tracing:
-      type: jdbc
+      provider: jdbc
       enabled: true
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
     metric:
-      type: jdbc
+      provider: jdbc
       enabled: true
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
     event:
-      type: jdbc
+      provider: jdbc
       enabled: true
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
     meta:
-      type: jdbc
+      provider: jdbc
       enabled: true
       ttl:
         enabled: true
         ttl: PT5M
         cleanPeriod: PT1M
-    setting:     
-      type: jdbc
+    setting:
+      provider: jdbc
       enabled: true
     web:
-      type: jdbc
+      provider: jdbc
     providers:
       jdbc:
         # Make sure the database has been created

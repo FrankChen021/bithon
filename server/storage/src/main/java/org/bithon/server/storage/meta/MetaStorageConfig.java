@@ -16,8 +16,7 @@
 
 package org.bithon.server.storage.meta;
 
-import lombok.Data;
-import org.bithon.server.storage.common.ExpirationConfig;
+import org.bithon.server.storage.common.StorageConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,10 +24,7 @@ import org.springframework.context.annotation.Configuration;
  * @author frank.chen021@outlook.com
  * @date 17/10/21 10:44 am
  */
-@Data
 @Configuration
 @ConfigurationProperties(prefix = "bithon.storage.meta")
-public class MetaStorageConfig {
-    private String type;
-    private ExpirationConfig ttl;
+public class MetaStorageConfig extends StorageConfig {
 }

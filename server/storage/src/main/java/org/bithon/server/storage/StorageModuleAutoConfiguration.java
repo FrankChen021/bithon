@@ -64,12 +64,13 @@ public class StorageModuleAutoConfiguration {
     @ConditionalOnProperty(value = "bithon.storage.metric.enabled", havingValue = "true")
     public IMetricStorage createMetricStorage(MetricStorageConfig storageConfig,
                                               StorageProviderManager storageProviderManager) throws IOException {
-        InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
+        String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
+        InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
                                               "[%s] can't be blank",
                                               storageConfig.getClass(),
-                                              "type");
+                                              "provider");
 
-        IMetricStorage storage = storageProviderManager.createStorage(storageConfig.getType(), IMetricStorage.class);
+        IMetricStorage storage = storageProviderManager.createStorage(providerName, IMetricStorage.class);
         storage.initialize();
         return storage;
     }
@@ -78,12 +79,13 @@ public class StorageModuleAutoConfiguration {
     @ConditionalOnProperty(value = "bithon.storage.metric.enabled", havingValue = "true")
     public ISchemaStorage createSchemaStorage(MetricStorageConfig storageConfig,
                                               StorageProviderManager storageProviderManager) throws IOException {
-        InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
+        String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
+        InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
                                               "[%s] can't be blank",
                                               storageConfig.getClass(),
-                                              "type");
+                                              "provider");
 
-        ISchemaStorage storage = storageProviderManager.createStorage(storageConfig.getType(), ISchemaStorage.class);
+        ISchemaStorage storage = storageProviderManager.createStorage(providerName, ISchemaStorage.class);
         storage.initialize();
 
         // load default schemas
@@ -104,12 +106,13 @@ public class StorageModuleAutoConfiguration {
     @ConditionalOnProperty(value = "bithon.storage.meta.enabled", havingValue = "true")
     public IMetaStorage metaStorage(MetaStorageConfig storageConfig,
                                     StorageProviderManager storageProviderManager) throws IOException {
-        InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
+        String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
+        InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
                                               "[%s] can't be blank",
                                               storageConfig.getClass(),
-                                              "type");
+                                              "provider");
 
-        IMetaStorage storage = new CacheableMetadataStorage(storageProviderManager.createStorage(storageConfig.getType(), IMetaStorage.class));
+        IMetaStorage storage = new CacheableMetadataStorage(storageProviderManager.createStorage(providerName, IMetaStorage.class));
         storage.initialize();
         return storage;
     }
@@ -118,12 +121,13 @@ public class StorageModuleAutoConfiguration {
     @ConditionalOnProperty(value = "bithon.storage.tracing.enabled", havingValue = "true")
     public ITraceStorage traceStorage(TraceStorageConfig storageConfig,
                                       StorageProviderManager storageProviderManager) throws IOException {
-        InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
+        String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
+        InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
                                               "[%s] can't be blank",
                                               storageConfig.getClass(),
-                                              "type");
+                                              "provider");
 
-        ITraceStorage storage = storageProviderManager.createStorage(storageConfig.getType(), ITraceStorage.class);
+        ITraceStorage storage = storageProviderManager.createStorage(providerName, ITraceStorage.class);
         storage.initialize();
         return storage;
     }
@@ -132,12 +136,13 @@ public class StorageModuleAutoConfiguration {
     @ConditionalOnProperty(value = "bithon.storage.event.enabled", havingValue = "true")
     public IEventStorage eventStorage(EventStorageConfig storageConfig,
                                       StorageProviderManager storageProviderManager) throws IOException {
-        InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
+        String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
+        InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
                                               "[%s] can't be blank",
                                               storageConfig.getClass(),
-                                              "type");
+                                              "provider");
 
-        IEventStorage storage = storageProviderManager.createStorage(storageConfig.getType(), IEventStorage.class);
+        IEventStorage storage = storageProviderManager.createStorage(providerName, IEventStorage.class);
         storage.initialize();
         return storage;
     }
@@ -146,12 +151,13 @@ public class StorageModuleAutoConfiguration {
     @ConditionalOnProperty(value = "bithon.storage.setting.enabled", havingValue = "true")
     public ISettingStorage settingStorage(SettingStorageConfig storageConfig,
                                           StorageProviderManager storageProviderManager) throws IOException {
-        InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
+        String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
+        InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
                                               "[%s] can't be blank",
                                               storageConfig.getClass(),
-                                              "type");
+                                              "provider");
 
-        ISettingStorage storage = storageProviderManager.createStorage(storageConfig.getType(), ISettingStorage.class);
+        ISettingStorage storage = storageProviderManager.createStorage(providerName, ISettingStorage.class);
         storage.initialize();
         return storage;
     }

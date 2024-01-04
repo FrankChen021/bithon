@@ -14,25 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.metrics;
+package org.bithon.server.storage.common;
 
-import lombok.Data;
-import org.bithon.server.storage.common.ExpirationConfig;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 5/11/21 1:19 pm
+ * @author Frank Chen
+ * @date 4/1/24 11:06 am
  */
-@Data
-@Configuration
-@ConfigurationProperties(prefix = "bithon.storage.metric")
-public class MetricStorageConfig {
+@Getter
+@Setter
+public class StorageConfig {
     // Use provider instead
     @Deprecated
     private String type;
-
     private String provider;
+
     private ExpirationConfig ttl;
 }

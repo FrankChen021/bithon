@@ -18,7 +18,6 @@ package org.bithon.server.storage.jdbc.common.dialect;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 
 /**

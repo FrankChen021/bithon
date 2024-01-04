@@ -16,8 +16,9 @@
 
 package org.bithon.server.storage.tracing;
 
-import lombok.Data;
-import org.bithon.server.storage.common.ExpirationConfig;
+import lombok.Getter;
+import lombok.Setter;
+import org.bithon.server.storage.common.StorageConfig;
 import org.bithon.server.storage.tracing.index.TagIndexConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -26,12 +27,10 @@ import org.springframework.context.annotation.Configuration;
  * @author frank.chen021@outlook.com
  * @date 17/10/21 10:44 am
  */
-@Data
+@Getter
+@Setter
 @Configuration
 @ConfigurationProperties(prefix = "bithon.storage.tracing")
-public class TraceStorageConfig {
-    private String type;
-    private ExpirationConfig ttl;
-
+public class TraceStorageConfig extends StorageConfig {
     private TagIndexConfig indexes;
 }
