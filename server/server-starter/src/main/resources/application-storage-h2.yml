@@ -5,40 +5,42 @@
 bithon:
   storage:
     tracing:
-      provider: jdbc
+      provider: h2-db
       enabled: true
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
     metric:
-      provider: jdbc
+      provider: h2-db
       enabled: true
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
     event:
-      provider: jdbc
+      provider: h2-db
       enabled: true
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
     meta:
-      provider: jdbc
+      provider: h2-db
       enabled: true
       ttl:
         enabled: true
         ttl: PT5M
         cleanPeriod: PT1M
     setting:
-      provider: jdbc
+      provider: h2-db
       enabled: true
     web:
-      provider: jdbc
+      provider: h2-db
+
     providers:
-      jdbc:
+      h2-db:
+        type: h2
         url: jdbc:h2:mem:bithon;DB_CLOSE_DELAY=-1;MODE=mysql;
         username: sa
 

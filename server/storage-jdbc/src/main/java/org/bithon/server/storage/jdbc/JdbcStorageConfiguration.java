@@ -21,7 +21,6 @@ import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceBuilder;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Getter;
 import org.bithon.server.storage.common.provider.IStorageConfiguration;
 import org.jooq.DSLContext;
@@ -37,7 +36,6 @@ import java.util.Properties;
  * @author frank.chen021@outlook.com
  * @date 2023/8/27 15:08
  */
-@JsonTypeName("jdbc")
 public class JdbcStorageConfiguration implements IStorageConfiguration {
 
     @Getter
@@ -57,10 +55,5 @@ public class JdbcStorageConfiguration implements IStorageConfiguration {
                                         .set(autoConfiguration.dataSourceConnectionProvider(dataSource))
                                         .set(new JooqProperties().determineSqlDialect(dataSource))
                                         .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
-    }
-
-    @Override
-    public String getType() {
-        return "jdbc";
     }
 }

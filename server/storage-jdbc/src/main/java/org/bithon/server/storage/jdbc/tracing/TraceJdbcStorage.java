@@ -18,7 +18,6 @@ package org.bithon.server.storage.jdbc.tracing;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +41,6 @@ import java.sql.Timestamp;
  * @date 2021/2/4 8:34 下午
  */
 @Slf4j
-@JsonTypeName("jdbc")
 public class TraceJdbcStorage implements ITraceStorage {
 
     protected final DSLContext dslContext;

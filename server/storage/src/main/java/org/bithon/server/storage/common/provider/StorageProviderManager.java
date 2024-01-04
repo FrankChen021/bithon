@@ -40,6 +40,16 @@ import java.util.Map;
 @Service
 public class StorageProviderManager {
 
+    public static class TypedStorageConfiguration {
+        IStorageConfiguration delegate;
+        String type;
+
+        public TypedStorageConfiguration(String type, IStorageConfiguration delegate) {
+            this.delegate = delegate;
+            this.type = type;
+        }
+    }
+
     static class ScopedObjectMapper implements Closeable {
         private final ObjectMapper delegation;
         private final InjectableValues old;
@@ -94,7 +104,7 @@ public class StorageProviderManager {
     /**
      * Objects that are created from {@link #configs}
      */
-    private final Map<String, IStorageConfiguration> configurations;
+    private final Map<String, TypedStorageConfiguration> configurations;
     private final ObjectMapper objectMapper;
 
     public StorageProviderManager(StorageProviderConfigs configs, ObjectMapper objectMapper) {
@@ -103,9 +113,9 @@ public class StorageProviderManager {
         this.objectMapper = objectMapper;
     }
 
-    public IStorageConfiguration computeIfAbsent(String name) {
+    private TypedStorageConfiguration computeIfAbsent(String name) {
         return this.configurations.computeIfAbsent(name, (k) -> {
-            IStorageConfiguration provider = this.configurations.get(name);
+            TypedStorageConfiguration provider = this.configurations.get(name);
             if (provider != null) {
                 return provider;
             }
@@ -116,19 +126,18 @@ public class StorageProviderManager {
 
             String type = (String) config.get("type");
             if (StringUtils.isEmpty(type)) {
-                // Use the 'name' property which can simplify the configuration
+                // Use the 'name' property which can simplify the configuration for old configuration compatibility
                 type = name;
             }
 
             Map<String, Object> obj = new HashMap<>();
             obj.put("type", type);
             obj.put("props", config);
-
             try {
                 String text = objectMapper.writeValueAsString(obj);
-                return objectMapper.readValue(text, IStorageConfiguration.class);
+                return new TypedStorageConfiguration(type, objectMapper.readValue(text, IStorageConfiguration.class));
             } catch (InvalidTypeIdException e) {
-                throw new InvalidConfigurationException(StringUtils.format("Storage [%s] is not supported.", type));
+                throw new InvalidConfigurationException(StringUtils.format("Storage [%s] is not defined for IStorageConfiguration.", type));
             } catch (IOException e) {
                 throw new InvalidConfigurationException(StringUtils.format("Unable to create storage [%s]: %s", type, e.getMessage()),
                                                         e);
@@ -137,11 +146,15 @@ public class StorageProviderManager {
     }
 
     public <T> T createStorage(String providerName, Class<T> clazz) throws IOException {
-        IStorageConfiguration configuration = computeIfAbsent(providerName);
+        TypedStorageConfiguration configuration = computeIfAbsent(providerName);
 
-        try (ScopedObjectMapper om = new ScopedObjectMapper(this.objectMapper, new StorageConfigurationInjector(configuration))) {
-            String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", configuration.getType());
-            return om.readValue(jsonType, clazz);
+        try (ScopedObjectMapper om = new ScopedObjectMapper(this.objectMapper, new StorageConfigurationInjector(configuration.delegate))) {
+            String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", configuration.type);
+            try {
+                return om.readValue(jsonType, clazz);
+            } catch (InvalidTypeIdException e) {
+                throw new InvalidConfigurationException(StringUtils.format("Storage [%s] is not provided for interface [%s].", configuration.type, clazz.getSimpleName()));
+            }
         }
     }
 }

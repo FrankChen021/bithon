@@ -19,7 +19,6 @@ package org.bithon.server.storage.jdbc.metric;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
@@ -64,7 +63,6 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2021/1/31 1:37 下午
  */
-@JsonTypeName("jdbc")
 public class MetricJdbcStorage implements IMetricStorage {
 
     protected final DSLContext dslContext;
@@ -107,9 +105,11 @@ public class MetricJdbcStorage implements IMetricStorage {
 
     @Override
     public final IMetricWriter createMetricWriter(DataSourceSchema schema) {
-        MetricTable table = new MetricTable(schema);
-        initialize(schema, table);
-        return new MetricJdbcWriter(dslContext, table);
+        MetricTable table = toMetricTable(schema);
+        if (schema.getDataStoreSpec().isInternal()) {
+            initialize(schema, table);
+        }
+        return createWriter(dslContext, table);
     }
 
     @Override
@@ -133,9 +133,9 @@ public class MetricJdbcStorage implements IMetricStorage {
             // Create a new one
             JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
             return DSL.using(new DefaultConfiguration()
-                                     .set(autoConfiguration.dataSourceConnectionProvider(jdbcDataSource))
-                                     .set(new JooqProperties().determineSqlDialect(jdbcDataSource))
-                                     .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
+                                 .set(autoConfiguration.dataSourceConnectionProvider(jdbcDataSource))
+                                 .set(new JooqProperties().determineSqlDialect(jdbcDataSource))
+                                 .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
         });
 
         return this.createReader(context, sqlDialectManager.getSqlDialect(context));
@@ -182,6 +182,10 @@ public class MetricJdbcStorage implements IMetricStorage {
                   .execute();
     }
 
+    protected MetricTable toMetricTable(DataSourceSchema schema) {
+        return new MetricTable(schema, 8192);
+    }
+
     protected IMetricWriter createWriter(DSLContext dslContext, MetricTable table) {
         return new MetricJdbcWriter(dslContext, table);
     }
@@ -191,9 +195,6 @@ public class MetricJdbcStorage implements IMetricStorage {
     }
 
     protected void initialize(DataSourceSchema schema, MetricTable table) {
-        if (!schema.getDataStoreSpec().isInternal()) {
-            return;
-        }
         CreateTableIndexStep s = dslContext.createTableIfNotExists(table)
                                            .columns(table.fields())
                                            .indexes(table.getIndexes());
@@ -243,25 +244,25 @@ public class MetricJdbcStorage implements IMetricStorage {
         protected final List<TimeSpan> getSkipDateList() {
             return getSkipDateRecordList().stream()
                                           .map((record) -> {
-                                           try {
-                                               String date = record.get(Tables.BITHON_METRICS_BASELINE.DATE);
-                                               TimeSpan startTimestamp = TimeSpan.of(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH).parse(date + " 00:00:00").getTime());
+                                              try {
+                                                  String date = record.get(Tables.BITHON_METRICS_BASELINE.DATE);
+                                                  TimeSpan startTimestamp = TimeSpan.of(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH).parse(date + " 00:00:00").getTime());
 
-                                               int keepDays = record.get(Tables.BITHON_METRICS_BASELINE.KEEP_DAYS);
-                                               if (keepDays > 0) {
-                                                   if (startTimestamp.after(keepDays, TimeUnit.DAYS).getMilliseconds() > System.currentTimeMillis()) {
-                                                       return startTimestamp;
-                                                   } else {
-                                                       // Will be ignored
-                                                       return null;
-                                                   }
-                                               } else {
-                                                   return startTimestamp;
-                                               }
-                                           } catch (ParseException e) {
-                                               return null;
-                                           }
-                                       }).filter(Objects::nonNull)
+                                                  int keepDays = record.get(Tables.BITHON_METRICS_BASELINE.KEEP_DAYS);
+                                                  if (keepDays > 0) {
+                                                      if (startTimestamp.after(keepDays, TimeUnit.DAYS).getMilliseconds() > System.currentTimeMillis()) {
+                                                          return startTimestamp;
+                                                      } else {
+                                                          // Will be ignored
+                                                          return null;
+                                                      }
+                                                  } else {
+                                                      return startTimestamp;
+                                                  }
+                                              } catch (ParseException e) {
+                                                  return null;
+                                              }
+                                          }).filter(Objects::nonNull)
                                           .collect(Collectors.toList());
         }
 
@@ -274,7 +275,7 @@ public class MetricJdbcStorage implements IMetricStorage {
         @Override
         protected void expireImpl(DataSourceSchema schema, Timestamp before, List<TimeSpan> skipDateList) {
 
-            final MetricTable table = new MetricTable(schema);
+            final MetricTable table = new MetricTable(schema, 8192);
             String timestampField = table.getTimestampField().getName();
 
             DeleteConditionStep delete = dslContext.deleteFrom(table)

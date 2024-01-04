@@ -4,46 +4,50 @@
 bithon:
   storage:
     tracing:
-      provider: clickhouse
+      provider: ck
       enabled: true
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     metric:
-      provider: clickhouse
+      provider: ck
       enabled: true
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     event:
-      provider: clickhouse
+      provider: ck
       enabled: true
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     meta:
-      provider: clickhouse
+      provider: ck
       enabled: true
 
     setting:
-      provider: jdbc
+      provider: h2-1
       enabled: true
 
     web:
-      provider: jdbc2
+      provider: mysql-1
 
     providers:
-      jdbc:
+      h2-1:
+        type: h2
         url: jdbc:h2:mem:bithon;MODE=mysql;
         username: sa
-      jdbc2:
-        type: jdbc
+
+      mysql-1:
+        type: mysql
         url: jdbc:h2:mem:bithon2;MODE=mysql;
         username: sa
-      clickhouse:
+
+      ck:
+        type: clickhouse
         # data source parameters
         url: jdbc:clickhouse://localhost:8123/bithon?decompress=1&compress=1&nullAsDefault=2
         driverClassName: com.clickhouse.jdbc.ClickHouseDriver

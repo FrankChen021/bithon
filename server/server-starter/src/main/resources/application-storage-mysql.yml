@@ -5,43 +5,45 @@
 bithon:
   storage:
     tracing:
-      provider: jdbc
+      provider: mysql-1
       enabled: true
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
     metric:
-      provider: jdbc
+      provider: mysql-1
       enabled: true
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
     event:
-      provider: jdbc
+      provider: mysql-1
       enabled: true
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
     meta:
-      provider: jdbc
+      provider: mysql-1
       enabled: true
       ttl:
         enabled: true
         ttl: PT5M
         cleanPeriod: PT1M
     setting:
-      provider: jdbc
+      provider: mysql-1
       enabled: true
     web:
-      provider: jdbc
+      provider: mysql-1
+
     providers:
-      jdbc:
+      mysql-1:
         # Make sure the database has been created
-        url: jdbc:mysql://localhost:3306/bithon
-        driverClassName: com.mysql.cj.jdbc.Driver
+        type: mysql
+        url: mysql-1:mysql://localhost:3306/bithon
+        driverClassName: com.mysql.cj.mysql-1.Driver
         username: root
 
 #

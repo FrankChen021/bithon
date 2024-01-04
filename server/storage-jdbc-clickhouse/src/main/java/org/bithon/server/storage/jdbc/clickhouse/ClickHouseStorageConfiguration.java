@@ -70,9 +70,4 @@ public class ClickHouseStorageConfiguration implements IStorageConfiguration {
                                                        ClickHouseConfig.class);
         this.clickHouseConfig.afterPropertiesSet();
     }
-
-    @Override
-    public String getType() {
-        return "clickhouse";
-    }
 }

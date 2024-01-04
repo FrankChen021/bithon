@@ -18,7 +18,6 @@ package org.bithon.server.storage.jdbc.web;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
@@ -36,7 +35,6 @@ import java.util.List;
  * @author Frank Chen
  * @date 19/8/22 12:41 pm
  */
-@JsonTypeName("jdbc")
 public class JdbcDashboardStorage implements IDashboardStorage {
 
     protected final DSLContext dslContext;

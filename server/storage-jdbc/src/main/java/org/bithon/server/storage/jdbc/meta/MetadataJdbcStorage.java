@@ -18,7 +18,6 @@ package org.bithon.server.storage.jdbc.meta;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
@@ -42,7 +41,6 @@ import java.util.Collection;
  * @author frank.chen021@outlook.com
  * @date 2021/1/11 10:56 下午
  */
-@JsonTypeName("jdbc")
 public class MetadataJdbcStorage implements IMetaStorage {
 
     protected final DSLContext dslContext;

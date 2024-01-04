@@ -18,7 +18,6 @@ package org.bithon.server.storage.jdbc.meta;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,7 +41,6 @@ import java.util.stream.Collectors;
  * @date 7/1/22 1:44 PM
  */
 @Slf4j
-@JsonTypeName("jdbc")
 public class SchemaJdbcStorage implements ISchemaStorage {
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;

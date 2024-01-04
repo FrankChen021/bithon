@@ -46,13 +46,16 @@ public class MetricTable extends TableImpl {
     private final List<Field> metrics = new ArrayList<>();
     private final List<Index> indexes;
     private final Field<Timestamp> timestampField;
+    private final int stringFieldMaxLength;
 
     public Field<Timestamp> getTimestampField() {
         return timestampField;
     }
 
-    public MetricTable(DataSourceSchema schema) {
+    public MetricTable(DataSourceSchema schema, int stringFieldMaxLength) {
         super(DSL.name(schema.getDataStoreSpec().getStore()));
+
+        this.stringFieldMaxLength = stringFieldMaxLength;
 
         //noinspection unchecked
         timestampField = this.createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP);
@@ -90,13 +93,18 @@ public class MetricTable extends TableImpl {
     private Field createField(String name, IDataType dataType) {
         if (dataType.equals(IDataType.DOUBLE)) {
             return this.createField(DSL.name(name),
-                                    SQLDataType.DECIMAL(18, 2).nullable(false).defaultValue(BigDecimal.valueOf(0)));
+                                    SQLDataType.DECIMAL(18, 2)
+                                               .nullable(false)
+                                               .defaultValue(BigDecimal.valueOf(0)));
         } else if (dataType.equals(IDataType.LONG)) {
             return this.createField(DSL.name(name), SQLDataType.BIGINT.nullable(false).defaultValue(0L));
         } else if (dataType.equals(IDataType.STRING)) {
             // Note that the length defined here will be used in the MetricJdbcWriter to limit the size of input.
-            // This only works on the H2 database.
-            return this.createField(DSL.name(name), SQLDataType.VARCHAR.length(64).nullable(false).defaultValue(""));
+            // This only works on the H2/MySQL database.
+            return this.createField(DSL.name(name),
+                                    SQLDataType.VARCHAR.length(stringFieldMaxLength)
+                                                       .nullable(false)
+                                                       .defaultValue(""));
         } else {
             throw new RuntimeException("unknown type:" + dataType);
         }

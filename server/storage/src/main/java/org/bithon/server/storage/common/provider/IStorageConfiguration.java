@@ -16,7 +16,6 @@
 
 package org.bithon.server.storage.common.provider;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
@@ -25,6 +24,4 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface IStorageConfiguration {
-    @JsonIgnore
-    String getType();
 }

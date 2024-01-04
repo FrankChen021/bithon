@@ -18,6 +18,15 @@ package org.bithon.server.storage.jdbc.h2;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.jsontype.NamedType;
+import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
+import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
+import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
+import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
+import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
+import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
+import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
+import org.bithon.server.storage.jdbc.web.JdbcDashboardStorage;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -47,6 +56,15 @@ public class H2StorageModuleAutoConfiguration {
             @Override
             public void setupModule(SetupContext context) {
                 context.registerSubtypes(H2SqlDialect.class);
+
+                context.registerSubtypes(new NamedType(JdbcStorageConfiguration.class, "h2"),
+                                         new NamedType(MetricJdbcStorage.class, "h2"),
+                                         new NamedType(SettingJdbcStorage.class, "h2"),
+                                         new NamedType(TraceJdbcStorage.class, "h2"),
+                                         new NamedType(JdbcDashboardStorage.class, "h2"),
+                                         new NamedType(EventJdbcStorage.class, "h2"),
+                                         new NamedType(SchemaJdbcStorage.class, "h2"),
+                                         new NamedType(MetadataJdbcStorage.class, "h2"));
             }
         };
     }

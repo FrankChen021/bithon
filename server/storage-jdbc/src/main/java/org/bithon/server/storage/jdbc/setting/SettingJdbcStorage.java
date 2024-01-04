@@ -18,7 +18,6 @@ package org.bithon.server.storage.jdbc.setting;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
@@ -30,7 +29,6 @@ import org.jooq.DSLContext;
  * @author frank.chen021@outlook.com
  * @date 4/11/21 3:18 pm
  */
-@JsonTypeName("jdbc")
 public class SettingJdbcStorage implements ISettingStorage {
 
     protected final DSLContext dslContext;

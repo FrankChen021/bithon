@@ -19,7 +19,6 @@ package org.bithon.server.storage.jdbc.event;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
@@ -42,7 +41,6 @@ import java.sql.Timestamp;
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 4:19 下午
  */
-@JsonTypeName("jdbc")
 public class EventJdbcStorage implements IEventStorage {
 
     protected final DSLContext dslContext;
