@@ -18,7 +18,7 @@ package org.bithon.server.storage.jdbc.event;
 
 import org.bithon.server.storage.event.EventMessage;
 import org.bithon.server.storage.event.IEventWriter;
-import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.BatchBindStep;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;

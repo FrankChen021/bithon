@@ -29,8 +29,8 @@ import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageConfiguration;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
+import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
-import org.bithon.server.storage.jdbc.jooq.Tables;
 
 import java.sql.Timestamp;
 

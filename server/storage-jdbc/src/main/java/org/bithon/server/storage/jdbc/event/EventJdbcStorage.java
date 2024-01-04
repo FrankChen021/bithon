@@ -33,7 +33,7 @@ import org.bithon.server.storage.event.IEventWriter;
 import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
-import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.DSLContext;
 
 import java.sql.Timestamp;

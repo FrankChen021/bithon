@@ -25,7 +25,7 @@ import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageConfiguration;
-import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
 import org.jooq.Record;
 

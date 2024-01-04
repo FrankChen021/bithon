@@ -22,7 +22,7 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
-import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 
