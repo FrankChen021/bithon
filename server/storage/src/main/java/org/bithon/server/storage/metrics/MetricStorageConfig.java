@@ -17,7 +17,7 @@
 package org.bithon.server.storage.metrics;
 
 import lombok.Data;
-import org.bithon.server.storage.common.ExpirationConfig;
+import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 

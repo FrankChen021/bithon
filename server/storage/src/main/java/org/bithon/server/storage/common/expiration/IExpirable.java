@@ -14,18 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.common;
-
-import lombok.Data;
-import org.bithon.server.commons.time.Period;
+package org.bithon.server.storage.common.expiration;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 9/12/21 5:03 PM
+ * @author frank chen
  */
-@Data
-public class ExpirationConfig {
-    private Period ttl;
-    private Period cleanPeriod;
-    private boolean enabled = false;
+public interface IExpirable {
+    IExpirationRunnable getExpirationRunnable();
 }

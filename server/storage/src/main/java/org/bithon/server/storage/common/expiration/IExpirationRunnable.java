@@ -14,11 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.common;
+package org.bithon.server.storage.common.expiration;
+
+import java.sql.Timestamp;
 
 /**
- * @author frank chen
+ * @author frank.chen021@outlook.com
+ * @date 27/10/21 10:26 pm
  */
-public interface IExpirable {
-    IExpirationRunnable getExpirationRunnable();
+public interface IExpirationRunnable {
+
+    ExpirationConfig getExpirationConfig();
+
+    /**
+     * Delete data whose timestamp is less than or equal to the given timestamp
+     */
+    void expire(Timestamp before);
 }

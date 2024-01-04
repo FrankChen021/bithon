@@ -17,6 +17,7 @@
 package org.bithon.server.storage;
 
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.storage.common.provider.StorageProviderManager;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.TimestampSpec;
@@ -32,7 +33,6 @@ import org.bithon.server.storage.meta.ISchemaStorage;
 import org.bithon.server.storage.meta.MetaStorageConfig;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
-import org.bithon.server.storage.provider.StorageProviderManager;
 import org.bithon.server.storage.setting.ISettingStorage;
 import org.bithon.server.storage.setting.SettingStorageConfig;
 import org.bithon.server.storage.tracing.ITraceStorage;

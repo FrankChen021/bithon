@@ -14,20 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.common;
+package org.bithon.server.storage.common.provider;
 
-import java.sql.Timestamp;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 27/10/21 10:26 pm
+ * @date 2023/8/27 14:36
  */
-public interface IExpirationRunnable {
-
-    ExpirationConfig getExpirationConfig();
-
-    /**
-     * Delete data whose timestamp is less than or equal to the given timestamp
-     */
-    void expire(Timestamp before);
+@Data
+@Configuration
+@ConfigurationProperties("bithon.storage")
+public class StorageProviderConfigs {
+    private Map<String, Map<String, Object>> providers;
 }

@@ -14,12 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.common;
+package org.bithon.server.storage.common.expiration;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.storage.common.IStorage;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 

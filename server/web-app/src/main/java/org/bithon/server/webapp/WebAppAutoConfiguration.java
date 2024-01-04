@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.InvalidConfigurationException;
 import org.bithon.server.storage.common.StorageConfig;
-import org.bithon.server.storage.provider.StorageProviderManager;
+import org.bithon.server.storage.common.provider.StorageProviderManager;
 import org.bithon.server.storage.web.IDashboardStorage;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;

@@ -14,17 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.provider;
+package org.bithon.server.storage.common.expiration;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Data;
+import org.bithon.server.commons.time.Period;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/8/27 14:33
+ * @date 9/12/21 5:03 PM
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IStorageConfiguration {
-    @JsonIgnore
-    String getType();
+@Data
+public class ExpirationConfig {
+    private Period ttl;
+    private Period cleanPeriod;
+    private boolean enabled = false;
 }

@@ -18,6 +18,7 @@ package org.bithon.server.storage.common;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.bithon.server.storage.common.expiration.ExpirationConfig;
 
 /**
  * @author Frank Chen

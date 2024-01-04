@@ -14,21 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.provider;
+package org.bithon.server.storage.common.provider;
 
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/8/27 14:36
+ * @date 2023/8/27 14:33
  */
-@Data
-@Configuration
-@ConfigurationProperties("bithon.storage")
-public class StorageProviderConfigs {
-    private Map<String, Map<String, Object>> providers;
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+public interface IStorageConfiguration {
+    @JsonIgnore
+    String getType();
 }
