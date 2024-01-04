@@ -40,7 +40,7 @@ public class SqlDialectManager {
     }
 
     public ISqlDialect getSqlDialect(DSLContext context) {
-        final String name = context.dialect().name().toUpperCase(Locale.ENGLISH);
+        final String name = context.dialect().name().toLowerCase(Locale.ENGLISH);
         return sqlDialectMap.computeIfAbsent(name, (k) -> {
             try {
                 return this.objectMapper.readValue(StringUtils.format("{\"type\": \"%s\"}", name), ISqlDialect.class);

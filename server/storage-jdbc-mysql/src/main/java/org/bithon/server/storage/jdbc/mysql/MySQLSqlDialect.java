@@ -34,7 +34,7 @@ import java.util.Arrays;
  * @author Frank Chen
  * @date 17/4/23 11:20 pm
  */
-@JsonTypeName("MYSQL")
+@JsonTypeName("mysql")
 public class MySQLSqlDialect implements ISqlDialect {
 
     @Override

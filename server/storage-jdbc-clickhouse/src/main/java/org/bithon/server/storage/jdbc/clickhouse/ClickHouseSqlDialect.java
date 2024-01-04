@@ -27,7 +27,7 @@ import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
  * @author frank.chen021@outlook.com
  * @date 1/11/21 5:21 pm
  */
-@JsonTypeName("CLICKHOUSE")
+@JsonTypeName("clickhouse")
 public class ClickHouseSqlDialect implements ISqlDialect {
 
     @Override
