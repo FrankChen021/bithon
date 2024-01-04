@@ -10,28 +10,28 @@ bithon:
       ttl:
         enabled: true
         ttl: P1D
-        cleanPeriod: PT3M
+        cleanPeriod: PT1M
     metric:
       type: jdbc
       enabled: true
       ttl:
         enabled: true
         ttl: P1D
-        cleanPeriod: PT3M
+        cleanPeriod: PT1M
     event:
       type: jdbc
       enabled: true
       ttl:
         enabled: true
         ttl: P1D
-        cleanPeriod: PT3M
+        cleanPeriod: PT1M
     meta:
       type: jdbc
       enabled: true
       ttl:
         enabled: true
         ttl: PT5M
-        cleanPeriod: PT3M
+        cleanPeriod: PT1M
     setting:
       type: jdbc
       enabled: true
