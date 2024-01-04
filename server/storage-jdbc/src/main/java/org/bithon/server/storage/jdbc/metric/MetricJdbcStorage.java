@@ -213,8 +213,8 @@ public class MetricJdbcStorage implements IMetricStorage {
                        .execute();
     }
 
-    protected Result<Record> getBaselineRecords() {
-        return dslContext.selectFrom(Tables.BITHON_METRICS_BASELINE.getQualifiedName())
+    protected Result<? extends Record> getBaselineRecords() {
+        return dslContext.selectFrom(Tables.BITHON_METRICS_BASELINE)
                          .fetch();
     }
 
@@ -265,8 +265,8 @@ public class MetricJdbcStorage implements IMetricStorage {
                                           .collect(Collectors.toList());
         }
 
-        protected Result<Record> getSkipDateRecordList() {
-            return dslContext.selectFrom(Tables.BITHON_METRICS_BASELINE.getName())
+        protected Result<? extends Record> getSkipDateRecordList() {
+            return dslContext.selectFrom(Tables.BITHON_METRICS_BASELINE)
                              .fetch();
         }
 

@@ -97,7 +97,7 @@ public class MetricStorage extends MetricJdbcStorage {
         }
 
         @Override
-        protected Result<Record> getSkipDateRecordList() {
+        protected Result<? extends Record> getSkipDateRecordList() {
             String sql = dslContext.select(Tables.BITHON_METRICS_BASELINE.DATE, Tables.BITHON_METRICS_BASELINE.KEEP_DAYS)
                                    .from(Tables.BITHON_METRICS_BASELINE)
                                    .getSQL() + " FINAL ";
@@ -172,7 +172,7 @@ public class MetricStorage extends MetricJdbcStorage {
     }
 
     @Override
-    protected Result<Record> getBaselineRecords() {
+    protected Result<? extends Record> getBaselineRecords() {
         String sql = dslContext.select(Tables.BITHON_METRICS_BASELINE.DATE, Tables.BITHON_METRICS_BASELINE.KEEP_DAYS)
                                .from(Tables.BITHON_METRICS_BASELINE)
                                .getSQL() + " FINAL ";
