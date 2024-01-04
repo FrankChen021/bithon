@@ -93,6 +93,9 @@ public class TraceSpan implements IInputRow {
     @JsonDeserialize(using = TagDeserializer.class)
     public Map<String, String> tags;
 
+    /**
+     * in microseconds
+     */
     public long costTime;
 
     /**

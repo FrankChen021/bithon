@@ -58,6 +58,7 @@ public class TraceApi {
                                                                                               request.getEndTimeISO8601()));
 
         Watch<List<TraceSpan>> buildTree = new Watch<>(() -> traceService.asTree(getSpanList.getResult()));
+
         Watch<TraceTopo> buildTopo = new Watch<>(() -> new TraceTopoBuilder().build(buildTree.getResult()));
 
         Map<String, Long> profileEvents = new HashMap<>();

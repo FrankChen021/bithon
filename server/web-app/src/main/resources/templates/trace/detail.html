@@ -12,6 +12,7 @@
 
     <script th:src="@{/js/component/tree-table/component.js}"></script>
     <script th:src="@{/js/utils/location.js}"></script>
+    <script th:src="@{/js/utils/time.js}"></script>
 
     <!-- topo -->
     <script th:src="@{/lib/cytoscape.js-dagre/dagre-0.7.4.min.js}"></script>
@@ -260,6 +261,7 @@
             const colors = ["#2F9323", "#D9B63A", "#2E2AA4", "#9F2E61", "#4D670C", "#BF675F", "#1F814A", "#357F88", "#673509", "#310937", "#1B9637", "#F7393C"];
             let colorIndex = 0;
             const appMap = {};
+            const nodeMap = {};
             traceData.topo.nodes.forEach((node) => {
                 if (appMap[node.application] === undefined) {
                     appMap[node.application] = (colorIndex++) % colors.length;
@@ -267,16 +269,18 @@
 
                 // set color
                 node.color = colors[appMap[node.application]];
+                nodeMap[node.name] = node;
             });
-
-            const maxLevel = traceData.topo.maxLevel;
 
             const nodes = traceData.topo.nodes.map((node) => {
                 return {data: {id: node.name, tag: node}}
             });
 
             const links = traceData.topo.links.map((link) => {
-                return {data: link}
+                // If the link has no error, the color is default to the color of the source node
+                link.color = link.errors > 0 ? '#FF0000' : nodeMap[link.source].color;
+
+                return { data: link };
             });
 
             let cy = window.cy = cytoscape({
@@ -311,10 +315,30 @@
                         'width': 2,
                         'target-arrow-shape': 'triangle',
                         'curve-style': 'bezier',
-                        'label': (ele) => `cnt=${ele.data('count')}`,
-                        'color': (ele) => ele.source().data('tag.color'),
-                        'line-color': (ele) => ele.source().data('tag.color'),
-                        'target-arrow-color': (ele) => ele.source().data('tag.color')
+                        'font-size': '8px',
+                        'text-valign': 'top',
+                        'text-wrap': 'wrap',
+                        'label': (ele) => {
+                            const cnt = ele.data('count');
+
+                            let ts;
+                            if (cnt == 1) {
+                               // If there's only one request, no need to show avg/min/max but only shows the RT.
+                                ts = `RT=${microFormat(ele.data('minResponseTime'))}`;
+                            } else {
+                                ts = `avgRT=${microFormat(Math.floor(ele.data('totalResponseTime')/cnt))}, minRT=${microFormat(ele.data('minResponseTime'))}, maxRT=${microFormat(ele.data('maxResponseTime'))}`;
+                            }
+
+                            const errors = ele.data('errors');
+                            if (errors > 0) {
+                                return `cnt=${cnt}, errors=${errors}\n${ts}`;
+                            } else {
+                                return `cnt=${cnt}\n${ts}`;
+                            }
+                        },
+                        'color': (ele) => ele.data('color'),
+                        'line-color': (ele) => ele.data('color'),
+                        'target-arrow-color': (ele) => ele.data('color')
                     }
                 }],
 
@@ -322,6 +346,13 @@
                     nodes: nodes,
                     edges: links
                 }
+            });
+
+            cy.on('tap', (evt) => {
+              // See: https://js.cytoscape.org/#selectors/notes-amp-caveats
+              // console.log( 'tap ' + evt.target.id() );
+              // evt.target.isNode()
+              //
             });
 
             chartLoaded = true;
