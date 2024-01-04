@@ -454,6 +454,7 @@
             <!-- jdbc -->
             <dependency>com.alibaba:druid-spring-boot-starter</dependency>
             <dependency>com.h2database:h2</dependency>
+            <dependency>mysql:mysql-connector-java</dependency>
             <dependency>org.jooq:jooq</dependency>
 
             <!-- starter -->
