@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;

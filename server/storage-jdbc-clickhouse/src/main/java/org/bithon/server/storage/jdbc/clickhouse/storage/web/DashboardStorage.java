@@ -22,10 +22,10 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
-import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageConfiguration;
+import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.storage.TableCreator;
-import org.bithon.server.storage.jdbc.jooq.Tables;
-import org.bithon.server.storage.jdbc.web.JdbcDashboardStorage;
+import org.bithon.server.storage.jdbc.common.jooq.Tables;
+import org.bithon.server.storage.jdbc.web.DashboardJdbcStorage;
 import org.bithon.server.storage.web.Dashboard;
 import org.jooq.Record;
 
@@ -39,11 +39,11 @@ import java.util.stream.Collectors;
  * @date 19/8/22 2:16 pm
  */
 @JsonTypeName("clickhouse")
-public class DashboardStorage extends JdbcDashboardStorage {
+public class DashboardStorage extends DashboardJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public DashboardStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageConfiguration configuration) {
+    public DashboardStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration configuration) {
         super(configuration.getDslContext());
         this.config = configuration.getClickHouseConfig();
     }

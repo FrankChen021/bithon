@@ -34,8 +34,18 @@ import java.util.Arrays;
  * @author Frank Chen
  * @date 17/4/23 11:20 pm
  */
-@JsonTypeName("H2")
+@JsonTypeName("h2")
 public class H2SqlDialect implements ISqlDialect {
+
+    @Override
+    public String quoteIdentifier(String identifier) {
+        return "\"" + identifier + "\"";
+    }
+
+    @Override
+    public String timeFloorExpression(IExpression timestampExpression, long interval) {
+        return StringUtils.format("UNIX_TIMESTAMP(%s)/ %d * %d", timestampExpression.serializeToText(), interval, interval);
+    }
 
     @Override
     public boolean groupByUseRawExpression() {

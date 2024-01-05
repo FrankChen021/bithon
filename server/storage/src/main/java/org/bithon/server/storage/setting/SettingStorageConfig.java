@@ -16,7 +16,7 @@
 
 package org.bithon.server.storage.setting;
 
-import lombok.Data;
+import org.bithon.server.storage.common.StorageConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -24,9 +24,7 @@ import org.springframework.context.annotation.Configuration;
  * @author frank.chen021@outlook.com
  * @date 5/11/21 1:21 pm
  */
-@Data
 @Configuration
 @ConfigurationProperties(prefix = "bithon.storage.setting")
-public class SettingStorageConfig {
-    private String type;
+public class SettingStorageConfig extends StorageConfig {
 }

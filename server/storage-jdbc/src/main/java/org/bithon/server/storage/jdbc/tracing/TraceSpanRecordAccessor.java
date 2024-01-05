@@ -17,7 +17,7 @@
 package org.bithon.server.storage.jdbc.tracing;
 
 import org.bithon.component.commons.utils.SupplierUtils;
-import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.Record;
 
 import java.util.function.Supplier;

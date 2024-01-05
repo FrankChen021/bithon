@@ -50,7 +50,7 @@ public class ClickHouseStorageAutoConfiguration {
 
             @Override
             public void setupModule(SetupContext context) {
-                context.registerSubtypes(ClickHouseStorageConfiguration.class,
+                context.registerSubtypes(ClickHouseStorageProviderConfiguration.class,
                                          TraceStorage.class,
                                          MetricStorage.class,
                                          EventStorage.class,

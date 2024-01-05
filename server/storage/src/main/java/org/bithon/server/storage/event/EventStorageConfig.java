@@ -16,8 +16,7 @@
 
 package org.bithon.server.storage.event;
 
-import lombok.Data;
-import org.bithon.server.storage.common.ExpirationConfig;
+import org.bithon.server.storage.common.StorageConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,10 +24,7 @@ import org.springframework.context.annotation.Configuration;
  * @author frank.chen021@outlook.com
  * @date 16/10/21 11:44 pm
  */
-@Data
 @Configuration
 @ConfigurationProperties(prefix = "bithon.storage.event")
-public class EventStorageConfig {
-    private String type;
-    private ExpirationConfig ttl;
+public class EventStorageConfig extends StorageConfig {
 }

@@ -27,14 +27,14 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.common.ExpirationConfig;
-import org.bithon.server.storage.common.IExpirationRunnable;
+import org.bithon.server.storage.common.expiration.ExpirationConfig;
+import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
-import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageConfiguration;
+import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
-import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcReader;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
@@ -56,7 +56,7 @@ public class TraceStorage extends TraceJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public TraceStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageConfiguration configuration,
+    public TraceStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration configuration,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
                         @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
@@ -82,7 +82,7 @@ public class TraceStorage extends TraceJdbcStorage {
     public IExpirationRunnable getExpirationRunnable() {
         return new IExpirationRunnable() {
             @Override
-            public ExpirationConfig getRule() {
+            public ExpirationConfig getExpirationConfig() {
                 return traceStorageConfig.getTtl();
             }
 
@@ -151,7 +151,7 @@ public class TraceStorage extends TraceJdbcStorage {
                 String tag = StringUtils.format("%s['%s']", Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName(), ((IdentifierExpression) left).getIdentifier().substring(SPAN_TAGS_PREFIX.length()));
                 ((IdentifierExpression) left).setIdentifier(tag);
 
-                return Expression2Sql.from(null/*do not use qualified name*/, sqlDialect, tagFilter, false);
+                return Expression2Sql.from(sqlDialect, tagFilter);
             }
 
             @Override

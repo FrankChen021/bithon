@@ -17,7 +17,7 @@
 package org.bithon.server.storage.metrics;
 
 import lombok.Data;
-import org.bithon.server.storage.common.ExpirationConfig;
+import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,6 +29,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "bithon.storage.metric")
 public class MetricStorageConfig {
+    // Use provider instead
+    @Deprecated
     private String type;
+
+    private String provider;
     private ExpirationConfig ttl;
 }

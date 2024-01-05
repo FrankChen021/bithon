@@ -1,0 +1,55 @@
+#
+# This file demonstrates configuring the Bithon server to use those databases that support JDBC as underlying storage.
+# Currently, only MySQL has been tested, so MySQL is configured in this file.
+#
+bithon:
+  storage:
+    tracing:
+      provider: mysql-local
+      enabled: true
+      ttl:
+        enabled: true
+        ttl: P1D
+        cleanPeriod: PT1M
+    metric:
+      provider: mysql-local
+      enabled: true
+      ttl:
+        enabled: true
+        ttl: P1D
+        cleanPeriod: PT1M
+    event:
+      provider: mysql-local
+      enabled: true
+      ttl:
+        enabled: true
+        ttl: P1D
+        cleanPeriod: PT1M
+    meta:
+      provider: mysql-local
+      enabled: true
+      ttl:
+        enabled: true
+        ttl: PT5M
+        cleanPeriod: PT1M
+    setting:
+      provider: mysql-local
+      enabled: true
+    web:
+      provider: mysql-local
+
+    providers:
+      mysql-local:
+        type: mysql
+
+        # Make sure the database has been created
+        url: jdbc:mysql://localhost:3306/bithon
+        driverClassName: com.mysql.cj.jdbc.Driver
+        username: root
+
+#
+# Suppress useless and boring error logging
+#
+logging:
+  level:
+    org.springframework.boot.autoconfigure.jooq.JooqExceptionTranslator: OFF

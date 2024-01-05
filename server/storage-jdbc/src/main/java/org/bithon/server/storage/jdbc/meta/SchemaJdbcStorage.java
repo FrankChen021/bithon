@@ -18,15 +18,14 @@ package org.bithon.server.storage.jdbc.meta;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
-import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
+import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.meta.ISchemaStorage;
 import org.jooq.DSLContext;
 import org.springframework.dao.DuplicateKeyException;
@@ -42,15 +41,14 @@ import java.util.stream.Collectors;
  * @date 7/1/22 1:44 PM
  */
 @Slf4j
-@JsonTypeName("jdbc")
 public class SchemaJdbcStorage implements ISchemaStorage {
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
 
     @JsonCreator
-    public SchemaJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageConfiguration storageConfigurationProvider,
+    public SchemaJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration,
                              @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
-        this(storageConfigurationProvider.getDslContext(), objectMapper);
+        this(providerConfiguration.getDslContext(), objectMapper);
     }
 
     public SchemaJdbcStorage(DSLContext dslContext,

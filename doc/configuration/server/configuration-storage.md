@@ -1,50 +1,60 @@
 
 This doc describes how to configure bithon to use different types of storage.
-Currently, two types of storages are supported:
-1. DBMS that supports standard JDBC such as H2, MySQL
-2. ClickHouse
+Currently, the following DBMS are supported:
+1. H2
+2. MySQL 
+3. ClickHouse
 
-## JDBC
+> Note: 
+> for H2 and MySQL, they're only for local development of this project.
+> They're NOTE for the production development.
+
+## Configuration example
+
 ```yaml
 bithon:
   storage:
     tracing:
-      type: jdbc
+      provider: jdbc
       enabled: true
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     metric:
-      type: jdbc
+      provider: jdbc
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     event:
-      type: jdbc
+      provider: jdbc
       enabled: true
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     meta:
+      provider: jdbc
       enabled: true
-      type: jdbc
     setting:
+      provider: jdbc
       enabled: true
-      type: jdbc
     providers:
       jdbc:
         enabled: true
+        type: h2
         # data source parameters
         url: jdbc:your_jdbc_connection_string
         username: your_user_name
         password: your_password
 ```
 
+The `provider` property above references the property name in the `providers` property.
+The
+
 > NOTE:
-> the user must have privilege to create tables in target database
+> the user must have the privilege to create tables in a target database
 
 ## ClickHouse
 
@@ -58,30 +68,30 @@ The ClickHouse storage has been verified on 21.8.4 branch.
 bithon:
   storage:
     tracing:
-      type: clickhouse
+      provider: clickhouse
       enabled: true
       ttl: 
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     metric:
-      type: clickhouse
+      provider: clickhouse
       enabled: true
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     event:
-      type: clickhouse
+      provider: clickhouse
       enabled: true
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     meta:
-      type: clickhouse
+      provider: clickhouse
     setting:
-      type: clickhouse
+      provider: clickhouse
     providers:
       clickhouse:
         enabled: true
@@ -94,7 +104,7 @@ bithon:
 
 > NOTE: 
 > - the database that you configured to the `url` parameter must be created in advance.
-> - the user must have privilege to create tables under the specified database
+> - the user must have the privilege to create tables under the specified database
 
 #### Table Configuration
 

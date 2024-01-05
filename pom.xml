@@ -127,6 +127,11 @@
       </dependency>
       <dependency>
         <groupId>org.bithon</groupId>
+        <artifactId>server-storage-jdbc-mysql</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bithon</groupId>
         <artifactId>server-storage-jdbc-clickhouse</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -449,6 +454,7 @@
             <!-- jdbc -->
             <dependency>com.alibaba:druid-spring-boot-starter</dependency>
             <dependency>com.h2database:h2</dependency>
+            <dependency>mysql:mysql-connector-java</dependency>
             <dependency>org.jooq:jooq</dependency>
 
             <!-- starter -->
@@ -503,6 +509,7 @@
         <module>server/storage-jdbc</module>
         <module>server/storage-jdbc-clickhouse</module>
         <module>server/storage-jdbc-h2</module>
+        <module>server/storage-jdbc-mysql</module>
         <module>server/opentelemetry</module>
         <module>server/collector</module>
         <module>server/web-service</module>

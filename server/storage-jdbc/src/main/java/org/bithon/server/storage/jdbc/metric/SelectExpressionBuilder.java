@@ -26,6 +26,7 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.ast.Column;
+import org.bithon.server.storage.datasource.query.ast.ColumnAlias;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.GroupBy;
 import org.bithon.server.storage.datasource.query.ast.IASTNode;
@@ -190,7 +191,7 @@ public class SelectExpressionBuilder {
 
         public StringNode visit(Expression expression) {
 
-            Expression2Sql serializer = new Expression2Sql(null, true) {
+            Expression2Sql serializer = new Expression2Sql(null, this.sqlDialect) {
                 @Override
                 public boolean visit(IdentifierExpression expression) {
                     String field = expression.getIdentifier();
@@ -208,9 +209,7 @@ public class SelectExpressionBuilder {
                     boolean hasSameExpression = !sqlDialect.allowSameAggregatorExpression() && aggregatedFields.contains(metricSpec.getName());
 
                     if (useWindowFunctionAsAggregator || hasSameExpression) {
-                        sb.append('"');
-                        sb.append(metricSpec.getName());
-                        sb.append('"');
+                        sb.append(sqlDialect.quoteIdentifier(metricSpec.getName()));
                     } else {
                         // generate a aggregation expression
                         sb.append(metricSpec.getAggregateExpression().accept(sqlGenerator4SimpleAggregationFunction));
@@ -291,11 +290,9 @@ public class SelectExpressionBuilder {
                                                                                       aggregatedFields,
                                                                                       generator,
                                                                                       ImmutableMap.of("interval",
-                                                                                                      interval.getStep() == null
-                                                                                                          ? interval.getTotalLength()
-                                                                                                          : interval.getStep(),
+                                                                                                      interval.getStep() == null ? interval.getTotalLength() : interval.getStep(),
                                                                                                       "instanceCount",
-                                                                                                      "count(distinct \"instanceName\")"));
+                                                                                                      StringUtils.format("count(distinct %s)", sqlDialect.quoteIdentifier("instanceName"))));
 
         for (ResultColumn resultColumn : this.resultColumns) {
             IASTNode columnExpression = resultColumn.getColumnExpression();
@@ -397,6 +394,9 @@ public class SelectExpressionBuilder {
             subSelectExpression.getFrom().setExpression(new Table(sqlTableName));
             subSelectExpression.setWhere(where);
             selectExpression.getFrom().setExpression(subSelectExpression);
+
+            // For MySQL, the sub-query must have an alias
+            selectExpression.getFrom().setAlias(new ColumnAlias("nest"));
         } else {
             selectExpression.getFrom().setExpression(new Table(sqlTableName));
             selectExpression.setWhere(where);

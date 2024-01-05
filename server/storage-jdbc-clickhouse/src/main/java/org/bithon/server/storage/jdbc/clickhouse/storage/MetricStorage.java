@@ -24,18 +24,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.common.ExpirationConfig;
-import org.bithon.server.storage.common.IExpirationRunnable;
+import org.bithon.server.storage.common.expiration.ExpirationConfig;
+import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
-import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageConfiguration;
+import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
-import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
+import org.bithon.server.storage.jdbc.metric.MetricJdbcStorageCleaner;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcWriter;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
 import org.bithon.server.storage.metrics.IMetricReader;
@@ -65,39 +66,43 @@ public class MetricStorage extends MetricJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageConfiguration storageConfiguration,
+    public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration providerConfiguration,
                          @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
                          @JacksonInject(useInput = OptBoolean.FALSE) MetricStorageConfig storageConfig,
                          @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
-        super(storageConfiguration.getDslContext(), schemaManager, storageConfig, sqlDialectManager);
-        this.config = storageConfiguration.getClickHouseConfig();
+        super(providerConfiguration.getDslContext(), schemaManager, storageConfig, sqlDialectManager);
+        this.config = providerConfiguration.getClickHouseConfig();
     }
 
     @Override
     protected void initialize(DataSourceSchema schema, MetricTable table) {
-        if (schema.getDataStoreSpec().isInternal()) {
-            new TableCreator(config, this.dslContext).createIfNotExist(table);
-        }
+        new TableCreator(config, this.dslContext).createIfNotExist(table);
+    }
+
+    @Override
+    protected MetricTable toMetricTable(DataSourceSchema schema) {
+        return new MetricTable(schema, true);
     }
 
     @Override
     public IExpirationRunnable getExpirationRunnable() {
-        return new StorageCleaner(dslContext, schemaManager, this.storageConfig.getTtl(), config);
+        return new StorageCleaner(dslContext, schemaManager, this.storageConfig.getTtl(), config, this.sqlDialectManager.getSqlDialect(dslContext));
     }
 
-    static class StorageCleaner extends MetricStorageJdbcCleaner {
+    static class StorageCleaner extends MetricJdbcStorageCleaner {
         private final ClickHouseConfig config;
 
         protected StorageCleaner(DSLContext dslContext,
                                  DataSourceSchemaManager schemaManager,
                                  ExpirationConfig ttlConfig,
-                                 ClickHouseConfig config) {
-            super(dslContext, schemaManager, ttlConfig);
+                                 ClickHouseConfig config,
+                                 ISqlDialect sqlDialect) {
+            super(dslContext, schemaManager, ttlConfig, sqlDialect);
             this.config = config;
         }
 
         @Override
-        protected Result<Record> getSkipDateRecordList() {
+        protected Result<? extends Record> getSkipDateRecordList() {
             String sql = dslContext.select(Tables.BITHON_METRICS_BASELINE.DATE, Tables.BITHON_METRICS_BASELINE.KEEP_DAYS)
                                    .from(Tables.BITHON_METRICS_BASELINE)
                                    .getSQL() + " FINAL ";
@@ -172,7 +177,7 @@ public class MetricStorage extends MetricJdbcStorage {
     }
 
     @Override
-    protected Result<Record> getBaselineRecords() {
+    protected Result<? extends Record> getBaselineRecords() {
         String sql = dslContext.select(Tables.BITHON_METRICS_BASELINE.DATE, Tables.BITHON_METRICS_BASELINE.KEEP_DAYS)
                                .from(Tables.BITHON_METRICS_BASELINE)
                                .getSQL() + " FINAL ";

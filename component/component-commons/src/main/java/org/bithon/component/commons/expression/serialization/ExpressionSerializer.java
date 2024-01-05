@@ -32,6 +32,7 @@ import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -40,14 +41,10 @@ import java.util.List;
 public class ExpressionSerializer implements IExpressionVisitor {
     protected final StringBuilder sb = new StringBuilder(512);
 
-    private final boolean quoteIdentifier;
+    protected final Function<String, String> quoteIdentifier;
     private final String qualifier;
 
-    public ExpressionSerializer() {
-        this(null, true);
-    }
-
-    public ExpressionSerializer(boolean quoteIdentifier) {
+    public ExpressionSerializer(Function<String, String> quoteIdentifier) {
         this(null, quoteIdentifier);
     }
 
@@ -55,7 +52,7 @@ public class ExpressionSerializer implements IExpressionVisitor {
      * @param qualifier       the qualifier of the identifier if the identifier is not a qualified name
      * @param quoteIdentifier if the identifier should be quoted
      */
-    public ExpressionSerializer(String qualifier, boolean quoteIdentifier) {
+    public ExpressionSerializer(String qualifier, Function<String, String> quoteIdentifier) {
         this.qualifier = qualifier == null ? null : qualifier.trim();
         this.quoteIdentifier = quoteIdentifier;
     }
@@ -113,10 +110,8 @@ public class ExpressionSerializer implements IExpressionVisitor {
     }
 
     protected void quoteIdentifierIfNeeded(String name) {
-        if (quoteIdentifier) {
-            sb.append('"');
-            sb.append(name);
-            sb.append('"');
+        if (quoteIdentifier != null) {
+            sb.append(quoteIdentifier.apply(name));
         } else {
             sb.append(name);
         }

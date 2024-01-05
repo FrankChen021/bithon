@@ -18,13 +18,12 @@ package org.bithon.server.storage.jdbc.meta;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.server.storage.common.ExpirationConfig;
-import org.bithon.server.storage.common.IExpirationRunnable;
-import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
-import org.bithon.server.storage.jdbc.jooq.Tables;
-import org.bithon.server.storage.jdbc.jooq.tables.records.BithonApplicationInstanceRecord;
+import org.bithon.server.storage.common.expiration.ExpirationConfig;
+import org.bithon.server.storage.common.expiration.IExpirationRunnable;
+import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
+import org.bithon.server.storage.jdbc.common.jooq.Tables;
+import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonApplicationInstanceRecord;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.meta.Instance;
 import org.bithon.server.storage.meta.MetaStorageConfig;
@@ -42,17 +41,16 @@ import java.util.Collection;
  * @author frank.chen021@outlook.com
  * @date 2021/1/11 10:56 下午
  */
-@JsonTypeName("jdbc")
 public class MetadataJdbcStorage implements IMetaStorage {
 
     protected final DSLContext dslContext;
     protected final MetaStorageConfig storageConfig;
 
     @JsonCreator
-    public MetadataJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageConfiguration storageConfigurationProvider,
+    public MetadataJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration,
                                @JacksonInject(useInput = OptBoolean.FALSE) MetaStorageConfig metaStorageConfig
     ) {
-        this(storageConfigurationProvider.getDslContext(), metaStorageConfig);
+        this(providerConfiguration.getDslContext(), metaStorageConfig);
     }
 
     public MetadataJdbcStorage(DSLContext dslContext, MetaStorageConfig metaStorageConfig) {
@@ -145,7 +143,7 @@ public class MetadataJdbcStorage implements IMetaStorage {
     public IExpirationRunnable getExpirationRunnable() {
         return new IExpirationRunnable() {
             @Override
-            public ExpirationConfig getRule() {
+            public ExpirationConfig getExpirationConfig() {
                 return storageConfig.getTtl();
             }
 

@@ -27,8 +27,13 @@ import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
  * @author frank.chen021@outlook.com
  * @date 1/11/21 5:21 pm
  */
-@JsonTypeName("CLICKHOUSE")
+@JsonTypeName("clickhouse")
 public class ClickHouseSqlDialect implements ISqlDialect {
+
+    @Override
+    public String quoteIdentifier(String identifier) {
+        return "\"" + identifier + "\"";
+    }
 
     @Override
     public String timeFloorExpression(IExpression timestampExpression, long interval) {
@@ -37,27 +42,27 @@ public class ClickHouseSqlDialect implements ISqlDialect {
                 if ("toStartOfMinute".equals(((FunctionExpression) timestampExpression).getName())) {
                     // If the user already specifies the toStartOfMinute function call,
                     // there's no need to apply the function once more
-                    return StringUtils.format("toUnixTimestamp(%s)", timestampExpression.serializeToText(true));
+                    return StringUtils.format("toUnixTimestamp(%s)", timestampExpression.serializeToText(this::quoteIdentifier));
                 }
             }
-            return StringUtils.format("toUnixTimestamp(toStartOfMinute(%s))", timestampExpression.serializeToText(true));
+            return StringUtils.format("toUnixTimestamp(toStartOfMinute(%s))", timestampExpression.serializeToText(this::quoteIdentifier));
         }
         if (interval == 60 * 5) {
-            return StringUtils.format("toUnixTimestamp(toStartOfFiveMinute(%s))", timestampExpression.serializeToText(true));
+            return StringUtils.format("toUnixTimestamp(toStartOfFiveMinute(%s))", timestampExpression.serializeToText(this::quoteIdentifier));
         }
         if (interval == 60 * 15) {
-            return StringUtils.format("toUnixTimestamp(toStartOfFifteenMinutes(%s))", timestampExpression.serializeToText(true));
+            return StringUtils.format("toUnixTimestamp(toStartOfFifteenMinutes(%s))", timestampExpression.serializeToText(this::quoteIdentifier));
         }
         if (interval == 3600) {
-            return StringUtils.format("toUnixTimestamp(toStartOfHour(%s))", timestampExpression.serializeToText(true));
+            return StringUtils.format("toUnixTimestamp(toStartOfHour(%s))", timestampExpression.serializeToText(this::quoteIdentifier));
         }
 
         if (interval > 60 && interval % 60 == 0) {
             return StringUtils.format("toUnixTimestamp(toStartOfInterval(%s, INTERVAL %d MINUTE))",
-                                      timestampExpression.serializeToText(true),
+                                      timestampExpression.serializeToText(this::quoteIdentifier),
                                       interval / 60);
         } else {
-            return StringUtils.format("CAST(toUnixTimestamp(%s)/ %d AS Int64) * %d", timestampExpression.serializeToText(true), interval, interval);
+            return StringUtils.format("CAST(toUnixTimestamp(%s)/ %d AS Int64) * %d", timestampExpression.serializeToText(this::quoteIdentifier), interval, interval);
         }
     }
 
@@ -87,11 +92,11 @@ public class ClickHouseSqlDialect implements ISqlDialect {
 
     @Override
     public String firstAggregator(String field, String name, long window) {
-        return StringUtils.format("argMin(\"%s\", \"timestamp\") AS %s", field, name);
+        return StringUtils.format("argMin(%s, %s) AS %s", quoteIdentifier(field), quoteIdentifier("timestamp"), quoteIdentifier(name));
     }
 
     @Override
     public String lastAggregator(String field, long window) {
-        return StringUtils.format("argMax(\"%s\", \"timestamp\")", field);
+        return StringUtils.format("argMax(%s, %s)", quoteIdentifier(field), quoteIdentifier("timestamp"));
     }
 }

@@ -19,21 +19,20 @@ package org.bithon.server.storage.jdbc.event;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.server.storage.common.ExpirationConfig;
-import org.bithon.server.storage.common.IExpirationRunnable;
+import org.bithon.server.storage.common.expiration.ExpirationConfig;
+import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.event.IEventReader;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.event.IEventWriter;
-import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
+import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
-import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.DSLContext;
 
 import java.sql.Timestamp;
@@ -42,7 +41,6 @@ import java.sql.Timestamp;
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 4:19 下午
  */
-@JsonTypeName("jdbc")
 public class EventJdbcStorage implements IEventStorage {
 
     protected final DSLContext dslContext;
@@ -52,12 +50,12 @@ public class EventJdbcStorage implements IEventStorage {
     private final ISqlDialect sqlDialect;
 
     @JsonCreator
-    public EventJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageConfiguration storageConfigurationProvider,
+    public EventJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration,
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                             @JacksonInject(useInput = OptBoolean.FALSE) EventStorageConfig storageConfig,
                             @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
                             @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
-        this(storageConfigurationProvider.getDslContext(),
+        this(providerConfiguration.getDslContext(),
              objectMapper,
              storageConfig,
              sqlDialectManager,
@@ -101,7 +99,7 @@ public class EventJdbcStorage implements IEventStorage {
     public IExpirationRunnable getExpirationRunnable() {
         return new IExpirationRunnable() {
             @Override
-            public ExpirationConfig getRule() {
+            public ExpirationConfig getExpirationConfig() {
                 return storageConfig.getTtl();
             }
 

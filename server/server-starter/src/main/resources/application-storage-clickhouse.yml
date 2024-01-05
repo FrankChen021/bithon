@@ -4,38 +4,38 @@
 bithon:
   storage:
     tracing:
-      type: clickhouse
+      provider: clickhouse
       enabled: true
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     metric:
-      type: clickhouse
+      provider: clickhouse
       enabled: true
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     event:
-      type: clickhouse
+      provider: clickhouse
       enabled: true
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     meta:
-      type: clickhouse
+      provider: clickhouse
       enabled: true
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     setting:
-      type: clickhouse
+      provider: clickhouse
       enabled: true
     web:
-      type: clickhouse
+      provider: clickhouse
     providers:
       clickhouse:
         #

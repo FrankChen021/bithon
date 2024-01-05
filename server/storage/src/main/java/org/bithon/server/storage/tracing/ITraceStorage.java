@@ -17,8 +17,8 @@
 package org.bithon.server.storage.tracing;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.common.IExpirable;
 import org.bithon.server.storage.common.IStorage;
+import org.bithon.server.storage.common.expiration.IExpirable;
 
 /**
  * @author frank.chen021@outlook.com

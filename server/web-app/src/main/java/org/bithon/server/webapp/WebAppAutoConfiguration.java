@@ -20,9 +20,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.InvalidConfigurationException;
-import org.bithon.server.storage.provider.StorageProviderManager;
+import org.bithon.server.storage.common.StorageConfig;
+import org.bithon.server.storage.common.provider.StorageProviderManager;
 import org.bithon.server.storage.web.IDashboardStorage;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -39,15 +40,23 @@ import java.io.IOException;
 @Conditional(value = WebAppModuleEnabler.class)
 public class WebAppAutoConfiguration {
 
+    @Configuration
+    @ConfigurationProperties(prefix = "bithon.storage.web")
+    public static class WebAppStorageConfig extends StorageConfig {
+    }
+
     @Bean
-    public IDashboardStorage createDashboardStorage(ObjectMapper om,
-                                                    StorageProviderManager storageProviderManager,
-                                                    @Value("${bithon.storage.web.type}") String type) throws IOException {
-        InvalidConfigurationException.throwIf(!StringUtils.hasText(type),
-                                              "[bithon.storage.web.type] can't be blank");
+    public IDashboardStorage dashboardStorage(ObjectMapper om,
+                                              StorageProviderManager storageProviderManager,
+                                              WebAppStorageConfig storageConfig) throws IOException {
+        String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
+        InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
+                                              "[%s] can't be blank",
+                                              storageConfig.getClass(),
+                                              "provider");
 
         // create storage
-        IDashboardStorage storage = storageProviderManager.createStorage(type, IDashboardStorage.class);
+        IDashboardStorage storage = storageProviderManager.createStorage(providerName, IDashboardStorage.class);
         storage.initialize();
 
         // load or update schemas

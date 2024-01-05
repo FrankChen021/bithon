@@ -16,7 +16,7 @@
 
 package org.bithon.server.storage.jdbc.setting;
 
-import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.setting.ISettingReader;
 import org.jooq.DSLContext;
 

@@ -35,7 +35,7 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
-import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
@@ -136,7 +136,7 @@ public class TraceJdbcReader implements ITraceReader {
 
         // Build the tag query
         if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
-            SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.traceTagIndexSchema)
+            SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect)
                 .dslContext(this.dslContext)
                 .start(start.toLocalDateTime())
                 .end(end.toLocalDateTime())
@@ -178,16 +178,21 @@ public class TraceJdbcReader implements ITraceReader {
         boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
 
         String timeBucket = sqlDialect.timeFloorExpression(new IdentifierExpression("timestamp"), interval);
-        StringBuilder sqlBuilder = new StringBuilder(StringUtils.format("SELECT %s AS \"_timestamp\", count(1) AS \"count\", min(\"%s\") AS \"minResponse\", avg(\"%s\") AS \"avgResponse\", max(\"%s\") AS \"maxResponse\" FROM %s",
+        StringBuilder sqlBuilder = new StringBuilder(StringUtils.format("SELECT %s AS %s, count(1) AS %s, min(%s) AS %s, avg(%s) AS %s, max(%s) AS %s FROM %s",
                                                                         timeBucket,
-                                                                        Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS.getName(),
-                                                                        Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS.getName(),
-                                                                        Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS.getName(),
-                                                                        isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.getUnqualifiedName().quotedName() : Tables.BITHON_TRACE_SPAN.getUnqualifiedName().quotedName()));
-        sqlBuilder.append(StringUtils.format(" WHERE \"%s\" >= '%s' AND \"%s\" < '%s'",
-                                             Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.getName(),
+                                                                        sqlDialect.quoteIdentifier("_timestamp"),
+                                                                        sqlDialect.quoteIdentifier("count"),
+                                                                        sqlDialect.quoteIdentifier(Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS.getName()),
+                                                                        sqlDialect.quoteIdentifier("minResponse"),
+                                                                        sqlDialect.quoteIdentifier(Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS.getName()),
+                                                                        sqlDialect.quoteIdentifier("avgResponse"),
+                                                                        sqlDialect.quoteIdentifier(Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS.getName()),
+                                                                        sqlDialect.quoteIdentifier("maxResponse"),
+                                                                        sqlDialect.quoteIdentifier(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.getName() : Tables.BITHON_TRACE_SPAN.getName())));
+        sqlBuilder.append(StringUtils.format(" WHERE %s >= '%s' AND %s < '%s'",
+                                             sqlDialect.quoteIdentifier(Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.getName()),
                                              DateTime.toYYYYMMDDhhmmss(start.getTime()),
-                                             Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.getName(),
+                                             sqlDialect.quoteIdentifier(Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.getName()),
                                              DateTime.toYYYYMMDDhhmmss(end.getTime())));
 
         if (filter != null) {
@@ -206,7 +211,7 @@ public class TraceJdbcReader implements ITraceReader {
 
         // Build the indexed tag sub query
         if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
-            SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.traceTagIndexSchema)
+            SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect)
                 .dslContext(this.dslContext)
                 .start(start.toLocalDateTime())
                 .end(end.toLocalDateTime())
@@ -218,7 +223,7 @@ public class TraceJdbcReader implements ITraceReader {
             sqlBuilder.append(dslContext.renderInlined(subQuery));
         }
 
-        sqlBuilder.append(StringUtils.format(" GROUP BY \"_timestamp\" ORDER BY \"_timestamp\"", timeBucket));
+        sqlBuilder.append(StringUtils.format(" GROUP BY %s ORDER BY %s", this.sqlDialect.quoteIdentifier("_timestamp"), this.sqlDialect.quoteIdentifier("_timestamp"), timeBucket));
 
         String sql = sqlBuilder.toString();
         log.info("Get trace distribution: {}", sql);
@@ -256,7 +261,7 @@ public class TraceJdbcReader implements ITraceReader {
         }
 
         // Build the indexed tag query
-        SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.traceTagIndexSchema)
+        SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect)
             .dslContext(this.dslContext)
             .start(start.toLocalDateTime())
             .end(end.toLocalDateTime())

@@ -20,11 +20,11 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.server.storage.common.ExpirationConfig;
-import org.bithon.server.storage.common.IExpirationRunnable;
+import org.bithon.server.storage.common.expiration.ExpirationConfig;
+import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
-import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageConfiguration;
-import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
+import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 import org.bithon.server.storage.meta.Instance;
 import org.bithon.server.storage.meta.MetaStorageConfig;
@@ -47,7 +47,7 @@ public class MetadataStorage extends MetadataJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public MetadataStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageConfiguration storageConfiguration,
+    public MetadataStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration storageConfiguration,
                            @JacksonInject(useInput = OptBoolean.FALSE) MetaStorageConfig storageConfig) {
         super(storageConfiguration.getDslContext(), storageConfig);
         this.config = storageConfiguration.getClickHouseConfig();
@@ -111,7 +111,7 @@ public class MetadataStorage extends MetadataJdbcStorage {
     public IExpirationRunnable getExpirationRunnable() {
         return new IExpirationRunnable() {
             @Override
-            public ExpirationConfig getRule() {
+            public ExpirationConfig getExpirationConfig() {
                 return storageConfig.getTtl();
             }
 

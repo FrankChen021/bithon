@@ -19,7 +19,9 @@ package org.bithon.server.storage.jdbc.common.dialect;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.storage.InvalidConfigurationException;
 import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;
@@ -40,12 +42,19 @@ public class SqlDialectManager {
     }
 
     public ISqlDialect getSqlDialect(DSLContext context) {
-        final String name = context.dialect().name().toUpperCase(Locale.ENGLISH);
-        return sqlDialectMap.computeIfAbsent(name, (k) -> {
+        return getSqlDialect(context.dialect());
+    }
+
+    public ISqlDialect getSqlDialect(SQLDialect dialect) {
+        return getSqlDialect(dialect.name().toLowerCase(Locale.ENGLISH));
+    }
+
+    public ISqlDialect getSqlDialect(String dialect) {
+        return sqlDialectMap.computeIfAbsent(dialect, (k) -> {
             try {
-                return this.objectMapper.readValue(StringUtils.format("{\"type\": \"%s\"}", name), ISqlDialect.class);
+                return this.objectMapper.readValue(StringUtils.format("{\"type\": \"%s\"}", dialect), ISqlDialect.class);
             } catch (JsonProcessingException e) {
-                throw new RuntimeException(StringUtils.format("Can't find SqlDialect for %s", name));
+                throw new InvalidConfigurationException(StringUtils.format("Can't find SqlDialect for %s", dialect));
             }
         });
     }

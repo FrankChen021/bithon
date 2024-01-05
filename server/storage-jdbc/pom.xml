@@ -113,7 +113,7 @@
               <javaTimeTypes>true</javaTimeTypes>
             </generate>
             <target>
-              <packageName>org.bithon.server.storage.jdbc.jooq</packageName>
+              <packageName>org.bithon.server.storage.jdbc.common.jooq</packageName>
               <directory>src/main/java</directory>
             </target>
           </generator>
