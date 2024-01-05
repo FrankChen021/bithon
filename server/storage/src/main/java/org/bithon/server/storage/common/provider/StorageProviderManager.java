@@ -41,10 +41,10 @@ import java.util.Map;
 public class StorageProviderManager {
 
     public static class TypedStorageConfiguration {
-        IStorageConfiguration delegate;
+        IStorageProviderConfiguration delegate;
         String type;
 
-        public TypedStorageConfiguration(String type, IStorageConfiguration delegate) {
+        public TypedStorageConfiguration(String type, IStorageProviderConfiguration delegate) {
             this.delegate = delegate;
             this.type = type;
         }
@@ -80,9 +80,9 @@ public class StorageProviderManager {
     }
 
     static class StorageConfigurationInjector extends InjectableValues {
-        private final IStorageConfiguration configuration;
+        private final IStorageProviderConfiguration configuration;
 
-        StorageConfigurationInjector(IStorageConfiguration configuration) {
+        StorageConfigurationInjector(IStorageProviderConfiguration configuration) {
             this.configuration = configuration;
         }
 
@@ -135,7 +135,7 @@ public class StorageProviderManager {
             obj.put("props", config);
             try {
                 String text = objectMapper.writeValueAsString(obj);
-                return new TypedStorageConfiguration(type, objectMapper.readValue(text, IStorageConfiguration.class));
+                return new TypedStorageConfiguration(type, objectMapper.readValue(text, IStorageProviderConfiguration.class));
             } catch (InvalidTypeIdException e) {
                 throw new InvalidConfigurationException(StringUtils.format("Storage [%s] is not defined for IStorageConfiguration.", type));
             } catch (IOException e) {

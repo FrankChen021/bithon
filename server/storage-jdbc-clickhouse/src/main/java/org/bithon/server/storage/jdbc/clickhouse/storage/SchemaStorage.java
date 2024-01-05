@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
-import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageConfiguration;
+import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
 import org.jooq.Record;
@@ -46,7 +46,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public SchemaStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageConfiguration configuration,
+    public SchemaStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration configuration,
                          @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         super(configuration.getDslContext(), objectMapper);
         this.config = configuration.getClickHouseConfig();

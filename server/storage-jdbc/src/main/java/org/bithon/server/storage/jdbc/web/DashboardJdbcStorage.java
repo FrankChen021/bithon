@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.security.HashGenerator;
-import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
+import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.web.Dashboard;
 import org.bithon.server.storage.web.IDashboardStorage;
@@ -35,16 +35,16 @@ import java.util.List;
  * @author Frank Chen
  * @date 19/8/22 12:41 pm
  */
-public class JdbcDashboardStorage implements IDashboardStorage {
+public class DashboardJdbcStorage implements IDashboardStorage {
 
     protected final DSLContext dslContext;
 
     @JsonCreator
-    public JdbcDashboardStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageConfiguration storageConfigurationProvider) {
-        this(storageConfigurationProvider.getDslContext());
+    public DashboardJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration) {
+        this(providerConfiguration.getDslContext());
     }
 
-    public JdbcDashboardStorage(DSLContext dslContext) {
+    public DashboardJdbcStorage(DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 

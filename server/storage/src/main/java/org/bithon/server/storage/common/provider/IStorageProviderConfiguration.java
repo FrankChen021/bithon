@@ -19,9 +19,11 @@ package org.bithon.server.storage.common.provider;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
+ * Configuration instances that map the 'bithon.storage.providers.xxx' property
+ *
  * @author frank.chen021@outlook.com
  * @date 2023/8/27 14:33
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IStorageConfiguration {
+public interface IStorageProviderConfiguration {
 }

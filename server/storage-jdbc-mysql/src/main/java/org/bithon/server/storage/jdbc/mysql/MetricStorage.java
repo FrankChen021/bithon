@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
+import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
@@ -36,7 +36,7 @@ import org.bithon.server.storage.metrics.MetricStorageConfig;
 public class MetricStorage extends MetricJdbcStorage {
 
     @JsonCreator
-    public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageConfiguration provider,
+    public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration provider,
                          @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
                          @JacksonInject(useInput = OptBoolean.FALSE) MetricStorageConfig storageConfig,
                          @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {

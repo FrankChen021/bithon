@@ -19,13 +19,13 @@ package org.bithon.server.storage.jdbc.mysql;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
-import org.bithon.server.storage.jdbc.JdbcStorageConfiguration;
+import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
-import org.bithon.server.storage.jdbc.web.JdbcDashboardStorage;
+import org.bithon.server.storage.jdbc.web.DashboardJdbcStorage;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -56,10 +56,10 @@ public class MySQLStorageModuleAutoConfiguration {
                 context.registerSubtypes(MySQLSqlDialect.class,
                                          MetricStorage.class);
 
-                context.registerSubtypes(new NamedType(JdbcStorageConfiguration.class, "mysql"),
+                context.registerSubtypes(new NamedType(JdbcStorageProviderConfiguration.class, "mysql"),
                                          new NamedType(SettingJdbcStorage.class, "mysql"),
                                          new NamedType(TraceJdbcStorage.class, "mysql"),
-                                         new NamedType(JdbcDashboardStorage.class, "mysql"),
+                                         new NamedType(DashboardJdbcStorage.class, "mysql"),
                                          new NamedType(EventJdbcStorage.class, "mysql"),
                                          new NamedType(SchemaJdbcStorage.class, "mysql"),
                                          new NamedType(MetadataJdbcStorage.class, "mysql"));

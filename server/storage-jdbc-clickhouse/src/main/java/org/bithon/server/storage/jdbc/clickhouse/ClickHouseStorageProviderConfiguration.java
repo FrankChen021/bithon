@@ -14,15 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc;
+package org.bithon.server.storage.jdbc.clickhouse;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceBuilder;
+import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
-import org.bithon.server.storage.common.provider.IStorageConfiguration;
+import org.bithon.server.storage.common.provider.IStorageProviderConfiguration;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
@@ -34,16 +38,22 @@ import java.util.Properties;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/8/27 15:08
+ * @date 2023/8/27 16:16
  */
-public class JdbcStorageConfiguration implements IStorageConfiguration {
+@JsonTypeName("clickhouse")
+public class ClickHouseStorageProviderConfiguration implements IStorageProviderConfiguration {
 
     @Getter
     @JsonIgnore
     private final DSLContext dslContext;
 
+    @Getter
+    @JsonIgnore
+    private final ClickHouseConfig clickHouseConfig;
+
     @JsonCreator
-    public JdbcStorageConfiguration(@JsonProperty("props") Map<String, Object> props) {
+    public ClickHouseStorageProviderConfiguration(@JsonProperty("props") Map<String, Object> props,
+                                                  @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) throws Exception {
         Properties properties = new Properties();
         props.forEach((k, v) -> properties.put("druid." + k, v));
 
@@ -55,5 +65,9 @@ public class JdbcStorageConfiguration implements IStorageConfiguration {
                                         .set(autoConfiguration.dataSourceConnectionProvider(dataSource))
                                         .set(new JooqProperties().determineSqlDialect(dataSource))
                                         .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
+
+        this.clickHouseConfig = objectMapper.readValue(objectMapper.writeValueAsString(props),
+                                                       ClickHouseConfig.class);
+        this.clickHouseConfig.afterPropertiesSet();
     }
 }
