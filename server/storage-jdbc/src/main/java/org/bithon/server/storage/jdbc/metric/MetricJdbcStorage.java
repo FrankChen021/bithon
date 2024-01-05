@@ -21,9 +21,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
@@ -36,10 +34,8 @@ import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
-import org.bithon.server.storage.metrics.ttl.MetricStorageCleaner;
 import org.jooq.CreateTableIndexStep;
 import org.jooq.DSLContext;
-import org.jooq.DeleteConditionStep;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.impl.DSL;
@@ -74,7 +70,7 @@ public class MetricJdbcStorage implements IMetricStorage {
      */
     protected final Map<String, DSLContext> dslContextMap;
 
-    private final SqlDialectManager sqlDialectManager;
+    protected final SqlDialectManager sqlDialectManager;
 
     @JsonCreator
     public MetricJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration,
@@ -183,7 +179,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     }
 
     protected MetricTable toMetricTable(DataSourceSchema schema) {
-        return new MetricTable(schema, 8192);
+        return new MetricTable(schema, false);
     }
 
     protected IMetricWriter createWriter(DSLContext dslContext, MetricTable table) {
@@ -203,7 +199,7 @@ public class MetricJdbcStorage implements IMetricStorage {
 
     @Override
     public IExpirationRunnable getExpirationRunnable() {
-        return new MetricStorageJdbcCleaner(dslContext, schemaManager, this.storageConfig.getTtl());
+        return new MetricJdbcStorageCleaner(dslContext, schemaManager, this.storageConfig.getTtl(), this.sqlDialectManager.getSqlDialect(dslContext));
     }
 
     @Override
@@ -217,83 +213,5 @@ public class MetricJdbcStorage implements IMetricStorage {
     protected Result<? extends Record> getBaselineRecords() {
         return dslContext.selectFrom(Tables.BITHON_METRICS_BASELINE)
                          .fetch();
-    }
-
-    protected static class MetricStorageJdbcCleaner extends MetricStorageCleaner {
-        protected final DSLContext dslContext;
-        protected final DataSourceSchemaManager schemaManager;
-        protected final ExpirationConfig ttlConfig;
-
-        protected MetricStorageJdbcCleaner(DSLContext dslContext, DataSourceSchemaManager schemaManager, ExpirationConfig ttlConfig) {
-            this.dslContext = dslContext;
-            this.schemaManager = schemaManager;
-            this.ttlConfig = ttlConfig;
-        }
-
-        @Override
-        public ExpirationConfig getExpirationConfig() {
-            return ttlConfig;
-        }
-
-        @Override
-        protected DataSourceSchemaManager getSchemaManager() {
-            return schemaManager;
-        }
-
-        @Override
-        protected final List<TimeSpan> getSkipDateList() {
-            return getSkipDateRecordList().stream()
-                                          .map((record) -> {
-                                              try {
-                                                  String date = record.get(Tables.BITHON_METRICS_BASELINE.DATE);
-                                                  TimeSpan startTimestamp = TimeSpan.of(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH).parse(date + " 00:00:00").getTime());
-
-                                                  int keepDays = record.get(Tables.BITHON_METRICS_BASELINE.KEEP_DAYS);
-                                                  if (keepDays > 0) {
-                                                      if (startTimestamp.after(keepDays, TimeUnit.DAYS).getMilliseconds() > System.currentTimeMillis()) {
-                                                          return startTimestamp;
-                                                      } else {
-                                                          // Will be ignored
-                                                          return null;
-                                                      }
-                                                  } else {
-                                                      return startTimestamp;
-                                                  }
-                                              } catch (ParseException e) {
-                                                  return null;
-                                              }
-                                          }).filter(Objects::nonNull)
-                                          .collect(Collectors.toList());
-        }
-
-        protected Result<? extends Record> getSkipDateRecordList() {
-            return dslContext.selectFrom(Tables.BITHON_METRICS_BASELINE)
-                             .fetch();
-        }
-
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        @Override
-        protected void expireImpl(DataSourceSchema schema, Timestamp before, List<TimeSpan> skipDateList) {
-
-            final MetricTable table = new MetricTable(schema, 8192);
-            String timestampField = table.getTimestampField().getName();
-
-            DeleteConditionStep delete = dslContext.deleteFrom(table)
-                                                   .where(table.getTimestampField().le(before));
-            if (!skipDateList.isEmpty()) {
-                String skipSql = skipDateList.stream()
-                                             .map((skipDate) -> {
-                                                 TimeSpan endTimestamp = skipDate.after(1, TimeUnit.DAYS);
-                                                 return StringUtils.format("NOT (\"%s\" >= '%s' AND \"%s\" < '%s')", timestampField, skipDate.toISO8601(), timestampField, endTimestamp.toISO8601());
-                                             })
-                                             .filter((s) -> !s.isEmpty())
-                                             .collect(Collectors.joining(" AND "));
-                if (!skipSql.isEmpty()) {
-                    delete = delete.and(skipSql);
-                }
-            }
-
-            delete.execute();
-        }
     }
 }

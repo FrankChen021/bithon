@@ -36,6 +36,7 @@ import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
+import org.bithon.server.storage.jdbc.metric.MetricJdbcStorageCleaner;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcWriter;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
 import org.bithon.server.storage.metrics.IMetricReader;
@@ -65,12 +66,12 @@ public class MetricStorage extends MetricJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration storageConfiguration,
+    public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration providerConfiguration,
                          @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
                          @JacksonInject(useInput = OptBoolean.FALSE) MetricStorageConfig storageConfig,
                          @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
-        super(storageConfiguration.getDslContext(), schemaManager, storageConfig, sqlDialectManager);
-        this.config = storageConfiguration.getClickHouseConfig();
+        super(providerConfiguration.getDslContext(), schemaManager, storageConfig, sqlDialectManager);
+        this.config = providerConfiguration.getClickHouseConfig();
     }
 
     @Override
@@ -79,18 +80,24 @@ public class MetricStorage extends MetricJdbcStorage {
     }
 
     @Override
-    public IExpirationRunnable getExpirationRunnable() {
-        return new StorageCleaner(dslContext, schemaManager, this.storageConfig.getTtl(), config);
+    protected MetricTable toMetricTable(DataSourceSchema schema) {
+        return new MetricTable(schema, true);
     }
 
-    static class StorageCleaner extends MetricStorageJdbcCleaner {
+    @Override
+    public IExpirationRunnable getExpirationRunnable() {
+        return new StorageCleaner(dslContext, schemaManager, this.storageConfig.getTtl(), config, this.sqlDialectManager.getSqlDialect(dslContext));
+    }
+
+    static class StorageCleaner extends MetricJdbcStorageCleaner {
         private final ClickHouseConfig config;
 
         protected StorageCleaner(DSLContext dslContext,
                                  DataSourceSchemaManager schemaManager,
                                  ExpirationConfig ttlConfig,
-                                 ClickHouseConfig config) {
-            super(dslContext, schemaManager, ttlConfig);
+                                 ClickHouseConfig config,
+                                 ISqlDialect sqlDialect) {
+            super(dslContext, schemaManager, ttlConfig, sqlDialect);
             this.config = config;
         }
 

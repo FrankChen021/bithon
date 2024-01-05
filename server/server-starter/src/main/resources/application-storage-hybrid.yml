@@ -43,8 +43,9 @@ bithon:
 
       mysql-1:
         type: mysql
-        url: jdbc:h2:mem:bithon2;MODE=mysql;
-        username: sa
+        url: jdbc:mysql://localhost:3306/bithon
+        driverClassName: com.mysql.cj.jdbc.Driver
+        username: root
 
       ck:
         type: clickhouse

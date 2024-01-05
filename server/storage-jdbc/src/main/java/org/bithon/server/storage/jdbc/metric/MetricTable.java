@@ -46,16 +46,13 @@ public class MetricTable extends TableImpl {
     private final List<Field> metrics = new ArrayList<>();
     private final List<Index> indexes;
     private final Field<Timestamp> timestampField;
-    private final int stringFieldMaxLength;
 
     public Field<Timestamp> getTimestampField() {
         return timestampField;
     }
 
-    public MetricTable(DataSourceSchema schema, int stringFieldMaxLength) {
+    public MetricTable(DataSourceSchema schema, boolean useAllDimensionsAsIndex) {
         super(DSL.name(schema.getDataStoreSpec().getStore()));
-
-        this.stringFieldMaxLength = stringFieldMaxLength;
 
         //noinspection unchecked
         timestampField = this.createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP);
@@ -64,17 +61,22 @@ public class MetricTable extends TableImpl {
         indexesFields.add(timestampField);
 
         for (IColumn dimension : schema.getDimensionsSpec()) {
-            Field dimensionField = createField(dimension.getName(), dimension.getDataType());
+            // For some DBMS, like MySQL, there's length limitation on the fields which are also used as index
+            boolean isIndexField = useAllDimensionsAsIndex || dimension.getName().equals("appName") || dimension.getName().equals("instanceName");
+
+            Field dimensionField = createField(dimension.getName(), dimension.getDataType(), isIndexField ? 128 : 1024);
             dimensions.add(dimensionField);
 
-            indexesFields.add(dimensionField);
+            if (isIndexField) {
+                indexesFields.add(dimensionField);
+            }
         }
 
         for (IColumn metric : schema.getMetricsSpec()) {
             if (metric instanceof ExpressionColumn) {
                 continue;
             }
-            metrics.add(createField(metric.getName(), metric.getDataType()));
+            metrics.add(createField(metric.getName(), metric.getDataType(), 8192));
         }
 
         Index index = Internal.createIndex("idx_" + this.getName() + "_dimensions",
@@ -90,7 +92,7 @@ public class MetricTable extends TableImpl {
     }
 
     @SuppressWarnings("unchecked")
-    private Field createField(String name, IDataType dataType) {
+    private Field createField(String name, IDataType dataType, int length) {
         if (dataType.equals(IDataType.DOUBLE)) {
             return this.createField(DSL.name(name),
                                     SQLDataType.DECIMAL(18, 2)
@@ -102,7 +104,7 @@ public class MetricTable extends TableImpl {
             // Note that the length defined here will be used in the MetricJdbcWriter to limit the size of input.
             // This only works on the H2/MySQL database.
             return this.createField(DSL.name(name),
-                                    SQLDataType.VARCHAR.length(stringFieldMaxLength)
+                                    SQLDataType.VARCHAR.length(length)
                                                        .nullable(false)
                                                        .defaultValue(""));
         } else {

@@ -18,22 +18,27 @@ package org.bithon.server.storage.jdbc;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceBuilder;
+import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.Getter;
+import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.storage.InvalidConfigurationException;
 import org.bithon.server.storage.common.provider.IStorageProviderConfiguration;
+import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
+import org.jooq.tools.jdbc.JDBCUtils;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 
 import java.util.Map;
 import java.util.Properties;
 
 /**
- *
  * Should be registered to ObjectMapper in each implementation.
  * Can take the H2StorageModuleAutoConfiguration for reference.
  *
@@ -47,17 +52,32 @@ public class JdbcStorageProviderConfiguration implements IStorageProviderConfigu
     private final DSLContext dslContext;
 
     @JsonCreator
-    public JdbcStorageProviderConfiguration(@JsonProperty("props") Map<String, Object> props) {
+    public JdbcStorageProviderConfiguration(@JsonProperty("props") Map<String, Object> props,
+                                            @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
+        String url = ((String) props.getOrDefault("url", "")).trim();
+        InvalidConfigurationException.throwIf(url.isEmpty(), "url property is missed.");
+        InvalidConfigurationException.throwIf(!url.startsWith("jdbc:"), StringUtils.format("The 'url' property [%s] should start with 'jdbc:'.", props.get("url")));
+
         Properties properties = new Properties();
         props.forEach((k, v) -> properties.put("druid." + k, v));
 
+        if (!properties.contains("druid.maxWait")) {
+            properties.put("druid.maxWait", "10000");
+        }
+
+        // Inference the SQL dialect from the URL first
+        SQLDialect sqlDialect = JDBCUtils.dialect(url);
+        InvalidConfigurationException.throwIf(sqlDialect.equals(SQLDialect.DEFAULT), StringUtils.format("Unknown SQL dialect from the given url: %s", url));
+
+        // Check if the dialect is supported
+        sqlDialectManager.getSqlDialect(sqlDialect);
+
         DruidDataSource dataSource = DruidDataSourceBuilder.create().build();
         dataSource.configFromPropety(properties);
-
         JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
         this.dslContext = DSL.using(new DefaultConfiguration()
                                         .set(autoConfiguration.dataSourceConnectionProvider(dataSource))
-                                        .set(new JooqProperties().determineSqlDialect(dataSource))
+                                        .set(sqlDialect)
                                         .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
     }
 }

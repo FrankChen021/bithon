@@ -23,6 +23,7 @@ import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
+import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.web.DashboardJdbcStorage;
@@ -53,10 +54,10 @@ public class MySQLStorageModuleAutoConfiguration {
 
             @Override
             public void setupModule(SetupContext context) {
-                context.registerSubtypes(MySQLSqlDialect.class,
-                                         MetricStorage.class);
+                context.registerSubtypes(MySQLSqlDialect.class);
 
                 context.registerSubtypes(new NamedType(JdbcStorageProviderConfiguration.class, "mysql"),
+                                         new NamedType(MetricJdbcStorage.class, "mysql"),
                                          new NamedType(SettingJdbcStorage.class, "mysql"),
                                          new NamedType(TraceJdbcStorage.class, "mysql"),
                                          new NamedType(DashboardJdbcStorage.class, "mysql"),
