@@ -50,9 +50,9 @@ public class DashboardStorage extends DashboardJdbcStorage {
 
     @Override
     public void initialize() {
-        new TableCreator(config, dslContext).useReplacingMergeTree(Tables.BITHON_META_SCHEMA.TIMESTAMP.getName())
+        new TableCreator(config, dslContext).useReplacingMergeTree(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.getName())
                                             .partitionByExpression(null)
-                                            .secondaryIndex(Tables.BITHON_META_SCHEMA.TIMESTAMP.getName(), new TableCreator.SecondaryIndex("minmax", 512))
+                                            .secondaryIndex(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.getName(), new TableCreator.SecondaryIndex("minmax", 512))
                                             .createIfNotExist(Tables.BITHON_WEB_DASHBOARD);
     }
 
