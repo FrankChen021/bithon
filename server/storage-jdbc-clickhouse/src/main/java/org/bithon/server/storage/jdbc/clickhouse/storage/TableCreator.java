@@ -32,6 +32,7 @@ import org.jooq.impl.SQLDataType;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -160,14 +161,13 @@ public class TableCreator {
 
                     if (replacingMergeTreeVersion != null) {
                         if (!idx.getUnique()) {
-                            // For replacing merge tree, use unique key as the order key only,
-                            // So if it's not the unique key, skip it
+                            // For replacing the merge tree, use unique key as the order key only
                             continue;
                         }
                     }
                     for (SortField<?> f : idx.getFields()) {
                         if ("timestamp".equals(f.getName())) {
-                            createTableStatement.append(StringUtils.format("toStartOfHour(timestamp),"));
+                            createTableStatement.append(StringUtils.format("toStartOfMinute(timestamp),"));
                         } else {
                             createTableStatement.append(StringUtils.format("%s,", f.getName()));
                         }
@@ -200,11 +200,37 @@ public class TableCreator {
                                          table.getName(),
                                          config.getOnClusterExpression()));
             sb.append(getFieldDeclarationExpression(table));
-            sb.append(StringUtils.format(") ENGINE=Distributed('%s', '%s', '%s', murmurHash2_64(%s));",
+
+            final StringBuilder shardingKey = new StringBuilder();
+            if (this.replacingMergeTreeVersion != null) {
+                // For the replacing merge tree,
+                // we use the unique keys as the sharding key
+                // to make sure the rows with the same key will be distributed to the same CK node
+                Index uniqIndex = table.getIndexes()
+                                       .stream()
+                                       .filter(Index::getUnique)
+                                       .findFirst()
+                                       .orElse(null);
+
+                if (uniqIndex != null) {
+                    shardingKey.append("murmurHash2_64(");
+                    shardingKey.append(uniqIndex.getFields()
+                                                .stream()
+                                                .map(SortField::getName)
+                                                .collect(Collectors.joining(",")));
+                    shardingKey.append(")");
+                }
+            }
+            if (shardingKey.length() == 0) {
+                // Set a default sharding key for random writing
+                shardingKey.append("rand()");
+            }
+
+            sb.append(StringUtils.format(") ENGINE=Distributed('%s', '%s', '%s', %s);",
                                          config.getCluster(),
                                          config.getDatabase(),
                                          table.getName() + "_local",
-                                         "bithon_topo_metrics".equals(table.getName()) ? "srcEndpoint" : "appName"));
+                                         shardingKey));
 
             log.info("CreateIfNotExists {}", table.getName());
             dslContext.execute(sb.toString());
@@ -243,7 +269,7 @@ public class TableCreator {
 
     private boolean useMapType(Table<?> table, Field<?> field) {
         return Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName().equals(field.getName())
-                && (table.getName().equals(Tables.BITHON_TRACE_SPAN.getName()) || table.getName().equals(Tables.BITHON_TRACE_SPAN_SUMMARY.getName()));
+            && (table.getName().equals(Tables.BITHON_TRACE_SPAN.getName()) || table.getName().equals(Tables.BITHON_TRACE_SPAN_SUMMARY.getName()));
     }
 
     private String getIndexText() {
