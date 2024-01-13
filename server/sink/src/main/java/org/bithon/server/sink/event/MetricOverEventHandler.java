@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.metrics.MetricMessageHandler;
 import org.bithon.server.sink.metrics.MetricSinkConfig;
-import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
@@ -42,14 +41,12 @@ public class MetricOverEventHandler extends MetricMessageHandler implements Even
 
     public MetricOverEventHandler(String eventType,
                                   String dataSourceName,
-                                  TopoTransformers topoTransformers,
                                   ObjectMapper objectMapper,
                                   IMetaStorage metaStorage,
                                   IMetricStorage metricStorage,
                                   DataSourceSchemaManager dataSourceSchemaManager,
                                   MetricSinkConfig metricSinkConfig) throws IOException {
         super(dataSourceName,
-              topoTransformers,
               metaStorage,
               metricStorage,
               dataSourceSchemaManager,

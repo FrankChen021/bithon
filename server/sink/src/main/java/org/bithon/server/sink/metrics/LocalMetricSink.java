@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
@@ -79,7 +78,6 @@ public class LocalMetricSink implements IMetricMessageSink {
             schemaManager.addDataSourceSchema(message.getSchema());
             try {
                 handler = new MetricMessageHandler(messageType,
-                                                   applicationContext.getBean(TopoTransformers.class),
                                                    applicationContext.getBean(IMetaStorage.class),
                                                    applicationContext.getBean(IMetricStorage.class),
                                                    schemaManager,

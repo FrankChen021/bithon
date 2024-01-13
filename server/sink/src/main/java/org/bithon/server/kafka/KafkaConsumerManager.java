@@ -51,9 +51,17 @@ public class KafkaConsumerManager implements SmartLifecycle, ApplicationContextA
 
         ITraceMessageSink traceMessageSink = this.context.getBean(LocalTraceSink.class);
 
-        collectors.add(new KafkaMetricConsumer(new LocalMetricSink(this.context), this.context).start(config.getMetrics()));
-        collectors.add(new KafkaTraceConsumer(traceMessageSink, this.context).start(config.getTracing()));
-        collectors.add(new KafkaEventConsumer(new LocalEventSink(this.context.getBean(EventMessageHandlers.class)), this.context).start(config.getEvent()));
+        if (config.getMetrics() != null && isTrue(config.getMetrics().remove("enabled"), true)) {
+            collectors.add(new KafkaMetricConsumer(new LocalMetricSink(this.context), this.context).start(config.getMetrics()));
+        }
+
+        if (config.getTracing() != null && isTrue(config.getTracing().remove("enabled"), true)) {
+            collectors.add(new KafkaTraceConsumer(traceMessageSink, this.context).start(config.getTracing()));
+        }
+
+        if (config.getEvent() != null && isTrue(config.getEvent().remove("enabled"), true)) {
+            collectors.add(new KafkaEventConsumer(new LocalEventSink(this.context.getBean(EventMessageHandlers.class)), this.context).start(config.getEvent()));
+        }
     }
 
     @Override
@@ -66,5 +74,19 @@ public class KafkaConsumerManager implements SmartLifecycle, ApplicationContextA
     @Override
     public boolean isRunning() {
         return collectors.stream().anyMatch(IKafkaConsumer::isRunning);
+    }
+
+    private boolean isTrue(Object val, boolean nullValue) {
+        if (val != null) {
+            if (val instanceof Boolean) {
+                return (boolean) val;
+            }
+            if (val instanceof String) {
+                return "true".equalsIgnoreCase((String) val);
+            }
+            return false;
+        } else {
+            return nullValue;
+        }
     }
 }

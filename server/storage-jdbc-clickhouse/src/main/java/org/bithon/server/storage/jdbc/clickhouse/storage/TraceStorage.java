@@ -159,6 +159,11 @@ public class TraceStorage extends TraceJdbcStorage {
                 //noinspection unchecked
                 return (Map<String, String>) attributes;
             }
+
+            @Override
+            protected String getSQL(String sql) {
+                return sql + " SETTINGS distributed_product_mode = 'global'";
+            }
         };
     }
 }

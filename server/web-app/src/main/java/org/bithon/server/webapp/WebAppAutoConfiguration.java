@@ -51,7 +51,7 @@ public class WebAppAutoConfiguration {
                                               WebAppStorageConfig storageConfig) throws IOException {
         String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
         InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
-                                              "[%s] can't be blank",
+                                              "[%s] is not properly configured to enable the storage for the dashboard module.",
                                               storageConfig.getClass(),
                                               "provider");
 

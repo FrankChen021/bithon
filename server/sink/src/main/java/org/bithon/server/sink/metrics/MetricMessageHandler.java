@@ -61,14 +61,13 @@ public class MetricMessageHandler {
     private final TransformSpec transformSpec;
 
     public MetricMessageHandler(String dataSourceName,
-                                TopoTransformers topoTransformers,
                                 IMetaStorage metaStorage,
                                 IMetricStorage metricStorage,
                                 DataSourceSchemaManager dataSourceSchemaManager,
                                 TransformSpec transformSpec,
                                 MetricSinkConfig metricSinkConfig) throws IOException {
 
-        this.topoTransformers = topoTransformers;
+        this.topoTransformers = new TopoTransformers(metaStorage);
 
         this.schema = dataSourceSchemaManager.getDataSourceSchema(dataSourceName);
         this.metaStorage = metaStorage;

@@ -25,7 +25,6 @@ import org.bithon.server.sink.event.EventInputSource;
 import org.bithon.server.sink.event.EventMessageHandlers;
 import org.bithon.server.sink.event.EventSinkConfig;
 import org.bithon.server.sink.metrics.MetricInputSource;
-import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.sink.metrics.transformer.ConnectionStringTransformer;
 import org.bithon.server.sink.metrics.transformer.ExtractHost;
 import org.bithon.server.sink.metrics.transformer.ExtractPath;
@@ -34,9 +33,10 @@ import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.sink.tracing.metrics.MetricOverSpanInputSource;
 import org.bithon.server.sink.tracing.transform.TraceSpanTransformer;
+import org.bithon.server.storage.StorageModuleAutoConfiguration;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.event.IEventStorage;
-import org.bithon.server.storage.meta.IMetaStorage;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
@@ -49,13 +49,9 @@ import org.springframework.context.annotation.Configuration;
  * @date 3/4/22 11:37 AM
  */
 @Configuration(proxyBeanMethods = false)
+@AutoConfigureAfter(StorageModuleAutoConfiguration.class)
 @Conditional(SinkModuleEnabler.class)
 public class SinkAutoConfiguration {
-
-    @Bean
-    TopoTransformers topoTransformers(IMetaStorage metaStorage) {
-        return new TopoTransformers(metaStorage);
-    }
 
     @Bean
     EventMessageHandlers eventMessageHandlers(IEventStorage eventStorage, EventSinkConfig eventSinkConfig) {
@@ -89,7 +85,7 @@ public class SinkAutoConfiguration {
 
                                          // tracing transformers
                                          TraceSpanTransformer.class
-                );
+                                        );
             }
         };
     }

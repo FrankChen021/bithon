@@ -66,7 +66,7 @@ public class StorageModuleAutoConfiguration {
                                               StorageProviderManager storageProviderManager) throws IOException {
         String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
         InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
-                                              "[%s] can't be blank",
+                                              "[%s] is not properly configured to enable the Metric module.",
                                               storageConfig.getClass(),
                                               "provider");
 
@@ -76,12 +76,12 @@ public class StorageModuleAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(value = "bithon.storage.metric.enabled", havingValue = "true")
-    public ISchemaStorage createSchemaStorage(MetricStorageConfig storageConfig,
+    @ConditionalOnProperty(value = "bithon.storage.meta.enabled", havingValue = "true")
+    public ISchemaStorage createSchemaStorage(MetaStorageConfig storageConfig,
                                               StorageProviderManager storageProviderManager) throws IOException {
         String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
         InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
-                                              "[%s] can't be blank",
+                                              "[%s] is not properly configured to enable the schema storage.",
                                               storageConfig.getClass(),
                                               "provider");
 
@@ -108,7 +108,7 @@ public class StorageModuleAutoConfiguration {
                                     StorageProviderManager storageProviderManager) throws IOException {
         String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
         InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
-                                              "[%s] can't be blank",
+                                              "[%s] is not properly configured to enable the meta storage.",
                                               storageConfig.getClass(),
                                               "provider");
 
@@ -123,7 +123,7 @@ public class StorageModuleAutoConfiguration {
                                       StorageProviderManager storageProviderManager) throws IOException {
         String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
         InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
-                                              "[%s] can't be blank",
+                                              "[%s] is not properly configured to enable the Tracing module.",
                                               storageConfig.getClass(),
                                               "provider");
 
@@ -138,7 +138,7 @@ public class StorageModuleAutoConfiguration {
                                       StorageProviderManager storageProviderManager) throws IOException {
         String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
         InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
-                                              "[%s] can't be blank",
+                                              "[%s] is not properly configured to enable the Event module.",
                                               storageConfig.getClass(),
                                               "provider");
 
@@ -153,7 +153,7 @@ public class StorageModuleAutoConfiguration {
                                           StorageProviderManager storageProviderManager) throws IOException {
         String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
         InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
-                                              "[%s] can't be blank",
+                                              "[%s] is not properly configured to enable the Setting module.",
                                               storageConfig.getClass(),
                                               "provider");
 

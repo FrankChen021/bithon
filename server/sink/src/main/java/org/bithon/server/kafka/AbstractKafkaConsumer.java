@@ -81,6 +81,7 @@ public abstract class AbstractKafkaConsumer implements IKafkaConsumer, BatchMess
         consumerProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
         consumerProperties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        consumerProperties.putIfAbsent(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
 
         ContainerProperties containerProperties = new ContainerProperties(topic);
         containerProperties.setAckMode(ContainerProperties.AckMode.TIME);
