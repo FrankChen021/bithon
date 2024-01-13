@@ -22,6 +22,7 @@ import org.bithon.server.storage.event.IEventReader;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.FilterExpressionToFilters;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @Conditional(WebServiceModuleEnabler.class)
+@ConditionalOnBean(IEventStorage.class)
 public class EventApi implements IEventApi {
 
     private final IEventReader eventReader;

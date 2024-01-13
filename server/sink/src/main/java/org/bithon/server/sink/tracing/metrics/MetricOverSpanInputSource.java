@@ -32,7 +32,6 @@ import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.MetricMessageHandler;
 import org.bithon.server.sink.metrics.MetricSinkConfig;
 import org.bithon.server.sink.metrics.MetricsAggregator;
-import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -136,7 +135,6 @@ public class MetricOverSpanInputSource implements IInputSource {
             this.transformSpec = transformSpec;
             this.schema = schema;
             this.metricHandler = new MetricMessageHandler(schema.getName(),
-                                                          applicationContext.getBean(TopoTransformers.class),
                                                           applicationContext.getBean(IMetaStorage.class),
                                                           metricStorage,
                                                           applicationContext.getBean(DataSourceSchemaManager.class),
