@@ -16,7 +16,6 @@
 
 package org.bithon.server.storage.jdbc.tracing;
 
-import lombok.Setter;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.utils.StringUtils;
@@ -46,8 +45,6 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
             return null;
         }
 
-        TagFilterSerializer tagFilterSerializer = new TagFilterSerializer(sqlDialect);
-
         SelectConditionStep<Record1<String>> query = null;
         for (Map.Entry<Integer, IExpression> entry : filters.entrySet()) {
             Integer index = entry.getKey();
@@ -67,8 +64,10 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
                                   .and(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.lt(this.end));
             }
 
-            tagFilterSerializer.setIndex(index);
-            query = query.and(tagFilterSerializer.serialize(filter));
+            // NOTE:
+            // instantiate the TagFilterSerializer for each loop
+            // because it internally holds some states for each 'serialize' method call
+            query = query.and(new TagFilterSerializer(sqlDialect, index).serialize(filter));
         }
 
         if (query != null) {
@@ -83,11 +82,11 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
     }
 
     static class TagFilterSerializer extends Expression2Sql {
-        @Setter
-        private int index;
+        private final int index;
 
-        TagFilterSerializer(ISqlDialect sqlDialect) {
+        TagFilterSerializer(ISqlDialect sqlDialect, int index) {
             super(null, sqlDialect);
+            this.index = index;
         }
 
         @Override

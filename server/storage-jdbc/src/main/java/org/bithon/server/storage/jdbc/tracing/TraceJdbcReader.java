@@ -45,6 +45,7 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Record1;
+import org.jooq.Select;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectSeekStep1;
 
@@ -164,9 +165,9 @@ public class TraceJdbcReader implements ITraceReader {
             orderedListQuery = listQuery.orderBy(orderField.asc());
         }
 
-        return orderedListQuery.offset(pageNumber * pageSize)
-                               .limit(pageSize)
-                               .fetch(this::toTraceSpan);
+        return dslContext.fetch(getSQL(orderedListQuery.offset(pageNumber * pageSize)
+                                                       .limit(pageSize)))
+                         .map(this::toTraceSpan);
     }
 
     @Override
@@ -227,7 +228,8 @@ public class TraceJdbcReader implements ITraceReader {
 
         String sql = sqlBuilder.toString();
         log.info("Get trace distribution: {}", sql);
-        return dslContext.fetch(sql).intoMaps();
+        return dslContext.fetch(getSQL(sql))
+                         .intoMaps();
     }
 
     @Override
@@ -261,11 +263,10 @@ public class TraceJdbcReader implements ITraceReader {
         }
 
         // Build the indexed tag query
-        SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect)
-            .dslContext(this.dslContext)
-            .start(start.toLocalDateTime())
-            .end(end.toLocalDateTime())
-            .build(indexedTagFilters);
+        SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect).dslContext(this.dslContext)
+                                                                                                          .start(start.toLocalDateTime())
+                                                                                                          .end(end.toLocalDateTime())
+                                                                                                          .build(indexedTagFilters);
         if (indexedTagQuery != null) {
             if (isOnSummaryTable) {
                 countQuery = countQuery.and(Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery));
@@ -274,7 +275,16 @@ public class TraceJdbcReader implements ITraceReader {
             }
         }
 
-        return (int) countQuery.fetchOne(0);
+        return ((Number) dslContext.fetchOne(getSQL(countQuery)).get(0)).intValue();
+    }
+
+    @SuppressWarnings("rawtypes")
+    private String getSQL(Select selectQuery) {
+        return getSQL(dslContext.renderInlined(selectQuery));
+    }
+
+    protected String getSQL(String sql) {
+        return sql;
     }
 
     @Override

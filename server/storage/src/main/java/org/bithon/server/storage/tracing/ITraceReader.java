@@ -50,7 +50,8 @@ public interface ITraceReader {
                                                    int interval);
 
     int getTraceListSize(IExpression filter,
-                         List<IExpression> nonIndexedTagFilters, Map<Integer, IExpression> indexedTagFilters,
+                         List<IExpression> nonIndexedTagFilters,
+                         Map<Integer, IExpression> indexedTagFilters,
                          Timestamp start,
                          Timestamp end);
 
