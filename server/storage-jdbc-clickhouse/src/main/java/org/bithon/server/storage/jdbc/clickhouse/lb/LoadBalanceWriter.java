@@ -81,8 +81,14 @@ public class LoadBalanceWriter implements IMetricWriter, IShardsUpdateListener {
 
         int shard = this.loadBalancer.nextShard(inputRowList.size());
 
+        String url = clickHouseConfig.getUrl();
+        if (url.lastIndexOf('?') == -1) {
+            // The URL has param
+            url += "?";
+        }
+
         try (Connection connection = new JdbcDriver().connect(StringUtils.format("%s&custom_http_params=insert_shard_id=%d",
-                                                                                 clickHouseConfig.getUrl(),
+                                                                                 url,
                                                                                  shard))) {
             try (PreparedStatement statement = connection.prepareStatement(this.insertStatement)) {
 

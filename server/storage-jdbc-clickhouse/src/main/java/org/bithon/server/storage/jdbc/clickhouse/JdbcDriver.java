@@ -22,6 +22,7 @@ import com.clickhouse.client.ClickHouseVersion;
 import com.clickhouse.client.config.ClickHouseClientOption;
 import com.clickhouse.jdbc.ClickHouseConnection;
 import com.clickhouse.jdbc.ClickHouseDriver;
+import com.clickhouse.jdbc.JdbcConfig;
 import com.clickhouse.jdbc.internal.ClickHouseConnectionImpl;
 import com.clickhouse.jdbc.internal.ClickHouseJdbcUrlParser;
 import lombok.AllArgsConstructor;
@@ -63,6 +64,14 @@ public class JdbcDriver extends ClickHouseDriver {
         if (!acceptsURL(url)) {
             return null;
         }
+
+        if (info == null) {
+            info = new Properties();
+        }
+        // Set default options
+        info.put(JdbcConfig.PROP_NULL_AS_DEFAULT, "1");
+        info.put(ClickHouseClientOption.COMPRESS.getKey(), true);
+        info.put(ClickHouseClientOption.DECOMPRESS.getKey(), true);
 
         // Cache necessary server properties
         // so that we reduce the requests to the server when a new connection is established

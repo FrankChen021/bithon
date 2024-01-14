@@ -94,10 +94,8 @@ bithon:
       provider: clickhouse
     providers:
       clickhouse:
-        enabled: true
         # data source parameters
         url: jdbc:clickhouse://your_clickhouse_addr:8123/your_clickhouse_databases
-        driverClassName: ru.yandex.clickhouse.ClickHouseDriver
         username: your_clickhouse_name
         password: your_clickhouse_password
 ```
