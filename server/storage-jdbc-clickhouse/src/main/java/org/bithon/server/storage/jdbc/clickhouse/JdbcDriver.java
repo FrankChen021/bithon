@@ -53,6 +53,10 @@ public class JdbcDriver extends ClickHouseDriver {
 
     private static final Map<String, ServerInfo> serverInfoCache = new ConcurrentHashMap<>();
 
+    public ClickHouseConnection connect(String url) throws SQLException {
+        return connect(url, null);
+    }
+
     @Override
     public ClickHouseConnection connect(String url, Properties info) throws SQLException {
         if (!acceptsURL(url)) {

@@ -30,6 +30,7 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
+import org.bithon.server.storage.jdbc.clickhouse.lb.LoadBalanceWriter;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
@@ -118,15 +119,19 @@ public class MetricStorage extends MetricJdbcStorage {
 
     @Override
     protected IMetricWriter createWriter(DSLContext dslContext, MetricTable table) {
-        return new MetricJdbcWriter(dslContext, table) {
-            /**
-             * No length constraint in ClickHouse
-             */
-            @Override
-            protected String getOrTruncateDimension(Field<?> dimensionField, String value) {
-                return value;
-            }
-        };
+        if (this.config.isOnDistributedTable()) {
+            return new LoadBalanceWriter(this.config, table);
+        } else {
+            return new MetricJdbcWriter(dslContext, table) {
+                /**
+                 * No length constraint in ClickHouse
+                 */
+                @Override
+                protected String getOrTruncateDimension(Field<?> dimensionField, String value) {
+                    return value;
+                }
+            };
+        }
     }
 
     @Override
