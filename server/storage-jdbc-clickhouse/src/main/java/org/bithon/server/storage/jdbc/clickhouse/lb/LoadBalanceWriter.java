@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.jdbc.clickhouse.lb;
 
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.RetryUtils;
 import org.bithon.component.commons.utils.StringUtils;
@@ -41,6 +42,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2024/1/14 11:13
  */
+@Slf4j
 public class LoadBalanceWriter implements IMetricWriter, IShardsUpdateListener {
 
     private final MetricTable table;
@@ -67,7 +69,8 @@ public class LoadBalanceWriter implements IMetricWriter, IShardsUpdateListener {
         sb.append(")");
         this.insertStatement = sb.toString();
 
-        LoadBalanceReviseTask.getInstance(clickHouseConfig).addListener(this);
+        LoadBalanceReviseTask task = LoadBalanceReviseTask.getInstance(clickHouseConfig);
+        task.addListener(this);
     }
 
     @Override
@@ -84,7 +87,7 @@ public class LoadBalanceWriter implements IMetricWriter, IShardsUpdateListener {
             try (PreparedStatement statement = connection.prepareStatement(this.insertStatement)) {
 
                 for (IInputRow inputRow : inputRowList) {
-                    int index = 0;
+                    int index = 1;
                     statement.setObject(index++, new Timestamp(inputRow.getColAsLong("timestamp")));
 
                     // dimensions
@@ -112,6 +115,8 @@ public class LoadBalanceWriter implements IMetricWriter, IShardsUpdateListener {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+
+        log.trace("Flushed {} rows to {} on shard {}", inputRowList.size(), table.getName(), shard);
     }
 
     @Override

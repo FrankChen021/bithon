@@ -41,9 +41,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JdbcDriver extends ClickHouseDriver {
 
     /**
-     * key - table name
+     * A global cache for the INSERT statements.
+     * The key is the table name.
      */
-    private static final Map<String, Map<String, List<ClickHouseColumn>>> columnListCache = new ConcurrentHashMap<>();
+    private static final Map<String, Map<String, List<ClickHouseColumn>>> COLUMN_LIST_CACHE = new ConcurrentHashMap<>();
 
     @AllArgsConstructor
     static class ServerInfo {
@@ -51,7 +52,7 @@ public class JdbcDriver extends ClickHouseDriver {
         private ClickHouseVersion version;
     }
 
-    private static final Map<String, ServerInfo> serverInfoCache = new ConcurrentHashMap<>();
+    private static final Map<String, ServerInfo> SERVER_INFO_CACHE = new ConcurrentHashMap<>();
 
     public ClickHouseConnection connect(String url) throws SQLException {
         return connect(url, null);
@@ -68,16 +69,16 @@ public class JdbcDriver extends ClickHouseDriver {
         ClickHouseJdbcUrlParser.ConnectionInfo connectionInfo = ClickHouseJdbcUrlParser.parse(url, info);
         ClickHouseNode node = connectionInfo.getNodes().getNodes().get(0);
         String host = node.getHost() + ":" + node.getPort();
-        ServerInfo cachedServerInfo = serverInfoCache.get(host);
+        ServerInfo cachedServerInfo = SERVER_INFO_CACHE.get(host);
         if (cachedServerInfo != null) {
             connectionInfo.getProperties().put(ClickHouseClientOption.SERVER_VERSION.getKey(), cachedServerInfo.version.toString());
             connectionInfo.getProperties().put(ClickHouseClientOption.SERVER_TIME_ZONE.getKey(), cachedServerInfo.timeZone.getID());
         }
 
         ConnectionImpl clickHouseConnection = new ConnectionImpl(connectionInfo);
-        if(cachedServerInfo == null) {
-            serverInfoCache.putIfAbsent(host, new ServerInfo(clickHouseConnection.getServerTimeZone(),
-                                                             clickHouseConnection.getServerVersion()));
+        if (cachedServerInfo == null) {
+            SERVER_INFO_CACHE.putIfAbsent(host, new ServerInfo(clickHouseConnection.getServerTimeZone(),
+                                                               clickHouseConnection.getServerVersion()));
         }
 
         return clickHouseConnection;
@@ -95,7 +96,7 @@ public class JdbcDriver extends ClickHouseDriver {
                                                          String tableName,
                                                          String columns) throws SQLException {
 
-            Map<String, List<ClickHouseColumn>> tableColumnCache = columnListCache.computeIfAbsent(tableName, v -> new HashMap<>());
+            Map<String, List<ClickHouseColumn>> tableColumnCache = COLUMN_LIST_CACHE.computeIfAbsent(tableName, v -> new HashMap<>());
 
             List<ClickHouseColumn> tableColumns = tableColumnCache.get(columns);
             if (tableColumns == null) {

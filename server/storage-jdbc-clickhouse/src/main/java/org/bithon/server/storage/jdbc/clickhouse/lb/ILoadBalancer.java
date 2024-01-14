@@ -16,19 +16,12 @@
 
 package org.bithon.server.storage.jdbc.clickhouse.lb;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
 import java.util.List;
 
 /**
  * @author Frank Chen
  * @date 15/11/23 3:41 pm
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = LeastRowsLoadBalancer.class)
-@JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "leastRows", value = LeastRowsLoadBalancer.class)
-})
 public interface ILoadBalancer {
     int nextShard(int writtenRows);
 

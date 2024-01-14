@@ -30,7 +30,7 @@ public class LeastRowsLoadBalancer implements ILoadBalancer {
     private PriorityQueue<Shard> shards = newShards();
 
     @Override
-    synchronized public int nextShard(int writtenRows) {
+    public synchronized int nextShard(int writtenRows) {
         Shard shard = shards.poll();
         if (shard != null) {
             shard.writtenRows += writtenRows;

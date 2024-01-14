@@ -27,6 +27,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,7 @@ public class LoadBalanceReviseTask extends PeriodicTask {
     public static LoadBalanceReviseTask getInstance(ClickHouseConfig clickHouseConfig) {
         if (instance == null) {
             synchronized (LoadBalanceReviseTask.class) {
-                if(instance != null) {
+                if (instance != null) {
                     return instance;
                 }
                 instance = new LoadBalanceReviseTask(clickHouseConfig);
@@ -58,6 +59,8 @@ public class LoadBalanceReviseTask extends PeriodicTask {
     private final ClickHouseConfig clickHouseConfig;
     private final List<IShardsUpdateListener> listeners = new ArrayList<>();
 
+    private Map<String, List<Shard>> shardSnapshot = Collections.emptyMap();
+
     private LoadBalanceReviseTask(ClickHouseConfig clickHouseConfig) {
         super("size-update", Duration.ofMinutes(5), true);
         this.clickHouseConfig = clickHouseConfig;
@@ -68,6 +71,7 @@ public class LoadBalanceReviseTask extends PeriodicTask {
             synchronized (listeners) {
                 listeners.add(listener);
             }
+            listener.update(this.shardSnapshot);
         }
     }
 
@@ -81,10 +85,12 @@ public class LoadBalanceReviseTask extends PeriodicTask {
 
     @Override
     protected void onRun() throws Exception {
+        log.info("Get the table size under database [{}] for client side load balancing", clickHouseConfig.getDatabase());
+
         Map<String, List<Shard>> shards = new HashMap<>();
 
         try (Connection connection = new JdbcDriver().connect(clickHouseConfig.getUrl())) {
-            String sql = String.format("SELECT shard_num, bytes_on_disk, rows FROMs\n" +
+            String sql = String.format("SELECT size.table AS table, shard_num, bytes_on_disk, rows FROM\n" +
                                            "(\n" +
                                            "    SELECT distinct shard_num FROM system.clusters WHERE cluster = '%s'\n" +
                                            ") shards\n" +
@@ -99,7 +105,7 @@ public class LoadBalanceReviseTask extends PeriodicTask {
                                            "    SETTINGS max_threads = 1\n" +
                                            ") size\n" +
                                            "ON size.shard_num = shards.shard_num\n" +
-                                           "ORDER BY shard_num",
+                                           "ORDER BY table, shard_num",
                                        clickHouseConfig.getCluster(),
                                        clickHouseConfig.getCluster(),
                                        clickHouseConfig.getDatabase());
@@ -119,16 +125,18 @@ public class LoadBalanceReviseTask extends PeriodicTask {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
+        }
 
-            synchronized (listeners) {
-                for (IShardsUpdateListener listener : listeners) {
-                    try {
-                        listener.update(shards);
-                    } catch (Exception ignored) {
-                    }
+        synchronized (listeners) {
+            for (IShardsUpdateListener listener : listeners) {
+                try {
+                    listener.update(shards);
+                } catch (Exception ignored) {
                 }
             }
         }
+
+        shardSnapshot = shards;
     }
 
     @Override
