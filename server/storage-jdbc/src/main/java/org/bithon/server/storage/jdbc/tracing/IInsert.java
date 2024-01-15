@@ -14,25 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.tracing;
+package org.bithon.server.storage.jdbc.tracing;
 
-import org.bithon.server.storage.tracing.index.TagIndex;
-import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
-
-import java.io.IOException;
-import java.util.List;
+import org.jooq.ConnectionRunnable;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/4 8:25 下午
+ * @date 2024/1/15 22:47
  */
-public interface ITraceWriter extends AutoCloseable {
+public interface IInsert extends ConnectionRunnable {
+    String getTable();
 
-    @Override
-    default void close() {
-    }
-
-    void write(List<TraceSpan> spans,
-               List<TraceIdMapping> mappings,
-               List<TagIndex> tagIndices) throws IOException;
+    /**
+     * Get the size of the inserted batch
+     */
+    int getInsertSize();
 }

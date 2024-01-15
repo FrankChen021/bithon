@@ -25,7 +25,6 @@ import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -58,9 +57,9 @@ public class TraceBatchWriter implements ITraceWriter {
     }
 
     @Override
-    public void write(Collection<TraceSpan> spans,
-                      Collection<TraceIdMapping> mappings,
-                      Collection<TagIndex> tagIndices) {
+    public void write(List<TraceSpan> spans,
+                      List<TraceIdMapping> mappings,
+                      List<TagIndex> tagIndices) {
         synchronized (this) {
             this.traceSpans.addAll(spans);
             this.traceIdMappings.addAll(mappings);
@@ -100,7 +99,7 @@ public class TraceBatchWriter implements ITraceWriter {
     public void close() {
         log.info("Shutting down trace batch writer...");
 
-        // shutdown and wait for current scheduler to close
+        // shutdown and wait for the current scheduler to close
         try {
             this.executor.shutdown(Duration.ofSeconds(20));
         } catch (InterruptedException ignored) {

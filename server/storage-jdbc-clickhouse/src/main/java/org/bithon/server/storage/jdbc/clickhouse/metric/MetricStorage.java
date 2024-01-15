@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.clickhouse.storage;
+package org.bithon.server.storage.jdbc.clickhouse.metric;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -30,7 +30,8 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
-import org.bithon.server.storage.jdbc.clickhouse.lb.LoadBalanceWriter;
+import org.bithon.server.storage.jdbc.clickhouse.storage.DataCleaner;
+import org.bithon.server.storage.jdbc.clickhouse.storage.TableCreator;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
@@ -120,7 +121,7 @@ public class MetricStorage extends MetricJdbcStorage {
     @Override
     protected IMetricWriter createWriter(DSLContext dslContext, MetricTable table) {
         if (this.config.isOnDistributedTable()) {
-            return new LoadBalanceWriter(this.config, table);
+            return new LoadBalancedMetricWriter(this.config, table);
         } else {
             return new MetricJdbcWriter(dslContext, table) {
                 /**

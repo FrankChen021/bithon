@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.clickhouse.lb;
+package org.bithon.server.storage.jdbc.clickhouse.metric;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.CollectionUtils;
@@ -24,6 +24,11 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.JdbcDriver;
 import org.bithon.server.storage.jdbc.clickhouse.exception.RetryableExceptions;
+import org.bithon.server.storage.jdbc.clickhouse.lb.ILoadBalancer;
+import org.bithon.server.storage.jdbc.clickhouse.lb.IShardsUpdateListener;
+import org.bithon.server.storage.jdbc.clickhouse.lb.LeastRowsLoadBalancer;
+import org.bithon.server.storage.jdbc.clickhouse.lb.LoadBalanceReviseTask;
+import org.bithon.server.storage.jdbc.clickhouse.lb.Shard;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.jooq.Field;
@@ -43,14 +48,14 @@ import java.util.Map;
  * @date 2024/1/14 11:13
  */
 @Slf4j
-public class LoadBalanceWriter implements IMetricWriter, IShardsUpdateListener {
+public class LoadBalancedMetricWriter implements IMetricWriter, IShardsUpdateListener {
 
     private final MetricTable table;
     private final ClickHouseConfig clickHouseConfig;
     private final ILoadBalancer loadBalancer;
     private final String insertStatement;
 
-    public LoadBalanceWriter(ClickHouseConfig clickHouseConfig, MetricTable table) {
+    public LoadBalancedMetricWriter(ClickHouseConfig clickHouseConfig, MetricTable table) {
         this.clickHouseConfig = clickHouseConfig;
         this.table = table;
         this.loadBalancer = new LeastRowsLoadBalancer();
@@ -61,6 +66,21 @@ public class LoadBalanceWriter implements IMetricWriter, IShardsUpdateListener {
         sb.append(clickHouseConfig.getDatabase());
         sb.append(".");
         sb.append(table.getName());
+
+        // column names
+        sb.append(" (");
+        sb.append("timestamp");
+        for (Field<?> dim : table.getDimensions()) {
+            sb.append(", ");
+            sb.append(dim.getName());
+        }
+        for (Field<?> metric : table.getMetrics()) {
+            sb.append(", ");
+            sb.append(metric.getName());
+        }
+        sb.append(" )");
+
+        // placeholders
         sb.append(" VALUES (");
         for (int i = 0; i < fieldCount; i++) {
             sb.append("?,");
