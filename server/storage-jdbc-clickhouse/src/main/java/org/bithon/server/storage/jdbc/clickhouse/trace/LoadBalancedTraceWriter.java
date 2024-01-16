@@ -27,18 +27,14 @@ import org.bithon.server.storage.jdbc.clickhouse.lb.LoadBalanceReviseTask;
 import org.bithon.server.storage.jdbc.clickhouse.lb.Shard;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.tracing.writer.ITableWriter;
-import org.bithon.server.storage.jdbc.tracing.writer.IndexTableWriter;
-import org.bithon.server.storage.jdbc.tracing.writer.MappingTableWriter;
 import org.bithon.server.storage.jdbc.tracing.writer.SpanTableWriter;
 import org.bithon.server.storage.jdbc.tracing.writer.TraceJdbcWriter;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
-import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.jooq.DSLContext;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -59,7 +55,7 @@ class LoadBalancedTraceWriter extends TraceJdbcWriter implements IShardsUpdateLi
     LoadBalancedTraceWriter(ClickHouseConfig clickHouseConfig,
                             TraceStorageConfig traceStorageConfig,
                             DSLContext dslContext) {
-        super(dslContext, traceStorageConfig);
+        super(dslContext, traceStorageConfig, RetryableExceptions::isExceptionRetryable);
 
         this.clickHouseConfig = clickHouseConfig;
 
@@ -127,35 +123,10 @@ class LoadBalancedTraceWriter extends TraceJdbcWriter implements IShardsUpdateLi
 
     @Override
     protected ITableWriter createInsertSpanRunnable(String table, String insertStatement, List<TraceSpan> spans) {
-        return new SpanTableWriter(table, insertStatement, spans) {
+        return new SpanTableWriter(table, insertStatement, spans, this.isRetryableException) {
             @Override
             protected Object toTagStore(Map<String, String> tag) {
                 return tag;
-            }
-
-            @Override
-            protected boolean isExceptionRetryable(Exception e) {
-                return RetryableExceptions.isExceptionRetryable(e);
-            }
-        };
-    }
-
-    @Override
-    protected ITableWriter createInsertMappingRunnable(DSLContext dslContext, List<TraceIdMapping> mappings) {
-        return new MappingTableWriter(dslContext, mappings) {
-            @Override
-            protected boolean isExceptionRetryable(Exception e) {
-                return RetryableExceptions.isExceptionRetryable(e);
-            }
-        };
-    }
-
-    @Override
-    protected ITableWriter createInsertIndexRunnable(DSLContext dslContext, Collection<Object[]> indice) {
-        return new IndexTableWriter(dslContext, indice) {
-            @Override
-            protected boolean isExceptionRetryable(Exception e) {
-                return RetryableExceptions.isExceptionRetryable(e);
             }
         };
     }

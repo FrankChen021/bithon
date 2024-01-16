@@ -30,6 +30,7 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
+import org.bithon.server.storage.jdbc.clickhouse.exception.RetryableExceptions;
 import org.bithon.server.storage.jdbc.clickhouse.storage.DataCleaner;
 import org.bithon.server.storage.jdbc.clickhouse.storage.TableCreator;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
@@ -45,7 +46,6 @@ import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.jooq.DSLContext;
-import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Result;
 
@@ -121,17 +121,9 @@ public class MetricStorage extends MetricJdbcStorage {
     @Override
     protected IMetricWriter createWriter(DSLContext dslContext, MetricTable table) {
         if (this.config.isOnDistributedTable()) {
-            return new LoadBalancedMetricWriter(this.config, table);
+            return new LoadBalancedMetricWriter(this.dslContext, this.config, table);
         } else {
-            return new MetricJdbcWriter(dslContext, table) {
-                /**
-                 * No length constraint in ClickHouse
-                 */
-                @Override
-                protected String getOrTruncateDimension(Field<?> dimensionField, String value) {
-                    return value;
-                }
-            };
+            return new MetricJdbcWriter(dslContext, table, false, RetryableExceptions::isExceptionRetryable);
         }
     }
 

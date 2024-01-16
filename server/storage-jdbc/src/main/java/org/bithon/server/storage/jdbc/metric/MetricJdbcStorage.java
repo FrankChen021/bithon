@@ -183,7 +183,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     }
 
     protected IMetricWriter createWriter(DSLContext dslContext, MetricTable table) {
-        return new MetricJdbcWriter(dslContext, table);
+        return new MetricJdbcWriter(dslContext, table, true, null);
     }
 
     protected IMetricReader createReader(DSLContext dslContext, ISqlDialect sqlDialect) {

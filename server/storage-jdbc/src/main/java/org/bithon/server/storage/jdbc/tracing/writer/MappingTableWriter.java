@@ -26,23 +26,27 @@ import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.function.Predicate;
 
 /**
  * @author Frank Chen
  * @date 16/1/24 8:01 pm
  */
-public class MappingTableWriter implements ITableWriter {
+class MappingTableWriter implements ITableWriter {
     private final String insertStatement;
     private final Collection<TraceIdMapping> mappings;
+    private final Predicate<Exception> isExceptionRetryable;
 
     public MappingTableWriter(DSLContext dslContext,
-                              Collection<TraceIdMapping> mappings) {
+                              Collection<TraceIdMapping> mappings,
+                              Predicate<Exception> isRetryableException) {
         insertStatement = dslContext.render(dslContext.insertInto(Tables.BITHON_TRACE_MAPPING,
                                                                   Tables.BITHON_TRACE_MAPPING.TRACE_ID,
                                                                   Tables.BITHON_TRACE_MAPPING.USER_TX_ID,
                                                                   Tables.BITHON_TRACE_SPAN.TIMESTAMP)
                                                       .values((String) null, null, null));
         this.mappings = mappings;
+        this.isExceptionRetryable = isRetryableException;
     }
 
     @Override
@@ -63,7 +67,7 @@ public class MappingTableWriter implements ITableWriter {
     }
 
     protected boolean isExceptionRetryable(Exception e) {
-        return false;
+        return isExceptionRetryable != null && this.isExceptionRetryable.test(e);
     }
 
     @Override

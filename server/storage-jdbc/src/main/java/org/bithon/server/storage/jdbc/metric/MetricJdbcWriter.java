@@ -20,14 +20,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.storage.jdbc.tracing.writer.ITableWriter;
 import org.bithon.server.storage.metrics.IMetricWriter;
-import org.jooq.BatchBindStep;
 import org.jooq.DSLContext;
-import org.jooq.Field;
-import org.springframework.dao.DuplicateKeyException;
+import org.jooq.exception.DataAccessException;
 
-import java.sql.Timestamp;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * @author frank.chen021@outlook.com
@@ -36,68 +35,50 @@ import java.util.List;
 @Slf4j
 public class MetricJdbcWriter implements IMetricWriter {
     private final DSLContext dsl;
-    private final MetricTable table;
+    protected final MetricTable table;
+    protected final String insertStatement;
+    private final boolean truncateDimension;
+    private final Predicate<Exception> isRetryableException;
 
-    public MetricJdbcWriter(DSLContext dsl, MetricTable table) {
+    public MetricJdbcWriter(DSLContext dsl, MetricTable table, boolean truncateDimension, Predicate<Exception> isRetryableException) {
         this.dsl = dsl;
         this.table = table;
+        this.truncateDimension = truncateDimension;
+
+        int fieldCount = 1 + table.getDimensions().size() + table.getMetrics().size();
+        insertStatement = dsl.render(dsl.insertInto(table).values(new Object[fieldCount]));
+
+        this.isRetryableException = isRetryableException;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public void write(List<IInputRow> inputRowList) {
+    public final void write(List<IInputRow> inputRowList) {
         if (CollectionUtils.isEmpty(inputRowList)) {
             return;
         }
 
-        int fieldCount = 1 + table.getDimensions().size() + table.getMetrics().size();
-
-        BatchBindStep step = dsl.batch(dsl.insertInto(table).values(new Object[fieldCount]));
-
-
-        for (IInputRow inputRow : inputRowList) {
-            Object[] values = new Object[fieldCount];
-
-            int index = 0;
-            values[index++] = new Timestamp(inputRow.getColAsLong("timestamp"));
-
-            // dimensions
-            for (Field dimension : table.getDimensions()) {
-                // the value might be type of integer, so Object should be used
-                Object value = inputRow.getCol(dimension.getName(), "");
-                values[index++] = getOrTruncateDimension(dimension, value.toString());
-            }
-
-            // metrics
-            for (Field metric : table.getMetrics()) {
-                values[index++] = inputRow.getCol(metric.getName(), 0);
-            }
-
-            step.bind(values);
-        }
-
         try {
-            step.execute();
-        } catch (DuplicateKeyException e) {
-            log.error("Duplicate Key", e);
-        } catch (Exception e) {
-            log.error(StringUtils.format("Failed to insert records into [%s].", this.table.getName()),
-                      e);
+            doInsert(createTableWriter(insertStatement, table, inputRowList));
+        } catch (Throwable e) {
+            log.error(StringUtils.format("Exception to insert to table [%s]:%s", table.getName(), e.getMessage()), e);
         }
+    }
+
+    protected void doInsert(ITableWriter writer) throws Throwable {
+        try {
+            dsl.connection(writer);
+        } catch (DataAccessException e) {
+            // Re-throw the caused exception for more clear stack trace
+            // In such a case, the caused exception is not NULL.
+            throw e.getCause();
+        }
+    }
+
+    private ITableWriter createTableWriter(String insertStatement, MetricTable table, List<IInputRow> inputRowList) {
+        return new MetricTableWriter(insertStatement, table, inputRowList, truncateDimension, isRetryableException);
     }
 
     @Override
     public void close() {
-    }
-
-    protected String getOrTruncateDimension(Field<?> dimensionField, String value) {
-        if (dimensionField.getDataType().hasLength()) {
-            int len = dimensionField.getDataType().length();
-
-            if (value.length() > len) {
-                return value.substring(0, len - 3) + "...";
-            }
-        }
-        return value;
     }
 }

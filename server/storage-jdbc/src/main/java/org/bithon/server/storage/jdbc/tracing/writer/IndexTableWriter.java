@@ -25,16 +25,20 @@ import java.sql.PreparedStatement;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.function.Predicate;
 
 /**
  * @author Frank Chen
  * @date 16/1/24 8:02 pm
  */
-public class IndexTableWriter implements ITableWriter {
+class IndexTableWriter implements ITableWriter {
     private final String insertStatement;
     private final Collection<Object[]> tagIndices;
+    private final Predicate<Exception> isExceptionRetryable;
 
-    public IndexTableWriter(DSLContext dslContext, Collection<Object[]> tagIndices) {
+    public IndexTableWriter(DSLContext dslContext,
+                            Collection<Object[]> tagIndices,
+                            Predicate<Exception> isExceptionRetryable) {
         this.insertStatement = dslContext.render(dslContext.insertInto(Tables.BITHON_TRACE_SPAN_TAG_INDEX,
                                                                        Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP,
                                                                        Tables.BITHON_TRACE_SPAN_TAG_INDEX.F1,
@@ -73,6 +77,7 @@ public class IndexTableWriter implements ITableWriter {
                                                                    null,
                                                                    null));
         this.tagIndices = tagIndices;
+        this.isExceptionRetryable = isExceptionRetryable;
     }
 
     @Override
@@ -86,14 +91,14 @@ public class IndexTableWriter implements ITableWriter {
             }
 
             RetryUtils.retry(statement::executeBatch,
-                             this::isExceptionRetryable,
+                             this::isRetryableException,
                              3,
                              Duration.ofMillis(100));
         }
     }
 
-    protected boolean isExceptionRetryable(Exception e) {
-        return false;
+    private boolean isRetryableException(Exception e) {
+        return this.isExceptionRetryable != null && this.isExceptionRetryable.test(e);
     }
 
     @Override

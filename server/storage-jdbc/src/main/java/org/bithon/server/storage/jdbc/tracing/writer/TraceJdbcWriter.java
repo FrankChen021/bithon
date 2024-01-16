@@ -38,6 +38,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -49,10 +50,12 @@ public class TraceJdbcWriter implements ITraceWriter {
 
     protected final DSLContext dslContext;
     private final TraceStorageConfig traceStorageConfig;
+    protected final Predicate<Exception> isRetryableException;
 
-    public TraceJdbcWriter(DSLContext dslContext, TraceStorageConfig traceStorageConfig) {
+    public TraceJdbcWriter(DSLContext dslContext, TraceStorageConfig traceStorageConfig, Predicate<Exception> isRetryableException) {
         this.dslContext = dslContext;
         this.traceStorageConfig = traceStorageConfig;
+        this.isRetryableException = isRetryableException;
     }
 
     protected boolean isTransactionSupported() {
@@ -188,7 +191,7 @@ public class TraceJdbcWriter implements ITraceWriter {
     }
 
     protected ITableWriter createInsertSpanRunnable(String table, String insertStatement, List<TraceSpan> spans) {
-        return new SpanTableWriter(table, insertStatement, spans) {
+        return new SpanTableWriter(table, insertStatement, spans, isRetryableException) {
             private final ObjectMapper objectMapper = new ObjectMapper();
 
             @Override
@@ -202,11 +205,11 @@ public class TraceJdbcWriter implements ITraceWriter {
         };
     }
 
-    protected ITableWriter createInsertMappingRunnable(DSLContext dslContext, List<TraceIdMapping> mappings) {
-        return new MappingTableWriter(dslContext, mappings);
+    private ITableWriter createInsertMappingRunnable(DSLContext dslContext, List<TraceIdMapping> mappings) {
+        return new MappingTableWriter(dslContext, mappings, this.isRetryableException);
     }
 
-    protected ITableWriter createInsertIndexRunnable(DSLContext dslContext, Collection<Object[]> indice) {
-        return new IndexTableWriter(dslContext, indice);
+    private ITableWriter createInsertIndexRunnable(DSLContext dslContext, Collection<Object[]> indice) {
+        return new IndexTableWriter(dslContext, indice, this.isRetryableException);
     }
 }

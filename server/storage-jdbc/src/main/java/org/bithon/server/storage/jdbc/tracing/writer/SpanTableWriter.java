@@ -26,6 +26,7 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * @author Frank Chen
@@ -35,13 +36,16 @@ public abstract class SpanTableWriter implements ITableWriter {
     private final String insertStatement;
     private final List<TraceSpan> spans;
     private final String table;
+    private final Predicate<Exception> isRetryableException;
 
     public SpanTableWriter(String table,
                            String insertStatement,
-                           List<TraceSpan> spans) {
+                           List<TraceSpan> spans,
+                           Predicate<Exception> isRetryableException) {
         this.table = table;
         this.insertStatement = insertStatement;
         this.spans = spans;
+        this.isRetryableException = isRetryableException;
     }
 
     @Override
@@ -86,7 +90,7 @@ public abstract class SpanTableWriter implements ITableWriter {
 
     protected abstract Object toTagStore(Map<String, String> tag);
 
-    protected boolean isExceptionRetryable(Exception e) {
-        return false;
+    private boolean isExceptionRetryable(Exception e) {
+        return this.isRetryableException != null && this.isRetryableException.test(e);
     }
 }
