@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.tracing;
+package org.bithon.server.storage.jdbc.tracing.writer;
 
 import org.jooq.ConnectionRunnable;
 
@@ -22,7 +22,7 @@ import org.jooq.ConnectionRunnable;
  * @author frank.chen021@outlook.com
  * @date 2024/1/15 22:47
  */
-public interface IInsert extends ConnectionRunnable {
+public interface ITableWriter extends ConnectionRunnable {
     String getTable();
 
     /**

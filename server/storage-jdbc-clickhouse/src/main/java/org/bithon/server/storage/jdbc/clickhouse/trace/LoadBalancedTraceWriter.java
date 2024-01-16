@@ -26,13 +26,15 @@ import org.bithon.server.storage.jdbc.clickhouse.lb.LeastRowsLoadBalancer;
 import org.bithon.server.storage.jdbc.clickhouse.lb.LoadBalanceReviseTask;
 import org.bithon.server.storage.jdbc.clickhouse.lb.Shard;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
-import org.bithon.server.storage.jdbc.tracing.IInsert;
-import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
+import org.bithon.server.storage.jdbc.tracing.writer.ITableWriter;
+import org.bithon.server.storage.jdbc.tracing.writer.IndexTableWriter;
+import org.bithon.server.storage.jdbc.tracing.writer.MappingTableWriter;
+import org.bithon.server.storage.jdbc.tracing.writer.SpanTableWriter;
+import org.bithon.server.storage.jdbc.tracing.writer.TraceJdbcWriter;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.jooq.DSLContext;
-import org.jooq.Table;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -99,7 +101,7 @@ class LoadBalancedTraceWriter extends TraceJdbcWriter implements IShardsUpdateLi
     }
 
     @Override
-    protected void doInsert(IInsert insert) throws Throwable {
+    protected void doInsert(ITableWriter insert) throws Throwable {
         ILoadBalancer loadBalancer;
         if (insert.getTable().equals(Tables.BITHON_TRACE_SPAN.getName())) {
             loadBalancer = spanTableLoadBalancer;
@@ -124,8 +126,8 @@ class LoadBalancedTraceWriter extends TraceJdbcWriter implements IShardsUpdateLi
     }
 
     @Override
-    protected InsertSpanRunnable createInsertSpanRunnable(Table<?> table, List<TraceSpan> spans) {
-        return new InsertSpanRunnable(dslContext, table, spans) {
+    protected ITableWriter createInsertSpanRunnable(String table, String insertStatement, List<TraceSpan> spans) {
+        return new SpanTableWriter(table, insertStatement, spans) {
             @Override
             protected Object toTagStore(Map<String, String> tag) {
                 return tag;
@@ -139,8 +141,8 @@ class LoadBalancedTraceWriter extends TraceJdbcWriter implements IShardsUpdateLi
     }
 
     @Override
-    protected InsertMappingRunnable createInsertMappingRunnable(DSLContext dslContext, List<TraceIdMapping> mappings) {
-        return new InsertMappingRunnable(dslContext, mappings) {
+    protected ITableWriter createInsertMappingRunnable(DSLContext dslContext, List<TraceIdMapping> mappings) {
+        return new MappingTableWriter(dslContext, mappings) {
             @Override
             protected boolean isExceptionRetryable(Exception e) {
                 return RetryableExceptions.isExceptionRetryable(e);
@@ -149,8 +151,8 @@ class LoadBalancedTraceWriter extends TraceJdbcWriter implements IShardsUpdateLi
     }
 
     @Override
-    protected InsertIndexRunnable createInsertIndexRunnable(DSLContext dslContext, Collection<Object[]> indice) {
-        return new InsertIndexRunnable(dslContext, indice) {
+    protected ITableWriter createInsertIndexRunnable(DSLContext dslContext, Collection<Object[]> indice) {
+        return new IndexTableWriter(dslContext, indice) {
             @Override
             protected boolean isExceptionRetryable(Exception e) {
                 return RetryableExceptions.isExceptionRetryable(e);

@@ -37,14 +37,14 @@ import org.bithon.server.storage.jdbc.clickhouse.storage.TableCreator;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
-import org.bithon.server.storage.jdbc.tracing.TraceJdbcReader;
+import org.bithon.server.storage.jdbc.tracing.reader.TraceJdbcReader;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
-import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
+import org.bithon.server.storage.jdbc.tracing.writer.SpanTableWriter;
+import org.bithon.server.storage.jdbc.tracing.writer.TraceJdbcWriter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
-import org.jooq.Table;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -114,8 +114,8 @@ public class TraceStorage extends TraceJdbcStorage {
                 }
 
                 @Override
-                protected InsertSpanRunnable createInsertSpanRunnable(Table<?> table, List<TraceSpan> spans) {
-                    return new InsertSpanRunnable(dslContext, table, spans) {
+                protected SpanTableWriter createInsertSpanRunnable(String table, String insertStatement, List<TraceSpan> spans) {
+                    return new SpanTableWriter(table, insertStatement, spans) {
                         /**
                          * The map object is supported by ClickHouse JDBC, uses it directly
                          */
