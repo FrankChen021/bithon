@@ -4,6 +4,10 @@
 package org.bithon.server.storage.jdbc.common.jooq;
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAgentSetting;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonApplicationInstance;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonEvent;
@@ -18,10 +22,6 @@ import org.bithon.server.storage.jdbc.common.jooq.tables.BithonWebDashboard;
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 
 /**

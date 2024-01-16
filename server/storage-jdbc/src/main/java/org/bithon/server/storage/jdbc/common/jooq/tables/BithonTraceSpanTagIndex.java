@@ -4,6 +4,10 @@
 package org.bithon.server.storage.jdbc.common.jooq.tables;
 
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+
 import org.bithon.server.storage.jdbc.common.jooq.DefaultSchema;
 import org.bithon.server.storage.jdbc.common.jooq.Indexes;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonTraceSpanTagIndexRecord;
@@ -18,10 +22,6 @@ import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
-
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 
 
 /**
