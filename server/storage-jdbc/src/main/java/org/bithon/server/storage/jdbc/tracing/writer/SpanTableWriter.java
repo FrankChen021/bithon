@@ -18,6 +18,7 @@ package org.bithon.server.storage.jdbc.tracing.writer;
 
 import org.bithon.component.commons.utils.RetryUtils;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.storage.jdbc.common.IOnceTableWriter;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.sql.Connection;
@@ -32,7 +33,7 @@ import java.util.function.Predicate;
  * @author Frank Chen
  * @date 16/1/24 8:04 pm
  */
-public abstract class SpanTableWriter implements ITableWriter {
+public abstract class SpanTableWriter implements IOnceTableWriter {
     private final String insertStatement;
     private final List<TraceSpan> spans;
     private final String table;

@@ -18,13 +18,13 @@ package org.bithon.server.storage.jdbc.clickhouse;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
+import org.bithon.server.storage.jdbc.clickhouse.event.EventStorage;
+import org.bithon.server.storage.jdbc.clickhouse.meta.MetadataStorage;
+import org.bithon.server.storage.jdbc.clickhouse.meta.SchemaStorage;
 import org.bithon.server.storage.jdbc.clickhouse.metric.MetricStorage;
-import org.bithon.server.storage.jdbc.clickhouse.storage.EventStorage;
-import org.bithon.server.storage.jdbc.clickhouse.storage.MetadataStorage;
-import org.bithon.server.storage.jdbc.clickhouse.storage.SchemaStorage;
-import org.bithon.server.storage.jdbc.clickhouse.storage.SettingStorage;
-import org.bithon.server.storage.jdbc.clickhouse.storage.web.DashboardStorage;
+import org.bithon.server.storage.jdbc.clickhouse.setting.SettingStorage;
 import org.bithon.server.storage.jdbc.clickhouse.trace.TraceStorage;
+import org.bithon.server.storage.jdbc.clickhouse.web.DashboardStorage;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

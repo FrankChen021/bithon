@@ -19,14 +19,14 @@ package org.bithon.server.storage.jdbc.clickhouse.trace;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.JdbcDriver;
-import org.bithon.server.storage.jdbc.clickhouse.exception.RetryableExceptions;
+import org.bithon.server.storage.jdbc.clickhouse.common.exception.RetryableExceptions;
 import org.bithon.server.storage.jdbc.clickhouse.lb.ILoadBalancer;
 import org.bithon.server.storage.jdbc.clickhouse.lb.IShardsUpdateListener;
 import org.bithon.server.storage.jdbc.clickhouse.lb.LeastRowsLoadBalancer;
 import org.bithon.server.storage.jdbc.clickhouse.lb.LoadBalanceReviseTask;
 import org.bithon.server.storage.jdbc.clickhouse.lb.Shard;
+import org.bithon.server.storage.jdbc.common.IOnceTableWriter;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
-import org.bithon.server.storage.jdbc.tracing.writer.ITableWriter;
 import org.bithon.server.storage.jdbc.tracing.writer.SpanTableWriter;
 import org.bithon.server.storage.jdbc.tracing.writer.TraceJdbcWriter;
 import org.bithon.server.storage.tracing.TraceSpan;
@@ -97,7 +97,7 @@ class LoadBalancedTraceWriter extends TraceJdbcWriter implements IShardsUpdateLi
     }
 
     @Override
-    protected void doInsert(ITableWriter insert) throws Throwable {
+    protected void doInsert(IOnceTableWriter insert) throws Throwable {
         ILoadBalancer loadBalancer;
         if (insert.getTable().equals(Tables.BITHON_TRACE_SPAN.getName())) {
             loadBalancer = spanTableLoadBalancer;
@@ -122,7 +122,7 @@ class LoadBalancedTraceWriter extends TraceJdbcWriter implements IShardsUpdateLi
     }
 
     @Override
-    protected ITableWriter createInsertSpanRunnable(String table, String insertStatement, List<TraceSpan> spans) {
+    protected IOnceTableWriter createInsertSpanRunnable(String table, String insertStatement, List<TraceSpan> spans) {
         return new SpanTableWriter(table, insertStatement, spans, this.isRetryableException) {
             @Override
             protected Object toTagStore(Map<String, String> tag) {

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.clickhouse.storage;
+package org.bithon.server.storage.jdbc.clickhouse.event;
 
 
 import com.fasterxml.jackson.annotation.JacksonInject;
@@ -28,6 +28,8 @@ import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
+import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
+import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;

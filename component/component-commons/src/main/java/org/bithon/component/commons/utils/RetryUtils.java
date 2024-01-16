@@ -50,7 +50,7 @@ public class RetryUtils {
             }
         }
 
-        throw new RuntimeException(String.format("Exception after retry %d times", maxTries), lastException);
+        throw new RuntimeException(StringUtils.format("Exception after retry %d times", maxTries), lastException);
     }
 
     public static void retry(Runnable runnable, Predicate<Exception> retryPredicate, int maxTries, Duration backoff) throws Exception {

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.server.storage.jdbc.common.IOnceTableWriter;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceSpan;
@@ -180,7 +181,7 @@ public class TraceJdbcWriter implements ITraceWriter {
     }
 
 
-    protected void doInsert(ITableWriter runnable) throws Throwable {
+    protected void doInsert(IOnceTableWriter runnable) throws Throwable {
         try {
             dslContext.connection(runnable);
         } catch (DataAccessException e) {
@@ -190,7 +191,7 @@ public class TraceJdbcWriter implements ITraceWriter {
         }
     }
 
-    protected ITableWriter createInsertSpanRunnable(String table, String insertStatement, List<TraceSpan> spans) {
+    protected IOnceTableWriter createInsertSpanRunnable(String table, String insertStatement, List<TraceSpan> spans) {
         return new SpanTableWriter(table, insertStatement, spans, isRetryableException) {
             private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -205,11 +206,11 @@ public class TraceJdbcWriter implements ITraceWriter {
         };
     }
 
-    private ITableWriter createInsertMappingRunnable(DSLContext dslContext, List<TraceIdMapping> mappings) {
+    private IOnceTableWriter createInsertMappingRunnable(DSLContext dslContext, List<TraceIdMapping> mappings) {
         return new MappingTableWriter(dslContext, mappings, this.isRetryableException);
     }
 
-    private ITableWriter createInsertIndexRunnable(DSLContext dslContext, Collection<Object[]> indice) {
+    private IOnceTableWriter createInsertIndexRunnable(DSLContext dslContext, Collection<Object[]> indice) {
         return new IndexTableWriter(dslContext, indice, this.isRetryableException);
     }
 }

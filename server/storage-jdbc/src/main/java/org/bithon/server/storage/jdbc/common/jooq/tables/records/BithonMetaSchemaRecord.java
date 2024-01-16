@@ -4,13 +4,13 @@
 package org.bithon.server.storage.jdbc.common.jooq.tables.records;
 
 
-import java.time.LocalDateTime;
-
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonMetaSchema;
 import org.jooq.Field;
 import org.jooq.Record4;
 import org.jooq.Row4;
 import org.jooq.impl.TableRecordImpl;
+
+import java.time.LocalDateTime;
 
 
 /**

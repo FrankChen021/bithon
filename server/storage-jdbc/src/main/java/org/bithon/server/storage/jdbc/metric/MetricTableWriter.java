@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.RetryUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.jdbc.tracing.writer.ITableWriter;
+import org.bithon.server.storage.jdbc.common.IOnceTableWriter;
 import org.jooq.Field;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -36,7 +36,7 @@ import java.util.function.Predicate;
  * @date 16/1/24 8:15 pm
  */
 @Slf4j
-class MetricTableWriter implements ITableWriter {
+class MetricTableWriter implements IOnceTableWriter {
     private final String insertStatement;
     private final MetricTable table;
     private final List<IInputRow> inputRowList;

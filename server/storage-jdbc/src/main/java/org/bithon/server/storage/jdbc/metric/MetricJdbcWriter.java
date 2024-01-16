@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.jdbc.tracing.writer.ITableWriter;
+import org.bithon.server.storage.jdbc.common.IOnceTableWriter;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
@@ -64,7 +64,7 @@ public class MetricJdbcWriter implements IMetricWriter {
         }
     }
 
-    protected void doInsert(ITableWriter writer) throws Throwable {
+    protected void doInsert(IOnceTableWriter writer) throws Throwable {
         try {
             dsl.connection(writer);
         } catch (DataAccessException e) {
@@ -74,7 +74,7 @@ public class MetricJdbcWriter implements IMetricWriter {
         }
     }
 
-    private ITableWriter createTableWriter(String insertStatement, MetricTable table, List<IInputRow> inputRowList) {
+    private IOnceTableWriter createTableWriter(String insertStatement, MetricTable table, List<IInputRow> inputRowList) {
         return new MetricTableWriter(insertStatement, table, inputRowList, truncateDimension, isRetryableException);
     }
 

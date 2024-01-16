@@ -17,6 +17,7 @@
 package org.bithon.server.storage.jdbc.tracing.writer;
 
 import org.bithon.component.commons.utils.RetryUtils;
+import org.bithon.server.storage.jdbc.common.IOnceTableWriter;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.DSLContext;
 
@@ -31,7 +32,7 @@ import java.util.function.Predicate;
  * @author Frank Chen
  * @date 16/1/24 8:02 pm
  */
-class IndexTableWriter implements ITableWriter {
+class IndexTableWriter implements IOnceTableWriter {
     private final String insertStatement;
     private final Collection<Object[]> tagIndices;
     private final Predicate<Exception> isExceptionRetryable;

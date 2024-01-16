@@ -18,6 +18,7 @@ package org.bithon.server.storage.jdbc.clickhouse.lb;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.PeriodicTask;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.JdbcDriver;
 
@@ -90,25 +91,25 @@ public class LoadBalanceReviseTask extends PeriodicTask {
         Map<String, List<Shard>> shards = new HashMap<>();
 
         try (Connection connection = new JdbcDriver().connect(clickHouseConfig.getUrl())) {
-            String sql = String.format("SELECT size.table AS table, shard_num, bytes_on_disk, rows FROM\n" +
-                                           "(\n" +
-                                           "    SELECT distinct shard_num FROM system.clusters WHERE cluster = '%s'\n" +
-                                           ") shards\n" +
-                                           "LEFT JOIN (\n" +
-                                           "    SELECT\n" +
-                                           "        table,\n" +
-                                           "        shardNum() as shard_num,\n" +
-                                           "        sum(bytes_on_disk) as bytes_on_disk,\n" +
-                                           "        sum(rows) as rows\n" +
-                                           "    FROM cluster('%s', system.parts) WHERE database = '%s' and active\n" +
-                                           "    GROUP BY table, shard_num\n" +
-                                           "    SETTINGS max_threads = 1\n" +
-                                           ") size\n" +
-                                           "ON size.shard_num = shards.shard_num\n" +
-                                           "ORDER BY table, shard_num",
-                                       clickHouseConfig.getCluster(),
-                                       clickHouseConfig.getCluster(),
-                                       clickHouseConfig.getDatabase());
+            String sql = StringUtils.format("SELECT size.table AS table, shard_num, bytes_on_disk, rows FROM\n" +
+                                                "(\n" +
+                                                "    SELECT distinct shard_num FROM system.clusters WHERE cluster = '%s'\n" +
+                                                ") shards\n" +
+                                                "LEFT JOIN (\n" +
+                                                "    SELECT\n" +
+                                                "        table,\n" +
+                                                "        shardNum() as shard_num,\n" +
+                                                "        sum(bytes_on_disk) as bytes_on_disk,\n" +
+                                                "        sum(rows) as rows\n" +
+                                                "    FROM cluster('%s', system.parts) WHERE database = '%s' and active\n" +
+                                                "    GROUP BY table, shard_num\n" +
+                                                "    SETTINGS max_threads = 1\n" +
+                                                ") size\n" +
+                                                "ON size.shard_num = shards.shard_num\n" +
+                                                "ORDER BY table, shard_num",
+                                            clickHouseConfig.getCluster(),
+                                            clickHouseConfig.getCluster(),
+                                            clickHouseConfig.getDatabase());
 
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
 

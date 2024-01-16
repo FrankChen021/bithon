@@ -20,15 +20,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.JdbcDriver;
-import org.bithon.server.storage.jdbc.clickhouse.exception.RetryableExceptions;
+import org.bithon.server.storage.jdbc.clickhouse.common.exception.RetryableExceptions;
 import org.bithon.server.storage.jdbc.clickhouse.lb.ILoadBalancer;
 import org.bithon.server.storage.jdbc.clickhouse.lb.IShardsUpdateListener;
 import org.bithon.server.storage.jdbc.clickhouse.lb.LeastRowsLoadBalancer;
 import org.bithon.server.storage.jdbc.clickhouse.lb.LoadBalanceReviseTask;
 import org.bithon.server.storage.jdbc.clickhouse.lb.Shard;
+import org.bithon.server.storage.jdbc.common.IOnceTableWriter;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcWriter;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
-import org.bithon.server.storage.jdbc.tracing.writer.ITableWriter;
 import org.jooq.DSLContext;
 
 import java.sql.Connection;
@@ -79,7 +79,7 @@ public class LoadBalancedMetricWriter extends MetricJdbcWriter implements IShard
     }
 
     @Override
-    protected void doInsert(ITableWriter writer) throws Throwable {
+    protected void doInsert(IOnceTableWriter writer) throws Throwable {
         int shard = this.loadBalancer.nextShard(writer.getInsertSize());
 
         try (Connection connection = new JdbcDriver().connect(StringUtils.format("%s&custom_http_params=insert_shard_id=%d",

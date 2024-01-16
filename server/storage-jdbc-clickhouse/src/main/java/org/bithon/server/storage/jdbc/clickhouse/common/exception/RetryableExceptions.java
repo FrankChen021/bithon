@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.clickhouse.exception;
+package org.bithon.server.storage.jdbc.clickhouse.common.exception;
 
 /**
  * @author frank.chen021@outlook.com

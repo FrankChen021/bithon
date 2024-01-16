@@ -14,20 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.clickhouse.exception;
+package org.bithon.server.storage.jdbc.common;
 
-import lombok.Getter;
+import org.jooq.ConnectionRunnable;
 
 /**
- * @author Frank Chen
- * @date 9/3/23 5:32 pm
+ * @author frank.chen021@outlook.com
+ * @date 2024/1/15 22:47
  */
-public class ClickHouseAccessException extends RuntimeException {
-    @Getter
-    private final int errorCode;
+public interface IOnceTableWriter extends ConnectionRunnable {
+    String getTable();
 
-    public ClickHouseAccessException(int errorCode, String msg, Throwable t) {
-        super(msg, t);
-        this.errorCode = errorCode;
-    }
+    /**
+     * Get the size of the inserted batch
+     */
+    int getInsertSize();
 }
