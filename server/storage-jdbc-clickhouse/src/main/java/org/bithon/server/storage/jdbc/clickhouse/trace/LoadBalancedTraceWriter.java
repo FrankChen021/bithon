@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.jdbc.clickhouse.trace;
 
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.JdbcDriver;
@@ -42,6 +43,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2024/1/15 20:21
  */
+@Slf4j
 class LoadBalancedTraceWriter extends TraceJdbcWriter implements IShardsUpdateListener {
 
     private final ILoadBalancer summaryTableLoadBalancer;
@@ -97,28 +99,30 @@ class LoadBalancedTraceWriter extends TraceJdbcWriter implements IShardsUpdateLi
     }
 
     @Override
-    protected void doInsert(IOnceTableWriter insert) throws Throwable {
+    protected void doInsert(IOnceTableWriter writer) throws Throwable {
         ILoadBalancer loadBalancer;
-        if (insert.getTable().equals(Tables.BITHON_TRACE_SPAN.getName())) {
+        if (writer.getTable().equals(Tables.BITHON_TRACE_SPAN.getName())) {
             loadBalancer = spanTableLoadBalancer;
-        } else if (insert.getTable().equals(Tables.BITHON_TRACE_SPAN_SUMMARY.getName())) {
+        } else if (writer.getTable().equals(Tables.BITHON_TRACE_SPAN_SUMMARY.getName())) {
             loadBalancer = summaryTableLoadBalancer;
-        } else if (insert.getTable().equals(Tables.BITHON_TRACE_MAPPING.getName())) {
+        } else if (writer.getTable().equals(Tables.BITHON_TRACE_MAPPING.getName())) {
             loadBalancer = mappingTableLoadBalancer;
-        } else if (insert.getTable().equals(Tables.BITHON_TRACE_SPAN_TAG_INDEX.getName())) {
+        } else if (writer.getTable().equals(Tables.BITHON_TRACE_SPAN_TAG_INDEX.getName())) {
             loadBalancer = indexTableLoadBalancer;
         } else {
-            throw new RuntimeException("Not supported table:" + insert.getTable());
+            throw new RuntimeException("Not supported table:" + writer.getTable());
         }
 
-        int shard = loadBalancer.nextShard(insert.getInsertSize());
+        int shard = loadBalancer.nextShard(writer.getInsertSize());
         try (Connection connection = new JdbcDriver().connect(StringUtils.format("%s&custom_http_params=insert_shard_id=%d",
                                                                                  this.serverUrl,
                                                                                  shard))) {
-            insert.run(connection);
+            writer.run(connection);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+
+        log.info("Flushed {} rows to {} on shard {}", writer.getInsertSize(), writer.getTable(), shard);
     }
 
     @Override

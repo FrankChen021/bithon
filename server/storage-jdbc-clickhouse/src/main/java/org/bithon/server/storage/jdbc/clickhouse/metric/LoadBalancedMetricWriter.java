@@ -88,6 +88,6 @@ public class LoadBalancedMetricWriter extends MetricJdbcWriter implements IShard
             writer.run(connection);
         }
 
-        log.trace("Flushed {} rows to {} on shard {}", writer.getInsertSize(), table.getName(), shard);
+        log.info("Flushed {} rows to {} on shard {}", writer.getInsertSize(), table.getName(), shard);
     }
 }
