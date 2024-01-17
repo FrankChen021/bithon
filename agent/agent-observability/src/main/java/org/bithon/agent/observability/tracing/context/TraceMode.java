@@ -24,11 +24,22 @@ public enum TraceMode {
     /**
      * Trace current request
      */
-    TRACING,
+    TRACING("tracing"),
 
     /**
      * Generate a unique trace id and print the id in the log for current request.
      * The trace id will be also duplicated across threads for this request.
      */
-    LOGGING
+    LOGGING("logging");
+
+
+    private final String text;
+
+    public String text() {
+        return text;
+    }
+
+    TraceMode(String text) {
+        this.text = text;
+    }
 }

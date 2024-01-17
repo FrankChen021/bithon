@@ -17,6 +17,8 @@
 package org.bithon.agent.observability.tracing.config;
 
 import org.bithon.agent.configuration.ConfigurationProperties;
+import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.Collections;
 import java.util.List;
@@ -74,15 +76,32 @@ public class TraceConfig {
     /**
      * If this field is set, the trace id (if the current request has) will be added to the header of response.
      * The header name is the value of this field, header value is the trace id.
+     * For example, X-Bithon-TraceId
      */
-    private String traceIdInResponse;
+    private String traceResponseHeader = "X-Bithon-Trace";
 
-    public String getTraceIdInResponse() {
-        return traceIdInResponse;
+    @JsonIgnore
+    private String traceIdResponseHeader = "X-Bithon-Trace-Id";
+
+    @JsonIgnore
+    private String traceModeResponseHeader = "X-Bithon-Trace-Mode";
+
+    public String getTraceIdResponseHeader() {
+        return traceIdResponseHeader;
     }
 
-    public void setTraceIdInResponse(String traceIdInResponse) {
-        this.traceIdInResponse = traceIdInResponse;
+    public String getTraceModeResponseHeader() {
+        return traceModeResponseHeader;
+    }
+
+    public String getTraceResponseHeader() {
+        return traceResponseHeader;
+    }
+
+    public void setTraceResponseHeader(String traceResponseHeader) {
+        this.traceResponseHeader = traceResponseHeader;
+        this.traceIdResponseHeader = StringUtils.hasText(traceResponseHeader) ? traceResponseHeader + "-Id" : null;
+        this.traceModeResponseHeader = StringUtils.hasText(traceResponseHeader) ? traceResponseHeader + "-Mode" : null;
     }
 
     /**

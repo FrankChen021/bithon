@@ -29,7 +29,6 @@ import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.plugin.spring.webflux.config.ResponseConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
@@ -123,14 +122,16 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
                                 .start();
 
                     // Put the trace id in the header so that the applications have a chance to know whether this request is being sampled
-                    if (traceContext.traceMode().equals(TraceMode.TRACING)) {
+                    {
                         request.requestHeaders().set("X-Bithon-TraceId", traceContext.traceId());
+                        request.requestHeaders().set("X-Bithon-TraceMode", traceContext.traceMode().text());
 
                         // Add trace id to response
-                        String traceIdHeader = traceConfig.getTraceIdInResponse();
+                        final HttpServerResponse response = aopContext.getArgAs(1);
+                        String traceIdHeader = traceConfig.getTraceIdResponseHeader();
                         if (StringUtils.hasText(traceIdHeader)) {
-                            final HttpServerResponse response = aopContext.getArgAs(1);
                             response.addHeader(traceIdHeader, traceContext.traceId());
+                            response.addHeader(traceConfig.getTraceModeResponseHeader(), traceContext.traceMode().text());
                         }
                     }
 
