@@ -14,11 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.common.utils;
+package org.bithon.server.commons.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.bithon.server.storage.meta.EndPointType;
 import org.springframework.util.StringUtils;
 
 import java.net.URI;
@@ -29,7 +28,7 @@ import java.util.Locale;
  * @author frank.chen021@outlook.com
  * @date 2021/3/22
  */
-public class MiscUtils {
+public class DbUtils {
 
     /**
      * connection string template:
@@ -53,11 +52,14 @@ public class MiscUtils {
             URI uri = new URI(connectionString);
             switch (uri.getScheme()) {
                 case "h2":
-                    return new ConnectionString("localhost", uri.getSchemeSpecificPart(), EndPointType.DB_H2);
+                    return new ConnectionString("localhost",
+                                                uri.getSchemeSpecificPart(),
+                                                "h2");
+
                 case "mysql":
                     return new ConnectionString(uri.getHost() + ":" + uri.getPort(),
                                                 uri.getPath().substring(1),
-                                                EndPointType.DB_MYSQL);
+                                                "mysql");
                 case "ch":
                 case "clickhouse":
                     if (uri.getPath() == null) {
@@ -69,7 +71,7 @@ public class MiscUtils {
                     }
                     return new ConnectionString(uri.getHost() + ":" + uri.getPort(),
                                                 uri.getPath().substring(1),
-                                                EndPointType.DB_CLICKHOUSE);
+                                                "clickhouse");
                 default:
                     throw new RuntimeException(String.format(Locale.ENGLISH, "Unknown schema of Connection String: [%s]",
                                                              connectionString));
@@ -84,6 +86,6 @@ public class MiscUtils {
     public static class ConnectionString {
         private final String hostAndPort;
         private final String database;
-        private final EndPointType endPointType;
+        private final String dbType;
     }
 }
