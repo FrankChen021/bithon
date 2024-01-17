@@ -27,7 +27,6 @@ import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.plugin.jetty.context.RequestContext;
 import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -84,12 +83,14 @@ public class HttpChannel$Handle extends AroundInterceptor {
                             .start();
 
                 // put the trace id in the header so that the applications have a chance to know whether this request is being sampled
-                if (traceContext.traceMode().equals(TraceMode.TRACING)) {
+                {
                     request.setAttribute("X-Bithon-TraceId", traceContext.traceId());
+                    request.setAttribute("X-Bithon-TraceMode", traceContext.traceMode());
 
-                    String traceIdHeader = traceConfig.getTraceIdInResponse();
+                    String traceIdHeader = traceConfig.getTraceIdResponseHeader();
                     if (StringUtils.hasText(traceIdHeader)) {
                         httpChannel.getResponse().addHeader(traceIdHeader, traceContext.traceId());
+                        httpChannel.getResponse().addHeader(traceConfig.getTraceModeResponseHeader(), traceContext.traceMode().text());
                     }
                 }
             }

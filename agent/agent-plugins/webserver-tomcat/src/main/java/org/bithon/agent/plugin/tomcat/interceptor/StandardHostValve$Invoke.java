@@ -28,7 +28,6 @@ import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
@@ -87,7 +86,7 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
         TraceContextHolder.set(traceContext);
 
         // Put the trace id in the header so that the applications have a chance to know whether this request is being sampled
-        if (traceContext.traceMode().equals(TraceMode.TRACING)) {
+        {
             //
             // Here, we do not use request.getRequest().setAttribute()
             // This is because request.getRequest returns an instance of javax.servlet.HttpServletRequest or jakarta.servlet.HttpServletRequest depending on the tomcat server,
@@ -95,10 +94,12 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
             // On tomcat 10, which requires jakarta.servlet.HttpServletRequest, this request.getRequest() call fails
             //
             request.setAttribute("X-Bithon-TraceId", traceContext.traceId());
+            request.setAttribute("X-Trace-Mode", traceContext.traceMode().text());
 
-            String traceIdHeader = traceConfig.getTraceIdInResponse();
+            String traceIdHeader = traceConfig.getTraceIdResponseHeader();
             if (StringUtils.hasText(traceIdHeader)) {
                 request.getResponse().addHeader(traceIdHeader, traceContext.traceId());
+                request.getResponse().addHeader(traceConfig.getTraceModeResponseHeader(), traceContext.traceMode().text());
             }
         }
 

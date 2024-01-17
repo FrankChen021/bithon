@@ -28,7 +28,6 @@ import org.bithon.agent.observability.metric.domain.web.HttpIncomingMetricsRegis
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
-import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -75,13 +74,15 @@ public class HttpServerExchangeDispatch extends BeforeInterceptor {
                         .kind(SpanKind.SERVER)
                         .start();
 
-            if (traceContext.traceMode().equals(TraceMode.TRACING)) {
+            {
                 ServletRequestContext servletRequestContext = exchange.getAttachment(ServletRequestContext.ATTACHMENT_KEY);
                 servletRequestContext.getServletRequest().setAttribute("X-Bithon-TraceId", traceContext.traceId());
+                servletRequestContext.getServletRequest().setAttribute("X-Trace-Mode", traceContext.traceMode().text());
 
-                String traceIdHeader = traceConfig.getTraceIdInResponse();
+                String traceIdHeader = traceConfig.getTraceIdResponseHeader();
                 if (StringUtils.hasText(traceIdHeader)) {
                     exchange.getResponseHeaders().add(HttpString.tryFromString(traceIdHeader), traceContext.traceId());
+                    exchange.getResponseHeaders().add(HttpString.tryFromString(traceConfig.getTraceModeResponseHeader()), traceContext.traceMode().text());
                 }
             }
         }
