@@ -34,19 +34,19 @@ import java.util.function.Predicate;
  */
 @Slf4j
 public class MetricJdbcWriter implements IMetricWriter {
-    private final DSLContext dsl;
+    protected final DSLContext dslContext;
     protected final MetricTable table;
     protected final String insertStatement;
     private final boolean truncateDimension;
     private final Predicate<Exception> isRetryableException;
 
-    public MetricJdbcWriter(DSLContext dsl, MetricTable table, boolean truncateDimension, Predicate<Exception> isRetryableException) {
-        this.dsl = dsl;
+    public MetricJdbcWriter(DSLContext dslContext, MetricTable table, boolean truncateDimension, Predicate<Exception> isRetryableException) {
+        this.dslContext = dslContext;
         this.table = table;
         this.truncateDimension = truncateDimension;
 
         int fieldCount = 1 + table.getDimensions().size() + table.getMetrics().size();
-        insertStatement = dsl.render(dsl.insertInto(table).values(new Object[fieldCount]));
+        insertStatement = dslContext.render(dslContext.insertInto(table).values(new Object[fieldCount]));
 
         this.isRetryableException = isRetryableException;
     }
@@ -66,7 +66,7 @@ public class MetricJdbcWriter implements IMetricWriter {
 
     protected void doInsert(IOnceTableWriter writer) throws Throwable {
         try {
-            dsl.connection(writer);
+            dslContext.connection(writer);
         } catch (DataAccessException e) {
             // Re-throw the caused exception for more clear stack trace
             // In such a case, the caused exception is not NULL.

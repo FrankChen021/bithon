@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * The task that updates the information for client side balancing.
@@ -90,7 +91,10 @@ public class LoadBalanceReviseTask extends PeriodicTask {
 
         Map<String, List<Shard>> shards = new HashMap<>();
 
-        try (Connection connection = new JdbcDriver().connect(clickHouseConfig.getUrl())) {
+        Properties props = new Properties();
+        props.put("user", this.clickHouseConfig.getUsername());
+        props.put("password", this.clickHouseConfig.getPassword());
+        try (Connection connection = new JdbcDriver().connect(clickHouseConfig.getUrl(), props)) {
             String sql = StringUtils.format("SELECT size.table AS table, shard_num, bytes_on_disk, rows FROM\n" +
                                                 "(\n" +
                                                 "    SELECT distinct shard_num FROM system.clusters WHERE cluster = '%s'\n" +

@@ -17,6 +17,7 @@
 package org.bithon.server.storage.jdbc.tracing.writer;
 
 import org.bithon.component.commons.utils.RetryUtils;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.common.IOnceTableWriter;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.DSLContext;
@@ -85,8 +86,11 @@ class IndexTableWriter implements IOnceTableWriter {
     public void run(Connection connection) throws Exception {
         try (PreparedStatement statement = connection.prepareStatement(insertStatement)) {
             for (Object[] index : tagIndices) {
-                for (int i = 0; i < index.length; i++) {
-                    statement.setObject(i + 1, index[i]);
+                // timestamp
+                statement.setObject(1, index[0]);
+
+                for (int i = 1; i < index.length; i++) {
+                    statement.setObject(i + 1, StringUtils.getOrEmpty((String) index[i]));
                 }
                 statement.addBatch();
             }

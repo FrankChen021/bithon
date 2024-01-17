@@ -35,6 +35,9 @@ public class ClickHouseConfig {
     private boolean onDistributedTable = false;
     private String engine = "MergeTree";
 
+    private String username;
+    private String password;
+
     /**
      * settings for create table
      */

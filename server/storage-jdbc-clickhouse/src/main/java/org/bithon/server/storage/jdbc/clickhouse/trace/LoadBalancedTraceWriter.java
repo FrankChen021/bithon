@@ -38,6 +38,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author frank.chen021@outlook.com
@@ -114,9 +115,14 @@ class LoadBalancedTraceWriter extends TraceJdbcWriter implements IShardsUpdateLi
         }
 
         int shard = loadBalancer.nextShard(writer.getInsertSize());
+
+        Properties props = new Properties();
+        props.put("user", this.clickHouseConfig.getUsername());
+        props.put("password", this.clickHouseConfig.getPassword());
         try (Connection connection = new JdbcDriver().connect(StringUtils.format("%s&custom_http_params=insert_shard_id=%d",
                                                                                  this.serverUrl,
-                                                                                 shard))) {
+                                                                                 shard),
+                                                              props)) {
             writer.run(connection);
         } catch (SQLException e) {
             throw new RuntimeException(e);
