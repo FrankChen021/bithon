@@ -31,7 +31,9 @@ import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
+import java.sql.DatabaseMetaData;
 import java.sql.Statement;
+import java.util.Locale;
 
 /**
  * @author frankchen
@@ -72,13 +74,15 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
         // Get connection string before a SQL execution
         // In some cases, a connection might be aborted by server
         // then, a getConnection() call would throw an exception saying that connection has been closed
-        String connectionString = MiscUtils.cleanupConnectionString(statement.getConnection()
-                                                                             .getMetaData()
-                                                                             .getURL());
+        DatabaseMetaData meta = statement.getConnection().getMetaData();
+        String connectionString = MiscUtils.cleanupConnectionString(meta.getURL());
+
         ITraceSpan span = TraceSpanFactory.newSpan("alibaba-druid");
         if (span != null) {
             span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)
+                .tag(Tags.Database.SYSTEM, meta.getDatabaseProductName().toLowerCase(Locale.ENGLISH))
+                .tag(Tags.Database.USER, meta.getUserName())
                 .tag(Tags.Database.CONNECTION_STRING, connectionString)
                 .start();
         }
@@ -113,7 +117,7 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
             // check if the metrics provider for this driver exists
             Boolean isQuery = null;
             if (DruidPlugin.METHOD_EXECUTE_UPDATE.equals(methodName)
-                    || DruidPlugin.METHOD_EXECUTE_BATCH.equals(methodName)) {
+                || DruidPlugin.METHOD_EXECUTE_BATCH.equals(methodName)) {
                 isQuery = false;
             } else if (DruidPlugin.METHOD_EXECUTE.equals(methodName)) {
                 /*
