@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.commons;
+package org.bithon.server.commons.utils;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -27,5 +27,14 @@ server:
   devtools:
     restart:
       enabled: true
-
+#
+# Cache settings for static resources
+# Better to have
+#
+spring:
+  resources:
+    cache:
+      cachecontrol:
+        max-age: 3600
+        must-revalidate: true
 

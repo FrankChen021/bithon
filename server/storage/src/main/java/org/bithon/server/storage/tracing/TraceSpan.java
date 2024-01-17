@@ -27,7 +27,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.commons.UrlUtils;
+import org.bithon.server.commons.utils.UrlUtils;
 import org.bithon.server.storage.common.ApplicationType;
 import org.bithon.server.storage.datasource.input.IInputRow;
 

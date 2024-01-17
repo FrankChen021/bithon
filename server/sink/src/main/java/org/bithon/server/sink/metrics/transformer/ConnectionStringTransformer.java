@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Getter;
-import org.bithon.server.sink.common.utils.MiscUtils;
+import org.bithon.server.commons.utils.DbUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 
@@ -41,9 +41,9 @@ public class ConnectionStringTransformer implements ITransformer {
 
     @Override
     public void transform(IInputRow inputRow) throws TransformException {
-        MiscUtils.ConnectionString conn = MiscUtils.parseConnectionString(inputRow.getColAsString(field));
+        DbUtils.ConnectionString conn = DbUtils.parseConnectionString(inputRow.getColAsString(field));
         inputRow.updateColumn("server", conn.getHostAndPort());
         inputRow.updateColumn("database", conn.getDatabase());
-        inputRow.updateColumn("endpointType", conn.getEndPointType().name());
+        inputRow.updateColumn("endpointType", conn.getDbType());
     }
 }

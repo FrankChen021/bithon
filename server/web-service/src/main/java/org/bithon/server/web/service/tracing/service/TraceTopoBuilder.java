@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.utils.DbUtils;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.bithon.server.web.service.tracing.api.TraceTopo;
@@ -276,6 +277,15 @@ public class TraceTopoBuilder {
                         scheme = "http";
                     } else if (childSpan.getTag(Tags.Messaging.SYSTEM) != null) {
                         scheme = childSpan.getTag(Tags.Messaging.SYSTEM);
+                    } else if (childSpan.getTag(Tags.Database.SYSTEM) != null) {
+                        scheme = childSpan.getTag(Tags.Database.SYSTEM);
+                        DbUtils.ConnectionString conn = DbUtils.tryParseConnectionString(childSpan.getTag(Tags.Database.CONNECTION_STRING));
+                        peer = conn == null ? "Database" : conn.getDbType();
+                    } else if (childSpan.getTag(Tags.Database.CONNECTION_STRING) != null) {
+                        String connectionString = childSpan.getTag(Tags.Database.CONNECTION_STRING);
+                        DbUtils.ConnectionString conn = DbUtils.tryParseConnectionString(childSpan.getTag(connectionString));
+                        scheme = conn == null ? "Database" : conn.getDbType();
+                        peer = conn == null ? connectionString : conn.getHostAndPort();
                     } else {
                         scheme = "Unknown";
                     }
