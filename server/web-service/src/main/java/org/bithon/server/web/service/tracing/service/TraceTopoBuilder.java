@@ -279,12 +279,13 @@ public class TraceTopoBuilder {
                         scheme = childSpan.getTag(Tags.Messaging.SYSTEM);
                     } else if (childSpan.getTag(Tags.Database.SYSTEM) != null) {
                         scheme = childSpan.getTag(Tags.Database.SYSTEM);
-                        DbUtils.ConnectionString conn = DbUtils.parseConnectionString(childSpan.getTag(Tags.Database.CONNECTION_STRING));
-                        peer = conn.getDbType();
+                        DbUtils.ConnectionString conn = DbUtils.tryParseConnectionString(childSpan.getTag(Tags.Database.CONNECTION_STRING));
+                        peer = conn == null ? "Database" : conn.getDbType();
                     } else if (childSpan.getTag(Tags.Database.CONNECTION_STRING) != null) {
-                        DbUtils.ConnectionString conn = DbUtils.parseConnectionString(childSpan.getTag(Tags.Database.CONNECTION_STRING));
-                        scheme = conn.getDbType();
-                        peer = conn.getHostAndPort();
+                        String connectionString = childSpan.getTag(Tags.Database.CONNECTION_STRING);
+                        DbUtils.ConnectionString conn = DbUtils.tryParseConnectionString(childSpan.getTag(connectionString));
+                        scheme = conn == null ? "Database" : conn.getDbType();
+                        peer = conn == null ? connectionString : conn.getHostAndPort();
                     } else {
                         scheme = "Unknown";
                     }

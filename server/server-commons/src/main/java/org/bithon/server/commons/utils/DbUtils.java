@@ -36,6 +36,14 @@ public class DbUtils {
      * jdbc:mysql://localhost:3306/bithon?useUnicode=true&amp;useSSL=false&amp;autoReconnect=TRUE
      * jdbc:netezza://main:5490/sales;user=admin;password=password;loglevel=2
      */
+    public static ConnectionString tryParseConnectionString(String connectionString) {
+        try {
+            return parseConnectionString(connectionString);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
     public static ConnectionString parseConnectionString(String connectionString) {
         if (StringUtils.isEmpty(connectionString)) {
             throw new RuntimeException(String.format(Locale.ENGLISH,
