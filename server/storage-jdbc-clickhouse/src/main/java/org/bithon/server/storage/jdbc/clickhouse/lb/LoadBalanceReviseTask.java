@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.jdbc.clickhouse.lb;
 
+import com.clickhouse.client.config.ClickHouseDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.PeriodicTask;
 import org.bithon.component.commons.utils.StringUtils;
@@ -92,8 +93,8 @@ public class LoadBalanceReviseTask extends PeriodicTask {
         Map<String, List<Shard>> shards = new HashMap<>();
 
         Properties props = new Properties();
-        props.put("user", this.clickHouseConfig.getUsername());
-        props.put("password", this.clickHouseConfig.getPassword());
+        props.put(ClickHouseDefaults.USER.getKey(), this.clickHouseConfig.getUsername());
+        props.put(ClickHouseDefaults.PASSWORD.getKey(), this.clickHouseConfig.getPassword());
         try (Connection connection = new JdbcDriver().connect(clickHouseConfig.getUrl(), props)) {
             String sql = StringUtils.format("SELECT size.table AS table, shard_num, bytes_on_disk, rows FROM\n" +
                                                 "(\n" +

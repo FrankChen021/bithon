@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.jdbc.clickhouse.trace;
 
+import com.clickhouse.client.config.ClickHouseDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
@@ -117,8 +118,8 @@ class LoadBalancedTraceWriter extends TraceJdbcWriter implements IShardsUpdateLi
         int shard = loadBalancer.nextShard(writer.getInsertSize());
 
         Properties props = new Properties();
-        props.put("user", this.clickHouseConfig.getUsername());
-        props.put("password", this.clickHouseConfig.getPassword());
+        props.put(ClickHouseDefaults.USER.getKey(), this.clickHouseConfig.getUsername());
+        props.put(ClickHouseDefaults.PASSWORD.getKey(), this.clickHouseConfig.getPassword());
         try (Connection connection = new JdbcDriver().connect(StringUtils.format("%s&custom_http_params=insert_shard_id=%d",
                                                                                  this.serverUrl,
                                                                                  shard),
