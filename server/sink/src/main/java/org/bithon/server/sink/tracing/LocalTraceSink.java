@@ -103,6 +103,7 @@ public class LocalTraceSink implements ITraceMessageSink {
     }
 
     private final List<ITraceMessageSink> sinks = Collections.synchronizedList(new ArrayList<>());
+    private final ITraceMessageSink defaultSink;
 
     private final ExecutorService executorService;
 
@@ -122,7 +123,7 @@ public class LocalTraceSink implements ITraceMessageSink {
         this.transformer = new ExceptionSafeTransformer(transformer);
 
         this.executorService = Executors.newCachedThreadPool(NamedThreadFactory.of("trace-processor"));
-        link(new SinkImpl(applicationContext));
+        this.defaultSink = new SinkImpl(applicationContext);
     }
 
     public <T extends ITraceMessageSink> T link(T sink) {
@@ -159,6 +160,11 @@ public class LocalTraceSink implements ITraceMessageSink {
         if (spans.isEmpty()) {
             return;
         }
+
+        // Run the default sink first so that backpressure can be leveraged
+        this.defaultSink.process(messageType, spans);
+
+        // Run other sinks in parallel
         for (ITraceMessageSink sink : sinks) {
             executorService.execute(new TraceMessageSinkRunnable(sink, messageType, spans));
         }
@@ -191,6 +197,7 @@ public class LocalTraceSink implements ITraceMessageSink {
 
     @Override
     public void close() throws Exception {
+        this.defaultSink.close();
         for (ITraceMessageSink sink : sinks) {
             sink.close();
         }

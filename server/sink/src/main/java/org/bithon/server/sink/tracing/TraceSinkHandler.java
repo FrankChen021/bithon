@@ -33,9 +33,12 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
 
 /**
+ * Backpressure sink handler
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/2/4 8:21 下午
  */
@@ -48,15 +51,18 @@ public class TraceSinkHandler extends AbstractThreadPoolMessageHandler<List<Trac
     private final TagIndexGenerator tagIndexBuilder;
 
     public TraceSinkHandler(ApplicationContext applicationContext) {
-        super("trace-message-handler", 2, 10, Duration.ofMinutes(1), 1024);
+        super("trace-sink",
+              1,
+              10,
+              Duration.ofMinutes(1),
+              10,
+              // Use CallRunsPolicy to implement a backpressure policy
+              new ThreadPoolExecutor.CallerRunsPolicy());
 
         TraceSinkConfig sinkConfig = applicationContext.getBean(TraceSinkConfig.class);
-        this.traceWriter = new TraceBatchWriter(applicationContext.getBean(ITraceStorage.class).createWriter(),
-                                                sinkConfig);
-
+        this.traceWriter = new TraceBatchWriter(applicationContext.getBean(ITraceStorage.class).createWriter(), sinkConfig);
         this.mappingExtractor = TraceMappingFactory.create(applicationContext);
-        this.sanitizerFactory = new SanitizerFactory(applicationContext.getBean(ObjectMapper.class),
-                                                     sinkConfig);
+        this.sanitizerFactory = new SanitizerFactory(applicationContext.getBean(ObjectMapper.class), sinkConfig);
         this.tagIndexBuilder = new TagIndexGenerator(applicationContext.getBean(TraceStorageConfig.class));
     }
 

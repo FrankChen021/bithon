@@ -23,6 +23,7 @@ import org.bithon.server.sink.tracing.LocalTraceSink;
 
 import java.time.Duration;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -38,7 +39,8 @@ public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageH
                                             int corePoolSize,
                                             int maxPoolSize,
                                             Duration keepAliveTime,
-                                            int queueSize) {
+                                            int queueSize,
+                                            RejectedExecutionHandler handler) {
         log.info("Starting executor [{}]", name);
         executor = new ThreadPoolExecutor(corePoolSize,
                                           maxPoolSize,
@@ -46,7 +48,7 @@ public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageH
                                           TimeUnit.SECONDS,
                                           new LinkedBlockingQueue<>(queueSize),
                                           NamedThreadFactory.of(name),
-                                          new ThreadPoolExecutor.DiscardOldestPolicy());
+                                          handler);
     }
 
     @Override
@@ -55,7 +57,7 @@ public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageH
     }
 
     /**
-     * Use an explicitly defined class instead of lamda
+     * Use an explicitly defined class instead of lambda
      * because it helps improve the observability of tracing log of ExecutorService.execute
      */
     class MessageHandlerRunnable implements Runnable {

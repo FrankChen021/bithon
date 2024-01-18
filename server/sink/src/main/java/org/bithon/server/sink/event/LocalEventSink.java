@@ -25,6 +25,7 @@ import org.bithon.server.sink.common.handler.AbstractThreadPoolMessageHandler;
 import org.bithon.server.storage.event.EventMessage;
 
 import java.time.Duration;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author frank.chen021@outlook.com
@@ -38,7 +39,7 @@ public class LocalEventSink implements IEventMessageSink {
         private final EventMessageHandlers handlers;
 
         public EventMessageProcessor(EventMessageHandlers handlers) {
-            super("event-message-handler", 1, 5, Duration.ofMinutes(3), 1024);
+            super("event-message-handler", 1, 5, Duration.ofMinutes(3), 1024, new ThreadPoolExecutor.DiscardOldestPolicy());
             this.handlers = handlers;
         }
 
