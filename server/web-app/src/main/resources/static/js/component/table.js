@@ -70,7 +70,7 @@ class TableComponent {
         this.mFormatters['shortDateTime'] = (v) => new Date(v).format('MM-dd hh:mm:ss');
         this.mFormatters['detail'] = (val, row, index) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="toggleTableDetailView('${option.tableId}', ${index})">Toggle</button>` : '';
         this.mFormatters['dialog'] = (val, row, index, field) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="showTableDetailViewInDlg('${option.tableId}', ${index}, '${field}')">Show</button>` : '';
-        this.mFormatters['block'] = (val) => `<pre>${val}</pre>`;
+        this.mFormatters['block'] = (val) => `<pre>${val.htmlEncode()}</pre>`;
         this.mFormatters['index'] = (val, row, index) => index + 1;
         this.mFormatters['kv'] = (val) => {
             let text = '<pre style="margin-bottom: 0">';
@@ -79,7 +79,7 @@ class TableComponent {
                 if (typeof propVal === 'string') {
                     text += `<b>${propName}</b>: ${propVal.htmlEncode()}<br/>`;
                 } else {
-                    text += `<b>${propName}</b>: ${propVal}<br/>`;
+                    text += `<b>${propName}</b>: ${propVal.htmlEncode()}<br/>`;
                 }
             }
             text += '</pre>';
