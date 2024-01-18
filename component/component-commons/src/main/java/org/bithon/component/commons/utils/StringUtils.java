@@ -85,4 +85,8 @@ public class StringUtils {
     public static byte[] decodeBase64String(String input) {
         return BASE64_DECODER.decode(input);
     }
+
+    public static String getOrEmpty(String v) {
+        return v == null ? "" : v;
+    }
 }

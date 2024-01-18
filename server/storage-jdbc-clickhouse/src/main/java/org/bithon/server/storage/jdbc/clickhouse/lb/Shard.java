@@ -14,25 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.tracing;
-
-import org.bithon.server.storage.tracing.index.TagIndex;
-import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
-
-import java.io.IOException;
-import java.util.List;
+package org.bithon.server.storage.jdbc.clickhouse.lb;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/2/4 8:25 下午
+ * @author Frank Chen
+ * @date 15/11/23 3:47 pm
  */
-public interface ITraceWriter extends AutoCloseable {
+public class Shard {
+    public final int shardNum;
+    public long writtenSize;
+    public long writtenRows;
 
-    @Override
-    default void close() {
+    public Shard(int shardNum, long writtenSize, long writtenRows) {
+        this.shardNum = shardNum;
+        this.writtenSize = writtenSize;
+        this.writtenRows = writtenRows;
     }
-
-    void write(List<TraceSpan> spans,
-               List<TraceIdMapping> mappings,
-               List<TagIndex> tagIndices) throws IOException;
 }

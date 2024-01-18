@@ -14,20 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.clickhouse.exception;
+package org.bithon.server.storage.jdbc.clickhouse.lb;
 
-import lombok.Getter;
+import java.util.List;
+import java.util.Map;
 
 /**
- * @author Frank Chen
- * @date 9/3/23 5:32 pm
+ * @author frank.chen021@outlook.com
+ * @date 2024/1/14 12:33
  */
-public class ClickHouseAccessException extends RuntimeException {
-    @Getter
-    private final int errorCode;
-
-    public ClickHouseAccessException(int errorCode, String msg, Throwable t) {
-        super(msg, t);
-        this.errorCode = errorCode;
-    }
+public interface IShardsUpdateListener {
+    void update(Map<String, List<Shard>> shards);
 }

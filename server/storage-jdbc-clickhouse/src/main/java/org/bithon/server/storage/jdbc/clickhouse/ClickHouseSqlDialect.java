@@ -62,7 +62,7 @@ public class ClickHouseSqlDialect implements ISqlDialect {
                                       timestampExpression.serializeToText(this::quoteIdentifier),
                                       interval / 60);
         } else {
-            return StringUtils.format("CAST(toUnixTimestamp(%s)/ %d AS Int64) * %d", timestampExpression.serializeToText(this::quoteIdentifier), interval, interval);
+            return StringUtils.format("toUnixTimestamp(toStartOfInterval(%s, INTERVAL %d SECOND))", timestampExpression.serializeToText(this::quoteIdentifier), interval);
         }
     }
 

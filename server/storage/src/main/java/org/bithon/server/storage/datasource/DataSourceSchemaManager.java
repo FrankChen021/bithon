@@ -47,10 +47,13 @@ public class DataSourceSchemaManager implements SmartLifecycle {
 
     public DataSourceSchemaManager(ISchemaStorage schemaStorage) {
         this.schemaStorage = schemaStorage;
+
+        start();
     }
 
     public boolean addDataSourceSchema(DataSourceSchema schema) {
-        if (schema != null && schemas.putIfAbsent(schema.getName(), schema) == null) {
+        if (schema != null &&
+            schemas.putIfAbsent(schema.getName(), schema) == null) {
             if (!schema.isVirtual()) {
                 try {
                     schemaStorage.putIfNotExist(schema.getName(), schema);
@@ -77,8 +80,7 @@ public class DataSourceSchemaManager implements SmartLifecycle {
         } catch (IOException e) {
             return;
         }
-        this.onChange(this.schemas.put(schema.getName(), schema),
-                      schema);
+        this.onChange(this.put(schema.getName(), schema), schema);
     }
 
     public DataSourceSchema getDataSourceSchema(String name) {
@@ -114,10 +116,17 @@ public class DataSourceSchemaManager implements SmartLifecycle {
         log.info("{} schema(s) have been changed since {}.", changedSchemaList.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
 
         for (DataSourceSchema changedSchema : changedSchemaList) {
-            this.onChange(this.schemas.put(changedSchema.getName(), changedSchema), changedSchema);
+            this.onChange(this.put(changedSchema.getName(), changedSchema), changedSchema);
         }
 
         this.lastLoadAt = System.currentTimeMillis();
+    }
+
+    /**
+     * for better debugging only
+     */
+    private DataSourceSchema put(String name, DataSourceSchema schema) {
+        return this.schemas.put(name, schema);
     }
 
     private void onChange(DataSourceSchema oldSchema, DataSourceSchema dataSourceSchema) {
@@ -142,6 +151,20 @@ public class DataSourceSchemaManager implements SmartLifecycle {
                                                0,
                                                1,
                                                TimeUnit.MINUTES);
+
+        // Wait until the load complete
+        // Not able to use the Future object returned by the scheduleWithFixedDelay above because the 'get'
+        // works abnormally as its javadoc says
+        int count = 0;
+        while (this.lastLoadAt == 0 && count++ < 30) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ignored) {
+            }
+        }
+        if (this.lastLoadAt == 0) {
+            log.error("!!!!!!Timeout to wait for the first loading of schemas!!!");
+        }
     }
 
     @Override

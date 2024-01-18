@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Frank Chen
@@ -55,5 +56,22 @@ public class InternalDataSourceSpec implements IDataStoreSpec {
     @Override
     public IDataStoreSpec withProperties(Map<String, String> properties) {
         return new InternalDataSourceSpec(store);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        InternalDataSourceSpec that = (InternalDataSourceSpec) o;
+        return Objects.equals(store, that.store);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(store);
     }
 }

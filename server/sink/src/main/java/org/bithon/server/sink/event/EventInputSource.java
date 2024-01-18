@@ -84,4 +84,12 @@ public class EventInputSource implements IInputSource {
     public void stop() {
         handlers.remove(eventType);
     }
+
+    /**
+     * For easier debugging
+     */
+    @Override
+    public String toString() {
+        return this.eventType;
+    }
 }

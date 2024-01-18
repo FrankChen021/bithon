@@ -14,25 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.tracing;
-
-import org.bithon.server.storage.tracing.index.TagIndex;
-import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
-
-import java.io.IOException;
-import java.util.List;
+package org.bithon.server.storage.jdbc.clickhouse.common.exception;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/4 8:25 下午
+ * @date 2024/1/14 11:57
  */
-public interface ITraceWriter extends AutoCloseable {
-
-    @Override
-    default void close() {
+public class RetryableExceptions {
+    public static boolean isExceptionRetryable(Exception e) {
+        String message = e.getMessage();
+        return message != null
+            && (message.startsWith("Connect timed out")
+            || message.startsWith("Connection reset")
+            || message.startsWith("Connection refused")
+            || message.startsWith("Unexpected end of file from server")
+            // The following is thrown from sun.net.www.protocol.http.HTTPURLConnection
+            || message.startsWith("Error writing request body to server")
+        );
     }
-
-    void write(List<TraceSpan> spans,
-               List<TraceIdMapping> mappings,
-               List<TagIndex> tagIndices) throws IOException;
 }

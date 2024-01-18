@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.tracing;
+package org.bithon.server.storage.jdbc.tracing.reader;
 
 import org.bithon.component.commons.utils.SupplierUtils;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;

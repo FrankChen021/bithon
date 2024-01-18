@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.clickhouse.exception;
+package org.bithon.server.storage.jdbc.clickhouse.common.exception;
 
 import org.jooq.ExecuteContext;
 import org.jooq.impl.DefaultExecuteListener;

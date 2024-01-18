@@ -59,6 +59,7 @@ public class ClickHouseStorageProviderConfiguration implements IStorageProviderC
 
         DruidDataSource dataSource = DruidDataSourceBuilder.create().build();
         dataSource.configFromPropety(properties);
+        dataSource.setDriver(new JdbcDriver());
 
         JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
         this.dslContext = DSL.using(new DefaultConfiguration()

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.clickhouse.storage;
+package org.bithon.server.storage.jdbc.clickhouse.trace;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -32,17 +32,23 @@ import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
+import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
+import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
+import org.bithon.server.storage.jdbc.clickhouse.common.exception.RetryableExceptions;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
-import org.bithon.server.storage.jdbc.tracing.TraceJdbcReader;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
-import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
+import org.bithon.server.storage.jdbc.tracing.reader.TraceJdbcReader;
+import org.bithon.server.storage.jdbc.tracing.writer.SpanTableWriter;
+import org.bithon.server.storage.jdbc.tracing.writer.TraceJdbcWriter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
+import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -99,22 +105,31 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @Override
     public ITraceWriter createWriter() {
-        return new TraceJdbcWriter(dslContext, objectMapper, traceStorageConfig) {
-            @Override
-            protected boolean isTransactionSupported() {
-                return false;
-            }
+        if (this.config.isOnDistributedTable()) {
+            return new LoadBalancedTraceWriter(this.config, this.traceStorageConfig, this.dslContext);
+        } else {
+            return new TraceJdbcWriter(dslContext, traceStorageConfig, RetryableExceptions::isExceptionRetryable) {
+                @Override
+                protected boolean isTransactionSupported() {
+                    return false;
+                }
 
-            /**
-             * The map object is supported by ClickHouse JDBC, uses it directly
-             */
-            @Override
-            protected Object toTagStore(Map<String, String> tag) {
-                // TagMap is an instance of java.util.Map,
-                // can be directly returned since ClickHouse JDBC supports such type
-                return tag;
-            }
-        };
+                @Override
+                protected SpanTableWriter createInsertSpanRunnable(String table, String insertStatement, List<TraceSpan> spans) {
+                    return new SpanTableWriter(table, insertStatement, spans, this.isRetryableException) {
+                        /**
+                         * The map object is supported by ClickHouse JDBC, uses it directly
+                         */
+                        @Override
+                        protected Object toTagStore(Map<String, String> tag) {
+                            // TagMap is an instance of java.util.Map,
+                            // can be directly returned since ClickHouse JDBC supports such a type
+                            return tag;
+                        }
+                    };
+                }
+            };
+        }
     }
 
     @Override
@@ -166,4 +181,5 @@ public class TraceStorage extends TraceJdbcStorage {
             }
         };
     }
+
 }

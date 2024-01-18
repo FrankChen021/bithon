@@ -82,4 +82,12 @@ public class MetricInputSource implements IInputSource {
             }
         }
     }
+
+    /**
+     * For easier debugging
+     */
+    @Override
+    public String toString() {
+        return name;
+    }
 }
