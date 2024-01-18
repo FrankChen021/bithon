@@ -101,6 +101,11 @@ class LoadBalancedTraceWriter extends TraceJdbcWriter implements IShardsUpdateLi
     }
 
     @Override
+    protected boolean isTransactionSupported() {
+        return false;
+    }
+
+    @Override
     protected void doInsert(IOnceTableWriter writer) throws Throwable {
         ILoadBalancer loadBalancer;
         if (writer.getTable().equals(Tables.BITHON_TRACE_SPAN.getName())) {
