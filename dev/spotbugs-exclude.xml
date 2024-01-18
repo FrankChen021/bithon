@@ -117,6 +117,15 @@
         <Bug pattern="UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
 
+    <Match>
+        <Class name="org.bithon.server.storage.jdbc.clickhouse.lb.LoadBalanceReviseTask" />
+        <Bug pattern="DC_PARTIALLY_CONSTRUCTED" />
+    </Match>
+    <Match>
+        <Class name="org.bithon.server.storage.jdbc.clickhouse.lb.Shard" />
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+    </Match>
+
     <Bug pattern="EI_EXPOSE_STATIC_REP2" />
     <Bug pattern="MS_EXPOSE_REP" />
     <Bug pattern="AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION"/>
