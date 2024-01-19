@@ -46,6 +46,7 @@ import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
+import org.jooq.Table;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -59,7 +60,7 @@ import java.util.Map;
 @JsonTypeName("clickhouse")
 public class TraceStorage extends TraceJdbcStorage {
 
-    private final ClickHouseConfig config;
+    private final ClickHouseConfig clickHouseConfig;
 
     @JsonCreator
     public TraceStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration configuration,
@@ -72,16 +73,27 @@ public class TraceStorage extends TraceJdbcStorage {
               storageConfig,
               schemaManager,
               sqlDialectManager);
-        this.config = configuration.getClickHouseConfig();
+        this.clickHouseConfig = configuration.getClickHouseConfig();
     }
 
     @Override
     public void initialize() {
-        TableCreator tableCreator = new TableCreator(config, dslContext);
-        tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN);
-        tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN_SUMMARY);
-        tableCreator.createIfNotExist(Tables.BITHON_TRACE_MAPPING);
-        tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN_TAG_INDEX);
+        Table<?>[] tables = new Table[]{
+            Tables.BITHON_TRACE_SPAN_SUMMARY,
+            Tables.BITHON_TRACE_SPAN,
+            Tables.BITHON_TRACE_MAPPING,
+            Tables.BITHON_TRACE_SPAN_TAG_INDEX
+        };
+        for (Table<?> table : tables) {
+            TableCreator tableCreator = new TableCreator(clickHouseConfig, dslContext);
+
+            ClickHouseConfig.SecondaryPartition partition = clickHouseConfig.getSecondaryPartitions().get(table.getName());
+            if (partition != null) {
+                tableCreator.partitionByExpression(StringUtils.format("(toYYYYMMDD(timestamp), cityHash64(%s) %% %d)", partition.getColumn(), partition.getCount()));
+            }
+
+            tableCreator.createIfNotExist(table);
+        }
     }
 
     @Override
@@ -94,7 +106,7 @@ public class TraceStorage extends TraceJdbcStorage {
 
             @Override
             public void expire(Timestamp before) {
-                DataCleaner cleaner = new DataCleaner(config, dslContext);
+                DataCleaner cleaner = new DataCleaner(clickHouseConfig, dslContext);
                 cleaner.deleteFromPartition(Tables.BITHON_TRACE_SPAN.getName(), before);
                 cleaner.deleteFromPartition(Tables.BITHON_TRACE_SPAN_SUMMARY.getName(), before);
                 cleaner.deleteFromPartition(Tables.BITHON_TRACE_MAPPING.getName(), before);
@@ -105,8 +117,8 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @Override
     public ITraceWriter createWriter() {
-        if (this.config.isOnDistributedTable()) {
-            return new LoadBalancedTraceWriter(this.config, this.traceStorageConfig, this.dslContext);
+        if (this.clickHouseConfig.isOnDistributedTable()) {
+            return new LoadBalancedTraceWriter(this.clickHouseConfig, this.traceStorageConfig, this.dslContext);
         } else {
             return new TraceJdbcWriter(dslContext, traceStorageConfig, RetryableExceptions::isExceptionRetryable) {
                 @Override

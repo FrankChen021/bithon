@@ -22,6 +22,8 @@ import org.bithon.component.commons.utils.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -31,15 +33,30 @@ import java.net.URISyntaxException;
 public class ClickHouseConfig {
     // JDBC url
     private String url;
+    private String username;
+    private String password;
+
     private String cluster;
     private boolean onDistributedTable = false;
     private String engine = "MergeTree";
 
-    private String username;
-    private String password;
+    @Data
+    public static class SecondaryPartition {
+        /**
+         * The name of the column that is used as secondary partition
+         */
+        private String column;
+
+        /**
+         * The size of secondary partition
+         */
+        private int count;
+    }
+
+    private Map<String, SecondaryPartition> secondaryPartitions = Collections.emptyMap();
 
     /**
-     * settings for create table
+     * Settings for create table
      */
     private String createTableSettings;
 
