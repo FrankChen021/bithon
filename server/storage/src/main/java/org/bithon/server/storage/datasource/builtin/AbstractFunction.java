@@ -17,9 +17,9 @@
 package org.bithon.server.storage.datasource.builtin;
 
 import lombok.Getter;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
-import org.bithon.component.commons.expression.function.IDataType;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.Parameter;
 import org.bithon.server.storage.common.expression.InvalidExpressionException;

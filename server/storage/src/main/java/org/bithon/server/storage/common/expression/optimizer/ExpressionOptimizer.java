@@ -21,6 +21,7 @@ import org.bithon.component.commons.expression.ArrayAccessExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor2;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -28,7 +29,6 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
-import org.bithon.component.commons.expression.function.IDataType;
 
 import java.util.Iterator;
 

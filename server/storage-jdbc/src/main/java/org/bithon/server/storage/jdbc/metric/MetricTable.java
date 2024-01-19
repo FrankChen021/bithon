@@ -17,10 +17,10 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import lombok.Getter;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.typing.IDataType;
 import org.jooq.Field;
 import org.jooq.Index;
 import org.jooq.impl.DSL;

@@ -45,6 +45,11 @@ public class ExpressionList implements IExpression {
     }
 
     @Override
+    public IDataType getDataType() {
+        return null;
+    }
+
+    @Override
     public String getType() {
         return "()";
     }

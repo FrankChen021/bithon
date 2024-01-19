@@ -26,6 +26,8 @@ import java.util.function.Function;
  */
 public interface IExpression {
 
+    IDataType getDataType();
+
     String getType();
 
     Object evaluate(IEvaluationContext context);

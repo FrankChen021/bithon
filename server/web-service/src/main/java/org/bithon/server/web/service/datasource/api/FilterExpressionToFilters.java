@@ -21,6 +21,7 @@ import org.bithon.component.commons.expression.ArrayAccessExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IExpressionVisitor2;
@@ -28,7 +29,6 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
-import org.bithon.component.commons.expression.function.IDataType;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.matcher.BetweenMatcher;
@@ -157,7 +157,7 @@ public class FilterExpressionToFilters {
 
             @Override
             public IExpression visit(FunctionExpression expression) {
-                switch (expression.getReturnType()) {
+                switch (expression.getDataType()) {
                     case STRING:
                         throw new InvalidExpressionException("Function expression [%s] returns type of String, is not a valid filter. Consider to add comparators to your expression.",
                                                              expression.serializeToText());
@@ -174,6 +174,14 @@ public class FilterExpressionToFilters {
 
             @Override
             public IExpression visit(ComparisonExpression expression) {
+                IDataType leftType = expression.getLeft().getDataType();
+                IDataType rightType = expression.getRight().getDataType();
+                if (!leftType.isCompatible(rightType)) {
+                    throw new InvalidExpressionException("The data types of the two operators in the expression [%s] are not compatible (%s vs %s).",
+                                                         expression.serializeToText(null),
+                                                         leftType.name(),
+                                                         rightType.name());
+                }
                 return expression;
             }
         });
@@ -203,8 +211,9 @@ public class FilterExpressionToFilters {
                                                      schema.getName());
             }
 
-            // Change to raw name
+            // Change to raw name and correct type
             expression.setIdentifier(column.getName());
+            expression.setDataType(column.getDataType());
 
             return true;
         }

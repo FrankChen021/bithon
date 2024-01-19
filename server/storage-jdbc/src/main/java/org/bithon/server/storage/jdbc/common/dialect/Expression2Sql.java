@@ -16,9 +16,9 @@
 
 package org.bithon.server.storage.jdbc.common.dialect;
 
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
-import org.bithon.component.commons.expression.function.IDataType;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 

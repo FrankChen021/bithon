@@ -18,9 +18,9 @@ package org.bithon.server.storage.datasource.column.aggregatable.last;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.server.storage.datasource.aggregator.DoubleLastAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.typing.IDataType;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;

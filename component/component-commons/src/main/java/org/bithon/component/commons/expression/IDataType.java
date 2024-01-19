@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.typing;
+package org.bithon.component.commons.expression;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -23,14 +23,17 @@ import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
 /**
- * @author frank.chen021@outlook.com
+ * @author Frank Chen
+ * @date 30/6/23 5:22 pm
  */
 public enum IDataType {
 
-    /**
-     * @date 2020/12/28
-     */
     STRING {
+        @Override
+        public boolean isCompatible(IDataType dataType) {
+            return STRING.equals(dataType);
+        }
+
         @Override
         public String format(Number value) {
             return null;
@@ -74,6 +77,11 @@ public enum IDataType {
 
     LONG {
         @Override
+        public boolean isCompatible(IDataType dataType) {
+            return dataType == LONG || dataType == DOUBLE;
+        }
+
+        @Override
         public String format(Number value) {
             return new DecimalFormat("#,###",
                                      DecimalFormatSymbols.getInstance(Locale.ENGLISH)).format(value.longValue());
@@ -115,7 +123,59 @@ public enum IDataType {
         }
     },
 
+    BOOLEAN {
+        @Override
+        public boolean isCompatible(IDataType dataType) {
+            return dataType == BOOLEAN;
+        }
+
+        @Override
+        public String format(Number value) {
+            return new DecimalFormat("#,###.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH)).format(value.doubleValue());
+        }
+
+        @Override
+        public boolean isGreaterThan(Number left, Number right) {
+            return left.doubleValue() > right.doubleValue();
+        }
+
+        @Override
+        public boolean isGreaterThanOrEqual(Number left, Number right) {
+            return left.doubleValue() >= right.doubleValue();
+        }
+
+        @Override
+        public boolean isLessThan(Number left, Number right) {
+            return left.doubleValue() < right.doubleValue();
+        }
+
+        @Override
+        public boolean isLessThanOrEqual(Number left, Number right) {
+            return left.doubleValue() <= right.doubleValue();
+        }
+
+        @Override
+        public boolean isEqual(Number left, Number right) {
+            return left.doubleValue() == right.doubleValue();
+        }
+
+        @Override
+        public Number diff(Number left, Number right) {
+            return left.doubleValue() - right.doubleValue();
+        }
+
+        @Override
+        public Number scaleTo(Number value, int scale) {
+            return BigDecimal.valueOf(value.doubleValue()).setScale(scale, RoundingMode.HALF_UP).doubleValue();
+        }
+    },
+
     DOUBLE {
+        @Override
+        public boolean isCompatible(IDataType dataType) {
+            return dataType == LONG || dataType == DOUBLE;
+        }
+
         @Override
         public String format(Number value) {
             return new DecimalFormat("#,###.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH)).format(value.doubleValue());
@@ -156,6 +216,9 @@ public enum IDataType {
             return BigDecimal.valueOf(value.doubleValue()).setScale(scale, RoundingMode.HALF_UP).doubleValue();
         }
     };
+
+
+    public abstract boolean isCompatible(IDataType dataType);
 
     public abstract String format(Number value);
 

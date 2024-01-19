@@ -16,7 +16,6 @@
 
 package org.bithon.component.commons.expression;
 
-import org.bithon.component.commons.expression.function.IDataType;
 import org.bithon.component.commons.expression.function.IFunction;
 
 import java.util.Arrays;
@@ -50,7 +49,8 @@ public class FunctionExpression implements IExpression {
         return parameters;
     }
 
-    public IDataType getReturnType() {
+    @Override
+    public IDataType getDataType() {
         return function == null ? null : function.getReturnType();
     }
 

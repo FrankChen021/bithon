@@ -22,10 +22,12 @@ import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.server.storage.common.expression.InvalidExpressionException;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
+import org.bithon.server.storage.datasource.column.LongColumn;
 import org.bithon.server.storage.datasource.column.StringColumn;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -40,7 +42,7 @@ public class FilterExpressionToFiltersTest {
             "schema",
             "schema",
             new TimestampSpec("timestamp", null, null),
-            Collections.singletonList(new StringColumn("a", "a")),
+            Arrays.asList(new StringColumn("a", "a"), new LongColumn("intB", "intB")),
             Collections.emptyList()
         );
 
@@ -51,6 +53,9 @@ public class FilterExpressionToFiltersTest {
 
         Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "a", null));
 
+        // The type does not match
+        Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "a > 5", null));
+        Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "intB > '5'", null));
 
         // Unary function expression is not a valid filter
         Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "trim(a)", null));
