@@ -168,15 +168,7 @@
             "name": "totalCount",
             "order": "desc"
           },
-          "filters": [
-            {
-              "dimension": "statusCode",
-              "matcher": {
-                "type": "gte",
-                "value": "400"
-              }
-            }
-          ],
+          "filter": "statusCode >= '400'",
           "limit": 15
         },
         "tracing": {
