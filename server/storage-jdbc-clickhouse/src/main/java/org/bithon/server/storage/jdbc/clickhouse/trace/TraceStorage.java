@@ -26,6 +26,7 @@ import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
@@ -164,8 +165,8 @@ public class TraceStorage extends TraceJdbcStorage {
                                                                                tagFilter.getClass().getSimpleName()));
                 }
 
-                IExpression left = ((ComparisonExpression.EQ) tagFilter).getLeft();
-                IExpression right = ((ComparisonExpression.EQ) tagFilter).getRight();
+                IExpression left = ((ComparisonExpression) tagFilter).getLeft();
+                IExpression right = ((ComparisonExpression) tagFilter).getRight();
                 if (!(left instanceof IdentifierExpression)) {
                     throw new UnsupportedOperationException(StringUtils.format("The left operator in expression [%s] should be identifier only.",
                                                                                tagFilter.serializeToText()));
@@ -175,8 +176,10 @@ public class TraceStorage extends TraceJdbcStorage {
                                                                                tagFilter.serializeToText()));
                 }
 
-                String tag = StringUtils.format("%s['%s']", Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName(), ((IdentifierExpression) left).getIdentifier().substring(SPAN_TAGS_PREFIX.length()));
-                ((IdentifierExpression) left).setIdentifier(tag);
+                // Change the identifier of tags.xxx.xxx into: attributes['xxx.xxx']
+                String propName = ((IdentifierExpression) left).getIdentifier().substring(SPAN_TAGS_PREFIX.length());
+                MapAccessExpression attributeAccessExpression = new MapAccessExpression(new IdentifierExpression(Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName()), propName);
+                ((ComparisonExpression) tagFilter).setLeft(attributeAccessExpression);
 
                 return Expression2Sql.from(sqlDialect, tagFilter);
             }
