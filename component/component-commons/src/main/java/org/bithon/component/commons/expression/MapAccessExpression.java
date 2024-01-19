@@ -47,6 +47,12 @@ public class MapAccessExpression implements IExpression {
     }
 
     @Override
+    public IDataType getDataType() {
+        // Not accurate, but suppose it's STRING now.
+        return IDataType.STRING;
+    }
+
+    @Override
     public String getType() {
         return "[]";
     }

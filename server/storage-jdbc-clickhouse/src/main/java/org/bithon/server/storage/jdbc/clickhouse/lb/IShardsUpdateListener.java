@@ -16,7 +16,7 @@
 
 package org.bithon.server.storage.jdbc.clickhouse.lb;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -24,5 +24,5 @@ import java.util.Map;
  * @date 2024/1/14 12:33
  */
 public interface IShardsUpdateListener {
-    void update(Map<String, List<Shard>> shards);
+    void update(Map<String, Collection<Shard>> shards);
 }

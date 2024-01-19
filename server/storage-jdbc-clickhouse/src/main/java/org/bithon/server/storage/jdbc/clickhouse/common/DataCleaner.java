@@ -65,9 +65,12 @@ public class DataCleaner {
                                                  .map((timestamp) -> DateTime.toYYYYMMDD(timestamp.getMilliseconds()))
                                                  .collect(Collectors.toSet());
 
+        // The part name has a pattern of P1-P2-Pn_min_max_level, where the P is the partition expression.e.g. 20240119-2_262_262_0, 20240119_10503_10503_0
+        // Since the timestamp is forced used as the 1st partition expression,
+        // we can simply compare the part name and the given date
         String localTable = config.getLocalTableName(table);
         String selectPartitionSql = StringUtils.format(
-            "SELECT distinct partition FROM %s WHERE database = '%s' AND table = '%s' AND partition < '%s'",
+            "SELECT distinct partition FROM %s WHERE database = '%s' AND table = '%s' AND name < '%s'",
             fromTable,
             config.getDatabase(),
             localTable,

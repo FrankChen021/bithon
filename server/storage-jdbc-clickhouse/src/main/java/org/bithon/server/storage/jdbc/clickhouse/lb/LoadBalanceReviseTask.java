@@ -29,11 +29,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * The task that updates the information for client side balancing.
@@ -62,7 +65,7 @@ public class LoadBalanceReviseTask extends PeriodicTask {
     private final ClickHouseConfig clickHouseConfig;
     private final List<IShardsUpdateListener> listeners = new ArrayList<>();
 
-    private Map<String, List<Shard>> shardSnapshot = Collections.emptyMap();
+    private Map<String, Collection<Shard>> shardSnapshot = Collections.emptyMap();
 
     private LoadBalanceReviseTask(ClickHouseConfig clickHouseConfig) {
         super("size-update", Duration.ofMinutes(5), true);
@@ -90,46 +93,29 @@ public class LoadBalanceReviseTask extends PeriodicTask {
     protected void onRun() throws Exception {
         log.info("Get the table size under database [{}] for client side load balancing", clickHouseConfig.getDatabase());
 
-        Map<String, List<Shard>> shards = new HashMap<>();
+        Map<String, Collection<Shard>> shards = new HashMap<>();
 
         Properties props = new Properties();
         props.put(ClickHouseDefaults.USER.getKey(), this.clickHouseConfig.getUsername());
         props.put(ClickHouseDefaults.PASSWORD.getKey(), this.clickHouseConfig.getPassword());
         try (Connection connection = new JdbcDriver().connect(clickHouseConfig.getUrl(), props)) {
-            String sql = StringUtils.format("SELECT size.table AS table, shard_num, bytes_on_disk, rows FROM\n" +
-                                                "(\n" +
-                                                "    SELECT distinct shard_num FROM system.clusters WHERE cluster = '%s'\n" +
-                                                ") shards\n" +
-                                                "LEFT JOIN (\n" +
-                                                "    SELECT\n" +
-                                                "        table,\n" +
-                                                "        shardNum() as shard_num,\n" +
-                                                "        sum(bytes_on_disk) as bytes_on_disk,\n" +
-                                                "        sum(rows) as rows\n" +
-                                                "    FROM cluster('%s', system.parts) WHERE database = '%s' and active\n" +
-                                                "    GROUP BY table, shard_num\n" +
-                                                "    SETTINGS max_threads = 1\n" +
-                                                ") size\n" +
-                                                "ON size.shard_num = shards.shard_num\n" +
-                                                "ORDER BY table, shard_num",
-                                            clickHouseConfig.getCluster(),
-                                            clickHouseConfig.getCluster(),
-                                            clickHouseConfig.getDatabase());
 
-            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            Set<Integer> shardInCluster = getShards(connection);
+            Map<String, Map<Integer, Shard>> tableSize = getTableSize(connection);
 
-                ResultSet rs = statement.executeQuery();
-                while (rs.next()) {
-                    String table = rs.getString(1);
-                    int shard = rs.getInt(2);
-                    long size = rs.getLong(3);
-                    long rows = rs.getLong(4);
+            // Manually join the two records
+            for (Map.Entry<String, Map<Integer, Shard>> entry : tableSize.entrySet()) {
+                String tableName = entry.getKey();
+                Map<Integer, Shard> tableShards = entry.getValue();
 
-                    shards.computeIfAbsent(table, v -> new ArrayList<>())
-                          .add(new Shard(shard, size, rows));
+                // Always perform checking even if the lengths of the arrays are the same
+                for (int shard : shardInCluster) {
+                    if (!tableShards.containsKey(shard)) {
+                        tableShards.put(shard, new Shard(shard, 0, 0));
+                    }
                 }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
+
+                shards.put(tableName, tableShards.values());
             }
         }
 
@@ -143,6 +129,47 @@ public class LoadBalanceReviseTask extends PeriodicTask {
         }
 
         shardSnapshot = shards;
+    }
+
+    private Set<Integer> getShards(Connection connection) {
+        Set<Integer> shards = new HashSet<>();
+        try (PreparedStatement statement = connection.prepareStatement(StringUtils.format("SELECT distinct shard_num FROM system.clusters WHERE cluster = '%s'", this.clickHouseConfig.getCluster()))) {
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()) {
+                shards.add(rs.getInt(1));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return shards;
+    }
+
+    private Map<String, Map<Integer, Shard>> getTableSize(Connection connection) {
+        Map<String, Map<Integer, Shard>> records = new HashMap<>();
+        try (PreparedStatement statement = connection.prepareStatement(StringUtils.format("SELECT\n" +
+                                                                                              "        table,\n" +
+                                                                                              "        shardNum() as shard_num,\n" +
+                                                                                              "        sum(bytes_on_disk) as bytes_on_disk,\n" +
+                                                                                              "        sum(rows) as rows\n" +
+                                                                                              "    FROM cluster('%s', system.parts) WHERE database = '%s' and active\n" +
+                                                                                              "    GROUP BY table, shard_num\n" +
+                                                                                              "    SETTINGS max_threads = 1\n",
+                                                                                          clickHouseConfig.getCluster(),
+                                                                                          clickHouseConfig.getDatabase()))) {
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()) {
+                String table = rs.getString(1);
+                int shard = rs.getInt(2);
+                long size = rs.getLong(3);
+                long rows = rs.getLong(4);
+
+                records.computeIfAbsent(table, v -> new HashMap<>())
+                       .put(shard, new Shard(shard, size, rows));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return records;
     }
 
     @Override

@@ -22,6 +22,7 @@ package org.bithon.component.commons.expression;
  */
 public class MacroExpression implements IExpression {
     private final String macro;
+    private IDataType dataType;
 
     public MacroExpression(String macro) {
         this.macro = macro;
@@ -29,6 +30,15 @@ public class MacroExpression implements IExpression {
 
     public String getMacro() {
         return macro;
+    }
+
+    @Override
+    public IDataType getDataType() {
+        return null;
+    }
+
+    public void setDataType(IDataType dataType) {
+        this.dataType = dataType;
     }
 
     @Override

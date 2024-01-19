@@ -166,15 +166,7 @@
             "statusCode",
             "requestCount"
           ],
-          "filters": [
-            {
-              "dimension": "statusCode",
-              "matcher": {
-                "type": "gte",
-                "value": "400"
-              }
-            }
-          ],
+          "filter": "statusCode >= '400'",
           "orderBy": {
             "name": "requestCount",
             "order": "desc"

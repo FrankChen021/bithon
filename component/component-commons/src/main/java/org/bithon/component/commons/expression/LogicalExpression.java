@@ -72,6 +72,11 @@ public abstract class LogicalExpression implements IExpression {
     }
 
     @Override
+    public IDataType getDataType() {
+        return IDataType.BOOLEAN;
+    }
+
+    @Override
     public String getType() {
         return "logical";
     }

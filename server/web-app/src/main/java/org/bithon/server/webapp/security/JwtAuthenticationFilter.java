@@ -17,6 +17,7 @@
 package org.bithon.server.webapp.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import org.bithon.component.commons.utils.StringUtils;
@@ -64,8 +65,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (StringUtils.hasText(textToken)) {
             Jws<Claims> token = null;
             try {
-                token = jwtTokenComponent.decodeToken(textToken);
-            } catch (JwtException ignored) {
+                token = jwtTokenComponent.parseToken(textToken);
+            } catch (ExpiredJwtException ignored) {
+            } catch (JwtException e) {
+                logger.error("Unable to parse the given token: " + e.getMessage());
             }
 
             if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {

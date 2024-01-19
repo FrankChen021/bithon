@@ -17,6 +17,7 @@
 package org.bithon.component.commons.expression.debug;
 
 import org.bithon.component.commons.expression.BinaryExpression;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
@@ -35,6 +36,11 @@ public class DebuggableExpression implements IExpression {
 
     public DebuggableExpression(BinaryExpression delegate) {
         this.delegate = delegate;
+    }
+
+    @Override
+    public IDataType getDataType() {
+        return delegate.getDataType();
     }
 
     @Override

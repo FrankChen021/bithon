@@ -29,6 +29,16 @@ public abstract class ArithmeticExpression extends BinaryExpression {
     }
 
     @Override
+    public IDataType getDataType() {
+        IDataType leftType = left.getDataType();
+        IDataType rightType = right.getDataType();
+        if (leftType.equals(IDataType.DOUBLE) || rightType.equals(IDataType.DOUBLE)) {
+            return IDataType.DOUBLE;
+        }
+        return IDataType.LONG;
+    }
+
+    @Override
     public Object evaluate(IEvaluationContext context) {
         Number r1 = asNumber(left.evaluate(context));
         Number r2 = asNumber(right.evaluate(context));

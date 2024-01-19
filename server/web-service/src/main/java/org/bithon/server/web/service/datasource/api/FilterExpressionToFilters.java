@@ -16,19 +16,15 @@
 
 package org.bithon.server.web.service.datasource.api;
 
-import org.bithon.component.commons.expression.ArithmeticExpression;
-import org.bithon.component.commons.expression.ArrayAccessExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
-import org.bithon.component.commons.expression.IExpressionVisitor2;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
-import org.bithon.component.commons.expression.MacroExpression;
-import org.bithon.component.commons.expression.function.IDataType;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.matcher.BetweenMatcher;
@@ -109,74 +105,81 @@ public class FilterExpressionToFilters {
 
         // Validate if the expression is a filter
         // and optimize if possible
-        return expression.accept(new IExpressionVisitor2<IExpression>() {
-            @Override
-            public IExpression visit(LiteralExpression expression) {
-                if (!expression.getDataType().equals(IDataType.BOOLEAN)) {
-                    throw new InvalidExpressionException("Literal expression [%s] is not a valid filter. Consider to add comparators to your expression.",
+        if (expression instanceof FunctionExpression) {
+            switch (expression.getDataType()) {
+                case STRING:
+                    throw new InvalidExpressionException("Function expression [%s] returns type of String, is not a valid filter. Consider to add comparators to your expression.",
                                                          expression.serializeToText());
-                }
-                return expression;
+                case LONG:
+                case DOUBLE:
+                    // Turn into binary expression
+                    return new ComparisonExpression.NE(expression, new LiteralExpression(0));
+
+                case BOOLEAN:
+                default:
+                    return expression;
             }
+        }
 
-            @Override
-            public IExpression visit(IdentifierExpression expression) {
-                throw new InvalidExpressionException("Identifier expression [%s] is not a valid filter. Consider to add comparators to your expression.",
-                                                     // Output the identifier without quotation
-                                                     expression.serializeToText(null));
+        if (expression instanceof LiteralExpression) {
+            if (!expression.getDataType().equals(IDataType.BOOLEAN)) {
+                throw new InvalidExpressionException("Literal expression [%s] is not a valid filter. Consider to add comparators to your expression.",
+                                                     expression.serializeToText());
             }
+        }
 
-            @Override
-            public IExpression visit(ExpressionList expression) {
-                throw new InvalidExpressionException("Expression list [%s] is not a valid filter. Consider to add comparators to your expression.",
-                                                     expression.serializeToText(null));
-            }
+        // Type validation
+        if (expression instanceof LogicalExpression || expression instanceof ComparisonExpression) {
+            expression.accept(new ExpressionTypeValidator());
+        } else {
+            throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
+                                                 expression.serializeToText());
+        }
 
-            @Override
-            public IExpression visit(ArrayAccessExpression expression) {
-                throw new InvalidExpressionException("Array access expression [%s] is not a valid filter. Consider to add comparators to your expression.",
-                                                     expression.serializeToText(null));
-            }
+        return expression;
+    }
 
-            @Override
-            public IExpression visit(ArithmeticExpression expression) {
-                throw new InvalidExpressionException("Arithmetic expression [%s] is not a valid filter. Consider to add comparators to your expression.",
-                                                     expression.serializeToText(null));
-            }
+    static class ExpressionTypeValidator implements IExpressionVisitor {
 
-            @Override
-            public IExpression visit(MacroExpression expression) {
-                throw new InvalidExpressionException("Macro expression [%s] is not a valid filter. Consider to add comparators to your expression.",
-                                                     expression.serializeToText(null));
-            }
-
-            @Override
-            public IExpression visit(LogicalExpression expression) {
-                return expression;
-            }
-
-            @Override
-            public IExpression visit(FunctionExpression expression) {
-                switch (expression.getReturnType()) {
-                    case STRING:
-                        throw new InvalidExpressionException("Function expression [%s] returns type of String, is not a valid filter. Consider to add comparators to your expression.",
-                                                             expression.serializeToText());
-                    case LONG:
-                    case DOUBLE:
-                        // Turn into binary expression
-                        return new ComparisonExpression.NE(expression, new LiteralExpression(0));
-
-                    case BOOLEAN:
-                    default:
-                        return expression;
+        @Override
+        public boolean visit(LogicalExpression expression) {
+            for (IExpression operand : expression.getOperands()) {
+                IDataType dataType = operand.getDataType();
+                if (!dataType.equals(IDataType.BOOLEAN)
+                    && !dataType.equals(IDataType.DOUBLE)
+                    && !dataType.equals(IDataType.LONG)) {
+                    throw new InvalidExpressionException("The expression [%s] in the logical expression should be a comparison expression.",
+                                                         operand.serializeToText(null));
                 }
             }
+            return true;
+        }
 
-            @Override
-            public IExpression visit(ComparisonExpression expression) {
-                return expression;
+        @Override
+        public boolean visit(ComparisonExpression expression) {
+            IDataType leftType = expression.getLeft().getDataType();
+            IDataType rightType = expression.getRight().getDataType();
+            if (!leftType.isCompatible(rightType)) {
+                throw new InvalidExpressionException("The data types of the two operators in the expression [%s] are not compatible (%s vs %s).",
+                                                     expression.serializeToText(null),
+                                                     leftType.name(),
+                                                     rightType == null ? "null" : rightType.name());
             }
-        });
+
+            return true;
+        }
+
+        @Override
+        public boolean visit(ExpressionList expression) {
+            IDataType dataType = expression.getExpressions().get(0).getDataType();
+            for (int i = 1, size = expression.getExpressions().size(); i < size; i++) {
+                if (!dataType.isCompatible(expression.getExpressions().get(i).getDataType())) {
+                    throw new InvalidExpressionException("The data types of elements in the expression list %s are not the same.",
+                                                         expression.serializeToText(null));
+                }
+            }
+            return true;
+        }
     }
 
     static class IdentifierVerifier implements IExpressionVisitor {
@@ -196,15 +199,18 @@ public class FilterExpressionToFilters {
                 // We need to ignore this case.
                 // The ignored tags will be processed later in the trace module.
                 if (expression.getIdentifier().startsWith("tags.")) {
+                    expression.setDataType(IDataType.STRING);
                     return true;
                 }
+
                 throw new InvalidExpressionException("Unable to find identifier [%s] in data source [%s].",
                                                      expression.getIdentifier(),
                                                      schema.getName());
             }
 
-            // Change to raw name
+            // Change to raw name and correct type
             expression.setIdentifier(column.getName());
+            expression.setDataType(column.getDataType());
 
             return true;
         }

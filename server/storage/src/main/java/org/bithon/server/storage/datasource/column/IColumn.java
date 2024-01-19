@@ -19,6 +19,7 @@ package org.bithon.server.storage.datasource.column;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
@@ -30,7 +31,6 @@ import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateDou
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
-import org.bithon.server.storage.datasource.typing.IDataType;
 
 /**
  * @author Frank Chen

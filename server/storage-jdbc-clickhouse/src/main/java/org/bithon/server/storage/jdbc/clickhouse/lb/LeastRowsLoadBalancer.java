@@ -18,8 +18,8 @@ package org.bithon.server.storage.jdbc.clickhouse.lb;
 
 import org.bithon.component.commons.utils.CollectionUtils;
 
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
 import java.util.PriorityQueue;
 
 /**
@@ -41,7 +41,7 @@ public class LeastRowsLoadBalancer implements ILoadBalancer {
     }
 
     @Override
-    public void update(List<Shard> shards) {
+    public void update(Collection<Shard> shards) {
         if (CollectionUtils.isNotEmpty(shards)) {
             PriorityQueue<Shard> newShards = newShards();
             newShards.addAll(shards);

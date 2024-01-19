@@ -33,7 +33,7 @@ import org.bithon.server.storage.jdbc.metric.MetricTable;
 import org.jooq.DSLContext;
 
 import java.sql.Connection;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
 
@@ -75,7 +75,7 @@ public class LoadBalancedMetricWriter extends MetricJdbcWriter implements IShard
     }
 
     @Override
-    public void update(Map<String, List<Shard>> shards) {
+    public void update(Map<String, Collection<Shard>> shards) {
         String localTable = clickHouseConfig.getLocalTableName(table.getName());
         this.loadBalancer.update(shards.get(localTable));
     }

@@ -16,6 +16,8 @@
 
 package org.bithon.component.commons.expression.function;
 
+import org.bithon.component.commons.expression.IDataType;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2022/11/2 17:37

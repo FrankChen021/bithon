@@ -49,6 +49,11 @@ public class ArrayAccessExpression implements IExpression {
     }
 
     @Override
+    public IDataType getDataType() {
+        return array.getDataType();
+    }
+
+    @Override
     public String getType() {
         return "[]";
     }

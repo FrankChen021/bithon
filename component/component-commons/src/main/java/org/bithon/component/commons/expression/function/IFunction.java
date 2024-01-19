@@ -16,6 +16,7 @@
 
 package org.bithon.component.commons.expression.function;
 
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 
 import java.util.List;

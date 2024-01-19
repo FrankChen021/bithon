@@ -31,6 +31,11 @@ public abstract class ComparisonExpression extends BinaryExpression {
     }
 
     @Override
+    public IDataType getDataType() {
+        return IDataType.BOOLEAN;
+    }
+
+    @Override
     public Object evaluate(IEvaluationContext context) {
         Object lv = left.evaluate(context);
         Object rv = right.evaluate(context);

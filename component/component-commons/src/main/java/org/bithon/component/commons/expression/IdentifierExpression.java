@@ -27,6 +27,7 @@ public class IdentifierExpression implements IExpression {
      */
     private String identifier;
     private boolean isQualified;
+    private IDataType dataType;
 
     public IdentifierExpression(String identifier) {
         setIdentifier(identifier);
@@ -48,6 +49,15 @@ public class IdentifierExpression implements IExpression {
 
     public boolean isQualified() {
         return isQualified;
+    }
+
+    @Override
+    public IDataType getDataType() {
+        return dataType;
+    }
+
+    public void setDataType(IDataType dataType) {
+        this.dataType = dataType;
     }
 
     @Override

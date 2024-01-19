@@ -16,8 +16,6 @@
 
 package org.bithon.component.commons.expression;
 
-import org.bithon.component.commons.expression.function.IDataType;
-
 import java.math.BigDecimal;
 
 /**
@@ -63,6 +61,7 @@ public class LiteralExpression implements IExpression {
         }
     }
 
+    @Override
     public IDataType getDataType() {
         return this.dataType;
     }
