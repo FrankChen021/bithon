@@ -19,6 +19,7 @@ package org.bithon.server.webapp.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwsHeader;
+import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -44,7 +45,10 @@ public class JwtTokenComponent {
         this.globalValidityMilliseconds = securityConfig.getJwtTokenValiditySeconds() * 1000L;
     }
 
-    public Jws<Claims> decodeToken(String tokenText) {
+    /**
+     * @throws {@link io.jsonwebtoken.ExpiredJwtException}
+     */
+    public Jws<Claims> parseToken(String tokenText) {
         return Jwts.parserBuilder()
                    .setSigningKey(signKey)
                    .build()
@@ -58,19 +62,22 @@ public class JwtTokenComponent {
     public String createToken(String name,
                               Collection<? extends GrantedAuthority> authorities,
                               String issuer,
-                              long validityMilliseconds) {
+                              long duration) {
         Claims claims = Jwts.claims().setSubject(name);
         claims.put("scopes", authorities);
 
-        return Jwts.builder()
-                   .setClaims(claims)
-                   .setIssuer("https://bithon.org/token/issuer/" + issuer)
-                   .setIssuedAt(new Date(System.currentTimeMillis()))
-                   .setHeaderParam("useExpirationInToken", validityMilliseconds != 0)
-                   // The expiration is
-                   .setExpiration(new Date(System.currentTimeMillis() + validityMilliseconds))
-                   .signWith(signKey, SignatureAlgorithm.HS256)
-                   .compact();
+        JwtBuilder builder = Jwts.builder()
+                                 .setClaims(claims)
+                                 .setIssuer("https://bithon.org/token/issuer/" + issuer)
+                                 .setIssuedAt(new Date(System.currentTimeMillis()))
+                                 .signWith(signKey, SignatureAlgorithm.HS256);
+        if (duration > 0) {
+            // Set the expiration in the token.
+            // If it's expired, the decodeToken function call above will fail to decode the token
+            builder.setExpiration(new Date(duration + System.currentTimeMillis()));
+        }
+
+        return builder.compact();
     }
 
     public boolean isValidToken(Jws<Claims> token) {
