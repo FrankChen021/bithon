@@ -16,7 +16,7 @@
 
 package org.bithon.server.storage.jdbc.clickhouse.lb;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * @author Frank Chen
@@ -25,5 +25,5 @@ import java.util.List;
 public interface ILoadBalancer {
     int nextShard(int writtenRows);
 
-    void update(List<Shard> shards);
+    void update(Collection<Shard> shards);
 }

@@ -37,6 +37,7 @@ import org.jooq.DSLContext;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -80,7 +81,7 @@ class LoadBalancedTraceWriter extends TraceJdbcWriter implements IShardsUpdateLi
     }
 
     @Override
-    public void update(Map<String, List<Shard>> shards) {
+    public void update(Map<String, Collection<Shard>> shards) {
         String summaryTable = clickHouseConfig.getLocalTableName(Tables.BITHON_TRACE_SPAN_SUMMARY.getName());
         this.summaryTableLoadBalancer.update(shards.get(summaryTable));
 
