@@ -46,7 +46,7 @@ public class ExpressionList implements IExpression {
 
     @Override
     public IDataType getDataType() {
-        return null;
+        return this.expressions.get(0).getDataType();
     }
 
     @Override

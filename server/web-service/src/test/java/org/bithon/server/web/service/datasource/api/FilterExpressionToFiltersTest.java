@@ -36,15 +36,17 @@ import java.util.Collections;
  */
 public class FilterExpressionToFiltersTest {
 
+    private final DataSourceSchema schema = new DataSourceSchema(
+        "schema",
+        "schema",
+        new TimestampSpec("timestamp", null, null),
+        Arrays.asList(new StringColumn("a", "a"), new LongColumn("intB", "intB")),
+        Collections.emptyList()
+    );
+
     @Test
     public void testValidatedFilterExpression() {
-        DataSourceSchema schema = new DataSourceSchema(
-            "schema",
-            "schema",
-            new TimestampSpec("timestamp", null, null),
-            Arrays.asList(new StringColumn("a", "a"), new LongColumn("intB", "intB")),
-            Collections.emptyList()
-        );
+        FilterExpressionToFilters.toExpression(schema, "tags.clickhouse.cluster = 'cluster' AND tags.clickhouse.user = 'lv' AND tags.clickhouse.queryType = 'INSERT' AND a = 'SERVER' ", null);
 
         // Unary literal is not a valid expression
         Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "123", null));
@@ -57,6 +59,9 @@ public class FilterExpressionToFiltersTest {
         Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "a > 5", null));
         Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "intB > '5'", null));
 
+        Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "a in ('5', 6)", null));
+        FilterExpressionToFilters.toExpression(schema, "a in ('5', '6')", null);
+
         // Unary function expression is not a valid filter
         Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "trim(a)", null));
 
@@ -66,5 +71,14 @@ public class FilterExpressionToFiltersTest {
         Assert.assertTrue(FilterExpressionToFilters.toExpression(schema, "startsWith(a, 'a')", null) instanceof FunctionExpression);
         Assert.assertTrue(FilterExpressionToFilters.toExpression(schema, "endsWith(a, 'a')", null) instanceof FunctionExpression);
         Assert.assertTrue(FilterExpressionToFilters.toExpression(schema, "hasToken(a, 'a')", null) instanceof FunctionExpression);
+    }
+
+    @Test
+    public void test_UncompleteLogicalExpression() {
+        Assert.assertThrows(InvalidExpressionException.class,
+                            () -> FilterExpressionToFilters.toExpression(schema, "a = 'INFO' and a", null)
+                           );
+
+        FilterExpressionToFilters.toExpression(schema, "a = 'INFO' and startsWith(a, 'a')", null);
     }
 }
