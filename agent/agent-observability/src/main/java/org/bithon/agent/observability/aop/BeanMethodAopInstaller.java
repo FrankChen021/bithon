@@ -77,6 +77,18 @@ public class BeanMethodAopInstaller {
             return;
         }
 
+        // Exclude Jackson serializer/deserializer because they might be called many times if there's a long array
+        Class<?> parentClass = targetClass.getSuperclass();
+        while (parentClass != null && !parentClass.getName().equals("java.lang.Object")) {
+            if (parentClass.getName().endsWith("com.fasterxml.jackson.databind.JsonDeserializer")) {
+                return;
+            }
+            if (parentClass.getName().endsWith("com.fasterxml.jackson.databind.JsonSerializer")) {
+                return;
+            }
+            parentClass = parentClass.getSuperclass();
+        }
+
         final MatcherList excludedMethods = new MatcherList();
         //
         // derive from the global configuration
