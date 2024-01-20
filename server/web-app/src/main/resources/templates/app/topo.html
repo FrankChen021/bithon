@@ -42,6 +42,9 @@ class TopoComponent {
     }
 
     refreshTopo() {
+        if (g_SelectedApp === undefined || g_SelectedApp === null) {
+            return;
+        }
         const interval = this._timeSelector.getInterval();
         this._chart.load({
             url: apiHost + '/api/topo/getApplicationTopo',
