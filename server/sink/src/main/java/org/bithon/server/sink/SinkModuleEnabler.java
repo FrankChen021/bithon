@@ -28,8 +28,10 @@ public class SinkModuleEnabler implements Condition {
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
         return "true".equals(context.getEnvironment().getProperty("collector-kafka.enabled"))
-               || "local".equals(context.getEnvironment().getProperty("collector-brpc.sinks.event.type"))
-               || "local".equals(context.getEnvironment().getProperty("collector-brpc.sinks.metrics.type"))
-               || "local".equals(context.getEnvironment().getProperty("collector-brpc.sinks.tracing.type"));
+            || ("true".equals(context.getEnvironment().getProperty("collector-brpc.enabled"))
+            && ("local".equals(context.getEnvironment().getProperty("collector-brpc.sinks.event.type"))
+            || "local".equals(context.getEnvironment().getProperty("collector-brpc.sinks.metrics.type"))
+            || "local".equals(context.getEnvironment().getProperty("collector-brpc.sinks.tracing.type")))
+        );
     }
 }
