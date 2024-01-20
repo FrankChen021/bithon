@@ -472,7 +472,7 @@ class Dashboard {
 
         const instanceFilter = this.vFilter.getSelectedFilter("instanceName");
         if (instanceFilter != null) {
-            filterExpression += `AND instanceName = '${instanceFilter.matcher.pattern}' `;
+            filterExpression += `AND instanceName = '${instanceFilter.expected}' `;
         }
 
         //
