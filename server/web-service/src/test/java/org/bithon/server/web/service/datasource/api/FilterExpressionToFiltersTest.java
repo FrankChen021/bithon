@@ -111,4 +111,13 @@ public class FilterExpressionToFiltersTest {
 
         FilterExpressionToFilters.toExpression(schema, "a = 'INFO' and startsWith(a, 'a')", null);
     }
+
+    @Test
+    public void test_IdentifierInFunction() {
+        FilterExpressionToFilters.toExpression(schema, "hasToken(a, 'a')", null);
+
+        Assert.assertThrows(InvalidExpressionException.class,
+                            () ->
+                                FilterExpressionToFilters.toExpression(schema, "hasToken(no_exist_column, 'a')", null));
+    }
 }
