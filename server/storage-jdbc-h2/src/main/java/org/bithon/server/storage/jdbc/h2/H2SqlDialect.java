@@ -103,10 +103,22 @@ public class H2SqlDialect implements ISqlDialect {
                     return new BinaryExpression.Like(expression.getParameters().get(0),
                                                      patternExpression);
                 } else if ("endsWith".equals(expression.getName())) {
-                    // H2 does not provide startsWith function, turns it into LIKE expression as: LIKE '%prefix'
+                    // H2 does not provide endsWith function, turns it into LIKE expression as: LIKE '%prefix'
                     IExpression patternExpression = expression.getParameters().get(1);
                     if (patternExpression instanceof LiteralExpression) {
                         patternExpression = LiteralExpression.create("%" + ((LiteralExpression) patternExpression).getValue());
+                    } else {
+                        patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
+                                                                   Arrays.asList(LiteralExpression.create("%"), patternExpression));
+                    }
+                    return new BinaryExpression.Like(expression.getParameters().get(0),
+                                                     patternExpression);
+
+                } else if ("hasToken".equals(expression.getName())) {
+                    // H2 does not provide hasToken function, turns it into LIKE expression as: LIKE '%prefix'
+                    IExpression patternExpression = expression.getParameters().get(1);
+                    if (patternExpression instanceof LiteralExpression) {
+                        patternExpression = LiteralExpression.create("%" + ((LiteralExpression) patternExpression).getValue() + "%");
                     } else {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
                                                                    Arrays.asList(LiteralExpression.create("%"), patternExpression));
