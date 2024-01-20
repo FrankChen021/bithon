@@ -39,7 +39,8 @@ public class IdentifierExpressionTest {
     @Test
     public void testFunctionExpression() {
         String expression = "round(100,3)";
-        Assert.assertEquals("100.000", ExpressionASTBuilder.build(expression).serializeToText());
+        Assert.assertEquals("100.000",
+                            ExpressionASTBuilder.build(expression).serializeToText());
     }
 
     @Test

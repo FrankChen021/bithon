@@ -108,6 +108,12 @@ public abstract class ComparisonExpression extends BinaryExpression {
 
     protected abstract boolean compare(long v1, long v2);
 
+    /**
+     * Flip the two operators.
+     * For example: flip(a > b) = b < a
+     */
+    public abstract ComparisonExpression flip();
+
     public static class LT extends ComparisonExpression {
 
         public LT(IExpression left, IExpression right) {
@@ -127,6 +133,11 @@ public abstract class ComparisonExpression extends BinaryExpression {
         @Override
         protected boolean compare(long v1, long v2) {
             return v1 < v2;
+        }
+
+        @Override
+        public ComparisonExpression flip() {
+            return new ComparisonExpression.GT(right, left);
         }
     }
 
@@ -150,6 +161,11 @@ public abstract class ComparisonExpression extends BinaryExpression {
         protected boolean compare(long v1, long v2) {
             return v1 <= v2;
         }
+
+        @Override
+        public ComparisonExpression flip() {
+            return new ComparisonExpression.GTE(right, left);
+        }
     }
 
     public static class GT extends ComparisonExpression {
@@ -171,6 +187,11 @@ public abstract class ComparisonExpression extends BinaryExpression {
         @Override
         protected boolean compare(long v1, long v2) {
             return v1 > v2;
+        }
+
+        @Override
+        public ComparisonExpression flip() {
+            return new ComparisonExpression.LT(right, left);
         }
     }
 
@@ -194,6 +215,11 @@ public abstract class ComparisonExpression extends BinaryExpression {
         protected boolean compare(long v1, long v2) {
             return v1 >= v2;
         }
+
+        @Override
+        public ComparisonExpression flip() {
+            return new ComparisonExpression.LTE(right, left);
+        }
     }
 
     public static class NE extends ComparisonExpression {
@@ -215,6 +241,11 @@ public abstract class ComparisonExpression extends BinaryExpression {
         @Override
         protected boolean compare(long v1, long v2) {
             return v1 != v2;
+        }
+
+        @Override
+        public ComparisonExpression flip() {
+            return new ComparisonExpression.NE(right, left);
         }
 
         @Override
@@ -249,6 +280,11 @@ public abstract class ComparisonExpression extends BinaryExpression {
         }
 
         @Override
+        public ComparisonExpression flip() {
+            return new ComparisonExpression.EQ(right, left);
+        }
+
+        @Override
         protected Object compareRNull(Object lv) {
             return lv == null;
         }
@@ -259,10 +295,19 @@ public abstract class ComparisonExpression extends BinaryExpression {
         }
     }
 
-    public static class IN extends ComparisonExpression {
+    public static class IN extends BinaryExpression {
 
         public IN(IExpression left, ExpressionList right) {
-            super("in", left, right);
+            this("in", left, right);
+        }
+
+        protected IN(String operator, IExpression left, ExpressionList right) {
+            super(operator, left, right);
+        }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.BOOLEAN;
         }
 
         @SuppressWarnings("unchecked")
@@ -289,18 +334,13 @@ public abstract class ComparisonExpression extends BinaryExpression {
         }
 
         @Override
-        protected boolean compare(String v1, String v2) {
-            return false;
+        public void accept(IExpressionVisitor visitor) {
+            visitor.visit(this);
         }
 
         @Override
-        protected boolean compare(double v1, double v2) {
-            return false;
-        }
-
-        @Override
-        protected boolean compare(long v1, long v2) {
-            return false;
+        public <T> T accept(IExpressionVisitor2<T> visitor) {
+            return visitor.visit(this);
         }
 
         private Object toLong(Object o) {
@@ -324,10 +364,19 @@ public abstract class ComparisonExpression extends BinaryExpression {
         }
     }
 
-    public static class LIKE extends ComparisonExpression {
+    public static class LIKE extends BinaryExpression {
 
         public LIKE(IExpression left, IExpression right) {
-            super("like", left, right);
+            this("like", left, right);
+        }
+
+        public LIKE(String operator, IExpression left, IExpression right) {
+            super(operator, left, right);
+        }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.BOOLEAN;
         }
 
         @Override
@@ -345,18 +394,37 @@ public abstract class ComparisonExpression extends BinaryExpression {
         }
 
         @Override
-        protected boolean compare(String v1, String v2) {
-            return false;
+        public void accept(IExpressionVisitor visitor) {
+            visitor.visit(this);
         }
 
         @Override
-        protected boolean compare(double v1, double v2) {
-            return false;
+        public <T> T accept(IExpressionVisitor2<T> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    public static class NotLike extends LIKE {
+
+        public NotLike(IExpression left, IExpression right) {
+            super("not like", left, right);
         }
 
         @Override
-        protected boolean compare(long v1, long v2) {
-            return false;
+        public Object evaluate(IEvaluationContext context) {
+            return !((boolean) super.evaluate(context));
+        }
+    }
+
+    public static class NotIn extends IN {
+
+        public NotIn(IExpression left, ExpressionList right) {
+            super("not in", left, right);
+        }
+
+        @Override
+        public Object evaluate(IEvaluationContext context) {
+            return !((boolean) super.evaluate(context));
         }
     }
 }

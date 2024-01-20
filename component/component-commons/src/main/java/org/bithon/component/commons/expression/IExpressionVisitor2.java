@@ -49,6 +49,8 @@ public interface IExpressionVisitor2<T> {
         return null;
     }
 
+    default T visit(BinaryExpression expression) { return null; }
+
     default T visit(ComparisonExpression expression) {
         return null;
     }

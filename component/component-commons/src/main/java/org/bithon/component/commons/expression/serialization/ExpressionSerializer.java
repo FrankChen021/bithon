@@ -97,7 +97,6 @@ public class ExpressionSerializer implements IExpressionVisitor {
         return false;
     }
 
-
     @Override
     public boolean visit(IdentifierExpression expression) {
         if (StringUtils.hasText(qualifier)
@@ -119,13 +118,13 @@ public class ExpressionSerializer implements IExpressionVisitor {
 
     @Override
     public boolean visit(ComparisonExpression expression) {
-        visitBinary(expression);
+        visit((BinaryExpression) expression);
         return false;
     }
 
     @Override
     public boolean visit(ArithmeticExpression expression) {
-        visitBinary(expression);
+        visit((BinaryExpression) expression);
         return false;
     }
 
@@ -190,7 +189,8 @@ public class ExpressionSerializer implements IExpressionVisitor {
         return false;
     }
 
-    protected void visitBinary(BinaryExpression expression) {
+    @Override
+    public boolean visit(BinaryExpression expression) {
         IExpression left = expression.getLeft();
         if (left instanceof BinaryExpression) {
             sb.append('(');
@@ -211,5 +211,7 @@ public class ExpressionSerializer implements IExpressionVisitor {
         if (right instanceof BinaryExpression) {
             sb.append(')');
         }
+
+        return false;
     }
 }

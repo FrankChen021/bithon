@@ -16,6 +16,8 @@
 
 package org.bithon.server.storage.common.expression;
 
+import org.bithon.component.commons.expression.IExpression;
+
 import javax.validation.constraints.NotNull;
 import java.util.Locale;
 
@@ -28,7 +30,13 @@ public class InvalidExpressionException extends RuntimeException {
         super(String.format(Locale.ENGLISH, "Invalid expression [%s] at position %d, %s", expression, charPos, parseExceptionMessage));
     }
 
-    public InvalidExpressionException(String format, Object...args) {
+    public InvalidExpressionException(String format, Object... args) {
         super(String.format(Locale.ENGLISH, format, args));
+    }
+
+    public static void checkIsInstanceOf(IExpression expression, Class<? extends IExpression> clazz, String message, Object... args) {
+        if (!clazz.isInstance(expression)) {
+            throw new InvalidExpressionException(message, args);
+        }
     }
 }

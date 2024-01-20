@@ -22,48 +22,25 @@ import java.math.BigDecimal;
  * @author frank.chen021@outlook.com
  * @date 2023/4/7 20:17
  */
-public class LiteralExpression implements IExpression {
-    private final Object value;
-    private final IDataType dataType;
+public abstract class LiteralExpression implements IExpression {
+    protected final Object value;
 
-    public LiteralExpression(String value) {
+    protected LiteralExpression(Object value) {
         this.value = value;
-        this.dataType = IDataType.STRING;
     }
 
-    public LiteralExpression(long value) {
-        this.value = value;
-        this.dataType = IDataType.LONG;
-    }
-
-    public LiteralExpression(double value) {
-        this.value = value;
-        this.dataType = IDataType.DOUBLE;
-    }
-
-    public LiteralExpression(boolean value) {
-        this.value = value;
-        this.dataType = IDataType.BOOLEAN;
-    }
-
-    public LiteralExpression(Object value) {
-        this.value = value;
+    public static LiteralExpression create(Object value) {
         if (value instanceof String) {
-            this.dataType = IDataType.STRING;
+            return new StringLiteral((String) value);
         } else if (value instanceof Long || value instanceof Integer) {
-            this.dataType = IDataType.LONG;
+            return new LongLiteral(((Number) value).longValue());
         } else if (value instanceof Boolean) {
-            this.dataType = IDataType.BOOLEAN;
+            return new BooleanLiteral((boolean) value);
         } else if (value instanceof Double || value instanceof Float || value instanceof BigDecimal) {
-            this.dataType = IDataType.DOUBLE;
+            return new DoubleLiteral((Number) value);
         } else {
             throw new UnsupportedOperationException("Not support literal type: " + value.getClass().getName());
         }
-    }
-
-    @Override
-    public IDataType getDataType() {
-        return this.dataType;
     }
 
     public Object getValue() {
@@ -71,7 +48,8 @@ public class LiteralExpression implements IExpression {
     }
 
     public boolean isNumber() {
-        return this.dataType.equals(IDataType.DOUBLE) || this.dataType.equals(IDataType.LONG);
+        IDataType dataType = getDataType();
+        return getDataType().equals(IDataType.DOUBLE) || dataType.equals(IDataType.LONG);
     }
 
     public String asString() {
@@ -83,13 +61,14 @@ public class LiteralExpression implements IExpression {
     }
 
     public boolean asBoolean() {
-        if (this.dataType.equals(IDataType.BOOLEAN)) {
+        IDataType dataType = getDataType();
+        if (dataType.equals(IDataType.BOOLEAN)) {
             return (boolean) value;
         }
-        if (this.dataType.equals(IDataType.LONG)) {
+        if (dataType.equals(IDataType.LONG)) {
             return ((long) value) != 0;
         }
-        if (this.dataType.equals(IDataType.DOUBLE)) {
+        if (dataType.equals(IDataType.DOUBLE)) {
             return ((double) value) != 0;
         }
         throw new RuntimeException("Unable to convert to boolean for expression: " + this.serializeToText());
@@ -113,5 +92,63 @@ public class LiteralExpression implements IExpression {
     @Override
     public Object evaluate(IEvaluationContext context) {
         return value;
+    }
+
+    public static class StringLiteral extends LiteralExpression {
+        public StringLiteral(String value) {
+            super(value);
+        }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.STRING;
+        }
+    }
+
+    public static class LongLiteral extends LiteralExpression {
+
+        public LongLiteral(long value) {
+            super(value);
+        }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.LONG;
+        }
+    }
+
+    public static class DoubleLiteral extends LiteralExpression {
+
+        public DoubleLiteral(Number value) {
+            super(value);
+        }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.DOUBLE;
+        }
+    }
+
+    public static class BooleanLiteral extends LiteralExpression {
+        public BooleanLiteral(boolean value) {
+            super(value);
+        }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.BOOLEAN;
+        }
+    }
+
+    public static class DateTimeLiteral extends LiteralExpression {
+
+        public DateTimeLiteral(String value) {
+            super(value);
+        }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.DATETIME;
+        }
     }
 }

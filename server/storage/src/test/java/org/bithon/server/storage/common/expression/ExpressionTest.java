@@ -18,6 +18,7 @@ package org.bithon.server.storage.common.expression;
 
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.junit.Assert;
@@ -45,6 +46,80 @@ public class ExpressionTest {
     public void testIn_3() {
         IExpression expr = ExpressionASTBuilder.build("5 in (5,6)", null);
         Assert.assertTrue((Boolean) expr.evaluate(null));
+    }
+
+    @Test
+    public void test_ComparisonFlip_Folding() {
+        // Two literals will be folded
+        IExpression expr = ExpressionASTBuilder.build("5 > 4", null);
+        Assert.assertTrue(expr instanceof LiteralExpression);;
+        Assert.assertTrue((Boolean) expr.evaluate(null));
+    }
+
+    @Test
+    public void test_ComparisonFlip_GT() {
+        IExpression expr = ExpressionASTBuilder.build("5 > a", null);
+        Assert.assertEquals("a < 5", expr.serializeToText(null));
+
+        Assert.assertFalse((boolean) expr.evaluate(a -> 6));
+        Assert.assertFalse((boolean) expr.evaluate(a -> 5));
+        Assert.assertTrue((boolean) expr.evaluate(a -> 4));
+    }
+
+    @Test
+    public void test_ComparisonFlip_GTE() {
+        IExpression expr = ExpressionASTBuilder.build("5 >= a", null);
+        Assert.assertEquals("a <= 5", expr.serializeToText(null));
+
+        Assert.assertFalse((boolean) expr.evaluate(a -> 6));
+        Assert.assertTrue((boolean) expr.evaluate(a -> 5));
+        Assert.assertTrue((boolean) expr.evaluate(a -> 4));
+    }
+
+    @Test
+    public void test_ComparisonFlip_LT() {
+        IExpression expr = ExpressionASTBuilder.build("5 < a", null);
+        Assert.assertEquals("a > 5", expr.serializeToText(null));
+
+        Assert.assertTrue((boolean) expr.evaluate(a -> 6));
+        Assert.assertFalse((boolean) expr.evaluate(a -> 5));
+        Assert.assertFalse((boolean) expr.evaluate(a -> 4));
+    }
+
+    @Test
+    public void test_ComparisonFlip_LTE() {
+        IExpression expr = ExpressionASTBuilder.build("5 <= a", null);
+        Assert.assertEquals("a >= 5", expr.serializeToText(null));
+
+        Assert.assertTrue((boolean) expr.evaluate(a -> 6));
+        Assert.assertTrue((boolean) expr.evaluate(a -> 5));
+        Assert.assertFalse((boolean) expr.evaluate(a -> 4));
+    }
+
+    @Test
+    public void test_ComparisonFlip_NE() {
+        IExpression expr = ExpressionASTBuilder.build("5 <> a", null);
+        Assert.assertEquals("a <> 5", expr.serializeToText(null));
+
+        Assert.assertTrue((boolean) expr.evaluate(a -> 6));
+        Assert.assertFalse((boolean) expr.evaluate(a -> 5));
+        Assert.assertTrue((boolean) expr.evaluate(a -> 4));
+    }
+
+    @Test
+    public void test_ComparisonFlip_EQ() {
+        IExpression expr = ExpressionASTBuilder.build("5 = a", null);
+        Assert.assertEquals("a = 5", expr.serializeToText(null));
+
+        Assert.assertFalse((boolean) expr.evaluate(a -> 6));
+        Assert.assertTrue((boolean) expr.evaluate(a -> 5));
+        Assert.assertFalse((boolean) expr.evaluate(a -> 4));
+    }
+
+    @Test
+    public void test_ComparisonFlip_Non_Literal() {
+        IExpression expr = ExpressionASTBuilder.build("a = b", null);
+        Assert.assertEquals("a = b", expr.serializeToText(null));
     }
 
     @Test

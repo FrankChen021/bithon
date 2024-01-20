@@ -17,6 +17,7 @@
 package org.bithon.component.commons.expression;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,7 +28,6 @@ import java.util.stream.Collectors;
  */
 public class ExpressionList implements IExpression {
     private final List<IExpression> expressions;
-    private final Set<Object> values;
 
     public ExpressionList(IExpression... expressions) {
         this(Arrays.asList(expressions));
@@ -35,9 +35,6 @@ public class ExpressionList implements IExpression {
 
     public ExpressionList(List<IExpression> expressions) {
         this.expressions = expressions;
-
-        // Only literal is supported now
-        this.values = this.expressions.stream().map((element) -> ((LiteralExpression) element).getValue()).collect(Collectors.toSet());
     }
 
     public List<IExpression> getExpressions() {
@@ -56,6 +53,10 @@ public class ExpressionList implements IExpression {
 
     @Override
     public Object evaluate(IEvaluationContext context) {
+        Set<Object> values = new HashSet<>();
+        for(IExpression expression : expressions) {
+            values.add(expression.evaluate(context));
+        }
         return values;
     }
 

@@ -46,6 +46,7 @@ import org.bithon.server.commons.matcher.StringRegexMatcher;
 import org.bithon.server.commons.matcher.StringStartsWithMatcher;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.bithon.server.storage.common.expression.InvalidExpressionException;
+import org.bithon.server.storage.common.expression.LiteralExpressionCast;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -85,14 +86,14 @@ public class FilterExpressionToFilters {
     }
 
     private static IExpression toExpression(DataSourceSchema schema, List<IColumnFilter> filters) {
-        IdentifierVerifier identifierVerifier = new IdentifierVerifier(schema);
+        IdentifierExpressionValidator identifierExpressionValidator = new IdentifierExpressionValidator(schema);
 
         List<IExpression> expressions = new ArrayList<>();
         FilterToExpressionConverter converter = new FilterToExpressionConverter();
         for (IColumnFilter filter : filters) {
             converter.setColumnFilter(filter);
             IExpression expr = filter.getMatcher().accept(converter);
-            expr.accept(identifierVerifier);
+            expr.accept(identifierExpressionValidator);
 
             expressions.add(expr);
         }
@@ -101,7 +102,7 @@ public class FilterExpressionToFilters {
 
     private static IExpression validateExpression(DataSourceSchema schema, IExpression expression) {
         // Validate all identifier expressions recursively
-        expression.accept(new IdentifierVerifier(schema));
+        expression.accept(new IdentifierExpressionValidator(schema));
 
         // Validate if the expression is a filter
         // and optimize if possible
@@ -112,8 +113,8 @@ public class FilterExpressionToFilters {
                                                          expression.serializeToText());
                 case LONG:
                 case DOUBLE:
-                    // Turn into binary expression
-                    return new ComparisonExpression.NE(expression, new LiteralExpression(0));
+                    // Turn into: functionExpression <> 0
+                    return new ComparisonExpression.NE(expression, LiteralExpression.create(0));
 
                 case BOOLEAN:
                 default:
@@ -159,7 +160,17 @@ public class FilterExpressionToFilters {
         public boolean visit(ComparisonExpression expression) {
             IDataType leftType = expression.getLeft().getDataType();
             IDataType rightType = expression.getRight().getDataType();
-            if (!leftType.isCompatible(rightType)) {
+
+            if (leftType.equals(rightType)) {
+                return true;
+            }
+
+            // Type cast
+            if (expression.getRight() instanceof LiteralExpression) {
+                expression.setRight(expression.getRight().accept(new LiteralExpressionCast(leftType)));
+            }
+
+            if (!leftType.canCastFrom(rightType)) {
                 throw new InvalidExpressionException("The data types of the two operators in the expression [%s] are not compatible (%s vs %s).",
                                                      expression.serializeToText(null),
                                                      leftType.name(),
@@ -172,8 +183,10 @@ public class FilterExpressionToFilters {
         @Override
         public boolean visit(ExpressionList expression) {
             IDataType dataType = expression.getExpressions().get(0).getDataType();
+
+            // Ensure the types of all elements are the same
             for (int i = 1, size = expression.getExpressions().size(); i < size; i++) {
-                if (!dataType.isCompatible(expression.getExpressions().get(i).getDataType())) {
+                if (!dataType.canCastFrom(expression.getExpressions().get(i).getDataType())) {
                     throw new InvalidExpressionException("The data types of elements in the expression list %s are not the same.",
                                                          expression.serializeToText(null));
                 }
@@ -182,10 +195,10 @@ public class FilterExpressionToFilters {
         }
     }
 
-    static class IdentifierVerifier implements IExpressionVisitor {
+    static class IdentifierExpressionValidator implements IExpressionVisitor {
         private final DataSourceSchema schema;
 
-        IdentifierVerifier(DataSourceSchema schema) {
+        IdentifierExpressionValidator(DataSourceSchema schema) {
             this.schema = schema;
         }
 
@@ -225,12 +238,12 @@ public class FilterExpressionToFilters {
 
         @Override
         public IExpression visit(EqualMatcher matcher) {
-            return new ComparisonExpression.EQ(field, new LiteralExpression(matcher.getPattern()));
+            return new ComparisonExpression.EQ(field, LiteralExpression.create(matcher.getPattern()));
         }
 
         @Override
         public IExpression visit(NotEqualMatcher matcher) {
-            return new ComparisonExpression.NE(field, new LiteralExpression(matcher.getPattern()));
+            return new ComparisonExpression.NE(field, LiteralExpression.create(matcher.getPattern()));
         }
 
         @Override
@@ -245,7 +258,7 @@ public class FilterExpressionToFilters {
 
         @Override
         public IExpression visit(StringEndWithMatcher matcher) {
-            return new FunctionExpression(Functions.getInstance().getFunction("endsWith"), new LiteralExpression(matcher.getPattern()));
+            return new FunctionExpression(Functions.getInstance().getFunction("endsWith"), LiteralExpression.create(matcher.getPattern()));
         }
 
         @Override
@@ -260,14 +273,14 @@ public class FilterExpressionToFilters {
 
         @Override
         public IExpression visit(StringStartsWithMatcher matcher) {
-            return new FunctionExpression(Functions.getInstance().getFunction("startsWith"), new LiteralExpression(matcher.getPattern()));
+            return new FunctionExpression(Functions.getInstance().getFunction("startsWith"), LiteralExpression.create(matcher.getPattern()));
         }
 
         @Override
         public IExpression visit(BetweenMatcher matcher) {
             return new LogicalExpression.AND(
-                new ComparisonExpression.GTE(field, new LiteralExpression(matcher.getLower())),
-                new ComparisonExpression.LT(field, new LiteralExpression(matcher.getUpper()))
+                new ComparisonExpression.GTE(field, LiteralExpression.create(matcher.getLower())),
+                new ComparisonExpression.LT(field, LiteralExpression.create(matcher.getUpper()))
             );
         }
 
@@ -275,33 +288,33 @@ public class FilterExpressionToFilters {
         public IExpression visit(InMatcher inMatcher) {
             return new ComparisonExpression.IN(
                 field,
-                new ExpressionList(inMatcher.getPattern().stream().map(LiteralExpression::new).collect(Collectors.toList()))
+                new ExpressionList(inMatcher.getPattern().stream().map(LiteralExpression::create).collect(Collectors.toList()))
             );
         }
 
         @Override
         public IExpression visit(GreaterThanMatcher matcher) {
-            return new ComparisonExpression.GT(field, new LiteralExpression(matcher.getValue()));
+            return new ComparisonExpression.GT(field, LiteralExpression.create(matcher.getValue()));
         }
 
         @Override
         public IExpression visit(GreaterThanOrEqualMatcher matcher) {
-            return new ComparisonExpression.GTE(field, new LiteralExpression(matcher.getValue()));
+            return new ComparisonExpression.GTE(field, LiteralExpression.create(matcher.getValue()));
         }
 
         @Override
         public IExpression visit(LessThanMatcher matcher) {
-            return new ComparisonExpression.LT(field, new LiteralExpression(matcher.getValue()));
+            return new ComparisonExpression.LT(field, LiteralExpression.create(matcher.getValue()));
         }
 
         @Override
         public IExpression visit(LessThanOrEqualMatcher matcher) {
-            return new ComparisonExpression.LTE(field, new LiteralExpression(matcher.getValue()));
+            return new ComparisonExpression.LTE(field, LiteralExpression.create(matcher.getValue()));
         }
 
         @Override
         public IExpression visit(StringLikeMatcher matcher) {
-            return new ComparisonExpression.LIKE(field, new LiteralExpression(matcher.getPattern()));
+            return new ComparisonExpression.LIKE(field, LiteralExpression.create(matcher.getPattern()));
         }
 
         @Override

@@ -162,7 +162,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
 
             default:
                 // NOT logical expression is defined as NotExpression below, not here
-                throw new RuntimeException();
+                throw new InvalidExpressionException("Unsupported logical operator");
         }
     }
 
@@ -193,7 +193,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
                 return new ArithmeticExpression.DIV(ctx.getChild(0).accept(this),
                                                     ctx.getChild(2).accept(this));
             default:
-                throw new RuntimeException();
+                throw new InvalidExpressionException("Unsupported arithmetic operator");
         }
     }
 
@@ -206,69 +206,103 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
 
         switch (op.getSymbol().getType()) {
             case ExpressionLexer.LT:
-                return new ComparisonExpression.LT(left.accept(this),
-                                                   ctx.getChild(2).accept(this));
+                return flipComparisonExpression(new ComparisonExpression.LT(left.accept(this),
+                                                                            ctx.getChild(2).accept(this)));
 
             case ExpressionLexer.LTE:
-                return new ComparisonExpression.LTE(left.accept(this),
-                                                    ctx.getChild(2).accept(this));
+                return flipComparisonExpression(new ComparisonExpression.LTE(left.accept(this),
+                                                                             ctx.getChild(2).accept(this)));
 
             case ExpressionLexer.GT:
-                return new ComparisonExpression.GT(left.accept(this),
-                                                   ctx.getChild(2).accept(this));
+                return flipComparisonExpression(new ComparisonExpression.GT(left.accept(this),
+                                                                            ctx.getChild(2).accept(this)));
 
             case ExpressionLexer.GTE:
-                return new ComparisonExpression.GTE(left.accept(this),
-                                                    ctx.getChild(2).accept(this));
+                return flipComparisonExpression(new ComparisonExpression.GTE(left.accept(this),
+                                                                             ctx.getChild(2).accept(this)));
 
             case ExpressionLexer.NE:
-                return new ComparisonExpression.NE(left.accept(this),
-                                                   ctx.getChild(2).accept(this));
+                return flipComparisonExpression(new ComparisonExpression.NE(left.accept(this),
+                                                                            ctx.getChild(2).accept(this)));
 
             case ExpressionLexer.EQ:
-                return new ComparisonExpression.EQ(left.accept(this),
-                                                   ctx.getChild(2).accept(this));
+                return flipComparisonExpression(new ComparisonExpression.EQ(left.accept(this),
+                                                                            ctx.getChild(2).accept(this)));
 
             case ExpressionLexer.LIKE:
-                return new ComparisonExpression.LIKE(left.accept(this),
-                                                     ctx.getChild(2).accept(this));
+                return createLikeExpression(left, ctx.getChild(2), false);
 
             case ExpressionLexer.NOT:
                 TerminalNode operator = (TerminalNode) ctx.getChild(2);
                 switch (operator.getSymbol().getType()) {
                     case ExpressionLexer.LIKE:
-                        return new LogicalExpression.NOT(
-                            createLikeExpression(left, ctx.getChild(3))
-                        );
+                        return createLikeExpression(left, ctx.getChild(3), true);
+
                     case ExpressionLexer.IN:
-                        return new LogicalExpression.NOT(
-                            createInExpression(left, ctx.getChild(3))
-                        );
+                        return createInExpression(left, ctx.getChild(3), true);
+
                     default:
-                        break;
+                        throw new InvalidExpressionException("Unsupported symbol after the NOT operator.");
                 }
-                throw new RuntimeException();
 
             case ExpressionLexer.IN:
-                return createInExpression(left, ctx.getChild(2));
+                return createInExpression(left, ctx.getChild(2), false);
+
             default:
-                throw new RuntimeException();
+                throw new InvalidExpressionException("Unsupported type: %d", op.getSymbol().getType());
         }
     }
 
-    private IExpression createLikeExpression(ParseTree left, ParseTree right) {
-        return new ComparisonExpression.LIKE(left.accept(this), right.accept(this));
+    // Flip the operands in the comparison expression for simpler optimization/analysis in later steps
+    private IExpression flipComparisonExpression(ComparisonExpression comparisonExpression) {
+        if (comparisonExpression.getLeft() instanceof LiteralExpression) {
+            if (comparisonExpression.getRight() instanceof LiteralExpression) {
+                // Constant folding
+                return LiteralExpression.create(comparisonExpression.evaluate(null));
+            }
+            return comparisonExpression.flip();
+        }
+        return comparisonExpression;
     }
 
-    private IExpression createInExpression(ParseTree left, ParseTree right) {
-        IExpression expression = right.accept(this);
-        if ((expression instanceof ExpressionList)) {
-            if (((ExpressionList) expression).getExpressions().isEmpty()) {
+    private IExpression createLikeExpression(ParseTree left, ParseTree right, boolean isNot) {
+        IExpression leftOperand = left.accept(this);
+        IExpression rightOperand = right.accept(this);
+
+        return isNot ? new ComparisonExpression.NotLike(leftOperand, rightOperand)
+            : new ComparisonExpression.LIKE(leftOperand, rightOperand);
+    }
+
+    private IExpression createInExpression(ParseTree left, ParseTree right, boolean isNot) {
+        IExpression leftOperand = left.accept(this);
+
+        IExpression rightOperand = right.accept(this);
+        if (rightOperand instanceof ExpressionList) {
+            ExpressionList expressionList = (ExpressionList) rightOperand;
+
+            if (expressionList.getExpressions().isEmpty()) {
                 throw new RuntimeException("The elements of the IN operator is empty");
             }
-            return new ComparisonExpression.IN(left.accept(this), (ExpressionList) expression);
+
+            if (isNot) {
+                return new ComparisonExpression.NotIn(leftOperand, (ExpressionList) rightOperand);
+            } else {
+                return new ComparisonExpression.IN(leftOperand, (ExpressionList) rightOperand);
+            }
         }
-        return new ComparisonExpression.EQ(left.accept(this), expression);
+
+        // The ExpressionList actually has only subexpression,
+        // It will be turned into EQ/NE
+        ComparisonExpression comparisonExpression;
+        if (isNot) {
+            comparisonExpression = new ComparisonExpression.NE(leftOperand,
+                                                               rightOperand);
+
+        } else {
+            comparisonExpression = new ComparisonExpression.EQ(leftOperand,
+                                                               rightOperand);
+        }
+        return flipComparisonExpression(comparisonExpression);
     }
 
     @Override
@@ -291,28 +325,30 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
         TerminalNode literalExpressionNode = ctx.getChild(TerminalNode.class, 0);
         switch (literalExpressionNode.getSymbol().getType()) {
             case ExpressionLexer.INTEGER_LITERAL: {
-                return new LiteralExpression(Long.parseLong(literalExpressionNode.getText()));
+                return LiteralExpression.create(Long.parseLong(literalExpressionNode.getText()));
             }
             case ExpressionLexer.DECIMAL_LITERAL: {
-                return new LiteralExpression(Double.parseDouble(literalExpressionNode.getText()));
+                return LiteralExpression.create(Double.parseDouble(literalExpressionNode.getText()));
             }
             case ExpressionLexer.STRING_LITERAL: {
-                return new LiteralExpression(getUnQuotedString(literalExpressionNode.getSymbol()));
+                return LiteralExpression.create(getUnQuotedString(literalExpressionNode.getSymbol()));
             }
             default:
-                throw new RuntimeException("unexpected right expression type");
+                throw new InvalidExpressionException("unexpected right expression type");
         }
     }
 
     @Override
     public IExpression visitExpressionList(ExpressionParser.ExpressionListContext ctx) {
         List<IExpression> expressions = new ArrayList<>();
-        for (ParseTree expr : ctx.expressionListImpl().children) {
+        for (ParseTree expr : ctx.children) {
             if (expr instanceof ExpressionParser.ExpressionContext) {
                 expressions.add(expr.accept(this));
             }
         }
+
         if (expressions.size() == 1) {
+            // This can be seen as removing of the parentheses
             return expressions.get(0);
         }
 
@@ -321,7 +357,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
 
     @Override
     public IExpression visitFunctionExpression(ExpressionParser.FunctionExpressionContext ctx) {
-        List<ExpressionParser.ExpressionContext> parameters = ctx.expressionListImpl().expression();
+        List<ExpressionParser.ExpressionContext> parameters = ctx.expressionList().expression();
         List<IExpression> parameterExpressionList = new ArrayList<>(parameters.size());
         for (ExpressionParser.ExpressionContext parameter : parameters) {
             IExpression parameterExpression = parameter.accept(this);

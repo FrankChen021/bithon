@@ -49,6 +49,8 @@ public interface IExpressionVisitor {
         return true;
     }
 
+    default boolean visit(BinaryExpression expression) { return true; }
+
     default boolean visit(ComparisonExpression expression) {
         return true;
     }

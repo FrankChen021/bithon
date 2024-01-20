@@ -19,6 +19,7 @@ package org.bithon.server.storage.jdbc.tracing.reader;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IExpression;
@@ -424,6 +425,11 @@ public class TraceJdbcReader implements ITraceReader {
                 return false;
             }
 
+            return true;
+        }
+
+        @Override
+        public boolean visit(BinaryExpression expression) {
             if (expression instanceof ComparisonExpression.IN) {
                 IExpression left = expression.getLeft();
                 IExpression right = expression.getRight();
@@ -437,8 +443,7 @@ public class TraceJdbcReader implements ITraceReader {
                     // We can remove such filter
                 }
             }
-
-            return true;
+            return false;
         }
 
         @Override

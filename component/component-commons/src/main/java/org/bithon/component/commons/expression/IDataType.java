@@ -30,7 +30,7 @@ public enum IDataType {
 
     STRING {
         @Override
-        public boolean isCompatible(IDataType dataType) {
+        public boolean canCastFrom(IDataType dataType) {
             return STRING.equals(dataType);
         }
 
@@ -77,7 +77,7 @@ public enum IDataType {
 
     LONG {
         @Override
-        public boolean isCompatible(IDataType dataType) {
+        public boolean canCastFrom(IDataType dataType) {
             return dataType == LONG || dataType == DOUBLE;
         }
 
@@ -125,7 +125,7 @@ public enum IDataType {
 
     BOOLEAN {
         @Override
-        public boolean isCompatible(IDataType dataType) {
+        public boolean canCastFrom(IDataType dataType) {
             return dataType == BOOLEAN;
         }
 
@@ -172,7 +172,7 @@ public enum IDataType {
 
     DOUBLE {
         @Override
-        public boolean isCompatible(IDataType dataType) {
+        public boolean canCastFrom(IDataType dataType) {
             return dataType == LONG || dataType == DOUBLE;
         }
 
@@ -215,10 +215,58 @@ public enum IDataType {
         public Number scaleTo(Number value, int scale) {
             return BigDecimal.valueOf(value.doubleValue()).setScale(scale, RoundingMode.HALF_UP).doubleValue();
         }
-    };
+    },
+
+    DATETIME {
+        @Override
+        public boolean canCastFrom(IDataType dataType) {
+            return false;
+        }
+
+        @Override
+        public String format(Number value) {
+            return null;
+        }
+
+        @Override
+        public boolean isGreaterThan(Number left, Number right) {
+            return false;
+        }
+
+        @Override
+        public boolean isGreaterThanOrEqual(Number left, Number right) {
+            return false;
+        }
+
+        @Override
+        public boolean isLessThan(Number left, Number right) {
+            return false;
+        }
+
+        @Override
+        public boolean isLessThanOrEqual(Number left, Number right) {
+            return false;
+        }
+
+        @Override
+        public boolean isEqual(Number left, Number right) {
+            return false;
+        }
+
+        @Override
+        public Number diff(Number left, Number right) {
+            return null;
+        }
+
+        @Override
+        public Number scaleTo(Number value, int scale) {
+            return null;
+        }
+    }
+    ;
 
 
-    public abstract boolean isCompatible(IDataType dataType);
+    public abstract boolean canCastFrom(IDataType dataType);
 
     public abstract String format(Number value);
 
@@ -235,4 +283,5 @@ public enum IDataType {
     public abstract Number diff(Number left, Number right);
 
     public abstract Number scaleTo(Number value, int scale);
+
 }
