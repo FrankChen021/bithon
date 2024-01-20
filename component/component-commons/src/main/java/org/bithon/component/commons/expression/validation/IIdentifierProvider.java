@@ -14,21 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.common.expression;
-
-import javax.validation.constraints.NotNull;
-import java.util.Locale;
+package org.bithon.component.commons.expression.validation;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/11
+ * @date 2024/1/20 14:06
  */
-public class InvalidExpressionException extends RuntimeException {
-    public InvalidExpressionException(@NotNull String expression, int charPos, String parseExceptionMessage) {
-        super(String.format(Locale.ENGLISH, "Invalid expression [%s] at position %d, %s", expression, charPos, parseExceptionMessage));
-    }
-
-    public InvalidExpressionException(String format, Object... args) {
-        super(String.format(Locale.ENGLISH, format, args));
-    }
+public interface IIdentifierProvider {
+    /**
+     * If the identifier can't be found, an exception should be thrown from the implementation
+     */
+    Identifier getIdentifier(String identifier);
 }

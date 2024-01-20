@@ -55,4 +55,18 @@ public abstract class BinaryExpression implements IExpression {
     public String getType() {
         return type;
     }
+
+    @Override
+    public void accept(IExpressionVisitor visitor) {
+        if (visitor.visit(this)) {
+            this.left.accept(visitor);
+            this.right.accept(visitor);
+        }
+    }
+
+    @Override
+    public <T> T accept(IExpressionVisitor2<T> visitor) {
+        return visitor.visit(this);
+    }
+
 }

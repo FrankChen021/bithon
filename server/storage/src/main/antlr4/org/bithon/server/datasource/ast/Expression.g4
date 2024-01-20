@@ -7,18 +7,18 @@ parse
 expression
   : expression (MUL|DIV) expression                                     #arithmeticExpression
   | expression (ADD|SUB) expression                                     #arithmeticExpression
-  | expression (LT|LTE|GT|GTE|NE|EQ|LIKE|NOT LIKE) expression   #comparisonExpression
-  | expression (IN|NOT IN) expressionList                       #comparisonExpression
-  | NOT expression                                              #notExpression
-  | expression AND expression                                   #logicalExpression
-  | expression OR expression                                    #logicalExpression
-  | expression '[' INTEGER_LITERAL ']'                          #arrayAccessExpression
-  | expression '[' STRING_LITERAL ']'                           #mapAccessExpression
-  | IDENTIFIER expressionList                                   #functionExpression
-  | (INTEGER_LITERAL | DECIMAL_LITERAL | STRING_LITERAL)        #literalExpression
-  | expressionList                                              #expressionListImpl
-  | IDENTIFIER ('.' IDENTIFIER)*                                #identifierExpression
-  | '{' IDENTIFIER '}'                                          #macroExpression
+  | expression (LT|LTE|GT|GTE|NE|EQ|LIKE|NOT LIKE) expression           #comparisonExpression
+  | expression (IN|NOT IN) expressionList                               #comparisonExpression
+  | NOT expression                                                      #notExpression
+  | expression AND expression                                           #logicalExpression
+  | expression OR expression                                            #logicalExpression
+  | expression '[' INTEGER_LITERAL ']'                                  #arrayAccessExpression
+  | expression '[' STRING_LITERAL ']'                                   #mapAccessExpression
+  | IDENTIFIER expressionList                                           #functionExpression
+  | (INTEGER_LITERAL | DECIMAL_LITERAL | STRING_LITERAL | BOOL_LITERAL)        #literalExpression
+  | expressionList                                                      #expressionListImpl
+  | IDENTIFIER ('.' IDENTIFIER)*                                        #identifierExpression
+  | '{' IDENTIFIER '}'                                                  #macroExpression
   ;
 
 expressionList
@@ -29,6 +29,8 @@ expressionList
 INTEGER_LITERAL: '-'?[0-9]+;
 DECIMAL_LITERAL: '-'?[0-9]+'.'[0-9]*;
 STRING_LITERAL: SQUOTA_STRING;
+BOOL_LITERAL: TRUE | FALSE;
+
 
 fragment SQUOTA_STRING
   : '\'' ('\\'. | '\'\'' | ~('\'' | '\\'))* '\'';
@@ -51,6 +53,8 @@ OR: O R;
 IN: I N;
 LIKE: L I K E;
 NOT: N O T;
+TRUE: T R U E;
+FALSE: F A L S E;
 
 // case insensitive
 fragment A : [aA];

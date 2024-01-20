@@ -333,16 +333,6 @@ public abstract class ComparisonExpression extends BinaryExpression {
             throw new UnsupportedOperationException("Type of " + o.getClass().getSimpleName() + " is not supported by IN operator");
         }
 
-        @Override
-        public void accept(IExpressionVisitor visitor) {
-            visitor.visit(this);
-        }
-
-        @Override
-        public <T> T accept(IExpressionVisitor2<T> visitor) {
-            return visitor.visit(this);
-        }
-
         private Object toLong(Object o) {
             if (o instanceof Long) {
                 return o;
@@ -391,16 +381,6 @@ public abstract class ComparisonExpression extends BinaryExpression {
 
             String l = (String) left.evaluate(context);
             return l != null && l.contains(pattern);
-        }
-
-        @Override
-        public void accept(IExpressionVisitor visitor) {
-            visitor.visit(this);
-        }
-
-        @Override
-        public <T> T accept(IExpressionVisitor2<T> visitor) {
-            return visitor.visit(this);
         }
     }
 

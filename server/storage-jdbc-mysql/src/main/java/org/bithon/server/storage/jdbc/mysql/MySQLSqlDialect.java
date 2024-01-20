@@ -22,8 +22,8 @@ import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.common.expression.optimizer.ExpressionOptimizer;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
@@ -95,10 +95,10 @@ public class MySQLSqlDialect implements ISqlDialect {
                     // MySQL does not provide startsWith function, turns it into LIKE expression as: LIKE 'prefix%'
                     IExpression patternExpression = expression.getParameters().get(1);
                     if (patternExpression instanceof LiteralExpression) {
-                        patternExpression = new LiteralExpression(((LiteralExpression) patternExpression).getValue() + "%");
+                        patternExpression = LiteralExpression.create(((LiteralExpression) patternExpression).getValue() + "%");
                     } else {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
-                                                                   Arrays.asList(patternExpression, new LiteralExpression("%")));
+                                                                   Arrays.asList(patternExpression, LiteralExpression.create("%")));
                     }
                     return new ComparisonExpression.LIKE(expression.getParameters().get(0),
                                                          patternExpression);
@@ -106,10 +106,10 @@ public class MySQLSqlDialect implements ISqlDialect {
                     // MySQL does not provide endsWith function, turns it into LIKE expression as: LIKE '%prefix'
                     IExpression patternExpression = expression.getParameters().get(1);
                     if (patternExpression instanceof LiteralExpression) {
-                        patternExpression = new LiteralExpression("%" + ((LiteralExpression) patternExpression).getValue());
+                        patternExpression = LiteralExpression.create("%" + ((LiteralExpression) patternExpression).getValue());
                     } else {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
-                                                                   Arrays.asList(new LiteralExpression("%"), patternExpression));
+                                                                   Arrays.asList(LiteralExpression.create("%"), patternExpression));
                     }
                     return new ComparisonExpression.LIKE(expression.getParameters().get(0),
                                                          patternExpression);

@@ -297,7 +297,7 @@ public class TraceService {
             }
             if (nonTagsFilters.isEmpty()) {
                 // Add a placeholder expression so simple further processing
-                nonTagsFilters.add(new ComparisonExpression.EQ(new LiteralExpression(1), new LiteralExpression(1)));
+                nonTagsFilters.add(new ComparisonExpression.EQ(LiteralExpression.create(1), LiteralExpression.create(1)));
             }
             expression.setOperands(nonTagsFilters);
 

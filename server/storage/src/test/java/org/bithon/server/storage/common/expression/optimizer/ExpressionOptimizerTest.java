@@ -118,8 +118,50 @@ public class ExpressionOptimizerTest {
     }
 
     @Test
+    public void testConstantFolding_ANDExpression_Bool_Bool() {
+        IExpression expr = ExpressionASTBuilder.build("true AND true");
+        Assert.assertTrue(expr instanceof LiteralExpression);
+        Assert.assertEquals("true", expr.serializeToText());
+    }
+
+    @Test
+    public void testConstantFolding_ANDExpression_Bool_Bool_2() {
+        IExpression expr = ExpressionASTBuilder.build("true AND false");
+        Assert.assertTrue(expr instanceof LiteralExpression);
+        Assert.assertEquals("false", expr.serializeToText());
+    }
+
+    @Test
     public void testConstantFolding_ORExpression() {
         IExpression expr = ExpressionASTBuilder.build("1 OR 0");
+        Assert.assertTrue(expr instanceof LiteralExpression);
+        Assert.assertEquals("true", expr.serializeToText());
+    }
+
+    @Test
+    public void testConstantFolding_Comparison_GT() {
+        IExpression expr = ExpressionASTBuilder.build("1 = 1");
+        Assert.assertTrue(expr instanceof LiteralExpression);
+        Assert.assertEquals("true", expr.serializeToText());
+    }
+
+    @Test
+    public void testConstantFolding_Comparison_GTE() {
+        IExpression expr = ExpressionASTBuilder.build("1 >= 1");
+        Assert.assertTrue(expr instanceof LiteralExpression);
+        Assert.assertEquals("true", expr.serializeToText());
+    }
+
+    @Test
+    public void testConstantFolding_Comparison_LT() {
+        IExpression expr = ExpressionASTBuilder.build("1 < 2");
+        Assert.assertTrue(expr instanceof LiteralExpression);
+        Assert.assertEquals("true", expr.serializeToText());
+    }
+
+    @Test
+    public void testConstantFolding_Comparison_LTE() {
+        IExpression expr = ExpressionASTBuilder.build("1 <= 1");
         Assert.assertTrue(expr instanceof LiteralExpression);
         Assert.assertEquals("true", expr.serializeToText());
     }

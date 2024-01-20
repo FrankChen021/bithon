@@ -16,18 +16,18 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.validation.ExpressionValidationException;
+import org.bithon.component.commons.time.DateTime;
+
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/4/7 20:17
  */
 public abstract class LiteralExpression implements IExpression {
-    protected final Object value;
-
-    protected LiteralExpression(Object value) {
-        this.value = value;
-    }
 
     public static LiteralExpression create(Object value) {
         if (value instanceof String) {
@@ -41,6 +41,14 @@ public abstract class LiteralExpression implements IExpression {
         } else {
             throw new UnsupportedOperationException("Not support literal type: " + value.getClass().getName());
         }
+    }
+
+    protected final Object value;
+
+    public abstract LiteralExpression castTo(IDataType targetType);
+
+    protected LiteralExpression(Object value) {
+        this.value = value;
     }
 
     public Object getValue() {
@@ -103,6 +111,40 @@ public abstract class LiteralExpression implements IExpression {
         public IDataType getDataType() {
             return IDataType.STRING;
         }
+
+        @Override
+        public LiteralExpression castTo(IDataType targetType) {
+            try {
+                switch (targetType) {
+                    case LONG:
+                        return new LiteralExpression.LongLiteral(Long.parseLong(value.toString()));
+
+                    case DOUBLE:
+                        return new LiteralExpression.DoubleLiteral(Double.parseDouble(value.toString()));
+
+                    case BOOLEAN:
+                        return new LiteralExpression.BooleanLiteral("true".equalsIgnoreCase(value.toString()));
+                    case STRING:
+                        return this;
+
+                    case DATETIME: {
+                        try {
+                            long timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(value.toString())
+                                                                                        .getTime();
+
+                            return new LiteralExpression.DateTimeLiteral(DateTime.toISO8601(timestamp));
+                        } catch (ParseException e) {
+                            throw new ExpressionValidationException(e.getMessage());
+                        }
+                    }
+
+                    default:
+                        throw new UnsupportedOperationException("Can't cast a boolean value into type of " + targetType);
+                }
+            } catch (NumberFormatException e) {
+                throw new ExpressionValidationException("Unable to parse String[%s] into number", value);
+            }
+        }
     }
 
     public static class LongLiteral extends LiteralExpression {
@@ -114,6 +156,29 @@ public abstract class LiteralExpression implements IExpression {
         @Override
         public IDataType getDataType() {
             return IDataType.LONG;
+        }
+
+        @Override
+        public LiteralExpression castTo(IDataType targetType) {
+            switch (targetType) {
+                case STRING:
+                    return new LiteralExpression.StringLiteral(value.toString());
+
+                case LONG:
+                    return this;
+
+                case DOUBLE:
+                    return new LiteralExpression.DoubleLiteral((Number) value);
+
+                case BOOLEAN:
+                    return new LiteralExpression.BooleanLiteral(((Number) value).longValue() != 0);
+
+                case DATETIME:
+                    return new LiteralExpression.DateTimeLiteral(DateTime.toISO8601((long) value));
+
+                default:
+                    throw new UnsupportedOperationException("Can't cast a boolean value into type of " + targetType);
+            }
         }
     }
 
@@ -127,6 +192,26 @@ public abstract class LiteralExpression implements IExpression {
         public IDataType getDataType() {
             return IDataType.DOUBLE;
         }
+
+        @Override
+        public LiteralExpression castTo(IDataType targetType) {
+            switch (targetType) {
+                case STRING:
+                    return new LiteralExpression.StringLiteral(value.toString());
+
+                case LONG:
+                    return new LiteralExpression.LongLiteral(((Number) value).longValue());
+
+                case DOUBLE:
+                    return this;
+
+                case BOOLEAN:
+                    return new LiteralExpression.BooleanLiteral(((Number) value).doubleValue() != 0);
+
+                default:
+                    throw new UnsupportedOperationException("Can't cast a boolean value into type of " + targetType);
+            }
+        }
     }
 
     public static class BooleanLiteral extends LiteralExpression {
@@ -137,6 +222,23 @@ public abstract class LiteralExpression implements IExpression {
         @Override
         public IDataType getDataType() {
             return IDataType.BOOLEAN;
+        }
+
+        @Override
+        public LiteralExpression castTo(IDataType targetType) {
+            switch (targetType) {
+                case STRING:
+                    return new LiteralExpression.StringLiteral((boolean) value ? "true" : "false");
+
+                case LONG:
+                    return new LiteralExpression.LongLiteral((boolean) value ? 1 : 0);
+
+                case BOOLEAN:
+                    return this;
+
+                default:
+                    throw new UnsupportedOperationException("Can't cast a boolean value into type of " + targetType);
+            }
         }
     }
 
@@ -149,6 +251,11 @@ public abstract class LiteralExpression implements IExpression {
         @Override
         public IDataType getDataType() {
             return IDataType.DATETIME;
+        }
+
+        @Override
+        public LiteralExpression castTo(IDataType targetType) {
+            throw new UnsupportedOperationException();
         }
     }
 }

@@ -41,12 +41,13 @@ import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.server.datasource.ast.ExpressionBaseVisitor;
 import org.bithon.server.datasource.ast.ExpressionLexer;
 import org.bithon.server.datasource.ast.ExpressionParser;
-import org.bithon.server.storage.common.expression.optimizer.ExpressionOptimizer;
+import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.builtin.IFunctionProvider;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Frank Chen
@@ -332,6 +333,9 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
             }
             case ExpressionLexer.STRING_LITERAL: {
                 return LiteralExpression.create(getUnQuotedString(literalExpressionNode.getSymbol()));
+            }
+            case ExpressionLexer.BOOL_LITERAL: {
+                return LiteralExpression.create("true".equals(literalExpressionNode.getText().toLowerCase(Locale.ENGLISH)));
             }
             default:
                 throw new InvalidExpressionException("unexpected right expression type");

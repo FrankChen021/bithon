@@ -21,10 +21,13 @@ import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.validation.ExpressionValidationException;
+import org.bithon.component.commons.expression.validation.ExpressionValidator;
+import org.bithon.component.commons.expression.validation.IIdentifierProvider;
+import org.bithon.component.commons.expression.validation.Identifier;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.matcher.BetweenMatcher;
@@ -46,7 +49,6 @@ import org.bithon.server.commons.matcher.StringRegexMatcher;
 import org.bithon.server.commons.matcher.StringStartsWithMatcher;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.bithon.server.storage.common.expression.InvalidExpressionException;
-import org.bithon.server.storage.common.expression.LiteralExpressionCast;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -85,25 +87,7 @@ public class FilterExpressionToFilters {
         }
     }
 
-    private static IExpression toExpression(DataSourceSchema schema, List<IColumnFilter> filters) {
-        IdentifierExpressionValidator identifierExpressionValidator = new IdentifierExpressionValidator(schema);
-
-        List<IExpression> expressions = new ArrayList<>();
-        FilterToExpressionConverter converter = new FilterToExpressionConverter();
-        for (IColumnFilter filter : filters) {
-            converter.setColumnFilter(filter);
-            IExpression expr = filter.getMatcher().accept(converter);
-            expr.accept(identifierExpressionValidator);
-
-            expressions.add(expr);
-        }
-        return expressions.size() == 1 ? expressions.get(0) : new LogicalExpression.AND(expressions);
-    }
-
     private static IExpression validateExpression(DataSourceSchema schema, IExpression expression) {
-        // Validate all identifier expressions recursively
-        expression.accept(new IdentifierExpressionValidator(schema));
-
         // Validate if the expression is a filter
         // and optimize if possible
         if (expression instanceof FunctionExpression) {
@@ -130,104 +114,70 @@ public class FilterExpressionToFilters {
         }
 
         // Type validation
-        if (expression instanceof LogicalExpression || expression instanceof ComparisonExpression) {
-            expression.accept(new ExpressionTypeValidator());
-        } else {
+        if (!(expression instanceof LogicalExpression)
+            && !(expression instanceof ComparisonExpression)
+            && !(expression instanceof ComparisonExpression.IN)
+            && !(expression instanceof ComparisonExpression.LIKE)
+        ) {
             throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
                                                  expression.serializeToText());
+        }
+
+        try {
+            ExpressionValidator validator = new ExpressionValidator(new IdentifierProvider(schema));
+            validator.validate(expression);
+        } catch (ExpressionValidationException e) {
+            throw new InvalidExpressionException(e.getMessage());
         }
 
         return expression;
     }
 
-    static class ExpressionTypeValidator implements IExpressionVisitor {
-
-        @Override
-        public boolean visit(LogicalExpression expression) {
-            for (IExpression operand : expression.getOperands()) {
-                IDataType dataType = operand.getDataType();
-                if (!dataType.equals(IDataType.BOOLEAN)
-                    && !dataType.equals(IDataType.DOUBLE)
-                    && !dataType.equals(IDataType.LONG)) {
-                    throw new InvalidExpressionException("The expression [%s] in the logical expression should be a comparison expression.",
-                                                         operand.serializeToText(null));
-                }
-            }
-            return true;
-        }
-
-        @Override
-        public boolean visit(ComparisonExpression expression) {
-            IDataType leftType = expression.getLeft().getDataType();
-            IDataType rightType = expression.getRight().getDataType();
-
-            if (leftType.equals(rightType)) {
-                return true;
-            }
-
-            // Type cast
-            if (expression.getRight() instanceof LiteralExpression) {
-                expression.setRight(expression.getRight().accept(new LiteralExpressionCast(leftType)));
-            }
-
-            if (!leftType.canCastFrom(rightType)) {
-                throw new InvalidExpressionException("The data types of the two operators in the expression [%s] are not compatible (%s vs %s).",
-                                                     expression.serializeToText(null),
-                                                     leftType.name(),
-                                                     rightType == null ? "null" : rightType.name());
-            }
-
-            return true;
-        }
-
-        @Override
-        public boolean visit(ExpressionList expression) {
-            IDataType dataType = expression.getExpressions().get(0).getDataType();
-
-            // Ensure the types of all elements are the same
-            for (int i = 1, size = expression.getExpressions().size(); i < size; i++) {
-                if (!dataType.canCastFrom(expression.getExpressions().get(i).getDataType())) {
-                    throw new InvalidExpressionException("The data types of elements in the expression list %s are not the same.",
-                                                         expression.serializeToText(null));
-                }
-            }
-            return true;
-        }
-    }
-
-    static class IdentifierExpressionValidator implements IExpressionVisitor {
+    static class IdentifierProvider implements IIdentifierProvider {
         private final DataSourceSchema schema;
 
-        IdentifierExpressionValidator(DataSourceSchema schema) {
+        IdentifierProvider(DataSourceSchema schema) {
             this.schema = schema;
         }
 
         @Override
-        public boolean visit(IdentifierExpression expression) {
-            IColumn column = schema.getColumnByName(expression.getIdentifier());
+        public Identifier getIdentifier(String identifier) {
+            IColumn column = schema.getColumnByName(identifier);
             if (column == null) {
                 // A special and ugly check.
                 // For indexed tags filter, when querying the dimensions, we need to convert its alias to its field name.
                 // However, when searching spans with tag filters, the schema here does not contain the tags.
                 // We need to ignore this case.
                 // The ignored tags will be processed later in the trace module.
-                if (expression.getIdentifier().startsWith("tags.")) {
-                    expression.setDataType(IDataType.STRING);
-                    return true;
+                if (identifier.startsWith("tags.")) {
+                    return new Identifier(identifier, IDataType.STRING);
                 }
 
                 throw new InvalidExpressionException("Unable to find identifier [%s] in data source [%s].",
-                                                     expression.getIdentifier(),
+                                                     identifier,
                                                      schema.getName());
             }
 
             // Change to raw name and correct type
-            expression.setIdentifier(column.getName());
-            expression.setDataType(column.getDataType());
-
-            return true;
+            return new Identifier(column.getName(), column.getDataType());
         }
     }
+
+    private static IExpression toExpression(DataSourceSchema schema, List<IColumnFilter> filters) {
+        ExpressionValidator.IdentifierExpressionValidator identifierExpressionValidator = new ExpressionValidator.IdentifierExpressionValidator(new IdentifierProvider(schema));
+
+        List<IExpression> expressions = new ArrayList<>();
+        FilterToExpressionConverter converter = new FilterToExpressionConverter();
+        for (IColumnFilter filter : filters) {
+            converter.setColumnFilter(filter);
+            IExpression expr = filter.getMatcher().accept(converter);
+            expr.accept(identifierExpressionValidator);
+
+            expressions.add(expr);
+        }
+        return expressions.size() == 1 ? expressions.get(0) : new LogicalExpression.AND(expressions);
+    }
+
 
     static class FilterToExpressionConverter implements IMatcherVisitor<IExpression> {
         private IdentifierExpression field;
