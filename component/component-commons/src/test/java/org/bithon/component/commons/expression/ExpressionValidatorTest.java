@@ -16,7 +16,6 @@
 
 package org.bithon.component.commons.expression;
 
-import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.expression.validation.ExpressionValidator;
 import org.junit.Test;
 

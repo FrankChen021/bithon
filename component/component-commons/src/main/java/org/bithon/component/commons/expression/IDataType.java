@@ -262,8 +262,7 @@ public enum IDataType {
         public Number scaleTo(Number value, int scale) {
             return null;
         }
-    }
-    ;
+    };
 
 
     public abstract boolean canCastFrom(IDataType dataType);

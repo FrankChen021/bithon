@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
@@ -54,7 +53,7 @@ public class ExpressionList implements IExpression {
     @Override
     public Object evaluate(IEvaluationContext context) {
         Set<Object> values = new HashSet<>();
-        for(IExpression expression : expressions) {
+        for (IExpression expression : expressions) {
             values.add(expression.evaluate(context));
         }
         return values;

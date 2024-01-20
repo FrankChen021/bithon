@@ -430,7 +430,7 @@ public class TraceJdbcReader implements ITraceReader {
 
         @Override
         public boolean visit(BinaryExpression expression) {
-            if (expression instanceof ComparisonExpression.IN) {
+            if (expression instanceof BinaryExpression.In) {
                 IExpression left = expression.getLeft();
                 IExpression right = expression.getRight();
 

@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.datasource.api;
 
+import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
@@ -116,8 +117,8 @@ public class FilterExpressionToFilters {
         // Type validation
         if (!(expression instanceof LogicalExpression)
             && !(expression instanceof ComparisonExpression)
-            && !(expression instanceof ComparisonExpression.IN)
-            && !(expression instanceof ComparisonExpression.LIKE)
+            && !(expression instanceof BinaryExpression.In)
+            && !(expression instanceof BinaryExpression.Like)
         ) {
             throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
                                                  expression.serializeToText());
@@ -236,7 +237,7 @@ public class FilterExpressionToFilters {
 
         @Override
         public IExpression visit(InMatcher inMatcher) {
-            return new ComparisonExpression.IN(
+            return new BinaryExpression.In(
                 field,
                 new ExpressionList(inMatcher.getPattern().stream().map(LiteralExpression::create).collect(Collectors.toList()))
             );
@@ -264,7 +265,7 @@ public class FilterExpressionToFilters {
 
         @Override
         public IExpression visit(StringLikeMatcher matcher) {
-            return new ComparisonExpression.LIKE(field, LiteralExpression.create(matcher.getPattern()));
+            return new BinaryExpression.Like(field, LiteralExpression.create(matcher.getPattern()));
         }
 
         @Override

@@ -206,8 +206,8 @@ public class ExpressionOptimizer {
                 char chr = needle.charAt(i);
                 if (isTokenSeparator(chr)) {
                     // replace this function into a LIKE expression
-                    return new ComparisonExpression.LIKE(expression.getParameters().get(0),
-                                                         LiteralExpression.create("%" + needle + "%"));
+                    return new BinaryExpression.Like(expression.getParameters().get(0),
+                                                     LiteralExpression.create("%" + needle + "%"));
                 }
             }
             return expression;

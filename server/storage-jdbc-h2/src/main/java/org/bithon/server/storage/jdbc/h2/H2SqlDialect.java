@@ -17,7 +17,7 @@
 package org.bithon.server.storage.jdbc.h2;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -100,8 +100,8 @@ public class H2SqlDialect implements ISqlDialect {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
                                                                    Arrays.asList(patternExpression, LiteralExpression.create("%")));
                     }
-                    return new ComparisonExpression.LIKE(expression.getParameters().get(0),
-                                                         patternExpression);
+                    return new BinaryExpression.Like(expression.getParameters().get(0),
+                                                     patternExpression);
                 } else if ("endsWith".equals(expression.getName())) {
                     // H2 does not provide startsWith function, turns it into LIKE expression as: LIKE '%prefix'
                     IExpression patternExpression = expression.getParameters().get(1);
@@ -111,8 +111,8 @@ public class H2SqlDialect implements ISqlDialect {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
                                                                    Arrays.asList(LiteralExpression.create("%"), patternExpression));
                     }
-                    return new ComparisonExpression.LIKE(expression.getParameters().get(0),
-                                                         patternExpression);
+                    return new BinaryExpression.Like(expression.getParameters().get(0),
+                                                     patternExpression);
                 }
 
                 return expression;

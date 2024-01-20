@@ -52,7 +52,7 @@ public class ExpressionTest {
     public void test_ComparisonFlip_Folding() {
         // Two literals will be folded
         IExpression expr = ExpressionASTBuilder.build("5 > 4", null);
-        Assert.assertTrue(expr instanceof LiteralExpression);;
+        Assert.assertTrue(expr instanceof LiteralExpression);
         Assert.assertTrue((Boolean) expr.evaluate(null));
     }
 

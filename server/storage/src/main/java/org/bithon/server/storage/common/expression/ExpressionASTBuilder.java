@@ -28,6 +28,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ArrayAccessExpression;
+import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
@@ -38,10 +39,10 @@ import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.function.IFunction;
+import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.server.datasource.ast.ExpressionBaseVisitor;
 import org.bithon.server.datasource.ast.ExpressionLexer;
 import org.bithon.server.datasource.ast.ExpressionParser;
-import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.builtin.IFunctionProvider;
 
@@ -271,7 +272,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
         IExpression rightOperand = right.accept(this);
 
         return isNot ? new ComparisonExpression.NotLike(leftOperand, rightOperand)
-            : new ComparisonExpression.LIKE(leftOperand, rightOperand);
+            : new BinaryExpression.Like(leftOperand, rightOperand);
     }
 
     private IExpression createInExpression(ParseTree left, ParseTree right, boolean isNot) {
@@ -288,7 +289,7 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
             if (isNot) {
                 return new ComparisonExpression.NotIn(leftOperand, (ExpressionList) rightOperand);
             } else {
-                return new ComparisonExpression.IN(leftOperand, (ExpressionList) rightOperand);
+                return new BinaryExpression.In(leftOperand, (ExpressionList) rightOperand);
             }
         }
 

@@ -22,6 +22,7 @@ import org.bithon.component.commons.time.DateTime;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
@@ -129,8 +130,9 @@ public abstract class LiteralExpression implements IExpression {
 
                     case DATETIME: {
                         try {
-                            long timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(value.toString())
-                                                                                        .getTime();
+                            long timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
+                                                                  Locale.ENGLISH).parse(value.toString())
+                                                                                 .getTime();
 
                             return new LiteralExpression.DateTimeLiteral(DateTime.toISO8601(timestamp));
                         } catch (ParseException e) {

@@ -18,8 +18,6 @@ package org.bithon.component.commons.expression;
 
 import org.bithon.component.commons.utils.StringUtils;
 
-import java.util.Set;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/7/27 19:53
@@ -292,119 +290,6 @@ public abstract class ComparisonExpression extends BinaryExpression {
         @Override
         protected Object compareLNull(Object lv) {
             return lv == null;
-        }
-    }
-
-    public static class IN extends BinaryExpression {
-
-        public IN(IExpression left, ExpressionList right) {
-            this("in", left, right);
-        }
-
-        protected IN(String operator, IExpression left, ExpressionList right) {
-            super(operator, left, right);
-        }
-
-        @Override
-        public IDataType getDataType() {
-            return IDataType.BOOLEAN;
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public Object evaluate(IEvaluationContext context) {
-            Object l = left.evaluate(context);
-            if (l == null) {
-                return false;
-            }
-
-            Set<Object> sets = (Set<Object>) right.evaluate(context);
-            Object o = sets.iterator().next();
-            if (o instanceof String) {
-                return sets.contains(l.toString());
-            }
-            if (o instanceof Long) {
-                return sets.contains(toLong(l));
-            }
-            if (o instanceof Double) {
-                return sets.contains(toDouble(l));
-            }
-
-            throw new UnsupportedOperationException("Type of " + o.getClass().getSimpleName() + " is not supported by IN operator");
-        }
-
-        private Object toLong(Object o) {
-            if (o instanceof Long) {
-                return o;
-            }
-            if (o instanceof Number) {
-                return ((Number) o).longValue();
-            }
-            return Long.parseLong(o.toString());
-        }
-
-        private Object toDouble(Object o) {
-            if (o instanceof Double) {
-                return o;
-            }
-            if (o instanceof Number) {
-                return ((Number) o).doubleValue();
-            }
-            return Double.parseDouble(o.toString());
-        }
-    }
-
-    public static class LIKE extends BinaryExpression {
-
-        public LIKE(IExpression left, IExpression right) {
-            this("like", left, right);
-        }
-
-        public LIKE(String operator, IExpression left, IExpression right) {
-            super(operator, left, right);
-        }
-
-        @Override
-        public IDataType getDataType() {
-            return IDataType.BOOLEAN;
-        }
-
-        @Override
-        public Object evaluate(IEvaluationContext context) {
-            String r = (String) right.evaluate(context);
-
-            // Escape any special characters in the pattern
-            String pattern = r.replaceAll("%", "\\\\%").replaceAll("_", "\\\\_");
-
-            // Replace SQL wildcard characters with Java regex wildcard characters
-            pattern = pattern.replaceAll("%", ".*").replaceAll("_", ".");
-
-            String l = (String) left.evaluate(context);
-            return l != null && l.contains(pattern);
-        }
-    }
-
-    public static class NotLike extends LIKE {
-
-        public NotLike(IExpression left, IExpression right) {
-            super("not like", left, right);
-        }
-
-        @Override
-        public Object evaluate(IEvaluationContext context) {
-            return !((boolean) super.evaluate(context));
-        }
-    }
-
-    public static class NotIn extends IN {
-
-        public NotIn(IExpression left, ExpressionList right) {
-            super("not in", left, right);
-        }
-
-        @Override
-        public Object evaluate(IEvaluationContext context) {
-            return !((boolean) super.evaluate(context));
         }
     }
 }
