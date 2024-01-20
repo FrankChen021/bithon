@@ -16,7 +16,7 @@
 
 package org.bithon.component.commons.expression.validation;
 
-import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
@@ -45,7 +45,7 @@ class ExpressionTypeValidator implements IExpressionVisitor {
     }
 
     @Override
-    public boolean visit(ComparisonExpression expression) {
+    public boolean visit(ConditionalExpression expression) {
         IDataType leftType = expression.getLeft().getDataType();
         IDataType rightType = expression.getRight().getDataType();
 

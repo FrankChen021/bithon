@@ -28,8 +28,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ArrayAccessExpression;
-import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -271,8 +271,8 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
         IExpression leftOperand = left.accept(this);
         IExpression rightOperand = right.accept(this);
 
-        return isNot ? new ComparisonExpression.NotLike(leftOperand, rightOperand)
-            : new BinaryExpression.Like(leftOperand, rightOperand);
+        return isNot ? new ConditionalExpression.NotLike(leftOperand, rightOperand)
+            : new ConditionalExpression.Like(leftOperand, rightOperand);
     }
 
     private IExpression createInExpression(ParseTree left, ParseTree right, boolean isNot) {
@@ -287,9 +287,9 @@ public class ExpressionASTBuilder extends ExpressionBaseVisitor<IExpression> {
             }
 
             if (isNot) {
-                return new ComparisonExpression.NotIn(leftOperand, (ExpressionList) rightOperand);
+                return new ConditionalExpression.NotIn(leftOperand, (ExpressionList) rightOperand);
             } else {
-                return new BinaryExpression.In(leftOperand, (ExpressionList) rightOperand);
+                return new ConditionalExpression.In(leftOperand, (ExpressionList) rightOperand);
             }
         }
 

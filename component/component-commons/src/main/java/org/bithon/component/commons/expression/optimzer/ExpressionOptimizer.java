@@ -18,8 +18,7 @@ package org.bithon.component.commons.expression.optimzer;
 
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ArrayAccessExpression;
-import org.bithon.component.commons.expression.BinaryExpression;
-import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
@@ -93,12 +92,7 @@ public class ExpressionOptimizer {
         }
 
         @Override
-        public IExpression visit(ComparisonExpression expression) {
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(BinaryExpression expression) {
+        public IExpression visit(ConditionalExpression expression) {
             return expression;
         }
 
@@ -169,7 +163,7 @@ public class ExpressionOptimizer {
         }
 
         @Override
-        public IExpression visit(ComparisonExpression expression) {
+        public IExpression visit(ConditionalExpression expression) {
             expression.setLeft(expression.getLeft().accept(this));
             expression.setRight(expression.getRight().accept(this));
             if (expression.getLeft() instanceof LiteralExpression && expression.getRight() instanceof LiteralExpression) {
@@ -187,7 +181,7 @@ public class ExpressionOptimizer {
         }
 
         @Override
-        public IExpression visit(ComparisonExpression expression) {
+        public IExpression visit(ConditionalExpression expression) {
             expression.setLeft(expression.getLeft().accept(this));
             expression.setRight(expression.getRight().accept(this));
             return expression;
@@ -206,8 +200,8 @@ public class ExpressionOptimizer {
                 char chr = needle.charAt(i);
                 if (isTokenSeparator(chr)) {
                     // replace this function into a LIKE expression
-                    return new BinaryExpression.Like(expression.getParameters().get(0),
-                                                     LiteralExpression.create("%" + needle + "%"));
+                    return new ConditionalExpression.Like(expression.getParameters().get(0),
+                                                          LiteralExpression.create("%" + needle + "%"));
                 }
             }
             return expression;

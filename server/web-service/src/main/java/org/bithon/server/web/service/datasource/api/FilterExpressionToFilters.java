@@ -16,8 +16,8 @@
 
 package org.bithon.server.web.service.datasource.api;
 
-import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
@@ -112,11 +112,10 @@ public class FilterExpressionToFilters {
             }
         }
 
-        if (expression instanceof LiteralExpression) {
-            if (!expression.getDataType().equals(IDataType.BOOLEAN)) {
-                throw new InvalidExpressionException("Literal expression [%s] is not a valid filter. Consider to add comparators to your expression.",
-                                                     expression.serializeToText());
-            }
+        if (!(expression instanceof LogicalExpression)
+            && !(expression instanceof ConditionalExpression)) {
+            throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
+                                                 expression.serializeToText());
         }
 
         return expression;
@@ -234,7 +233,7 @@ public class FilterExpressionToFilters {
 
         @Override
         public IExpression visit(InMatcher inMatcher) {
-            return new BinaryExpression.In(
+            return new ConditionalExpression.In(
                 field,
                 new ExpressionList(inMatcher.getPattern().stream().map(LiteralExpression::create).collect(Collectors.toList()))
             );
@@ -262,7 +261,7 @@ public class FilterExpressionToFilters {
 
         @Override
         public IExpression visit(StringLikeMatcher matcher) {
-            return new BinaryExpression.Like(field, LiteralExpression.create(matcher.getPattern()));
+            return new ConditionalExpression.Like(field, LiteralExpression.create(matcher.getPattern()));
         }
 
         @Override

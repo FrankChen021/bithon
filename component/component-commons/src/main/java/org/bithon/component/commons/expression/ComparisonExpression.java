@@ -22,15 +22,10 @@ import org.bithon.component.commons.utils.StringUtils;
  * @author frank.chen021@outlook.com
  * @date 2023/7/27 19:53
  */
-public abstract class ComparisonExpression extends BinaryExpression {
+public abstract class ComparisonExpression extends ConditionalExpression {
 
     protected ComparisonExpression(String type, IExpression left, IExpression right) {
         super(type, left, right);
-    }
-
-    @Override
-    public IDataType getDataType() {
-        return IDataType.BOOLEAN;
     }
 
     @Override

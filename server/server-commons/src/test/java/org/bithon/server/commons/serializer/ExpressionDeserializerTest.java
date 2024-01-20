@@ -19,8 +19,8 @@ package org.bithon.server.commons.serializer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -46,10 +46,10 @@ public class ExpressionDeserializerTest {
                                                                                        LiteralExpression.create(2)),
                                                            LiteralExpression.create(true),
                                                            new IdentifierExpression("a"),
-                                                           new BinaryExpression.In(new IdentifierExpression("a"),
-                                                                                   new ExpressionList(LiteralExpression.create(1),
-                                                                                                          LiteralExpression.create(2))),
-                                                           new BinaryExpression.Like(new IdentifierExpression("a"), LiteralExpression.create("c"))
+                                                           new ConditionalExpression.In(new IdentifierExpression("a"),
+                                                                                        new ExpressionList(LiteralExpression.create(1),
+                                                                                                           LiteralExpression.create(2))),
+                                                           new ConditionalExpression.Like(new IdentifierExpression("a"), LiteralExpression.create("c"))
         );
 
         String jsonText = om.writeValueAsString(expression);

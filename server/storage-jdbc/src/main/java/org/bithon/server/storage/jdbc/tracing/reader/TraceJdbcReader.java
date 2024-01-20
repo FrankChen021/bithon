@@ -19,8 +19,8 @@ package org.bithon.server.storage.jdbc.tracing.reader;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
@@ -404,7 +404,7 @@ public class TraceJdbcReader implements ITraceReader {
         }
 
         @Override
-        public boolean visit(ComparisonExpression expression) {
+        public boolean visit(ConditionalExpression expression) {
             if (!(expression.getLeft() instanceof IdentifierExpression)) {
                 // Only support the IdentifierExpression in the left for simplicity.
                 // Do not throw exception here 'cause the AST might contain some other internal optimization rule
@@ -425,12 +425,7 @@ public class TraceJdbcReader implements ITraceReader {
                 return false;
             }
 
-            return true;
-        }
-
-        @Override
-        public boolean visit(BinaryExpression expression) {
-            if (expression instanceof BinaryExpression.In) {
+            if (expression instanceof ConditionalExpression.In) {
                 IExpression left = expression.getLeft();
                 IExpression right = expression.getRight();
 
@@ -443,7 +438,8 @@ public class TraceJdbcReader implements ITraceReader {
                     // We can remove such filter
                 }
             }
-            return false;
+
+            return true;
         }
 
         @Override

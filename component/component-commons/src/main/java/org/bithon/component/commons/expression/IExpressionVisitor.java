@@ -49,11 +49,7 @@ public interface IExpressionVisitor {
         return true;
     }
 
-    default boolean visit(BinaryExpression expression) { return true; }
-
-    default boolean visit(ComparisonExpression expression) {
-        return true;
-    }
+    default boolean visit(ConditionalExpression expression) { return true; }
 
     default boolean visit(MacroExpression expression) { return true; }
 

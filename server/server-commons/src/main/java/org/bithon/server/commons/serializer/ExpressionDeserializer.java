@@ -21,8 +21,8 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -76,9 +76,9 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
                 case "!=":
                     return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.NE::new);
                 case "in":
-                    return new BinaryExpression.In(Expression.deserialize(jsonNode.get("left")), ExpressionListExpressionDeserializer.deserialize(jsonNode.get("right")));
+                    return new ConditionalExpression.In(Expression.deserialize(jsonNode.get("left")), ExpressionListExpressionDeserializer.deserialize(jsonNode.get("right")));
                 case "like":
-                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, BinaryExpression.Like::new);
+                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ConditionalExpression.Like::new);
                 case "literal":
                     return LiteralExpressionDeserializer.deserialize(jsonNode);
                 case "logical":

@@ -19,8 +19,8 @@ package org.bithon.server.web.service.tracing.service;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ArrayAccessExpression;
-import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -214,12 +214,10 @@ public class TraceService {
             }
 
             if (!(expression instanceof LogicalExpression)
-                && !(expression instanceof ComparisonExpression)
-                && !(expression instanceof BinaryExpression.In)
-                && !(expression instanceof BinaryExpression.Like)
+                && !(expression instanceof ConditionalExpression)
             ) {
                 throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
-                                                "The given expression is neither a logical expression(and/or/not) nor a comparison expression, but a %s",
+                                                "The given expression is neither a logical expression(and/or/not) nor a conditional expression, but a %s",
                                                 expression.getType());
             }
 
@@ -272,20 +270,7 @@ public class TraceService {
         }
 
         @Override
-        public Boolean visit(ComparisonExpression expression) {
-            IExpression left = expression.getLeft();
-            if (left instanceof IdentifierExpression) {
-                return isFilterOnIndexedTag((IdentifierExpression) left);
-            }
-            IExpression right = expression.getRight();
-            if (right instanceof IdentifierExpression) {
-                return isFilterOnIndexedTag((IdentifierExpression) right);
-            }
-            return false;
-        }
-
-        @Override
-        public Boolean visit(BinaryExpression expression) {
+        public Boolean visit(ConditionalExpression expression) {
             IExpression left = expression.getLeft();
             if (left instanceof IdentifierExpression) {
                 return isFilterOnIndexedTag((IdentifierExpression) left);
