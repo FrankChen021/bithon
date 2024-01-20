@@ -74,7 +74,8 @@ public class FilterExpressionToFilters {
             return CollectionUtils.isEmpty(otherFilters) ? null : toExpression(schema, otherFilters);
         }
 
-        IExpression expression = validateExpression(schema, ExpressionASTBuilder.build(filterExpression));
+        IExpression expression = validateIsBinary(ExpressionASTBuilder.build(filterExpression));
+        validate(schema, expression);
 
         if (CollectionUtils.isNotEmpty(otherFilters)) {
             if (expression instanceof LogicalExpression.AND) {
@@ -88,7 +89,7 @@ public class FilterExpressionToFilters {
         }
     }
 
-    private static IExpression validateExpression(DataSourceSchema schema, IExpression expression) {
+    private static IExpression validateIsBinary(IExpression expression) {
         // Validate if the expression is a filter
         // and optimize if possible
         if (expression instanceof FunctionExpression) {
@@ -102,8 +103,12 @@ public class FilterExpressionToFilters {
                     return new ComparisonExpression.NE(expression, LiteralExpression.create(0));
 
                 case BOOLEAN:
-                default:
                     return expression;
+
+                default:
+                    throw new InvalidExpressionException("Function expression [%s] returns type of %s, is not a valid filter. Consider to add comparators to your expression.",
+                                                         expression.serializeToText(),
+                                                         expression.getDataType());
             }
         }
 
@@ -114,24 +119,16 @@ public class FilterExpressionToFilters {
             }
         }
 
-        // Type validation
-        if (!(expression instanceof LogicalExpression)
-            && !(expression instanceof ComparisonExpression)
-            && !(expression instanceof BinaryExpression.In)
-            && !(expression instanceof BinaryExpression.Like)
-        ) {
-            throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
-                                                 expression.serializeToText());
-        }
+        return expression;
+    }
 
+    private static void validate(DataSourceSchema schema, IExpression expression) {
         try {
             ExpressionValidator validator = new ExpressionValidator(new IdentifierProvider(schema));
             validator.validate(expression);
         } catch (ExpressionValidationException e) {
             throw new InvalidExpressionException(e.getMessage());
         }
-
-        return expression;
     }
 
     static class IdentifierProvider implements IIdentifierProvider {
@@ -154,7 +151,7 @@ public class FilterExpressionToFilters {
                     return new Identifier(identifier, IDataType.STRING);
                 }
 
-                throw new InvalidExpressionException("Unable to find identifier [%s] in data source [%s].",
+                throw new InvalidExpressionException("Identifier [%s] not defined in the data source [%s].",
                                                      identifier,
                                                      schema.getName());
             }
