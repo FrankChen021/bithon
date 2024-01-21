@@ -16,15 +16,17 @@
 
 package org.bithon.server.storage.common.expression;
 
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.MacroExpression;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class IdentifierExpressionTest {
+public class MacroExpressionTest {
 
     @Test
     public void testVariableExpression() {
         String expression = "1000/{interval}";
-        Assert.assertEquals("1000 / {interval}", ExpressionASTBuilder.build(expression).serializeToText());
+        Assert.assertEquals("1000 / {interval}", ExpressionASTBuilder.builder().build(expression).serializeToText());
     }
 
     /**
@@ -33,25 +35,15 @@ public class IdentifierExpressionTest {
     @Test
     public void testParenthesesAroundExpression() {
         String expression = "({interval}*100)";
-        Assert.assertEquals("{interval} * 100", ExpressionASTBuilder.build(expression).serializeToText());
+        Assert.assertEquals("{interval} * 100", ExpressionASTBuilder.builder().build(expression).serializeToText());
     }
 
     @Test
-    public void testFunctionExpression() {
-        String expression = "round(100,3)";
-        Assert.assertEquals("100.000", ExpressionASTBuilder.build(expression).serializeToText());
-    }
+    public void testMacroExpression() {
+        IExpression expr = ExpressionASTBuilder.builder().build("{a}");
+        Assert.assertTrue(expr instanceof MacroExpression);
+        Assert.assertEquals("a", ((MacroExpression) expr).getMacro());
 
-    @Test
-    public void testExpressionInFunctionExpression() {
-        String expression = "round(a*b/c+d,2)";
-        Assert.assertEquals("round(((a * b) / c) + d, 2)", ExpressionASTBuilder.build(expression).serializeToText(null));
-    }
-
-    @Test
-    public void testMoreArgumentInFunctionExpression() {
-        String functionExpression = "round(100,99,98)";
-
-        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.build(functionExpression));
+        Assert.assertEquals("1", expr.evaluate(name -> "a".equals(name) ? "1" : null));
     }
 }

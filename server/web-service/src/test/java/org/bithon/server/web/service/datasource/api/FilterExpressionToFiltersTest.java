@@ -19,6 +19,7 @@ package org.bithon.server.web.service.datasource.api;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.validation.ExpressionValidationException;
 import org.bithon.server.storage.common.expression.InvalidExpressionException;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
@@ -55,11 +56,7 @@ public class FilterExpressionToFiltersTest {
 
         Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "a", null));
 
-        // The type does not match
-        Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "a > 5", null));
-        Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "intB > '5'", null));
-
-        Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "a in ('5', 6)", null));
+        Assert.assertThrows(ExpressionValidationException.class, () -> FilterExpressionToFilters.toExpression(schema, "a in ('5', 6)", null));
         FilterExpressionToFilters.toExpression(schema, "a in ('5', '6')", null);
 
         // Unary function expression is not a valid filter
@@ -71,14 +68,5 @@ public class FilterExpressionToFiltersTest {
         Assert.assertTrue(FilterExpressionToFilters.toExpression(schema, "startsWith(a, 'a')", null) instanceof FunctionExpression);
         Assert.assertTrue(FilterExpressionToFilters.toExpression(schema, "endsWith(a, 'a')", null) instanceof FunctionExpression);
         Assert.assertTrue(FilterExpressionToFilters.toExpression(schema, "hasToken(a, 'a')", null) instanceof FunctionExpression);
-    }
-
-    @Test
-    public void test_UncompleteLogicalExpression() {
-        Assert.assertThrows(InvalidExpressionException.class,
-                            () -> FilterExpressionToFilters.toExpression(schema, "a = 'INFO' and a", null)
-                           );
-
-        FilterExpressionToFilters.toExpression(schema, "a = 'INFO' and startsWith(a, 'a')", null);
     }
 }

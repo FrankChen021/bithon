@@ -49,9 +49,7 @@ public interface IExpressionVisitor2<T> {
         return null;
     }
 
-    default T visit(ComparisonExpression expression) {
-        return null;
-    }
+    default T visit(ConditionalExpression expression) { return null; }
 
     default T visit(MacroExpression expression) {
         return null;

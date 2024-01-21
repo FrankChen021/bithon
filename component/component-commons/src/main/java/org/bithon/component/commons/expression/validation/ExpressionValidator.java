@@ -14,32 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.ast;
+package org.bithon.component.commons.expression.validation;
 
-import lombok.Getter;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.bithon.server.storage.datasource.builtin.Functions;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/11/3 22:18
+ * @date 2024/1/20 14:00
  */
-public class Expression implements IASTNode {
+public class ExpressionValidator {
 
-    @Getter
-    private final String expression;
-
-    @Getter
-    private final IExpression parsedExpression;
-
-    public Expression(String expression) {
-        this.expression = expression;
-        this.parsedExpression = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build(expression);
-    }
-
-    @Override
-    public void accept(IASTNodeVisitor visitor) {
-        visitor.visit(this);
+    public void validate(IExpression expression, boolean validateIdentifier) {
+        // Type validation
+        expression.accept(new ExpressionTypeValidator(validateIdentifier));
     }
 }

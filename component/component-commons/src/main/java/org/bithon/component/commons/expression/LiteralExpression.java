@@ -16,54 +16,39 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.validation.ExpressionValidationException;
+
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/4/7 20:17
  */
-public class LiteralExpression implements IExpression {
-    private final Object value;
-    private final IDataType dataType;
+public abstract class LiteralExpression implements IExpression {
 
-    public LiteralExpression(String value) {
-        this.value = value;
-        this.dataType = IDataType.STRING;
-    }
-
-    public LiteralExpression(long value) {
-        this.value = value;
-        this.dataType = IDataType.LONG;
-    }
-
-    public LiteralExpression(double value) {
-        this.value = value;
-        this.dataType = IDataType.DOUBLE;
-    }
-
-    public LiteralExpression(boolean value) {
-        this.value = value;
-        this.dataType = IDataType.BOOLEAN;
-    }
-
-    public LiteralExpression(Object value) {
-        this.value = value;
+    public static LiteralExpression create(Object value) {
         if (value instanceof String) {
-            this.dataType = IDataType.STRING;
+            return new StringLiteral((String) value);
         } else if (value instanceof Long || value instanceof Integer) {
-            this.dataType = IDataType.LONG;
+            return new LongLiteral(((Number) value).longValue());
         } else if (value instanceof Boolean) {
-            this.dataType = IDataType.BOOLEAN;
+            return new BooleanLiteral((boolean) value);
         } else if (value instanceof Double || value instanceof Float || value instanceof BigDecimal) {
-            this.dataType = IDataType.DOUBLE;
+            return new DoubleLiteral((Number) value);
         } else {
             throw new UnsupportedOperationException("Not support literal type: " + value.getClass().getName());
         }
     }
 
-    @Override
-    public IDataType getDataType() {
-        return this.dataType;
+    protected final Object value;
+
+    public abstract LiteralExpression castTo(IDataType targetType);
+
+    protected LiteralExpression(Object value) {
+        this.value = value;
     }
 
     public Object getValue() {
@@ -71,7 +56,8 @@ public class LiteralExpression implements IExpression {
     }
 
     public boolean isNumber() {
-        return this.dataType.equals(IDataType.DOUBLE) || this.dataType.equals(IDataType.LONG);
+        IDataType dataType = getDataType();
+        return getDataType().equals(IDataType.DOUBLE) || dataType.equals(IDataType.LONG);
     }
 
     public String asString() {
@@ -83,13 +69,14 @@ public class LiteralExpression implements IExpression {
     }
 
     public boolean asBoolean() {
-        if (this.dataType.equals(IDataType.BOOLEAN)) {
+        IDataType dataType = getDataType();
+        if (dataType.equals(IDataType.BOOLEAN)) {
             return (boolean) value;
         }
-        if (this.dataType.equals(IDataType.LONG)) {
+        if (dataType.equals(IDataType.LONG)) {
             return ((long) value) != 0;
         }
-        if (this.dataType.equals(IDataType.DOUBLE)) {
+        if (dataType.equals(IDataType.DOUBLE)) {
             return ((double) value) != 0;
         }
         throw new RuntimeException("Unable to convert to boolean for expression: " + this.serializeToText());
@@ -113,5 +100,163 @@ public class LiteralExpression implements IExpression {
     @Override
     public Object evaluate(IEvaluationContext context) {
         return value;
+    }
+
+    public static class StringLiteral extends LiteralExpression {
+        public StringLiteral(String value) {
+            super(value);
+        }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.STRING;
+        }
+
+        @Override
+        public LiteralExpression castTo(IDataType targetType) {
+            try {
+                switch (targetType) {
+                    case LONG:
+                        return new LiteralExpression.LongLiteral(Long.parseLong(value.toString()));
+
+                    case DOUBLE:
+                        return new LiteralExpression.DoubleLiteral(Double.parseDouble(value.toString()));
+
+                    case BOOLEAN:
+                        return new LiteralExpression.BooleanLiteral("true".equalsIgnoreCase(value.toString()));
+                    case STRING:
+                        return this;
+
+                    case DATETIME_3: {
+                        try {
+                            long timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
+                                                                  Locale.ENGLISH).parse(value.toString())
+                                                                                 .getTime();
+
+                            return new DateTime3Literal(timestamp);
+                        } catch (ParseException e) {
+                            throw new ExpressionValidationException(e.getMessage());
+                        }
+                    }
+
+                    default:
+                        throw new UnsupportedOperationException("Can't cast a boolean value into type of " + targetType);
+                }
+            } catch (NumberFormatException e) {
+                throw new ExpressionValidationException("Unable to parse String[%s] into number", value);
+            }
+        }
+    }
+
+    public static class LongLiteral extends LiteralExpression {
+
+        public LongLiteral(long value) {
+            super(value);
+        }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.LONG;
+        }
+
+        @Override
+        public LiteralExpression castTo(IDataType targetType) {
+            switch (targetType) {
+                case STRING:
+                    return new LiteralExpression.StringLiteral(value.toString());
+
+                case LONG:
+                    return this;
+
+                case DOUBLE:
+                    return new LiteralExpression.DoubleLiteral((Number) value);
+
+                case BOOLEAN:
+                    return new LiteralExpression.BooleanLiteral(((long) value) != 0);
+
+                case DATETIME_3:
+                    return new DateTime3Literal((long) value);
+
+                default:
+                    throw new UnsupportedOperationException("Can't cast a boolean value into type of " + targetType);
+            }
+        }
+    }
+
+    public static class DoubleLiteral extends LiteralExpression {
+
+        public DoubleLiteral(Number value) {
+            super(value);
+        }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.DOUBLE;
+        }
+
+        @Override
+        public LiteralExpression castTo(IDataType targetType) {
+            switch (targetType) {
+                case STRING:
+                    return new LiteralExpression.StringLiteral(value.toString());
+
+                case LONG:
+                    return new LiteralExpression.LongLiteral(((Number) value).longValue());
+
+                case DOUBLE:
+                    return this;
+
+                case BOOLEAN:
+                    return new LiteralExpression.BooleanLiteral(((Number) value).doubleValue() != 0);
+
+                default:
+                    throw new UnsupportedOperationException("Can't cast a boolean value into type of " + targetType);
+            }
+        }
+    }
+
+    public static class BooleanLiteral extends LiteralExpression {
+        public BooleanLiteral(boolean value) {
+            super(value);
+        }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.BOOLEAN;
+        }
+
+        @Override
+        public LiteralExpression castTo(IDataType targetType) {
+            switch (targetType) {
+                case STRING:
+                    return new LiteralExpression.StringLiteral((boolean) value ? "true" : "false");
+
+                case LONG:
+                    return new LiteralExpression.LongLiteral((boolean) value ? 1 : 0);
+
+                case BOOLEAN:
+                    return this;
+
+                default:
+                    throw new UnsupportedOperationException("Can't cast a boolean value into type of " + targetType);
+            }
+        }
+    }
+
+    public static class DateTime3Literal extends LiteralExpression {
+
+        public DateTime3Literal(long milliseconds) {
+            super(milliseconds);
+        }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.DATETIME_3;
+        }
+
+        @Override
+        public LiteralExpression castTo(IDataType targetType) {
+            throw new UnsupportedOperationException();
+        }
     }
 }

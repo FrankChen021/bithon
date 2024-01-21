@@ -20,6 +20,7 @@ import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ArrayAccessExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -212,8 +213,12 @@ public class TraceService {
                 return;
             }
 
-            if (!(expression instanceof LogicalExpression) && !(expression instanceof ComparisonExpression)) {
-                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "The given expression is neither a logical expression(and/or/not) nor a comparison expression.");
+            if (!(expression instanceof LogicalExpression)
+                && !(expression instanceof ConditionalExpression)
+            ) {
+                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                                "The given expression is neither a logical expression(and/or/not) nor a conditional expression, but a %s",
+                                                expression.getType());
             }
 
             TagFilterExtractor extractor = new TagFilterExtractor(this.traceStorageConfig);
@@ -265,7 +270,7 @@ public class TraceService {
         }
 
         @Override
-        public Boolean visit(ComparisonExpression expression) {
+        public Boolean visit(ConditionalExpression expression) {
             IExpression left = expression.getLeft();
             if (left instanceof IdentifierExpression) {
                 return isFilterOnIndexedTag((IdentifierExpression) left);
@@ -297,7 +302,7 @@ public class TraceService {
             }
             if (nonTagsFilters.isEmpty()) {
                 // Add a placeholder expression so simple further processing
-                nonTagsFilters.add(new ComparisonExpression.EQ(new LiteralExpression(1), new LiteralExpression(1)));
+                nonTagsFilters.add(new ComparisonExpression.EQ(LiteralExpression.create(1), LiteralExpression.create(1)));
             }
             expression.setOperands(nonTagsFilters);
 

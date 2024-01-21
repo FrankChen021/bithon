@@ -70,8 +70,8 @@ public abstract class AbstractFunction implements IFunction {
     protected void validateParameter(IExpression parameter, int index) {
         if (parameter instanceof LiteralExpression) {
             IDataType declaredType = this.getParameters().get(index).getType();
-            IDataType inputType = ((LiteralExpression) parameter).getDataType();
-            if (!declaredType.isCompatible(inputType)) {
+            IDataType inputType = parameter.getDataType();
+            if (!declaredType.canCastFrom(inputType)) {
                 throw new InvalidExpressionException("The parameter at index %d of function [%s] must be type of %s",
                                                      index,
                                                      name,

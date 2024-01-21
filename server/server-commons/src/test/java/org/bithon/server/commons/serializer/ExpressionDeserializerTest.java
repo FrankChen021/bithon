@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -41,14 +42,14 @@ public class ExpressionDeserializerTest {
         m.addDeserializer(IExpression.class, new ExpressionDeserializer());
         om.registerModule(m);
 
-        IExpression expression = new LogicalExpression.AND(new ComparisonExpression.GT(new LiteralExpression(1),
-                                                                                       new LiteralExpression(2)),
-                                                           new LiteralExpression(true),
+        IExpression expression = new LogicalExpression.AND(new ComparisonExpression.GT(LiteralExpression.create(1),
+                                                                                       LiteralExpression.create(2)),
+                                                           LiteralExpression.create(true),
                                                            new IdentifierExpression("a"),
-                                                           new ComparisonExpression.IN(new IdentifierExpression("a"),
-                                                                                       new ExpressionList(new LiteralExpression(1),
-                                                                                                          new LiteralExpression(2))),
-                                                           new ComparisonExpression.LIKE(new IdentifierExpression("a"), new LiteralExpression("c"))
+                                                           new ConditionalExpression.In(new IdentifierExpression("a"),
+                                                                                        new ExpressionList(LiteralExpression.create(1),
+                                                                                                           LiteralExpression.create(2))),
+                                                           new ConditionalExpression.Like(new IdentifierExpression("a"), LiteralExpression.create("c"))
         );
 
         String jsonText = om.writeValueAsString(expression);

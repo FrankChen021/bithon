@@ -19,7 +19,7 @@ package org.bithon.component.commons.expression.serialization;
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ArrayAccessExpression;
 import org.bithon.component.commons.expression.BinaryExpression;
-import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -65,7 +65,7 @@ public class ExpressionSerializer implements IExpressionVisitor {
     @Override
     public boolean visit(LiteralExpression expression) {
         Object value = expression.getValue();
-        if (value instanceof String) {
+        if (expression instanceof LiteralExpression.StringLiteral) {
             sb.append('\'');
             sb.append(value);
             sb.append('\'');
@@ -97,7 +97,6 @@ public class ExpressionSerializer implements IExpressionVisitor {
         return false;
     }
 
-
     @Override
     public boolean visit(IdentifierExpression expression) {
         if (StringUtils.hasText(qualifier)
@@ -118,7 +117,7 @@ public class ExpressionSerializer implements IExpressionVisitor {
     }
 
     @Override
-    public boolean visit(ComparisonExpression expression) {
+    public boolean visit(ConditionalExpression expression) {
         visitBinary(expression);
         return false;
     }
@@ -190,7 +189,7 @@ public class ExpressionSerializer implements IExpressionVisitor {
         return false;
     }
 
-    protected void visitBinary(BinaryExpression expression) {
+    private boolean visitBinary(BinaryExpression expression) {
         IExpression left = expression.getLeft();
         if (left instanceof BinaryExpression) {
             sb.append('(');
@@ -211,5 +210,7 @@ public class ExpressionSerializer implements IExpressionVisitor {
         if (right instanceof BinaryExpression) {
             sb.append(')');
         }
+
+        return false;
     }
 }

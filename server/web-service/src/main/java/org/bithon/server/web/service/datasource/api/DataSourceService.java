@@ -23,6 +23,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
@@ -161,7 +162,7 @@ public class DataSourceService {
                       .resultColumns(resultColumnList)
                       .dataSource(schema)
                       .filter(FilterExpressionToFilters.toExpression(schema, query.getFilterExpression(), query.getFilters()))
-                      .interval(Interval.of(start, end, step, ExpressionASTBuilder.build(timestampColumn)))
+                      .interval(Interval.of(start, end, step, ExpressionASTBuilder.builder().functions(Functions.getInstance()).build(timestampColumn)))
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())
                       .resultFormat(query.getResultFormat() == null

@@ -18,21 +18,14 @@ package org.bithon.component.commons.expression;
 
 import org.bithon.component.commons.utils.StringUtils;
 
-import java.util.Set;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/7/27 19:53
  */
-public abstract class ComparisonExpression extends BinaryExpression {
+public abstract class ComparisonExpression extends ConditionalExpression {
 
     protected ComparisonExpression(String type, IExpression left, IExpression right) {
         super(type, left, right);
-    }
-
-    @Override
-    public IDataType getDataType() {
-        return IDataType.BOOLEAN;
     }
 
     @Override
@@ -108,6 +101,12 @@ public abstract class ComparisonExpression extends BinaryExpression {
 
     protected abstract boolean compare(long v1, long v2);
 
+    /**
+     * Flip the two operators.
+     * For example: flip(a > b) = b < a
+     */
+    public abstract ComparisonExpression flip();
+
     public static class LT extends ComparisonExpression {
 
         public LT(IExpression left, IExpression right) {
@@ -127,6 +126,11 @@ public abstract class ComparisonExpression extends BinaryExpression {
         @Override
         protected boolean compare(long v1, long v2) {
             return v1 < v2;
+        }
+
+        @Override
+        public ComparisonExpression flip() {
+            return new ComparisonExpression.GT(right, left);
         }
     }
 
@@ -150,6 +154,11 @@ public abstract class ComparisonExpression extends BinaryExpression {
         protected boolean compare(long v1, long v2) {
             return v1 <= v2;
         }
+
+        @Override
+        public ComparisonExpression flip() {
+            return new ComparisonExpression.GTE(right, left);
+        }
     }
 
     public static class GT extends ComparisonExpression {
@@ -171,6 +180,11 @@ public abstract class ComparisonExpression extends BinaryExpression {
         @Override
         protected boolean compare(long v1, long v2) {
             return v1 > v2;
+        }
+
+        @Override
+        public ComparisonExpression flip() {
+            return new ComparisonExpression.LT(right, left);
         }
     }
 
@@ -194,6 +208,11 @@ public abstract class ComparisonExpression extends BinaryExpression {
         protected boolean compare(long v1, long v2) {
             return v1 >= v2;
         }
+
+        @Override
+        public ComparisonExpression flip() {
+            return new ComparisonExpression.LTE(right, left);
+        }
     }
 
     public static class NE extends ComparisonExpression {
@@ -215,6 +234,11 @@ public abstract class ComparisonExpression extends BinaryExpression {
         @Override
         protected boolean compare(long v1, long v2) {
             return v1 != v2;
+        }
+
+        @Override
+        public ComparisonExpression flip() {
+            return new ComparisonExpression.NE(right, left);
         }
 
         @Override
@@ -249,6 +273,11 @@ public abstract class ComparisonExpression extends BinaryExpression {
         }
 
         @Override
+        public ComparisonExpression flip() {
+            return new ComparisonExpression.EQ(right, left);
+        }
+
+        @Override
         protected Object compareRNull(Object lv) {
             return lv == null;
         }
@@ -256,107 +285,6 @@ public abstract class ComparisonExpression extends BinaryExpression {
         @Override
         protected Object compareLNull(Object lv) {
             return lv == null;
-        }
-    }
-
-    public static class IN extends ComparisonExpression {
-
-        public IN(IExpression left, ExpressionList right) {
-            super("in", left, right);
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public Object evaluate(IEvaluationContext context) {
-            Object l = left.evaluate(context);
-            if (l == null) {
-                return false;
-            }
-
-            Set<Object> sets = (Set<Object>) right.evaluate(context);
-            Object o = sets.iterator().next();
-            if (o instanceof String) {
-                return sets.contains(l.toString());
-            }
-            if (o instanceof Long) {
-                return sets.contains(toLong(l));
-            }
-            if (o instanceof Double) {
-                return sets.contains(toDouble(l));
-            }
-
-            throw new UnsupportedOperationException("Type of " + o.getClass().getSimpleName() + " is not supported by IN operator");
-        }
-
-        @Override
-        protected boolean compare(String v1, String v2) {
-            return false;
-        }
-
-        @Override
-        protected boolean compare(double v1, double v2) {
-            return false;
-        }
-
-        @Override
-        protected boolean compare(long v1, long v2) {
-            return false;
-        }
-
-        private Object toLong(Object o) {
-            if (o instanceof Long) {
-                return o;
-            }
-            if (o instanceof Number) {
-                return ((Number) o).longValue();
-            }
-            return Long.parseLong(o.toString());
-        }
-
-        private Object toDouble(Object o) {
-            if (o instanceof Double) {
-                return o;
-            }
-            if (o instanceof Number) {
-                return ((Number) o).doubleValue();
-            }
-            return Double.parseDouble(o.toString());
-        }
-    }
-
-    public static class LIKE extends ComparisonExpression {
-
-        public LIKE(IExpression left, IExpression right) {
-            super("like", left, right);
-        }
-
-        @Override
-        public Object evaluate(IEvaluationContext context) {
-            String r = (String) right.evaluate(context);
-
-            // Escape any special characters in the pattern
-            String pattern = r.replaceAll("%", "\\\\%").replaceAll("_", "\\\\_");
-
-            // Replace SQL wildcard characters with Java regex wildcard characters
-            pattern = pattern.replaceAll("%", ".*").replaceAll("_", ".");
-
-            String l = (String) left.evaluate(context);
-            return l != null && l.contains(pattern);
-        }
-
-        @Override
-        protected boolean compare(String v1, String v2) {
-            return false;
-        }
-
-        @Override
-        protected boolean compare(double v1, double v2) {
-            return false;
-        }
-
-        @Override
-        protected boolean compare(long v1, long v2) {
-            return false;
         }
     }
 }

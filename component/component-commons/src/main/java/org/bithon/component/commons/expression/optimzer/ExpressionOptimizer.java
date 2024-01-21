@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.common.expression.optimizer;
+package org.bithon.component.commons.expression.optimzer;
 
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ArrayAccessExpression;
-import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
@@ -92,7 +92,7 @@ public class ExpressionOptimizer {
         }
 
         @Override
-        public IExpression visit(ComparisonExpression expression) {
+        public IExpression visit(ConditionalExpression expression) {
             return expression;
         }
 
@@ -116,7 +116,7 @@ public class ExpressionOptimizer {
 
             if (literalCount == expression.getOperands().size()) {
                 // All sub expressions are literal, do constant folding
-                return new LiteralExpression(expression.evaluate(null));
+                return LiteralExpression.create(expression.evaluate(null));
             } else {
                 return expression;
             }
@@ -132,7 +132,7 @@ public class ExpressionOptimizer {
                 literalCount += newParameter instanceof LiteralExpression ? 1 : 0;
             }
             if (literalCount == expression.getParameters().size()) {
-                return new LiteralExpression(expression.evaluate(null));
+                return LiteralExpression.create(expression.evaluate(null));
             }
             return expression;
         }
@@ -143,7 +143,7 @@ public class ExpressionOptimizer {
             if (arrayExpression instanceof LiteralExpression) {
                 Object[] array = ((LiteralExpression) arrayExpression).asArray();
                 if (array.length > expression.getIndex()) {
-                    return new LiteralExpression(array[expression.getIndex()]);
+                    return LiteralExpression.create(array[expression.getIndex()]);
                 } else {
                     throw new RuntimeException("Out of index");
                 }
@@ -157,17 +157,17 @@ public class ExpressionOptimizer {
             super.visit(expression);
 
             if (expression.getLeft() instanceof LiteralExpression && expression.getRight() instanceof LiteralExpression) {
-                return new LiteralExpression(expression.evaluate(null));
+                return LiteralExpression.create(expression.evaluate(null));
             }
             return expression;
         }
 
         @Override
-        public IExpression visit(ComparisonExpression expression) {
+        public IExpression visit(ConditionalExpression expression) {
             expression.setLeft(expression.getLeft().accept(this));
             expression.setRight(expression.getRight().accept(this));
             if (expression.getLeft() instanceof LiteralExpression && expression.getRight() instanceof LiteralExpression) {
-                return new LiteralExpression(expression.evaluate(null));
+                return LiteralExpression.create(expression.evaluate(null));
             }
             return expression;
         }
@@ -181,7 +181,7 @@ public class ExpressionOptimizer {
         }
 
         @Override
-        public IExpression visit(ComparisonExpression expression) {
+        public IExpression visit(ConditionalExpression expression) {
             expression.setLeft(expression.getLeft().accept(this));
             expression.setRight(expression.getRight().accept(this));
             return expression;
@@ -200,8 +200,8 @@ public class ExpressionOptimizer {
                 char chr = needle.charAt(i);
                 if (isTokenSeparator(chr)) {
                     // replace this function into a LIKE expression
-                    return new ComparisonExpression.LIKE(expression.getParameters().get(0),
-                                                         new LiteralExpression("%" + needle + "%"));
+                    return new ConditionalExpression.Like(expression.getParameters().get(0),
+                                                          LiteralExpression.create("%" + needle + "%"));
                 }
             }
             return expression;
@@ -255,16 +255,16 @@ public class ExpressionOptimizer {
             if (((LiteralExpression) subExpression).isNumber()) {
                 if (((LiteralExpression) subExpression).asBoolean()) {
                     // the sub expression is true, the whole expression is false
-                    return new LiteralExpression(false);
+                    return LiteralExpression.create(false);
                 } else {
-                    return new LiteralExpression(true);
+                    return LiteralExpression.create(true);
                 }
-            } else if (IDataType.BOOLEAN.equals(((LiteralExpression) subExpression).getDataType())) {
+            } else if (IDataType.BOOLEAN.equals(subExpression.getDataType())) {
                 if (((LiteralExpression) subExpression).asBoolean()) {
                     // the sub expression is true, the whole expression is false
-                    return new LiteralExpression(false);
+                    return LiteralExpression.create(false);
                 } else {
-                    return new LiteralExpression(true);
+                    return LiteralExpression.create(true);
                 }
             }
             return expression;
@@ -283,13 +283,13 @@ public class ExpressionOptimizer {
                 if (((LiteralExpression) subExpression).isNumber()) {
                     if (((LiteralExpression) subExpression).asBoolean()) {
                         // the sub expression is true, the whole expression is true
-                        return new LiteralExpression(true);
+                        return LiteralExpression.create(true);
                     } else {
                         // The sub expression is false, it should be removed from the expression list
                         subExpressionIterator.remove();
 
                     }
-                } else if (IDataType.BOOLEAN.equals(((LiteralExpression) subExpression).getDataType())) {
+                } else if (IDataType.BOOLEAN.equals(subExpression.getDataType())) {
                     if (((LiteralExpression) subExpression).asBoolean()) {
                         // the sub expression is true, the whole expression is true
                         return subExpression;
@@ -302,7 +302,7 @@ public class ExpressionOptimizer {
 
             int subExprSize = expression.getOperands().size();
             if (subExprSize == 0) {
-                return new LiteralExpression(true);
+                return LiteralExpression.create(true);
             }
             if (subExprSize == 1) {
                 return expression.getOperands().get(0);
@@ -326,9 +326,9 @@ public class ExpressionOptimizer {
                         subExpressionIterator.remove();
                     } else {
                         // The sub expression is false, the whole expression is FALSE
-                        return new LiteralExpression(false);
+                        return LiteralExpression.create(false);
                     }
-                } else if (IDataType.BOOLEAN.equals(((LiteralExpression) subExpression).getDataType())) {
+                } else if (IDataType.BOOLEAN.equals(subExpression.getDataType())) {
                     if (((LiteralExpression) subExpression).asBoolean()) {
                         // sub expression is true, remove it from the AND expression
                         subExpressionIterator.remove();
@@ -341,7 +341,7 @@ public class ExpressionOptimizer {
 
             int subExprSize = andExpression.getOperands().size();
             if (subExprSize == 0) {
-                return new LiteralExpression(true);
+                return LiteralExpression.create(true);
             }
             if (subExprSize == 1) {
                 return andExpression.getOperands().get(0);

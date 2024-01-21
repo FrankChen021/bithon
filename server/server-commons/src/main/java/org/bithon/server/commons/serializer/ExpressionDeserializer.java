@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -75,9 +76,9 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
                 case "!=":
                     return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.NE::new);
                 case "in":
-                    return new ComparisonExpression.IN(Expression.deserialize(jsonNode.get("left")), ExpressionListExpressionDeserializer.deserialize(jsonNode.get("right")));
+                    return new ConditionalExpression.In(Expression.deserialize(jsonNode.get("left")), ExpressionListExpressionDeserializer.deserialize(jsonNode.get("right")));
                 case "like":
-                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.LIKE::new);
+                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ConditionalExpression.Like::new);
                 case "literal":
                     return LiteralExpressionDeserializer.deserialize(jsonNode);
                 case "logical":
@@ -146,19 +147,19 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
 
             JsonNode valueNode = jsonNode.get("value");
             if (valueNode.isTextual()) {
-                return new LiteralExpression(valueNode.asText());
+                return LiteralExpression.create(valueNode.asText());
             }
 
             if (valueNode.isLong()) {
-                return new LiteralExpression(valueNode.asLong());
+                return LiteralExpression.create(valueNode.asLong());
             }
 
             if (valueNode.isInt()) {
-                return new LiteralExpression(valueNode.asInt());
+                return LiteralExpression.create(valueNode.asInt());
             }
 
             if (valueNode.isBoolean()) {
-                return new LiteralExpression(valueNode.asBoolean());
+                return LiteralExpression.create(valueNode.asBoolean());
             }
             throw new UnsupportedOperationException("value is not type of any [String/Long/Int/Boolean]");
         }

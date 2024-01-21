@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;
 import lombok.Setter;
 import org.bithon.server.commons.time.Period;
+import org.bithon.server.storage.datasource.column.DateTimeColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.LongColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
@@ -103,7 +104,7 @@ public class DataSourceSchema {
     @JsonIgnore
     private boolean isVirtual = false;
 
-    private static final IColumn TIMESTAMP_COLUMN = new LongColumn("timestamp", "timestamp");
+    private static final IColumn TIMESTAMP_COLUMN = new DateTimeColumn("timestamp", "timestamp");
 
     public DataSourceSchema(String displayText,
                             String name,
@@ -149,10 +150,12 @@ public class DataSourceSchema {
 
         columnMap.putIfAbsent(IAggregatableColumn.COUNT, AggregateCountColumn.INSTANCE);
 
-        if ("timestamp".equals(timestampSpec.getTimestampColumn())) {
+        if ("timestamp".equals(this.timestampSpec.getTimestampColumn())) {
             this.columnMap.put(TIMESTAMP_COLUMN.getName(), TIMESTAMP_COLUMN);
         } else {
-            this.columnMap.put(timestampSpec.getTimestampColumn(), new LongColumn(timestampSpec.getTimestampColumn(), timestampSpec.getTimestampColumn()));
+            this.columnMap.put(this.timestampSpec.getTimestampColumn(),
+                               new LongColumn(this.timestampSpec.getTimestampColumn(),
+                                              this.timestampSpec.getTimestampColumn()));
         }
     }
 

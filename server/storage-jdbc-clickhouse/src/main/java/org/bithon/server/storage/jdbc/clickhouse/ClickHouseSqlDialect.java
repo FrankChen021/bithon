@@ -19,6 +19,7 @@ package org.bithon.server.storage.jdbc.clickhouse;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
@@ -98,5 +99,10 @@ public class ClickHouseSqlDialect implements ISqlDialect {
     @Override
     public String lastAggregator(String field, long window) {
         return StringUtils.format("argMax(%s, %s)", quoteIdentifier(field), quoteIdentifier("timestamp"));
+    }
+
+    @Override
+    public String formatDateTime(LiteralExpression.DateTime3Literal expression) {
+        return StringUtils.format("fromUnixTimestamp64Milli(%d)", expression.getValue());
     }
 }
