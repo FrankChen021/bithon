@@ -65,7 +65,7 @@ public class ExpressionSerializer implements IExpressionVisitor {
     @Override
     public boolean visit(LiteralExpression expression) {
         Object value = expression.getValue();
-        if (value instanceof String) {
+        if (expression instanceof LiteralExpression.StringLiteral) {
             sb.append('\'');
             sb.append(value);
             sb.append('\'');

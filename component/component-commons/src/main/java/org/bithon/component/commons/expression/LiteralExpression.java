@@ -17,7 +17,6 @@
 package org.bithon.component.commons.expression;
 
 import org.bithon.component.commons.expression.validation.ExpressionValidationException;
-import org.bithon.component.commons.time.DateTime;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -128,13 +127,13 @@ public abstract class LiteralExpression implements IExpression {
                     case STRING:
                         return this;
 
-                    case DATETIME: {
+                    case DATETIME_3: {
                         try {
                             long timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
                                                                   Locale.ENGLISH).parse(value.toString())
                                                                                  .getTime();
 
-                            return new LiteralExpression.DateTimeLiteral(DateTime.toISO8601(timestamp));
+                            return new DateTime3Literal(timestamp);
                         } catch (ParseException e) {
                             throw new ExpressionValidationException(e.getMessage());
                         }
@@ -173,10 +172,10 @@ public abstract class LiteralExpression implements IExpression {
                     return new LiteralExpression.DoubleLiteral((Number) value);
 
                 case BOOLEAN:
-                    return new LiteralExpression.BooleanLiteral(((Number) value).longValue() != 0);
+                    return new LiteralExpression.BooleanLiteral(((long) value) != 0);
 
-                case DATETIME:
-                    return new LiteralExpression.DateTimeLiteral(DateTime.toISO8601((long) value));
+                case DATETIME_3:
+                    return new DateTime3Literal((long) value);
 
                 default:
                     throw new UnsupportedOperationException("Can't cast a boolean value into type of " + targetType);
@@ -244,15 +243,15 @@ public abstract class LiteralExpression implements IExpression {
         }
     }
 
-    public static class DateTimeLiteral extends LiteralExpression {
+    public static class DateTime3Literal extends LiteralExpression {
 
-        public DateTimeLiteral(String value) {
-            super(value);
+        public DateTime3Literal(long milliseconds) {
+            super(milliseconds);
         }
 
         @Override
         public IDataType getDataType() {
-            return IDataType.DATETIME;
+            return IDataType.DATETIME_3;
         }
 
         @Override

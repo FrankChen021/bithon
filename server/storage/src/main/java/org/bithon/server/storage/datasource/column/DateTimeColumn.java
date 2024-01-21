@@ -33,7 +33,7 @@ public class DateTimeColumn extends AbstractColumn {
 
     @Override
     public IDataType getDataType() {
-        return IDataType.DATETIME;
+        return IDataType.DATETIME_3;
     }
 
     @Override

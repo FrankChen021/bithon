@@ -23,6 +23,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
+import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
@@ -118,5 +119,10 @@ public class MySQLSqlDialect implements ISqlDialect {
                 return expression;
             }
         });
+    }
+
+    @Override
+    public String formatDateTime(LiteralExpression.DateTime3Literal expression) {
+        return "'" + DateTime.toISO8601((Long) expression.getValue()) + "'";
     }
 }

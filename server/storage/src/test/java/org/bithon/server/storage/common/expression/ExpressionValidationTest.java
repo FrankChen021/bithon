@@ -17,7 +17,6 @@
 package org.bithon.server.storage.common.expression;
 
 import org.bithon.component.commons.expression.validation.ExpressionValidationException;
-import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -101,9 +100,9 @@ public class ExpressionValidationTest {
     @Test
     public void test_StringToDateTimeImplicitConversion() throws ParseException {
         String dateTime = "2023-01-04 00:00:00";
-        String expected = DateTime.toISO8601(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dateTime).getTime());
+        long timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dateTime).getTime();
 
-        Assert.assertEquals(StringUtils.format("timestamp > '%s'", expected),
+        Assert.assertEquals(StringUtils.format("timestamp > %d", timestamp),
 
                             ExpressionASTBuilder.builder()
                                                 .schema(schema)
@@ -127,7 +126,7 @@ public class ExpressionValidationTest {
     public void test_LongToDateTimeImplicitConversion() {
         // Long ---> DateTime
         TimeSpan timeSpan = TimeSpan.fromISO8601("2023-01-04T00:00:00.000+08:00");
-        Assert.assertEquals(StringUtils.format("timestamp > '%s'", DateTime.toISO8601(timeSpan.getMilliseconds())),
+        Assert.assertEquals(StringUtils.format("timestamp > %d", timeSpan.getMilliseconds()),
                             ExpressionASTBuilder.builder()
                                                 .schema(schema)
                                                 .build("timestamp > " + timeSpan.getMilliseconds())

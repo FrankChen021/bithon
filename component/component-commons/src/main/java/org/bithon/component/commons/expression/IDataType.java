@@ -217,7 +217,10 @@ public enum IDataType {
         }
     },
 
-    DATETIME {
+    /**
+     * The DateTime that stores the time in milliseconds
+     */
+    DATETIME_3 {
         @Override
         public boolean canCastFrom(IDataType dataType) {
             return false;
