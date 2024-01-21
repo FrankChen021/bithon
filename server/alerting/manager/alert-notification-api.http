@@ -1,0 +1,46 @@
+### Create an Console notification provider
+POST http://localhost:9897/alerting/api/alert/notification/create
+Content-Type: application/json
+
+{
+  "id": "1",
+  "name": "console-1",
+  "type": "console"
+}
+
+### Create an HTTP notification provider
+POST http://localhost:9897/alerting/api/alert/notification/create
+Content-Type: application/json
+
+{
+  "id": "2",
+  "name": "http-1",
+  "type": "http",
+  "url": "http://localhost:9897/api/no-exist",
+  "headers": {
+    "X-Fake": "value"
+  }
+}
+
+### Create an Kafka notification provider
+POST http://localhost:9897/alerting/api/alert/notification/create
+Content-Type: application/json
+
+{
+  "id": "3",
+  "name": "kafka",
+  "type": "kafka",
+  "bootstrapServer": "localhost:9092",
+  "topic": "alert",
+  "producerProps": {
+    "request.ms": 100
+  }
+}
+
+### Get provider
+POST http://localhost:9897/alerting/api/alert/notification/get
+
+
+### DELETE an HTTP notification provider
+POST http://localhost:9897/alerting/api/alert/notification/delete?id=1
+

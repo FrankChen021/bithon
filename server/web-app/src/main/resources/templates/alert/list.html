@@ -1,0 +1,294 @@
+<!DOCTYPE HTML>
+<html lang="zh_CN"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{app/app-layout}"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.ultraq.net.nz/thymeleaf/layout ">
+<head>
+    <title>Bithon Alert List</title>
+
+    <script th:src="@{/js/dialog.js}" type="text/javascript"></script>
+    <script th:src="@{/js/utils.js}" type="text/javascript"></script>
+
+    <script th:src="@{/js/alert/log-component.js}" type="text/javascript"></script>
+</head>
+<body>
+<div layout:fragment="content">
+
+<!--    <div id="toolbar">-->
+<!--        &lt;!&ndash;        <button class="btn btn-primary btn-create">New Alert</button>&ndash;&gt;-->
+<!--    </div>-->
+
+    <!-- Table -->
+    <table class="table" data-buttons-align="right" id="alertTable">
+    </table>
+
+    <script type="text/javascript">
+        function refreshPage() {
+            $('#alertTable').bootstrapTable('refreshOptions', {
+                pageNumber: 1
+            });
+        }
+
+        $(document).ready(function () {
+
+            new AppSelector({
+                parentId: 'filterBar'
+            }).registerChangedListener((text, value) => {
+                g_SelectedApp = value;
+
+                refreshPage();
+            }).createAppSelector(g_SelectedApp);
+
+            // View - Refresh Button
+            $('#filterBarForm').append('<button class="btn btn-outline-secondary" style="border-radius:0;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
+                .find("button").click(() => { refreshPage();}
+            );
+
+            $('#alertTable').bootstrapTable({
+                //toolbar: '#toolbar',
+
+                url: apiHost + '/alerting/api/alert/getAlerts',
+                method: 'post',
+                contentType: "application/json",
+                showRefresh: false,
+
+                buttonsAlign: 'right',
+                sidePagination: "server",
+                pagination: true,
+                paginationPreText: '<',
+                paginationNextText: '>',
+                pageNumber: 1,
+                pageSize: 10,
+                pageList: [10, 25, 50],
+                sortName: 'lastAlertAt',
+                sortOrder: 'desc',
+
+                queryParamsType: '',
+                queryParams: function (params) {
+                    return {
+                        alertName: params.searchText,
+                        appName: g_SelectedApp,
+                        limit: {
+                            limit: params.pageSize,
+                            offset: (params.pageNumber - 1) * params.pageSize,
+                        },
+                        order: {
+                            name: params.sortName,
+                            order: params.sortOrder
+                        }
+                    };
+                },
+
+                filterControl: false,
+                filterShowClear: false,
+                search: false,
+                showSearchClearButton: true,
+                searchOnEnterKey: true,
+                formatSearch: function () {
+                    return 'Search by alert name';
+                },
+
+                uniqueId: 'alertId',
+                columns: [{
+                    field: 'appName',
+                    title: 'Application',
+                    formatter: function (value) {
+                        return value;
+                    }
+                }, {
+                    field: 'name',
+                    title: 'Name',
+                    formatter: function (value, row) {
+                        return `<a href="/web/alert/detail?id=${row.alertId}&appName=${row.appName}">${value}</a>`;
+                    }
+                }, {
+                    field: 'enabled',
+                    title: 'Status',
+                    formatter: function (value, row) {
+                        return (row.enabled ? "Enabled" : "Disabled");
+                    }
+                }, {
+                    field: 'lastAlertAt',
+                    title: 'Last Alert At',
+                    sortable: true,
+                    formatter: (value, row) => {
+                        if (value === undefined || value == null || value === 0) {
+                            return '-';
+                        }
+                        const text = new Date().diff(value);
+                        return `<a target="_blank" href="/web/alert/records?alertId=${row.alertId}&recordId=${row.lastRecordId}">${text}</a>`;
+                    }
+                }, {
+                    field: 'createdAt',
+                    title: 'Created At',
+                    sortable: true,
+                    formatter: (value) => {
+                        return moment(value).local().format('yyyy-MM-DD HH:mm:ss');
+                    }
+                }, {
+                    field: 'updatedAt',
+                    title: 'Updated At',
+                    sortable: true,
+                    formatter: (value) => {
+                        return moment(value).local().format('yyyy-MM-DD HH:mm:ss');
+                    }
+                }, {
+                    field: 'lastOperator',
+                    title: 'Last Operator',
+                }, {
+                    field: 'alertId',
+                    title: 'Operations',
+                    formatter: function (value, row) {
+                        return '<div class="btn-group btn-group-sm" role="group" aria-label="...">' +
+                            '<button class="btn btn-outline-primary" onclick="enableAlert(\'' + row.alertId + '\')"><span class="' + (row.enabled ? "glyphicon glyphicon-pause" : "glyphicon glyphicon-play") + '"></span>&nbsp;' + (row.enabled ? "Disable" : "Enable") + '</button>' +
+                            //'<button class="btn btn-outline-primary" onclick="updateAlert(\'' + row.alertId + '\')"><span class="glyphicon glyphicon-cog"></span>&nbsp;Modify</button>' +
+                            '<button class="btn btn-outline-primary" onclick="deleteAlert(\'' + row.alertId + '\')"><span class="glyphicon glyphicon-remove"></span>&nbsp;Delete</button>' +
+                            '<button class="btn btn-outline-primary" onclick="showRunningLogs(\'' + row.alertId + '\')"><span class="glyphicon glyphicon-list-alt"></span>&nbsp;Logs</button>' +
+                            '</div>';
+                    }
+                }]
+            });
+
+            $('.btn-create').click(function (e) {
+                if (g_SelectedApp != null) {
+                    window.location.href = 'create?appName=' + g_SelectedApp;
+                } else {
+                    window.location.href = 'create';
+                }
+            });
+        });
+
+        function showDetail(id, appName) {
+            window.location.href = 'detail?id=' + id + '&appName=' + appName;
+            return false;
+        }
+
+        function enableAlert(id) {
+            const alert = $('#alertTable').bootstrapTable('getRowByUniqueId', id);
+            let api = "";
+            let action = "";
+            if (alert.enabled) {
+                api = "/alerting/api/alert/disable";
+                action = "DISABLE";
+            } else {
+                api = "/alerting/api/alert/enable";
+                action = "ENABLE";
+            }
+            bootbox.confirm({
+                title: "Confirmation",
+                message: `Are you sure to <b>${action}</b> this alert <u>${alert.name}</u>?`,
+                callback: (confirmed) => {
+                    if (!confirmed) {
+                        return null;
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: api,
+                        async: true,
+                        data: JSON.stringify(alert),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (data) {
+                            if (data.code !== 200) {
+                                bootbox.alert({
+                                    backdrop: true,
+                                    title: "Error",
+                                    message: data.message
+                                })
+                            }
+                            alert.enabled = !alert.enabled;
+                            $('#alertTable').bootstrapTable('updateByUniqueId', {
+                                id: id,
+                                row: alert
+                            });
+                            bootbox.alert({
+                                backdrop: true,
+                                message: "Update successfully. It will take effect in at most 1 minute.",
+                            })
+                        },
+                        error: function (data) {
+                            console.log(data);
+                            bootbox.alert({
+                                backdrop: true,
+                                title: "Error",
+                                message: data.responseJSONText
+                            })
+                        }
+                    });
+                }
+            })
+        }
+
+        function deleteAlert(id) {
+            const alertObj = $('#alertTable').bootstrapTable('getRowByUniqueId', id);
+            bootbox.confirm({
+                title: "Confirmation",
+                message: "Are you sure to <b>delete</b> this alert <u>" + alertObj.name + "</u>?",
+                callback: (confirmed) => {
+                    if (!confirmed) {
+                        return null;
+                    }
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/alerting/api/alert/delete",
+                        async: true,
+                        data: JSON.stringify({
+                            alertId: id
+                        }),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (data) {
+                            if (data.code !== 200) {
+                                bootbox.alert({
+                                    backdrop: true,
+                                    title: "Error",
+                                    message: data.message
+                                });
+                                return;
+                            }
+                            $('#alertTable').bootstrapTable('removeByUniqueId', id);
+                            bootbox.alert({
+                                backdrop: true,
+                                message: "Alert has been deleted successfully."
+                            });
+                        },
+                        error: function (data) {
+                            console.log(data);
+                            bootbox.alert({
+                                backdrop: true,
+                                title: "Error",
+                                message: data.responseJSONText
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        function updateAlert(alertId) {
+            window.location.href = "update?id=" + alertId;
+        }
+
+        function showRunningLogs(alertId) {
+            bootbox.dialog({
+                title: 'Evaluation Logs',
+                backdrop: true,
+                size: 'xl',
+                onEscape: true,
+                message: '<div id="logComponent"></div>',
+                onShown: (e) => {
+                    new LogComponent({
+                        containerId: 'logComponent',
+                        showToolbar: true
+                    }).loadLatestLogs(alertId);
+                }
+            });
+        }
+    </script>
+
+</div>
+</body>
+</html>

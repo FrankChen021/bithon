@@ -102,6 +102,30 @@
       <artifactId>service-discovery-registration</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>server-alerting-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>server-alerting-evaluator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>server-alerting-manager</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>server-alerting-notification</artifactId>
+    </dependency>
+
+    <!-- Validator on Rest Controllers -->
+    <dependency>
+      <groupId>org.hibernate.validator</groupId>
+      <artifactId>hibernate-validator</artifactId>
+      <version>6.2.0.Final</version>
+    </dependency>
+
     <!-- DEV TOOLS -->
     <!-- This conflicts with classes in agent-instrumentation when the project is launched from IntelliJ
          So, we disable this dependency here

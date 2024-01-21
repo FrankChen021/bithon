@@ -1,0 +1,301 @@
+<!DOCTYPE HTML>
+<html lang="zh_CN"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{app/app-layout}"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.ultraq.net.nz/thymeleaf/layout ">
+<head>
+    <title>Bithon Alert Detail</title>
+
+    <!-- bootstrap select -->
+    <link rel="stylesheet" th:href="@{/lib/select2-4.0.13/css/select2.css}" type="text/css"/>
+    <script th:src="@{/lib/select2-4.0.13/js/select2.js}" type="text/javascript"></script>
+
+    <link rel="stylesheet" th:href="@{/css/style.css}" type="text/css"/>
+    <script th:src="@{/js/dialog.js}" type="text/javascript"></script>
+    <script th:src="@{/js/utils.js}" type="text/javascript"></script>
+
+    <script th:src="@{/js/alert/schema-manager.js}" type="text/javascript"></script>
+    <script th:src="@{/js/alert/log-component.js}" type="text/javascript"></script>
+    <script th:src="@{/js/api-client/alert-api.js}" type="text/javascript"></script>
+
+    <style>
+        pre {
+            display: block;
+            padding: 10px;
+            margin: 0 0 10px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #333;
+            word-break: break-all;
+            word-wrap: break-word;
+            background-color: #f5f5f5;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" data-toggle="pill" href="#home" role="tab" aria-controls="home" aria-selected="true"><b>Payload</b></a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="pill" href="#records" role="tab" aria-controls="records" aria-selected="true"><b>Records</b>
+                <span class="badge badge-info" id="recordCount"></span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="pill" href="#changelogs" role="tab" aria-controls="changelogs" aria-selected="true"><b>Change Logs</b>
+                <span class="badge badge-info" id="changelogCount"></span>
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" data-toggle="pill" href="#runLogs" role="tab" aria-controls="runLogs"><b>Evaluation Logs</b></a>
+        </li>
+    </ul>
+
+    <!-- Tab Contents -->
+    <div class="tab-content">
+        <div class="tab-pane active" id="home" role="tabpanel" style="padding:10px 0 10px 0">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" style="width: 160px"><b>Application</b></span>
+                </div>
+                <input class="form-control" id="appName"/>
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" style="width: 160px"><b>Name</b></span>
+                </div>
+                <input class="form-control" id="name"/>
+            </div>
+            <div>
+                <pre id="payload"></pre>
+            </div>
+        </div>
+        <div class="tab-pane" id="records" role="tabpanel">
+            <table class="table" id="alertTable">
+            </table>
+        </div>
+
+        <div class="tab-pane" id="changelogs" role="tabpanel">
+            <table class="table" id="changelogsTable">
+            </table>
+        </div>
+
+        <div class="tab-pane" id="runLogs" role="tabpanel" style="padding:10px 10px 10px 10px">
+        </div>
+
+        <div class="sub-btn-panel text-center">
+            <!--            <button class="btn btn-outline-primary" th:onclick="javascript: window.location='update?id=[[${alertId}]]'">Modify</button>-->
+            <button class="btn btn-outline-primary btn-return">Go back</button>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        let alertId = /*[[${alertId}]]*/;
+        let returnUrl = /*[[${returnUrl}]]*/;
+        /*]]>*/
+    </script>
+    <script type="text/javascript">
+
+        g_SelectedApp = window.queryParams['appName'];
+
+        function showAlert(alert) {
+            $('#appName').val(alert.appName);
+            $('#name').val(alert.alertName);
+
+            const payload = JSON.parse(alert.payload);
+            $("#payload").text(JSON.stringify(payload, null, 4));
+        }
+
+        function addRule(rule) {
+            const container = $(".trigger-container");
+
+            const ruleItem = $(
+                '<div class="input-group trigger-item" style="width: 500px;margin-bottom: 5px">            ' +
+                '    <span class="input-group-addon" style="border-left: 1px solid #ccc;">Rule</span>      ' +
+                '    <input type="text" class="form-control trigger-expression"                            ' +
+                '           maxlength="200" style="width: 260px"/>                                         ' +
+                '    <span class="input-group-addon" style="border-left: 1px solid #ccc;">Severity</span>      ' +
+                '    <input class="form-control trigger-severity" style="width: 100px;"/>                  ' +
+                '</div>                                                                                    '
+            );
+            $(ruleItem).find(".trigger-expression").val(rule.expression);
+            $(ruleItem).find(".trigger-severity").val(rule.severity);
+            $(container).append($(ruleItem));
+        }
+
+        function loadRecords() {
+            $('#alertTable').bootstrapTable({
+                url: '/alerting/api/alert/getRecordList',
+                method: 'post',
+                contentType: "application/json",
+
+                sidePagination: "server",
+                pagination: true,
+                paginationPreText: '<',
+                paginationNextText: '>',
+                pageNumber: 1,
+                pageSize: 10,
+
+                queryParamsType: '',
+                queryParams: function (params) {
+                    return {
+                        pageSize: params.pageSize,
+                        pageNumber: params.pageNumber - 1,
+                        alertName: params.searchText,
+                        alertId: alertId
+                    };
+                },
+
+                uniqueId: 'id',
+                columns: [{
+                    field: 'id',
+                    title: 'No.',
+                    width: 20,
+                    formatter: (value, row, index) => {
+                        const options = $("#alertTable").bootstrapTable('getOptions');
+                        return (options.pageNumber - 1) * options.pageSize + index + 1;
+                    }
+                }, {
+                    field: 'serverCreateTime',
+                    title: 'Alerting at',
+                    width: '180',
+                    formatter: (value) => moment(value).local().format('yyyy-MM-DD HH:mm:ss')
+                }, {
+                    field: 'alarmName',
+                    title: 'Operations',
+                    formatter: (value, row) => {
+                        return `<a target="_blank" href="records?alertId=${row.alertId}&recordId=${row.id}">View Detail</a>`;
+                    }
+                }],
+
+                onLoadSuccess: function (data, status, jqXHR) {
+                    $("#recordCount").text(data.total);
+                }
+            })
+        }
+
+        function loadChangeLogs() {
+            $('#changelogsTable').bootstrapTable({
+                url: '/alerting/api/alert/getChangeLogs',
+                method: 'post',
+                contentType: "application/json",
+
+                sidePagination: "server",
+                pagination: true,
+                paginationPreText: '<',
+                paginationNextText: '>',
+                pageNumber: 1,
+                pageSize: 10,
+
+                queryParamsType: '',
+                queryParams: function (params) {
+                    return {
+                        pageSize: params.pageSize,
+                        pageNumber: params.pageNumber - 1,
+                        alertId: alertId
+                    };
+                },
+
+                uniqueId: 'id',
+                columns: [{
+                    field: 'id',
+                    title: 'No.',
+                    width: 20,
+                    formatter: (value, row, index) => {
+                        const options = $("#changelogsTable").bootstrapTable('getOptions');
+                        return (options.pageNumber - 1) * options.pageSize + index + 1;
+                    }
+                }, {
+                    field: 'editor',
+                    title: 'Operator',
+                    width: 100
+                }, {
+                    field: 'timestamp',
+                    title: 'Operation Time',
+                    width: 180,
+                    formatter: (value) => moment(value).local().format('yyyy-MM-DD HH:mm:ss')
+                }, {
+                    field: 'action',
+                    title: 'Action',
+                    width: 100
+                }, {
+                    field: 'id',
+                    title: 'Diff',
+                    formatter: (value, row, index) => {
+                        return `<button class="btn btn-sm btn-outline-info" onclick="javascript:toggleChanges(${index})">View Changes</button>`;
+                    }
+                }],
+
+                detailView: true,
+                detailFormatter: (index, row) => {
+                    if (row.changes === undefined) {
+                        const before = JSON.stringify(JSON.parse(row.payloadBefore), null, 2);
+                        const after = JSON.stringify(JSON.parse(row.payloadAfter), null, 2);
+                        row.changes = `<table class="table-borderless" style="width: 100%"><thead><tr><th style="text-align: center; width: 50%;">Before</th><th style="text-align: center; ">After</th></tr></thead><tbody><tr><td style="vertical-align: top"><pre>${before}</pre></td><td style="vertical-align: top"><pre>${after}</pre></td></tr></tbody></table>`;
+                    }
+                    return row.changes;
+                },
+
+                onLoadSuccess: function (data) {
+                    $("#changelogCount").text(data.total);
+                }
+            })
+        }
+
+        function onLoad(alert) {
+            showAlert(alert);
+        }
+
+        function toggleChanges(index) {
+            $('#changelogsTable').bootstrapTable('toggleDetailView', index);
+        }
+
+        let logComponent;
+        let gAlert;
+
+        $(document).ready(function () {
+            $('.btn-return').click(function (e) {
+                if (returnUrl != null) {
+                    window.location.href = decodeURIComponent(returnUrl);
+                } else {
+                    window.location.href = 'list';
+                }
+            });
+
+            new AlertApi().getAlertById(alertId, (alert) => {
+                gAlert = alert;
+                showAlert(alert);
+            })
+            loadRecords();
+            loadChangeLogs();
+
+            $('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+                if ($(e.target).attr('href') !== '#runLogs') {
+                    return;
+                }
+                if (gAlert == null) {
+                    return;
+                }
+                if (logComponent == null) {
+                    logComponent = new LogComponent({
+                        showToolbar: true,
+                        containerId: 'runLogs'
+                    });
+                    logComponent.loadLatestLogs(gAlert.alertId);
+                }
+            })
+        })
+
+    </script>
+</div>
+</body>
+
+</html>

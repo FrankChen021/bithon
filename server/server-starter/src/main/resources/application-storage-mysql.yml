@@ -38,6 +38,21 @@ bithon:
     web:
       provider: mysql-local
 
+    alerting:
+      all:
+        provider: mysql-local
+        ttl:
+          enabled: true
+          ttl: P1D
+          cleanPeriod: PT3M
+
+      log:
+        provider: mysql-local
+        ttl:
+          enabled: true
+          ttl: P1D
+          cleanPeriod: PT3M
+
     providers:
       mysql-local:
         type: mysql

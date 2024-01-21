@@ -1,0 +1,12 @@
+bithon:
+  alerting:
+    module:
+      evaluator:
+        enabled: true
+        state:
+          type: local
+      manager:
+        enabled: true
+        allowAnonymous: true
+      notification:
+        enabled: true

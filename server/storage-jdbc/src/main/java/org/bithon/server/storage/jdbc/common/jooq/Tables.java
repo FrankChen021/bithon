@@ -5,6 +5,12 @@ package org.bithon.server.storage.jdbc.common.jooq;
 
 
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAgentSetting;
+import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertChangeLog;
+import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertEvaluationLog;
+import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertNotificationProvider;
+import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertObject;
+import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertRecord;
+import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertState;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonApplicationInstance;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonEvent;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonMetaApplicationMetricMap;
@@ -27,6 +33,36 @@ public class Tables {
      * The table <code>bithon_agent_setting</code>.
      */
     public static final BithonAgentSetting BITHON_AGENT_SETTING = BithonAgentSetting.BITHON_AGENT_SETTING;
+
+    /**
+     * Change logs of alert
+     */
+    public static final BithonAlertChangeLog BITHON_ALERT_CHANGE_LOG = BithonAlertChangeLog.BITHON_ALERT_CHANGE_LOG;
+
+    /**
+     * Running logs of alert
+     */
+    public static final BithonAlertEvaluationLog BITHON_ALERT_EVALUATION_LOG = BithonAlertEvaluationLog.BITHON_ALERT_EVALUATION_LOG;
+
+    /**
+     * Alert notification providers
+     */
+    public static final BithonAlertNotificationProvider BITHON_ALERT_NOTIFICATION_PROVIDER = BithonAlertNotificationProvider.BITHON_ALERT_NOTIFICATION_PROVIDER;
+
+    /**
+     * Alert
+     */
+    public static final BithonAlertObject BITHON_ALERT_OBJECT = BithonAlertObject.BITHON_ALERT_OBJECT;
+
+    /**
+     * Alerting History Records
+     */
+    public static final BithonAlertRecord BITHON_ALERT_RECORD = BithonAlertRecord.BITHON_ALERT_RECORD;
+
+    /**
+     * Alerting State
+     */
+    public static final BithonAlertState BITHON_ALERT_STATE = BithonAlertState.BITHON_ALERT_STATE;
 
     /**
      * The table <code>bithon_application_instance</code>.

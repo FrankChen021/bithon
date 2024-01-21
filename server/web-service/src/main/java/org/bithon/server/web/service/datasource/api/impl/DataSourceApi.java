@@ -153,7 +153,8 @@ public class DataSourceApi implements IDataSourceApi {
         return GeneralQueryResponse.builder()
                                    .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
                                    .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
-                                   .data(this.metricStorage.createMetricReader(schema).groupBy(query))
+                                   .data(this.metricStorage.createMetricReader(schema)
+                                                           .groupBy(query))
                                    .build();
     }
 

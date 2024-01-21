@@ -129,4 +129,8 @@ public class TimeSpan {
     public TimeSpan minus(long millis) {
         return new TimeSpan(this.milliseconds - millis);
     }
+
+    public String format(String format) {
+        return new SimpleDateFormat(format, Locale.ENGLISH).format(new Date(this.milliseconds));
+    }
 }

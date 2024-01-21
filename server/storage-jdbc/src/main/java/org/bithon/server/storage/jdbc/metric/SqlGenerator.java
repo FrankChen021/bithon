@@ -157,6 +157,9 @@ public class SqlGenerator implements IASTNodeVisitor {
 
     @Override
     public void visit(GroupBy groupBy) {
+        if (groupBy.getFields().isEmpty()) {
+            return;
+        }
         sql.append("GROUP BY ");
         for (String field : groupBy.getFields()) {
             sql.append(sqlDialect.quoteIdentifier(field));

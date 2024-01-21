@@ -52,6 +52,6 @@ public class GetTraceListRequest {
     private int pageNumber = 0;
 
     @Min(5)
-    @Max(100)
+    @Max(1000)
     private int pageSize = 10;
 }

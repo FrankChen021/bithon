@@ -61,7 +61,8 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
                                         "/lib/**",
                                         "/js/**",
                                         "/login",
-                                        "/actuator/**"
+                                        "/actuator/**",
+                                        "/web/**"
                                        ).map((path) -> this.contextPath + path).toArray(String[]::new);
 
         // Configure to ignore security check on static resources

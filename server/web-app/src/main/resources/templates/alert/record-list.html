@@ -1,0 +1,72 @@
+<!DOCTYPE HTML>
+<html lang="zh_CN"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{_common/layout}">
+<head>
+    <title>Alerting History</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <table class="table" id="historyTable"></table>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            const win = window.parent == null ? window : window.parent;
+            const alertId = win.queryParams['alertId'];
+            $('#historyTable').bootstrapTable({
+                url: '/alerting/api/alert/getRecordList',
+                method: 'post',
+                contentType: "application/json",
+                showRefresh: false,
+
+                sidePagination: "server",
+                pagination: true,
+                paginationPreText: '<',
+                paginationNextText: '>',
+                pageNumber: 1,
+                pageSize: 25,
+                pageList: [],
+
+                locale: 'en-US',
+
+                queryParamsType: '',
+                queryParams: function (params) {
+                    return {
+                        pageSize: params.pageSize,
+                        pageNumber: params.pageNumber - 1,
+                        alertName: params.searchText,
+                        alertId: alertId
+                    };
+                },
+
+                filterControl: true,
+                filterShowClear: true,
+                search: false,
+                showSearchClearButton: false,
+                searchOnEnterKey: true,
+
+                uniqueId: 'id',
+                columns: [{
+                    field: 'id',
+                    title: 'Alerting History',
+                    align: 'center',
+                    formatter: function (value, row) {
+                        return `<a href='#' onclick="return showDetail('${row.id}')">${moment(row.serverCreateTime).local().format('yyyy-MM-DD HH:mm:ss')}</a>`;
+                    }
+                }]
+            })
+        })
+
+        function showDetail(id) {
+            if (window.parent != null) {
+                const detailFrame = window.parent.document.getElementById('detail');
+                if (detailFrame != null) {
+                    detailFrame.src = 'record-detail?recordId=' + id;
+                }
+            }
+            return false;
+        }
+    </script>
+</div>
+</body>
+</html>

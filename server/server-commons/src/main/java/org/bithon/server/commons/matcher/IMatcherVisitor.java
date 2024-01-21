@@ -52,4 +52,6 @@ public interface IMatcherVisitor<T> {
     T visit(StringLikeMatcher matcher);
 
     T visit(NotMatcher matcher);
+
+    T visit(NullMatcher nullMatcher);
 }

@@ -61,8 +61,16 @@ public class QueryField {
         this.expression = expression;
     }
 
+    public QueryField(String name, String field, String aggregator) {
+        this(name, field, aggregator, null);
+    }
+
     @JsonCreator
     public static QueryField fromString(String str) {
         return new QueryField(str, str, null, null);
+    }
+
+    public static QueryField of(String str, String aggregator) {
+        return new QueryField(str, str, aggregator, null);
     }
 }

@@ -20,6 +20,10 @@ import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
+import org.bithon.server.storage.jdbc.alerting.AlertObjectJdbcStorage;
+import org.bithon.server.storage.jdbc.alerting.AlertRecordJdbcStorage;
+import org.bithon.server.storage.jdbc.alerting.EvaluationLogJdbcStorage;
+import org.bithon.server.storage.jdbc.alerting.NotificationProviderJdbcStorage;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
@@ -64,7 +68,14 @@ public class H2StorageModuleAutoConfiguration {
                                          new NamedType(DashboardJdbcStorage.class, "h2"),
                                          new NamedType(EventJdbcStorage.class, "h2"),
                                          new NamedType(SchemaJdbcStorage.class, "h2"),
-                                         new NamedType(MetadataJdbcStorage.class, "h2"));
+                                         new NamedType(MetadataJdbcStorage.class, "h2"),
+
+                                         // Alerting
+                                         new NamedType(EvaluationLogJdbcStorage.class, "h2"),
+                                         new NamedType(AlertObjectJdbcStorage.class, "h2"),
+                                         new NamedType(AlertRecordJdbcStorage.class, "h2"),
+                                         new NamedType(NotificationProviderJdbcStorage.class, "h2")
+                                         );
             }
         };
     }

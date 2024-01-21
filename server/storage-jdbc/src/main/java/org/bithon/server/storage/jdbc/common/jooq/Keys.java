@@ -5,11 +5,17 @@ package org.bithon.server.storage.jdbc.common.jooq;
 
 
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAgentSetting;
+import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertNotificationProvider;
+import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertObject;
+import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertState;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonApplicationInstance;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonMetaSchema;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonMetricsBaseline;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonWebDashboard;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAgentSettingRecord;
+import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAlertNotificationProviderRecord;
+import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAlertObjectRecord;
+import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAlertStateRecord;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonApplicationInstanceRecord;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonMetaSchemaRecord;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonMetricsBaselineRecord;
@@ -35,6 +41,9 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_KEY_APPNAME = UniqueKeys0.KEY_BITHON_AGENT_SETTING_KEY_APPNAME;
+    public static final UniqueKey<BithonAlertNotificationProviderRecord> KEY_BITHON_ALERT_NOTIFICATION_PROVIDER_ALERT_NOTIFICATION_PROVIDER_NAME = UniqueKeys0.KEY_BITHON_ALERT_NOTIFICATION_PROVIDER_ALERT_NOTIFICATION_PROVIDER_NAME;
+    public static final UniqueKey<BithonAlertObjectRecord> KEY_BITHON_ALERT_OBJECT_UQ_ALERT_OBJECT_ID = UniqueKeys0.KEY_BITHON_ALERT_OBJECT_UQ_ALERT_OBJECT_ID;
+    public static final UniqueKey<BithonAlertStateRecord> KEY_BITHON_ALERT_STATE_UQ_ALERT_ID = UniqueKeys0.KEY_BITHON_ALERT_STATE_UQ_ALERT_ID;
     public static final UniqueKey<BithonApplicationInstanceRecord> KEY_BITHON_APPLICATION_INSTANCE_UQ_NAME_TYPE_INSTANCE = UniqueKeys0.KEY_BITHON_APPLICATION_INSTANCE_UQ_NAME_TYPE_INSTANCE;
     public static final UniqueKey<BithonMetaSchemaRecord> KEY_BITHON_META_SCHEMA_IDX_META_SCHEMA_NAME = UniqueKeys0.KEY_BITHON_META_SCHEMA_IDX_META_SCHEMA_NAME;
     public static final UniqueKey<BithonMetricsBaselineRecord> KEY_BITHON_METRICS_BASELINE_BITHON_METRICS_BASELINE_DATE = UniqueKeys0.KEY_BITHON_METRICS_BASELINE_BITHON_METRICS_BASELINE_DATE;
@@ -51,6 +60,9 @@ public class Keys {
 
     private static class UniqueKeys0 {
         public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_KEY_APPNAME = Internal.createUniqueKey(BithonAgentSetting.BITHON_AGENT_SETTING, "KEY_bithon_agent_setting_key_appName", BithonAgentSetting.BITHON_AGENT_SETTING.APPNAME, BithonAgentSetting.BITHON_AGENT_SETTING.SETTINGNAME);
+        public static final UniqueKey<BithonAlertNotificationProviderRecord> KEY_BITHON_ALERT_NOTIFICATION_PROVIDER_ALERT_NOTIFICATION_PROVIDER_NAME = Internal.createUniqueKey(BithonAlertNotificationProvider.BITHON_ALERT_NOTIFICATION_PROVIDER, "KEY_bithon_alert_notification_provider_alert_notification_provider_name", BithonAlertNotificationProvider.BITHON_ALERT_NOTIFICATION_PROVIDER.NAME);
+        public static final UniqueKey<BithonAlertObjectRecord> KEY_BITHON_ALERT_OBJECT_UQ_ALERT_OBJECT_ID = Internal.createUniqueKey(BithonAlertObject.BITHON_ALERT_OBJECT, "KEY_bithon_alert_object_uq_alert_object_id", BithonAlertObject.BITHON_ALERT_OBJECT.ALERT_ID);
+        public static final UniqueKey<BithonAlertStateRecord> KEY_BITHON_ALERT_STATE_UQ_ALERT_ID = Internal.createUniqueKey(BithonAlertState.BITHON_ALERT_STATE, "KEY_bithon_alert_state_uq_alert_id", BithonAlertState.BITHON_ALERT_STATE.ALERT_ID);
         public static final UniqueKey<BithonApplicationInstanceRecord> KEY_BITHON_APPLICATION_INSTANCE_UQ_NAME_TYPE_INSTANCE = Internal.createUniqueKey(BithonApplicationInstance.BITHON_APPLICATION_INSTANCE, "KEY_bithon_application_instance_uq_name_type_instance", BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPNAME, BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPTYPE, BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.INSTANCENAME);
         public static final UniqueKey<BithonMetaSchemaRecord> KEY_BITHON_META_SCHEMA_IDX_META_SCHEMA_NAME = Internal.createUniqueKey(BithonMetaSchema.BITHON_META_SCHEMA, "KEY_bithon_meta_schema_idx_meta_schema_name", BithonMetaSchema.BITHON_META_SCHEMA.NAME);
         public static final UniqueKey<BithonMetricsBaselineRecord> KEY_BITHON_METRICS_BASELINE_BITHON_METRICS_BASELINE_DATE = Internal.createUniqueKey(BithonMetricsBaseline.BITHON_METRICS_BASELINE, "KEY_bithon_metrics_baseline_bithon_metrics_baseline_date", BithonMetricsBaseline.BITHON_METRICS_BASELINE.DATE);

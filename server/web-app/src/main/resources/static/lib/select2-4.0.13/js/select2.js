@@ -3663,16 +3663,16 @@ S2.define('select2/data/ajax',[
       type: 'GET'
     }, this.ajaxOptions);
 
-    if (typeof options.url === 'function') {
+    if ( !self.beforeRequest(options) ) {
+        return;
+    }
+
+      if (typeof options.url === 'function') {
       options.url = options.url.call(this.$element, params);
     }
 
     if (typeof options.data === 'function') {
       options.data = options.data.call(this.$element, params);
-    }
-
-    if ( !self.beforeRequest(options) ) {
-        return;
     }
 
     function request () {

@@ -62,7 +62,7 @@ After the first build, we don't need to build the dependencies anymore unless th
 
 Once the project has been built, you could run the project in a standalone mode to evaluate this project.
 
-## 1. Launch collector & web server
+## 1. Launch the server all in one
 
 To launch server in evaluation mode, execute the following command:
 

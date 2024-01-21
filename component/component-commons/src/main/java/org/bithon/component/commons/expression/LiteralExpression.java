@@ -38,6 +38,9 @@ public abstract class LiteralExpression implements IExpression {
             return new BooleanLiteral((boolean) value);
         } else if (value instanceof Double || value instanceof Float || value instanceof BigDecimal) {
             return new DoubleLiteral((Number) value);
+        } else if (value instanceof Number) {
+            // User defined Number, treat it as DOUBLE
+            return new DoubleLiteral((Number) value);
         } else {
             throw new UnsupportedOperationException("Not support literal type: " + value.getClass().getName());
         }

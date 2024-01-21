@@ -16,7 +16,10 @@
 
 package org.bithon.server.storage.common.expiration;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.bithon.server.commons.time.Period;
 
 /**
@@ -24,6 +27,9 @@ import org.bithon.server.commons.time.Period;
  * @date 9/12/21 5:03 PM
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ExpirationConfig {
     private Period ttl;
     private Period cleanPeriod;
