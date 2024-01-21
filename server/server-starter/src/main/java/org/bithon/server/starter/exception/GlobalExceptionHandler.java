@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.exception.BadRequestException;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.exception.HttpResponseMapping;
+import org.bithon.component.commons.expression.validation.ExpressionValidationException;
 import org.bithon.server.commons.exception.ErrorResponse;
 import org.bithon.server.storage.common.expression.InvalidExpressionException;
 import org.springframework.http.HttpStatus;
@@ -45,6 +46,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
         BadRequestException.class,
         InvalidExpressionException.class,
+        ExpressionValidationException.class,
         HttpMessageNotReadableException.class,
         MethodArgumentNotValidException.class,
         HttpRequestMethodNotSupportedException.class,

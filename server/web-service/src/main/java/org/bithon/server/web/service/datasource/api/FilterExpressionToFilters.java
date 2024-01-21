@@ -20,15 +20,10 @@ import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
-import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
-import org.bithon.component.commons.expression.validation.ExpressionValidationException;
-import org.bithon.component.commons.expression.validation.ExpressionValidator;
-import org.bithon.component.commons.expression.validation.IIdentifierProvider;
-import org.bithon.component.commons.expression.validation.Identifier;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.matcher.BetweenMatcher;
@@ -74,8 +69,10 @@ public class FilterExpressionToFilters {
             return CollectionUtils.isEmpty(otherFilters) ? null : toExpression(schema, otherFilters);
         }
 
-        IExpression expression = validateIsBinary(ExpressionASTBuilder.build(filterExpression));
-        validate(schema, expression);
+        IExpression expression = validateIfConditional(ExpressionASTBuilder.builder()
+                                                                           .schema(schema)
+                                                                           .functions(Functions.getInstance())
+                                                                           .build(filterExpression));
 
         if (CollectionUtils.isNotEmpty(otherFilters)) {
             if (expression instanceof LogicalExpression.AND) {
@@ -89,7 +86,7 @@ public class FilterExpressionToFilters {
         }
     }
 
-    private static IExpression validateIsBinary(IExpression expression) {
+    private static IExpression validateIfConditional(IExpression expression) {
         // Validate if the expression is a filter
         // and optimize if possible
         if (expression instanceof FunctionExpression) {
@@ -121,56 +118,20 @@ public class FilterExpressionToFilters {
         return expression;
     }
 
-    private static void validate(DataSourceSchema schema, IExpression expression) {
-        try {
-            ExpressionValidator validator = new ExpressionValidator(new IdentifierProvider(schema));
-            validator.validate(expression);
-        } catch (ExpressionValidationException e) {
-            throw new InvalidExpressionException(e.getMessage());
-        }
-    }
-
-    static class IdentifierProvider implements IIdentifierProvider {
-        private final DataSourceSchema schema;
-
-        IdentifierProvider(DataSourceSchema schema) {
-            this.schema = schema;
-        }
-
-        @Override
-        public Identifier getIdentifier(String identifier) {
-            IColumn column = schema.getColumnByName(identifier);
-            if (column == null) {
-                // A special and ugly check.
-                // For indexed tags filter, when querying the dimensions, we need to convert its alias to its field name.
-                // However, when searching spans with tag filters, the schema here does not contain the tags.
-                // We need to ignore this case.
-                // The ignored tags will be processed later in the trace module.
-                if (identifier.startsWith("tags.")) {
-                    return new Identifier(identifier, IDataType.STRING);
-                }
-
-                throw new InvalidExpressionException("Identifier [%s] not defined in the data source [%s].",
-                                                     identifier,
-                                                     schema.getName());
-            }
-
-            // Change to raw name and correct type
-            return new Identifier(column.getName(), column.getDataType());
-        }
-    }
-
     private static IExpression toExpression(DataSourceSchema schema, List<IColumnFilter> filters) {
-        ExpressionValidator.IdentifierExpressionValidator identifierExpressionValidator = new ExpressionValidator.IdentifierExpressionValidator(new IdentifierProvider(schema));
-
         List<IExpression> expressions = new ArrayList<>();
         FilterToExpressionConverter converter = new FilterToExpressionConverter();
         for (IColumnFilter filter : filters) {
             converter.setColumnFilter(filter);
-            IExpression expr = filter.getMatcher().accept(converter);
-            expr.accept(identifierExpressionValidator);
 
-            expressions.add(expr);
+            IColumn column = schema.getColumnByName(filter.getField());
+            if (column == null) {
+                throw new InvalidExpressionException("Filter [%s] doest not defined in schema [%s]",
+                                                     filter.getExpected(),
+                                                     schema.getName());
+            }
+
+            expressions.add(filter.getMatcher().accept(converter));
         }
         return expressions.size() == 1 ? expressions.get(0) : new LogicalExpression.AND(expressions);
     }

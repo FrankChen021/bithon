@@ -24,12 +24,6 @@ import java.util.Locale;
  */
 public class ExpressionValidationException extends RuntimeException {
 
-    public ExpressionValidationException(String expression,
-                                         int charPos,
-                                         String parseExceptionMessage) {
-        super(String.format(Locale.ENGLISH, "Invalid expression [%s] at position %d, %s", expression, charPos, parseExceptionMessage));
-    }
-
     public ExpressionValidationException(String format, Object... args) {
         super(String.format(Locale.ENGLISH, format, args));
     }

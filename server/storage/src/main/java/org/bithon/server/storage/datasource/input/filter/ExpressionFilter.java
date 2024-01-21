@@ -22,6 +22,7 @@ import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
+import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 /**
@@ -48,7 +49,7 @@ public class ExpressionFilter implements IInputRowFilter {
                             @JsonProperty("debug") Boolean debug) {
         this.expression = expression;
         this.debug = debug != null && debug;
-        this.delegation = ExpressionASTBuilder.build(this.expression);
+        this.delegation = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build(this.expression);
     }
 
     @Override

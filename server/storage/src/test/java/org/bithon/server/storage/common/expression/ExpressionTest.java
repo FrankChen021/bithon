@@ -20,7 +20,6 @@ import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
-import org.bithon.component.commons.expression.MacroExpression;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -32,33 +31,33 @@ public class ExpressionTest {
 
     @Test
     public void testIn() {
-        IExpression expr = ExpressionASTBuilder.build("5 in (1,2)", null);
+        IExpression expr = ExpressionASTBuilder.builder().build("5 in (1,2)");
         Assert.assertFalse((Boolean) expr.evaluate(null));
     }
 
     @Test
     public void testIn_2() {
-        IExpression expr = ExpressionASTBuilder.build("5 in (5)", null);
+        IExpression expr = ExpressionASTBuilder.builder().build("5 in (5)");
         Assert.assertTrue((Boolean) expr.evaluate(null));
     }
 
     @Test
     public void testIn_3() {
-        IExpression expr = ExpressionASTBuilder.build("5 in (5,6)", null);
+        IExpression expr = ExpressionASTBuilder.builder().build("5 in (5,6)");
         Assert.assertTrue((Boolean) expr.evaluate(null));
     }
 
     @Test
     public void test_ComparisonFlip_Folding() {
         // Two literals will be folded
-        IExpression expr = ExpressionASTBuilder.build("5 > 4", null);
+        IExpression expr = ExpressionASTBuilder.builder().build("5 > 4");
         Assert.assertTrue(expr instanceof LiteralExpression);
         Assert.assertTrue((Boolean) expr.evaluate(null));
     }
 
     @Test
     public void test_ComparisonFlip_GT() {
-        IExpression expr = ExpressionASTBuilder.build("5 > a", null);
+        IExpression expr = ExpressionASTBuilder.builder().build("5 > a");
         Assert.assertEquals("a < 5", expr.serializeToText(null));
 
         Assert.assertFalse((boolean) expr.evaluate(a -> 6));
@@ -68,7 +67,7 @@ public class ExpressionTest {
 
     @Test
     public void test_ComparisonFlip_GTE() {
-        IExpression expr = ExpressionASTBuilder.build("5 >= a", null);
+        IExpression expr = ExpressionASTBuilder.builder().build("5 >= a");
         Assert.assertEquals("a <= 5", expr.serializeToText(null));
 
         Assert.assertFalse((boolean) expr.evaluate(a -> 6));
@@ -78,7 +77,7 @@ public class ExpressionTest {
 
     @Test
     public void test_ComparisonFlip_LT() {
-        IExpression expr = ExpressionASTBuilder.build("5 < a", null);
+        IExpression expr = ExpressionASTBuilder.builder().build("5 < a");
         Assert.assertEquals("a > 5", expr.serializeToText(null));
 
         Assert.assertTrue((boolean) expr.evaluate(a -> 6));
@@ -88,7 +87,7 @@ public class ExpressionTest {
 
     @Test
     public void test_ComparisonFlip_LTE() {
-        IExpression expr = ExpressionASTBuilder.build("5 <= a", null);
+        IExpression expr = ExpressionASTBuilder.builder().build("5 <= a");
         Assert.assertEquals("a >= 5", expr.serializeToText(null));
 
         Assert.assertTrue((boolean) expr.evaluate(a -> 6));
@@ -98,7 +97,7 @@ public class ExpressionTest {
 
     @Test
     public void test_ComparisonFlip_NE() {
-        IExpression expr = ExpressionASTBuilder.build("5 <> a", null);
+        IExpression expr = ExpressionASTBuilder.builder().build("5 <> a");
         Assert.assertEquals("a <> 5", expr.serializeToText(null));
 
         Assert.assertTrue((boolean) expr.evaluate(a -> 6));
@@ -108,7 +107,7 @@ public class ExpressionTest {
 
     @Test
     public void test_ComparisonFlip_EQ() {
-        IExpression expr = ExpressionASTBuilder.build("5 = a", null);
+        IExpression expr = ExpressionASTBuilder.builder().build("5 = a");
         Assert.assertEquals("a = 5", expr.serializeToText(null));
 
         Assert.assertFalse((boolean) expr.evaluate(a -> 6));
@@ -118,13 +117,13 @@ public class ExpressionTest {
 
     @Test
     public void test_ComparisonFlip_Non_Literal() {
-        IExpression expr = ExpressionASTBuilder.build("a = b", null);
+        IExpression expr = ExpressionASTBuilder.builder().build("a = b");
         Assert.assertEquals("a = b", expr.serializeToText(null));
     }
 
     @Test
     public void testLogical_ConsecutiveAND() {
-        IExpression expr = ExpressionASTBuilder.build("a = 1 AND b = 1 AND c = 1 AND d = 1", null);
+        IExpression expr = ExpressionASTBuilder.builder().build("a = 1 AND b = 1 AND c = 1 AND d = 1");
         Assert.assertTrue(expr instanceof LogicalExpression.AND);
         Assert.assertEquals(4, ((LogicalExpression.AND) expr).getOperands().size());
         for (int i = 0; i < 4; i++) {
@@ -134,14 +133,14 @@ public class ExpressionTest {
 
     @Test
     public void testLogical_OR() {
-        IExpression expr = ExpressionASTBuilder.build("a = 1 OR b = 1", null);
+        IExpression expr = ExpressionASTBuilder.builder().build("a = 1 OR b = 1");
         Assert.assertTrue(expr instanceof LogicalExpression.OR);
         Assert.assertEquals("OR", ((LogicalExpression.OR) expr).getOperator());
     }
 
     @Test
     public void testLogical_ConsecutiveOR() {
-        IExpression expr = ExpressionASTBuilder.build("a = 1 OR b = 1 OR c = 1 OR d = 1", null);
+        IExpression expr = ExpressionASTBuilder.builder().build("a = 1 OR b = 1 OR c = 1 OR d = 1");
         Assert.assertTrue(expr instanceof LogicalExpression.OR);
         Assert.assertEquals(4, ((LogicalExpression.OR) expr).getOperands().size());
         for (int i = 0; i < 4; i++) {
@@ -151,7 +150,7 @@ public class ExpressionTest {
 
     @Test
     public void testLogical_AND_OR() {
-        IExpression expr = ExpressionASTBuilder.build("a = 1 AND b = 1 AND c = 1 OR d = 1", null);
+        IExpression expr = ExpressionASTBuilder.builder().build("a = 1 AND b = 1 AND c = 1 OR d = 1");
         Assert.assertTrue(expr instanceof LogicalExpression.OR);
         Assert.assertEquals(2, ((LogicalExpression.OR) expr).getOperands().size());
 
@@ -160,44 +159,35 @@ public class ExpressionTest {
     }
 
     @Test
-    public void testMacroExpression() {
-        IExpression expr = ExpressionASTBuilder.build("{a}", null);
-        Assert.assertTrue(expr instanceof MacroExpression);
-        Assert.assertEquals("a", ((MacroExpression) expr).getMacro());
-
-        Assert.assertEquals("1", expr.evaluate(name -> "a".equals(name) ? "1" : null));
-    }
-
-    @Test
     public void testArithmeticExpression_Precedence() {
-        Assert.assertEquals(7L, ExpressionASTBuilder.build("1 + 2 * 3").evaluate(null));
-        Assert.assertEquals(-5L, ExpressionASTBuilder.build("1 - 2 * 3").evaluate(null));
+        Assert.assertEquals(7L, ExpressionASTBuilder.builder().build("1 + 2 * 3").evaluate(null));
+        Assert.assertEquals(-5L, ExpressionASTBuilder.builder().build("1 - 2 * 3").evaluate(null));
 
-        Assert.assertEquals(7L, ExpressionASTBuilder.build("2 * 3 + 1").evaluate(null));
-        Assert.assertEquals(5L, ExpressionASTBuilder.build("2 * 3 - 1").evaluate(null));
+        Assert.assertEquals(7L, ExpressionASTBuilder.builder().build("2 * 3 + 1").evaluate(null));
+        Assert.assertEquals(5L, ExpressionASTBuilder.builder().build("2 * 3 - 1").evaluate(null));
 
-        Assert.assertEquals(9L, ExpressionASTBuilder.build("(1 + 2) * 3").evaluate(null));
-        Assert.assertEquals(10L, ExpressionASTBuilder.build("3 * 3 + 1").evaluate(null));
+        Assert.assertEquals(9L, ExpressionASTBuilder.builder().build("(1 + 2) * 3").evaluate(null));
+        Assert.assertEquals(10L, ExpressionASTBuilder.builder().build("3 * 3 + 1").evaluate(null));
 
-        Assert.assertEquals(9L, ExpressionASTBuilder.build("3 * 6 / 2").evaluate(null));
+        Assert.assertEquals(9L, ExpressionASTBuilder.builder().build("3 * 6 / 2").evaluate(null));
 
-        Assert.assertEquals(4L, ExpressionASTBuilder.build("1 + 6 / 2").evaluate(null));
-        Assert.assertEquals(-2L, ExpressionASTBuilder.build("1 - 6 / 2").evaluate(null));
+        Assert.assertEquals(4L, ExpressionASTBuilder.builder().build("1 + 6 / 2").evaluate(null));
+        Assert.assertEquals(-2L, ExpressionASTBuilder.builder().build("1 - 6 / 2").evaluate(null));
 
-        Assert.assertEquals(3L, ExpressionASTBuilder.build("2 + 3 * 4 / 2 - 5").evaluate(null));
-        Assert.assertEquals(-2L, ExpressionASTBuilder.build("2 + 3 * 4 / 2 - 15 / 3 * 2").evaluate(null));
+        Assert.assertEquals(3L, ExpressionASTBuilder.builder().build("2 + 3 * 4 / 2 - 5").evaluate(null));
+        Assert.assertEquals(-2L, ExpressionASTBuilder.builder().build("2 + 3 * 4 / 2 - 15 / 3 * 2").evaluate(null));
     }
 
     @Test
     public void testLogicalExpression_Precedence() {
-        Assert.assertEquals(true, ExpressionASTBuilder.build("3 > 2 AND 4 > 3").evaluate(null));
-        Assert.assertEquals(true, ExpressionASTBuilder.build("3 > 2 OR 4 > 3").evaluate(null));
-        Assert.assertEquals(true, ExpressionASTBuilder.build("1 > 2 OR 4 > 3").evaluate(null));
-        Assert.assertEquals(false, ExpressionASTBuilder.build("1 > 2 OR 1 > 3").evaluate(null));
+        Assert.assertEquals(true, ExpressionASTBuilder.builder().build("3 > 2 AND 4 > 3").evaluate(null));
+        Assert.assertEquals(true, ExpressionASTBuilder.builder().build("3 > 2 OR 4 > 3").evaluate(null));
+        Assert.assertEquals(true, ExpressionASTBuilder.builder().build("1 > 2 OR 4 > 3").evaluate(null));
+        Assert.assertEquals(false, ExpressionASTBuilder.builder().build("1 > 2 OR 1 > 3").evaluate(null));
 
-        Assert.assertEquals(true, ExpressionASTBuilder.build("3 > 2 AND 4").evaluate(null));
+        Assert.assertEquals(true, ExpressionASTBuilder.builder().build("3 > 2 AND 4").evaluate(null));
 
         // equivalent to NOT( 3 > 2 AND 4 > 2)
-        Assert.assertEquals(false, ExpressionASTBuilder.build("NOT 3 > 2 AND 4 > 2").evaluate(null));
+        Assert.assertEquals(false, ExpressionASTBuilder.builder().build("NOT 3 > 2 AND 4 > 2").evaluate(null));
     }
 }

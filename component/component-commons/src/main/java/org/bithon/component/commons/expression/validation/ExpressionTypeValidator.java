@@ -37,7 +37,7 @@ class ExpressionTypeValidator implements IExpressionVisitor {
             if (!dataType.equals(IDataType.BOOLEAN)
                 && !dataType.equals(IDataType.DOUBLE)
                 && !dataType.equals(IDataType.LONG)) {
-                throw new ExpressionValidationException("The expression [%s] in the logical expression should be a comparison expression.",
+                throw new ExpressionValidationException("The expression [%s] in the logical expression should be a conditional expression.",
                                                         operand.serializeToText(null));
             }
         }
