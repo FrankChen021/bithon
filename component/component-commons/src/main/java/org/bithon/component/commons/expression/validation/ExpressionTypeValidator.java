@@ -21,6 +21,7 @@ import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 
@@ -29,6 +30,16 @@ import org.bithon.component.commons.expression.LogicalExpression;
  * @date 2024/1/20 14:08
  */
 class ExpressionTypeValidator implements IExpressionVisitor {
+
+    /**
+     * If the type of identifier does not defined,
+     * it's not able to validate the types for identifiers and related expressions
+     */
+    private final boolean validateIdentifier;
+
+    ExpressionTypeValidator(boolean validateIdentifier) {
+        this.validateIdentifier = validateIdentifier;
+    }
 
     @Override
     public boolean visit(LogicalExpression expression) {
@@ -46,6 +57,12 @@ class ExpressionTypeValidator implements IExpressionVisitor {
 
     @Override
     public boolean visit(ConditionalExpression expression) {
+        if (!this.validateIdentifier &&
+            (expression.getLeft() instanceof IdentifierExpression
+                || expression.getRight() instanceof IdentifierExpression)) {
+            return true;
+        }
+
         IDataType leftType = expression.getLeft().getDataType();
         IDataType rightType = expression.getRight().getDataType();
 

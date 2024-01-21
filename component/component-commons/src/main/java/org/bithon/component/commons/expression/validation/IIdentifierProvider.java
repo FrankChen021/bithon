@@ -22,7 +22,6 @@ package org.bithon.component.commons.expression.validation;
  */
 public interface IIdentifierProvider {
     /**
-     * If the identifier can't be found, an exception should be thrown from the implementation
      */
-    Identifier getIdentifier(String identifier);
+    IIdentifier getIdentifier(String identifier);
 }

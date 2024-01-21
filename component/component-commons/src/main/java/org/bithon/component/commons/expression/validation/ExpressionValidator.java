@@ -17,8 +17,6 @@
 package org.bithon.component.commons.expression.validation;
 
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor;
-import org.bithon.component.commons.expression.IdentifierExpression;
 
 /**
  * @author frank.chen021@outlook.com
@@ -26,34 +24,8 @@ import org.bithon.component.commons.expression.IdentifierExpression;
  */
 public class ExpressionValidator {
 
-    private final IIdentifierProvider identifierProvider;
-
-    public ExpressionValidator(IIdentifierProvider identifierProvider) {
-        this.identifierProvider = identifierProvider;
-    }
-
-    public void validate(IExpression expression) {
-        // Validate all identifier expressions recursively
-        expression.accept(new IdentifierExpressionValidator(identifierProvider));
-
+    public void validate(IExpression expression, boolean validateIdentifier) {
         // Type validation
-        expression.accept(new ExpressionTypeValidator());
-    }
-
-    public static class IdentifierExpressionValidator implements IExpressionVisitor {
-        final IIdentifierProvider provider;
-
-        public IdentifierExpressionValidator(IIdentifierProvider provider) {
-            this.provider = provider;
-        }
-
-        @Override
-        public boolean visit(IdentifierExpression expression) {
-            Identifier dataType = provider.getIdentifier(expression.getIdentifier());
-            // Change to raw name and correct type
-            expression.setIdentifier(dataType.getName());
-            expression.setDataType(dataType.getDataType());
-            return true;
-        }
+        expression.accept(new ExpressionTypeValidator(validateIdentifier));
     }
 }

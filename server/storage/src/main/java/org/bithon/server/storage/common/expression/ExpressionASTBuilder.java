@@ -41,6 +41,7 @@ import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.expression.validation.ExpressionValidator;
+import org.bithon.component.commons.expression.validation.IIdentifier;
 import org.bithon.component.commons.expression.validation.IIdentifierProvider;
 import org.bithon.server.datasource.ast.ExpressionBaseVisitor;
 import org.bithon.server.datasource.ast.ExpressionLexer;
@@ -117,12 +118,10 @@ public class ExpressionASTBuilder {
 
         IExpression ast = parser.parse()
                                 .expression()
-                                .accept(new ParserImpl(functions));
+                                .accept(new ParserImpl(functions, this.identifiers));
 
-        if (this.identifiers != null) {
-            ExpressionValidator validator = new ExpressionValidator(this.identifiers);
-            validator.validate(ast);
-        }
+        ExpressionValidator validator = new ExpressionValidator();
+        validator.validate(ast, this.identifiers != null);
 
         if (this.optimizationEnabled) {
             ast = ExpressionOptimizer.optimize(ast);
@@ -133,9 +132,12 @@ public class ExpressionASTBuilder {
 
     private static class ParserImpl extends ExpressionBaseVisitor<IExpression> {
         private final IFunctionProvider functionProvider;
+        private final IIdentifierProvider identifierValidator;
 
-        private ParserImpl(IFunctionProvider functionProvider) {
+        private ParserImpl(IFunctionProvider functionProvider,
+                           IIdentifierProvider identifierValidator) {
             this.functionProvider = functionProvider;
+            this.identifierValidator = identifierValidator;
         }
 
         /**
@@ -163,10 +165,10 @@ public class ExpressionASTBuilder {
             if (subexpression instanceof LogicalExpression) {
                 String subExpressionLogicalOperator = ((LogicalExpression) subexpression).getOperator();
                 if (logicalOperatorType == ExpressionLexer.AND && LogicalExpression.AND.equals(subExpressionLogicalOperator)) {
-                    // flatten when the parent and sub logical expression have same operator
+                    // flatten when the parent and sub logical expression have the same operator
                     flattenList.addAll(((LogicalExpression) subexpression).getOperands());
                 } else if (logicalOperatorType == ExpressionLexer.OR && LogicalExpression.OR.equals(subExpressionLogicalOperator)) {
-                    // flatten when the parent and sub logical expression have same operator
+                    // flatten when the parent and sub logical expression have the same operator
                     flattenList.addAll(((LogicalExpression) subexpression).getOperands());
                 } else {
                     flattenList.add(subexpression);
@@ -346,6 +348,14 @@ public class ExpressionASTBuilder {
 
         @Override
         public IExpression visitIdentifierExpression(ExpressionParser.IdentifierExpressionContext ctx) {
+            String identifier = ctx.getText();
+            if (identifierValidator != null) {
+                IIdentifier id = identifierValidator.getIdentifier(identifier);
+                IdentifierExpression expression = new IdentifierExpression(id.getName());
+                expression.setDataType(id.getDataType());
+                return expression;
+            }
+
             return new IdentifierExpression(ctx.getText());
         }
 

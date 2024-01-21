@@ -22,20 +22,9 @@ import org.bithon.component.commons.expression.IDataType;
  * @author frank.chen021@outlook.com
  * @date 2024/1/20 14:06
  */
-public class Identifier {
-    private final String name;
-    private final IDataType dataType;
+public interface IIdentifier {
 
-    public Identifier(String name, IDataType dataType) {
-        this.name = name;
-        this.dataType = dataType;
-    }
+    String getName();
 
-    public String getName() {
-        return name;
-    }
-
-    public IDataType getDataType() {
-        return dataType;
-    }
+    IDataType getDataType();
 }

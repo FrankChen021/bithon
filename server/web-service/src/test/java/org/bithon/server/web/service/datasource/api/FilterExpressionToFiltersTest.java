@@ -19,6 +19,7 @@ package org.bithon.server.web.service.datasource.api;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.validation.ExpressionValidationException;
 import org.bithon.server.storage.common.expression.InvalidExpressionException;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
@@ -55,7 +56,7 @@ public class FilterExpressionToFiltersTest {
 
         Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "a", null));
 
-        Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "a in ('5', 6)", null));
+        Assert.assertThrows(ExpressionValidationException.class, () -> FilterExpressionToFilters.toExpression(schema, "a in ('5', 6)", null));
         FilterExpressionToFilters.toExpression(schema, "a in ('5', '6')", null);
 
         // Unary function expression is not a valid filter

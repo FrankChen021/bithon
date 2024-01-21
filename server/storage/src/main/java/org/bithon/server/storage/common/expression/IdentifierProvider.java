@@ -18,8 +18,8 @@ package org.bithon.server.storage.common.expression;
 
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.validation.ExpressionValidationException;
+import org.bithon.component.commons.expression.validation.IIdentifier;
 import org.bithon.component.commons.expression.validation.IIdentifierProvider;
-import org.bithon.component.commons.expression.validation.Identifier;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 
@@ -35,7 +35,7 @@ class IdentifierProvider implements IIdentifierProvider {
     }
 
     @Override
-    public Identifier getIdentifier(String identifier) {
+    public IIdentifier getIdentifier(String identifier) {
         IColumn column = schema.getColumnByName(identifier);
         if (column == null) {
             // A special and ugly check.
@@ -44,15 +44,24 @@ class IdentifierProvider implements IIdentifierProvider {
             // We need to ignore this case.
             // The ignored tags will be processed later in the trace module.
             if (identifier.startsWith("tags.")) {
-                return new Identifier(identifier, IDataType.STRING);
+                return new IIdentifier() {
+                    @Override
+                    public String getName() {
+                        return identifier;
+                    }
+
+                    @Override
+                    public IDataType getDataType() {
+                        return IDataType.STRING;
+                    }
+                };
             }
 
-            throw new ExpressionValidationException("Identifier [%s] not defined in the data source [%s].",
+            throw new ExpressionValidationException("Identifier [%s] not defined in schema [%s]",
                                                     identifier,
                                                     schema.getName());
         }
 
-        // Change to raw name and correct type
-        return new Identifier(column.getName(), column.getDataType());
+        return column;
     }
 }

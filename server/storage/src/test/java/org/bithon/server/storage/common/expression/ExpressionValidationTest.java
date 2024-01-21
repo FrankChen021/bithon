@@ -127,6 +127,16 @@ public class ExpressionValidationTest {
     }
 
     @Test
+    public void test_TypeMismatchForIdentifier() {
+        Assert.assertThrows(ExpressionValidationException.class,
+                            () ->
+                                ExpressionASTBuilder.builder()
+                                                    .schema(schema)
+                                                    .build("a > intB")
+                           );
+    }
+
+    @Test
     public void test_UncompleteLogicalExpression() {
         Assert.assertThrows(ExpressionValidationException.class,
                             () ->

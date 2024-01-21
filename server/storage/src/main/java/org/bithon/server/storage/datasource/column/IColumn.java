@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.component.commons.expression.IDataType;
+import org.bithon.component.commons.expression.validation.IIdentifier;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
@@ -50,7 +51,7 @@ import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
     @JsonSubTypes.Type(name = IColumn.POST, value = ExpressionColumn.class),
     @JsonSubTypes.Type(name = IColumn.COUNT, value = AggregateCountColumn.class),
 })
-public interface IColumn {
+public interface IColumn extends IIdentifier {
     /**
      * for Gauge
      */
