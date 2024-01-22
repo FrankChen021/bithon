@@ -43,6 +43,8 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "bithon.sinks.tracing")
 public class TraceSinkConfig {
 
+    private boolean enabled = true;
+
     private List<Map<String, String>> transformers;
 
     /**

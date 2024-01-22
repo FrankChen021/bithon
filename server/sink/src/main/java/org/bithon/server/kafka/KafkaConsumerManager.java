@@ -17,11 +17,14 @@
 package org.bithon.server.kafka;
 
 import lombok.SneakyThrows;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.sink.event.EventMessageHandlers;
+import org.bithon.server.sink.event.EventSinkConfig;
 import org.bithon.server.sink.event.LocalEventSink;
 import org.bithon.server.sink.metrics.LocalMetricSink;
-import org.bithon.server.sink.tracing.ITraceMessageSink;
+import org.bithon.server.sink.metrics.MetricSinkConfig;
 import org.bithon.server.sink.tracing.LocalTraceSink;
+import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -49,18 +52,25 @@ public class KafkaConsumerManager implements SmartLifecycle, ApplicationContextA
     public void start() {
         KafkaConsumerConfig config = this.context.getBean(KafkaConsumerConfig.class);
 
-        ITraceMessageSink traceMessageSink = this.context.getBean(LocalTraceSink.class);
+        if (this.context.getBean(MetricSinkConfig.class).isEnabled()) {
+            Preconditions.checkNotNull(config.getMetrics(), "The metrics property of kafka collector is not configured while the metric sink is enabled.");
 
-        if (config.getMetrics() != null && isTrue(config.getMetrics().remove("enabled"), true)) {
-            collectors.add(new KafkaMetricConsumer(new LocalMetricSink(this.context), this.context).start(config.getMetrics()));
+            collectors.add(new KafkaMetricConsumer(new LocalMetricSink(this.context), this.context)
+                               .start(config.getMetrics()));
         }
 
-        if (config.getTracing() != null && isTrue(config.getTracing().remove("enabled"), true)) {
-            collectors.add(new KafkaTraceConsumer(traceMessageSink, this.context).start(config.getTracing()));
+        if (this.context.getBean(TraceSinkConfig.class).isEnabled()) {
+            Preconditions.checkNotNull(config.getTracing(), "The tracing property of kafka collector is not configured while the tracing sink is enabled.");
+
+            collectors.add(new KafkaTraceConsumer(this.context.getBean(LocalTraceSink.class), this.context)
+                               .start(config.getTracing()));
         }
 
-        if (config.getEvent() != null && isTrue(config.getEvent().remove("enabled"), true)) {
-            collectors.add(new KafkaEventConsumer(new LocalEventSink(this.context.getBean(EventMessageHandlers.class)), this.context).start(config.getEvent()));
+        if (this.context.getBean(EventSinkConfig.class).isEnabled()) {
+            Preconditions.checkNotNull(config.getEvent(), "The event property of kafka collector is not configured while the event sink is enabled.");
+
+            collectors.add(new KafkaEventConsumer(new LocalEventSink(this.context.getBean(EventMessageHandlers.class)), this.context)
+                               .start(config.getEvent()));
         }
     }
 
@@ -74,19 +84,5 @@ public class KafkaConsumerManager implements SmartLifecycle, ApplicationContextA
     @Override
     public boolean isRunning() {
         return collectors.stream().anyMatch(IKafkaConsumer::isRunning);
-    }
-
-    private boolean isTrue(Object val, boolean nullValue) {
-        if (val != null) {
-            if (val instanceof Boolean) {
-                return (boolean) val;
-            }
-            if (val instanceof String) {
-                return "true".equalsIgnoreCase((String) val);
-            }
-            return false;
-        } else {
-            return nullValue;
-        }
     }
 }

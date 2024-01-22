@@ -92,7 +92,7 @@ public class SinkAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(value = "collector-kafka.enabled", havingValue = "true", matchIfMissing = false)
+    @ConditionalOnProperty(value = "bithon.sinks.tracing.enabled", havingValue = "true", matchIfMissing = true)
     public LocalTraceSink localTraceSink(TraceSinkConfig traceConfig, ObjectMapper om, ApplicationContext applicationContext) {
         return new LocalTraceSink(traceConfig, om, applicationContext);
     }

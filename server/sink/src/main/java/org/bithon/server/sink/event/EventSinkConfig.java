@@ -32,5 +32,6 @@ import org.springframework.context.annotation.Configuration;
 @Conditional(SinkModuleEnabler.class)
 @ConfigurationProperties(prefix = "bithon.sinks.event")
 public class EventSinkConfig {
+    private boolean enabled = true;
     private BatchConfig batch;
 }

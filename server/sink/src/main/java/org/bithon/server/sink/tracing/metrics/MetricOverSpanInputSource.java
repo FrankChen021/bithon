@@ -34,6 +34,7 @@ import org.bithon.server.sink.metrics.MetricSinkConfig;
 import org.bithon.server.sink.metrics.MetricsAggregator;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.sink.tracing.LocalTraceSink;
+import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -74,19 +75,29 @@ public class MetricOverSpanInputSource implements IInputSource {
 
     @JsonCreator
     public MetricOverSpanInputSource(@JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
-                                     @JacksonInject(useInput = OptBoolean.FALSE) LocalTraceSink chain,
                                      @JacksonInject(useInput = OptBoolean.FALSE) IMetricStorage metricStorage,
                                      @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         Preconditions.checkArgumentNotNull("transformSpec", transformSpec);
 
-        this.chain = chain;
         this.transformSpec = transformSpec;
         this.metricStorage = metricStorage;
         this.applicationContext = applicationContext;
+
+        boolean isEnabled = applicationContext.getBean(TraceSinkConfig.class).isEnabled();
+        if (isEnabled) {
+            this.chain = applicationContext.getBean(LocalTraceSink.class);
+        } else {
+            this.chain = null;
+        }
     }
 
     @Override
     public void start(DataSourceSchema schema) {
+        if (this.chain == null) {
+            log.warn("The trace sink is not enabled in this module. The input source of [{}] has no effect.", schema.getName());
+            return;
+        }
+
         try {
             this.metricStorage.createMetricWriter(schema).close();
             log.info("Success to initialize metric storage for [{}].", schema.getName());
