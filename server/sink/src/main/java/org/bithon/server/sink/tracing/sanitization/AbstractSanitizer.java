@@ -46,13 +46,15 @@ public abstract class AbstractSanitizer implements ITransformer {
     }
 
     @Override
-    public final void transform(IInputRow inputRow) throws TransformException {
+    public final boolean transform(IInputRow inputRow) throws TransformException {
         if (whereExpression != null) {
             if (!(boolean) whereExpression.evaluate(inputRow)) {
-                return;
+                return true;
             }
         }
+
         sanitize(inputRow);
+        return true;
     }
 
     protected abstract void sanitize(IInputRow inputRow);

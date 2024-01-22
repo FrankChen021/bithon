@@ -48,11 +48,12 @@ public class ExtractPath implements ITransformer {
     }
 
     @Override
-    public void transform(IInputRow inputRow) throws TransformException {
+    public boolean transform(IInputRow inputRow) throws TransformException {
         try {
             URI uri = new URI(inputRow.getColAsString(this.uri));
             inputRow.updateColumn(this.targetField, NetworkUtils.formatUri(uri));
         } catch (URISyntaxException ignored) {
         }
+        return false;
     }
 }

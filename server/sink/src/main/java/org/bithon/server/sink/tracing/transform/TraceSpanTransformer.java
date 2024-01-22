@@ -49,9 +49,10 @@ public class TraceSpanTransformer implements ITransformer {
     /**
      * flatten some properties in tags.
      * SHOULD be called AFTER all properties have been set
+     *
      */
     @Override
-    public void transform(IInputRow inputRow) throws TransformException {
+    public boolean transform(IInputRow inputRow) throws TransformException {
         TraceSpan span = (TraceSpan) inputRow;
 
         transformIntoJavaStyleMethod(span);
@@ -66,7 +67,7 @@ public class TraceSpanTransformer implements ITransformer {
 
         Map<String, String> tags = span.getTags();
         if (CollectionUtils.isEmpty(tags)) {
-            return;
+            return false;
         }
 
         //
@@ -114,6 +115,8 @@ public class TraceSpanTransformer implements ITransformer {
         if (StringUtils.hasText(uri)) {
             span.setNormalizedUri(normalizer.normalize(span.getAppName(), uri).getUri());
         }
+
+        return true;
     }
 
     private void transformIntoJavaStyleMethod(TraceSpan span) {

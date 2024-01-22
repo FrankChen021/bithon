@@ -29,7 +29,6 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.sink.common.service.UriNormalizer;
 import org.bithon.server.sink.tracing.transform.TraceSpanTransformer;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.filter.IInputRowFilter;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.context.ApplicationContext;
@@ -86,13 +85,13 @@ public class LocalTraceSink implements ITraceMessageSink {
         }
 
         @Override
-        public void transform(IInputRow inputRow) throws TransformException {
+        public boolean transform(IInputRow inputRow) throws TransformException {
             try {
                 delegate.transform(inputRow);
             } catch (Exception e) {
                 long now = System.currentTimeMillis();
                 if (now - lastLogTimestamp < 5_000) {
-                    return;
+                    return false;
                 }
 
                 log.error(StringUtils.format("Fail to transform, message [%s], Span [%s]", e.getMessage(), inputRow),
@@ -101,6 +100,7 @@ public class LocalTraceSink implements ITraceMessageSink {
                 this.lastLogTimestamp = now;
                 this.lastException = e.getClass().getName();
             }
+            return false;
         }
     }
 
@@ -110,13 +110,11 @@ public class LocalTraceSink implements ITraceMessageSink {
     private final ExecutorService executorService;
 
     private final List<ITransformer> transformers;
-    private final IInputRowFilter filter;
 
     @JsonCreator
     public LocalTraceSink(@JacksonInject(useInput = OptBoolean.FALSE) TraceSinkConfig traceSinkConfig,
                           @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                           @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        this.filter = traceSinkConfig.createFilter(objectMapper);
         this.transformers = createTransformers(traceSinkConfig.getTransform(), applicationContext, objectMapper);
 
         this.executorService = Executors.newCachedThreadPool(NamedThreadFactory.of("trace-processor"));
@@ -163,14 +161,8 @@ public class LocalTraceSink implements ITraceMessageSink {
         while (iterator.hasNext()) {
             TraceSpan span = iterator.next();
 
-            // Transform first
             for (ITransformer transformer : transformers) {
-                transformer.transform(span);
-            }
-
-            // Post filter
-            if (this.filter != null) {
-                if (!this.filter.shouldInclude(span)) {
+                if (!transformer.transform(span)) {
                     iterator.remove();
                 }
             }

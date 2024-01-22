@@ -72,8 +72,9 @@ public class HasFieldTransformer implements ITransformer {
     }
 
     @Override
-    public void transform(IInputRow inputRow) {
+    public boolean transform(IInputRow inputRow) {
         Object v = valueExtractor.apply(inputRow) != null ? trueValue : falseValue;
         inputRow.updateColumn(resultField, v);
+        return true;
     }
 }

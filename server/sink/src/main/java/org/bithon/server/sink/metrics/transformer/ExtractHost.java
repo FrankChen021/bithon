@@ -48,7 +48,7 @@ public class ExtractHost implements ITransformer {
     }
 
     @Override
-    public void transform(IInputRow inputRow) throws TransformException {
+    public boolean transform(IInputRow inputRow) throws TransformException {
         try {
             URI uri = new URI(inputRow.getColAsString(this.uri));
             String hostAndPort = toHostPort(uri.getHost(), uri.getPort());
@@ -60,6 +60,7 @@ public class ExtractHost implements ITransformer {
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
+        return false;
     }
 
     private String toHostPort(String targetHost, int targetPort) {
