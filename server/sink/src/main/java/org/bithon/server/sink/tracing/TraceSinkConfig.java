@@ -16,21 +16,13 @@
 
 package org.bithon.server.sink.tracing;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
-import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.sink.common.BatchConfig;
 import org.bithon.server.sink.tracing.mapping.TraceIdMappingConfig;
-import org.bithon.server.sink.tracing.sanitization.SanitizerConfig;
-import org.bithon.server.storage.datasource.input.filter.AndFilter;
-import org.bithon.server.storage.datasource.input.filter.IInputRowFilter;
-import org.bithon.server.storage.datasource.input.transformer.ITransformer;
+import org.bithon.server.sink.tracing.transform.sanitization.SanitizerConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -40,10 +32,10 @@ import java.util.Map;
  *  *     bithon:
  *  *       processor:
  *  *         trace:
- *  *           transform:
+ *  *           transforms:
  *  *             - type: filter
  *  *             - type: sanitize
- *  *           sink:
+ *  *           sinks:
  *  *             - type: store
  *  *             -
  *  * </pre>
@@ -58,18 +50,8 @@ public class TraceSinkConfig {
 
     private boolean enabled = true;
 
-    private List<Map<String, String>> transformers;
-
-    /**
-     * Map<String, String>
-     * key: prop name
-     * val: prop values
-     * <p>
-     * The props must be complied with {@link IInputRowFilter}
-     */
-    private List<Map<String, String>> filters;
-
-    private List<Map<String, String>> transform;
+    private List<Map<String, String>> transforms;
+    private List<Map<String, String>> sinks;
 
     private List<TraceIdMappingConfig> mapping;
 
@@ -78,43 +60,4 @@ public class TraceSinkConfig {
 
     private BatchConfig batch;
 
-    @Nullable
-    public IInputRowFilter createFilter(ObjectMapper om) {
-        if (CollectionUtils.isEmpty(filters)) {
-            return null;
-        }
-
-        List<IInputRowFilter> filterList = new ArrayList<>(filters.size());
-        for (Map<String, String> filter : filters) {
-            try {
-                filterList.add(om.readValue(om.writeValueAsBytes(filter), IInputRowFilter.class));
-            } catch (IOException ignored) {
-            }
-        }
-        return filterList.isEmpty() ? null : new AndFilter(filterList);
-    }
-
-    @Nullable
-    public ITransformer createTransformers(ObjectMapper om) {
-        if (CollectionUtils.isEmpty(transformers)) {
-            return null;
-        }
-
-        final List<ITransformer> transformerList = new ArrayList<>(transformers.size());
-        for (Map<String, String> transformer : transformers) {
-            try {
-                transformerList.add(om.readValue(om.writeValueAsBytes(transformer), ITransformer.class));
-            } catch (IOException ignored) {
-            }
-        }
-        if (transformerList.isEmpty()) {
-            return null;
-        }
-
-        return inputRow -> {
-            for (ITransformer transformer : transformerList) {
-                transformer.transform(inputRow);
-            }
-        };
-    }
 }

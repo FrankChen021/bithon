@@ -32,7 +32,7 @@ import org.bithon.server.sink.metrics.transformer.UriNormalizationTransformer;
 import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.sink.tracing.metrics.MetricOverSpanInputSource;
-import org.bithon.server.sink.tracing.sanitization.UrlSanitizer;
+import org.bithon.server.sink.tracing.transform.sanitization.UrlSanitizer;
 import org.bithon.server.sink.tracing.transform.TraceSpanTransformer;
 import org.bithon.server.storage.StorageModuleAutoConfiguration;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;

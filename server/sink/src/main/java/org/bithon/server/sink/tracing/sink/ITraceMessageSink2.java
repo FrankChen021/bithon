@@ -14,18 +14,26 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.tracing.sanitization;
+package org.bithon.server.sink.tracing.sink;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.storage.tracing.TraceSpan;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 10/1/22 2:31 PM
+ * @date 9/12/21 2:22 PM
  */
-@Data
-public class SanitizerConfig {
-    private String type;
-    private Map<String, Object> args;
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(value = {
+    @JsonSubTypes.Type(name = "store", value = SinkToStorage.class),
+})
+public interface ITraceMessageSink2 extends AutoCloseable {
+    /**
+     * process messages.
+     * If it's closing, this process method won't be called again
+     */
+    void process(String messageType, List<TraceSpan> messages);
 }

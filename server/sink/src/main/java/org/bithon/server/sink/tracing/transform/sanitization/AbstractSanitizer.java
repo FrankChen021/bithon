@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.tracing.sanitization;
+package org.bithon.server.sink.tracing.transform.sanitization;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.bithon.component.commons.expression.ConditionalExpression;

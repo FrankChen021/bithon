@@ -32,9 +32,9 @@ import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.MetricMessageHandler;
 import org.bithon.server.sink.metrics.MetricSinkConfig;
 import org.bithon.server.sink.metrics.MetricsAggregator;
-import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.bithon.server.sink.tracing.TraceSinkConfig;
+import org.bithon.server.sink.tracing.sink.ITraceMessageSink2;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -134,7 +134,7 @@ public class MetricOverSpanInputSource implements IInputSource {
         }
     }
 
-    private static class MetricOverSpanExtractor implements ITraceMessageSink {
+    private static class MetricOverSpanExtractor implements ITraceMessageSink2 {
         private final TransformSpec transformSpec;
         private final DataSourceSchema schema;
         private final MetricMessageHandler metricHandler;
