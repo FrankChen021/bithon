@@ -18,8 +18,10 @@ package org.bithon.server.sink.tracing.sanitization;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.net.URI;
@@ -39,7 +41,8 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 10/1/22 1:38 PM
  */
-public class UrlSanitizer implements ISanitizer {
+@JsonTypeName("url-sanitizer")
+public class UrlSanitizer extends AbstractSanitizer {
     private final Collection<String> sensitiveParameters;
 
     /**
@@ -47,12 +50,16 @@ public class UrlSanitizer implements ISanitizer {
      * The default deserialization treats the list as a LinkedHashMap, so we have to define the ctor as the map
      */
     @JsonCreator
-    public UrlSanitizer(@JsonProperty("sensitiveParameters") Map<String, String> sensitiveParameters) {
+    public UrlSanitizer(@JsonProperty("where") String where,
+                        @JsonProperty("sensitiveParameters") Map<String, String> sensitiveParameters) {
+        super(where);
         this.sensitiveParameters = new ArrayList<>(sensitiveParameters.values());
     }
 
     @Override
-    public void sanitize(TraceSpan span) {
+    protected void sanitize(IInputRow inputRow) {
+        TraceSpan span = (TraceSpan) inputRow;
+
         boolean sanitized = false;
 
         Map<String, String> parameters = span.getUriParameters();

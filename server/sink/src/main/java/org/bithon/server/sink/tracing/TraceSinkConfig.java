@@ -35,6 +35,19 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ *
+ *  * <pre>
+ *  *     bithon:
+ *  *       processor:
+ *  *         trace:
+ *  *           transform:
+ *  *             - type: filter
+ *  *             - type: sanitize
+ *  *           sink:
+ *  *             - type: store
+ *  *             -
+ *  * </pre>
+ *
  * @author frank.chen021@outlook.com
  * @date 10/12/21 3:33 PM
  */
@@ -55,6 +68,8 @@ public class TraceSinkConfig {
      * The props must be complied with {@link IInputRowFilter}
      */
     private List<Map<String, String>> filters;
+
+    private List<Map<String, String>> transform;
 
     private List<TraceIdMappingConfig> mapping;
 

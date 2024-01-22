@@ -34,10 +34,12 @@ import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.context.ApplicationContext;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -107,7 +109,7 @@ public class LocalTraceSink implements ITraceMessageSink {
 
     private final ExecutorService executorService;
 
-    private final ITransformer transformer;
+    private final List<ITransformer> transformers;
     private final IInputRowFilter filter;
 
     @JsonCreator
@@ -115,15 +117,30 @@ public class LocalTraceSink implements ITraceMessageSink {
                           @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                           @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.filter = traceSinkConfig.createFilter(objectMapper);
-
-        ITransformer transformer = traceSinkConfig.createTransformers(objectMapper);
-        if (transformer == null) {
-            transformer = new TraceSpanTransformer(applicationContext.getBean(UriNormalizer.class));
-        }
-        this.transformer = new ExceptionSafeTransformer(transformer);
+        this.transformers = createTransformers(traceSinkConfig.getTransform(), applicationContext, objectMapper);
 
         this.executorService = Executors.newCachedThreadPool(NamedThreadFactory.of("trace-processor"));
         this.defaultSink = new SinkImpl(applicationContext);
+    }
+
+    public List<ITransformer> createTransformers(List<Map<String, String>> transform,
+                                                 ApplicationContext applicationContext,
+                                                 ObjectMapper objectMapper) {
+        List<ITransformer> transformers = new ArrayList<>();
+        transformers.add(new TraceSpanTransformer(applicationContext.getBean(UriNormalizer.class)));
+
+        if (CollectionUtils.isEmpty(transform)) {
+            return transformers;
+        }
+
+        for (Map<String, String> oneTransform : transform) {
+            try {
+                transformers.add(new ExceptionSafeTransformer(objectMapper.readValue(objectMapper.writeValueAsBytes(oneTransform),
+                                                                                     ITransformer.class)));
+            } catch (IOException ignored) {
+            }
+        }
+        return transformers;
     }
 
     public <T extends ITraceMessageSink> T link(T sink) {
@@ -147,7 +164,9 @@ public class LocalTraceSink implements ITraceMessageSink {
             TraceSpan span = iterator.next();
 
             // Transform first
-            this.transformer.transform(span);
+            for (ITransformer transformer : transformers) {
+                transformer.transform(span);
+            }
 
             // Post filter
             if (this.filter != null) {
