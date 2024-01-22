@@ -14,11 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.kafka;
+package org.bithon.server.sink.tracing.source;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.bithon.server.kafka.AbstractKafkaConsumer;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.context.ApplicationContext;
@@ -26,22 +30,36 @@ import org.springframework.context.ApplicationContext;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
 @Slf4j
-public class KafkaTraceConsumer extends AbstractKafkaConsumer {
-    private final ITraceMessageSink traceSink;
+@JsonTypeName("kafka")
+public class KafkaSource extends AbstractKafkaConsumer implements ITraceMessageSource {
+    private final Map<String, Object> props;
+    private ITraceMessageSink processor;
     private final TypeReference<List<TraceSpan>> typeReference;
 
-    public KafkaTraceConsumer(ITraceMessageSink traceSink, ApplicationContext applicationContext) {
+    public KafkaSource(@JacksonInject(useInput = OptBoolean.FALSE) Map<String, Object> props,
+                       @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         super(applicationContext);
 
-        this.traceSink = traceSink;
         this.typeReference = new TypeReference<List<TraceSpan>>() {
         };
+        this.props = props;
+    }
+
+    @Override
+    public void start() {
+        this.start(props);
+    }
+
+    @Override
+    public void registerProcessor(ITraceMessageSink processor) {
+        this.processor = processor;
     }
 
     @Override
@@ -51,15 +69,14 @@ public class KafkaTraceConsumer extends AbstractKafkaConsumer {
             super.stop();
         } catch (Exception ignored) {
         }
-
-        try {
-            traceSink.close();
-        } catch (Exception ignored) {
-        }
     }
 
     @Override
     public void onMessage(List<ConsumerRecord<String, byte[]>> records) {
+        if (this.processor == null) {
+            return;
+        }
+
         List<TraceSpan> spans = new ArrayList<>(16);
 
         for (ConsumerRecord<String, byte[]> record : records) {
@@ -71,6 +88,6 @@ public class KafkaTraceConsumer extends AbstractKafkaConsumer {
             }
         }
 
-        traceSink.process(getTopic(), spans);
+        processor.process(getTopic(), spans);
     }
 }

@@ -19,7 +19,6 @@ package org.bithon.server.sink.tracing;
 import lombok.Data;
 import org.bithon.server.sink.common.BatchConfig;
 import org.bithon.server.sink.tracing.mapping.TraceIdMappingConfig;
-import org.bithon.server.sink.tracing.transform.sanitization.SanitizerConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -31,7 +30,7 @@ import java.util.Map;
  *  * <pre>
  *  *     bithon:
  *  *       processor:
- *  *         trace:
+ *  *         tracing:
  *  *           transforms:
  *  *             - type: filter
  *  *             - type: sanitize
@@ -50,14 +49,11 @@ public class TraceSinkConfig {
 
     private boolean enabled = true;
 
+    private DynamicConfig source;
     private List<Map<String, String>> transforms;
     private List<Map<String, String>> sinks;
 
     private List<TraceIdMappingConfig> mapping;
 
-    private SanitizerConfig globalSanitizer;
-    private Map<String, SanitizerConfig> applicationSanitizer;
-
     private BatchConfig batch;
-
 }

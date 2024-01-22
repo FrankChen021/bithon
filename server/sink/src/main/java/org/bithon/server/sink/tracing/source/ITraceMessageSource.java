@@ -1,4 +1,4 @@
-/*
+package org.bithon.server.sink.tracing.source;/*
  *    Copyright 2020 bithon.org
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,18 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.tracing.transform.sanitization;
+import org.bithon.server.sink.tracing.ITraceMessageSink;
 
-import lombok.Data;
-
-import java.util.Map;
-
-/**
- * @author frank.chen021@outlook.com
- * @date 10/1/22 2:31 PM
- */
-@Data
-public class SanitizerConfig {
-    private String type;
-    private Map<String, Object> args;
+public interface ITraceMessageSource {
+    void start();
+    void registerProcessor(ITraceMessageSink processor);
+    void stop();
 }

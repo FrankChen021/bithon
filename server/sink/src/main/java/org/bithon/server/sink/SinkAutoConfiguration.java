@@ -29,7 +29,7 @@ import org.bithon.server.sink.metrics.transformer.ConnectionStringTransformer;
 import org.bithon.server.sink.metrics.transformer.ExtractHost;
 import org.bithon.server.sink.metrics.transformer.ExtractPath;
 import org.bithon.server.sink.metrics.transformer.UriNormalizationTransformer;
-import org.bithon.server.sink.tracing.LocalTraceSink;
+import org.bithon.server.sink.tracing.TraceMessagePipeline;
 import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.sink.tracing.metrics.MetricOverSpanInputSource;
 import org.bithon.server.sink.tracing.transform.sanitization.UrlSanitizer;
@@ -44,6 +44,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+
+import java.io.IOException;
 
 /**
  * @author frank.chen021@outlook.com
@@ -95,16 +97,16 @@ public class SinkAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(value = "bithon.sinks.tracing.enabled", havingValue = "true", matchIfMissing = true)
-    public LocalTraceSink localTraceSink(TraceSinkConfig traceConfig, ObjectMapper om, ApplicationContext applicationContext) {
-        return new LocalTraceSink(traceConfig, om, applicationContext);
+    @ConditionalOnProperty(value = "bithon.processor.tracing.enabled", havingValue = "true", matchIfMissing = true)
+    public TraceMessagePipeline traceMessagePipeline(TraceSinkConfig traceConfig, ObjectMapper om, ApplicationContext applicationContext) throws IOException {
+        return new TraceMessagePipeline(traceConfig, om, applicationContext);
     }
 
     /**
      * Input source manager is responsible for hooking the processors on metrics and trace handlers.
-     * So all its dependencies like {@link LocalTraceSink} should be prepared.
+     * So all its dependencies like {@link TraceMessagePipeline} should be prepared.
      * <p>
-     * If the sink is kafka, {@link LocalTraceSink} is initialized above
+     * If the sink is kafka, {@link TraceMessagePipeline} is initialized above
      * If the sink is local, it's initialized in brpc autoconfiguration.
      */
     @Bean

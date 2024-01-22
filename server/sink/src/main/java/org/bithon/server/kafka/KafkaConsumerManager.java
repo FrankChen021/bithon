@@ -23,8 +23,6 @@ import org.bithon.server.sink.event.EventSinkConfig;
 import org.bithon.server.sink.event.LocalEventSink;
 import org.bithon.server.sink.metrics.LocalMetricSink;
 import org.bithon.server.sink.metrics.MetricSinkConfig;
-import org.bithon.server.sink.tracing.LocalTraceSink;
-import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -57,13 +55,6 @@ public class KafkaConsumerManager implements SmartLifecycle, ApplicationContextA
 
             collectors.add(new KafkaMetricConsumer(new LocalMetricSink(this.context), this.context)
                                .start(config.getMetrics()));
-        }
-
-        if (this.context.getBean(TraceSinkConfig.class).isEnabled()) {
-            Preconditions.checkNotNull(config.getTracing(), "The tracing property of kafka collector is not configured while the tracing sink is enabled.");
-
-            collectors.add(new KafkaTraceConsumer(this.context.getBean(LocalTraceSink.class), this.context)
-                               .start(config.getTracing()));
         }
 
         if (this.context.getBean(EventSinkConfig.class).isEnabled()) {

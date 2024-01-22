@@ -32,7 +32,7 @@ import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.MetricMessageHandler;
 import org.bithon.server.sink.metrics.MetricSinkConfig;
 import org.bithon.server.sink.metrics.MetricsAggregator;
-import org.bithon.server.sink.tracing.LocalTraceSink;
+import org.bithon.server.sink.tracing.TraceMessagePipeline;
 import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.sink.tracing.sink.ITraceMessageSink2;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
 public class MetricOverSpanInputSource implements IInputSource {
 
     @JsonIgnore
-    private final LocalTraceSink chain;
+    private final TraceMessagePipeline chain;
 
     @Getter
     private final TransformSpec transformSpec;
@@ -85,7 +85,7 @@ public class MetricOverSpanInputSource implements IInputSource {
 
         boolean isEnabled = applicationContext.getBean(TraceSinkConfig.class).isEnabled();
         if (isEnabled) {
-            this.chain = applicationContext.getBean(LocalTraceSink.class);
+            this.chain = applicationContext.getBean(TraceMessagePipeline.class);
         } else {
             this.chain = null;
         }

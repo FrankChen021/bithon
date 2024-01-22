@@ -18,13 +18,13 @@ package org.bithon.server.sink.tracing;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.sink.common.service.UriNormalizer;
 import org.bithon.server.sink.tracing.sink.ITraceMessageSink2;
+import org.bithon.server.sink.tracing.source.ITraceMessageSource;
 import org.bithon.server.sink.tracing.transform.TraceSpanTransformer;
 import org.bithon.server.storage.datasource.input.transformer.ExceptionSafeTransformer;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
@@ -38,24 +38,46 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * <pre>
+ *     bithon:
+ *       processor:
+ *         tracing:
+ *           source:
+ *             type: brpc|kafka
+ *             props:
+ *           transforms:
+ *             - type: filter
+ *             - type: sanitize
+ *           sinks:
+ *             - type: store
+ *             - type: metric-over-span
+ * </pre>
+ *
  * @author frank.chen021@outlook.com
  * @date 12/4/22 11:38 AM
  */
 @Slf4j
-@JsonTypeName("local")
-public class LocalTraceSink implements ITraceMessageSink {
+public class TraceMessagePipeline implements ITraceMessageSink {
 
     private final List<ITraceMessageSink2> sinks;
 
     private final List<ITransformer> transformers;
+    private final ITraceMessageSource source;
 
     @JsonCreator
-    public LocalTraceSink(@JacksonInject(useInput = OptBoolean.FALSE) TraceSinkConfig traceSinkConfig,
-                          @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
-                          @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        this.transformers = createTransformers(traceSinkConfig.getTransforms(), applicationContext, objectMapper);
-        this.sinks = createSinks(traceSinkConfig.getSinks(), objectMapper);
+    public TraceMessagePipeline(@JacksonInject(useInput = OptBoolean.FALSE) TraceSinkConfig traceSinkConfig,
+                                @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
+                                @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) throws IOException {
 
+        this.sinks = createSinks(traceSinkConfig.getSinks(), objectMapper);
+        this.transformers = createTransformers(traceSinkConfig.getTransforms(), applicationContext, objectMapper);
+        this.source = createObject(ITraceMessageSource.class, objectMapper, traceSinkConfig.getSource());
+
+        this.source.registerProcessor(this);
+    }
+
+    private <T> T createObject(Class<T> clazz, ObjectMapper objectMapper, Object configuration) throws IOException {
+        return objectMapper.readValue(objectMapper.writeValueAsBytes(configuration), clazz);
     }
 
     private List<ITransformer> createTransformers(List<Map<String, String>> transforms,
@@ -70,8 +92,7 @@ public class LocalTraceSink implements ITraceMessageSink {
 
         for (Map<String, String> transform : transforms) {
             try {
-                transformers.add(new ExceptionSafeTransformer(objectMapper.readValue(objectMapper.writeValueAsBytes(transform),
-                                                                                     ITransformer.class)));
+                transformers.add(new ExceptionSafeTransformer(createObject(ITransformer.class, objectMapper, transform)));
             } catch (IOException ignored) {
             }
         }
@@ -105,7 +126,6 @@ public class LocalTraceSink implements ITraceMessageSink {
         return sink;
     }
 
-    @Override
     public void process(String messageType, List<TraceSpan> spans) {
         if (CollectionUtils.isEmpty(spans)) {
             return;
@@ -136,8 +156,10 @@ public class LocalTraceSink implements ITraceMessageSink {
         }
     }
 
-    @Override
     public void close() throws Exception {
+        // Stop the source first
+        this.source.stop();
+
         for (ITraceMessageSink2 sink : sinks) {
             sink.close();
         }
