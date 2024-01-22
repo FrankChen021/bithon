@@ -14,18 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.metrics;
+package org.bithon.server.storage.web;
 
 import org.bithon.server.storage.common.StorageConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 5/11/21 1:19 pm
+ * @author Frank Chen
+ * @date 22/1/24 2:22 pm
  */
 @Configuration
-@ConfigurationProperties(prefix = "bithon.storage.metric")
-public class MetricStorageConfig extends StorageConfig {
-
+@ConfigurationProperties(prefix = "bithon.storage.web")
+public class WebAppStorageConfig extends StorageConfig {
 }

@@ -47,7 +47,7 @@ public class TraceJdbcStorage implements ITraceStorage {
 
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
-    protected final TraceStorageConfig traceStorageConfig;
+    protected final TraceStorageConfig storageConfig;
     protected final DataSourceSchema traceSpanSchema;
     protected final DataSourceSchema traceTagIndexSchema;
     protected final SqlDialectManager sqlDialectManager;
@@ -68,7 +68,7 @@ public class TraceJdbcStorage implements ITraceStorage {
                             SqlDialectManager sqlDialectManager) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
-        this.traceStorageConfig = storageConfig;
+        this.storageConfig = storageConfig;
         this.traceSpanSchema = schemaManager.getDataSourceSchema("trace_span_summary");
         this.traceTagIndexSchema = schemaManager.getDataSourceSchema("trace_span_tag_index");
         this.sqlDialectManager = sqlDialectManager;
@@ -76,6 +76,10 @@ public class TraceJdbcStorage implements ITraceStorage {
 
     @Override
     public void initialize() {
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
+
         dslContext.createTableIfNotExists(Tables.BITHON_TRACE_SPAN)
                   .columns(Tables.BITHON_TRACE_SPAN.fields())
                   .indexes(Tables.BITHON_TRACE_SPAN.getIndexes())
@@ -96,7 +100,7 @@ public class TraceJdbcStorage implements ITraceStorage {
 
     @Override
     public ITraceWriter createWriter() {
-        return new TraceJdbcWriter(dslContext, traceStorageConfig, null);
+        return new TraceJdbcWriter(dslContext, storageConfig, null);
     }
 
     @Override
@@ -105,7 +109,7 @@ public class TraceJdbcStorage implements ITraceStorage {
                                    this.objectMapper,
                                    this.traceSpanSchema,
                                    this.traceTagIndexSchema,
-                                   this.traceStorageConfig,
+                                   this.storageConfig,
                                    this.sqlDialectManager.getSqlDialect(dslContext));
     }
 
@@ -114,7 +118,7 @@ public class TraceJdbcStorage implements ITraceStorage {
         return new IExpirationRunnable() {
             @Override
             public ExpirationConfig getExpirationConfig() {
-                return traceStorageConfig.getTtl();
+                return storageConfig.getTtl();
             }
 
             @Override

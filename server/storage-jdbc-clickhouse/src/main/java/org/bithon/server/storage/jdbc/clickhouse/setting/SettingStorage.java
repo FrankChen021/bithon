@@ -27,6 +27,7 @@ import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcReader;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
 import org.bithon.server.storage.setting.ISettingReader;
+import org.bithon.server.storage.setting.SettingStorageConfig;
 
 import java.sql.Timestamp;
 import java.util.Map;
@@ -41,13 +42,18 @@ public class SettingStorage extends SettingJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public SettingStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration configuration) {
-        super(configuration.getDslContext());
+    public SettingStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration configuration,
+                          @JacksonInject(useInput = OptBoolean.FALSE) SettingStorageConfig storageConfig) {
+        super(configuration.getDslContext(), storageConfig);
         this.config = configuration.getClickHouseConfig();
     }
 
     @Override
     public void initialize() {
+        if (!storageConfig.isCreateTable()) {
+            return;
+        }
+
         // Apply ReplacingMergeTree to this table
         new TableCreator(config, this.dslContext).useReplacingMergeTree(Tables.BITHON_AGENT_SETTING.UPDATEDAT.getName())
                                                  .partitionByExpression(null)

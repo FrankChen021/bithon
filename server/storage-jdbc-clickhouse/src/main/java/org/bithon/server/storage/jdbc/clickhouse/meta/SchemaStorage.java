@@ -28,6 +28,7 @@ import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfig
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
+import org.bithon.server.storage.meta.MetaStorageConfig;
 import org.jooq.Record;
 
 import java.io.IOException;
@@ -48,13 +49,17 @@ public class SchemaStorage extends SchemaJdbcStorage {
 
     @JsonCreator
     public SchemaStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration configuration,
-                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
-        super(configuration.getDslContext(), objectMapper);
+                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
+                         @JacksonInject(useInput = OptBoolean.FALSE) MetaStorageConfig storageConfig) {
+        super(configuration.getDslContext(), objectMapper, storageConfig);
         this.config = configuration.getClickHouseConfig();
     }
 
     @Override
     public void initialize() {
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
         new TableCreator(config, dslContext).useReplacingMergeTree(Tables.BITHON_META_SCHEMA.TIMESTAMP.getName())
                                             .partitionByExpression(null)
                                             .secondaryIndex(Tables.BITHON_META_SCHEMA.TIMESTAMP.getName(), new TableCreator.SecondaryIndex("minmax", 128))
@@ -106,15 +111,15 @@ public class SchemaStorage extends SchemaJdbcStorage {
     public DataSourceSchema getSchemaByName(String name) {
         String sql = dslContext.select(Tables.BITHON_META_SCHEMA.SCHEMA,
                                        Tables.BITHON_META_SCHEMA.SIGNATURE).from(Tables.BITHON_META_SCHEMA).getSQL()
-                     + " FINAL where "
-                     + Tables.BITHON_META_SCHEMA.NAME.eq(name).toString();
+            + " FINAL where "
+            + Tables.BITHON_META_SCHEMA.NAME.eq(name).toString();
 
         Record record = dslContext.fetchOne(sql);
         return record == null ? null : toSchema(name, record.get(0, String.class), record.get(1, String.class));
     }
 
     /**
-     * clickhouse does not support update, as we're using replacing merge tree, just to insert one record
+     * clickhouse does not support update, as we're using the replacing merge tree, just to insert one record
      */
     @Override
     public void update(String name, DataSourceSchema schema) throws IOException {
