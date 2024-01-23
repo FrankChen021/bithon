@@ -14,10 +14,17 @@ package org.bithon.server.sink.tracing.source;/*
  *    limitations under the License.
  */
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(value = {
+    @JsonSubTypes.Type(name = "source", value = KafkaSource.class),
+})
 public interface ITraceMessageSource {
     void start();
+
     void registerProcessor(ITraceMessageSink processor);
     void stop();
 }

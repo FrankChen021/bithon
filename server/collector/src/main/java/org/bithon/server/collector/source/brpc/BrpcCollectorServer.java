@@ -48,9 +48,9 @@ import java.util.stream.Collectors;
  * @date 2021/1/10 4:27 下午
  */
 @Slf4j
-//@Component
-//@ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true", matchIfMissing = false)
-public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextAware {
+@Component
+@ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true", matchIfMissing = false)
+public class BrpcCollectorServer implements SmartLifecycle, ApplicationContextAware {
 
     private final Map<Integer, ServiceGroup> serviceGroups = new HashMap<>();
     private ApplicationContext applicationContext;
@@ -61,74 +61,45 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
         System.setProperty("org.bithon.shaded.io.netty.maxDirectMemory", "0");
     }
 
-    @Override
-    public void start() {
-        BrpcCollectorConfig config = applicationContext.getBean(BrpcCollectorConfig.class);
+    public BrpcCollectorServer(BrpcCollectorConfig config, ApplicationContext applicationContext) {
+        Integer port = config.getPort().get("ctrl");
+        if (port != null) {
+            ServiceGroup brpcServer = addService("ctrl",
+                                                 ISettingFetcher.class,
+                                                 new BrpcSettingFetcher(applicationContext.getBean(AgentConfigurationService.class)),
+                                                 port);
 
-        //
-        // group services by their listening ports
-        //
-        for (Map.Entry<String, Integer> entry : config.getPort().entrySet()) {
-            String type = entry.getKey();
-            Integer port = entry.getValue();
-
-            boolean isCtrl = false;
-            Class<?> serviceDefinition = null;
-            Object serviceImplementation = null;
-            switch (type) {
-                case "metric":
-                    serviceDefinition = IMetricCollector.class;
-                    serviceImplementation = new BrpcMetricCollector(applicationContext.getBean(IMetricMessageSink.class));
-                    break;
-
-                case "event":
-                    serviceDefinition = IEventCollector.class;
-                    serviceImplementation = new BrpcEventCollector(applicationContext.getBean(IEventMessageSink.class));
-                    break;
-
-                case "tracing":
-                    serviceDefinition = ITraceCollector.class;
-                    serviceImplementation = new BrpcTraceCollector(applicationContext.getBean("trace-sink-collector", ITraceMessageSink.class));
-                    break;
-
-                case "ctrl":
-                    isCtrl = true;
-                    serviceDefinition = ISettingFetcher.class;
-                    serviceImplementation = new BrpcSettingFetcher(applicationContext.getBean(AgentConfigurationService.class));
-                    break;
-
-                default:
-                    break;
-            }
-            if (serviceImplementation != null) {
-                ServiceGroup serviceGroup = serviceGroups.computeIfAbsent(port, key -> new ServiceGroup());
-                serviceGroup.isCtrl = isCtrl;
-                serviceGroup.addService(type, serviceDefinition, serviceImplementation);
-            }
+            applicationContext.getBean(AgentServer.class)
+                              .setBrpcServer(brpcServer.getBrpcServer());
         }
+    }
 
-        serviceGroups.forEach((port, serviceGroup) -> {
+    public synchronized ServiceGroup addService(String name,
+                                                Class<?> serviceDefinition,
+                                                Object serviceImplementation,
+                                                int port) {
+        ServiceGroup serviceGroup = serviceGroups.computeIfAbsent(port, key -> new ServiceGroup());
+        serviceGroup.getServices().add(new ServiceProvider(name, serviceDefinition, serviceImplementation));
+        if (serviceGroup.brpcServer == null) {
             // Create a server with the first service name as the server id
-            BrpcServer brpcServer = new BrpcServer(serviceGroup.services.get(0).name);
-            if (serviceGroup.isCtrl) {
-                applicationContext.getBean(AgentServer.class).setBrpcServer(brpcServer);
-            }
-            serviceGroup.brpcServer = brpcServer;
+            serviceGroup.brpcServer = new BrpcServer(name);
             serviceGroup.start(port);
-
             log.info("Started Brpc services [{}] at port {}",
                      serviceGroup.services.stream().map((s) -> s.name).collect(Collectors.joining(",")),
                      port);
-        });
+        } else {
+            serviceGroup.brpcServer.bindService(serviceImplementation);
+        }
+        return serviceGroup;
+    }
 
-        isRunning = true;
+    @Override
+    public void start() {
+
     }
 
     @Override
     public void stop() {
-        log.info("Shutdown Brpc collector...");
-        serviceGroups.values().forEach((ServiceGroup::close));
-        isRunning = false;
     }
 
     @Override
@@ -158,7 +129,7 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
     }
 
     @Getter
-    static class ServiceGroup {
+    public static class ServiceGroup {
         private final List<ServiceProvider> services = new ArrayList<>();
         private boolean isCtrl;
         private BrpcServer brpcServer;
@@ -194,6 +165,13 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
                     } catch (Exception ignored) {
                     }
                 }
+            }
+        }
+
+        public synchronized void stop(String trace) {
+            this.services.removeIf((s) -> s.name.equals(trace));
+            if (this.services.isEmpty()) {
+                this.close();
             }
         }
     }

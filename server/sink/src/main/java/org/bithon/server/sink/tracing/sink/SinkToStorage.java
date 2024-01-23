@@ -16,6 +16,9 @@
 
 package org.bithon.server.sink.tracing.sink;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.Getter;
 import org.bithon.server.sink.tracing.TraceSinkHandler;
 import org.bithon.server.storage.tracing.TraceSpan;
@@ -32,7 +35,8 @@ public class SinkToStorage implements ITraceMessageSink2 {
     @Getter
     private final TraceSinkHandler handler;
 
-    public SinkToStorage(ApplicationContext applicationContext) {
+    @JsonCreator
+    public SinkToStorage(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.handler = new TraceSinkHandler(applicationContext);
     }
 

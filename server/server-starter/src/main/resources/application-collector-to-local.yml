@@ -27,6 +27,16 @@ collector-controller:
           pattern: bithon-
         token: "525"
 
+bithon:
+  processor:
+    tracing:
+      source:
+        type: local
+      transforms:
+      sinks:
+        - type: store
+
+
 logging:
   level:
     org.bithon.collector: debug

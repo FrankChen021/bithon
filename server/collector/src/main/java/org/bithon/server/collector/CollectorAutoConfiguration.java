@@ -23,6 +23,7 @@ import org.bithon.server.collector.sink.kafka.KafkaEventSink;
 import org.bithon.server.collector.sink.kafka.KafkaMetricSink;
 import org.bithon.server.collector.sink.kafka.KafkaTraceSink;
 import org.bithon.server.collector.source.brpc.BrpcCollectorConfig;
+import org.bithon.server.collector.source.brpc.BrpcTraceCollector2;
 import org.bithon.server.sink.event.IEventMessageSink;
 import org.bithon.server.sink.metrics.IMetricMessageSink;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
@@ -40,7 +41,6 @@ import java.io.IOException;
  * @date 9/12/21 5:23 PM
  */
 @Configuration
-@AutoConfigureOrder(Ordered.LOWEST_PRECEDENCE)
 public class CollectorAutoConfiguration {
 
     @Bean
@@ -58,7 +58,9 @@ public class CollectorAutoConfiguration {
 
             @Override
             public void setupModule(SetupContext context) {
-                context.registerSubtypes(KafkaEventSink.class,
+                context.registerSubtypes(BrpcTraceCollector2.class,
+
+                                         KafkaEventSink.class,
                                          KafkaMetricSink.class,
                                          KafkaTraceSink.class);
             }
@@ -79,10 +81,10 @@ public class CollectorAutoConfiguration {
         return config.getSinks().getEvent().createSink(om, IEventMessageSink.class);
     }
 
-    @Bean("trace-sink-collector")
-    @ConditionalOnExpression(value = "${collector-brpc.enabled: false} or ${collector-http.enabled: false}")
-    public ITraceMessageSink traceSink(BrpcCollectorConfig config,
-                                       ObjectMapper om) throws IOException {
-        return config.getSinks().getTracing().createSink(om, ITraceMessageSink.class);
-    }
+//    @Bean("trace-sink-collector")
+//    @ConditionalOnExpression(value = "${collector-brpc.enabled: false} or ${collector-http.enabled: false}")
+//    public ITraceMessageSink traceSink(BrpcCollectorConfig config,
+//                                       ObjectMapper om) throws IOException {
+//        return config.getSinks().getTracing().createSink(om, ITraceMessageSink.class);
+//    }
 }

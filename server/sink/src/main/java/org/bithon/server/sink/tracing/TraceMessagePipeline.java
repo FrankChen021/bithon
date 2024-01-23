@@ -17,7 +17,6 @@
 package org.bithon.server.sink.tracing;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
@@ -31,6 +30,7 @@ import org.bithon.server.storage.datasource.input.transformer.ExceptionSafeTrans
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.SmartLifecycle;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -58,7 +58,7 @@ import java.util.Map;
  * @date 12/4/22 11:38 AM
  */
 @Slf4j
-public class TraceMessagePipeline implements ITraceMessageSink {
+public class TraceMessagePipeline implements ITraceMessageSink, SmartLifecycle {
 
     @Getter
     private final boolean isEnabled;
@@ -66,18 +66,16 @@ public class TraceMessagePipeline implements ITraceMessageSink {
     private final ITraceMessageSource source;
     private final List<ITransformer> transformers;
     private final List<ITraceMessageSink2> sinks;
+    private boolean isRunning = false;
 
-
-    @JsonCreator
     public TraceMessagePipeline(@JacksonInject(useInput = OptBoolean.FALSE) TraceSinkConfig traceSinkConfig,
                                 @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                                 @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) throws IOException {
         this.isEnabled = traceSinkConfig.isEnabled();
-        ;
 
         this.source = this.isEnabled ? createObject(ITraceMessageSource.class, objectMapper, traceSinkConfig.getSource()) : null;
-        this.sinks = this.isEnabled ? createSinks(traceSinkConfig.getSinks(), objectMapper) : null;
         this.transformers = isEnabled ? createTransformers(traceSinkConfig.getTransforms(), applicationContext, objectMapper) : null;
+        this.sinks = this.isEnabled ? createSinks(traceSinkConfig.getSinks(), objectMapper) : null;
 
         if (this.source != null) {
             this.source.registerProcessor(this);
@@ -112,9 +110,9 @@ public class TraceMessagePipeline implements ITraceMessageSink {
         List<ITraceMessageSink2> sinkObjects = new ArrayList<>();
         for (Map<String, String> sink : sinks) {
             try {
-                sinkObjects.add(objectMapper.readValue(objectMapper.writeValueAsBytes(sink),
-                                                       ITraceMessageSink2.class));
-            } catch (IOException ignored) {
+                sinkObjects.add(createObject(ITraceMessageSink2.class, objectMapper, sink));
+            } catch (IOException e) {
+                log.error("Failed to create sink from configuration", e);
             }
         }
         return sinkObjects;
@@ -175,5 +173,26 @@ public class TraceMessagePipeline implements ITraceMessageSink {
         for (ITraceMessageSink2 sink : sinks) {
             sink.close();
         }
+    }
+
+    @Override
+    public void start() {
+        log.info("Starting the source of trace process pipeline...");
+        this.source.start();
+        this.isRunning = true;
+    }
+
+    @Override
+    public void stop() {
+        try {
+            this.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean isRunning() {
+        return isRunning;
     }
 }

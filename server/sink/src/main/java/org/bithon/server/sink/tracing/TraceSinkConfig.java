@@ -44,7 +44,7 @@ import java.util.Map;
  */
 @Data
 @Configuration(proxyBeanMethods = false)
-@ConfigurationProperties(prefix = "bithon.sinks.tracing")
+@ConfigurationProperties(prefix = "bithon.processor.tracing")
 public class TraceSinkConfig {
 
     private boolean enabled = true;
