@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.sink.common.service.UriNormalizer;
@@ -59,21 +60,28 @@ import java.util.Map;
 @Slf4j
 public class TraceMessagePipeline implements ITraceMessageSink {
 
+    @Getter
+    private final boolean isEnabled;
+
+    private final ITraceMessageSource source;
+    private final List<ITransformer> transformers;
     private final List<ITraceMessageSink2> sinks;
 
-    private final List<ITransformer> transformers;
-    private final ITraceMessageSource source;
 
     @JsonCreator
     public TraceMessagePipeline(@JacksonInject(useInput = OptBoolean.FALSE) TraceSinkConfig traceSinkConfig,
                                 @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                                 @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) throws IOException {
+        this.isEnabled = traceSinkConfig.isEnabled();
+        ;
 
-        this.sinks = createSinks(traceSinkConfig.getSinks(), objectMapper);
-        this.transformers = createTransformers(traceSinkConfig.getTransforms(), applicationContext, objectMapper);
-        this.source = createObject(ITraceMessageSource.class, objectMapper, traceSinkConfig.getSource());
+        this.source = this.isEnabled ? createObject(ITraceMessageSource.class, objectMapper, traceSinkConfig.getSource()) : null;
+        this.sinks = this.isEnabled ? createSinks(traceSinkConfig.getSinks(), objectMapper) : null;
+        this.transformers = isEnabled ? createTransformers(traceSinkConfig.getTransforms(), applicationContext, objectMapper) : null;
 
-        this.source.registerProcessor(this);
+        if (this.source != null) {
+            this.source.registerProcessor(this);
+        }
     }
 
     private <T> T createObject(Class<T> clazz, ObjectMapper objectMapper, Object configuration) throws IOException {
@@ -157,6 +165,10 @@ public class TraceMessagePipeline implements ITraceMessageSink {
     }
 
     public void close() throws Exception {
+        if (!this.isEnabled) {
+            return;
+        }
+
         // Stop the source first
         this.source.stop();
 

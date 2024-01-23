@@ -33,7 +33,6 @@ import org.bithon.server.sink.metrics.MetricMessageHandler;
 import org.bithon.server.sink.metrics.MetricSinkConfig;
 import org.bithon.server.sink.metrics.MetricsAggregator;
 import org.bithon.server.sink.tracing.TraceMessagePipeline;
-import org.bithon.server.sink.tracing.TraceSinkConfig;
 import org.bithon.server.sink.tracing.sink.ITraceMessageSink2;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
@@ -59,7 +58,7 @@ import java.util.stream.Collectors;
 public class MetricOverSpanInputSource implements IInputSource {
 
     @JsonIgnore
-    private final TraceMessagePipeline chain;
+    private final TraceMessagePipeline pipeline;
 
     @Getter
     private final TransformSpec transformSpec;
@@ -75,26 +74,21 @@ public class MetricOverSpanInputSource implements IInputSource {
 
     @JsonCreator
     public MetricOverSpanInputSource(@JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
+                                     @JacksonInject(useInput = OptBoolean.FALSE) TraceMessagePipeline pipeline,
                                      @JacksonInject(useInput = OptBoolean.FALSE) IMetricStorage metricStorage,
                                      @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         Preconditions.checkArgumentNotNull("transformSpec", transformSpec);
 
         this.transformSpec = transformSpec;
+        this.pipeline = pipeline;
         this.metricStorage = metricStorage;
         this.applicationContext = applicationContext;
-
-        boolean isEnabled = applicationContext.getBean(TraceSinkConfig.class).isEnabled();
-        if (isEnabled) {
-            this.chain = applicationContext.getBean(TraceMessagePipeline.class);
-        } else {
-            this.chain = null;
-        }
     }
 
     @Override
     public void start(DataSourceSchema schema) {
-        if (this.chain == null) {
-            log.warn("The trace sink is not enabled in this module. The input source of [{}] has no effect.", schema.getName());
+        if (!this.pipeline.isEnabled()) {
+            log.warn("The trace processing pipeline is not enabled in this module. The input source of [{}] has no effect.", schema.getName());
             return;
         }
 
@@ -109,10 +103,10 @@ public class MetricOverSpanInputSource implements IInputSource {
         MetricOverSpanExtractor extractor = null;
         try {
             extractor = new MetricOverSpanExtractor(transformSpec, schema, metricStorage, applicationContext);
-            metricExtractor = this.chain.link(extractor);
+            metricExtractor = this.pipeline.link(extractor);
         } catch (Exception e) {
             if (extractor != null) {
-                this.chain.unlink(extractor);
+                this.pipeline.unlink(extractor);
                 extractor.close();
             }
             throw new RuntimeException(e);
@@ -129,7 +123,7 @@ public class MetricOverSpanInputSource implements IInputSource {
                  metricExtractor.schema.getName(),
                  metricExtractor.schema.getSignature());
         try {
-            this.chain.unlink(metricExtractor).close();
+            this.pipeline.unlink(metricExtractor).close();
         } catch (Exception ignored) {
         }
     }

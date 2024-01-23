@@ -95,10 +95,13 @@ public class SinkAutoConfiguration {
         };
     }
 
+    /**
+     * Always create the bean because it might be used in other modules
+     */
     @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnProperty(value = "bithon.processor.tracing.enabled", havingValue = "true", matchIfMissing = true)
-    public TraceMessagePipeline traceMessagePipeline(TraceSinkConfig traceConfig, ObjectMapper om, ApplicationContext applicationContext) throws IOException {
+    public TraceMessagePipeline traceMessagePipeline(TraceSinkConfig traceConfig,
+                                                     ObjectMapper om,
+                                                     ApplicationContext applicationContext) throws IOException {
         return new TraceMessagePipeline(traceConfig, om, applicationContext);
     }
 
