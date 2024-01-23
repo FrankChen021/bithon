@@ -30,5 +30,6 @@ import java.util.Map;
 @Configuration
 @ConfigurationProperties(prefix = "collector-brpc")
 public class BrpcCollectorConfig {
+    private boolean enabled;
     private Map<String, Integer> port;
 }

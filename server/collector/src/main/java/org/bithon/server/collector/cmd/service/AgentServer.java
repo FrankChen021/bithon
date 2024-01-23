@@ -17,6 +17,8 @@
 package org.bithon.server.collector.cmd.service;
 
 import org.bithon.component.brpc.channel.BrpcServer;
+import org.bithon.server.collector.source.brpc.BrpcCollectorServer;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 /**
@@ -26,13 +28,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class AgentServer {
 
-    private BrpcServer brpcServer;
+    private final ApplicationContext applicationContext;
 
-    public BrpcServer getBrpcServer() {
-        return brpcServer;
+    public AgentServer(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
-    public void setBrpcServer(BrpcServer brpcServer) {
-        this.brpcServer = brpcServer;
+    public BrpcServer getBrpcServer() {
+        return applicationContext.getBean(BrpcCollectorServer.class)
+                                 .findServer("ctrl");
     }
 }

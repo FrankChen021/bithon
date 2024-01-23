@@ -18,7 +18,6 @@ package org.bithon.server.collector.source.brpc;
 
 
 import com.fasterxml.jackson.annotation.JacksonInject;
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +27,7 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessageV2;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.ReflectionUtils;
 import org.bithon.server.collector.source.http.MetricHttpCollector;
 import org.bithon.server.sink.metrics.IMetricProcessor;
@@ -43,6 +43,7 @@ import org.bithon.server.storage.datasource.column.aggregatable.max.AggregateLon
 import org.bithon.server.storage.datasource.column.aggregatable.min.AggregateLongMinColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.storage.datasource.input.IInputRow;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.CollectionUtils;
 
@@ -59,18 +60,45 @@ import java.util.stream.Collectors;
 @JsonTypeName("brpc")
 public class BrpcMetricCollector implements IMetricCollector, IMetricReceiver {
 
+    private final int port;
     private final ApplicationContext applicationContext;
     private IMetricProcessor processor;
     private BrpcCollectorServer.ServiceGroup serviceGroup;
 
-    @JsonCreator
-    public BrpcMetricCollector(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+    public BrpcMetricCollector(@JacksonInject(useInput = OptBoolean.FALSE) BrpcCollectorConfig config,
+                               @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+        Preconditions.checkNotNull(config.getPort(), "The brpc server port is not configured.");
+
+        Integer port = config.getPort().get("metric");
+        Preconditions.checkNotNull(port, "The port for the event collector is not configured.");
+
+        this.port = port;
         this.applicationContext = applicationContext;
+    }
+
+    @Override
+    public void start() {
+        serviceGroup = this.applicationContext.getBean(BrpcCollectorServer.class)
+                                              .addService("metrics", this, port);
+    }
+
+    @Override
+    public void registerProcessor(IMetricProcessor processor) {
+        this.processor = processor;
+
+        try {
+            this.applicationContext.getBean(MetricHttpCollector.class).setProcessor(processor);
+        } catch (NoSuchBeanDefinitionException ignored) {
+        }
+    }
+
+    @Override
+    public void stop() {
+        serviceGroup.stop("metrics");
     }
 
     private final IColumn appName = new StringColumn("appName", "appName");
     private final IColumn instanceName = new StringColumn("instanceName", "instanceName");
-
 
     @Override
     public void sendJvm(BrpcMessageHeader header, List<BrpcJvmMetricMessage> messages) {
@@ -195,25 +223,5 @@ public class BrpcMetricCollector implements IMetricCollector, IMetricReceiver {
         }
 
         return metricMessage;
-    }
-
-    @Override
-    public void start() {
-        Integer port = this.applicationContext.getBean(BrpcCollectorConfig.class).getPort().get("metric");
-        serviceGroup = this.applicationContext.getBean(BrpcCollectorServer.class)
-                                              .addService("metric", IMetricCollector.class, this, port);
-    }
-
-    @Override
-    public void registerProcessor(IMetricProcessor processor) {
-        this.processor = processor;
-
-        // @ConditionalOnProperty(value = "collector-http.enabled", havingValue = "true")
-        this.applicationContext.getBean(MetricHttpCollector.class).setProcessor(processor);
-    }
-
-    @Override
-    public void stop() {
-        serviceGroup.stop("metrics");
     }
 }

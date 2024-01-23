@@ -16,25 +16,19 @@
 
 package org.bithon.server.collector.source.brpc;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
 import org.bithon.component.brpc.channel.BrpcServer;
-import org.bithon.server.collector.cmd.service.AgentServer;
 import org.bithon.server.collector.config.AgentConfigurationService;
 import org.bithon.server.collector.config.BrpcSettingFetcher;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 /**
  * @author frank.chen021@outlook.com
@@ -43,128 +37,95 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true", matchIfMissing = false)
-public class BrpcCollectorServer implements SmartLifecycle {
+public class BrpcCollectorServer {
 
+    /**
+     * key - port
+     * val - services running on this port
+     */
     private final Map<Integer, ServiceGroup> serviceGroups = new HashMap<>();
-    private final ObjectMapper objectMapper;
-    private ApplicationContext applicationContext;
-    private boolean isRunning;
-    private BrpcCollectorConfig config;
 
     static {
         // Make sure the underlying netty use JDK direct memory region so that the memory can be tracked
         System.setProperty("org.bithon.shaded.io.netty.maxDirectMemory", "0");
     }
 
-    public BrpcCollectorServer(BrpcCollectorConfig config, ObjectMapper objectMapper, ApplicationContext applicationContext) {
-        this.config = config;
-        this.objectMapper = objectMapper;
-        this.applicationContext = applicationContext;
+    public BrpcCollectorServer(BrpcCollectorConfig config,
+                               ApplicationContext applicationContext) {
 
         Integer port = config.getPort().get("ctrl");
         if (port != null) {
-            ServiceGroup brpcServer = addService("ctrl",
-                                                 ISettingFetcher.class,
-                                                 new BrpcSettingFetcher(applicationContext.getBean(AgentConfigurationService.class)),
-                                                 port);
-
-            applicationContext.getBean(AgentServer.class)
-                              .setBrpcServer(brpcServer.getBrpcServer());
+            addService("ctrl",
+                       new BrpcSettingFetcher(applicationContext.getBean(AgentConfigurationService.class)),
+                       port);
         }
     }
 
-    public synchronized ServiceGroup addService(String name,
-                                                Class<?> serviceDefinition,
-                                                Object serviceImplementation,
-                                                int port) {
-        ServiceGroup serviceGroup = serviceGroups.computeIfAbsent(port, key -> new ServiceGroup());
-        serviceGroup.getServices().add(new ServiceProvider(name, serviceDefinition, serviceImplementation));
+    public synchronized ServiceGroup addService(String name, Object implementation, int port) {
+        ServiceGroup serviceGroup = serviceGroups.computeIfAbsent(port, k -> new ServiceGroup());
+        serviceGroup.getServices().put(name, implementation);
+
         if (serviceGroup.brpcServer == null) {
             // Create a server with the first service name as the server id
             serviceGroup.brpcServer = new BrpcServer(name);
             serviceGroup.start(port);
             log.info("Started Brpc services [{}] at port {}",
-                     serviceGroup.services.stream().map((s) -> s.name).collect(Collectors.joining(",")),
+                     String.join(",", serviceGroup.services.keySet()),
                      port);
         } else {
-            serviceGroup.brpcServer.bindService(serviceImplementation);
+            serviceGroup.brpcServer.bindService(implementation);
         }
         return serviceGroup;
     }
 
-    @Override
-    public void start() {
-    }
-
-    @Override
-    public void stop() {
-    }
-
-    @Override
-    public boolean isRunning() {
-        return isRunning;
-    }
-
-    /**
-     * Collector should be shutdown at first
-     */
-    @Override
-    public int getPhase() {
-        return DEFAULT_PHASE - 1;
-    }
-
-    @Getter
-    @AllArgsConstructor
-    static class ServiceProvider {
-        private final String name;
-        private final Class<?> service;
-        private final Object implementation;
+    public BrpcServer findServer(String serviceName) {
+        Optional<ServiceGroup> serviceGroup = this.serviceGroups.values()
+                                                                .stream()
+                                                                .filter((sg -> sg.getServices().containsKey(serviceName)))
+                                                                .findFirst();
+        return serviceGroup.map(ServiceGroup::getBrpcServer).orElse(null);
     }
 
     @Getter
     public static class ServiceGroup {
-        private final List<ServiceProvider> services = new ArrayList<>();
-        private boolean isCtrl;
+        /**
+         * key - service name
+         * val - service implementation
+         */
+        private final Map<String, Object> services = new HashMap<>();
         private BrpcServer brpcServer;
         private int port;
 
         public void start(Integer port) {
-            for (ServiceProvider service : services) {
-                brpcServer.bindService(service.getImplementation());
+            for (Object implementation : services.values()) {
+                brpcServer.bindService(implementation);
             }
             brpcServer.start(port);
             this.port = port;
         }
 
-        public void addService(String type, Class<?> serviceDefinition, Object serviceImplementation) {
-            this.services.add(new ServiceProvider(type, serviceDefinition, serviceImplementation));
-        }
+        public synchronized void stop(String service) {
+            if (this.services.remove(service) != null && this.services.isEmpty()) {
+                // close channel first
+                log.info("Closing channel hosting on {}", port);
+                try {
+                    brpcServer.close();
+                } catch (Exception ignored) {
+                }
 
-        public void close() {
-            // close channel first
-            log.info("Closing channel hosting on {}", port);
-            try {
-                brpcServer.close();
-            } catch (Exception ignored) {
-            }
+                // close collector processing
+                for (Map.Entry<String, Object> entry : services.entrySet()) {
+                    String name = entry.getKey();
+                    Object implementation = entry.getValue();
+                    log.info("Closing collector services: {}", name);
 
-            // close collector processing
-            for (ServiceProvider serviceProvider : services) {
-                log.info("Closing collector services: {}", serviceProvider.name);
-
-                if (serviceProvider.implementation instanceof AutoCloseable) {
-                    try {
-                        ((AutoCloseable) serviceProvider.implementation).close();
-                    } catch (Exception ignored) {
+                    if (implementation instanceof AutoCloseable) {
+                        try {
+                            ((AutoCloseable) implementation).close();
+                        } catch (Exception ignored) {
+                        }
                     }
                 }
-            }
-        }
-
-        public synchronized void stop(String trace) {
-            this.services.removeIf((s) -> s.name.equals(trace));
-            if (this.services.isEmpty()) {
-                this.close();
             }
         }
     }

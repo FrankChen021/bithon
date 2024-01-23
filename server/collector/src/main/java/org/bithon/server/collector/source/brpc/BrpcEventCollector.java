@@ -25,10 +25,10 @@ import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import org.bithon.agent.rpc.brpc.event.IEventCollector;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.sink.event.IEventProcessor;
 import org.bithon.server.sink.event.receiver.IEventReceiver;
 import org.bithon.server.storage.event.EventMessage;
-import org.springframework.context.ApplicationContext;
 
 import java.util.Collections;
 import java.util.List;
@@ -42,15 +42,38 @@ import java.util.stream.Collectors;
 @JsonTypeName("brpc")
 public class BrpcEventCollector implements IEventCollector, IEventReceiver {
 
-    private final ApplicationContext applicationContext;
+    private final BrpcCollectorServer server;
+    private final int port;
+
     private IEventProcessor processor;
     private BrpcCollectorServer.ServiceGroup serviceGroup;
 
     @JsonCreator
-    public BrpcEventCollector(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
+    public BrpcEventCollector(@JacksonInject(useInput = OptBoolean.FALSE) BrpcCollectorConfig config,
+                              @JacksonInject(useInput = OptBoolean.FALSE) BrpcCollectorServer server) {
+        Preconditions.checkNotNull(config.getPort(), "The brpc server port is not configured.");
+
+        Integer port = config.getPort().get("event");
+        Preconditions.checkNotNull(port, "The port for the event collector is not configured.");
+
+        this.server = server;
+        this.port = port;
     }
 
+    @Override
+    public void start() {
+        serviceGroup = this.server.addService("event", this, port);
+    }
+
+    @Override
+    public void registerProcessor(IEventProcessor processor) {
+        this.processor = processor;
+    }
+
+    @Override
+    public void stop() {
+        serviceGroup.stop("metrics");
+    }
 
     @Override
     public void sendEvent(BrpcMessageHeader header, BrpcEventMessage message) {
@@ -79,22 +102,5 @@ public class BrpcEventCollector implements IEventCollector, IEventReceiver {
                                                                 .type(message.getEventType())
                                                                 .jsonArgs(message.getJsonArguments())
                                                                 .build()).collect(Collectors.toList()));
-    }
-
-    @Override
-    public void start() {
-        Integer port = this.applicationContext.getBean(BrpcCollectorConfig.class).getPort().get("event");
-        serviceGroup = this.applicationContext.getBean(BrpcCollectorServer.class)
-                                              .addService("event", IEventCollector.class, this, port);
-    }
-
-    @Override
-    public void registerProcessor(IEventProcessor processor) {
-        this.processor = processor;
-    }
-
-    @Override
-    public void stop() {
-        serviceGroup.stop("metrics");
     }
 }

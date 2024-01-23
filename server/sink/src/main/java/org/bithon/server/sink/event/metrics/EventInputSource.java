@@ -26,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.common.input.IInputSource;
 import org.bithon.server.sink.event.EventPipeline;
 import org.bithon.server.sink.event.exporter.IEventExporter;
-import org.bithon.server.sink.event.metrics.MetricOverEventHandler;
 import org.bithon.server.sink.metrics.MetricPipelineConfig;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;

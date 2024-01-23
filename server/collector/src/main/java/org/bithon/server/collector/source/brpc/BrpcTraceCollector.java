@@ -24,11 +24,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.collector.source.http.TraceHttpCollector;
 import org.bithon.server.collector.source.otel.OtelHttpTraceCollector;
 import org.bithon.server.sink.tracing.ITraceProcessor;
 import org.bithon.server.sink.tracing.receiver.ITraceReceiver;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -46,12 +48,49 @@ import java.util.stream.Collectors;
 public class BrpcTraceCollector implements ITraceCollector, ITraceReceiver {
 
     private final ApplicationContext applicationContext;
+    private final int port;
     private ITraceProcessor processor;
     private BrpcCollectorServer.ServiceGroup serviceGroup;
 
     @JsonCreator
-    public BrpcTraceCollector(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+    public BrpcTraceCollector(@JacksonInject(useInput = OptBoolean.FALSE) BrpcCollectorConfig config,
+                              @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+        Preconditions.checkNotNull(config.getPort(), "The brpc server port is not configured.");
+
+        Integer port = config.getPort().get("tracing");
+        Preconditions.checkNotNull(port, "The port for the event collector is not configured.");
+
+        this.port = port;
         this.applicationContext = applicationContext;
+    }
+
+    @Override
+    public void start() {
+        serviceGroup = this.applicationContext.getBean(BrpcCollectorServer.class)
+                                              .addService("trace", this, port);
+    }
+
+    @Override
+    public void registerProcessor(ITraceProcessor processor) {
+        this.processor = processor;
+
+        // TODO:
+        // @ConditionalOnProperty(value = "collector-http.enabled", havingValue = "true")
+        try {
+            this.applicationContext.getBean(TraceHttpCollector.class).setProcessor(processor);
+        } catch (NoSuchBeanDefinitionException ignored) {
+        }
+
+        // @ConditionalOnProperty(value = "collector-otel.enabled", havingValue = "true")
+        try {
+            this.applicationContext.getBean(OtelHttpTraceCollector.class).setProcessor(processor);
+        } catch (NoSuchBeanDefinitionException ignored) {
+        }
+    }
+
+    @Override
+    public void stop() {
+        serviceGroup.stop("trace");
     }
 
     @Override
@@ -93,29 +132,5 @@ public class BrpcTraceCollector implements ITraceCollector, ITraceReceiver {
         // Also, a TreeMap is used to order the keys, which is consistent with the definition in TraceSpan
         traceSpan.setTags(new TreeMap<>(spanBody.getTagsMap()));
         return traceSpan;
-    }
-
-    @Override
-    public void start() {
-        Integer port = this.applicationContext.getBean(BrpcCollectorConfig.class).getPort().get("tracing");
-        serviceGroup = this.applicationContext.getBean(BrpcCollectorServer.class)
-                                              .addService("trace", ITraceCollector.class, this, port);
-    }
-
-    @Override
-    public void registerProcessor(ITraceProcessor processor) {
-        this.processor = processor;
-
-        // TODO:
-        // @ConditionalOnProperty(value = "collector-http.enabled", havingValue = "true")
-        this.applicationContext.getBean(TraceHttpCollector.class).setProcessor(processor);
-
-        // @ConditionalOnProperty(value = "collector-otel.enabled", havingValue = "true")
-        this.applicationContext.getBean(OtelHttpTraceCollector.class).setProcessor(processor);
-    }
-
-    @Override
-    public void stop() {
-        serviceGroup.stop("trace");
     }
 }
