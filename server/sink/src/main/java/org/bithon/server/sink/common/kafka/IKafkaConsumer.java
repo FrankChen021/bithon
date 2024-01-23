@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.kafka;
+package org.bithon.server.sink.common.kafka;
 
 import java.util.Map;
 

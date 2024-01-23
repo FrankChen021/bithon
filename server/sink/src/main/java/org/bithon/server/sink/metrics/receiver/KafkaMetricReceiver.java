@@ -23,7 +23,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
-import org.bithon.server.kafka.AbstractKafkaConsumer;
+import org.bithon.server.sink.common.kafka.AbstractKafkaConsumer;
 import org.bithon.server.sink.metrics.IMetricProcessor;
 import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.springframework.context.ApplicationContext;

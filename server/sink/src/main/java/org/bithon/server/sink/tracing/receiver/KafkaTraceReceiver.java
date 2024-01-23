@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.bithon.server.kafka.AbstractKafkaConsumer;
+import org.bithon.server.sink.common.kafka.AbstractKafkaConsumer;
 import org.bithon.server.sink.tracing.ITraceProcessor;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.context.ApplicationContext;
