@@ -14,10 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.event;
+package org.bithon.server.sink.event.exporter;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.common.FixedDelayExecutor;
+import org.bithon.server.sink.event.EventPipelineConfig;
 import org.bithon.server.storage.event.EventMessage;
 import org.bithon.server.storage.event.IEventWriter;
 
@@ -34,10 +35,10 @@ public class EventBatchWriter implements IEventWriter {
 
     private final IEventWriter delegation;
     private final FixedDelayExecutor executor;
-    private final EventSinkConfig sinkConfig;
+    private final EventPipelineConfig sinkConfig;
     private List<EventMessage> events;
 
-    public EventBatchWriter(IEventWriter delegation, EventSinkConfig sinkConfig) {
+    public EventBatchWriter(IEventWriter delegation, EventPipelineConfig sinkConfig) {
         this.delegation = delegation;
         this.sinkConfig = sinkConfig;
         this.events = new ArrayList<>(getBatchSize());

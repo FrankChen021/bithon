@@ -14,23 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.event;
+package org.bithon.server.sink.event.receiver;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.component.commons.collection.IteratorableCollection;
-import org.bithon.server.storage.event.EventMessage;
+import org.bithon.server.sink.event.IEventProcessor;
+import org.bithon.server.sink.metrics.receiver.KafkaMetricReceiver;
 
-/**
- * @author frank.chen021@outlook.com
- * @date 9/12/21 2:23 PM
- */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "local", value = LocalEventSink.class),
+    @JsonSubTypes.Type(name = "kafka", value = KafkaMetricReceiver.class)
 })
-public interface IEventMessageSink extends AutoCloseable {
+public interface IEventReceiver {
+    void start();
 
-    void process(String messageType, IteratorableCollection<EventMessage> messages);
+    void registerProcessor(IEventProcessor processor);
 
+    void stop() throws Exception;
 }

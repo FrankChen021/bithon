@@ -14,12 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.sink.kafka;
+package org.bithon.server.sink.event.exporter;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,7 +29,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.sink.event.IEventMessageSink;
 import org.bithon.server.storage.event.EventMessage;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -42,16 +40,15 @@ import java.util.Map;
  * @date 2021/3/15
  */
 @Slf4j
-@JsonTypeName("kafka")
-public class KafkaEventSink implements IEventMessageSink {
+public class KafkaEventExporter implements IEventExporter {
 
     private final KafkaTemplate<String, String> producer;
     private final ObjectMapper objectMapper;
     private final String topic;
 
     @JsonCreator
-    public KafkaEventSink(@JsonProperty("props") Map<String, Object> props,
-                          @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+    public KafkaEventExporter(@JsonProperty("props") Map<String, Object> props,
+                              @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         this.topic = (String) props.remove("topic");
         Preconditions.checkNotNull(topic, "topic is not configured for event sink");
 

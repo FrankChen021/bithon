@@ -19,11 +19,10 @@ package org.bithon.server.sink;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.server.kafka.KafkaConsumerManager;
 import org.bithon.server.sink.common.input.InputSourceManager;
 import org.bithon.server.sink.event.EventInputSource;
 import org.bithon.server.sink.event.EventMessageHandlers;
-import org.bithon.server.sink.event.EventSinkConfig;
+import org.bithon.server.sink.event.EventPipelineConfig;
 import org.bithon.server.sink.metrics.MetricInputSource;
 import org.bithon.server.sink.metrics.MetricMessagePipeline;
 import org.bithon.server.sink.metrics.MetricPipelineConfig;
@@ -40,7 +39,6 @@ import org.bithon.server.storage.StorageModuleAutoConfiguration;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.event.IEventStorage;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -58,8 +56,8 @@ import java.io.IOException;
 public class SinkAutoConfiguration {
 
     @Bean
-    EventMessageHandlers eventMessageHandlers(IEventStorage eventStorage, EventSinkConfig eventSinkConfig) {
-        return new EventMessageHandlers(eventStorage, eventSinkConfig);
+    EventMessageHandlers eventMessageHandlers(IEventStorage eventStorage, EventPipelineConfig eventPipelineConfig) {
+        return new EventMessageHandlers(eventStorage, eventPipelineConfig);
     }
 
     @Bean
@@ -123,14 +121,5 @@ public class SinkAutoConfiguration {
     @Bean
     InputSourceManager inputSourceManager(DataSourceSchemaManager dataSourceSchemaManager, ObjectMapper objectMapper) {
         return new InputSourceManager(dataSourceSchemaManager, objectMapper);
-    }
-
-    /**
-     * Initialize the consumers at last
-     */
-    @Bean
-    @ConditionalOnProperty(value = "collector-kafka.enabled", havingValue = "true", matchIfMissing = false)
-    KafkaConsumerManager kafkaConsumerManager() {
-        return new KafkaConsumerManager();
     }
 }

@@ -18,7 +18,6 @@ package org.bithon.server.sink.event;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.sink.common.handler.AbstractThreadPoolMessageHandler;
@@ -31,8 +30,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author frank.chen021@outlook.com
  * @date 2021/3/16
  */
-@JsonTypeName("local")
-public class LocalEventSink implements IEventMessageSink {
+public class LocalEventSink implements IEventProcessor {
 
     static class EventMessageProcessor extends AbstractThreadPoolMessageHandler<IteratorableCollection<EventMessage>> {
 

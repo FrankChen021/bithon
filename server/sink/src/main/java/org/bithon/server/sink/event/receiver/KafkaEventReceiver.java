@@ -14,34 +14,53 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.kafka;
+package org.bithon.server.sink.event.receiver;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.bithon.component.commons.collection.IteratorableCollection;
-import org.bithon.server.sink.event.LocalEventSink;
+import org.bithon.server.kafka.AbstractKafkaConsumer;
+import org.bithon.server.sink.event.IEventProcessor;
 import org.bithon.server.storage.event.EventMessage;
 import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
 @Slf4j
-public class KafkaEventConsumer extends AbstractKafkaConsumer {
-    private final LocalEventSink eventSink;
+public class KafkaEventReceiver extends AbstractKafkaConsumer implements IEventReceiver {
+    private IEventProcessor processor;
     private final TypeReference<List<EventMessage>> typeReference;
+    private final Map<String, Object> props;
 
-    public KafkaEventConsumer(LocalEventSink eventSink, ApplicationContext applicationContext) {
+    @JsonCreator
+    public KafkaEventReceiver(@JacksonInject(useInput = OptBoolean.FALSE) Map<String, Object> props,
+                              @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         super(applicationContext);
-        this.eventSink = eventSink;
+
+        this.props = props;
         this.typeReference = new TypeReference<List<EventMessage>>() {
         };
+    }
+
+    @Override
+    public void start() {
+        start(props);
+    }
+
+    @Override
+    public void registerProcessor(IEventProcessor processor) {
+        this.processor = processor;
     }
 
     @Override
@@ -53,7 +72,7 @@ public class KafkaEventConsumer extends AbstractKafkaConsumer {
         }
 
         try {
-            eventSink.close();
+            processor.close();
         } catch (Exception ignored) {
         }
     }
@@ -71,6 +90,6 @@ public class KafkaEventConsumer extends AbstractKafkaConsumer {
             }
         }
 
-        eventSink.process(getTopic(), IteratorableCollection.of(events.iterator()));
+        processor.process(getTopic(), IteratorableCollection.of(events.iterator()));
     }
 }

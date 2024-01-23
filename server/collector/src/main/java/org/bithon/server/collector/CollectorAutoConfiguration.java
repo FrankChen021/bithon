@@ -18,18 +18,12 @@ package org.bithon.server.collector;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.server.collector.sink.kafka.KafkaEventSink;
-import org.bithon.server.sink.metrics.exporter.KafkaMetricExporter;
-import org.bithon.server.collector.source.brpc.BrpcCollectorConfig;
 import org.bithon.server.collector.source.brpc.BrpcMetricCollector;
 import org.bithon.server.collector.source.brpc.BrpcTraceCollector;
-import org.bithon.server.sink.event.IEventMessageSink;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.bithon.server.sink.event.exporter.KafkaEventExporter;
+import org.bithon.server.sink.metrics.exporter.KafkaMetricExporter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.io.IOException;
 
 /**
  * @author frank.chen021@outlook.com
@@ -56,16 +50,9 @@ public class CollectorAutoConfiguration {
                 context.registerSubtypes(BrpcTraceCollector.class,
                                          BrpcMetricCollector.class,
 
-                                         KafkaEventSink.class,
+                                         KafkaEventExporter.class,
                                          KafkaMetricExporter.class);
             }
         };
-    }
-
-    @Bean
-    @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
-    public IEventMessageSink eventSink(BrpcCollectorConfig config,
-                                       ObjectMapper om) throws IOException {
-        return config.getSinks().getEvent().createSink(om, IEventMessageSink.class);
     }
 }

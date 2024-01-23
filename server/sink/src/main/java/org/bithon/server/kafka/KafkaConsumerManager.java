@@ -17,10 +17,6 @@
 package org.bithon.server.kafka;
 
 import lombok.SneakyThrows;
-import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.sink.event.EventMessageHandlers;
-import org.bithon.server.sink.event.EventSinkConfig;
-import org.bithon.server.sink.event.LocalEventSink;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -48,12 +44,6 @@ public class KafkaConsumerManager implements SmartLifecycle, ApplicationContextA
     public void start() {
         KafkaConsumerConfig config = this.context.getBean(KafkaConsumerConfig.class);
 
-        if (this.context.getBean(EventSinkConfig.class).isEnabled()) {
-            Preconditions.checkNotNull(config.getEvent(), "The event property of kafka collector is not configured while the event sink is enabled.");
-
-            collectors.add(new KafkaEventConsumer(new LocalEventSink(this.context.getBean(EventMessageHandlers.class)), this.context)
-                               .start(config.getEvent()));
-        }
     }
 
     @Override

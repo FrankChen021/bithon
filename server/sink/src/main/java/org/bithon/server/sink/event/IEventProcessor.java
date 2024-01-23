@@ -14,21 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.source.brpc;
+package org.bithon.server.sink.event;
 
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.component.commons.collection.IteratorableCollection;
+import org.bithon.server.storage.event.EventMessage;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/23 11:45 下午
+ * @date 9/12/21 2:23 PM
  */
-@Data
-@Configuration
-@ConfigurationProperties(prefix = "collector-brpc")
-public class BrpcCollectorConfig {
-    private Map<String, Integer> port;
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(value = {
+    @JsonSubTypes.Type(name = "local", value = LocalEventSink.class),
+})
+public interface IEventProcessor extends AutoCloseable {
+
+    void process(String messageType, IteratorableCollection<EventMessage> messages);
+
 }

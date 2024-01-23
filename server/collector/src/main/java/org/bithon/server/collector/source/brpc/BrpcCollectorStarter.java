@@ -19,13 +19,8 @@ package org.bithon.server.collector.source.brpc;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.agent.rpc.brpc.event.IEventCollector;
-import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
 import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.server.collector.cmd.service.AgentServer;
-import org.bithon.server.collector.config.AgentConfigurationService;
-import org.bithon.server.collector.config.BrpcSettingFetcher;
-import org.bithon.server.sink.event.IEventMessageSink;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -74,14 +69,10 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
                     break;
 
                 case "event":
-                    serviceDefinition = IEventCollector.class;
-                    serviceImplementation = new BrpcEventCollector(applicationContext.getBean(IEventMessageSink.class));
                     break;
 
                 case "ctrl":
                     isCtrl = true;
-                    serviceDefinition = ISettingFetcher.class;
-                    serviceImplementation = new BrpcSettingFetcher(applicationContext.getBean(AgentConfigurationService.class));
                     break;
 
                 default:

@@ -30,7 +30,6 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import org.bithon.component.commons.utils.ReflectionUtils;
 import org.bithon.server.collector.source.http.MetricHttpCollector;
-import org.bithon.server.collector.source.http.TraceHttpCollector;
 import org.bithon.server.sink.metrics.IMetricProcessor;
 import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.SchemaMetricMessage;

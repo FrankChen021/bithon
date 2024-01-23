@@ -16,6 +16,7 @@
 
 package org.bithon.server.sink.event;
 
+import org.bithon.server.sink.event.exporter.EventBatchWriter;
 import org.bithon.server.storage.event.EventMessage;
 import org.bithon.server.storage.event.IEventWriter;
 
@@ -29,8 +30,8 @@ import java.util.List;
 class EventSinkHandler implements EventMessageHandler<EventMessage> {
     private final IEventWriter eventWriter;
 
-    public EventSinkHandler(IEventWriter eventWriter, EventSinkConfig eventSinkConfig) {
-        this.eventWriter = new EventBatchWriter(eventWriter, eventSinkConfig);
+    public EventSinkHandler(IEventWriter eventWriter, EventPipelineConfig eventPipelineConfig) {
+        this.eventWriter = new EventBatchWriter(eventWriter, eventPipelineConfig);
     }
 
     @Override

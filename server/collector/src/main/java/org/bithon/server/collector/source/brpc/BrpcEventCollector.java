@@ -16,14 +16,19 @@
 
 package org.bithon.server.collector.source.brpc;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import org.bithon.agent.rpc.brpc.event.IEventCollector;
 import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.server.sink.event.IEventMessageSink;
+import org.bithon.server.sink.event.IEventProcessor;
+import org.bithon.server.sink.event.receiver.IEventReceiver;
 import org.bithon.server.storage.event.EventMessage;
+import org.springframework.context.ApplicationContext;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -34,13 +39,17 @@ import java.util.List;
  * @date 2021/2/14 3:59 下午
  */
 @Slf4j
-public class BrpcEventCollector implements IEventCollector, AutoCloseable {
+public class BrpcEventCollector implements IEventCollector, IEventReceiver {
 
-    private final IEventMessageSink eventSink;
+    private final ApplicationContext applicationContext;
+    private IEventProcessor processor;
+    private BrpcCollectorServer.ServiceGroup serviceGroup;
 
-    public BrpcEventCollector(IEventMessageSink eventSink) {
-        this.eventSink = eventSink;
+    @JsonCreator
+    public BrpcEventCollector(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
+
 
     @Override
     public void sendEvent(BrpcMessageHeader header, BrpcEventMessage message) {
@@ -52,7 +61,7 @@ public class BrpcEventCollector implements IEventCollector, AutoCloseable {
                                                 .jsonArgs(message.getJsonArguments())
                                                 .build();
         Iterator<EventMessage> delegate = Collections.singletonList(eventMessage).iterator();
-        eventSink.process("event", IteratorableCollection.of(delegate));
+        processor.process("event", IteratorableCollection.of(delegate));
     }
 
     @Override
@@ -80,11 +89,23 @@ public class BrpcEventCollector implements IEventCollector, AutoCloseable {
                                    .build();
             }
         };
-        eventSink.process("event", IteratorableCollection.of(iterator));
+        processor.process("event", IteratorableCollection.of(iterator));
     }
 
     @Override
-    public void close() throws Exception {
-        eventSink.close();
+    public void start() {
+        Integer port = this.applicationContext.getBean(BrpcCollectorConfig.class).getPort().get("event");
+        serviceGroup = this.applicationContext.getBean(BrpcCollectorServer.class)
+                                              .addService("event", IEventCollector.class, this, port);
+    }
+
+    @Override
+    public void registerProcessor(IEventProcessor processor) {
+        this.processor = processor;
+    }
+
+    @Override
+    public void stop() {
+        serviceGroup.stop("metrics");
     }
 }

@@ -39,8 +39,8 @@ public class EventMessageHandlers {
 
     private final EventMessageHandler<?> eventSinkHandler;
 
-    public EventMessageHandlers(IEventStorage eventStorage, EventSinkConfig eventSinkConfig) {
-        eventSinkHandler = new EventSinkHandler(eventStorage.createWriter(), eventSinkConfig);
+    public EventMessageHandlers(IEventStorage eventStorage, EventPipelineConfig eventPipelineConfig) {
+        eventSinkHandler = new EventSinkHandler(eventStorage.createWriter(), eventPipelineConfig);
     }
 
     static class PiplelineHandler<T> {

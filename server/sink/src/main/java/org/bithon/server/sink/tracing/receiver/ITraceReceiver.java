@@ -1,4 +1,4 @@
-package org.bithon.server.sink.tracing.receiver;/*
+/*
  *    Copyright 2020 bithon.org
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,8 @@ package org.bithon.server.sink.tracing.receiver;/*
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
+package org.bithon.server.sink.tracing.receiver;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
