@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.metrics;
+package org.bithon.server.sink.metrics.exporter;
 
 import java.util.Collection;
 import java.util.Map;

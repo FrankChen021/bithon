@@ -35,7 +35,7 @@ import java.util.Map;
 @Configuration
 @Conditional(SinkModuleEnabler.class)
 @ConfigurationProperties(prefix = "bithon.pipeline.metrics")
-public class MetricSinkConfig {
+public class MetricPipelineConfig {
     private boolean enabled = true;
 
     private DynamicConfig source;

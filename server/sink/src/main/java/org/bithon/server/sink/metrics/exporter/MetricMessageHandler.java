@@ -14,13 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.metrics;
+package org.bithon.server.sink.metrics.exporter;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.SupplierUtils;
+import org.bithon.server.sink.metrics.MetricPipelineConfig;
+import org.bithon.server.sink.metrics.MetricsAggregator;
 import org.bithon.server.sink.metrics.topo.ITopoTransformer;
 import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -65,13 +67,13 @@ public class MetricMessageHandler {
                                 IMetricStorage metricStorage,
                                 DataSourceSchemaManager dataSourceSchemaManager,
                                 TransformSpec transformSpec,
-                                MetricSinkConfig metricSinkConfig) throws IOException {
+                                MetricPipelineConfig metricPipelineConfig) throws IOException {
 
         this.topoTransformers = new TopoTransformers(metaStorage);
 
         this.schema = dataSourceSchemaManager.getDataSourceSchema(dataSourceName);
         this.metaStorage = metaStorage;
-        this.metricWriter = new MetricBatchWriter(dataSourceName, metricStorage.createMetricWriter(schema), metricSinkConfig);
+        this.metricWriter = new MetricBatchWriter(dataSourceName, metricStorage.createMetricWriter(schema), metricPipelineConfig);
 
         this.endpointSchema = dataSourceSchemaManager.getDataSourceSchema("topo-metrics");
         this.endpointSchema.setEnforceDuplicationCheck(false);
@@ -80,7 +82,7 @@ public class MetricMessageHandler {
                 if (topoMetricWriter == null) {
                     topoMetricWriter = new MetricBatchWriter(endpointSchema.getName(),
                                                              metricStorage.createMetricWriter(endpointSchema),
-                                                             metricSinkConfig);
+                                                             metricPipelineConfig);
                 }
             }
         }

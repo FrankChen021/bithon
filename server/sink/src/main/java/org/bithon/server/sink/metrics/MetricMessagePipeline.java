@@ -48,7 +48,7 @@ public class MetricMessagePipeline implements SmartLifecycle {
     private boolean isRunning = false;
 
     @JsonCreator
-    public MetricMessagePipeline(@JacksonInject(useInput = OptBoolean.FALSE) MetricSinkConfig sinkConfig,
+    public MetricMessagePipeline(@JacksonInject(useInput = OptBoolean.FALSE) MetricPipelineConfig sinkConfig,
                                  @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                                  @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) throws IOException {
         this.applicationContext = applicationContext;

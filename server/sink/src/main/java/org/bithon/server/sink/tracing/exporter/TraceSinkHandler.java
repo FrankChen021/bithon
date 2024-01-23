@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.common.handler.AbstractThreadPoolMessageHandler;
-import org.bithon.server.sink.tracing.TraceBatchWriter;
 import org.bithon.server.sink.tracing.TracePipelineConfig;
 import org.bithon.server.sink.tracing.index.TagIndexGenerator;
 import org.bithon.server.sink.tracing.mapping.TraceMappingFactory;

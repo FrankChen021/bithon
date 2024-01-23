@@ -14,10 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.metrics;
+package org.bithon.server.sink.metrics.exporter;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.common.FixedDelayExecutor;
+import org.bithon.server.sink.metrics.MetricPipelineConfig;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.metrics.IMetricWriter;
 
@@ -35,11 +36,11 @@ public class MetricBatchWriter implements IMetricWriter {
 
     private final IMetricWriter delegation;
     private final FixedDelayExecutor executor;
-    private final MetricSinkConfig sinkConfig;
+    private final MetricPipelineConfig sinkConfig;
     private final String name;
     private List<IInputRow> metricList;
 
-    public MetricBatchWriter(String dataSourceName, IMetricWriter delegation, MetricSinkConfig sinkConfig) {
+    public MetricBatchWriter(String dataSourceName, IMetricWriter delegation, MetricPipelineConfig sinkConfig) {
         this.name = dataSourceName;
         this.delegation = delegation;
         this.sinkConfig = sinkConfig;

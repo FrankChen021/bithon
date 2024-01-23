@@ -29,8 +29,8 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.sink.common.input.IInputSource;
 import org.bithon.server.sink.metrics.MetricMessage;
-import org.bithon.server.sink.metrics.MetricMessageHandler;
-import org.bithon.server.sink.metrics.MetricSinkConfig;
+import org.bithon.server.sink.metrics.exporter.MetricMessageHandler;
+import org.bithon.server.sink.metrics.MetricPipelineConfig;
 import org.bithon.server.sink.metrics.MetricsAggregator;
 import org.bithon.server.sink.tracing.TracePipeline;
 import org.bithon.server.sink.tracing.exporter.ITraceExporter;
@@ -144,7 +144,7 @@ public class MetricOverSpanInputSource implements IInputSource {
                                                           metricStorage,
                                                           applicationContext.getBean(DataSourceSchemaManager.class),
                                                           null,
-                                                          applicationContext.getBean(MetricSinkConfig.class));
+                                                          applicationContext.getBean(MetricPipelineConfig.class));
         }
 
         @Override

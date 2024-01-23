@@ -14,10 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.tracing;
+package org.bithon.server.sink.tracing.exporter;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.common.FixedDelayExecutor;
+import org.bithon.server.sink.tracing.TracePipelineConfig;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.index.TagIndex;

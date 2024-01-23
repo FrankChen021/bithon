@@ -20,9 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.sink.metrics.MetricMessageHandler;
-import org.bithon.server.sink.metrics.MetricMessageHandlers;
-import org.bithon.server.sink.metrics.MetricSinkConfig;
+import org.bithon.server.sink.metrics.MetricPipelineConfig;
 import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.meta.IMetaStorage;
@@ -86,7 +84,7 @@ public class SinkToStorage implements IMetricExporter {
                                                    applicationContext.getBean(IMetricStorage.class),
                                                    schemaManager,
                                                    null,
-                                                   applicationContext.getBean(MetricSinkConfig.class));
+                                                   applicationContext.getBean(MetricPipelineConfig.class));
 
                 handlers.add(handler);
                 return handler;

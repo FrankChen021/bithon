@@ -26,7 +26,7 @@ import org.bithon.server.sink.event.EventMessageHandlers;
 import org.bithon.server.sink.event.EventSinkConfig;
 import org.bithon.server.sink.metrics.MetricInputSource;
 import org.bithon.server.sink.metrics.MetricMessagePipeline;
-import org.bithon.server.sink.metrics.MetricSinkConfig;
+import org.bithon.server.sink.metrics.MetricPipelineConfig;
 import org.bithon.server.sink.metrics.transformer.ConnectionStringTransformer;
 import org.bithon.server.sink.metrics.transformer.ExtractHost;
 import org.bithon.server.sink.metrics.transformer.ExtractPath;
@@ -97,7 +97,7 @@ public class SinkAutoConfiguration {
     }
 
     @Bean
-    public MetricMessagePipeline metricMessagePipeline(MetricSinkConfig traceConfig,
+    public MetricMessagePipeline metricMessagePipeline(MetricPipelineConfig traceConfig,
                                                        ObjectMapper om,
                                                        ApplicationContext applicationContext) throws IOException {
         return new MetricMessagePipeline(traceConfig, om, applicationContext);

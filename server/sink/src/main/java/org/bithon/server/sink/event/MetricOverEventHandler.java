@@ -18,8 +18,8 @@ package org.bithon.server.sink.event;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.sink.metrics.MetricMessageHandler;
-import org.bithon.server.sink.metrics.MetricSinkConfig;
+import org.bithon.server.sink.metrics.exporter.MetricMessageHandler;
+import org.bithon.server.sink.metrics.MetricPipelineConfig;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
@@ -45,13 +45,13 @@ public class MetricOverEventHandler extends MetricMessageHandler implements Even
                                   IMetaStorage metaStorage,
                                   IMetricStorage metricStorage,
                                   DataSourceSchemaManager dataSourceSchemaManager,
-                                  MetricSinkConfig metricSinkConfig) throws IOException {
+                                  MetricPipelineConfig metricPipelineConfig) throws IOException {
         super(dataSourceName,
               metaStorage,
               metricStorage,
               dataSourceSchemaManager,
               null,
-              metricSinkConfig);
+              metricPipelineConfig);
         this.eventType = eventType;
         this.objectMapper = objectMapper;
     }
