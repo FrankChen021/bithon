@@ -30,7 +30,7 @@ import java.util.Map;
 public class PipelineConfig {
     private boolean enabled = true;
 
-    private List<Map<String, String>> receivers;
-    private List<Map<String, String>> transforms;
-    private List<Map<String, String>> exporters;
+    private List<Map<String, Object>> receivers;
+    private List<Map<String, Object>> transforms;
+    private List<Map<String, Object>> exporters;
 }

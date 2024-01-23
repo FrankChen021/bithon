@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -93,7 +92,7 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
             return transformers;
         }
 
-        for (Map<String, String> transform : pipelineConfig.getTransforms()) {
+        for (Object transform : pipelineConfig.getTransforms()) {
             try {
                 transformers.add(new ExceptionSafeTransformer(createObject(ITransformer.class, objectMapper, transform)));
             } catch (IOException ignored) {

@@ -21,8 +21,6 @@ import com.fasterxml.jackson.databind.Module;
 import org.bithon.server.collector.source.brpc.BrpcEventCollector;
 import org.bithon.server.collector.source.brpc.BrpcMetricCollector;
 import org.bithon.server.collector.source.brpc.BrpcTraceCollector;
-import org.bithon.server.sink.event.exporter.KafkaEventExporter;
-import org.bithon.server.sink.metrics.exporter.ToKafkaExporter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
