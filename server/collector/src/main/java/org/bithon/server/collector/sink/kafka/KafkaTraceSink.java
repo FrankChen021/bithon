@@ -19,7 +19,6 @@ package org.bithon.server.collector.sink.kafka;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,8 +35,10 @@ import org.apache.kafka.common.record.RecordBatch;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.collector.source.brpc.BrpcTraceCollector;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.springframework.context.ApplicationContext;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
@@ -51,7 +52,6 @@ import java.util.Map;
  * @date 2021/3/15
  */
 @Slf4j
-@JsonTypeName("kafka")
 public class KafkaTraceSink implements ITraceMessageSink {
 
     private final KafkaTemplate<byte[], byte[]> producer;
@@ -61,10 +61,12 @@ public class KafkaTraceSink implements ITraceMessageSink {
     private final Header header;
 
     private final ThreadLocal<FixedSizeBuffer> bufferThreadLocal;
+    private final BrpcTraceCollector brpcCollector;
 
     @JsonCreator
     public KafkaTraceSink(@JsonProperty("props") Map<String, Object> props,
-                          @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+                          @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
+                          @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.topic = (String) props.remove("topic");
         Preconditions.checkNotNull(topic, "topic is not configured for tracing sink");
 
@@ -77,6 +79,13 @@ public class KafkaTraceSink implements ITraceMessageSink {
         this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props, new ByteArraySerializer(), new ByteArraySerializer()),
                                             ImmutableMap.of(ProducerConfig.CLIENT_ID_CONFIG, "trace"));
         this.objectMapper = objectMapper;
+        this.brpcCollector = new BrpcTraceCollector(applicationContext);
+    }
+
+    @Override
+    public void start() {
+        brpcCollector.registerProcessor(this);
+        brpcCollector.start();
     }
 
     @SneakyThrows
@@ -151,6 +160,12 @@ public class KafkaTraceSink implements ITraceMessageSink {
 
     @Override
     public void close() {
+        try {
+            this.brpcCollector.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         producer.destroy();
         bufferThreadLocal.remove();
     }

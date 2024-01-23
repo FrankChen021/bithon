@@ -23,16 +23,12 @@ import org.bithon.server.collector.sink.kafka.KafkaEventSink;
 import org.bithon.server.collector.sink.kafka.KafkaMetricSink;
 import org.bithon.server.collector.sink.kafka.KafkaTraceSink;
 import org.bithon.server.collector.source.brpc.BrpcCollectorConfig;
-import org.bithon.server.collector.source.brpc.BrpcTraceCollector2;
+import org.bithon.server.collector.source.brpc.BrpcTraceCollector;
 import org.bithon.server.sink.event.IEventMessageSink;
 import org.bithon.server.sink.metrics.IMetricMessageSink;
-import org.bithon.server.sink.tracing.ITraceMessageSink;
-import org.springframework.boot.autoconfigure.AutoConfigureOrder;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 
 import java.io.IOException;
 
@@ -58,7 +54,7 @@ public class CollectorAutoConfiguration {
 
             @Override
             public void setupModule(SetupContext context) {
-                context.registerSubtypes(BrpcTraceCollector2.class,
+                context.registerSubtypes(BrpcTraceCollector.class,
 
                                          KafkaEventSink.class,
                                          KafkaMetricSink.class,

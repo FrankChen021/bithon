@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.ReflectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
+import org.bithon.server.sink.tracing.sink.ITraceMessageSink2;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;

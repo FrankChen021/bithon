@@ -31,11 +31,9 @@ import org.bithon.server.sink.event.IEventMessageSink;
 import org.bithon.server.sink.metrics.IMetricMessageSink;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.springframework.beans.BeansException;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -84,11 +82,6 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
                 case "event":
                     serviceDefinition = IEventCollector.class;
                     serviceImplementation = new BrpcEventCollector(applicationContext.getBean(IEventMessageSink.class));
-                    break;
-
-                case "tracing":
-                    serviceDefinition = ITraceCollector.class;
-                    serviceImplementation = new BrpcTraceCollector(applicationContext.getBean("trace-sink-collector", ITraceMessageSink.class));
                     break;
 
                 case "ctrl":

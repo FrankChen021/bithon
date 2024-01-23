@@ -16,27 +16,22 @@
 
 package org.bithon.server.collector.source.brpc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.agent.rpc.brpc.event.IEventCollector;
-import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
-import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.server.collector.cmd.service.AgentServer;
 import org.bithon.server.collector.config.AgentConfigurationService;
 import org.bithon.server.collector.config.BrpcSettingFetcher;
-import org.bithon.server.sink.event.IEventMessageSink;
-import org.bithon.server.sink.metrics.IMetricMessageSink;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
-import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -50,18 +45,24 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true", matchIfMissing = false)
-public class BrpcCollectorServer implements SmartLifecycle, ApplicationContextAware {
+public class BrpcCollectorServer implements SmartLifecycle {
 
     private final Map<Integer, ServiceGroup> serviceGroups = new HashMap<>();
+    private final ObjectMapper objectMapper;
     private ApplicationContext applicationContext;
     private boolean isRunning;
+    private BrpcCollectorConfig config;
 
     static {
         // Make sure the underlying netty use JDK direct memory region so that the memory can be tracked
         System.setProperty("org.bithon.shaded.io.netty.maxDirectMemory", "0");
     }
 
-    public BrpcCollectorServer(BrpcCollectorConfig config, ApplicationContext applicationContext) {
+    public BrpcCollectorServer(BrpcCollectorConfig config, ObjectMapper objectMapper, ApplicationContext applicationContext) {
+        this.config = config;
+        this.objectMapper = objectMapper;
+        this.applicationContext = applicationContext;
+
         Integer port = config.getPort().get("ctrl");
         if (port != null) {
             ServiceGroup brpcServer = addService("ctrl",
@@ -95,7 +96,19 @@ public class BrpcCollectorServer implements SmartLifecycle, ApplicationContextAw
 
     @Override
     public void start() {
+        if (config.getSinks() == null) {
+            return;
+        }
 
+        if (config.getSinks().getTracing() != null) {
+            ITraceMessageSink consumer = null;
+            try {
+                consumer = config.getSinks().getTracing().createSink(objectMapper, ITraceMessageSink.class);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            consumer.start();
+        }
     }
 
     @Override
@@ -105,11 +118,6 @@ public class BrpcCollectorServer implements SmartLifecycle, ApplicationContextAw
     @Override
     public boolean isRunning() {
         return isRunning;
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
     }
 
     /**

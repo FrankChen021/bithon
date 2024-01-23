@@ -16,12 +16,20 @@
 
 package org.bithon.server.collector.source.brpc;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
+import org.bithon.server.collector.source.http.TraceHttpCollector;
+import org.bithon.server.collector.source.otel.OtelHttpTraceCollector;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
+import org.bithon.server.sink.tracing.source.ITraceMessageSource;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.springframework.context.ApplicationContext;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -34,12 +42,16 @@ import java.util.stream.Collectors;
  * @date 2021/1/23 11:19 下午
  */
 @Slf4j
-public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
+@JsonTypeName("local")
+public class BrpcTraceCollector implements ITraceCollector, AutoCloseable, ITraceMessageSource {
 
-    private final ITraceMessageSink traceSink;
+    private final ApplicationContext applicationContext;
+    private ITraceMessageSink processor;
+    private BrpcCollectorServer.ServiceGroup serviceGroup;
 
-    public BrpcTraceCollector(ITraceMessageSink traceSink) {
-        this.traceSink = traceSink;
+    @JsonCreator
+    public BrpcTraceCollector(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -50,7 +62,7 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
         }
 
         log.debug("Receiving trace message:{}", spans);
-        traceSink.process("trace",
+        processor.process("trace",
                           spans.stream()
                                .map(span -> toSpan(header, span))
                                .collect(Collectors.toList()));
@@ -67,8 +79,8 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
         traceSpan.setTraceId(spanBody.getTraceId());
         traceSpan.setSpanId(spanBody.getSpanId());
         traceSpan.setParentSpanId(StringUtils.isEmpty(spanBody.getParentSpanId())
-                                  ? ""
-                                  : spanBody.getParentSpanId());
+                                      ? ""
+                                      : spanBody.getParentSpanId());
         traceSpan.setParentApplication(spanBody.getParentAppName());
         traceSpan.setStartTime(spanBody.getStartTime());
         traceSpan.setEndTime(spanBody.getEndTime());
@@ -85,6 +97,29 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        traceSink.close();
+
+    }
+
+    @Override
+    public void start() {
+        Integer port = this.applicationContext.getBean(BrpcCollectorConfig.class).getPort().get("tracing");
+        serviceGroup = this.applicationContext.getBean(BrpcCollectorServer.class)
+                                              .addService("trace", ITraceCollector.class, this, port);
+    }
+
+    @Override
+    public void registerProcessor(ITraceMessageSink processor) {
+        this.processor = processor;
+
+        // @ConditionalOnProperty(value = "collector-http.enabled", havingValue = "true")
+        this.applicationContext.getBean(TraceHttpCollector.class).setProcessor(processor);
+
+        // @ConditionalOnProperty(value = "collector-otel.enabled", havingValue = "true")
+        this.applicationContext.getBean(OtelHttpTraceCollector.class).setProcessor(processor);
+    }
+
+    @Override
+    public void stop() {
+        serviceGroup.stop("trace");
     }
 }

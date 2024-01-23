@@ -18,6 +18,9 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 
+/**
+ * The source of processing pipeline
+ */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = "source", value = KafkaSource.class),
@@ -26,5 +29,6 @@ public interface ITraceMessageSource {
     void start();
 
     void registerProcessor(ITraceMessageSink processor);
+
     void stop();
 }

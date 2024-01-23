@@ -58,7 +58,7 @@ import java.util.Map;
  * @date 12/4/22 11:38 AM
  */
 @Slf4j
-public class TraceMessagePipeline implements ITraceMessageSink, SmartLifecycle {
+public class TraceMessagePipeline implements SmartLifecycle, ITraceMessageSink {
 
     @Getter
     private final boolean isEnabled;
