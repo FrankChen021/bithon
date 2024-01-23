@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.metrics;
+package org.bithon.server.sink.metrics.topo;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

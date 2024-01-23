@@ -14,50 +14,48 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.event;
+package org.bithon.server.sink.metrics;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.common.pipeline.AbstractPipeline;
-import org.bithon.server.sink.event.exporter.IEventExporter;
-import org.bithon.server.sink.event.receiver.IEventReceiver;
-import org.bithon.server.storage.event.EventMessage;
+import org.bithon.server.sink.metrics.exporter.IMetricExporter;
+import org.bithon.server.sink.metrics.receiver.IMetricReceiver;
 import org.slf4j.Logger;
-
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 12/4/22 11:38 AM
+ * @date 3/10/21 14:11
  */
 @Slf4j
-public class EventPipeline extends AbstractPipeline<IEventReceiver, IEventExporter> {
+public class MetricPipeline extends AbstractPipeline<IMetricReceiver, IMetricExporter> {
 
-    public EventPipeline(EventPipelineConfig pipelineConfig, ObjectMapper objectMapper) {
-        super(IEventReceiver.class, IEventExporter.class, pipelineConfig, objectMapper);
+    public MetricPipeline(MetricPipelineConfig pipelineConfig,
+                          ObjectMapper objectMapper) {
+        super(IMetricReceiver.class, IMetricExporter.class, pipelineConfig, objectMapper);
     }
 
     @Override
     protected void registerProcessor() {
-        IEventProcessor processor = new IEventProcessor() {
+        IMetricProcessor processor = new IMetricProcessor() {
             @Override
-            public void process(String messageType, List<EventMessage> messages) {
-                IEventExporter[] exporterList = exporters.toArray(new IEventExporter[0]);
-                for (IEventExporter exporter : exporterList) {
+            public void close() {
+            }
+
+            @Override
+            public void process(String messageType, SchemaMetricMessage message) {
+                IMetricExporter[] exporter = exporters.toArray(new IMetricExporter[0]);
+                for (IMetricExporter sink : exporter) {
                     try {
-                        exporter.process(messageType, messages);
+                        sink.process(messageType, message);
                     } catch (Exception e) {
                         log.error(e.getMessage(), e);
                     }
                 }
             }
-
-            @Override
-            public void close() {
-            }
         };
 
-        for (IEventReceiver receiver : this.receivers) {
+        for (IMetricReceiver receiver : this.receivers) {
             receiver.registerProcessor(processor);
         }
     }

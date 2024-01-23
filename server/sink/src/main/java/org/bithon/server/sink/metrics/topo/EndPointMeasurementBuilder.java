@@ -16,7 +16,6 @@
 
 package org.bithon.server.sink.metrics.topo;
 
-import org.bithon.server.sink.metrics.Measurement;
 import org.bithon.server.storage.meta.EndPointType;
 
 import java.util.HashMap;

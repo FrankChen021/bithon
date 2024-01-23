@@ -18,16 +18,15 @@ package org.bithon.server.sink.metrics.receiver;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.sink.common.pipeline.IReceiver;
 import org.bithon.server.sink.metrics.IMetricProcessor;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = "kafka", value = KafkaMetricReceiver.class),
 })
-public interface IMetricReceiver {
-    void start();
+public interface IMetricReceiver extends IReceiver {
 
     void registerProcessor(IMetricProcessor processor);
 
-    void stop();
 }

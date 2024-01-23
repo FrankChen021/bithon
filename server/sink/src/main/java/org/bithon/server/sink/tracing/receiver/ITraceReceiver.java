@@ -18,6 +18,7 @@ package org.bithon.server.sink.tracing.receiver;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.sink.common.pipeline.IReceiver;
 import org.bithon.server.sink.tracing.ITraceProcessor;
 
 /**
@@ -27,10 +28,6 @@ import org.bithon.server.sink.tracing.ITraceProcessor;
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = "kafka", value = KafkaTraceReceiver.class),
 })
-public interface ITraceReceiver {
-    void start();
-
+public interface ITraceReceiver extends IReceiver {
     void registerProcessor(ITraceProcessor processor);
-
-    void stop();
 }

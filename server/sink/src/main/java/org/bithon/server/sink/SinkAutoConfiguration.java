@@ -24,7 +24,7 @@ import org.bithon.server.sink.event.EventPipeline;
 import org.bithon.server.sink.event.EventPipelineConfig;
 import org.bithon.server.sink.event.metrics.EventInputSource;
 import org.bithon.server.sink.metrics.MetricInputSource;
-import org.bithon.server.sink.metrics.MetricMessagePipeline;
+import org.bithon.server.sink.metrics.MetricPipeline;
 import org.bithon.server.sink.metrics.MetricPipelineConfig;
 import org.bithon.server.sink.metrics.transform.ConnectionStringTransformer;
 import org.bithon.server.sink.metrics.transform.ExtractHost;
@@ -91,10 +91,9 @@ public class SinkAutoConfiguration {
     }
 
     @Bean
-    public MetricMessagePipeline metricPipeline(MetricPipelineConfig pipelineConfig,
-                                                ObjectMapper om,
-                                                ApplicationContext applicationContext) {
-        return new MetricMessagePipeline(pipelineConfig, om, applicationContext);
+    public MetricPipeline metricPipeline(MetricPipelineConfig pipelineConfig,
+                                         ObjectMapper om) {
+        return new MetricPipeline(pipelineConfig, om);
     }
 
     /**

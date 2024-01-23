@@ -18,11 +18,9 @@ package org.bithon.server.sink.event;
 
 import lombok.Data;
 import org.bithon.server.sink.common.BatchConfig;
+import org.bithon.server.sink.common.pipeline.PipelineConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -31,12 +29,7 @@ import java.util.Map;
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "bithon.pipeline.event")
-public class EventPipelineConfig {
-    private boolean enabled = true;
-
-    private List<Map<String, String>> receivers;
-    private List<Map<String, String>> transforms;
-    private List<Map<String, String>> exporters;
+public class EventPipelineConfig extends PipelineConfig {
 
     private BatchConfig batch;
 }

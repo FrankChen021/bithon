@@ -14,20 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.metrics.topo;
-
-import org.bithon.server.storage.datasource.input.IInputRow;
+package org.bithon.server.sink.common.pipeline;
 
 /**
- * A temp interface to generalize metrics processing of previous http-incoming-metrics/http-outcoming-metrics/...
- * Eventually it will be replaced by some kind of {@link org.bithon.server.storage.datasource.input.TransformSpec}
- *
- * @author frank.chen021@outlook.com
- * @date 2022/8/9 19:30
+ * The source of processing pipeline
  */
-public interface ITopoTransformer {
+public interface IExporter {
+    void start();
 
-    String getSourceType();
-
-    Measurement transform(IInputRow message);
+    void stop();
 }

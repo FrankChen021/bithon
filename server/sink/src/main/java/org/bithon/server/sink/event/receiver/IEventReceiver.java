@@ -18,6 +18,7 @@ package org.bithon.server.sink.event.receiver;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.sink.common.pipeline.IReceiver;
 import org.bithon.server.sink.event.IEventProcessor;
 import org.bithon.server.sink.metrics.receiver.KafkaMetricReceiver;
 
@@ -25,10 +26,6 @@ import org.bithon.server.sink.metrics.receiver.KafkaMetricReceiver;
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = "kafka", value = KafkaMetricReceiver.class)
 })
-public interface IEventReceiver {
-    void start();
-
+public interface IEventReceiver extends IReceiver {
     void registerProcessor(IEventProcessor processor);
-
-    void stop();
 }

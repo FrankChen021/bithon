@@ -18,6 +18,7 @@ package org.bithon.server.sink.metrics.exporter;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.sink.common.pipeline.IExporter;
 import org.bithon.server.sink.metrics.IMetricProcessor;
 
 /**
@@ -29,5 +30,15 @@ import org.bithon.server.sink.metrics.IMetricProcessor;
     @JsonSubTypes.Type(name = "store", value = ToStorageExporter.class),
     @JsonSubTypes.Type(name = "kafka", value = ToKafkaExporter.class)
 })
-public interface IMetricExporter extends IMetricProcessor {
+public interface IMetricExporter extends IMetricProcessor, IExporter {
+    default void start() {
+    }
+
+    default void stop() {
+        try {
+            close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

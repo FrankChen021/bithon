@@ -17,6 +17,7 @@
 package org.bithon.server.sink.metrics;
 
 import org.bithon.server.commons.time.Period;
+import org.bithon.server.sink.metrics.topo.Measurement;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.column.IColumn;

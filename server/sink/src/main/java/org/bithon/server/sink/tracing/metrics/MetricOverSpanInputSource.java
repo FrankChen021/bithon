@@ -103,7 +103,7 @@ public class MetricOverSpanInputSource implements IInputSource {
         MetricOverSpanExtractor extractor = null;
         try {
             extractor = new MetricOverSpanExtractor(transformSpec, schema, metricStorage, applicationContext);
-            metricExtractor = this.pipeline.link(extractor);
+            metricExtractor = (MetricOverSpanExtractor) this.pipeline.link(extractor);
         } catch (Exception e) {
             if (extractor != null) {
                 this.pipeline.unlink(extractor);

@@ -18,28 +18,14 @@ package org.bithon.server.sink.tracing;
 
 import lombok.Data;
 import org.bithon.server.sink.common.BatchConfig;
+import org.bithon.server.sink.common.pipeline.PipelineConfig;
 import org.bithon.server.sink.tracing.mapping.TraceIdMappingConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
-import java.util.Map;
 
 /**
- *
- *  * <pre>
- *  *     bithon:
- *  *       pipeline:
- *  *         tracing:
- *  *           enabled: true
- *              source: brpc|kafka
- *  *           transforms:
- *  *             - type: filter
- *  *             - type: sanitize
- *  *           exporters:
- *  *             - type: store
- *  *             -
- *  * </pre>
  *
  * @author frank.chen021@outlook.com
  * @date 10/12/21 3:33 PM
@@ -47,13 +33,7 @@ import java.util.Map;
 @Data
 @Configuration(proxyBeanMethods = false)
 @ConfigurationProperties(prefix = "bithon.pipeline.tracing")
-public class TracePipelineConfig {
-
-    private boolean enabled = true;
-
-    private List<Map<String, String>> receivers;
-    private List<Map<String, String>> transforms;
-    private List<Map<String, String>> exporters;
+public class TracePipelineConfig extends PipelineConfig {
 
     private List<TraceIdMappingConfig> mapping;
 

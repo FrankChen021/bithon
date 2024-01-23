@@ -18,6 +18,7 @@ package org.bithon.server.sink.tracing.exporter;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.sink.common.pipeline.IExporter;
 import org.bithon.server.sink.tracing.ITraceProcessor;
 
 /**
@@ -29,6 +30,17 @@ import org.bithon.server.sink.tracing.ITraceProcessor;
     @JsonSubTypes.Type(name = "store", value = ToStorageExporter.class),
     @JsonSubTypes.Type(name = "kafka", value = ToKafkaExporter.class),
 })
-public interface ITraceExporter extends ITraceProcessor {
+public interface ITraceExporter extends ITraceProcessor, IExporter {
 
+    default void start() {
+
+    }
+
+    default void stop() {
+        try {
+            close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
