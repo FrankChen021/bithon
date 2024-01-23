@@ -51,7 +51,7 @@ public class TracePipelineConfig {
 
     private boolean enabled = true;
 
-    private DynamicConfig source;
+    private List<Map<String, String>> receivers;
     private List<Map<String, String>> transforms;
     private List<Map<String, String>> exporters;
 

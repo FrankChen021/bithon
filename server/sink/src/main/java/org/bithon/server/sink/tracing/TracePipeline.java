@@ -34,9 +34,11 @@ import org.springframework.context.SmartLifecycle;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -48,36 +50,65 @@ public class TracePipeline implements SmartLifecycle {
     @Getter
     private final boolean isEnabled;
 
-    private final ITraceReceiver source;
-    private final List<ITransformer> transformers;
+    private final List<ITraceReceiver> receivers;
+    private final List<ITransformer> transforms;
     private final List<ITraceExporter> exporters;
     private boolean isRunning = false;
 
     public TracePipeline(@JacksonInject(useInput = OptBoolean.FALSE) TracePipelineConfig tracePipelineConfig,
                          @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
-                         @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) throws IOException {
+                         @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.isEnabled = tracePipelineConfig.isEnabled();
 
-        this.source = this.isEnabled ? createObject(ITraceReceiver.class, objectMapper, tracePipelineConfig.getSource()) : null;
-        this.transformers = isEnabled ? createTransformers(tracePipelineConfig.getTransforms(), applicationContext, objectMapper) : null;
-        this.exporters = this.isEnabled ? createExporters(tracePipelineConfig.getExporters(), objectMapper) : null;
+        this.receivers = createReceivers(tracePipelineConfig, objectMapper);
+        this.transforms = createTransforms(tracePipelineConfig, applicationContext, objectMapper);
+        this.exporters = createExporters(tracePipelineConfig, objectMapper);
     }
 
     private <T> T createObject(Class<T> clazz, ObjectMapper objectMapper, Object configuration) throws IOException {
         return objectMapper.readValue(objectMapper.writeValueAsBytes(configuration), clazz);
     }
 
-    private List<ITransformer> createTransformers(List<Map<String, String>> transforms,
-                                                  ApplicationContext applicationContext,
-                                                  ObjectMapper objectMapper) {
+    private List<ITraceReceiver> createReceivers(TracePipelineConfig pipelineConfig,
+                                                 ObjectMapper objectMapper) {
+        if (!pipelineConfig.isEnabled()) {
+            return Collections.emptyList();
+        }
+
+        List<ITraceReceiver> receivers = new ArrayList<>();
+
+        if (CollectionUtils.isEmpty(receivers)) {
+            log.warn("No receivers defined in the trace pipeline processing.");
+            return receivers;
+        }
+
+        return pipelineConfig.getReceivers()
+                             .stream()
+                             .map((receiverConfig) -> {
+                                      try {
+                                          return createObject(ITraceReceiver.class, objectMapper, receiverConfig);
+                                      } catch (IOException e) {
+                                          throw new RuntimeException(e);
+                                      }
+                                  }).collect(Collectors.toList());
+
+    }
+
+    private List<ITransformer> createTransforms(TracePipelineConfig pipelineConfig,
+                                                ApplicationContext applicationContext,
+                                                ObjectMapper objectMapper) {
+        if (!pipelineConfig.isEnabled()) {
+            return Collections.emptyList();
+        }
+
         List<ITransformer> transformers = new ArrayList<>();
         transformers.add(new TraceSpanTransformer(applicationContext.getBean(UriNormalizer.class)));
 
-        if (CollectionUtils.isEmpty(transforms)) {
+        if (CollectionUtils.isEmpty(pipelineConfig.getTransforms())) {
             return transformers;
         }
 
-        for (Map<String, String> transform : transforms) {
+        for (Map<String, String> transform : pipelineConfig.getTransforms()) {
             try {
                 transformers.add(new ExceptionSafeTransformer(createObject(ITransformer.class, objectMapper, transform)));
             } catch (IOException ignored) {
@@ -86,17 +117,27 @@ public class TracePipeline implements SmartLifecycle {
         return transformers;
     }
 
-    private List<ITraceExporter> createExporters(List<Map<String, String>> sinks,
+    private List<ITraceExporter> createExporters(TracePipelineConfig pipelineConfig,
                                                  ObjectMapper objectMapper) {
-        List<ITraceExporter> sinkObjects = new ArrayList<>();
-        for (Map<String, String> sink : sinks) {
-            try {
-                sinkObjects.add(createObject(ITraceExporter.class, objectMapper, sink));
-            } catch (IOException e) {
-                log.error("Failed to create sink from configuration", e);
-            }
+        if (!pipelineConfig.isEnabled()) {
+            return Collections.emptyList();
         }
-        return sinkObjects;
+
+        if (CollectionUtils.isEmpty(pipelineConfig.getExporters())) {
+            log.warn("No exporters defined in the trace pipeline processing.");
+            return Collections.emptyList();
+        }
+
+        return pipelineConfig.getExporters()
+                             .stream()
+                             .map((exporterConfig) -> {
+                                 try {
+                                     return createObject(ITraceExporter.class, objectMapper, exporterConfig);
+                                 } catch (IOException e) {
+                                     throw new RuntimeException(e);
+                                 }
+                             })
+                             .collect(Collectors.toList());
     }
 
     public <T extends ITraceExporter> T link(T sink) {
@@ -117,23 +158,24 @@ public class TracePipeline implements SmartLifecycle {
     public void start() {
         log.info("Starting the source of trace process pipeline...");
 
-        this.source.registerProcessor(new PipelineProcessor());
-        this.source.start();
+        ITraceProcessor processor = new PipelineProcessor();
+        for (ITraceReceiver receiver : this.receivers) {
+            receiver.registerProcessor(processor);
+            receiver.start();
+        }
         this.isRunning = true;
     }
 
     @Override
     public void stop() {
-        if (!this.isEnabled) {
-            return;
+        // Stop the receiver first
+        for (ITraceReceiver receiver : this.receivers) {
+            receiver.stop();
         }
 
-        // Stop the source first
-        this.source.stop();
-
-        for (ITraceExporter export : exporters) {
+        for (ITraceExporter exporter : this.exporters) {
             try {
-                export.close();
+                exporter.close();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -155,7 +197,7 @@ public class TracePipeline implements SmartLifecycle {
             while (iterator.hasNext()) {
                 TraceSpan span = iterator.next();
 
-                for (ITransformer transformer : transformers) {
+                for (ITransformer transformer : transforms) {
                     if (!transformer.transform(span)) {
                         iterator.remove();
                     }
@@ -166,10 +208,10 @@ public class TracePipeline implements SmartLifecycle {
                 return;
             }
 
-            ITraceExporter[] sinks = exporters.toArray(new ITraceExporter[0]);
-            for (ITraceExporter sink : sinks) {
+            ITraceExporter[] exporterList = exporters.toArray(new ITraceExporter[0]);
+            for (ITraceExporter exporter : exporterList) {
                 try {
-                    sink.process(messageType, spans);
+                    exporter.process(messageType, spans);
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }
