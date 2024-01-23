@@ -19,7 +19,7 @@ package org.bithon.server.sink.common.handler;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.server.sink.event.LocalEventSink;
-import org.bithon.server.sink.tracing.TraceMessagePipeline;
+import org.bithon.server.sink.tracing.TracePipeline;
 
 import java.time.Duration;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -81,7 +81,7 @@ public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageH
 
     /**
      * @see LocalMetricSink#close()
-     * @see TraceMessagePipeline#close()
+     * @see TracePipeline#close()
      * @see LocalEventSink#close()
      */
     @Override

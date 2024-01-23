@@ -14,26 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.tracing.sink;
+package org.bithon.server.sink.metrics.receiver;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.tracing.TraceSpan;
+import org.bithon.server.sink.metrics.IMetricProcessor;
 
-import java.util.List;
-
-/**
- * @author frank.chen021@outlook.com
- * @date 9/12/21 2:22 PM
- */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "store", value = SinkToStorage.class),
+    @JsonSubTypes.Type(name = "kafka", value = KafkaMetricReceiver.class),
 })
-public interface ITraceMessageSink2 extends AutoCloseable {
-    /**
-     * process messages.
-     * If it's closing, this process method won't be called again
-     */
-    void process(String messageType, List<TraceSpan> messages);
+public interface IMetricReceiver {
+    void start();
+
+    void registerProcessor(IMetricProcessor processor);
+
+    void stop();
 }

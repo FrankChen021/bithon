@@ -26,8 +26,8 @@ import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.bithon.server.collector.source.http.TraceHttpCollector;
 import org.bithon.server.collector.source.otel.OtelHttpTraceCollector;
-import org.bithon.server.sink.tracing.ITraceMessageSink;
-import org.bithon.server.sink.tracing.source.ITraceMessageSource;
+import org.bithon.server.sink.tracing.ITraceProcessor;
+import org.bithon.server.sink.tracing.receiver.ITraceReceiver;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.CollectionUtils;
@@ -42,11 +42,11 @@ import java.util.stream.Collectors;
  * @date 2021/1/23 11:19 下午
  */
 @Slf4j
-@JsonTypeName("local")
-public class BrpcTraceCollector implements ITraceCollector, AutoCloseable, ITraceMessageSource {
+@JsonTypeName("brpc")
+public class BrpcTraceCollector implements ITraceCollector, ITraceReceiver {
 
     private final ApplicationContext applicationContext;
-    private ITraceMessageSink processor;
+    private ITraceProcessor processor;
     private BrpcCollectorServer.ServiceGroup serviceGroup;
 
     @JsonCreator
@@ -96,11 +96,6 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable, ITrac
     }
 
     @Override
-    public void close() throws Exception {
-
-    }
-
-    @Override
     public void start() {
         Integer port = this.applicationContext.getBean(BrpcCollectorConfig.class).getPort().get("tracing");
         serviceGroup = this.applicationContext.getBean(BrpcCollectorServer.class)
@@ -108,9 +103,10 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable, ITrac
     }
 
     @Override
-    public void registerProcessor(ITraceMessageSink processor) {
+    public void registerProcessor(ITraceProcessor processor) {
         this.processor = processor;
 
+        // TODO:
         // @ConditionalOnProperty(value = "collector-http.enabled", havingValue = "true")
         this.applicationContext.getBean(TraceHttpCollector.class).setProcessor(processor);
 

@@ -25,13 +25,11 @@ import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.server.collector.cmd.service.AgentServer;
 import org.bithon.server.collector.config.AgentConfigurationService;
 import org.bithon.server.collector.config.BrpcSettingFetcher;
-import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -96,19 +94,6 @@ public class BrpcCollectorServer implements SmartLifecycle {
 
     @Override
     public void start() {
-        if (config.getSinks() == null) {
-            return;
-        }
-
-        if (config.getSinks().getTracing() != null) {
-            ITraceMessageSink consumer = null;
-            try {
-                consumer = config.getSinks().getTracing().createSink(objectMapper, ITraceMessageSink.class);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            consumer.start();
-        }
     }
 
     @Override

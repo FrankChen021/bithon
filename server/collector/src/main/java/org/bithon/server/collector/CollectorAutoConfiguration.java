@@ -20,12 +20,11 @@ import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.collector.sink.kafka.KafkaEventSink;
-import org.bithon.server.collector.sink.kafka.KafkaMetricSink;
-import org.bithon.server.collector.sink.kafka.KafkaTraceSink;
+import org.bithon.server.sink.metrics.exporter.KafkaMetricExporter;
 import org.bithon.server.collector.source.brpc.BrpcCollectorConfig;
+import org.bithon.server.collector.source.brpc.BrpcMetricCollector;
 import org.bithon.server.collector.source.brpc.BrpcTraceCollector;
 import org.bithon.server.sink.event.IEventMessageSink;
-import org.bithon.server.sink.metrics.IMetricMessageSink;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -55,19 +54,12 @@ public class CollectorAutoConfiguration {
             @Override
             public void setupModule(SetupContext context) {
                 context.registerSubtypes(BrpcTraceCollector.class,
+                                         BrpcMetricCollector.class,
 
                                          KafkaEventSink.class,
-                                         KafkaMetricSink.class,
-                                         KafkaTraceSink.class);
+                                         KafkaMetricExporter.class);
             }
         };
-    }
-
-    @Bean
-    @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
-    public IMetricMessageSink metricSink(BrpcCollectorConfig config,
-                                         ObjectMapper om) throws IOException {
-        return config.getSinks().getMetrics().createSink(om, IMetricMessageSink.class);
     }
 
     @Bean
@@ -76,11 +68,4 @@ public class CollectorAutoConfiguration {
                                        ObjectMapper om) throws IOException {
         return config.getSinks().getEvent().createSink(om, IEventMessageSink.class);
     }
-
-//    @Bean("trace-sink-collector")
-//    @ConditionalOnExpression(value = "${collector-brpc.enabled: false} or ${collector-http.enabled: false}")
-//    public ITraceMessageSink traceSink(BrpcCollectorConfig config,
-//                                       ObjectMapper om) throws IOException {
-//        return config.getSinks().getTracing().createSink(om, ITraceMessageSink.class);
-//    }
 }

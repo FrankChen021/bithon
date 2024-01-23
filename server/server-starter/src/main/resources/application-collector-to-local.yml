@@ -8,10 +8,7 @@ collector-brpc:
   sinks:
     event:
       type: local
-    metrics:
-      type: local
-    tracing:
-      type: local
+
 
 collector-http:
   enabled: true
@@ -28,12 +25,19 @@ collector-controller:
         token: "525"
 
 bithon:
-  processor:
-    tracing:
+  pipeline:
+    metrics:
+      enabled: true
       source:
-        type: local
+        type: brpc
+      exporters:
+        - type: store
+    tracing:
+      enabled: true
+      source:
+        type: brpc
       transforms:
-      sinks:
+      exporters:
         - type: store
 
 

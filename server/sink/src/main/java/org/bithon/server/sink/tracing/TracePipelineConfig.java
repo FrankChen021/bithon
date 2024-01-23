@@ -29,12 +29,14 @@ import java.util.Map;
  *
  *  * <pre>
  *  *     bithon:
- *  *       processor:
+ *  *       pipeline:
  *  *         tracing:
+ *  *           enabled: true
+ *              source: brpc|kafka
  *  *           transforms:
  *  *             - type: filter
  *  *             - type: sanitize
- *  *           sinks:
+ *  *           exporters:
  *  *             - type: store
  *  *             -
  *  * </pre>
@@ -44,14 +46,14 @@ import java.util.Map;
  */
 @Data
 @Configuration(proxyBeanMethods = false)
-@ConfigurationProperties(prefix = "bithon.processor.tracing")
-public class TraceSinkConfig {
+@ConfigurationProperties(prefix = "bithon.pipeline.tracing")
+public class TracePipelineConfig {
 
     private boolean enabled = true;
 
     private DynamicConfig source;
     private List<Map<String, String>> transforms;
-    private List<Map<String, String>> sinks;
+    private List<Map<String, String>> exporters;
 
     private List<TraceIdMappingConfig> mapping;
 

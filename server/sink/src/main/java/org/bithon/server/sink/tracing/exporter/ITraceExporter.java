@@ -14,19 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.metrics;
+package org.bithon.server.sink.tracing.exporter;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.sink.tracing.ITraceProcessor;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 9/12/21 2:17 PM
+ * @date 9/12/21 2:22 PM
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "local", value = LocalMetricSink.class),
+    @JsonSubTypes.Type(name = "store", value = TraceSinkHandler.class),
+    @JsonSubTypes.Type(name = "kafka", value = KafkaTraceExporter.class),
 })
-public interface IMetricMessageSink extends AutoCloseable {
-    void process(String messageType, SchemaMetricMessage message);
+public interface ITraceExporter extends ITraceProcessor {
+
 }

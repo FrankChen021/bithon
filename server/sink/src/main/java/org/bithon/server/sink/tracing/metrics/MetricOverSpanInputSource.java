@@ -32,8 +32,8 @@ import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.MetricMessageHandler;
 import org.bithon.server.sink.metrics.MetricSinkConfig;
 import org.bithon.server.sink.metrics.MetricsAggregator;
-import org.bithon.server.sink.tracing.TraceMessagePipeline;
-import org.bithon.server.sink.tracing.sink.ITraceMessageSink2;
+import org.bithon.server.sink.tracing.TracePipeline;
+import org.bithon.server.sink.tracing.exporter.ITraceExporter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
 public class MetricOverSpanInputSource implements IInputSource {
 
     @JsonIgnore
-    private final TraceMessagePipeline pipeline;
+    private final TracePipeline pipeline;
 
     @Getter
     private final TransformSpec transformSpec;
@@ -74,7 +74,7 @@ public class MetricOverSpanInputSource implements IInputSource {
 
     @JsonCreator
     public MetricOverSpanInputSource(@JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
-                                     @JacksonInject(useInput = OptBoolean.FALSE) TraceMessagePipeline pipeline,
+                                     @JacksonInject(useInput = OptBoolean.FALSE) TracePipeline pipeline,
                                      @JacksonInject(useInput = OptBoolean.FALSE) IMetricStorage metricStorage,
                                      @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         Preconditions.checkArgumentNotNull("transformSpec", transformSpec);
@@ -128,7 +128,7 @@ public class MetricOverSpanInputSource implements IInputSource {
         }
     }
 
-    private static class MetricOverSpanExtractor implements ITraceMessageSink2 {
+    private static class MetricOverSpanExtractor implements ITraceExporter {
         private final TransformSpec transformSpec;
         private final DataSourceSchema schema;
         private final MetricMessageHandler metricHandler;

@@ -19,7 +19,7 @@ package org.bithon.server.collector.source.otel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.sink.tracing.ITraceMessageSink;
+import org.bithon.server.sink.tracing.ITraceProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,7 +42,7 @@ import java.util.zip.InflaterInputStream;
 public class OtelHttpTraceCollector {
 
     @Setter
-    private ITraceMessageSink processor;
+    private ITraceProcessor processor;
 
     @PostMapping("/api/collector/otel/trace")
     public void collectBinaryFormattedTrace(HttpServletRequest request,

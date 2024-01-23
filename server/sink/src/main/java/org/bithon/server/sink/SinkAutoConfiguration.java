@@ -25,20 +25,21 @@ import org.bithon.server.sink.event.EventInputSource;
 import org.bithon.server.sink.event.EventMessageHandlers;
 import org.bithon.server.sink.event.EventSinkConfig;
 import org.bithon.server.sink.metrics.MetricInputSource;
+import org.bithon.server.sink.metrics.MetricMessagePipeline;
+import org.bithon.server.sink.metrics.MetricSinkConfig;
 import org.bithon.server.sink.metrics.transformer.ConnectionStringTransformer;
 import org.bithon.server.sink.metrics.transformer.ExtractHost;
 import org.bithon.server.sink.metrics.transformer.ExtractPath;
 import org.bithon.server.sink.metrics.transformer.UriNormalizationTransformer;
-import org.bithon.server.sink.tracing.TraceMessagePipeline;
-import org.bithon.server.sink.tracing.TraceSinkConfig;
+import org.bithon.server.sink.tracing.TracePipeline;
+import org.bithon.server.sink.tracing.TracePipelineConfig;
 import org.bithon.server.sink.tracing.metrics.MetricOverSpanInputSource;
-import org.bithon.server.sink.tracing.transform.sanitization.UrlSanitizer;
 import org.bithon.server.sink.tracing.transform.TraceSpanTransformer;
+import org.bithon.server.sink.tracing.transform.sanitization.UrlSanitizer;
 import org.bithon.server.storage.StorageModuleAutoConfiguration;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.event.IEventStorage;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -95,21 +96,28 @@ public class SinkAutoConfiguration {
         };
     }
 
+    @Bean
+    public MetricMessagePipeline metricMessagePipeline(MetricSinkConfig traceConfig,
+                                                       ObjectMapper om,
+                                                       ApplicationContext applicationContext) throws IOException {
+        return new MetricMessagePipeline(traceConfig, om, applicationContext);
+    }
+
     /**
      * Always create the bean because it might be used in other modules
      */
     @Bean
-    public TraceMessagePipeline traceMessagePipeline(TraceSinkConfig traceConfig,
-                                                     ObjectMapper om,
-                                                     ApplicationContext applicationContext) throws IOException {
-        return new TraceMessagePipeline(traceConfig, om, applicationContext);
+    public TracePipeline traceMessagePipeline(TracePipelineConfig traceConfig,
+                                              ObjectMapper om,
+                                              ApplicationContext applicationContext) throws IOException {
+        return new TracePipeline(traceConfig, om, applicationContext);
     }
 
     /**
      * Input source manager is responsible for hooking the processors on metrics and trace handlers.
-     * So all its dependencies like {@link TraceMessagePipeline} should be prepared.
+     * So all its dependencies like {@link TracePipeline} should be prepared.
      * <p>
-     * If the sink is kafka, {@link TraceMessagePipeline} is initialized above
+     * If the sink is kafka, {@link TracePipeline} is initialized above
      * If the sink is local, it's initialized in brpc autoconfiguration.
      */
     @Bean

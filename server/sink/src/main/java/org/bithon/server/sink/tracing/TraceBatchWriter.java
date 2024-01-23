@@ -47,7 +47,7 @@ public class TraceBatchWriter implements ITraceWriter {
     private final FixedDelayExecutor executor;
     private final int batchSize;
 
-    public TraceBatchWriter(ITraceWriter writer, TraceSinkConfig config) {
+    public TraceBatchWriter(ITraceWriter writer, TracePipelineConfig config) {
         this.writer = writer;
         this.batchSize = config.getBatch() == null ? 2000 : config.getBatch().getSize();
         this.executor = new FixedDelayExecutor("trace-batch-writer",

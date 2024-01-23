@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.tracing.source;
+package org.bithon.server.sink.tracing.receiver;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -23,7 +23,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.bithon.server.kafka.AbstractKafkaConsumer;
-import org.bithon.server.sink.tracing.ITraceMessageSink;
+import org.bithon.server.sink.tracing.ITraceProcessor;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.context.ApplicationContext;
 
@@ -38,13 +38,13 @@ import java.util.Map;
  */
 @Slf4j
 @JsonTypeName("kafka")
-public class KafkaSource extends AbstractKafkaConsumer implements ITraceMessageSource {
+public class KafkaTraceReceiver extends AbstractKafkaConsumer implements ITraceReceiver {
     private final Map<String, Object> props;
-    private ITraceMessageSink processor;
+    private ITraceProcessor processor;
     private final TypeReference<List<TraceSpan>> typeReference;
 
-    public KafkaSource(@JacksonInject(useInput = OptBoolean.FALSE) Map<String, Object> props,
-                       @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+    public KafkaTraceReceiver(@JacksonInject(useInput = OptBoolean.FALSE) Map<String, Object> props,
+                              @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         super(applicationContext);
 
         this.typeReference = new TypeReference<List<TraceSpan>>() {
@@ -58,7 +58,7 @@ public class KafkaSource extends AbstractKafkaConsumer implements ITraceMessageS
     }
 
     @Override
-    public void registerProcessor(ITraceMessageSink processor) {
+    public void registerProcessor(ITraceProcessor processor) {
         this.processor = processor;
     }
 

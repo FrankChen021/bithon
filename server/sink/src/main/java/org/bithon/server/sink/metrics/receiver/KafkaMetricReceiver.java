@@ -14,13 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.kafka;
+package org.bithon.server.sink.metrics.receiver;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
-import org.bithon.server.sink.metrics.LocalMetricSink;
+import org.bithon.server.kafka.AbstractKafkaConsumer;
+import org.bithon.server.sink.metrics.IMetricProcessor;
 import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.springframework.context.ApplicationContext;
 
@@ -38,16 +42,29 @@ import java.util.Map;
  * @date 2021/3/18
  */
 @Slf4j
-public class KafkaMetricConsumer extends AbstractKafkaConsumer {
+public class KafkaMetricReceiver extends AbstractKafkaConsumer implements IMetricReceiver {
 
-    private final LocalMetricSink metricSink;
+    private IMetricProcessor processor;
     private final TypeReference<SchemaMetricMessage> typeReference;
+    private final Map<String, Object> props;
 
-    public KafkaMetricConsumer(LocalMetricSink metricSink, ApplicationContext applicationContext) {
+    @JsonCreator
+    public KafkaMetricReceiver(@JacksonInject(useInput = OptBoolean.FALSE) Map<String, Object> props,
+                               @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         super(applicationContext);
-        this.metricSink = metricSink;
         this.typeReference = new TypeReference<SchemaMetricMessage>() {
         };
+        this.props = props;
+    }
+
+    @Override
+    public void start() {
+        start(props);
+    }
+
+    @Override
+    public void registerProcessor(IMetricProcessor processor) {
+        this.processor = processor;
     }
 
     @Override
@@ -59,7 +76,7 @@ public class KafkaMetricConsumer extends AbstractKafkaConsumer {
         }
 
         try {
-            metricSink.close();
+            processor.close();
         } catch (Exception ignored) {
         }
     }
@@ -85,6 +102,6 @@ public class KafkaMetricConsumer extends AbstractKafkaConsumer {
             }
         }
 
-        messages.forEach(metricSink::process);
+        messages.forEach(processor::process);
     }
 }

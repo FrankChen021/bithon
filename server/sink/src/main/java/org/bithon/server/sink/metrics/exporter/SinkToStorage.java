@@ -14,33 +14,37 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.metrics;
+package org.bithon.server.sink.metrics.exporter;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.server.sink.metrics.MetricMessageHandler;
+import org.bithon.server.sink.metrics.MetricMessageHandlers;
+import org.bithon.server.sink.metrics.MetricSinkConfig;
+import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.springframework.context.ApplicationContext;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 3/10/21 14:11
+ * @author Frank Chen
+ * @date 23/1/24 2:52 pm
  */
 @Slf4j
-public class LocalMetricSink implements IMetricMessageSink {
+public class SinkToStorage implements IMetricExporter {
 
+    private final ApplicationContext applicationContext;
     final MetricMessageHandlers handlers;
-    final DataSourceSchemaManager schemaManager;
-    final ApplicationContext applicationContext;
+    private final DataSourceSchemaManager schemaManager;
 
     @JsonCreator
-    public LocalMetricSink(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        this.schemaManager = applicationContext.getBean(DataSourceSchemaManager.class);
-        this.handlers = MetricMessageHandlers.getInstance();
+    public SinkToStorage(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
+        this.handlers = MetricMessageHandlers.getInstance();
+        this.schemaManager = applicationContext.getBean(DataSourceSchemaManager.class);
     }
 
     @Override
@@ -66,7 +70,7 @@ public class LocalMetricSink implements IMetricMessageSink {
         }
 
         //
-        // create  a handler
+        // create a handler
         //
         synchronized (this) {
             handler = handlers.getHandler(messageType);

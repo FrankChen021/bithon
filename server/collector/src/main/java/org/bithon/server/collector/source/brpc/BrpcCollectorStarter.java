@@ -20,16 +20,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.event.IEventCollector;
-import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
-import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.server.collector.cmd.service.AgentServer;
 import org.bithon.server.collector.config.AgentConfigurationService;
 import org.bithon.server.collector.config.BrpcSettingFetcher;
 import org.bithon.server.sink.event.IEventMessageSink;
-import org.bithon.server.sink.metrics.IMetricMessageSink;
-import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -75,8 +71,6 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
             Object serviceImplementation = null;
             switch (type) {
                 case "metric":
-                    serviceDefinition = IMetricCollector.class;
-                    serviceImplementation = new BrpcMetricCollector(applicationContext.getBean(IMetricMessageSink.class));
                     break;
 
                 case "event":

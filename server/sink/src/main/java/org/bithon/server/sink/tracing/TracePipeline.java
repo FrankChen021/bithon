@@ -23,8 +23,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.sink.common.service.UriNormalizer;
-import org.bithon.server.sink.tracing.sink.ITraceMessageSink2;
-import org.bithon.server.sink.tracing.source.ITraceMessageSource;
+import org.bithon.server.sink.tracing.exporter.ITraceExporter;
+import org.bithon.server.sink.tracing.receiver.ITraceReceiver;
 import org.bithon.server.sink.tracing.transform.TraceSpanTransformer;
 import org.bithon.server.storage.datasource.input.transformer.ExceptionSafeTransformer;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
@@ -39,47 +39,28 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <pre>
- *     bithon:
- *       processor:
- *         tracing:
- *           source:
- *             type: brpc|kafka
- *             props:
- *           transforms:
- *             - type: filter
- *             - type: sanitize
- *           sinks:
- *             - type: store
- *             - type: metric-over-span
- * </pre>
- *
  * @author frank.chen021@outlook.com
  * @date 12/4/22 11:38 AM
  */
 @Slf4j
-public class TraceMessagePipeline implements SmartLifecycle, ITraceMessageSink {
+public class TracePipeline implements SmartLifecycle {
 
     @Getter
     private final boolean isEnabled;
 
-    private final ITraceMessageSource source;
+    private final ITraceReceiver source;
     private final List<ITransformer> transformers;
-    private final List<ITraceMessageSink2> sinks;
+    private final List<ITraceExporter> exporters;
     private boolean isRunning = false;
 
-    public TraceMessagePipeline(@JacksonInject(useInput = OptBoolean.FALSE) TraceSinkConfig traceSinkConfig,
-                                @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
-                                @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) throws IOException {
-        this.isEnabled = traceSinkConfig.isEnabled();
+    public TracePipeline(@JacksonInject(useInput = OptBoolean.FALSE) TracePipelineConfig tracePipelineConfig,
+                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
+                         @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) throws IOException {
+        this.isEnabled = tracePipelineConfig.isEnabled();
 
-        this.source = this.isEnabled ? createObject(ITraceMessageSource.class, objectMapper, traceSinkConfig.getSource()) : null;
-        this.transformers = isEnabled ? createTransformers(traceSinkConfig.getTransforms(), applicationContext, objectMapper) : null;
-        this.sinks = this.isEnabled ? createSinks(traceSinkConfig.getSinks(), objectMapper) : null;
-
-        if (this.source != null) {
-            this.source.registerProcessor(this);
-        }
+        this.source = this.isEnabled ? createObject(ITraceReceiver.class, objectMapper, tracePipelineConfig.getSource()) : null;
+        this.transformers = isEnabled ? createTransformers(tracePipelineConfig.getTransforms(), applicationContext, objectMapper) : null;
+        this.exporters = this.isEnabled ? createExporters(tracePipelineConfig.getExporters(), objectMapper) : null;
     }
 
     private <T> T createObject(Class<T> clazz, ObjectMapper objectMapper, Object configuration) throws IOException {
@@ -105,12 +86,12 @@ public class TraceMessagePipeline implements SmartLifecycle, ITraceMessageSink {
         return transformers;
     }
 
-    private List<ITraceMessageSink2> createSinks(List<Map<String, String>> sinks,
+    private List<ITraceExporter> createExporters(List<Map<String, String>> sinks,
                                                  ObjectMapper objectMapper) {
-        List<ITraceMessageSink2> sinkObjects = new ArrayList<>();
+        List<ITraceExporter> sinkObjects = new ArrayList<>();
         for (Map<String, String> sink : sinks) {
             try {
-                sinkObjects.add(createObject(ITraceMessageSink2.class, objectMapper, sink));
+                sinkObjects.add(createObject(ITraceExporter.class, objectMapper, sink));
             } catch (IOException e) {
                 log.error("Failed to create sink from configuration", e);
             }
@@ -118,51 +99,31 @@ public class TraceMessagePipeline implements SmartLifecycle, ITraceMessageSink {
         return sinkObjects;
     }
 
-    public <T extends ITraceMessageSink2> T link(T sink) {
-        synchronized (sinks) {
-            sinks.add(sink);
+    public <T extends ITraceExporter> T link(T sink) {
+        synchronized (exporters) {
+            exporters.add(sink);
         }
         return sink;
     }
 
-    public <T extends ITraceMessageSink2> T unlink(T sink) {
-        synchronized (sinks) {
-            sinks.remove(sink);
+    public <T extends ITraceExporter> T unlink(T sink) {
+        synchronized (exporters) {
+            exporters.remove(sink);
         }
         return sink;
     }
 
-    public void process(String messageType, List<TraceSpan> spans) {
-        if (CollectionUtils.isEmpty(spans)) {
-            return;
-        }
+    @Override
+    public void start() {
+        log.info("Starting the source of trace process pipeline...");
 
-        Iterator<TraceSpan> iterator = spans.iterator();
-        while (iterator.hasNext()) {
-            TraceSpan span = iterator.next();
-
-            for (ITransformer transformer : transformers) {
-                if (!transformer.transform(span)) {
-                    iterator.remove();
-                }
-            }
-        }
-
-        if (spans.isEmpty()) {
-            return;
-        }
-
-        ITraceMessageSink2[] sinks = this.sinks.toArray(new ITraceMessageSink2[0]);
-        for (ITraceMessageSink2 sink : sinks) {
-            try {
-                sink.process(messageType, spans);
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
-        }
+        this.source.registerProcessor(new PipelineProcessor());
+        this.source.start();
+        this.isRunning = true;
     }
 
-    public void close() throws Exception {
+    @Override
+    public void stop() {
         if (!this.isEnabled) {
             return;
         }
@@ -170,29 +131,53 @@ public class TraceMessagePipeline implements SmartLifecycle, ITraceMessageSink {
         // Stop the source first
         this.source.stop();
 
-        for (ITraceMessageSink2 sink : sinks) {
-            sink.close();
-        }
-    }
-
-    @Override
-    public void start() {
-        log.info("Starting the source of trace process pipeline...");
-        this.source.start();
-        this.isRunning = true;
-    }
-
-    @Override
-    public void stop() {
-        try {
-            this.close();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        for (ITraceExporter export : exporters) {
+            try {
+                export.close();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     @Override
     public boolean isRunning() {
         return isRunning;
+    }
+
+    class PipelineProcessor implements ITraceProcessor {
+        public void process(String messageType, List<TraceSpan> spans) {
+            if (CollectionUtils.isEmpty(spans)) {
+                return;
+            }
+
+            Iterator<TraceSpan> iterator = spans.iterator();
+            while (iterator.hasNext()) {
+                TraceSpan span = iterator.next();
+
+                for (ITransformer transformer : transformers) {
+                    if (!transformer.transform(span)) {
+                        iterator.remove();
+                    }
+                }
+            }
+
+            if (spans.isEmpty()) {
+                return;
+            }
+
+            ITraceExporter[] sinks = exporters.toArray(new ITraceExporter[0]);
+            for (ITraceExporter sink : sinks) {
+                try {
+                    sink.process(messageType, spans);
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+        }
+
+        @Override
+        public void close() throws Exception {
+        }
     }
 }

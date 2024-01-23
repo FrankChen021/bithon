@@ -21,8 +21,6 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.sink.event.EventMessageHandlers;
 import org.bithon.server.sink.event.EventSinkConfig;
 import org.bithon.server.sink.event.LocalEventSink;
-import org.bithon.server.sink.metrics.LocalMetricSink;
-import org.bithon.server.sink.metrics.MetricSinkConfig;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -49,13 +47,6 @@ public class KafkaConsumerManager implements SmartLifecycle, ApplicationContextA
     @Override
     public void start() {
         KafkaConsumerConfig config = this.context.getBean(KafkaConsumerConfig.class);
-
-        if (this.context.getBean(MetricSinkConfig.class).isEnabled()) {
-            Preconditions.checkNotNull(config.getMetrics(), "The metrics property of kafka collector is not configured while the metric sink is enabled.");
-
-            collectors.add(new KafkaMetricConsumer(new LocalMetricSink(this.context), this.context)
-                               .start(config.getMetrics()));
-        }
 
         if (this.context.getBean(EventSinkConfig.class).isEnabled()) {
             Preconditions.checkNotNull(config.getEvent(), "The event property of kafka collector is not configured while the event sink is enabled.");

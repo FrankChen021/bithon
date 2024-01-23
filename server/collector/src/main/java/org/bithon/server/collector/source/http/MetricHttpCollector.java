@@ -17,8 +17,9 @@
 package org.bithon.server.collector.source.http;
 
 import lombok.Data;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.sink.metrics.IMetricMessageSink;
+import org.bithon.server.sink.metrics.IMetricProcessor;
 import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -40,18 +41,15 @@ import java.util.stream.Collectors;
 @ConditionalOnProperty(value = "collector-http.enabled", havingValue = "true")
 public class MetricHttpCollector {
 
-    private final IMetricMessageSink sink;
-
-    public MetricHttpCollector(IMetricMessageSink sink) {
-        this.sink = sink;
-    }
+    @Setter
+    private IMetricProcessor processor;
 
     @PostMapping(path = "/api/collector/metrics")
     public void saveMetrics(@RequestBody MetricOverHttp metrics) {
         log.trace("receive metrics:{}", metrics);
 
-        sink.process(metrics.getSchema().getName(),
-                     SchemaMetricMessage.builder()
+        processor.process(metrics.getSchema().getName(),
+                          SchemaMetricMessage.builder()
                                         .schema(metrics.getSchema())
                                         .metrics(metrics.getMetrics().stream().map((m) -> {
                                             MetricMessage message = new MetricMessage();

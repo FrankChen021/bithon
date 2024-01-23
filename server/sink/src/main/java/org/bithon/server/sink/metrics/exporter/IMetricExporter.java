@@ -1,4 +1,4 @@
-package org.bithon.server.sink.tracing.source;/*
+/*
  *    Copyright 2020 bithon.org
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,21 +14,20 @@ package org.bithon.server.sink.tracing.source;/*
  *    limitations under the License.
  */
 
+package org.bithon.server.sink.metrics.exporter;
+
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.sink.tracing.ITraceMessageSink;
+import org.bithon.server.sink.metrics.IMetricProcessor;
 
 /**
- * The source of processing pipeline
+ * @author frank.chen021@outlook.com
+ * @date 9/12/21 2:17 PM
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "source", value = KafkaSource.class),
+    @JsonSubTypes.Type(name = "store", value = SinkToStorage.class),
+    @JsonSubTypes.Type(name = "kafka", value = KafkaMetricExporter.class)
 })
-public interface ITraceMessageSource {
-    void start();
-
-    void registerProcessor(ITraceMessageSink processor);
-
-    void stop();
+public interface IMetricExporter extends IMetricProcessor {
 }

@@ -1,4 +1,4 @@
-/*
+package org.bithon.server.sink.metrics;/*
  *    Copyright 2020 bithon.org
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,24 +14,6 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.tracing;
-
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.tracing.TraceSpan;
-
-import java.util.List;
-
-/**
- * @author frank.chen021@outlook.com
- * @date 9/12/21 2:22 PM
- */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface ITraceMessageSink extends AutoCloseable {
-    void start();
-
-    /**
-     * process messages.
-     * If it's closing, this process method won't be called again
-     */
-    void process(String messageType, List<TraceSpan> messages);
+public interface IMetricProcessor extends AutoCloseable {
+    void process(String messageType, SchemaMetricMessage message);
 }

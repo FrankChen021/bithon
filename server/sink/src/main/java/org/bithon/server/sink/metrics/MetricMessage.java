@@ -66,7 +66,7 @@ public class MetricMessage extends HashMap<String, Object> implements IInputRow 
 
     public <T> T getAs(String prop) {
         //noinspection unchecked
-        return (T) this.get(prop);
+        return (T) super.get(prop);
     }
 
     public void set(String prop, Object value) {
@@ -80,12 +80,12 @@ public class MetricMessage extends HashMap<String, Object> implements IInputRow 
     }
 
     public String getString(String prop) {
-        return (String) this.get(prop);
+        return (String) super.get(prop);
     }
 
     @Override
     public Object getCol(String columnName) {
-        return this.get(columnName);
+        return super.get(columnName);
     }
 
     @Override
