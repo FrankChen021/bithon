@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.metrics.transformer;
+package org.bithon.server.sink.metrics.transform;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;

@@ -19,7 +19,6 @@ package org.bithon.server.sink.metrics;
 import lombok.Data;
 import org.bithon.server.sink.SinkModuleEnabler;
 import org.bithon.server.sink.common.BatchConfig;
-import org.bithon.server.sink.tracing.DynamicConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -38,7 +37,7 @@ import java.util.Map;
 public class MetricPipelineConfig {
     private boolean enabled = true;
 
-    private DynamicConfig source;
+    private List<Map<String, String>> receivers;
     private List<Map<String, String>> transforms;
     private List<Map<String, String>> exporters;
 

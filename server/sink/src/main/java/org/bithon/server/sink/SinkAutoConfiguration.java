@@ -26,10 +26,10 @@ import org.bithon.server.sink.event.EventPipelineConfig;
 import org.bithon.server.sink.metrics.MetricInputSource;
 import org.bithon.server.sink.metrics.MetricMessagePipeline;
 import org.bithon.server.sink.metrics.MetricPipelineConfig;
-import org.bithon.server.sink.metrics.transformer.ConnectionStringTransformer;
-import org.bithon.server.sink.metrics.transformer.ExtractHost;
-import org.bithon.server.sink.metrics.transformer.ExtractPath;
-import org.bithon.server.sink.metrics.transformer.UriNormalizationTransformer;
+import org.bithon.server.sink.metrics.transform.ConnectionStringTransformer;
+import org.bithon.server.sink.metrics.transform.ExtractHost;
+import org.bithon.server.sink.metrics.transform.ExtractPath;
+import org.bithon.server.sink.metrics.transform.UriNormalizationTransformer;
 import org.bithon.server.sink.tracing.TracePipeline;
 import org.bithon.server.sink.tracing.TracePipelineConfig;
 import org.bithon.server.sink.tracing.metrics.MetricOverSpanInputSource;
@@ -93,6 +93,7 @@ public class SinkAutoConfiguration {
             }
         };
     }
+
 
     @Bean
     public MetricMessagePipeline metricMessagePipeline(MetricPipelineConfig traceConfig,

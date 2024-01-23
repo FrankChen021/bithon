@@ -23,14 +23,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.metrics.exporter.IMetricExporter;
 import org.bithon.server.sink.metrics.receiver.IMetricReceiver;
-import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -40,47 +39,64 @@ import java.util.Map;
 public class MetricMessagePipeline implements SmartLifecycle {
 
     final ApplicationContext applicationContext;
-    private final boolean isEnabled;
 
-    private final IMetricReceiver source;
-    private final List<ITransformer> transformers;
+    private final List<IMetricReceiver> receivers;
     private final List<IMetricExporter> exporters;
     private boolean isRunning = false;
 
     @JsonCreator
-    public MetricMessagePipeline(@JacksonInject(useInput = OptBoolean.FALSE) MetricPipelineConfig sinkConfig,
+    public MetricMessagePipeline(@JacksonInject(useInput = OptBoolean.FALSE) MetricPipelineConfig pipelineConfig,
                                  @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
-                                 @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) throws IOException {
+                                 @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
 
-        this.isEnabled = sinkConfig.isEnabled();
-        this.transformers = null;
-        this.source = this.isEnabled ? createObject(IMetricReceiver.class, objectMapper, sinkConfig.getSource()) : null;
-        this.exporters = this.isEnabled ? createExporters(sinkConfig.getExporters(), objectMapper) : null;
+        this.receivers = createReceivers(pipelineConfig, objectMapper);
+        this.exporters = createExporters(pipelineConfig, objectMapper);
     }
 
     private <T> T createObject(Class<T> clazz, ObjectMapper objectMapper, Object configuration) throws IOException {
         return objectMapper.readValue(objectMapper.writeValueAsBytes(configuration), clazz);
     }
 
-    private List<IMetricExporter> createExporters(List<Map<String, String>> sinks,
+    private List<IMetricReceiver> createReceivers(MetricPipelineConfig pipelineConfig,
                                                   ObjectMapper objectMapper) {
-        List<IMetricExporter> sinkObjects = new ArrayList<>();
-        for (Map<String, String> sink : sinks) {
-            try {
-                sinkObjects.add(createObject(IMetricExporter.class, objectMapper, sink));
-            } catch (IOException e) {
-                log.error("Failed to create sink from configuration", e);
-            }
+        if (!pipelineConfig.isEnabled()) {
+            return Collections.emptyList();
         }
-        return sinkObjects;
+
+        return pipelineConfig.getReceivers()
+                             .stream()
+                             .map((receiverConfig) -> {
+                                 try {
+                                     return createObject(IMetricReceiver.class, objectMapper, receiverConfig);
+                                 } catch (IOException e) {
+                                     throw new RuntimeException(e);
+                                 }
+                             }).collect(Collectors.toList());
+
+    }
+
+    private List<IMetricExporter> createExporters(MetricPipelineConfig pipelineConfig,
+                                                  ObjectMapper objectMapper) {
+        if (!pipelineConfig.isEnabled()) {
+            return Collections.emptyList();
+        }
+
+        return exporters.stream()
+                        .map((exporterConfig) -> {
+                            try {
+                                return createObject(IMetricExporter.class, objectMapper, exporterConfig);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }).collect(Collectors.toList());
     }
 
     @Override
     public void start() {
         log.info("Starting the source of metrics process pipeline...");
 
-        this.source.registerProcessor(new IMetricProcessor() {
+        IMetricProcessor processor = new IMetricProcessor() {
             @Override
             public void close() {
             }
@@ -96,19 +112,22 @@ public class MetricMessagePipeline implements SmartLifecycle {
                     }
                 }
             }
-        });
-        this.source.start();
+        };
+
+        for (IMetricReceiver receiver : this.receivers) {
+            receiver.registerProcessor(processor);
+            receiver.start();
+        }
+
         this.isRunning = true;
     }
 
     @Override
     public void stop() {
-        if (!this.isEnabled) {
-            return;
-        }
-
         // Stop the source first
-        this.source.stop();
+        for (IMetricReceiver receiver : this.receivers) {
+            receiver.stop();
+        }
 
         for (IMetricExporter exporter : exporters) {
             try {
