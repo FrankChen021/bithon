@@ -26,16 +26,22 @@ collector-controller:
 
 bithon:
   pipeline:
+    event:
+      enabled: true
+      receivers:
+        - type: brpc
+      exporters:
+        - type: store
     metrics:
       enabled: true
-      source:
-        type: brpc
+      receivers:
+        - type: brpc
       exporters:
         - type: store
     tracing:
       enabled: true
-      source:
-        type: brpc
+      receivers:
+        - type: brpc
       transforms:
       exporters:
         - type: store

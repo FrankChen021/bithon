@@ -32,14 +32,14 @@ import org.springframework.context.ApplicationContext;
  * @date 23/1/24 2:52 pm
  */
 @Slf4j
-public class SinkToStorage implements IMetricExporter {
+public class ToStorageExporter implements IMetricExporter {
 
     private final ApplicationContext applicationContext;
     final MetricMessageHandlers handlers;
     private final DataSourceSchemaManager schemaManager;
 
     @JsonCreator
-    public SinkToStorage(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+    public ToStorageExporter(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
         this.handlers = MetricMessageHandlers.getInstance();
         this.schemaManager = applicationContext.getBean(DataSourceSchemaManager.class);

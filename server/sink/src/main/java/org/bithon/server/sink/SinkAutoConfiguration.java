@@ -20,9 +20,9 @@ import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.sink.common.input.InputSourceManager;
-import org.bithon.server.sink.event.EventInputSource;
-import org.bithon.server.sink.event.EventMessageHandlers;
+import org.bithon.server.sink.event.EventPipeline;
 import org.bithon.server.sink.event.EventPipelineConfig;
+import org.bithon.server.sink.event.metrics.EventInputSource;
 import org.bithon.server.sink.metrics.MetricInputSource;
 import org.bithon.server.sink.metrics.MetricMessagePipeline;
 import org.bithon.server.sink.metrics.MetricPipelineConfig;
@@ -37,14 +37,10 @@ import org.bithon.server.sink.tracing.transform.TraceSpanTransformer;
 import org.bithon.server.sink.tracing.transform.sanitization.UrlSanitizer;
 import org.bithon.server.storage.StorageModuleAutoConfiguration;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.event.IEventStorage;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-
-import java.io.IOException;
 
 /**
  * @author frank.chen021@outlook.com
@@ -52,13 +48,7 @@ import java.io.IOException;
  */
 @Configuration(proxyBeanMethods = false)
 @AutoConfigureAfter(StorageModuleAutoConfiguration.class)
-@Conditional(SinkModuleEnabler.class)
 public class SinkAutoConfiguration {
-
-    @Bean
-    EventMessageHandlers eventMessageHandlers(IEventStorage eventStorage, EventPipelineConfig eventPipelineConfig) {
-        return new EventMessageHandlers(eventStorage, eventPipelineConfig);
-    }
 
     @Bean
     public Module sinkModule() {
@@ -94,22 +84,27 @@ public class SinkAutoConfiguration {
         };
     }
 
+    @Bean
+    public EventPipeline eventPipeline(EventPipelineConfig pipelineConfig,
+                                       ObjectMapper om) {
+        return new EventPipeline(pipelineConfig, om);
+    }
 
     @Bean
-    public MetricMessagePipeline metricMessagePipeline(MetricPipelineConfig traceConfig,
-                                                       ObjectMapper om,
-                                                       ApplicationContext applicationContext) throws IOException {
-        return new MetricMessagePipeline(traceConfig, om, applicationContext);
+    public MetricMessagePipeline metricPipeline(MetricPipelineConfig pipelineConfig,
+                                                ObjectMapper om,
+                                                ApplicationContext applicationContext) {
+        return new MetricMessagePipeline(pipelineConfig, om, applicationContext);
     }
 
     /**
      * Always create the bean because it might be used in other modules
      */
     @Bean
-    public TracePipeline traceMessagePipeline(TracePipelineConfig traceConfig,
-                                              ObjectMapper om,
-                                              ApplicationContext applicationContext) throws IOException {
-        return new TracePipeline(traceConfig, om, applicationContext);
+    public TracePipeline tracePipeline(TracePipelineConfig pipelineConfig,
+                                       ObjectMapper om,
+                                       ApplicationContext applicationContext) {
+        return new TracePipeline(pipelineConfig, om, applicationContext);
     }
 
     /**

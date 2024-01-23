@@ -18,12 +18,12 @@ package org.bithon.server.collector.source.brpc;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import org.bithon.agent.rpc.brpc.event.IEventCollector;
-import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.sink.event.IEventProcessor;
 import org.bithon.server.sink.event.receiver.IEventReceiver;
@@ -31,14 +31,15 @@ import org.bithon.server.storage.event.EventMessage;
 import org.springframework.context.ApplicationContext;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 3:59 下午
  */
 @Slf4j
+@JsonTypeName("brpc")
 public class BrpcEventCollector implements IEventCollector, IEventReceiver {
 
     private final ApplicationContext applicationContext;
@@ -60,8 +61,7 @@ public class BrpcEventCollector implements IEventCollector, IEventReceiver {
                                                 .type(message.getEventType())
                                                 .jsonArgs(message.getJsonArguments())
                                                 .build();
-        Iterator<EventMessage> delegate = Collections.singletonList(eventMessage).iterator();
-        processor.process("event", IteratorableCollection.of(delegate));
+        processor.process("event", Collections.singletonList(eventMessage));
     }
 
     @Override
@@ -69,27 +69,16 @@ public class BrpcEventCollector implements IEventCollector, IEventReceiver {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
-        Iterator<EventMessage> iterator = new Iterator<EventMessage>() {
-            private final Iterator<BrpcEventMessage> delegation = messages.iterator();
 
-            @Override
-            public boolean hasNext() {
-                return delegation.hasNext();
-            }
-
-            @Override
-            public EventMessage next() {
-                BrpcEventMessage message = delegation.next();
-                return EventMessage.builder()
-                                   .appName(header.getAppName())
-                                   .instanceName(header.getInstanceName())
-                                   .timestamp(message.getTimestamp())
-                                   .type(message.getEventType())
-                                   .jsonArgs(message.getJsonArguments())
-                                   .build();
-            }
-        };
-        processor.process("event", IteratorableCollection.of(iterator));
+        processor.process("event",
+                          messages.stream()
+                                  .map((message) -> EventMessage.builder()
+                                                                .appName(header.getAppName())
+                                                                .instanceName(header.getInstanceName())
+                                                                .timestamp(message.getTimestamp())
+                                                                .type(message.getEventType())
+                                                                .jsonArgs(message.getJsonArguments())
+                                                                .build()).collect(Collectors.toList()));
     }
 
     @Override

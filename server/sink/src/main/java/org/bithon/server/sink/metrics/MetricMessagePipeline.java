@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.sink.metrics.exporter.IMetricExporter;
 import org.bithon.server.sink.metrics.receiver.IMetricReceiver;
 import org.springframework.context.ApplicationContext;
@@ -64,6 +66,8 @@ public class MetricMessagePipeline implements SmartLifecycle {
             return Collections.emptyList();
         }
 
+        Preconditions.checkIfTrue(!CollectionUtils.isEmpty(pipelineConfig.getReceivers()), "The metric pipeline processing is enabled, but no receivers defined.");
+
         return pipelineConfig.getReceivers()
                              .stream()
                              .map((receiverConfig) -> {
@@ -82,14 +86,17 @@ public class MetricMessagePipeline implements SmartLifecycle {
             return Collections.emptyList();
         }
 
-        return exporters.stream()
-                        .map((exporterConfig) -> {
-                            try {
-                                return createObject(IMetricExporter.class, objectMapper, exporterConfig);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }).collect(Collectors.toList());
+        Preconditions.checkIfTrue(!CollectionUtils.isEmpty(pipelineConfig.getExporters()), "The metric pipeline processing is enabled, but no exporter defined.");
+
+        return pipelineConfig.getExporters()
+                             .stream()
+                             .map((exporterConfig) -> {
+                                 try {
+                                     return createObject(IMetricExporter.class, objectMapper, exporterConfig);
+                                 } catch (IOException e) {
+                                     throw new RuntimeException(e);
+                                 }
+                             }).collect(Collectors.toList());
     }
 
     @Override

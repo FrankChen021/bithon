@@ -26,8 +26,8 @@ import org.bithon.server.sink.metrics.IMetricProcessor;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "store", value = SinkToStorage.class),
-    @JsonSubTypes.Type(name = "kafka", value = KafkaMetricExporter.class)
+    @JsonSubTypes.Type(name = "store", value = ToStorageExporter.class),
+    @JsonSubTypes.Type(name = "kafka", value = ToKafkaExporter.class)
 })
 public interface IMetricExporter extends IMetricProcessor {
 }

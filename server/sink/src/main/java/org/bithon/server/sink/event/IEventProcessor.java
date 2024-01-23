@@ -16,21 +16,18 @@
 
 package org.bithon.server.sink.event;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.storage.event.EventMessage;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 9/12/21 2:23 PM
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "local", value = LocalEventSink.class),
-})
 public interface IEventProcessor extends AutoCloseable {
 
-    void process(String messageType, IteratorableCollection<EventMessage> messages);
+    void process(String messageType, List<EventMessage> messages);
 
 }

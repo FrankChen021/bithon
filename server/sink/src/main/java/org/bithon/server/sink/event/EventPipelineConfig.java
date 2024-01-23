@@ -17,11 +17,8 @@
 package org.bithon.server.sink.event;
 
 import lombok.Data;
-import org.bithon.server.sink.SinkModuleEnabler;
 import org.bithon.server.sink.common.BatchConfig;
-import org.bithon.server.sink.tracing.DynamicConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
@@ -33,12 +30,11 @@ import java.util.Map;
  */
 @Data
 @Configuration
-@Conditional(SinkModuleEnabler.class)
 @ConfigurationProperties(prefix = "bithon.pipeline.event")
 public class EventPipelineConfig {
     private boolean enabled = true;
 
-    private DynamicConfig source;
+    private List<Map<String, String>> receivers;
     private List<Map<String, String>> transforms;
     private List<Map<String, String>> exporters;
 

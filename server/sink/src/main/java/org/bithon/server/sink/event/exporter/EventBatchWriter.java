@@ -62,7 +62,7 @@ public class EventBatchWriter implements IEventWriter {
     public void close() throws Exception {
         log.info("Shutting down event batch writer...");
 
-        // shutdown and wait for current scheduler to close
+        // shutdown and wait for the current scheduler to close
         try {
             this.executor.shutdown(Duration.ofSeconds(20));
         } catch (InterruptedException ignored) {
@@ -76,7 +76,7 @@ public class EventBatchWriter implements IEventWriter {
     }
 
     /**
-     * Get the size from config so that the 'size' can be dynamically in effect if it's changed in configuration center such as nacos/apollo
+     * Get the size from config so that the 'size' can be dynamically in effect if it's changed in a configuration center such as nacos/apollo
      */
     private int getBatchSize() {
         return sinkConfig.getBatch() == null ? 2000 : sinkConfig.getBatch().getSize();

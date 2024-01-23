@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.sink.common.service.UriNormalizer;
 import org.bithon.server.sink.tracing.exporter.ITraceExporter;
 import org.bithon.server.sink.tracing.receiver.ITraceReceiver;
@@ -75,22 +76,17 @@ public class TracePipeline implements SmartLifecycle {
             return Collections.emptyList();
         }
 
-        List<ITraceReceiver> receivers = new ArrayList<>();
-
-        if (CollectionUtils.isEmpty(receivers)) {
-            log.warn("No receivers defined in the trace pipeline processing.");
-            return receivers;
-        }
+        Preconditions.checkIfTrue(!CollectionUtils.isEmpty(pipelineConfig.getReceivers()), "The trace pipeline processing is enabled, but no receivers defined.");
 
         return pipelineConfig.getReceivers()
                              .stream()
                              .map((receiverConfig) -> {
-                                      try {
-                                          return createObject(ITraceReceiver.class, objectMapper, receiverConfig);
-                                      } catch (IOException e) {
-                                          throw new RuntimeException(e);
-                                      }
-                                  }).collect(Collectors.toList());
+                                 try {
+                                     return createObject(ITraceReceiver.class, objectMapper, receiverConfig);
+                                 } catch (IOException e) {
+                                     throw new RuntimeException(e);
+                                 }
+                             }).collect(Collectors.toList());
 
     }
 
@@ -123,21 +119,18 @@ public class TracePipeline implements SmartLifecycle {
             return Collections.emptyList();
         }
 
-        if (CollectionUtils.isEmpty(pipelineConfig.getExporters())) {
-            log.warn("No exporters defined in the trace pipeline processing.");
-            return Collections.emptyList();
-        }
+        Preconditions.checkIfTrue(!CollectionUtils.isEmpty(pipelineConfig.getExporters()), "The trace pipeline processing is enabled, but no exporter defined.");
 
-        return pipelineConfig.getExporters()
-                             .stream()
-                             .map((exporterConfig) -> {
-                                 try {
-                                     return createObject(ITraceExporter.class, objectMapper, exporterConfig);
-                                 } catch (IOException e) {
-                                     throw new RuntimeException(e);
-                                 }
-                             })
-                             .collect(Collectors.toList());
+        // No use of stream API because we need to return a modifiable list
+        List<ITraceExporter> exporters = new ArrayList<>();
+        for (Object exporterConfig : pipelineConfig.getExporters()) {
+            try {
+                exporters.add(createObject(ITraceExporter.class, objectMapper, exporterConfig));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return exporters;
     }
 
     public <T extends ITraceExporter> T link(T sink) {

@@ -18,10 +18,11 @@ package org.bithon.server.collector;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
+import org.bithon.server.collector.source.brpc.BrpcEventCollector;
 import org.bithon.server.collector.source.brpc.BrpcMetricCollector;
 import org.bithon.server.collector.source.brpc.BrpcTraceCollector;
 import org.bithon.server.sink.event.exporter.KafkaEventExporter;
-import org.bithon.server.sink.metrics.exporter.KafkaMetricExporter;
+import org.bithon.server.sink.metrics.exporter.ToKafkaExporter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -49,9 +50,7 @@ public class CollectorAutoConfiguration {
             public void setupModule(SetupContext context) {
                 context.registerSubtypes(BrpcTraceCollector.class,
                                          BrpcMetricCollector.class,
-
-                                         KafkaEventExporter.class,
-                                         KafkaMetricExporter.class);
+                                         BrpcEventCollector.class);
             }
         };
     }

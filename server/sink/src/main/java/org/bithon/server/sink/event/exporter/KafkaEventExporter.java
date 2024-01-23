@@ -27,12 +27,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.event.EventMessage;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -60,13 +60,12 @@ public class KafkaEventExporter implements IEventExporter {
     }
 
     @Override
-    public void process(String messageType, IteratorableCollection<EventMessage> messages) {
+    public void process(String messageType, List<EventMessage> messages) {
         String key = null;
 
         StringBuilder messageText = new StringBuilder(512);
         messageText.append('[');
-        while (messages.hasNext()) {
-            EventMessage eventMessage = messages.next();
+        for (EventMessage eventMessage : messages) {
 
             // Sink receives messages from an agent, it's safe to use instance name of first item
             if (key == null) {

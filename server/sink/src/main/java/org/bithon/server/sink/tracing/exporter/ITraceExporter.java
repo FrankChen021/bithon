@@ -26,8 +26,8 @@ import org.bithon.server.sink.tracing.ITraceProcessor;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "store", value = TraceSinkHandler.class),
-    @JsonSubTypes.Type(name = "kafka", value = KafkaTraceExporter.class),
+    @JsonSubTypes.Type(name = "store", value = ToStorageExporter.class),
+    @JsonSubTypes.Type(name = "kafka", value = ToKafkaExporter.class),
 })
 public interface ITraceExporter extends ITraceProcessor {
 

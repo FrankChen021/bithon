@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.kafka.AbstractKafkaConsumer;
 import org.bithon.server.sink.event.IEventProcessor;
 import org.bithon.server.storage.event.EventMessage;
@@ -90,6 +89,6 @@ public class KafkaEventReceiver extends AbstractKafkaConsumer implements IEventR
             }
         }
 
-        processor.process(getTopic(), IteratorableCollection.of(events.iterator()));
+        processor.process(getTopic(), events);
     }
 }

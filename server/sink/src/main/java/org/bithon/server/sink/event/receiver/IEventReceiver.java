@@ -30,5 +30,5 @@ public interface IEventReceiver {
 
     void registerProcessor(IEventProcessor processor);
 
-    void stop() throws Exception;
+    void stop();
 }

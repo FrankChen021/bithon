@@ -17,10 +17,8 @@
 package org.bithon.server.sink.metrics;
 
 import lombok.Data;
-import org.bithon.server.sink.SinkModuleEnabler;
 import org.bithon.server.sink.common.BatchConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
@@ -32,7 +30,6 @@ import java.util.Map;
  */
 @Data
 @Configuration
-@Conditional(SinkModuleEnabler.class)
 @ConfigurationProperties(prefix = "bithon.pipeline.metrics")
 public class MetricPipelineConfig {
     private boolean enabled = true;

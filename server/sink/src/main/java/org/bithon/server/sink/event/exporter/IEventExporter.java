@@ -19,11 +19,10 @@ package org.bithon.server.sink.event.exporter;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.sink.event.IEventProcessor;
-import org.bithon.server.sink.metrics.exporter.SinkToStorage;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "store", value = SinkToStorage.class),
+    @JsonSubTypes.Type(name = "store", value = SinkToStorageExporter.class),
     @JsonSubTypes.Type(name = "kafka", value = KafkaEventExporter.class)
 })
 public interface IEventExporter extends IEventProcessor {

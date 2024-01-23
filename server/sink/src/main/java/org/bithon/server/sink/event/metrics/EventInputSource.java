@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.event;
+package org.bithon.server.sink.event.metrics;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -24,6 +24,9 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.common.input.IInputSource;
+import org.bithon.server.sink.event.EventPipeline;
+import org.bithon.server.sink.event.exporter.IEventExporter;
+import org.bithon.server.sink.event.metrics.MetricOverEventHandler;
 import org.bithon.server.sink.metrics.MetricPipelineConfig;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
@@ -45,16 +48,18 @@ public class EventInputSource implements IInputSource {
 
     private final TransformSpec transformSpec;
     private final ApplicationContext applicationContext;
-    private final EventMessageHandlers handlers;
+    private final EventPipeline pipeline;
     private final String eventType;
+
+    private IEventExporter exporter;
 
     @JsonCreator
     public EventInputSource(@JsonProperty("eventType") String eventType,
                             @JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
-                            @JacksonInject(useInput = OptBoolean.FALSE) EventMessageHandlers handlers,
+                            @JacksonInject(useInput = OptBoolean.FALSE) EventPipeline pipeline,
                             @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.transformSpec = transformSpec;
-        this.handlers = handlers;
+        this.pipeline = pipeline;
         this.applicationContext = applicationContext;
         this.eventType = eventType;
     }
@@ -67,14 +72,17 @@ public class EventInputSource implements IInputSource {
     @Override
     public void start(DataSourceSchema schema) {
         final String schemaName = schema.getName();
+
         try {
-            handlers.add(new MetricOverEventHandler(eventType,
-                                                    schemaName,
-                                                    applicationContext.getBean(ObjectMapper.class),
-                                                    applicationContext.getBean(IMetaStorage.class),
-                                                    applicationContext.getBean(IMetricStorage.class),
-                                                    applicationContext.getBean(DataSourceSchemaManager.class),
-                                                    applicationContext.getBean(MetricPipelineConfig.class)));
+            this.exporter = new MetricOverEventHandler(eventType,
+                                                       schemaName,
+                                                       applicationContext.getBean(ObjectMapper.class),
+                                                       applicationContext.getBean(IMetaStorage.class),
+                                                       applicationContext.getBean(IMetricStorage.class),
+                                                       applicationContext.getBean(DataSourceSchemaManager.class),
+                                                       applicationContext.getBean(MetricPipelineConfig.class));
+
+            pipeline.link(this.exporter);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -82,7 +90,9 @@ public class EventInputSource implements IInputSource {
 
     @Override
     public void stop() {
-        handlers.remove(eventType);
+        if (this.exporter != null) {
+            pipeline.unlink(this.exporter);
+        }
     }
 
     /**
