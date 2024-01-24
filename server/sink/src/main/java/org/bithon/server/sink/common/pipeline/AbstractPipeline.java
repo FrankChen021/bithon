@@ -124,6 +124,8 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
     }
 
     public EXPORTER link(EXPORTER exporter) {
+        getLogger().info("Add exporter [{}] to pipeline", exporter);
+
         synchronized (exporters) {
             exporters.add(exporter);
         }
@@ -131,6 +133,7 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
     }
 
     public EXPORTER unlink(EXPORTER exporter) {
+        getLogger().info("Remove exporter [{}] from pipeline", exporter);
         synchronized (exporters) {
             exporters.remove(exporter);
         }

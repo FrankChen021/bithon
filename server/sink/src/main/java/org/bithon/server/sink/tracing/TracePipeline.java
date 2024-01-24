@@ -20,14 +20,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.sink.common.pipeline.AbstractPipeline;
-import org.bithon.server.sink.common.service.UriNormalizer;
 import org.bithon.server.sink.tracing.exporter.ITraceExporter;
 import org.bithon.server.sink.tracing.receiver.ITraceReceiver;
-import org.bithon.server.sink.tracing.transform.TraceSpanTransformer;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.slf4j.Logger;
-import org.springframework.context.ApplicationContext;
 
 import java.util.Iterator;
 import java.util.List;
@@ -39,13 +36,11 @@ import java.util.List;
 @Slf4j
 public class TracePipeline extends AbstractPipeline<ITraceReceiver, ITraceExporter> {
 
-    public TracePipeline(TracePipelineConfig pipelineConfig, ObjectMapper objectMapper, ApplicationContext applicationContext) {
+    public TracePipeline(TracePipelineConfig pipelineConfig, ObjectMapper objectMapper) {
         super(ITraceReceiver.class,
               ITraceExporter.class,
               pipelineConfig,
               objectMapper);
-
-        this.transforms.add(0, new TraceSpanTransformer(applicationContext.getBean(UriNormalizer.class)));
     }
 
     @Override

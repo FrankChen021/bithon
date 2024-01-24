@@ -18,6 +18,7 @@ package org.bithon.server.sink.tracing.transform;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
@@ -37,6 +38,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 30/3/22 10:50 PM
  */
+@JsonTypeName("builtin-span-transform")
 public class TraceSpanTransformer implements ITransformer {
 
     private final UriNormalizer normalizer;

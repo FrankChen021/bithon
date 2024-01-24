@@ -18,6 +18,7 @@ package org.bithon.server.sink.event.receiver;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +44,7 @@ public class KafkaEventReceiver extends AbstractKafkaConsumer implements IEventR
     private final Map<String, Object> props;
 
     @JsonCreator
-    public KafkaEventReceiver(@JacksonInject(useInput = OptBoolean.FALSE) Map<String, Object> props,
+    public KafkaEventReceiver(@JsonProperty("props") Map<String, Object> props,
                               @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         super(applicationContext);
 

@@ -34,11 +34,10 @@ import org.bithon.server.sink.tracing.TracePipeline;
 import org.bithon.server.sink.tracing.TracePipelineConfig;
 import org.bithon.server.sink.tracing.metrics.MetricOverSpanInputSource;
 import org.bithon.server.sink.tracing.transform.TraceSpanTransformer;
-import org.bithon.server.sink.tracing.transform.sanitization.UrlSanitizer;
+import org.bithon.server.sink.tracing.transform.sanitization.UrlSanitizeTransformer;
 import org.bithon.server.storage.StorageModuleAutoConfiguration;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -65,7 +64,8 @@ public class SinkAutoConfiguration {
 
             @Override
             public void setupModule(SetupContext context) {
-                context.registerSubtypes(UrlSanitizer.class,
+                context.registerSubtypes(UrlSanitizeTransformer.class,
+                                         TraceSpanTransformer.class,
 
                                          MetricOverSpanInputSource.class,
                                          MetricInputSource.class,
@@ -101,9 +101,8 @@ public class SinkAutoConfiguration {
      */
     @Bean
     public TracePipeline tracePipeline(TracePipelineConfig pipelineConfig,
-                                       ObjectMapper om,
-                                       ApplicationContext applicationContext) {
-        return new TracePipeline(pipelineConfig, om, applicationContext);
+                                       ObjectMapper om) {
+        return new TracePipeline(pipelineConfig, om);
     }
 
     /**

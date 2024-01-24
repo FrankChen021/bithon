@@ -17,7 +17,7 @@
 package org.bithon.server.sink.tracing.receiver;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
-import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
@@ -37,13 +37,12 @@ import java.util.Map;
  * @date 2021/3/18
  */
 @Slf4j
-@JsonTypeName("kafka")
 public class KafkaTraceReceiver extends AbstractKafkaConsumer implements ITraceReceiver {
     private final Map<String, Object> props;
     private ITraceProcessor processor;
     private final TypeReference<List<TraceSpan>> typeReference;
 
-    public KafkaTraceReceiver(@JacksonInject(useInput = OptBoolean.FALSE) Map<String, Object> props,
+    public KafkaTraceReceiver(@JsonProperty("props") Map<String, Object> props,
                               @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         super(applicationContext);
 

@@ -41,8 +41,8 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 10/1/22 1:38 PM
  */
-@JsonTypeName("url-sanitizer")
-public class UrlSanitizer extends AbstractSanitizer {
+@JsonTypeName("url-sanitize-transform")
+public class UrlSanitizeTransformer extends AbstractSanitizer {
     private final Collection<String> sensitiveParameters;
 
     /**
@@ -50,8 +50,8 @@ public class UrlSanitizer extends AbstractSanitizer {
      * The default deserialization treats the list as a LinkedHashMap, so we have to define the ctor as the map
      */
     @JsonCreator
-    public UrlSanitizer(@JsonProperty("where") String where,
-                        @JsonProperty("sensitiveParameters") Map<String, String> sensitiveParameters) {
+    public UrlSanitizeTransformer(@JsonProperty("where") String where,
+                                  @JsonProperty("sensitiveParameters") Map<String, String> sensitiveParameters) {
         super(where);
         this.sensitiveParameters = new ArrayList<>(sensitiveParameters.values());
     }
@@ -65,7 +65,7 @@ public class UrlSanitizer extends AbstractSanitizer {
         Map<String, String> parameters = span.getUriParameters();
         for (String sensitiveParameter : sensitiveParameters) {
             if (parameters.containsKey(sensitiveParameter)) {
-                parameters.put(sensitiveParameter, "***MASKED***");
+                parameters.put(sensitiveParameter, "***HIDDEN***");
                 sanitized = true;
             }
         }

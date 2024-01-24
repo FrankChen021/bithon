@@ -91,4 +91,9 @@ public class MetricOverEventHandler implements IEventExporter {
     public void close() throws Exception {
         metricHandler.close();
     }
+
+    @Override
+    public String toString() {
+        return "MetricOverEventHandler[eventType=" + this.eventType + "]";
+    }
 }

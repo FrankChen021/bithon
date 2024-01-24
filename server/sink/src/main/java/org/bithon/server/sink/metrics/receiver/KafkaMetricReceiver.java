@@ -18,6 +18,7 @@ package org.bithon.server.sink.metrics.receiver;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +50,7 @@ public class KafkaMetricReceiver extends AbstractKafkaConsumer implements IMetri
     private final Map<String, Object> props;
 
     @JsonCreator
-    public KafkaMetricReceiver(@JacksonInject(useInput = OptBoolean.FALSE) Map<String, Object> props,
+    public KafkaMetricReceiver(@JsonProperty("props") Map<String, Object> props,
                                @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         super(applicationContext);
         this.typeReference = new TypeReference<SchemaMetricMessage>() {
