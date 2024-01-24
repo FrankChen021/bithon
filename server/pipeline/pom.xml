@@ -10,8 +10,8 @@
 
   <modelVersion>4.0.0</modelVersion>
   <artifactId>server-pipeline</artifactId>
-  <name>server-sink</name>
-  <description>Bithon Server Sink</description>
+  <name>server-pipeline</name>
+  <description>Bithon Data Processing Pipeline</description>
 
   <properties>
     <java.version>1.8</java.version>
