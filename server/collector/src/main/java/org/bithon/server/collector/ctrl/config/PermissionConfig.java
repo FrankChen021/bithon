@@ -14,16 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.source.brpc;
+package org.bithon.server.collector.ctrl.config;
 
 import lombok.Data;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
+ * A simple permission control on SET/WRITE commands to agent to ensure safety.
+ *
  * @author frank.chen021@outlook.com
- * @date 2021/1/23 11:45 下午
+ * @date 2023/4/8 15:08
  */
 @Data
-public class BrpcCollectorConfig {
-    private boolean enabled;
-    private int port;
+public class PermissionConfig {
+
+    private List<PermissionRule> rules = Collections.emptyList();
 }

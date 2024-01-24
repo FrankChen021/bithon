@@ -66,13 +66,15 @@ public class TracePipeline extends AbstractPipeline<ITraceReceiver, ITraceExport
                 return;
             }
 
-            Iterator<TraceSpan> iterator = spans.iterator();
-            while (iterator.hasNext()) {
-                TraceSpan span = iterator.next();
+            if (!processors.isEmpty()) {
+                Iterator<TraceSpan> iterator = spans.iterator();
+                while (iterator.hasNext()) {
+                    TraceSpan span = iterator.next();
 
-                for (ITransformer transformer : processors) {
-                    if (!transformer.transform(span)) {
-                        iterator.remove();
+                    for (ITransformer transformer : processors) {
+                        if (!transformer.transform(span)) {
+                            iterator.remove();
+                        }
                     }
                 }
             }

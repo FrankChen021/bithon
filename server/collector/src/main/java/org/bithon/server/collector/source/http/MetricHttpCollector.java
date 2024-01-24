@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RestController
-@ConditionalOnProperty(value = "collector-http.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "bithon.receivers.metrics.http.enabled", havingValue = "true")
 public class MetricHttpCollector {
 
     @Setter
@@ -70,7 +70,7 @@ public class MetricHttpCollector {
     }
 
     @Data
-    static class MetricOverHttp {
+    public static class MetricOverHttp {
         private DataSourceSchema schema;
         private List<Measurement> metrics;
     }

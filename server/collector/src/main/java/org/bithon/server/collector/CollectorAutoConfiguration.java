@@ -36,7 +36,7 @@ public class CollectorAutoConfiguration {
         return new Module() {
             @Override
             public String getModuleName() {
-                return "sink-kafka";
+                return "bithon-collector";
             }
 
             @Override

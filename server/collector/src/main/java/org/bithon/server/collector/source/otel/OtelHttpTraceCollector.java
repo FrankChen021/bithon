@@ -38,7 +38,7 @@ import java.util.zip.InflaterInputStream;
  */
 @Slf4j
 @RestController
-@ConditionalOnProperty(value = "collector-otel.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "bithon.receivers.traces.otel-http.enabled", havingValue = "true")
 public class OtelHttpTraceCollector {
 
     @Setter

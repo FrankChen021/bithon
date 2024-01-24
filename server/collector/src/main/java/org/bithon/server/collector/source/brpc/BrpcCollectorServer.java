@@ -19,10 +19,6 @@ package org.bithon.server.collector.source.brpc;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.channel.BrpcServer;
-import org.bithon.server.collector.config.AgentConfigurationService;
-import org.bithon.server.collector.config.BrpcSettingFetcher;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -35,7 +31,6 @@ import java.util.Optional;
  */
 @Slf4j
 @Component
-@ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true", matchIfMissing = false)
 public class BrpcCollectorServer {
 
     /**
@@ -49,16 +44,6 @@ public class BrpcCollectorServer {
         System.setProperty("org.bithon.shaded.io.netty.maxDirectMemory", "0");
     }
 
-    public BrpcCollectorServer(BrpcCollectorConfig config,
-                               ApplicationContext applicationContext) {
-
-        Integer port = config.getPort().get("ctrl");
-        if (port != null) {
-            addService("ctrl",
-                       new BrpcSettingFetcher(applicationContext.getBean(AgentConfigurationService.class)),
-                       port);
-        }
-    }
 
     public synchronized ServiceGroup addService(String name, Object implementation, int port) {
         ServiceGroup serviceGroup = serviceGroups.computeIfAbsent(port, k -> new ServiceGroup());

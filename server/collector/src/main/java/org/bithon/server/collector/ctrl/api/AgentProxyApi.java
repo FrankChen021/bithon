@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.cmd.api;
+package org.bithon.server.collector.ctrl.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.brpc.channel.BrpcServer;
@@ -25,9 +25,10 @@ import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
 import org.bithon.component.commons.exception.HttpMappableException;
-import org.bithon.server.collector.cmd.api.permission.PermissionConfiguration;
-import org.bithon.server.collector.cmd.api.permission.PermissionRule;
-import org.bithon.server.collector.cmd.service.AgentServer;
+import org.bithon.server.collector.ctrl.config.AgentControllerConfig;
+import org.bithon.server.collector.ctrl.config.PermissionConfig;
+import org.bithon.server.collector.ctrl.config.PermissionRule;
+import org.bithon.server.collector.ctrl.service.AgentController;
 import org.bithon.server.commons.exception.ErrorResponse;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
@@ -57,27 +58,27 @@ import java.util.stream.Collectors;
  * @date 2022/8/7 20:46
  */
 @RestController
-@ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "bithon.agent-controller.enabled", havingValue = "true")
 public class AgentProxyApi implements IAgentProxyApi {
 
     private final ObjectMapper objectMapper;
-    private final AgentServer commandService;
-    private final PermissionConfiguration permissionConfiguration;
+    private final AgentController agentController;
+    private final PermissionConfig permissionConfig;
 
     public AgentProxyApi(ObjectMapper objectMapper,
-                         AgentServer commandService,
-                         PermissionConfiguration permissionConfiguration) {
+                         AgentController agentController,
+                         AgentControllerConfig agentConfig) {
         this.objectMapper = objectMapper;
-        this.commandService = commandService;
-        this.permissionConfiguration = permissionConfiguration;
+        this.agentController = agentController;
+        this.permissionConfig = agentConfig.getPermission();
     }
 
     @Override
     public ServiceResponse<AgentInstanceRecord> getAgentInstanceList() {
-        return ServiceResponse.success(commandService.getBrpcServer()
-                                                     .getSessions()
-                                                     .stream()
-                                                     .map((session) -> {
+        return ServiceResponse.success(agentController.getBrpcServer()
+                                                      .getSessions()
+                                                      .stream()
+                                                      .map((session) -> {
                                                          AgentInstanceRecord instance = new AgentInstanceRecord();
                                                          instance.setAppName(session.getRemoteApplicationName());
                                                          instance.setInstance(session.getRemoteAttribute(Headers.HEADER_APP_ID, session.getRemoteEndpoint()));
@@ -92,7 +93,7 @@ public class AgentProxyApi implements IAgentProxyApi {
                                                          instance.setStartAt(new Timestamp(start).toLocalDateTime());
                                                          return instance;
                                                      })
-                                                     .collect(Collectors.toList()));
+                                                      .collect(Collectors.toList()));
     }
 
     @Override
@@ -101,7 +102,7 @@ public class AgentProxyApi implements IAgentProxyApi {
                         @RequestBody byte[] body) throws IOException {
 
         // Get the session first
-        BrpcServer.Session agentSession = commandService.getBrpcServer().getSession(instance);
+        BrpcServer.Session agentSession = agentController.getBrpcServer().getSession(instance);
 
         //
         // Parse input request stream
@@ -113,10 +114,10 @@ public class AgentProxyApi implements IAgentProxyApi {
         // Verify if the given token matches
         // By default if a method that starts with 'get' or 'dump' will be seen as a READ method that requires no permission check.
         if (!fromClient.getMethodName().startsWith("get") && !fromClient.getMethodName().startsWith("dump")) {
-            Optional<PermissionRule> applicationRule = permissionConfiguration.getRules()
-                                                                              .stream()
-                                                                              .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(agentSession.getRemoteApplicationName()))
-                                                                              .findFirst();
+            Optional<PermissionRule> applicationRule = permissionConfig.getRules()
+                                                                       .stream()
+                                                                       .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(agentSession.getRemoteApplicationName()))
+                                                                       .findFirst();
             if (!applicationRule.isPresent()) {
                 throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
                                                 "No permission rule is defined for application [%s] to allow UPDATE operation.",

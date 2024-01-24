@@ -1,26 +1,34 @@
-collector-brpc:
-  enabled: true
-  port:
-    tracing: 9895
-    event: 9896
-    metric: 9898
-    ctrl: 9899
-
-collector-http:
-  enabled: true
-
-collector-otel:
-  enabled: true
-
-collector-controller:
-  permission:
-    rules:
-      - application:
-          type: startwith
-          pattern: bithon-
-        token: "525"
-
 bithon:
+  agent-controller:
+    enabled: true
+    port: 9899
+    permission:
+      rules:
+        - application:
+            type: startwith
+            pattern: bithon-
+          token: "525"
+
+  receivers:
+    metrics:
+      brpc:
+        enabled: true
+        port: 9898
+      http:
+        enabled: true
+    events:
+      brpc:
+        enabled: true
+        port: 9896
+    traces:
+      brpc:
+        enabled: true
+        port: 9895
+      http:
+        enabled: true
+      otel-http:
+        enabled: true
+
   pipelines:
     events:
       enabled: true
@@ -40,7 +48,13 @@ bithon:
       enabled: true
       receivers:
         - type: brpc
-      transforms:
+      processors:
+        - type: filter
+          expr: clazz <> 'org.bithon.server.sink.common.service.UriNormalizer'
+        - type: url-sanitize-transform
+          sensitiveParameters:
+            - password
+        - type: builtin-span-transform
       exporters:
         - type: store
 

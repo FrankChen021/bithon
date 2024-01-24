@@ -48,7 +48,7 @@ import java.util.zip.InflaterInputStream;
  */
 @Slf4j
 @RestController
-@ConditionalOnProperty(value = "collector-http.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "bithon.receivers.traces.http.enabled", havingValue = "true")
 public class TraceHttpCollector {
 
     private final ObjectMapper om;

@@ -14,34 +14,37 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.config;
+package org.bithon.server.collector.ctrl.service;
 
+import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
+import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.setting.ISettingReader;
-import org.bithon.server.storage.setting.ISettingStorage;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/16 7:37 下午
+ * @date 2021/6/30 3:34 下午
  */
-@Service
-@ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
-public class AgentConfigurationService {
+public class AgentSettingFetcher implements ISettingFetcher {
 
-    private final ISettingReader settingReader;
+    private final ISettingReader reader;
 
-    public AgentConfigurationService(ISettingStorage storage) {
-        this.settingReader = storage.createReader();
+    public AgentSettingFetcher(ISettingReader reader) {
+        this.reader = reader;
     }
 
-    public Map<String, String> getConfiguration(String appName, String env, long since) {
+    @Override
+    public Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince) {
+        // Always fetch all configuration by setting 'since' parameter to 0
+        return getConfiguration(header.getAppName(), header.getEnv(), 0);
+    }
+
+    private Map<String, String> getConfiguration(String appName, String env, long since) {
         if (StringUtils.hasText(env)) {
             appName += "-" + env;
         }
-        return settingReader.getSettings(appName, since);
+        return reader.getSettings(appName, since);
     }
 }

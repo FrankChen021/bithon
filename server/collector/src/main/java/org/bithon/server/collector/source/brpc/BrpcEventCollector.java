@@ -29,6 +29,8 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.sink.event.IEventProcessor;
 import org.bithon.server.sink.event.receiver.IEventReceiver;
 import org.bithon.server.storage.event.EventMessage;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.core.env.Environment;
 
 import java.util.Collections;
 import java.util.List;
@@ -49,15 +51,15 @@ public class BrpcEventCollector implements IEventCollector, IEventReceiver {
     private BrpcCollectorServer.ServiceGroup serviceGroup;
 
     @JsonCreator
-    public BrpcEventCollector(@JacksonInject(useInput = OptBoolean.FALSE) BrpcCollectorConfig config,
+    public BrpcEventCollector(@JacksonInject(useInput = OptBoolean.FALSE) Environment environment,
                               @JacksonInject(useInput = OptBoolean.FALSE) BrpcCollectorServer server) {
-        Preconditions.checkNotNull(config.getPort(), "The brpc server port is not configured.");
-
-        Integer port = config.getPort().get("event");
-        Preconditions.checkNotNull(port, "The port for the event collector is not configured.");
+        BrpcCollectorConfig config = Binder.get(environment).bind("bithon.receivers.events.brpc", BrpcCollectorConfig.class).get();
+        Preconditions.checkIfTrue(config.isEnabled(), "The brpc collector is configured as DISABLED.");
+        Preconditions.checkNotNull(config.getPort(), "The port for the event collector is not configured.");
+        Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535, "The port for the event collector must be in the range of (1000, 65535).");
 
         this.server = server;
-        this.port = port;
+        this.port = config.getPort();
     }
 
     @Override

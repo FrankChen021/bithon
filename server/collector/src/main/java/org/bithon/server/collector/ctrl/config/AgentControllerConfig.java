@@ -14,25 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.cmd.api.permission;
+package org.bithon.server.collector.ctrl.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
- * A simple permission control on SET/WRITE commands to agent to ensure safety.
- *
- * @author frank.chen021@outlook.com
- * @date 2023/4/8 15:08
+ * @author Frank Chen
+ * @date 24/1/24 9:41 pm
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "collector-controller.permission")
-public class PermissionConfiguration {
+@ConfigurationProperties("bithon.agent-controller")
+public class AgentControllerConfig {
+    private boolean enabled;
+    private int port;
 
-    private List<PermissionRule> rules = Collections.emptyList();
+    private PermissionConfig permission;
 }

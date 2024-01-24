@@ -31,7 +31,9 @@ import org.bithon.server.sink.tracing.ITraceProcessor;
 import org.bithon.server.sink.tracing.receiver.ITraceReceiver;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -53,14 +55,14 @@ public class BrpcTraceCollector implements ITraceCollector, ITraceReceiver {
     private BrpcCollectorServer.ServiceGroup serviceGroup;
 
     @JsonCreator
-    public BrpcTraceCollector(@JacksonInject(useInput = OptBoolean.FALSE) BrpcCollectorConfig config,
+    public BrpcTraceCollector(@JacksonInject(useInput = OptBoolean.FALSE) Environment environment,
                               @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        Preconditions.checkNotNull(config.getPort(), "The brpc server port is not configured.");
+        BrpcCollectorConfig config = Binder.get(environment).bind("bithon.receivers.traces.brpc", BrpcCollectorConfig.class).get();
+        Preconditions.checkIfTrue(config.isEnabled(), "The brpc collector is configured as DISABLED.");
+        Preconditions.checkNotNull(config.getPort(), "The port for the event collector is not configured.");
+        Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535, "The port for the event collector must be in the range of (1000, 65535).");
 
-        Integer port = config.getPort().get("tracing");
-        Preconditions.checkNotNull(port, "The port for the event collector is not configured.");
-
-        this.port = port;
+        this.port = config.getPort();
         this.applicationContext = applicationContext;
     }
 
@@ -74,14 +76,11 @@ public class BrpcTraceCollector implements ITraceCollector, ITraceReceiver {
     public void registerProcessor(ITraceProcessor processor) {
         this.processor = processor;
 
-        // TODO:
-        // @ConditionalOnProperty(value = "collector-http.enabled", havingValue = "true")
         try {
             this.applicationContext.getBean(TraceHttpCollector.class).setProcessor(processor);
         } catch (NoSuchBeanDefinitionException ignored) {
         }
 
-        // @ConditionalOnProperty(value = "collector-otel.enabled", havingValue = "true")
         try {
             this.applicationContext.getBean(OtelHttpTraceCollector.class).setProcessor(processor);
         } catch (NoSuchBeanDefinitionException ignored) {
