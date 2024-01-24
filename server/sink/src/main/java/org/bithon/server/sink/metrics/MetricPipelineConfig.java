@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "bithon.pipeline.metrics")
+@ConfigurationProperties(prefix = "bithon.pipelines.metrics")
 public class MetricPipelineConfig extends PipelineConfig {
 
     private BatchConfig batch;

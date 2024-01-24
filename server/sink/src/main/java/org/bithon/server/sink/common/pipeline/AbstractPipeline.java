@@ -40,7 +40,7 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
     @Getter
     private final boolean isEnabled;
     protected final List<RECEIVER> receivers;
-    protected final List<ITransformer> transforms;
+    protected final List<ITransformer> processors;
     protected final List<EXPORTER> exporters;
     private boolean isRunning = false;
 
@@ -51,7 +51,7 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
         this.isEnabled = pipelineConfig.isEnabled();
 
         this.receivers = createReceivers(pipelineConfig, objectMapper, receiverClass);
-        this.transforms = createTransforms(pipelineConfig, objectMapper);
+        this.processors = createProcessors(pipelineConfig, objectMapper);
         this.exporters = createExporters(pipelineConfig, objectMapper, exporterClass);
     }
 
@@ -78,21 +78,20 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
                                      throw new RuntimeException(e);
                                  }
                              }).collect(Collectors.toList());
-
     }
 
-    private List<ITransformer> createTransforms(PipelineConfig pipelineConfig,
+    private List<ITransformer> createProcessors(PipelineConfig pipelineConfig,
                                                 ObjectMapper objectMapper) {
         if (!pipelineConfig.isEnabled()) {
             return new ArrayList<>();
         }
 
         List<ITransformer> transformers = new ArrayList<>();
-        if (CollectionUtils.isEmpty(pipelineConfig.getTransforms())) {
+        if (CollectionUtils.isEmpty(pipelineConfig.getProcessors())) {
             return transformers;
         }
 
-        for (Object transform : pipelineConfig.getTransforms()) {
+        for (Object transform : pipelineConfig.getProcessors()) {
             try {
                 transformers.add(new ExceptionSafeTransformer(createObject(ITransformer.class, objectMapper, transform)));
             } catch (IOException ignored) {

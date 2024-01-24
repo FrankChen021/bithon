@@ -31,6 +31,6 @@ public class PipelineConfig {
     private boolean enabled = true;
 
     private List<Map<String, Object>> receivers;
-    private List<Map<String, Object>> transforms;
+    private List<Map<String, Object>> processors;
     private List<Map<String, Object>> exporters;
 }

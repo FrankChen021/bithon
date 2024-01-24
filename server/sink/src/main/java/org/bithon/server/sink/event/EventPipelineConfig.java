@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "bithon.pipeline.event")
+@ConfigurationProperties(prefix = "bithon.pipelines.events")
 public class EventPipelineConfig extends PipelineConfig {
 
     private BatchConfig batch;

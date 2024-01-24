@@ -32,7 +32,7 @@ import java.util.List;
  */
 @Data
 @Configuration(proxyBeanMethods = false)
-@ConfigurationProperties(prefix = "bithon.pipeline.tracing")
+@ConfigurationProperties(prefix = "bithon.pipelines.traces")
 public class TracePipelineConfig extends PipelineConfig {
 
     private List<TraceIdMappingConfig> mapping;
