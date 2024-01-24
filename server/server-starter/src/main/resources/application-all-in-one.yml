@@ -5,6 +5,7 @@
 spring:
   profiles:
     include:
-      - collector-to-kafka
+      - receiver
+      - pipeline-to-local
       - storage-h2
       - webapp

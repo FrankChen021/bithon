@@ -1,25 +1,3 @@
-collector-brpc:
-  enabled: true
-  port:
-    tracing: 9895
-    event: 9896
-    metric: 9898
-    ctrl: 9899
-
-collector-http:
-  enabled: true
-
-collector-otel:
-  enabled: true
-
-collector-controller:
-  permission:
-    rules:
-      - application:
-          type: startwith
-          pattern: bithon-
-        token: "525"
-
 #
 # The configuration below shows the ability that run two pipelines in one application.
 # This is mainly for local development and test, not for real deployment.
