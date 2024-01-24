@@ -9,9 +9,9 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>server-collector</artifactId>
-  <name>server-collector</name>
-  <description>Bithon Collector</description>
+  <artifactId>server-pipeline</artifactId>
+  <name>server-sink</name>
+  <description>Bithon Server Sink</description>
 
   <properties>
     <java.version>1.8</java.version>
@@ -33,16 +33,10 @@
       <artifactId>spring-kafka</artifactId>
     </dependency>
 
-    <!-- BRPC -->
+    <!-- Lombok -->
     <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>agent-rpc-brpc</artifactId>
-    </dependency>
-
-    <!-- BRPC -->
-    <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>server-pipeline</artifactId>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
     </dependency>
 
     <!-- Bithon Commons -->
@@ -50,30 +44,26 @@
       <groupId>org.bithon</groupId>
       <artifactId>component-commons</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>server-storage</artifactId>
+    </dependency>
 
+    <!-- DataSource submodule -->
+    <dependency>
+      <groupId>javax.validation</groupId>
+      <artifactId>validation-api</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
 
-    <!-- Collector is declared as a discoverable service,
-         so that its implementation can be invoked from other services to interacts with agents
-    -->
     <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>service-discovery-declaration</artifactId>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
     </dependency>
-
-    <!-- Otel Protobuf Interface Support -->
-    <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>opentelemetry-proto</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.protobuf</groupId>
-      <artifactId>protobuf-java-util</artifactId>
-    </dependency>
-
   </dependencies>
 
   <build>

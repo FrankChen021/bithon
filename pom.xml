@@ -138,7 +138,7 @@
 
       <dependency>
         <groupId>org.bithon</groupId>
-        <artifactId>server-sink</artifactId>
+        <artifactId>server-pipeline</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -504,7 +504,7 @@
         <module>server/service-discovery/declaration</module>
         <module>server/service-discovery/client</module>
         <module>server/service-discovery/registration</module>
-        <module>server/sink</module>
+        <module>server/pipeline</module>
         <module>server/storage</module>
         <module>server/storage-jdbc</module>
         <module>server/storage-jdbc-clickhouse</module>
