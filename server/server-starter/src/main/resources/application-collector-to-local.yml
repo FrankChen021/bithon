@@ -5,10 +5,6 @@ collector-brpc:
     event: 9896
     metric: 9898
     ctrl: 9899
-  sinks:
-    event:
-      type: local
-
 
 collector-http:
   enabled: true
@@ -25,20 +21,22 @@ collector-controller:
         token: "525"
 
 bithon:
-  pipeline:
-    event:
+  pipelines:
+    events:
       enabled: true
       receivers:
         - type: brpc
       exporters:
         - type: store
+
     metrics:
       enabled: true
       receivers:
         - type: brpc
       exporters:
         - type: store
-    tracing:
+
+    traces:
       enabled: true
       receivers:
         - type: brpc
