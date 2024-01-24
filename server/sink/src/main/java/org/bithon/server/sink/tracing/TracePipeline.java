@@ -56,6 +56,10 @@ public class TracePipeline extends AbstractPipeline<ITraceReceiver, ITraceExport
         return log;
     }
 
+    public TracePipelineConfig getPipelineConfig() {
+        return (TracePipelineConfig) pipelineConfig;
+    }
+
     class PipelineProcessor implements ITraceProcessor {
         public void process(String messageType, List<TraceSpan> spans) {
             if (CollectionUtils.isEmpty(spans)) {

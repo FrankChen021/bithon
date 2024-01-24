@@ -31,5 +31,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "bithon.pipelines.events")
 public class EventPipelineConfig extends PipelineConfig {
 
+    private boolean metricOverEventEnabled = true;
+
     private BatchConfig batch;
 }

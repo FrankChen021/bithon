@@ -72,6 +72,16 @@ public class EventInputSource implements IInputSource {
     public void start(DataSourceSchema schema) {
         final String schemaName = schema.getName();
 
+        if (!this.pipeline.getPipelineConfig().isEnabled()) {
+            log.warn("The event processing pipeline is not enabled in this module. The input source of [{}] has no effect.", schema.getName());
+            return;
+        }
+
+        if (!this.pipeline.getPipelineConfig().isMetricOverEventEnabled()) {
+            log.info("The metric over event [{}] is not enabled for this pipeline.", schema);
+            return;
+        }
+
         try {
             this.exporter = new MetricOverEventHandler(eventType,
                                                        schemaName,

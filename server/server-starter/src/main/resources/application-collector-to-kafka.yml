@@ -10,6 +10,7 @@ collector-brpc:
 bithon:
   pipelines:
     events:
+      metricOverEventEnabled: false
       receivers:
         - type: brpc
       exporters:
@@ -40,6 +41,7 @@ bithon:
             "[retries]": 3
 
     traces:
+      metricOverSpanEnabled: false
       receivers:
         - type: brpc
       exporters:

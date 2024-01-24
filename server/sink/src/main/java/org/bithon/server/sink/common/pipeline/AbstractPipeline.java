@@ -37,8 +37,8 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER extends IExporter> implements SmartLifecycle {
 
-    @Getter
-    private final boolean isEnabled;
+    protected PipelineConfig pipelineConfig;
+
     protected final List<RECEIVER> receivers;
     protected final List<ITransformer> processors;
     protected final List<EXPORTER> exporters;
@@ -48,8 +48,7 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
                             Class<EXPORTER> exporterClass,
                             PipelineConfig pipelineConfig,
                             ObjectMapper objectMapper) {
-        this.isEnabled = pipelineConfig.isEnabled();
-
+        this.pipelineConfig = pipelineConfig;
         this.receivers = createReceivers(pipelineConfig, objectMapper, receiverClass);
         this.processors = createProcessors(pipelineConfig, objectMapper);
         this.exporters = createExporters(pipelineConfig, objectMapper, exporterClass);

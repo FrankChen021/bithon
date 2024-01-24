@@ -37,6 +37,10 @@ public class EventPipeline extends AbstractPipeline<IEventReceiver, IEventExport
         super(IEventReceiver.class, IEventExporter.class, pipelineConfig, objectMapper);
     }
 
+    public EventPipelineConfig getPipelineConfig() {
+        return (EventPipelineConfig) pipelineConfig;
+    }
+
     @Override
     protected void registerProcessor() {
         IEventProcessor processor = new IEventProcessor() {

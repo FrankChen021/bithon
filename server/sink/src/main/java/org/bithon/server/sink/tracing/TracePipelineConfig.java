@@ -35,6 +35,8 @@ import java.util.List;
 @ConfigurationProperties(prefix = "bithon.pipelines.traces")
 public class TracePipelineConfig extends PipelineConfig {
 
+    private boolean metricOverSpanEnabled = true;
+
     private List<TraceIdMappingConfig> mapping;
 
     private BatchConfig batch;

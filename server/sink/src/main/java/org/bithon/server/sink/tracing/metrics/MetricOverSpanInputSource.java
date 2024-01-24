@@ -87,7 +87,7 @@ public class MetricOverSpanInputSource implements IInputSource {
 
     @Override
     public void start(DataSourceSchema schema) {
-        if (!this.pipeline.isEnabled()) {
+        if (!this.pipeline.getPipelineConfig().isEnabled()) {
             log.warn("The trace processing pipeline is not enabled in this module. The input source of [{}] has no effect.", schema.getName());
             return;
         }
@@ -98,8 +98,13 @@ public class MetricOverSpanInputSource implements IInputSource {
         } catch (Exception e) {
             log.info("Failed to initialize metric storage for [{}]: {}", schema.getName(), e.getMessage());
         }
-        log.info("Adding metric-extractor for [{}({})] to tracing logs processors...", schema.getName(), schema.getSignature());
 
+        if (!this.pipeline.getPipelineConfig().isMetricOverSpanEnabled()) {
+            log.info("The metric over span is not enabled for this pipeline");
+            return;
+        }
+
+        log.info("Adding metric-extractor for [{}({})] to tracing logs processors...", schema.getName(), schema.getSignature());
         MetricOverSpanExtractor extractor = null;
         try {
             extractor = new MetricOverSpanExtractor(transformSpec, schema, metricStorage, applicationContext);
