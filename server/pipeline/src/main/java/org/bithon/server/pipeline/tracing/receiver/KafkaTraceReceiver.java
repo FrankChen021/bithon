@@ -19,6 +19,8 @@ package org.bithon.server.pipeline.tracing.receiver;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -28,7 +30,7 @@ import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -76,12 +78,19 @@ public class KafkaTraceReceiver extends AbstractKafkaConsumer implements ITraceR
             return;
         }
 
-        List<TraceSpan> spans = new ArrayList<>(16);
+        // For quick element removing operation in later pipeline processing
+        List<TraceSpan> spans = new LinkedList<>();
 
         for (ConsumerRecord<String, byte[]> record : records) {
-            try {
-                List<TraceSpan> msg = objectMapper.readValue(record.value(), typeReference);
-                spans.addAll(msg);
+            try (JsonParser jsonParser = this.objectMapper.createParser(record.value())) {
+                if (jsonParser.nextToken() != JsonToken.START_ARRAY) {
+                    continue;
+                }
+
+                while (jsonParser.nextToken() == JsonToken.START_OBJECT) {
+                    TraceSpan span = objectMapper.readValue(jsonParser, TraceSpan.class);
+                    spans.add(span);
+                }
             } catch (IOException e) {
                 log.error("Failed to process message [event] failed", e);
             }

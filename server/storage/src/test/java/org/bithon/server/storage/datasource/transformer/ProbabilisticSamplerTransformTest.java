@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.datasource.transformer;
 
+import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 import org.bithon.server.storage.datasource.input.transformer.ProbabilisticSamplerTransform;
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,5 +31,17 @@ public class ProbabilisticSamplerTransformTest {
     public void test() {
         Assert.assertFalse(new ProbabilisticSamplerTransform("0%").transform(null));
         Assert.assertTrue(new ProbabilisticSamplerTransform("100%").transform(null));
+    }
+
+    @Test
+    public void testProbability() {
+        int count = 0;
+        ITransformer transformer = new ProbabilisticSamplerTransform("1%");
+        for (int i = 0; i < 200; i++) {
+            if (transformer.transform(null)) {
+                count++;
+            }
+        }
+        Assert.assertTrue(count > 0);
     }
 }

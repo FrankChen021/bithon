@@ -29,16 +29,15 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class ProbabilisticSamplerTransform implements ITransformer {
 
-    private final HumanReadablePercentage percentage;
+    private final double fraction;
 
     @JsonCreator
     public ProbabilisticSamplerTransform(@JsonProperty("percentage") String percentage) {
-        this.percentage = HumanReadablePercentage.parse(percentage);
+        this.fraction = HumanReadablePercentage.parse(percentage).getFraction();
     }
 
     @Override
     public boolean transform(IInputRow data) {
-        double fraction = percentage.getFraction();
         if (fraction <= 0) {
             return false;
         }

@@ -37,6 +37,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -103,7 +104,7 @@ public class BrpcTraceCollector implements ITraceCollector, ITraceReceiver {
         processor.process("trace",
                           spans.stream()
                                .map(span -> toSpan(header, span))
-                               .collect(Collectors.toList()));
+                               .collect(Collectors.toCollection(LinkedList::new)));
     }
 
     private TraceSpan toSpan(BrpcMessageHeader header,

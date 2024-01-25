@@ -22,6 +22,7 @@ import org.bithon.agent.sentinel.flow.IFlowRuleManager;
 import org.bithon.component.brpc.IServiceController;
 import org.bithon.server.collector.ctrl.service.AgentController;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,6 +39,7 @@ import javax.validation.Valid;
 @CrossOrigin
 @RestController
 @Conditional(WebServiceModuleEnabler.class)
+@ConditionalOnBean(AgentController.class)
 public class SentinelRuleApi {
 
     private final AgentController agentController;

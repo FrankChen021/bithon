@@ -57,8 +57,8 @@ public class ToStorageExporter implements ITraceExporter {
     }
 
     @Override
-    public void process(String messageType, List<TraceSpan> messages) {
-        handler.submit(messages);
+    public void process(String messageType, List<TraceSpan> spans) {
+        handler.submit(spans);
     }
 
     @Override

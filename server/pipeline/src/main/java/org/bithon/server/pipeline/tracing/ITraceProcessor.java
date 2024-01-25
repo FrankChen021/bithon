@@ -29,8 +29,8 @@ import java.util.List;
 public interface ITraceProcessor extends AutoCloseable {
 
     /**
-     * process messages.
+     * process spans.
      * If it's closing, this process method won't be called again
      */
-    void process(String messageType, List<TraceSpan> messages);
+    void process(String messageType, List<TraceSpan> spans);
 }
