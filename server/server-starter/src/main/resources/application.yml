@@ -1,24 +1,6 @@
 bithon:
-  sinks:
-    event:
-      batch:
-        size: 1000
-        interval: 2
-    metrics:
-      batch:
-        size: 1000
-        interval: 2
-    tracing:
-      batch:
-        size: 10000
-      filters:
-        - type: expression
-          expression: clazz <> 'org.bithon.server.sink.common.service.UriNormalizer'
-      globalSanitizer:
-        type: uri
-        args:
-          sensitiveParameters:
-            - password
+  pipelines:
+    traces:
       mapping:
         - type: uri
           args:

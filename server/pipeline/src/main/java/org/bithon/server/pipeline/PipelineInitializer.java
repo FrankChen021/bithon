@@ -28,7 +28,6 @@ import org.bithon.server.pipeline.tracing.TracePipeline;
 import org.bithon.server.pipeline.tracing.TracePipelineConfig;
 import org.bithon.server.storage.InvalidConfigurationException;
 import org.springframework.boot.context.properties.bind.Binder;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -41,7 +40,8 @@ import java.util.Map;
 /**
  * Extra pipeline support.
  * Allows to add more than 1 pipelines.
- * It's mainly designed for test.
+ * It's mainly designed for test that runs two pipelines in one deployment.
+ * See the application-pipeline-to-kafka-to-local.yml configuration for more.
  *
  * @author Frank Chen
  * @date 24/1/24 2:24 pm
@@ -52,9 +52,9 @@ public class PipelineInitializer implements SmartLifecycle {
     static class AllPipelineConfig extends HashMap<String, Map<String, Object>> {
     }
 
-    private final List<AbstractPipeline<?, ?>> pipelilnes = new ArrayList<>();
+    private final List<AbstractPipeline<?, ?>> pipelines = new ArrayList<>();
 
-    public PipelineInitializer(ObjectMapper objectMapper, Environment env, ApplicationContext applicationContext) {
+    public PipelineInitializer(ObjectMapper objectMapper, Environment env) {
         Binder binder = Binder.get(env);
         AllPipelineConfig allPipelineConfig = binder.bind("bithon.pipelines", AllPipelineConfig.class).orElse(new AllPipelineConfig());
 
@@ -72,11 +72,11 @@ public class PipelineInitializer implements SmartLifecycle {
                     String realType = (String) props.get("type");
                     Preconditions.checkNotNull(type, "The 'type' property is missed under the pipeline property [%s]", prefix);
                     if ("metrics".equals(realType)) {
-                        pipelilnes.add(new MetricPipeline(binder.bind(prefix, MetricPipelineConfig.class).get(), objectMapper));
+                        pipelines.add(new MetricPipeline(binder.bind(prefix, MetricPipelineConfig.class).get(), objectMapper));
                     } else if ("traces".equals(realType)) {
-                        pipelilnes.add(new TracePipeline(binder.bind(prefix, TracePipelineConfig.class).get(), objectMapper));
+                        pipelines.add(new TracePipeline(binder.bind(prefix, TracePipelineConfig.class).get(), objectMapper));
                     } else if ("events".equals(realType)) {
-                        pipelilnes.add(new EventPipeline(binder.bind(prefix, EventPipelineConfig.class).get(), objectMapper));
+                        pipelines.add(new EventPipeline(binder.bind(prefix, EventPipelineConfig.class).get(), objectMapper));
                     } else {
                         throw new InvalidConfigurationException(StringUtils.format("Unknown value [%s] of property [%s]", realType, prefix));
                     }
@@ -87,14 +87,14 @@ public class PipelineInitializer implements SmartLifecycle {
 
     @Override
     public void start() {
-        for (AbstractPipeline<?, ?> pipeline : this.pipelilnes) {
+        for (AbstractPipeline<?, ?> pipeline : this.pipelines) {
             pipeline.start();
         }
     }
 
     @Override
     public void stop() {
-        for (AbstractPipeline<?, ?> pipeline : this.pipelilnes) {
+        for (AbstractPipeline<?, ?> pipeline : this.pipelines) {
             pipeline.stop();
         }
     }

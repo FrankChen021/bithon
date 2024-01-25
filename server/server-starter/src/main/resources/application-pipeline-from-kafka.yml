@@ -42,7 +42,7 @@ bithon:
             "[group.id]": bithon-spans-consumer
             "[bootstrap.servers]": localhost:9092
             "[fetch.min.bytes]": 1048576
-      transforms:
+      processors:
       exporters:
         - type: store
 
