@@ -37,9 +37,8 @@ import org.bithon.server.pipeline.tracing.transform.TraceSpanTransformer;
 import org.bithon.server.pipeline.tracing.transform.sanitization.UrlSanitizeTransformer;
 import org.bithon.server.storage.StorageModuleAutoConfiguration;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.metrics.IMetricStorage;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -113,7 +112,7 @@ public class PipelineAutoConfiguration {
      * If the sink is local, it's initialized in brpc autoconfiguration.
      */
     @Bean
-    @ConditionalOnBean(IMetricStorage.class)
+    @ConditionalOnProperty(value = "bithon.storage.metric.enabled", havingValue = "true")
     InputSourceManager inputSourceManager(DataSourceSchemaManager dataSourceSchemaManager, ObjectMapper objectMapper) {
         return new InputSourceManager(dataSourceSchemaManager, objectMapper);
     }

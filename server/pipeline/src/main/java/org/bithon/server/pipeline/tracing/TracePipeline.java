@@ -26,8 +26,8 @@ import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.slf4j.Logger;
 
-import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -67,21 +67,19 @@ public class TracePipeline extends AbstractPipeline<ITraceReceiver, ITraceExport
             }
 
             if (!processors.isEmpty()) {
-                Iterator<TraceSpan> iterator = spans.iterator();
-                while (iterator.hasNext()) {
-                    TraceSpan span = iterator.next();
-
-                    for (ITransformer transformer : processors) {
-                        if (!transformer.transform(span)) {
-                            iterator.remove();
-                            break;
-                        }
-                    }
+                spans = spans.parallelStream()
+                             .filter((span) -> {
+                                 for (ITransformer processor : processors) {
+                                     if (!processor.transform(span)) {
+                                         return false;
+                                     }
+                                 }
+                                 return true;
+                             })
+                             .collect(Collectors.toList());
+                if (spans.isEmpty()) {
+                    return;
                 }
-            }
-
-            if (spans.isEmpty()) {
-                return;
             }
 
             ITraceExporter[] exporterList = exporters.toArray(new ITraceExporter[0]);

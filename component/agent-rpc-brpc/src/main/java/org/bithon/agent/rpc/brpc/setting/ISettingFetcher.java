@@ -27,5 +27,8 @@ import java.util.Map;
  */
 @BrpcService
 public interface ISettingFetcher {
+    /**
+     * @return a setting map. key is the setting name while the value is the JSON style setting string.
+     */
     Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince);
 }
