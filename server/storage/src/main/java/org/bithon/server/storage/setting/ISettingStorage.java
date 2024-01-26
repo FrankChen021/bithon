@@ -18,6 +18,8 @@ package org.bithon.server.storage.setting;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import java.util.List;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 4/11/21 3:14 pm
@@ -27,4 +29,6 @@ public interface ISettingStorage {
     void initialize();
 
     ISettingReader createReader();
+
+    ISettingWriter createWriter();
 }

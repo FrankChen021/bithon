@@ -17,7 +17,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row5;
+import org.jooq.Row6;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -32,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
 
-    private static final long serialVersionUID = -264477701;
+    private static final long serialVersionUID = -39706613;
 
     /**
      * The reference instance of <code>bithon_agent_setting</code>
@@ -63,9 +63,14 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
     public final TableField<BithonAgentSettingRecord, String> SETTINGNAME = createField(DSL.name("settingName"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>bithon_agent_setting.setting</code>. 设置
+     * The column <code>bithon_agent_setting.setting</code>. Setting text
      */
-    public final TableField<BithonAgentSettingRecord, String> SETTING = createField(DSL.name("setting"), org.jooq.impl.SQLDataType.CLOB, this, "设置");
+    public final TableField<BithonAgentSettingRecord, String> SETTING = createField(DSL.name("setting"), org.jooq.impl.SQLDataType.CLOB, this, "Setting text");
+
+    /**
+     * The column <code>bithon_agent_setting.format</code>. Format of the Setting, can be either json or yaml
+     */
+    public final TableField<BithonAgentSettingRecord, String> FORMAT = createField(DSL.name("format"), org.jooq.impl.SQLDataType.VARCHAR(16).nullable(false), this, "Format of the Setting, can be either json or yaml");
 
     /**
      * The column <code>bithon_agent_setting.updatedAt</code>.
@@ -147,11 +152,11 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row5 type methods
+    // Row6 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row5<LocalDateTime, String, String, String, LocalDateTime> fieldsRow() {
-        return (Row5) super.fieldsRow();
+    public Row6<LocalDateTime, String, String, String, String, LocalDateTime> fieldsRow() {
+        return (Row6) super.fieldsRow();
     }
 }

@@ -16,18 +16,25 @@
 
 package org.bithon.server.collector.config;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.setting.ISettingReader;
 import org.bithon.server.storage.setting.ISettingStorage;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/16 7:37 下午
  */
+@Slf4j
 @Service
 @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
 public class AgentConfigurationService {
@@ -42,6 +49,25 @@ public class AgentConfigurationService {
         if (StringUtils.hasText(env)) {
             appName += "-" + env;
         }
-        return settingReader.getSettings(appName, since);
+
+        List<ISettingReader.SettingEntry> settings = settingReader.getSettings(appName, since);
+
+        Map<String, String> map = new HashMap<>();
+        for (ISettingReader.SettingEntry record : settings) {
+            String value = record.getValue();
+            if (record.getFormat().equals("yaml")) {
+                try {
+                    value = convertYamlToJson(value);
+                } catch (JsonProcessingException e) {
+                    log.error("Illegal format of setting", e);
+                }
+            }
+            map.put(record.getName(), value);
+        }
+        return map;
+    }
+
+    private String convertYamlToJson(String yaml) throws JsonProcessingException {
+        return new ObjectMapper().writeValueAsString(new ObjectMapper(new YAMLFactory()).readTree(yaml));
     }
 }

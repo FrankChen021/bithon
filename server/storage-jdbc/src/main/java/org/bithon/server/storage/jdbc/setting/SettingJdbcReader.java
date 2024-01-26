@@ -16,17 +16,20 @@
 
 package org.bithon.server.storage.jdbc.setting;
 
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.setting.ISettingReader;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 
 import java.sql.Timestamp;
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 4/11/21 3:18 pm
  */
+@Slf4j
 public class SettingJdbcReader implements ISettingReader {
 
     private final DSLContext dslContext;
@@ -36,11 +39,21 @@ public class SettingJdbcReader implements ISettingReader {
     }
 
     @Override
-    public Map<String, String> getSettings(String appName, long since) {
-        return dslContext.select(Tables.BITHON_AGENT_SETTING.SETTINGNAME, Tables.BITHON_AGENT_SETTING.SETTING)
-                         .from(Tables.BITHON_AGENT_SETTING)
+    public List<SettingEntry> getSettings(String appName, long since) {
+        return dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
                          .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName))
                          .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.gt(new Timestamp(since).toLocalDateTime()))
-                         .fetchMap(Tables.BITHON_AGENT_SETTING.SETTINGNAME, Tables.BITHON_AGENT_SETTING.SETTING);
+                         .fetch()
+                         .map(this::toSettingEntry);
+    }
+
+    protected SettingEntry toSettingEntry(Record record) {
+        SettingEntry entry = new SettingEntry();
+        entry.setName(record.get(Tables.BITHON_AGENT_SETTING.SETTINGNAME));
+        entry.setValue(record.get(Tables.BITHON_AGENT_SETTING.SETTING));
+        entry.setFormat(record.get(Tables.BITHON_AGENT_SETTING.FORMAT));
+        entry.setCreatedAt(Timestamp.valueOf(record.get(Tables.BITHON_AGENT_SETTING.TIMESTAMP)));
+        entry.setUpdatedAt(Timestamp.valueOf(record.get(Tables.BITHON_AGENT_SETTING.UPDATEDAT)));
+        return entry;
     }
 }

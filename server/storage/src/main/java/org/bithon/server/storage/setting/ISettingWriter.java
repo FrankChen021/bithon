@@ -16,25 +16,10 @@
 
 package org.bithon.server.storage.setting;
 
-import lombok.Data;
-
-import java.sql.Timestamp;
-import java.util.List;
-
 /**
- * @author frank.chen021@outlook.com
- * @date 4/11/21 3:15 pm
+ * @author Frank Chen
+ * @date 26/1/24 2:16 pm
  */
-public interface ISettingReader {
-
-    @Data
-    class SettingEntry {
-        private String name;
-        private String value;
-        private String format;
-        private Timestamp createdAt;
-        private Timestamp updatedAt;
-    }
-
-    List<SettingEntry> getSettings(String appName, long since);
+public interface ISettingWriter {
+    void addSetting(String app, String name, String value, String format);
 }

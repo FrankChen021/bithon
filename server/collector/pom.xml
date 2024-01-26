@@ -33,6 +33,11 @@
       <artifactId>spring-kafka</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
+    </dependency>
+
     <!-- BRPC -->
     <dependency>
       <groupId>org.bithon</groupId>
