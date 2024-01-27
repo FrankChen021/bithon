@@ -28,7 +28,7 @@ import java.util.Map;
  */
 @Data
 public class PipelineConfig {
-    private boolean enabled = true;
+    private boolean enabled = false;
 
     private List<Map<String, Object>> receivers;
     private List<Map<String, Object>> processors;
