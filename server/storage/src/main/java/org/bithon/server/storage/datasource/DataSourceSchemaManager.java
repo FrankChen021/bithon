@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactor;
 import org.bithon.component.commons.time.DateTime;
-import org.bithon.server.storage.datasource.store.InternalDataSourceSpec;
 import org.bithon.server.storage.meta.ISchemaStorage;
 import org.springframework.context.SmartLifecycle;
 

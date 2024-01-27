@@ -69,8 +69,8 @@ public class TraceJdbcStorage implements ITraceStorage {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
         this.storageConfig = storageConfig;
-        this.traceSpanSchema = null;//schemaManager.getDataSourceSchema("trace_span_summary");
-        this.traceTagIndexSchema = null;//schemaManager.getDataSourceSchema("trace_span_tag_index");
+        this.traceSpanSchema = null;
+        this.traceTagIndexSchema = null;
         this.sqlDialectManager = sqlDialectManager;
     }
 
