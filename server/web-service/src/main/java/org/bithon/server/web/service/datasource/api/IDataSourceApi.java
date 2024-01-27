@@ -36,19 +36,19 @@ import java.util.Map;
 public interface IDataSourceApi {
 
     @PostMapping("/api/datasource/timeseries/v3")
-    GeneralQueryResponse timeseriesV3(@Validated @RequestBody GeneralQueryRequest request);
+    GeneralQueryResponse timeseriesV3(@Validated @RequestBody GeneralQueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/timeseries/v4")
-    GeneralQueryResponse timeseriesV4(@Validated @RequestBody GeneralQueryRequest request);
+    GeneralQueryResponse timeseriesV4(@Validated @RequestBody GeneralQueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/groupBy/v2")
-    GeneralQueryResponse groupBy(@Validated @RequestBody GeneralQueryRequest request);
+    GeneralQueryResponse groupBy(@Validated @RequestBody GeneralQueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/groupBy/v3")
-    GeneralQueryResponse groupByV3(@Validated @RequestBody GeneralQueryRequest request);
+    GeneralQueryResponse groupByV3(@Validated @RequestBody GeneralQueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/list/v2")
-    GeneralQueryResponse list(@Validated @RequestBody GeneralQueryRequest request);
+    GeneralQueryResponse list(@Validated @RequestBody GeneralQueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/schemas")
     Map<String, DataSourceSchema> getSchemas();

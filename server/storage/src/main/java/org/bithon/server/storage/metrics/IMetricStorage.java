@@ -29,7 +29,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2020/12/1 4:53 下午
  * <p>
- * use ObjectMapper.registerSubTypes to register type of sub-class for deserialization
+ * use ObjectMapper.registerSubTypes to register a type of subclass for deserialization
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface IMetricStorage extends IStorage, IExpirable {

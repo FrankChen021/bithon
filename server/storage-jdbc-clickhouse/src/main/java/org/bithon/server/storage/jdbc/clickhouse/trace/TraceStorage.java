@@ -31,7 +31,6 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.IMetricReader;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
@@ -103,7 +102,7 @@ public class TraceStorage extends TraceJdbcStorage {
         return new IExpirationRunnable() {
             @Override
             public ExpirationConfig getExpirationConfig() {
-                return traceStorageConfig.getTtl();
+                return storageConfig.getTtl();
             }
 
             @Override
@@ -120,9 +119,9 @@ public class TraceStorage extends TraceJdbcStorage {
     @Override
     public ITraceWriter createWriter() {
         if (this.clickHouseConfig.isOnDistributedTable()) {
-            return new LoadBalancedTraceWriter(this.clickHouseConfig, this.traceStorageConfig, this.dslContext);
+            return new LoadBalancedTraceWriter(this.clickHouseConfig, this.storageConfig, this.dslContext);
         } else {
-            return new TraceJdbcWriter(dslContext, traceStorageConfig, RetryableExceptions::isExceptionRetryable) {
+            return new TraceJdbcWriter(dslContext, storageConfig, RetryableExceptions::isExceptionRetryable) {
                 @Override
                 protected boolean isTransactionSupported() {
                     return false;
@@ -152,7 +151,7 @@ public class TraceStorage extends TraceJdbcStorage {
                                    this.objectMapper,
                                    this.traceSpanSchema,
                                    this.traceTagIndexSchema,
-                                   this.traceStorageConfig,
+                                   this.storageConfig,
                                    this.sqlDialectManager.getSqlDialect(this.dslContext)) {
 
             /**

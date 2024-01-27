@@ -82,7 +82,7 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public GeneralQueryResponse timeseriesV3(@Validated @RequestBody GeneralQueryRequest request) {
+    public GeneralQueryResponse timeseriesV3(@Validated @RequestBody GeneralQueryRequest request) throws IOException {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         validateQueryRequest(schema, request);
@@ -98,7 +98,7 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public GeneralQueryResponse timeseriesV4(@Validated @RequestBody GeneralQueryRequest request) {
+    public GeneralQueryResponse timeseriesV4(@Validated @RequestBody GeneralQueryRequest request) throws IOException {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         validateQueryRequest(schema, request);
@@ -114,7 +114,7 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public GeneralQueryResponse list(GeneralQueryRequest request) {
+    public GeneralQueryResponse list(GeneralQueryRequest request) throws IOException {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         validateQueryRequest(schema, request);
@@ -135,41 +135,46 @@ public class DataSourceApi implements IDataSourceApi {
                            .limit(request.getLimit())
                            .build();
 
-        IMetricReader reader = this.metricStorage.createMetricReader(schema);
-        return GeneralQueryResponse.builder()
-                                   .total(reader.listSize(query))
-                                   .data(reader.list(query))
-                                   .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
-                                   .startTimestamp(query.getInterval().getEndTime().getMilliseconds())
-                                   .build();
+        try (IMetricReader reader = schema.getDataStoreSpec().createReader()) {
+            return GeneralQueryResponse.builder()
+                                       .total(reader.listSize(query))
+                                       .data(reader.list(query))
+                                       .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
+                                       .startTimestamp(query.getInterval().getEndTime().getMilliseconds())
+                                       .build();
+        }
     }
 
     @Override
-    public GeneralQueryResponse groupBy(GeneralQueryRequest request) {
+    public GeneralQueryResponse groupBy(GeneralQueryRequest request) throws IOException {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         validateQueryRequest(schema, request);
 
         Query query = this.dataSourceService.convertToQuery(schema, request, false, false);
-        return GeneralQueryResponse.builder()
-                                   .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
-                                   .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
-                                   .data(this.metricStorage.createMetricReader(schema).groupBy(query))
-                                   .build();
+        try (IMetricReader reader = schema.getDataStoreSpec().createReader()) {
+            return GeneralQueryResponse.builder()
+                                       .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
+                                       .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
+                                       .data(reader.groupBy(query))
+                                       .build();
+        }
     }
 
     @Override
-    public GeneralQueryResponse groupByV3(GeneralQueryRequest request) {
+    public GeneralQueryResponse groupByV3(GeneralQueryRequest request) throws IOException {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         validateQueryRequest(schema, request);
 
         Query query = this.dataSourceService.convertToQuery(schema, request, true, false);
-        return GeneralQueryResponse.builder()
-                                   .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
-                                   .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
-                                   .data(this.metricStorage.createMetricReader(schema).groupBy(query))
-                                   .build();
+        try (IMetricReader reader = schema.getDataStoreSpec().createReader()) {
+            return GeneralQueryResponse.builder()
+                                       .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
+                                       .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
+                                       .data(reader.groupBy(query))
+                                       .build();
+        }
     }
 
     @Override
@@ -232,13 +237,13 @@ public class DataSourceApi implements IDataSourceApi {
         IColumn column = schema.getColumnByName(request.getName());
         Preconditions.checkNotNull(column, "Field [%s] does not exist in the schema.", request.getName());
 
-        return schema.getDataStoreSpec()
-                     .createReader()
-                     .getDistinctValues(TimeSpan.fromISO8601(request.getStartTimeISO8601()),
-                                        TimeSpan.fromISO8601(request.getEndTimeISO8601()),
-                                        schema,
-                                        FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters()),
-                                        column.getName());
+        try (IMetricReader reader = schema.getDataStoreSpec().createReader()) {
+            return reader.getDistinctValues(TimeSpan.fromISO8601(request.getStartTimeISO8601()),
+                                            TimeSpan.fromISO8601(request.getEndTimeISO8601()),
+                                            schema,
+                                            FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters()),
+                                            column.getName());
+        }
     }
 
     @Override

@@ -23,6 +23,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IMetricReader;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -38,9 +39,9 @@ import org.bithon.server.web.service.common.bucket.TimeBucket;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -63,7 +64,7 @@ public class DataSourceService {
      * Tags - dimension of a series
      * Val - an array of all data points. Each element represents a data point of a timestamp.
      */
-    public TimeSeriesQueryResult timeseriesQuery(Query query) {
+    public TimeSeriesQueryResult timeseriesQuery(Query query) throws IOException {
         // Remove any dimensions
         List<String> metrics = query.getResultColumns()
                                     .stream()
@@ -79,16 +80,15 @@ public class DataSourceService {
                                     .map((ResultColumn::getResultColumnName))
                                     .collect(Collectors.toList());
 
-        List<Map<String, Object>> points = this.metricStorage.createMetricReader(query.getDataSource())
-                                                             .timeseries(query);
-
-        return TimeSeriesQueryResult.build(query.getInterval().getStartTime(),
-                                           query.getInterval().getEndTime(),
-                                           query.getInterval().getStep(),
-                                           points,
-                                           TIMESTAMP_COLUMN_NAME_IN_RESULT_SET,
-                                           query.getGroupBy(),
-                                           metrics);
+        try (IMetricReader reader = query.getDataSource().getDataStoreSpec().createReader()) {
+            return TimeSeriesQueryResult.build(query.getInterval().getStartTime(),
+                                               query.getInterval().getEndTime(),
+                                               query.getInterval().getStep(),
+                                               reader.timeseries(query),
+                                               TIMESTAMP_COLUMN_NAME_IN_RESULT_SET,
+                                               query.getGroupBy(),
+                                               metrics);
+        }
     }
 
     public Query convertToQuery(DataSourceSchema schema,

@@ -60,6 +60,7 @@ public class MetricJdbcReader implements IMetricReader {
 
     protected final DSLContext dsl;
     protected final ISqlDialect sqlDialect;
+    private final boolean shouldCloseContext;
 
     @JsonCreator
     public MetricJdbcReader(@JsonProperty("name") String name,
@@ -72,7 +73,6 @@ public class MetricJdbcReader implements IMetricReader {
         jdbcDataSource.setPassword((String) Preconditions.checkNotNull(props.get("password"), "Missing password property for %s", name));
         jdbcDataSource.setName(name);
 
-
         // Create a new one
         JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
         this.dsl = DSL.using(new DefaultConfiguration()
@@ -81,11 +81,13 @@ public class MetricJdbcReader implements IMetricReader {
                                  .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
 
         this.sqlDialect = sqlDialectManager.getSqlDialect(this.dsl);
+        this.shouldCloseContext = true;
     }
 
     public MetricJdbcReader(DSLContext dsl, ISqlDialect sqlDialect) {
         this.dsl = dsl;
         this.sqlDialect = sqlDialect;
+        this.shouldCloseContext = false;
     }
 
     @Override
@@ -271,5 +273,12 @@ public class MetricJdbcReader implements IMetricReader {
             }
             return mapObject;
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public void close() {
+        if (this.shouldCloseContext) {
+            this.dsl.close();
+        }
     }
 }
