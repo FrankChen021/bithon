@@ -80,6 +80,7 @@ public class TracePipelineTest {
     @Test
     public void test() {
         TracePipelineConfig config = new TracePipelineConfig();
+        config.setEnabled(true);
         config.setReceivers(Collections.singletonList(ImmutableMap.of("type", "fake-receiver")));
         config.setExporters(Collections.singletonList(ImmutableMap.of("type", "fake-exporter")));
         TracePipeline pipeline = new TracePipeline(config, objectMapper);
@@ -95,26 +96,4 @@ public class TracePipelineTest {
         Assert.assertEquals(receivedTraceSpanList, spans);
         pipeline.stop();
     }
-
-    /*
-    @Test
-    public void test_Filter() {
-
-        TracePipelineConfig config = new TracePipelineConfig();
-        config.setReceivers(Collections.singletonList(ImmutableMap.of("type", "fake-receiver")));
-        config.setProcessors(Collections.singletonList(ImmutableMap.of("type", "probabilistic_sampler", "percentage", "1%")));
-        config.setExporters(Collections.singletonList(ImmutableMap.of("type", "fake-exporter")));
-        TracePipeline pipeline = new TracePipeline(config, objectMapper);
-        pipeline.start();
-        Assert.assertNotNull(registeredProcessor);
-        Assert.assertNull(receivedTraceSpanList);
-
-        List<TraceSpan> spans = new ArrayList<>();
-        TraceSpan span = new TraceSpan();
-        spans.add(span);
-        registeredProcessor.process("trace", spans);
-
-        Assert.assertEquals(receivedTraceSpanList, spans);
-        pipeline.stop();
-    }*/
 }
