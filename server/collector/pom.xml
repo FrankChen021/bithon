@@ -51,11 +51,6 @@
       <artifactId>component-commons</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-    </dependency>
-
     <!-- Collector is declared as a discoverable service,
          so that its implementation can be invoked from other services to interacts with agents
     -->
