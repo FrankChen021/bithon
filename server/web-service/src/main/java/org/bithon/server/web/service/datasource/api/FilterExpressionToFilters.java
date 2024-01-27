@@ -124,8 +124,8 @@ public class FilterExpressionToFilters {
         for (IColumnFilter filter : filters) {
             IColumn column = schema.getColumnByName(filter.getField());
             if (column == null) {
-                throw new InvalidExpressionException("Filter [%s] doest not defined in schema [%s]",
-                                                     filter.getExpected(),
+                throw new InvalidExpressionException("Identifier [%s] is not defined in schema [%s]",
+                                                     filter.getField(),
                                                      schema.getName());
             }
 
@@ -134,7 +134,6 @@ public class FilterExpressionToFilters {
         }
         return expressions.size() == 1 ? expressions.get(0) : new LogicalExpression.AND(expressions);
     }
-
 
     static class FilterToExpressionConverter implements IMatcherVisitor<IExpression> {
         private IdentifierExpression field;

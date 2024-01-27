@@ -41,10 +41,11 @@ public class AsTransformer implements ITransformer {
     }
 
     @Override
-    public void transform(IInputRow inputRow) throws TransformException {
+    public boolean transform(IInputRow inputRow) throws TransformException {
         Object val = inputRow.getCol(name);
         if (val != null) {
             inputRow.updateColumn(as, val);
         }
+        return true;
     }
 }

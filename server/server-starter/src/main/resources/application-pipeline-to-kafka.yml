@@ -1,0 +1,56 @@
+# This configuration demonstrates the pipeline that consumes messages from brpc to Kafka.
+# In large data scale environment, this is the optimal deployment that separates the receivers and data processing.
+# In such deployment, another application that uses the 'pipeline-from-kafka'
+# is deployed to consume messages from Kafka and do data processing.
+bithon:
+  pipelines:
+    events:
+      metricOverEventEnabled: false
+      receivers:
+        - type: brpc
+      exporters:
+        - type: kafka
+          props:
+            topic: bithon-events
+            "[bootstrap.servers]": localhost:9092
+            "[batch.size]": 65536
+            "[buffer.memory]": 67108864
+            "[linger.ms]": 50
+            "[compression.type]": lz4
+            "[max.in.flight.requests.per.connection]": 1
+            "[retries]": 3
+
+    metrics:
+      receivers:
+        - type: brpc
+      exporters:
+        - type: kafka
+          props:
+            topic: bithon-metrics
+            "[bootstrap.servers]": localhost:9092
+            "[batch.size]": 65536
+            "[buffer.memory]": 67108864
+            "[linger.ms]": 50
+            "[compression.type]": lz4
+            "[max.in.flight.requests.per.connection]": 1
+            "[retries]": 3
+
+    traces:
+      metricOverSpanEnabled: false
+      receivers:
+        - type: brpc
+      exporters:
+        - type: kafka
+          props:
+            topic: bithon-spans
+            "[bootstrap.servers]": localhost:9092
+            "[batch.size]": 65536
+            "[buffer.memory]": 67108864
+            "[linger.ms]": 50
+            "[compression.type]": lz4
+            "[max.in.flight.requests.per.connection]": 1
+            "[retries]": 3
+
+logging:
+  level:
+    org.bithon.collector: debug

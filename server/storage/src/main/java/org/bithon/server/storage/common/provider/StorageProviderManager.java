@@ -137,7 +137,7 @@ public class StorageProviderManager {
                 String text = objectMapper.writeValueAsString(obj);
                 return new TypedStorageConfiguration(type, objectMapper.readValue(text, IStorageProviderConfiguration.class));
             } catch (InvalidTypeIdException e) {
-                throw new InvalidConfigurationException(StringUtils.format("Storage type [%s] is not defined for IStorageConfiguration.", type));
+                throw new InvalidConfigurationException(StringUtils.format("Storage type [%s] for the configuration [%s] is not defined for IStorageConfiguration.", type, name));
             } catch (IOException e) {
                 throw new InvalidConfigurationException(StringUtils.format("Unable to create storage [%s]: %s", type, e.getMessage()),
                                                         e);

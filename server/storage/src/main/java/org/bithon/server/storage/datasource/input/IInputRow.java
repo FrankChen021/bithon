@@ -16,11 +16,17 @@
 
 package org.bithon.server.storage.datasource.input;
 
+import org.bithon.component.commons.expression.IEvaluationContext;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/12/2 4:46 下午
  */
-public interface IInputRow {
+public interface IInputRow extends IEvaluationContext {
+
+    default Object get(String name) {
+        return getCol(name);
+    }
 
     Object getCol(String columnName);
 

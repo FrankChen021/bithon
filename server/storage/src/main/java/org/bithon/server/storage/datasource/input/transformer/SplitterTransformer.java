@@ -56,15 +56,16 @@ public class SplitterTransformer implements ITransformer {
     }
 
     @Override
-    public void transform(IInputRow row) {
+    public boolean transform(IInputRow row) {
         Object val = valueExtractor.apply(row);
         if (val == null) {
-            return;
+            return false;
         }
 
         String[] values = val.toString().split(splitter);
         for (int i = 0, len = Math.min(names.length, values.length); i < len; i++) {
             row.updateColumn(names[i], values[i]);
         }
+        return true;
     }
 }

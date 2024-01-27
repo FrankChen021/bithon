@@ -16,30 +16,65 @@
 
 package org.bithon.server.collector.source.brpc;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import org.bithon.agent.rpc.brpc.event.IEventCollector;
-import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.server.sink.event.IEventMessageSink;
+import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.pipeline.event.IEventProcessor;
+import org.bithon.server.pipeline.event.receiver.IEventReceiver;
 import org.bithon.server.storage.event.EventMessage;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.core.env.Environment;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 3:59 下午
  */
 @Slf4j
-public class BrpcEventCollector implements IEventCollector, AutoCloseable {
+@JsonTypeName("brpc")
+public class BrpcEventCollector implements IEventCollector, IEventReceiver {
 
-    private final IEventMessageSink eventSink;
+    private final BrpcCollectorServer server;
+    private final int port;
 
-    public BrpcEventCollector(IEventMessageSink eventSink) {
-        this.eventSink = eventSink;
+    private IEventProcessor processor;
+    private BrpcCollectorServer.ServiceGroup serviceGroup;
+
+    @JsonCreator
+    public BrpcEventCollector(@JacksonInject(useInput = OptBoolean.FALSE) Environment environment,
+                              @JacksonInject(useInput = OptBoolean.FALSE) BrpcCollectorServer server) {
+        BrpcCollectorConfig config = Binder.get(environment).bind("bithon.receivers.events.brpc", BrpcCollectorConfig.class).get();
+        Preconditions.checkIfTrue(config.isEnabled(), "The brpc collector is configured as DISABLED.");
+        Preconditions.checkNotNull(config.getPort(), "The port for the event collector is not configured.");
+        Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535, "The port for the event collector must be in the range of (1000, 65535).");
+
+        this.server = server;
+        this.port = config.getPort();
+    }
+
+    @Override
+    public void start() {
+        serviceGroup = this.server.addService("event", this, port);
+    }
+
+    @Override
+    public void registerProcessor(IEventProcessor processor) {
+        this.processor = processor;
+    }
+
+    @Override
+    public void stop() {
+        serviceGroup.stop("metrics");
     }
 
     @Override
@@ -51,8 +86,7 @@ public class BrpcEventCollector implements IEventCollector, AutoCloseable {
                                                 .type(message.getEventType())
                                                 .jsonArgs(message.getJsonArguments())
                                                 .build();
-        Iterator<EventMessage> delegate = Collections.singletonList(eventMessage).iterator();
-        eventSink.process("event", IteratorableCollection.of(delegate));
+        processor.process("event", Collections.singletonList(eventMessage));
     }
 
     @Override
@@ -60,31 +94,15 @@ public class BrpcEventCollector implements IEventCollector, AutoCloseable {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
-        Iterator<EventMessage> iterator = new Iterator<EventMessage>() {
-            private final Iterator<BrpcEventMessage> delegation = messages.iterator();
 
-            @Override
-            public boolean hasNext() {
-                return delegation.hasNext();
-            }
-
-            @Override
-            public EventMessage next() {
-                BrpcEventMessage message = delegation.next();
-                return EventMessage.builder()
-                                   .appName(header.getAppName())
-                                   .instanceName(header.getInstanceName())
-                                   .timestamp(message.getTimestamp())
-                                   .type(message.getEventType())
-                                   .jsonArgs(message.getJsonArguments())
-                                   .build();
-            }
-        };
-        eventSink.process("event", IteratorableCollection.of(iterator));
-    }
-
-    @Override
-    public void close() throws Exception {
-        eventSink.close();
+        processor.process("event",
+                          messages.stream()
+                                  .map((message) -> EventMessage.builder()
+                                                                .appName(header.getAppName())
+                                                                .instanceName(header.getInstanceName())
+                                                                .timestamp(message.getTimestamp())
+                                                                .type(message.getEventType())
+                                                                .jsonArgs(message.getJsonArguments())
+                                                                .build()).collect(Collectors.toList()));
     }
 }

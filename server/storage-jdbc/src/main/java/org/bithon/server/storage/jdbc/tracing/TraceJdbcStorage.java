@@ -76,6 +76,10 @@ public class TraceJdbcStorage implements ITraceStorage {
 
     @Override
     public void initialize() {
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
+
         dslContext.createTableIfNotExists(Tables.BITHON_TRACE_SPAN)
                   .columns(Tables.BITHON_TRACE_SPAN.fields())
                   .indexes(Tables.BITHON_TRACE_SPAN.getIndexes())

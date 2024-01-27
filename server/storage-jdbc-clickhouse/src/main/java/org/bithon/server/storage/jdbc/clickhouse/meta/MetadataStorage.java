@@ -57,6 +57,9 @@ public class MetadataStorage extends MetadataJdbcStorage {
 
     @Override
     public void initialize() {
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
         new TableCreator(config, this.dslContext).useReplacingMergeTree(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.getName())
                                                  // No partition for this table
                                                  // This is a tradeoff for the data expiration.

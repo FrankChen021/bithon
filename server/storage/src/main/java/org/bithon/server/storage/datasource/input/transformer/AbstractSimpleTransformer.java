@@ -36,11 +36,12 @@ public abstract class AbstractSimpleTransformer implements ITransformer {
     }
 
     @Override
-    public void transform(IInputRow inputRow) {
+    public boolean transform(IInputRow inputRow) {
         Object obj = this.transformInternal(inputRow);
         if (obj != null) {
             inputRow.updateColumn(field, obj);
         }
+        return true;
     }
 
     protected abstract Object transformInternal(IInputRow row);

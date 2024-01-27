@@ -79,6 +79,10 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @Override
     public void initialize() {
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
+
         Table<?>[] tables = new Table[]{
             Tables.BITHON_TRACE_SPAN_SUMMARY,
             Tables.BITHON_TRACE_SPAN,

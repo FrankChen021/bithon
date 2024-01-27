@@ -32,5 +32,7 @@ public class StorageConfig {
     private String type;
     private String provider;
 
+    private boolean createTable = true;
+
     private ExpirationConfig ttl;
 }

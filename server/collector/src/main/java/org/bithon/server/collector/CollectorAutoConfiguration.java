@@ -18,29 +18,17 @@ package org.bithon.server.collector;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.server.collector.sink.kafka.KafkaEventSink;
-import org.bithon.server.collector.sink.kafka.KafkaMetricSink;
-import org.bithon.server.collector.sink.kafka.KafkaTraceSink;
-import org.bithon.server.collector.source.brpc.BrpcCollectorConfig;
-import org.bithon.server.sink.event.IEventMessageSink;
-import org.bithon.server.sink.metrics.IMetricMessageSink;
-import org.bithon.server.sink.tracing.ITraceMessageSink;
-import org.springframework.boot.autoconfigure.AutoConfigureOrder;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.bithon.server.collector.source.brpc.BrpcEventCollector;
+import org.bithon.server.collector.source.brpc.BrpcMetricCollector;
+import org.bithon.server.collector.source.brpc.BrpcTraceCollector;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
-
-import java.io.IOException;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 9/12/21 5:23 PM
  */
 @Configuration
-@AutoConfigureOrder(Ordered.LOWEST_PRECEDENCE)
 public class CollectorAutoConfiguration {
 
     @Bean
@@ -48,7 +36,7 @@ public class CollectorAutoConfiguration {
         return new Module() {
             @Override
             public String getModuleName() {
-                return "sink-kafka";
+                return "bithon-collector";
             }
 
             @Override
@@ -58,31 +46,10 @@ public class CollectorAutoConfiguration {
 
             @Override
             public void setupModule(SetupContext context) {
-                context.registerSubtypes(KafkaEventSink.class,
-                                         KafkaMetricSink.class,
-                                         KafkaTraceSink.class);
+                context.registerSubtypes(BrpcTraceCollector.class,
+                                         BrpcMetricCollector.class,
+                                         BrpcEventCollector.class);
             }
         };
-    }
-
-    @Bean
-    @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
-    public IMetricMessageSink metricSink(BrpcCollectorConfig config,
-                                         ObjectMapper om) throws IOException {
-        return config.getSinks().getMetrics().createSink(om, IMetricMessageSink.class);
-    }
-
-    @Bean
-    @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
-    public IEventMessageSink eventSink(BrpcCollectorConfig config,
-                                       ObjectMapper om) throws IOException {
-        return config.getSinks().getEvent().createSink(om, IEventMessageSink.class);
-    }
-
-    @Bean("trace-sink-collector")
-    @ConditionalOnExpression(value = "${collector-brpc.enabled: false} or ${collector-http.enabled: false}")
-    public ITraceMessageSink traceSink(BrpcCollectorConfig config,
-                                       ObjectMapper om) throws IOException {
-        return config.getSinks().getTracing().createSink(om, ITraceMessageSink.class);
     }
 }

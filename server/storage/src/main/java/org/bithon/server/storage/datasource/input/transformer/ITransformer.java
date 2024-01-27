@@ -39,12 +39,14 @@ import org.bithon.server.storage.datasource.input.IInputRow;
     @JsonSubTypes.Type(name = "add", value = AddFieldTransformer.class),
     @JsonSubTypes.Type(name = "has", value = HasFieldTransformer.class),
     @JsonSubTypes.Type(name = "as", value = AsTransformer.class),
-    @JsonSubTypes.Type(name = "regexpr", value = RegExprTransformer.class)
+    @JsonSubTypes.Type(name = "regexpr", value = RegExprTransformer.class),
+    @JsonSubTypes.Type(name = "filter", value = FilterTransformer.class),
+    @JsonSubTypes.Type(name = "probabilistic_sampler", value = ProbabilisticSamplerTransform.class),
 })
 public interface ITransformer {
 
     class TransformException extends RuntimeException {
     }
 
-    void transform(IInputRow inputRow) throws TransformException;
+    boolean transform(IInputRow inputRow) throws TransformException;
 }
