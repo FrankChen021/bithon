@@ -23,7 +23,7 @@ import org.bithon.server.pipeline.event.IEventProcessor;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "store", value = SinkToStorageExporter.class),
+    @JsonSubTypes.Type(name = "store", value = ToEventStorageExporter.class),
     @JsonSubTypes.Type(name = "kafka", value = KafkaEventExporter.class)
 })
 public interface IEventExporter extends IEventProcessor, IExporter {

@@ -46,13 +46,13 @@ import java.util.function.Function;
  * @date 2021/2/4 8:21 下午
  */
 @Slf4j
-public class ToStorageExporter implements ITraceExporter {
+public class ToTraceStorageExporter implements ITraceExporter {
 
     @Getter
     private final Handler handler;
 
     @JsonCreator
-    public ToStorageExporter(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+    public ToTraceStorageExporter(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.handler = new Handler(applicationContext);
     }
 

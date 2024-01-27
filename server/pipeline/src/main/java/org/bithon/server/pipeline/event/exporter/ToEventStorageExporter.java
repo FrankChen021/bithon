@@ -33,12 +33,12 @@ import java.util.List;
  * @date 2022/11/29 21:34
  */
 @Slf4j
-public class SinkToStorageExporter implements IEventExporter {
+public class ToEventStorageExporter implements IEventExporter {
     private final IEventWriter writer;
 
     @JsonCreator
-    public SinkToStorageExporter(@JacksonInject(useInput = OptBoolean.FALSE) IEventStorage eventStorage,
-                                 @JacksonInject(useInput = OptBoolean.FALSE) EventPipelineConfig pipelineConfig) {
+    public ToEventStorageExporter(@JacksonInject(useInput = OptBoolean.FALSE) IEventStorage eventStorage,
+                                  @JacksonInject(useInput = OptBoolean.FALSE) EventPipelineConfig pipelineConfig) {
         this.writer = new EventBatchWriter(eventStorage.createWriter(), pipelineConfig);
     }
 
