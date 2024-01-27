@@ -17,6 +17,7 @@
 package org.bithon.server.pipeline.tracing;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.bithon.server.pipeline.common.BatchConfig;
 import org.bithon.server.pipeline.common.pipeline.PipelineConfig;
 import org.bithon.server.pipeline.tracing.mapping.TraceIdMappingConfig;
@@ -31,6 +32,7 @@ import java.util.List;
  * @date 10/12/21 3:33 PM
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Configuration(proxyBeanMethods = false)
 @ConfigurationProperties(prefix = "bithon.pipelines.traces")
 public class TracePipelineConfig extends PipelineConfig {

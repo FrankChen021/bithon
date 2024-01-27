@@ -17,6 +17,7 @@
 package org.bithon.server.pipeline.metrics;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.bithon.server.pipeline.common.BatchConfig;
 import org.bithon.server.pipeline.common.pipeline.PipelineConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -27,6 +28,7 @@ import org.springframework.context.annotation.Configuration;
  * @date 2022/11/29 21:37
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Configuration
 @ConfigurationProperties(prefix = "bithon.pipelines.metrics")
 public class MetricPipelineConfig extends PipelineConfig {
