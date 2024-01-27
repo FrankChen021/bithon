@@ -24,12 +24,12 @@ import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.datasource.DataSourceExistException;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.IMetricReader;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
-import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.Interval;
@@ -51,6 +51,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -225,18 +226,19 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public Collection<Map<String, String>> getDimensions(GetDimensionRequest request) {
+    public Collection<Map<String, String>> getDimensions(GetDimensionRequest request) throws IOException {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         IColumn column = schema.getColumnByName(request.getName());
         Preconditions.checkNotNull(column, "Field [%s] does not exist in the schema.", request.getName());
 
-        return this.metricStorage.createMetricReader(schema)
-                                 .getDistinctValues(TimeSpan.fromISO8601(request.getStartTimeISO8601()),
-                                                    TimeSpan.fromISO8601(request.getEndTimeISO8601()),
-                                                    schema,
-                                                    FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters()),
-                                                    column.getName());
+        return schema.getDataStoreSpec()
+                     .createReader()
+                     .getDistinctValues(TimeSpan.fromISO8601(request.getStartTimeISO8601()),
+                                        TimeSpan.fromISO8601(request.getEndTimeISO8601()),
+                                        schema,
+                                        FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters()),
+                                        column.getName());
     }
 
     @Override

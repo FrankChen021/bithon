@@ -28,7 +28,7 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.meta.EndPointType;
-import org.bithon.server.storage.metrics.IMetricReader;
+import org.bithon.server.storage.datasource.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.WebServiceModuleEnabler;

@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.constraints.Min;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +69,7 @@ public interface IDataSourceApi {
      * Get distinct values of a specific column under given condition
      */
     @PostMapping("/api/datasource/dimensions/v2")
-    Collection<Map<String, String>> getDimensions(@Validated @RequestBody GetDimensionRequest request);
+    Collection<Map<String, String>> getDimensions(@Validated @RequestBody GetDimensionRequest request) throws IOException;
 
     @PostMapping("/api/datasource/ttl/update")
     void updateSpecifiedDataSourceTTL(@RequestBody UpdateTTLRequest request);

@@ -25,6 +25,7 @@ import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
+import org.bithon.server.storage.event.EventDataStoreSpec;
 import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.meta.CacheableMetadataStorage;
@@ -36,6 +37,7 @@ import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.storage.setting.ISettingStorage;
 import org.bithon.server.storage.setting.SettingStorageConfig;
 import org.bithon.server.storage.tracing.ITraceStorage;
+import org.bithon.server.storage.tracing.TraceDataStore;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.storage.tracing.index.TagIndexConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -62,8 +64,8 @@ public class StorageModuleAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty(value = "bithon.storage.metric.enabled", havingValue = "true")
-    public IMetricStorage createMetricStorage(MetricStorageConfig storageConfig,
-                                              StorageProviderManager storageProviderManager) throws IOException {
+    public IMetricStorage metricStorage(MetricStorageConfig storageConfig,
+                                        StorageProviderManager storageProviderManager) throws IOException {
         String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
         InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
                                               "[%s] is not properly configured to enable the Metric module.",
@@ -77,8 +79,8 @@ public class StorageModuleAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty(value = "bithon.storage.meta.enabled", havingValue = "true")
-    public ISchemaStorage createSchemaStorage(MetaStorageConfig storageConfig,
-                                              StorageProviderManager storageProviderManager) throws IOException {
+    public ISchemaStorage schemaStorage(MetaStorageConfig storageConfig,
+                                        StorageProviderManager storageProviderManager) throws IOException {
         String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
         InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
                                               "[%s] is not properly configured to enable the schema storage.",
@@ -118,9 +120,16 @@ public class StorageModuleAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnBean(ISchemaStorage.class)
+    DataSourceSchemaManager schemaManager(ISchemaStorage schemaStorage) {
+        return new DataSourceSchemaManager(schemaStorage);
+    }
+
+    @Bean
     @ConditionalOnProperty(value = "bithon.storage.tracing.enabled", havingValue = "true")
     public ITraceStorage traceStorage(TraceStorageConfig storageConfig,
-                                      StorageProviderManager storageProviderManager) throws IOException {
+                                      StorageProviderManager storageProviderManager,
+                                      DataSourceSchemaManager schemaManager) throws IOException {
         String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
         InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
                                               "[%s] is not properly configured to enable the Tracing module.",
@@ -129,6 +138,9 @@ public class StorageModuleAutoConfiguration {
 
         ITraceStorage storage = storageProviderManager.createStorage(providerName, ITraceStorage.class);
         storage.initialize();
+
+        schemaManager.addDataSourceSchema(this.createTraceSpanSchema(storage));
+        schemaManager.addDataSourceSchema(this.createTraceTagIndexSchema(storage, storageConfig.getIndexes()));
         return storage;
     }
 
@@ -162,21 +174,7 @@ public class StorageModuleAutoConfiguration {
         return storage;
     }
 
-    private DataSourceSchema createEventTableSchema() {
-        return new DataSourceSchema("event",
-                                    "event",
-                                    new TimestampSpec("timestamp", null, null),
-                                    Arrays.asList(new StringColumn("appName",
-                                                                   "appName"),
-                                                  new StringColumn("instanceName",
-                                                                   "instanceName"),
-                                                  new StringColumn("type",
-                                                                   "type")),
-                                    Collections.singletonList(AggregateCountColumn.INSTANCE));
-
-    }
-
-    private DataSourceSchema createTraceSpanSchema() {
+    private DataSourceSchema createTraceSpanSchema(ITraceStorage traceStorage) {
         DataSourceSchema dataSourceSchema =
             new DataSourceSchema("trace_span_summary",
                                  "trace_span_summary",
@@ -194,12 +192,16 @@ public class StorageModuleAutoConfiguration {
                                  Arrays.asList(AggregateCountColumn.INSTANCE,
                                                // microsecond
                                                new AggregateLongSumColumn("costTimeMs",
-                                                                          "costTimeMs")));
+                                                                          "costTimeMs")),
+                                 null,
+                                 new TraceDataStore("bithon_trace_span_summary", traceStorage),
+                                 null,
+                                 null);
         dataSourceSchema.setVirtual(true);
         return dataSourceSchema;
     }
 
-    private DataSourceSchema createTraceTagIndexSchema(TagIndexConfig tagIndexConfig) {
+    private DataSourceSchema createTraceTagIndexSchema(ITraceStorage traceStorage, TagIndexConfig tagIndexConfig) {
         List<IColumn> dimensionSpecs = new ArrayList<>();
         if (tagIndexConfig != null) {
             for (Map.Entry<String, Integer> entry : tagIndexConfig.getMap().entrySet()) {
@@ -215,18 +217,12 @@ public class StorageModuleAutoConfiguration {
                                                                     "trace_span_tag_index",
                                                                     new TimestampSpec("timestamp", null, null),
                                                                     dimensionSpecs,
-                                                                    Collections.singletonList(AggregateCountColumn.INSTANCE));
+                                                                    Collections.singletonList(AggregateCountColumn.INSTANCE),
+                                                                    null,
+                                                                    new TraceDataStore("bithon_trace_span_tag_index", traceStorage),
+                                                                    null,
+                                                                    null);
         spanTagSchema.setVirtual(true);
         return spanTagSchema;
-    }
-
-    @Bean
-    @ConditionalOnBean(ISchemaStorage.class)
-    DataSourceSchemaManager schemaManager(ISchemaStorage schemaStorage, TraceStorageConfig traceStorageConfig) {
-        DataSourceSchemaManager schemaManager = new DataSourceSchemaManager(schemaStorage);
-        schemaManager.addDataSourceSchema(createEventTableSchema());
-        schemaManager.addDataSourceSchema(createTraceSpanSchema());
-        schemaManager.addDataSourceSchema(createTraceTagIndexSchema(traceStorageConfig.getIndexes()));
-        return schemaManager;
     }
 }

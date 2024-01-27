@@ -16,12 +16,20 @@
 
 package org.bithon.server.storage.datasource.store;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.bithon.component.commons.Experimental;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IMetricReader;
 
+import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -36,16 +44,16 @@ public class ExternalDataStoreSpec implements IDataStoreSpec {
     private final Map<String, String> properties;
     private final String store;
 
+    @JsonIgnore
+    private final ObjectMapper objectMapper;
+
     @JsonCreator
     public ExternalDataStoreSpec(@JsonProperty("properties") Map<String, String> properties,
-                                 @JsonProperty("store") String store) {
+                                 @JsonProperty("store") String store,
+                                 @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         this.properties = properties == null ? Collections.emptyMap() : properties;
         this.store = store;
-    }
-
-    @Override
-    public String getType() {
-        return "external";
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -53,8 +61,30 @@ public class ExternalDataStoreSpec implements IDataStoreSpec {
         return store;
     }
 
+    @Override
+    public void setDataSourceSchema(DataSourceSchema schema) {
+    }
+
+    @Override
+    public boolean isInternal() {
+        return false;
+    }
+
     public ExternalDataStoreSpec withProperties(Map<String, String> properties) {
-        return new ExternalDataStoreSpec(properties, store);
+        return new ExternalDataStoreSpec(properties, store, objectMapper);
+    }
+
+    @Override
+    public IMetricReader createReader() throws IOException {
+        Map<String, Object> args = new HashMap<>();
+
+        // Only JDBC type is supported now
+        // In the future, if the external source is extended,
+        // the 'type' property should be provided in the spec
+        args.put("type", "jdbc");
+        args.put("name", store);
+        args.put("props", this.properties);
+        return objectMapper.readValue(objectMapper.writeValueAsBytes(args), IMetricReader.class);
     }
 
     @Override

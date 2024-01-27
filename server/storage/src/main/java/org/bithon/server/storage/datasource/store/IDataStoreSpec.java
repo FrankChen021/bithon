@@ -20,42 +20,40 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.component.commons.Experimental;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IMetricReader;
+import org.bithon.server.storage.tracing.TraceDataStore;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
  * @author Frank Chen
  * @date 18/5/23 1:59 pm
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = InternalDataSourceSpec.class)
 @JsonSubTypes(value = {
-        @JsonSubTypes.Type(name = "internal", value = InternalDataSourceSpec.class),
-        @JsonSubTypes.Type(name = "external", value = ExternalDataStoreSpec.class)
+    @JsonSubTypes.Type(name = "metric", value = InternalDataSourceSpec.class),
+    @JsonSubTypes.Type(name = "trace", value = TraceDataStore.class),
+    @JsonSubTypes.Type(name = "event", value = TraceDataStore.class),
+    @JsonSubTypes.Type(name = "external", value = ExternalDataStoreSpec.class),
 })
 @Experimental
 public interface IDataStoreSpec {
-    /**
-     * internal | external
-     */
-    @JsonIgnore
-    String getType();
 
     /**
      * the name of data source at store layer
      */
     String getStore();
 
-    @JsonIgnore
-    default boolean isInternal() {
-        return "internal".equals(getType());
-    }
+    void setDataSourceSchema(DataSourceSchema schema);
 
     @JsonIgnore
-    default String getProperty(String name) {
-        return getProperties().get(name);
-    }
+    boolean isInternal();
 
     Map<String, String> getProperties();
 
     IDataStoreSpec withProperties(Map<String, String> properties);
+
+    IMetricReader createReader() throws IOException;
 }

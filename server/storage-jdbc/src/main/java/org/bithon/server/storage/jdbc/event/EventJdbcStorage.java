@@ -25,6 +25,7 @@ import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.event.EventSchema;
 import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.event.IEventReader;
 import org.bithon.server.storage.event.IEventStorage;
@@ -62,7 +63,6 @@ public class EventJdbcStorage implements IEventStorage {
              schemaManager);
     }
 
-
     protected EventJdbcStorage(DSLContext dslContext,
                                ObjectMapper objectMapper,
                                EventStorageConfig storageConfig,
@@ -72,7 +72,9 @@ public class EventJdbcStorage implements IEventStorage {
         this.objectMapper = objectMapper;
         this.storageConfig = storageConfig;
         this.sqlDialect = sqlDialectManager.getSqlDialect(dslContext);
-        this.eventTableSchema = schemaManager.getDataSourceSchema("event");
+        this.eventTableSchema = EventSchema.createEventTableSchema(this);
+
+        schemaManager.addDataSourceSchema(this.eventTableSchema);
     }
 
     @Override

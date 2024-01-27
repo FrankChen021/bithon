@@ -19,6 +19,7 @@ package org.bithon.server.storage.tracing;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.common.IStorage;
 import org.bithon.server.storage.common.expiration.IExpirable;
+import org.bithon.server.storage.datasource.DataSourceSchema;
 
 /**
  * @author frank.chen021@outlook.com
@@ -38,5 +39,4 @@ public interface ITraceStorage extends IStorage, IExpirable {
     ITraceWriter createWriter();
 
     ITraceReader createReader();
-
 }

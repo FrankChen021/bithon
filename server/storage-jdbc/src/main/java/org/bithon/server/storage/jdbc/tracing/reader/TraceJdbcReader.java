@@ -33,10 +33,13 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IMetricReader;
 import org.bithon.server.storage.datasource.query.Order;
+import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
+import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
@@ -392,6 +395,35 @@ public class TraceJdbcReader implements ITraceReader {
         } catch (JsonProcessingException ignored) {
             return Collections.emptyMap();
         }
+    }
+
+    protected IMetricReader getDataSourceReader() {
+        return new MetricJdbcReader(this.dslContext, sqlDialect);
+    }
+
+    @Override
+    public List<Map<String, Object>> timeseries(Query query) {
+        return getDataSourceReader().timeseries(query);
+    }
+
+    @Override
+    public List<?> groupBy(Query query) {
+        return getDataSourceReader().groupBy(query);
+    }
+
+    @Override
+    public List<Map<String, Object>> list(Query query) {
+        return getDataSourceReader().list(query);
+    }
+
+    @Override
+    public int listSize(Query query) {
+        return getDataSourceReader().listSize(query);
+    }
+
+    @Override
+    public List<Map<String, String>> getDistinctValues(TimeSpan start, TimeSpan end, DataSourceSchema dataSourceSchema, IExpression filter, String dimension) {
+        return getDataSourceReader().getDistinctValues(start, end, dataSourceSchema, filter, dimension);
     }
 
     static class SpanKindIsRootDetector implements IExpressionVisitor {

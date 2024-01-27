@@ -14,34 +14,29 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.store;
+package org.bithon.server.storage.tracing;
 
-import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.IMetricReader;
-import org.bithon.server.storage.metrics.IMetricStorage;
+import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author Frank Chen
- * @date 22/6/23 4:10 pm
+ * @date 26/1/24 3:43 pm
  */
-public class InternalDataSourceSpec implements IDataStoreSpec {
+public class TraceDataStore implements IDataStoreSpec {
+
+    private final String store;
 
     @JsonIgnore
-    private String store;
+    private final ITraceStorage storage;
 
-    @JsonIgnore
-    private final IMetricStorage storage;
-    @JsonIgnore
-    private DataSourceSchema schema;
-
-    public InternalDataSourceSpec(@JacksonInject(useInput = OptBoolean.FALSE) IMetricStorage storage) {
+    public TraceDataStore(String store, ITraceStorage storage) {
+        this.store = store;
         this.storage = storage;
     }
 
@@ -52,8 +47,6 @@ public class InternalDataSourceSpec implements IDataStoreSpec {
 
     @Override
     public void setDataSourceSchema(DataSourceSchema schema) {
-        this.store = "bithon_" + schema.getName().replaceAll("-", "_");
-        this.schema = schema;
     }
 
     @Override
@@ -61,7 +54,6 @@ public class InternalDataSourceSpec implements IDataStoreSpec {
         return true;
     }
 
-    @JsonIgnore
     @Override
     public Map<String, String> getProperties() {
         return Collections.emptyMap();
@@ -74,23 +66,6 @@ public class InternalDataSourceSpec implements IDataStoreSpec {
 
     @Override
     public IMetricReader createReader() {
-        return storage.createMetricReader(schema);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        InternalDataSourceSpec that = (InternalDataSourceSpec) o;
-        return Objects.equals(store, that.store);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(store);
+        return storage.createReader();
     }
 }

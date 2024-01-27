@@ -16,10 +16,14 @@
 
 package org.bithon.server.storage.datasource;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 import org.bithon.server.commons.time.Period;
@@ -29,7 +33,6 @@ import org.bithon.server.storage.datasource.column.LongColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
-import org.bithon.server.storage.datasource.store.InternalDataSourceSpec;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -66,7 +69,8 @@ public class DataSourceSchema {
      * Experimental
      */
     @Getter
-    private final IDataStoreSpec dataStoreSpec;
+    @Setter
+    private IDataStoreSpec dataStoreSpec;
 
     /**
      * Data source level ttl.
@@ -111,7 +115,7 @@ public class DataSourceSchema {
                             TimestampSpec timestampSpec,
                             List<IColumn> dimensionsSpec,
                             List<IColumn> metricsSpec) {
-        this(displayText, name, timestampSpec, dimensionsSpec, metricsSpec, null, null, null);
+        this(displayText, name, timestampSpec, dimensionsSpec, metricsSpec, null, null, null, null);
     }
 
     @JsonCreator
@@ -122,14 +126,15 @@ public class DataSourceSchema {
                             @JsonProperty("metricsSpec") List<IColumn> metricsSpec,
                             @JsonProperty("inputSourceSpec") @Nullable JsonNode inputSourceSpec,
                             @JsonProperty("storeSpec") @Nullable IDataStoreSpec dataStoreSpec,
-                            @JsonProperty("ttl") @Nullable Period ttl) {
+                            @JsonProperty("ttl") @Nullable Period ttl,
+                            @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         this.displayText = displayText == null ? name : displayText;
         this.name = name;
         this.timestampSpec = timestampSpec == null ? new TimestampSpec("timestamp", "auto", null) : timestampSpec;
         this.dimensionsSpec = dimensionsSpec;
         this.metricsSpec = metricsSpec;
         this.inputSourceSpec = inputSourceSpec;
-        this.dataStoreSpec = dataStoreSpec == null ? new InternalDataSourceSpec("bithon_" + name.replaceAll("-", "_")) : dataStoreSpec;
+        this.dataStoreSpec = dataStoreSpec;
         this.ttl = ttl;
 
         this.dimensionsSpec.forEach((dimensionSpec) -> {
@@ -148,7 +153,7 @@ public class DataSourceSchema {
             }
         });
 
-        columnMap.putIfAbsent(IAggregatableColumn.COUNT, AggregateCountColumn.INSTANCE);
+        this.columnMap.putIfAbsent(IAggregatableColumn.COUNT, AggregateCountColumn.INSTANCE);
 
         if ("timestamp".equals(this.timestampSpec.getTimestampColumn())) {
             this.columnMap.put(TIMESTAMP_COLUMN.getName(), TIMESTAMP_COLUMN);
@@ -157,6 +162,15 @@ public class DataSourceSchema {
                                new LongColumn(this.timestampSpec.getTimestampColumn(),
                                               this.timestampSpec.getTimestampColumn()));
         }
+
+        if (this.dataStoreSpec == null) {
+            try {
+                this.dataStoreSpec = objectMapper.readValue("{\"type\": \"metric\"}", IDataStoreSpec.class);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        this.dataStoreSpec.setDataSourceSchema(this);
     }
 
     public IColumn getColumnByName(String name) {
@@ -193,6 +207,7 @@ public class DataSourceSchema {
                                     this.metricsSpec,
                                     this.inputSourceSpec,
                                     dataStoreSpec,
-                                    this.ttl);
+                                    this.ttl,
+                                    null);
     }
 }

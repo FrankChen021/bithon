@@ -19,6 +19,7 @@ package org.bithon.server.storage.tracing;
 import lombok.Data;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.datasource.IMetricReader;
 import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 
@@ -30,7 +31,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/2/6 3:28 下午
  */
-public interface ITraceReader {
+public interface ITraceReader extends IMetricReader {
     List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end);
 
     List<TraceSpan> getTraceList(IExpression filter,

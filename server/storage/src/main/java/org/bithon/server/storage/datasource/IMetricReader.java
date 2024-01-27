@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.metrics;
+package org.bithon.server.storage.datasource;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.server.commons.time.TimeSpan;
@@ -39,8 +39,6 @@ public interface IMetricReader {
 
     List<Map<String, Object>> list(Query query);
     int listSize(Query query);
-
-    List<Map<String, Object>> executeSql(String sql);
 
     List<Map<String, String>> getDistinctValues(TimeSpan start,
                                                 TimeSpan end,

@@ -42,7 +42,7 @@ import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorageCleaner;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcWriter;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
-import org.bithon.server.storage.metrics.IMetricReader;
+import org.bithon.server.storage.datasource.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.jooq.DSLContext;
@@ -88,7 +88,7 @@ public class MetricStorage extends MetricJdbcStorage {
 
     @Override
     public IExpirationRunnable getExpirationRunnable() {
-        return new StorageCleaner(dslContext, schemaManager, this.storageConfig.getTtl(), config, this.sqlDialectManager.getSqlDialect(dslContext));
+        return new StorageCleaner(dslContext, schemaManager, this.storageConfig.getTtl(), config, this.sqlDialect);
     }
 
     static class StorageCleaner extends MetricJdbcStorageCleaner {

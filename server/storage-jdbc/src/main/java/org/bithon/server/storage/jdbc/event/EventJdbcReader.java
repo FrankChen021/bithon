@@ -25,6 +25,7 @@ import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonEventRecord;
+import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
 import org.jooq.DSLContext;
 import org.jooq.SelectConditionStep;
 import org.jooq.impl.DSL;
@@ -36,27 +37,25 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2022/11/29 21:08
  */
-public class EventJdbcReader implements IEventReader {
-    private final DSLContext dslContext;
+public class EventJdbcReader extends MetricJdbcReader implements IEventReader {
     private final DataSourceSchema eventTableSchema;
-    private final ISqlDialect sqlDialect;
 
     EventJdbcReader(DSLContext dslContext, ISqlDialect sqlDialect, DataSourceSchema eventTableSchema) {
-        this.dslContext = dslContext;
-        this.sqlDialect = sqlDialect;
+        super(dslContext, sqlDialect);
+
         this.eventTableSchema = eventTableSchema;
     }
 
     @Override
     public void close() {
-        dslContext.close();
+        dsl.close();
     }
 
     @Override
     public List<Event> getEventList(IExpression filter, TimeSpan start, TimeSpan end, int pageNumber, int pageSize) {
-        SelectConditionStep<BithonEventRecord> step = dslContext.selectFrom(Tables.BITHON_EVENT)
-                                                                .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp().toLocalDateTime()))
-                                                                .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp().toLocalDateTime()));
+        SelectConditionStep<BithonEventRecord> step = dsl.selectFrom(Tables.BITHON_EVENT)
+                                                         .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp().toLocalDateTime()))
+                                                         .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp().toLocalDateTime()));
 
         if (filter != null) {
             step = step.and(Expression2Sql.from(eventTableSchema, sqlDialect, filter));
@@ -78,10 +77,10 @@ public class EventJdbcReader implements IEventReader {
 
     @Override
     public int getEventListSize(IExpression filter, TimeSpan start, TimeSpan end) {
-        SelectConditionStep<?> step = dslContext.select(DSL.count())
-                                                .from(Tables.BITHON_EVENT)
-                                                .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp().toLocalDateTime()))
-                                                .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp().toLocalDateTime()));
+        SelectConditionStep<?> step = dsl.select(DSL.count())
+                                         .from(Tables.BITHON_EVENT)
+                                         .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp().toLocalDateTime()))
+                                         .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp().toLocalDateTime()));
 
         if (filter != null) {
             step = step.and(Expression2Sql.from(eventTableSchema, sqlDialect, filter));
