@@ -16,10 +16,10 @@
 
 package org.bithon.server.collector.source.otel;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.sink.tracing.ITraceMessageSink;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.bithon.server.pipeline.tracing.ITraceProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,18 +38,18 @@ import java.util.zip.InflaterInputStream;
  */
 @Slf4j
 @RestController
-@ConditionalOnProperty(value = "collector-otel.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "bithon.receivers.traces.otel-http.enabled", havingValue = "true")
 public class OtelHttpTraceCollector {
 
-    private final ITraceMessageSink traceSink;
-
-    public OtelHttpTraceCollector(@Qualifier("trace-sink-collector") ITraceMessageSink traceSink) {
-        this.traceSink = traceSink;
-    }
+    @Setter
+    private ITraceProcessor processor;
 
     @PostMapping("/api/collector/otel/trace")
     public void collectBinaryFormattedTrace(HttpServletRequest request,
                                             HttpServletResponse response) throws IOException {
+        if (processor == null) {
+            return;
+        }
 
         InputStream is;
         String encoding = request.getHeader("Content-Encoding");
@@ -80,7 +80,7 @@ public class OtelHttpTraceCollector {
             return;
         }
 
-        this.traceSink.process("trace",
+        this.processor.process("trace",
                                spanConverter.toSpanList());
     }
 }

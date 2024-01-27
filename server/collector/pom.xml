@@ -42,18 +42,13 @@
     <!-- BRPC -->
     <dependency>
       <groupId>org.bithon</groupId>
-      <artifactId>server-sink</artifactId>
+      <artifactId>server-pipeline</artifactId>
     </dependency>
 
     <!-- Bithon Commons -->
     <dependency>
       <groupId>org.bithon</groupId>
       <artifactId>component-commons</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
     </dependency>
 
     <!-- Collector is declared as a discoverable service,

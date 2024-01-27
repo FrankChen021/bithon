@@ -19,7 +19,6 @@ package org.bithon.server.web.service.topo.service;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bithon.server.storage.meta.EndPointType;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -34,7 +33,7 @@ public class EndpointBo {
     private static final AtomicLong ID = new AtomicLong();
 
     private final String id = String.valueOf(ID.addAndGet(1));
-    private EndPointType type;
+    private String type;
     private String name;
     private long x;
     private long y;

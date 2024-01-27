@@ -77,7 +77,15 @@ public class EventJdbcStorage implements IEventStorage {
 
     @Override
     public void initialize() {
-        this.dslContext.createTableIfNotExists(Tables.BITHON_EVENT).columns(Tables.BITHON_EVENT.fields()).indexes(Tables.BITHON_EVENT.getIndexes()).execute();
+        if (!storageConfig.isCreateTable()) {
+            return;
+        }
+
+        this.dslContext.createTableIfNotExists(Tables.BITHON_EVENT)
+                       .columns(Tables.BITHON_EVENT.fields())
+                       .indexes(Tables.BITHON_EVENT.getIndexes())
+                       .execute();
+
     }
 
     @Override

@@ -1,0 +1,34 @@
+bithon:
+  pipelines:
+    events:
+      enabled: true
+      receivers:
+        - type: brpc
+      exporters:
+        - type: store
+
+    metrics:
+      enabled: true
+      receivers:
+        - type: brpc
+      exporters:
+        - type: store
+
+    traces:
+      enabled: true
+      receivers:
+        - type: brpc
+      processors:
+        - type: filter
+          expr: clazz <> 'org.bithon.server.sink.common.service.UriNormalizer'
+        - type: url-sanitize-transform
+          sensitiveParameters:
+            - password
+        - type: builtin-span-transform
+      exporters:
+        - type: store
+
+
+logging:
+  level:
+    org.bithon.collector: debug

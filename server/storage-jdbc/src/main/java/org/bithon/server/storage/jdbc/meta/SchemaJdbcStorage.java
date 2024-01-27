@@ -27,6 +27,7 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.meta.ISchemaStorage;
+import org.bithon.server.storage.meta.MetaStorageConfig;
 import org.jooq.DSLContext;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -44,21 +45,29 @@ import java.util.stream.Collectors;
 public class SchemaJdbcStorage implements ISchemaStorage {
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
+    protected final MetaStorageConfig storageConfig;
 
     @JsonCreator
     public SchemaJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration,
-                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
-        this(providerConfiguration.getDslContext(), objectMapper);
+                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
+                             @JacksonInject(useInput = OptBoolean.FALSE) MetaStorageConfig storageConfig) {
+        this(providerConfiguration.getDslContext(), objectMapper, storageConfig);
     }
 
     public SchemaJdbcStorage(DSLContext dslContext,
-                             ObjectMapper objectMapper) {
+                             ObjectMapper objectMapper,
+                             MetaStorageConfig storageConfig) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
+        this.storageConfig = storageConfig;
     }
 
     @Override
     public void initialize() {
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
+
         this.dslContext.createTableIfNotExists(Tables.BITHON_META_SCHEMA)
                        .columns(Tables.BITHON_META_SCHEMA.fields())
                        .indexes(Tables.BITHON_META_SCHEMA.getIndexes())

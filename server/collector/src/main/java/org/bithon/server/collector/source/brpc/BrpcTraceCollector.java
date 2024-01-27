@@ -16,15 +16,28 @@
 
 package org.bithon.server.collector.source.brpc;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
-import org.bithon.server.sink.tracing.ITraceMessageSink;
+import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.collector.source.http.TraceHttpCollector;
+import org.bithon.server.collector.source.otel.OtelHttpTraceCollector;
+import org.bithon.server.pipeline.tracing.ITraceProcessor;
+import org.bithon.server.pipeline.tracing.receiver.ITraceReceiver;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -34,12 +47,50 @@ import java.util.stream.Collectors;
  * @date 2021/1/23 11:19 下午
  */
 @Slf4j
-public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
+@JsonTypeName("brpc")
+public class BrpcTraceCollector implements ITraceCollector, ITraceReceiver {
 
-    private final ITraceMessageSink traceSink;
+    private final ApplicationContext applicationContext;
+    private final int port;
+    private ITraceProcessor processor;
+    private BrpcCollectorServer.ServiceGroup serviceGroup;
 
-    public BrpcTraceCollector(ITraceMessageSink traceSink) {
-        this.traceSink = traceSink;
+    @JsonCreator
+    public BrpcTraceCollector(@JacksonInject(useInput = OptBoolean.FALSE) Environment environment,
+                              @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+        BrpcCollectorConfig config = Binder.get(environment).bind("bithon.receivers.traces.brpc", BrpcCollectorConfig.class).get();
+        Preconditions.checkIfTrue(config.isEnabled(), "The brpc collector is configured as DISABLED.");
+        Preconditions.checkNotNull(config.getPort(), "The port for the event collector is not configured.");
+        Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535, "The port for the event collector must be in the range of (1000, 65535).");
+
+        this.port = config.getPort();
+        this.applicationContext = applicationContext;
+    }
+
+    @Override
+    public void start() {
+        serviceGroup = this.applicationContext.getBean(BrpcCollectorServer.class)
+                                              .addService("trace", this, port);
+    }
+
+    @Override
+    public void registerProcessor(ITraceProcessor processor) {
+        this.processor = processor;
+
+        try {
+            this.applicationContext.getBean(TraceHttpCollector.class).setProcessor(processor);
+        } catch (NoSuchBeanDefinitionException ignored) {
+        }
+
+        try {
+            this.applicationContext.getBean(OtelHttpTraceCollector.class).setProcessor(processor);
+        } catch (NoSuchBeanDefinitionException ignored) {
+        }
+    }
+
+    @Override
+    public void stop() {
+        serviceGroup.stop("trace");
     }
 
     @Override
@@ -50,10 +101,10 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
         }
 
         log.debug("Receiving trace message:{}", spans);
-        traceSink.process("trace",
+        processor.process("trace",
                           spans.stream()
                                .map(span -> toSpan(header, span))
-                               .collect(Collectors.toList()));
+                               .collect(Collectors.toCollection(LinkedList::new)));
     }
 
     private TraceSpan toSpan(BrpcMessageHeader header,
@@ -67,8 +118,8 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
         traceSpan.setTraceId(spanBody.getTraceId());
         traceSpan.setSpanId(spanBody.getSpanId());
         traceSpan.setParentSpanId(StringUtils.isEmpty(spanBody.getParentSpanId())
-                                  ? ""
-                                  : spanBody.getParentSpanId());
+                                      ? ""
+                                      : spanBody.getParentSpanId());
         traceSpan.setParentApplication(spanBody.getParentAppName());
         traceSpan.setStartTime(spanBody.getStartTime());
         traceSpan.setEndTime(spanBody.getEndTime());
@@ -81,10 +132,5 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
         // Also, a TreeMap is used to order the keys, which is consistent with the definition in TraceSpan
         traceSpan.setTags(new TreeMap<>(spanBody.getTagsMap()));
         return traceSpan;
-    }
-
-    @Override
-    public void close() throws Exception {
-        traceSink.close();
     }
 }

@@ -27,6 +27,7 @@ import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.web.DashboardJdbcStorage;
 import org.bithon.server.storage.web.Dashboard;
+import org.bithon.server.storage.web.WebAppStorageConfig;
 import org.jooq.Record;
 
 import java.sql.Timestamp;
@@ -43,13 +44,18 @@ public class DashboardStorage extends DashboardJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public DashboardStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration configuration) {
-        super(configuration.getDslContext());
+    public DashboardStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration configuration,
+                            @JacksonInject(useInput = OptBoolean.FALSE) WebAppStorageConfig storageConfig) {
+        super(configuration.getDslContext(), storageConfig);
         this.config = configuration.getClickHouseConfig();
     }
 
     @Override
     public void initialize() {
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
+
         new TableCreator(config, dslContext).useReplacingMergeTree(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.getName())
                                             .partitionByExpression(null)
                                             .secondaryIndex(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.getName(), new TableCreator.SecondaryIndex("minmax", 512))

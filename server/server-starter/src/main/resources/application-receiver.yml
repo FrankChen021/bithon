@@ -1,0 +1,30 @@
+bithon:
+  agent-controller:
+    enabled: true
+    port: 9899
+    permission:
+      rules:
+        - application:
+            type: startwith
+            pattern: bithon-
+          token: "525"
+
+  receivers:
+    metrics:
+      brpc:
+        enabled: true
+        port: 9898
+      http:
+        enabled: true
+    events:
+      brpc:
+        enabled: true
+        port: 9896
+    traces:
+      brpc:
+        enabled: true
+        port: 9895
+      http:
+        enabled: true
+      otel-http:
+        enabled: true

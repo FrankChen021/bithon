@@ -36,9 +36,10 @@ public class ChainTransformer implements ITransformer {
     }
 
     @Override
-    public void transform(IInputRow inputRow) {
+    public boolean transform(IInputRow inputRow) {
         for (ITransformer transformer : transformers) {
             transformer.transform(inputRow);
         }
+        return true;
     }
 }

@@ -17,28 +17,13 @@
 package org.bithon.server.collector.source.brpc;
 
 import lombok.Data;
-import org.bithon.server.collector.sink.SinkConfig;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/23 11:45 下午
  */
 @Data
-@Configuration
-@ConfigurationProperties(prefix = "collector-brpc")
 public class BrpcCollectorConfig {
-    private Map<String, Integer> port;
-
-    private Sinks sinks;
-
-    @Data
-    public static class Sinks {
-        private SinkConfig metrics;
-        private SinkConfig event;
-        private SinkConfig tracing;
-    }
+    private boolean enabled;
+    private int port;
 }

@@ -41,9 +41,10 @@ public class AddFieldTransformer implements ITransformer {
     }
 
     @Override
-    public void transform(IInputRow inputRow) {
+    public boolean transform(IInputRow inputRow) {
         if (field != null && value != null) {
             inputRow.updateColumn(field, value);
         }
+        return true;
     }
 }

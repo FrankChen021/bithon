@@ -21,12 +21,12 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.json.UTF8StreamJsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.ReflectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.sink.tracing.ITraceMessageSink;
+import org.bithon.server.pipeline.tracing.ITraceProcessor;
 import org.bithon.server.storage.tracing.TraceSpan;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,20 +48,24 @@ import java.util.zip.InflaterInputStream;
  */
 @Slf4j
 @RestController
-@ConditionalOnProperty(value = "collector-http.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "bithon.receivers.traces.http.enabled", havingValue = "true")
 public class TraceHttpCollector {
 
     private final ObjectMapper om;
-    private final ITraceMessageSink traceSink;
 
-    public TraceHttpCollector(ObjectMapper om,
-                              @Qualifier("trace-sink-collector") ITraceMessageSink traceSink) {
+    @Setter
+    private ITraceProcessor processor;
+
+    public TraceHttpCollector(ObjectMapper om) {
         this.om = om;
-        this.traceSink = traceSink;
     }
 
     @PostMapping("/api/collector/trace")
     public void span(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        if (this.processor == null) {
+            return;
+        }
+
         InputStream is = request.getInputStream();
 
         String encoding = request.getHeader("Content-Encoding");
@@ -112,6 +116,6 @@ public class TraceHttpCollector {
             return;
         }
 
-        this.traceSink.process("trace", spans);
+        this.processor.process("trace", spans);
     }
 }

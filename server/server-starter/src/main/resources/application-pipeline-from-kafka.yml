@@ -1,0 +1,54 @@
+bithon:
+  pipelines:
+    events:
+      enabled: true
+      receivers:
+        - type: kafka
+          props:
+            topic: bithon-events
+            concurrency: 1
+            pollTimeout: 1000
+            ackTime: 5000
+            "[group.id]": bithon-events-consumer
+            "[bootstrap.servers]": localhost:9092
+            "[fetch.min.bytes]": 1048576
+      exporters:
+        - type: store
+
+    metrics:
+      enabled: true
+      receivers:
+        - type: kafka
+          props:
+            topic: bithon-metrics
+            concurrency: 1
+            pollTimeout: 1000
+            ackTime: 5000
+            "[group.id]": bithon-metrics-consumer
+            "[bootstrap.servers]": localhost:9092
+            "[fetch.min.bytes]": 524288
+      exporters:
+        - type: store
+
+    traces:
+      enabled: true
+      receivers:
+        - type: kafka
+          props:
+            topic: bithon-spans
+            concurrency: 1
+            pollTimeout: 1000
+            ackTime: 5000
+            "[group.id]": bithon-spans-consumer
+            "[bootstrap.servers]": localhost:9092
+            "[fetch.min.bytes]": 1048576
+      processors:
+      exporters:
+        - type: store
+
+logging:
+  level:
+    org.bithon.collector: debug
+
+server:
+  port: 19898

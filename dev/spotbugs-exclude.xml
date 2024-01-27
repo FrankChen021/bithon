@@ -184,4 +184,6 @@
     <Bug pattern="SWL_SLEEP_WITH_LOCK_HELD"/>
     <Bug pattern="UL_UNRELEASED_LOCK_EXCEPTION_PATH"/>
     <Bug pattern="URF_UNREAD_FIELD"/>
+    <Bug pattern="CT_CONSTRUCTOR_THROW" />
+    <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
 </FindBugsFilter>

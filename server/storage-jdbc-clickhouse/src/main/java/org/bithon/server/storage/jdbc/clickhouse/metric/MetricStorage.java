@@ -78,6 +78,9 @@ public class MetricStorage extends MetricJdbcStorage {
 
     @Override
     protected void initialize(DataSourceSchema schema, MetricTable table) {
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
         new TableCreator(config, this.dslContext).createIfNotExist(table);
     }
 

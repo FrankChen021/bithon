@@ -54,6 +54,6 @@ public class ExpressionFilter implements IInputRowFilter {
 
     @Override
     public boolean shouldInclude(IInputRow inputRow) {
-        return (boolean) delegation.evaluate(inputRow::getCol);
+        return (boolean) delegation.evaluate(inputRow);
     }
 }

@@ -147,12 +147,12 @@ public class TraceJdbcWriter implements ITraceWriter {
         doInsert(createInsertSpanRunnable(table.getName(), insertStatement, traceSpans));
     }
 
-    private void writeMappings(List<TraceIdMapping> mappings) {
+    private void writeMappings(List<TraceIdMapping> mappings) throws Throwable {
         if (CollectionUtils.isEmpty(mappings)) {
             return;
         }
 
-        dslContext.connection(createInsertMappingRunnable(dslContext, mappings));
+        doInsert(createInsertMappingRunnable(dslContext, mappings));
     }
 
     private void writeTagIndices(Collection<TagIndex> tagIndices) throws Throwable {
