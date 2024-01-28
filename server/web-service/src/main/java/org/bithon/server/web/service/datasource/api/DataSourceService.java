@@ -22,7 +22,7 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -91,7 +91,7 @@ public class DataSourceService {
         }
     }
 
-    public Query convertToQuery(DataSourceSchema schema,
+    public Query convertToQuery(IDataSource schema,
                                 GeneralQueryRequest query,
                                 boolean containsGroupBy,
                                 boolean bucketTimestamp) {

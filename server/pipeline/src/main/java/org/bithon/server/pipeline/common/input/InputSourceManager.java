@@ -19,8 +19,8 @@ package org.bithon.server.pipeline.common.input;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.IDataSource;
 
 import java.util.Map;
 import java.util.Objects;
@@ -43,7 +43,7 @@ public class InputSourceManager implements DataSourceSchemaManager.IDataSourceSc
     }
 
     @Override
-    public void onChange(DataSourceSchema oldSchema, DataSourceSchema newSchema) {
+    public void onChange(IDataSource oldSchema, IDataSource newSchema) {
         if (oldSchema != null
             && Objects.equals(oldSchema.getSignature(), newSchema.getSignature())) {
             // same signature, do nothing

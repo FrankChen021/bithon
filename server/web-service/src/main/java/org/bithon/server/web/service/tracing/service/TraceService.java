@@ -31,8 +31,8 @@ import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.tracing.ITraceReader;
@@ -70,7 +70,7 @@ public class TraceService {
 
     private final ITraceReader traceReader;
     private final TraceStorageConfig traceStorageConfig;
-    private final DataSourceSchema traceSpanSummarySchema;
+    private final IDataSource traceSpanSummarySchema;
 
     public TraceService(ITraceStorage traceStorage,
                         TraceStorageConfig traceStorageConfig,

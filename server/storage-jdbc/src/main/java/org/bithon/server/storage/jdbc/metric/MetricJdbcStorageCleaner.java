@@ -19,8 +19,8 @@ package org.bithon.server.storage.jdbc.metric;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.metrics.ttl.MetricStorageCleaner;
@@ -117,7 +117,7 @@ public class MetricJdbcStorageCleaner extends MetricStorageCleaner {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    protected void expireImpl(DataSourceSchema schema, Timestamp before, List<TimeSpan> skipDateList) {
+    protected void expireImpl(IDataSource schema, Timestamp before, List<TimeSpan> skipDateList) {
         final DeleteTable table = new DeleteTable(schema.getDataStoreSpec().getStore());
         DeleteConditionStep delete = dslContext.deleteFrom(table)
                                                .where(table.timestampField.le(before));

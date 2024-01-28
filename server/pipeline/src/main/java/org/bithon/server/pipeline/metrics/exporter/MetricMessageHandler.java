@@ -71,11 +71,11 @@ public class MetricMessageHandler {
 
         this.topoTransformers = new TopoTransformers(metaStorage);
 
-        this.schema = dataSourceSchemaManager.getDataSourceSchema(dataSourceName);
+        this.schema = (DataSourceSchema) dataSourceSchemaManager.getDataSourceSchema(dataSourceName);
         this.metaStorage = metaStorage;
         this.metricWriter = new MetricBatchWriter(dataSourceName, metricStorage.createMetricWriter(schema), metricPipelineConfig);
 
-        this.endpointSchema = dataSourceSchemaManager.getDataSourceSchema("topo-metrics");
+        this.endpointSchema = (DataSourceSchema) dataSourceSchemaManager.getDataSourceSchema("topo-metrics");
         this.endpointSchema.setEnforceDuplicationCheck(false);
         if (topoMetricWriter == null) {
             synchronized (MetricMessageHandler.class) {

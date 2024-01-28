@@ -20,7 +20,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.metrics.Interval;
 
@@ -34,7 +34,7 @@ import java.util.List;
 @Data
 @Builder
 public class Query {
-    private final DataSourceSchema dataSource;
+    private final IDataSource dataSource;
 
     private final List<ResultColumn> resultColumns;
 
@@ -59,7 +59,7 @@ public class Query {
         Object
     }
 
-    public Query(DataSourceSchema dataSource,
+    public Query(IDataSource dataSource,
                  List<ResultColumn> resultColumns,
                  IExpression filter,
                  Interval interval,

@@ -17,7 +17,7 @@
 package org.bithon.server.pipeline.common.input;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.input.TransformSpec;
 
 /**
@@ -29,6 +29,6 @@ public interface IInputSource {
 
     TransformSpec getTransformSpec();
 
-    void start(DataSourceSchema schema);
+    void start(IDataSource schema);
     void stop();
 }

@@ -36,6 +36,7 @@ import org.bithon.server.pipeline.tracing.TracePipeline;
 import org.bithon.server.pipeline.tracing.exporter.ITraceExporter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.TransformSpec;
@@ -86,14 +87,14 @@ public class MetricOverSpanInputSource implements IInputSource {
     }
 
     @Override
-    public void start(DataSourceSchema schema) {
+    public void start(IDataSource schema) {
         if (!this.pipeline.getPipelineConfig().isEnabled()) {
             log.warn("The trace processing pipeline is not enabled in this module. The input source of [{}] has no effect.", schema.getName());
             return;
         }
 
         try {
-            this.metricStorage.createMetricWriter(schema).close();
+            this.metricStorage.createMetricWriter((DataSourceSchema) schema).close();
             log.info("Success to initialize metric storage for [{}].", schema.getName());
         } catch (Exception e) {
             log.info("Failed to initialize metric storage for [{}]: {}", schema.getName(), e.getMessage());
@@ -107,7 +108,7 @@ public class MetricOverSpanInputSource implements IInputSource {
         log.info("Adding metric-extractor for [{}({})] to tracing logs processors...", schema.getName(), schema.getSignature());
         MetricOverSpanExtractor extractor = null;
         try {
-            extractor = new MetricOverSpanExtractor(transformSpec, schema, metricStorage, applicationContext);
+            extractor = new MetricOverSpanExtractor(transformSpec, (DataSourceSchema) schema, metricStorage, applicationContext);
             metricExtractor = (MetricOverSpanExtractor) this.pipeline.link(extractor);
         } catch (Exception e) {
             if (extractor != null) {

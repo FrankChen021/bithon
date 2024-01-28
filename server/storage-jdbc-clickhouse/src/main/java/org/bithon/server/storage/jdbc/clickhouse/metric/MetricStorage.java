@@ -28,6 +28,7 @@ import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
@@ -115,7 +116,7 @@ public class MetricStorage extends MetricJdbcStorage {
         }
 
         @Override
-        protected void expireImpl(DataSourceSchema schema, Timestamp before, List<TimeSpan> skipDateList) {
+        protected void expireImpl(IDataSource schema, Timestamp before, List<TimeSpan> skipDateList) {
             String table = schema.getDataStoreSpec().getStore();
             new DataCleaner(config, dslContext).deleteFromPartition(table, before, skipDateList);
         }
@@ -139,18 +140,18 @@ public class MetricStorage extends MetricJdbcStorage {
             @Override
             public List<Map<String, String>> distinct(TimeSpan start,
                                                       TimeSpan end,
-                                                      DataSourceSchema dataSourceSchema,
+                                                      IDataSource dataSource,
                                                       IExpression filter,
                                                       String dimension) {
                 start = start.floor(Duration.ofMinutes(1));
                 end = end.ceil(Duration.ofMinutes(1));
 
-                String condition = filter == null ? "" : Expression2Sql.from(dataSourceSchema, sqlDialect, filter) + " AND ";
+                String condition = filter == null ? "" : Expression2Sql.from(dataSource, sqlDialect, filter) + " AND ";
 
                 String sql = StringUtils.format(
                     "SELECT \"%s\" FROM \"%s\" WHERE %s toStartOfMinute(\"timestamp\") >= %s AND toStartOfMinute(\"timestamp\") < %s GROUP BY \"%s\" ORDER BY \"%s\"",
                     dimension,
-                    dataSourceSchema.getDataStoreSpec().getStore(),
+                    dataSource.getDataStoreSpec().getStore(),
                     condition,
                     sqlDialect.formatTimestamp(start),
                     sqlDialect.formatTimestamp(end),

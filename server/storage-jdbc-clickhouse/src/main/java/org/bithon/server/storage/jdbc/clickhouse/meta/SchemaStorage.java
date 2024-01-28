@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
@@ -122,7 +123,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
      * clickhouse does not support update, as we're using the replacing merge tree, just to insert one record
      */
     @Override
-    public void update(String name, DataSourceSchema schema) throws IOException {
+    public void update(String name, IDataSource schema) throws IOException {
         Timestamp now = new Timestamp(System.currentTimeMillis());
 
         String schemaText = objectMapper.writeValueAsString(schema);
@@ -137,7 +138,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
     }
 
     @Override
-    public void putIfNotExist(String name, DataSourceSchema schema) throws IOException {
+    public void putIfNotExist(String name, IDataSource schema) throws IOException {
         String schemaText = objectMapper.writeValueAsString(schema);
         schema.setSignature(HashGenerator.sha256Hex(schemaText));
 

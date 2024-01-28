@@ -27,8 +27,8 @@ import org.bithon.server.pipeline.common.input.IInputSource;
 import org.bithon.server.pipeline.event.EventPipeline;
 import org.bithon.server.pipeline.event.exporter.IEventExporter;
 import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.input.TransformSpec;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
@@ -69,7 +69,7 @@ public class EventInputSource implements IInputSource {
     }
 
     @Override
-    public void start(DataSourceSchema schema) {
+    public void start(IDataSource schema) {
         final String schemaName = schema.getName();
 
         if (!this.pipeline.getPipelineConfig().isEnabled()) {

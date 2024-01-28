@@ -42,7 +42,7 @@ import java.util.Map;
 /**
  * @author frank.chen021@outlook.com
  */
-public class DataSourceSchema {
+public class DataSourceSchema implements IDataSource {
     @Getter
     private final String displayText;
 

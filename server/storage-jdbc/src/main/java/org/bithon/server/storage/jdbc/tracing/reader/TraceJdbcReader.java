@@ -33,6 +33,7 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.datasource.query.Query;
@@ -422,8 +423,12 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public List<Map<String, String>> distinct(TimeSpan start, TimeSpan end, DataSourceSchema dataSourceSchema, IExpression filter, String dimension) {
-        return getDataSourceReader().distinct(start, end, dataSourceSchema, filter, dimension);
+    public List<Map<String, String>> distinct(TimeSpan start,
+                                              TimeSpan end,
+                                              IDataSource dataSource,
+                                              IExpression filter,
+                                              String dimension) {
+        return getDataSourceReader().distinct(start, end, dataSource, filter, dimension);
     }
 
     static class SpanKindIsRootDetector implements IExpressionVisitor {

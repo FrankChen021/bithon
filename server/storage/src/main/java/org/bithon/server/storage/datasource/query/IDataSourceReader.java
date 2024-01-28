@@ -18,7 +18,7 @@ package org.bithon.server.storage.datasource.query;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 
 import java.util.List;
 import java.util.Map;
@@ -41,7 +41,7 @@ public interface IDataSourceReader extends AutoCloseable {
 
     List<Map<String, String>> distinct(TimeSpan start,
                                        TimeSpan end,
-                                       DataSourceSchema dataSourceSchema,
+                                       IDataSource dataSourceSchema,
                                        IExpression filter,
                                        String dimension);
 

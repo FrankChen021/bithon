@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.meta.ISchemaStorage;
@@ -122,7 +123,7 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     }
 
     @Override
-    public void update(String name, DataSourceSchema schema) throws IOException {
+    public void update(String name, IDataSource schema) throws IOException {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         String schemaText = objectMapper.writeValueAsString(schema);
         schema.setSignature(HashGenerator.sha256Hex(schemaText));
@@ -144,7 +145,7 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     }
 
     @Override
-    public void putIfNotExist(String name, DataSourceSchema schema) throws IOException {
+    public void putIfNotExist(String name, IDataSource schema) throws IOException {
         String schemaText = objectMapper.writeValueAsString(schema);
 
         schema.setSignature(HashGenerator.sha256Hex(schemaText));

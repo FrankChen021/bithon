@@ -45,7 +45,7 @@ import org.bithon.server.commons.matcher.StringRegexMatcher;
 import org.bithon.server.commons.matcher.StringStartsWithMatcher;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.bithon.server.storage.common.expression.InvalidExpressionException;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
  */
 public class FilterExpressionToFilters {
 
-    public static IExpression toExpression(DataSourceSchema schema,
+    public static IExpression toExpression(IDataSource schema,
                                            @Nullable String filterExpression,
                                            @Nonnull List<IColumnFilter> otherFilters) {
         if (StringUtils.isEmpty(filterExpression)) {
@@ -118,7 +118,7 @@ public class FilterExpressionToFilters {
         return expression;
     }
 
-    private static IExpression toExpression(DataSourceSchema schema, List<IColumnFilter> filters) {
+    private static IExpression toExpression(IDataSource schema, List<IColumnFilter> filters) {
         List<IExpression> expressions = new ArrayList<>();
         FilterToExpressionConverter converter = new FilterToExpressionConverter();
         for (IColumnFilter filter : filters) {

@@ -26,7 +26,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
@@ -246,7 +246,7 @@ public class MetricJdbcReader implements IDataSourceReader {
     @Override
     public List<Map<String, String>> distinct(TimeSpan start,
                                               TimeSpan end,
-                                              DataSourceSchema dataSourceSchema,
+                                              IDataSource dataSourceSchema,
                                               IExpression filter,
                                               String dimension) {
         String filterText = filter == null ? "" : Expression2Sql.from(dataSourceSchema, sqlDialect, filter) + " AND ";

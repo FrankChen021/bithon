@@ -20,7 +20,7 @@ package org.bithon.server.storage.datasource.query.parser;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.column.IColumn;
 
 /**
@@ -42,5 +42,5 @@ public abstract class FieldExpressionVisitorAdaptor2 implements IExpressionVisit
 
     public abstract void visitField(IColumn columnSpec);
 
-    protected abstract DataSourceSchema getSchema();
+    protected abstract IDataSource getSchema();
 }

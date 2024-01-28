@@ -22,7 +22,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.ast.Column;
@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
  */
 public class SelectExpressionBuilder {
 
-    private DataSourceSchema dataSource;
+    private IDataSource dataSource;
 
     private List<ResultColumn> resultColumns;
 
@@ -79,7 +79,7 @@ public class SelectExpressionBuilder {
         return new SelectExpressionBuilder();
     }
 
-    public SelectExpressionBuilder dataSource(DataSourceSchema dataSource) {
+    public SelectExpressionBuilder dataSource(IDataSource dataSource) {
         this.dataSource = dataSource;
         return this;
     }
@@ -129,9 +129,9 @@ public class SelectExpressionBuilder {
 
         @Getter
         private final Set<String> metrics = new HashSet<>();
-        private final DataSourceSchema schema;
+        private final IDataSource schema;
 
-        FieldExpressionAnalyzer(DataSourceSchema schema,
+        FieldExpressionAnalyzer(IDataSource schema,
                                 Set<String> aggregatedColumns,
                                 ISqlDialect sqlFormatter) {
             this.schema = schema;
@@ -140,7 +140,7 @@ public class SelectExpressionBuilder {
         }
 
         @Override
-        protected DataSourceSchema getSchema() {
+        protected IDataSource getSchema() {
             return schema;
         }
 
@@ -175,9 +175,9 @@ public class SelectExpressionBuilder {
         protected final Map<String, Object> internalVariables;
         private final Set<String> aggregatedFields;
 
-        private final DataSourceSchema schema;
+        private final IDataSource schema;
 
-        SQLGenerator4Expression(DataSourceSchema schema,
+        SQLGenerator4Expression(IDataSource schema,
                                 ISqlDialect sqlDialect,
                                 Set<String> aggregatedFields,
                                 SqlGenerator4SimpleAggregationFunction sqlGenerator4SimpleAggregationFunction,
