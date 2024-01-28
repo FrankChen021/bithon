@@ -20,11 +20,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.Data;
+import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.collector.ctrl.config.AgentControllerConfig;
 import org.bithon.server.storage.setting.ISettingReader;
 import org.bithon.server.storage.setting.ISettingStorage;
 import org.bithon.server.storage.setting.ISettingWriter;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,9 +48,11 @@ import java.util.List;
 public class AgentConfigurationApi {
 
     private final ISettingStorage settingStorage;
+    private final AgentControllerConfig agentControllerConfig;
 
-    public AgentConfigurationApi(ISettingStorage settingStorage) {
+    public AgentConfigurationApi(ISettingStorage settingStorage, AgentControllerConfig agentControllerConfig) {
         this.settingStorage = settingStorage;
+        this.agentControllerConfig = agentControllerConfig;
     }
 
     @Data
@@ -74,25 +80,33 @@ public class AgentConfigurationApi {
         @NotNull
         private String value;
 
-        @NotNull
+        /**
+         * can be NULL, or json/yaml
+         * If it's NULL, it's default to json.
+         */
         private String format;
     }
 
     @PostMapping("/api/agent/configuration/add")
     public void addConfiguration(@Validated @RequestBody AddRequest request) {
+        String format = request.getFormat() != null ? request.getFormat() : "json";
+        Preconditions.checkIfTrue("yaml".equals(request.getFormat()) || "json".equals(request.getFormat()),
+                                  "Invalid format[%s] given. Only json or yaml is supported.",
+                                  format);
+
         ObjectMapper mapper;
-        if (request.getFormat().equals("json")) {
+        if (format.equals("json")) {
             mapper = new ObjectMapper();
-        } else if ("yaml".equals(request.getFormat())) {
-            mapper = new ObjectMapper(new YAMLFactory());
         } else {
-            throw new RuntimeException("Invalid format");
+            mapper = new ObjectMapper(new YAMLFactory());
         }
         try {
             mapper.readTree(request.getValue());
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "The 'value' is not valid format of %s", format);
         }
+
+        this.agentControllerConfig.getPermission().getRules()
 
         ISettingWriter writer = settingStorage.createWriter();
         writer.addSetting(request.getAppName(),

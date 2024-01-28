@@ -16,10 +16,14 @@
 
 package org.bithon.server.collector.ctrl.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
+import org.bithon.component.commons.exception.HttpMappableException;
+import org.springframework.http.HttpStatus;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A simple permission control on SET/WRITE commands to agent to ensure safety.
@@ -31,4 +35,19 @@ import java.util.List;
 public class PermissionConfig {
 
     private List<PermissionRule> rules = Collections.emptyList();
+
+    public void verifyPermission(ObjectMapper objectMapper, String application, String token) {
+        Optional<PermissionRule> applicationRule = this.rules.stream()
+                                                             .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(application))
+                                                             .findFirst();
+        if (!applicationRule.isPresent()) {
+            throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
+                                            "No permission rule is defined for application [%s] to allow UPDATE operation.",
+                                            application);
+        }
+
+        if (!applicationRule.get().getToken().equals(token)) {
+            throw new HttpMappableException(HttpStatus.FORBIDDEN.value(), "Given token does not match.");
+        }
+    }
 }
