@@ -79,6 +79,10 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @Override
     public void initialize() {
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
+
         Table<?>[] tables = new Table[]{
             Tables.BITHON_TRACE_SPAN_SUMMARY,
             Tables.BITHON_TRACE_SPAN,
@@ -102,7 +106,7 @@ public class TraceStorage extends TraceJdbcStorage {
         return new IExpirationRunnable() {
             @Override
             public ExpirationConfig getExpirationConfig() {
-                return traceStorageConfig.getTtl();
+                return storageConfig.getTtl();
             }
 
             @Override
@@ -119,9 +123,9 @@ public class TraceStorage extends TraceJdbcStorage {
     @Override
     public ITraceWriter createWriter() {
         if (this.clickHouseConfig.isOnDistributedTable()) {
-            return new LoadBalancedTraceWriter(this.clickHouseConfig, this.traceStorageConfig, this.dslContext);
+            return new LoadBalancedTraceWriter(this.clickHouseConfig, this.storageConfig, this.dslContext);
         } else {
-            return new TraceJdbcWriter(dslContext, traceStorageConfig, RetryableExceptions::isExceptionRetryable) {
+            return new TraceJdbcWriter(dslContext, storageConfig, RetryableExceptions::isExceptionRetryable) {
                 @Override
                 protected boolean isTransactionSupported() {
                     return false;
@@ -151,7 +155,7 @@ public class TraceStorage extends TraceJdbcStorage {
                                    this.objectMapper,
                                    this.traceSpanSchema,
                                    this.traceTagIndexSchema,
-                                   this.traceStorageConfig,
+                                   this.storageConfig,
                                    this.sqlDialectManager.getSqlDialect(this.dslContext)) {
 
             /**

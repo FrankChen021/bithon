@@ -17,6 +17,9 @@
 package org.bithon.server.collector.source.brpc;
 
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMeasurement;
@@ -24,10 +27,13 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessageV2;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.ReflectionUtils;
-import org.bithon.server.sink.metrics.IMetricMessageSink;
-import org.bithon.server.sink.metrics.MetricMessage;
-import org.bithon.server.sink.metrics.SchemaMetricMessage;
+import org.bithon.server.collector.source.http.MetricHttpCollector;
+import org.bithon.server.pipeline.metrics.IMetricProcessor;
+import org.bithon.server.pipeline.metrics.MetricMessage;
+import org.bithon.server.pipeline.metrics.SchemaMetricMessage;
+import org.bithon.server.pipeline.metrics.receiver.IMetricReceiver;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -37,6 +43,10 @@ import org.bithon.server.storage.datasource.column.aggregatable.max.AggregateLon
 import org.bithon.server.storage.datasource.column.aggregatable.min.AggregateLongMinColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.storage.datasource.input.IInputRow;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -49,15 +59,48 @@ import java.util.stream.Collectors;
  * @date 2021/1/10 2:37 下午
  */
 @Slf4j
-public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
+@JsonTypeName("brpc")
+public class BrpcMetricCollector implements IMetricCollector, IMetricReceiver {
 
-    private final IMetricMessageSink metricSink;
+    private final int port;
+    private final ApplicationContext applicationContext;
+    private IMetricProcessor processor;
+    private BrpcCollectorServer.ServiceGroup serviceGroup;
+
+    public BrpcMetricCollector(@JacksonInject(useInput = OptBoolean.FALSE) Environment environment,
+                               @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+        BrpcCollectorConfig config = Binder.get(environment).bind("bithon.receivers.metrics.brpc", BrpcCollectorConfig.class).get();
+        Preconditions.checkIfTrue(config.isEnabled(), "The brpc collector is configured as DISABLED.");
+        Preconditions.checkNotNull(config.getPort(), "The port for the metrics collector is not configured.");
+        Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535, "The port for the event collector must be in the range of (1000, 65535).");
+
+        this.port = config.getPort();
+        this.applicationContext = applicationContext;
+    }
+
+    @Override
+    public void start() {
+        serviceGroup = this.applicationContext.getBean(BrpcCollectorServer.class)
+                                              .addService("metrics", this, port);
+    }
+
+    @Override
+    public void registerProcessor(IMetricProcessor processor) {
+        this.processor = processor;
+
+        try {
+            this.applicationContext.getBean(MetricHttpCollector.class).setProcessor(processor);
+        } catch (NoSuchBeanDefinitionException ignored) {
+        }
+    }
+
+    @Override
+    public void stop() {
+        serviceGroup.stop("metrics");
+    }
+
     private final IColumn appName = new StringColumn("appName", "appName");
     private final IColumn instanceName = new StringColumn("instanceName", "instanceName");
-
-    public BrpcMetricCollector(IMetricMessageSink metricSink) {
-        this.metricSink = metricSink;
-    }
 
     @Override
     public void sendJvm(BrpcMessageHeader header, List<BrpcJvmMetricMessage> messages) {
@@ -65,14 +108,17 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return;
         }
 
-        this.metricSink.process("jvm-metrics",
-                                SchemaMetricMessage.builder()
-                                                   .metrics(messages.stream().map((m) -> toMetricMessage(header, m)).collect(Collectors.toList()))
-                                                   .build());
+        this.processor.process("jvm-metrics",
+                               SchemaMetricMessage.builder()
+                                                  .metrics(messages.stream().map((m) -> toMetricMessage(header, m)).collect(Collectors.toList()))
+                                                  .build());
     }
 
     @Override
     public void sendGenericMetrics(BrpcMessageHeader header, BrpcGenericMetricMessage message) {
+        if (processor == null) {
+            return;
+        }
 
         List<IColumn> dimensionSpecs = new ArrayList<>();
         dimensionSpecs.add(appName);
@@ -130,7 +176,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return metricMessage;
         }).collect(Collectors.toList()));
 
-        metricSink.process(message.getSchema().getName(), schemaMetricMessage);
+        processor.process(message.getSchema().getName(), schemaMetricMessage);
     }
 
     @Override
@@ -155,15 +201,10 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return metricMessage;
         }).collect(Collectors.toList());
 
-        this.metricSink.process(message.getSchema().getName(),
-                                SchemaMetricMessage.builder()
-                                                   .metrics(messages)
-                                                   .build());
-    }
-
-    @Override
-    public void close() throws Exception {
-        metricSink.close();
+        this.processor.process(message.getSchema().getName(),
+                               SchemaMetricMessage.builder()
+                                                  .metrics(messages)
+                                                  .build());
     }
 
     private MetricMessage toMetricMessage(BrpcMessageHeader header, Object message) {

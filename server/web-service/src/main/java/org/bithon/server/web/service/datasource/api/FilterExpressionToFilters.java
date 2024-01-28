@@ -122,26 +122,24 @@ public class FilterExpressionToFilters {
         List<IExpression> expressions = new ArrayList<>();
         FilterToExpressionConverter converter = new FilterToExpressionConverter();
         for (IColumnFilter filter : filters) {
-            converter.setColumnFilter(filter);
-
             IColumn column = schema.getColumnByName(filter.getField());
             if (column == null) {
-                throw new InvalidExpressionException("Filter [%s] doest not defined in schema [%s]",
-                                                     filter.getExpected(),
+                throw new InvalidExpressionException("Identifier [%s] is not defined in schema [%s]",
+                                                     filter.getField(),
                                                      schema.getName());
             }
 
+            converter.setColumn(column);
             expressions.add(filter.getMatcher().accept(converter));
         }
         return expressions.size() == 1 ? expressions.get(0) : new LogicalExpression.AND(expressions);
     }
 
-
     static class FilterToExpressionConverter implements IMatcherVisitor<IExpression> {
         private IdentifierExpression field;
 
-        public void setColumnFilter(IColumnFilter filter) {
-            this.field = new IdentifierExpression(filter.getField());
+        public void setColumn(IColumn column) {
+            this.field = new IdentifierExpression(column.getName());
         }
 
         @Override

@@ -57,7 +57,9 @@ public class EventStorage extends EventJdbcStorage {
 
     @Override
     public void initialize() {
-        new TableCreator(config, dslContext).createIfNotExist(Tables.BITHON_EVENT);
+        if (storageConfig.isCreateTable()) {
+            new TableCreator(config, dslContext).createIfNotExist(Tables.BITHON_EVENT);
+        }
     }
 
     /**

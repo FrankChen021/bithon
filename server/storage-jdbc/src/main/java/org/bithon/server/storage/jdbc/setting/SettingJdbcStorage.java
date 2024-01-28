@@ -24,6 +24,7 @@ import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.setting.ISettingReader;
 import org.bithon.server.storage.setting.ISettingStorage;
 import org.bithon.server.storage.setting.ISettingWriter;
+import org.bithon.server.storage.setting.SettingStorageConfig;
 import org.jooq.DSLContext;
 
 /**
@@ -33,18 +34,24 @@ import org.jooq.DSLContext;
 public class SettingJdbcStorage implements ISettingStorage {
 
     protected final DSLContext dslContext;
+    protected final SettingStorageConfig storageConfig;
 
     @JsonCreator
-    public SettingJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration) {
-        this.dslContext = providerConfiguration.getDslContext();
+    public SettingJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration,
+                              @JacksonInject(useInput = OptBoolean.FALSE) SettingStorageConfig storageConfig) {
+        this(providerConfiguration.getDslContext(), storageConfig);
     }
 
-    public SettingJdbcStorage(DSLContext dslContext) {
+    public SettingJdbcStorage(DSLContext dslContext, SettingStorageConfig storageConfig) {
         this.dslContext = dslContext;
+        this.storageConfig = storageConfig;
     }
 
     @Override
     public void initialize() {
+        if (!storageConfig.isCreateTable()) {
+            return;
+        }
         this.dslContext.createTableIfNotExists(Tables.BITHON_AGENT_SETTING)
                        .columns(Tables.BITHON_AGENT_SETTING.fields())
                        .indexes(Tables.BITHON_AGENT_SETTING.getIndexes())

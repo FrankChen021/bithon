@@ -103,7 +103,7 @@ public class TopoApi {
         int y = 300;
         int nodeHeight = 50;
         Topo topo = new Topo();
-        EndpointBo thisApplication = new EndpointBo(EndPointType.APPLICATION,
+        EndpointBo thisApplication = new EndpointBo("application",
                                                     request.getApplication(),
                                                     x,
                                                     y + callees.size() / 2L * nodeHeight);
@@ -112,8 +112,7 @@ public class TopoApi {
         for (Map<String, Object> callee : callees) {
             IInputRow inputRow = new InputRow(callee);
             String dst = inputRow.getColAsString("dstEndpoint");
-            EndPointType dstType = EndPointType.valueOf(EndPointType.class,
-                                                        inputRow.getColAsString("dstEndpointType"));
+            String dstType = inputRow.getColAsString("dstEndpointType");
             EndpointBo dstEndpoint = new EndpointBo(dstType, dst, x + 100, y);
             topo.addEndpoint(dstEndpoint);
             topo.addLink(Link.builder()
@@ -153,8 +152,7 @@ public class TopoApi {
         for (Map<String, Object> caller : callers) {
             IInputRow inputRow = new InputRow(caller);
             String src = inputRow.getColAsString("srcEndpoint");
-            EndPointType srcType = EndPointType.valueOf(EndPointType.class,
-                                                        inputRow.getColAsString("srcEndpointType"));
+            String srcType = inputRow.getColAsString("srcEndpointType");
             EndpointBo srcEndpoint = new EndpointBo(srcType, src, x - 100, y);
             topo.addEndpoint(srcEndpoint);
             topo.addLink(Link.builder()

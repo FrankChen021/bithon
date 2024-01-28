@@ -77,7 +77,7 @@ public class RegExprTransformer implements ITransformer {
     }
 
     @Override
-    public void transform(IInputRow inputRow) {
+    public boolean transform(IInputRow inputRow) {
         String val = valueExtractor.apply(inputRow);
         if (val != null) {
             Matcher matcher = this.pattern.matcher(val);
@@ -87,5 +87,6 @@ public class RegExprTransformer implements ITransformer {
                 }
             }
         }
+        return true;
     }
 }
