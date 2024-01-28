@@ -101,7 +101,7 @@ public class AgentConfigurationApi {
                                   format);
 
         ObjectMapper mapper;
-        if (format.equals("json")) {
+        if ("json".equals(format)) {
             mapper = new ObjectMapper();
         } else {
             mapper = new ObjectMapper(new YAMLFactory());
