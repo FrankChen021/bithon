@@ -94,7 +94,7 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
             // On tomcat 10, which requires jakarta.servlet.HttpServletRequest, this request.getRequest() call fails
             //
             request.setAttribute("X-Bithon-TraceId", traceContext.traceId());
-            request.setAttribute("X-Trace-Mode", traceContext.traceMode().text());
+            request.setAttribute("X-Bithon-Trace-Mode", traceContext.traceMode().text());
 
             String traceIdHeader = traceConfig.getTraceIdResponseHeader();
             if (StringUtils.hasText(traceIdHeader)) {

@@ -28,19 +28,25 @@ import lombok.Data;
 @Data
 @Builder
 public class ErrorResponse {
+    private String traceId;
+    private String traceMode;
     private String path;
     private String message;
     private String exception;
 
     /**
      * Add jackson annotation so that clients can deserialize the response manually.
-     *
+     * <p>
      * NOTE: The order or parameters MUST be the same as the order of declared fields.
      */
     @JsonCreator
-    public ErrorResponse(@JsonProperty("path") String path,
+    public ErrorResponse(@JsonProperty("traceId") String traceId,
+                         @JsonProperty("traceMode") String traceMode,
+                         @JsonProperty("path") String path,
                          @JsonProperty("message") String message,
                          @JsonProperty("exception") String exception) {
+        this.traceId = traceId;
+        this.traceMode = traceMode;
         this.path = path;
         this.message = message;
         this.exception = exception;

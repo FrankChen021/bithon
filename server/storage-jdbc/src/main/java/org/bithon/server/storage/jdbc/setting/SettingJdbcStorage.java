@@ -23,6 +23,7 @@ import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.setting.ISettingReader;
 import org.bithon.server.storage.setting.ISettingStorage;
+import org.bithon.server.storage.setting.ISettingWriter;
 import org.bithon.server.storage.setting.SettingStorageConfig;
 import org.jooq.DSLContext;
 
@@ -60,5 +61,10 @@ public class SettingJdbcStorage implements ISettingStorage {
     @Override
     public ISettingReader createReader() {
         return new SettingJdbcReader(dslContext);
+    }
+
+    @Override
+    public ISettingWriter createWriter() {
+        return new SettingJdbcWriter(dslContext);
     }
 }

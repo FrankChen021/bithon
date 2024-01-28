@@ -29,7 +29,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -51,10 +51,12 @@ public class GlobalExceptionHandler {
         MethodArgumentNotValidException.class,
         HttpRequestMethodNotSupportedException.class,
         HttpMediaTypeNotSupportedException.class,
-        MissingServletRequestParameterException.class
+        ServletRequestBindingException.class
     })
     public ResponseEntity<ErrorResponse> handleKnownExceptions(HttpServletRequest request, Exception exception) {
         return ResponseEntity.badRequest().body(ErrorResponse.builder()
+                                                             .traceId((String) request.getAttribute("X-Bithon-TraceId"))
+                                                             .traceMode((String) request.getAttribute("X-Bithon-Trace-Mode"))
                                                              .path(request.getRequestURI())
                                                              .message(exception.getMessage())
                                                              .exception(exception.getClass().getName())
@@ -80,6 +82,8 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(statusCode)
                              .body(ErrorResponse.builder()
+                                                .traceId((String) request.getAttribute("X-Bithon-TraceId"))
+                                                .traceMode((String) request.getAttribute("X-Bithon-Trace-Mode"))
                                                 .path(request.getRequestURI())
                                                 .exception(exception.getClass().getName())
                                                 .message(exception.getMessage())

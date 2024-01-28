@@ -61,7 +61,8 @@ CREATE TABLE `bithon_agent_setting`
     `timestamp`   TIMESTAMP    NOT NULL COMMENT 'Created Timestamp',
     `appName`     varchar(128) NOT NULL COMMENT '',
     `settingName` varchar(64)  NOT NULL COMMENT '',
-    `setting`      TEXT COMMENT '设置',
+    `setting`      TEXT COMMENT 'Setting text',
+    `format`      varchar(16)  NOT NULL COMMENT 'Format of the Setting, can be either json or yaml',
     `updatedAt`   datetime     NOT NULL COMMENT '',
     UNIQUE KEY `key_appName` (`appName`, `settingName`)
 ) ENGINE = InnoDB

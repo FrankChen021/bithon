@@ -16,23 +16,36 @@
 
 package org.bithon.server.collector.ctrl.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.component.commons.utils.SupplierUtils;
 import org.bithon.server.storage.setting.ISettingReader;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/6/30 3:34 下午
  */
+@Slf4j
 public class AgentSettingFetcher implements ISettingFetcher {
 
     private final ISettingReader reader;
+    private final Supplier<ObjectMapper> yamlFormatter;
+    private final ObjectMapper jsonFormatter;
 
-    public AgentSettingFetcher(ISettingReader reader) {
+    public AgentSettingFetcher(ISettingReader reader, ObjectMapper objectMapper) {
         this.reader = reader;
+        this.jsonFormatter = objectMapper;
+        this.yamlFormatter = SupplierUtils.cachedWithLock(() -> new ObjectMapper(new YAMLFactory()));
     }
 
     @Override
@@ -45,6 +58,25 @@ public class AgentSettingFetcher implements ISettingFetcher {
         if (StringUtils.hasText(env)) {
             appName += "-" + env;
         }
-        return reader.getSettings(appName, since);
+
+        List<ISettingReader.SettingEntry> settings = reader.getSettings(appName, since);
+
+        Map<String, String> map = new HashMap<>();
+        for (ISettingReader.SettingEntry record : settings) {
+            String value = record.getValue();
+            if (record.getFormat().equals("yaml")) {
+                try {
+                    value = convertYamlToJson(value);
+                } catch (JsonProcessingException e) {
+                    log.error("Illegal format of setting", e);
+                }
+            }
+            map.put(record.getName(), value);
+        }
+        return map;
+    }
+
+    private String convertYamlToJson(String yaml) throws JsonProcessingException {
+        return jsonFormatter.writeValueAsString(this.yamlFormatter.get().readTree(yaml));
     }
 }
