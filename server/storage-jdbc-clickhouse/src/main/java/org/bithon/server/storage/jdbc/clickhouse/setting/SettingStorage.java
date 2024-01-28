@@ -30,7 +30,7 @@ import org.bithon.server.storage.setting.ISettingReader;
 import org.bithon.server.storage.setting.SettingStorageConfig;
 
 import java.sql.Timestamp;
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -64,15 +64,14 @@ public class SettingStorage extends SettingJdbcStorage {
     public ISettingReader createReader() {
         return new SettingJdbcReader(this.dslContext) {
             @Override
-            public Map<String, String> getSettings(String appName, long since) {
-                String sql = dslContext.select(Tables.BITHON_AGENT_SETTING.SETTINGNAME, Tables.BITHON_AGENT_SETTING.SETTING)
-                                       .from(Tables.BITHON_AGENT_SETTING)
+            public List<SettingEntry> getSettings(String appName, long since) {
+                String sql = dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
                                        .getSQL() + " FINAL WHERE ";
 
                 sql += dslContext.renderInlined(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName)
                                                                                    .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.ge(new Timestamp(since).toLocalDateTime())));
 
-                return dslContext.fetch(sql).intoMap(Tables.BITHON_AGENT_SETTING.SETTINGNAME, Tables.BITHON_AGENT_SETTING.SETTING);
+                return dslContext.fetch(sql).map(this::toSettingEntry);
             }
         };
     }

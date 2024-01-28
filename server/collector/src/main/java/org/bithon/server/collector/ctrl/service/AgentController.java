@@ -16,6 +16,7 @@
 
 package org.bithon.server.collector.ctrl.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.collector.ctrl.config.AgentControllerConfig;
@@ -36,12 +37,15 @@ public class AgentController {
 
     private final BrpcServer brpcServer;
 
-    public AgentController(ISettingStorage storage, Environment env, BrpcCollectorServer server) {
+    public AgentController(ObjectMapper jsonFormatter,
+                           ISettingStorage storage,
+                           Environment env,
+                           BrpcCollectorServer server) {
         AgentControllerConfig config = Binder.get(env).bind("bithon.agent-controller", AgentControllerConfig.class).get();
         Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535, "The port of bithon.agent-controller property must be in the range of [1000, 65535)");
 
         brpcServer = server.addService("ctrl",
-                                       new AgentSettingFetcher(storage.createReader()),
+                                       new AgentSettingFetcher(storage.createReader(), jsonFormatter),
                                        config.getPort())
                            .getBrpcServer();
     }

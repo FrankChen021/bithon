@@ -16,17 +16,12 @@
 
 package org.bithon.server.storage.setting;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
 /**
- * @author frank.chen021@outlook.com
- * @date 4/11/21 3:14 pm
+ * @author Frank Chen
+ * @date 26/1/24 2:16 pm
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface ISettingStorage {
-    void initialize();
+public interface ISettingWriter {
+    void addSetting(String app, String name, String value, String format);
 
-    ISettingReader createReader();
-
-    ISettingWriter createWriter();
+    void deleteSetting(String app, String name);
 }

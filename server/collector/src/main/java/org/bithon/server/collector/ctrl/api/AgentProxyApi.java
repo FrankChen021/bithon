@@ -24,10 +24,8 @@ import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
-import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.server.collector.ctrl.config.AgentControllerConfig;
 import org.bithon.server.collector.ctrl.config.PermissionConfig;
-import org.bithon.server.collector.ctrl.config.PermissionRule;
 import org.bithon.server.collector.ctrl.service.AgentController;
 import org.bithon.server.commons.exception.ErrorResponse;
 import org.bithon.server.discovery.declaration.ServiceResponse;
@@ -44,7 +42,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -79,20 +76,20 @@ public class AgentProxyApi implements IAgentProxyApi {
                                                       .getSessions()
                                                       .stream()
                                                       .map((session) -> {
-                                                         AgentInstanceRecord instance = new AgentInstanceRecord();
-                                                         instance.setAppName(session.getRemoteApplicationName());
-                                                         instance.setInstance(session.getRemoteAttribute(Headers.HEADER_APP_ID, session.getRemoteEndpoint()));
-                                                         instance.setEndpoint(session.getRemoteEndpoint());
-                                                         instance.setCollector(session.getLocalEndpoint());
-                                                         instance.setAgentVersion(session.getRemoteAttribute(Headers.HEADER_VERSION));
-                                                         long start = 0;
-                                                         try {
-                                                             start = Long.parseLong(session.getRemoteAttribute(Headers.HEADER_START_TIME, "0"));
-                                                         } catch (NumberFormatException ignored) {
-                                                         }
-                                                         instance.setStartAt(new Timestamp(start).toLocalDateTime());
-                                                         return instance;
-                                                     })
+                                                          AgentInstanceRecord instance = new AgentInstanceRecord();
+                                                          instance.setAppName(session.getRemoteApplicationName());
+                                                          instance.setInstance(session.getRemoteAttribute(Headers.HEADER_APP_ID, session.getRemoteEndpoint()));
+                                                          instance.setEndpoint(session.getRemoteEndpoint());
+                                                          instance.setCollector(session.getLocalEndpoint());
+                                                          instance.setAgentVersion(session.getRemoteAttribute(Headers.HEADER_VERSION));
+                                                          long start = 0;
+                                                          try {
+                                                              start = Long.parseLong(session.getRemoteAttribute(Headers.HEADER_START_TIME, "0"));
+                                                          } catch (NumberFormatException ignored) {
+                                                          }
+                                                          instance.setStartAt(new Timestamp(start).toLocalDateTime());
+                                                          return instance;
+                                                      })
                                                       .collect(Collectors.toList()));
     }
 
@@ -114,19 +111,7 @@ public class AgentProxyApi implements IAgentProxyApi {
         // Verify if the given token matches
         // By default if a method that starts with 'get' or 'dump' will be seen as a READ method that requires no permission check.
         if (!fromClient.getMethodName().startsWith("get") && !fromClient.getMethodName().startsWith("dump")) {
-            Optional<PermissionRule> applicationRule = permissionConfig.getRules()
-                                                                       .stream()
-                                                                       .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(agentSession.getRemoteApplicationName()))
-                                                                       .findFirst();
-            if (!applicationRule.isPresent()) {
-                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
-                                                "No permission rule is defined for application [%s] to allow UPDATE operation.",
-                                                agentSession.getRemoteApplicationName());
-            }
-
-            if (!applicationRule.get().getToken().equals(token)) {
-                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(), "Given token does not match.");
-            }
+            permissionConfig.verifyPermission(objectMapper, agentSession.getRemoteApplicationName(), token);
         }
 
         // Turn the input request stream to the request that is going to send to remote
