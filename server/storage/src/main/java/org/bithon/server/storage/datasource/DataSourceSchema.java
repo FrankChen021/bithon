@@ -163,14 +163,17 @@ public class DataSourceSchema {
                                               this.timestampSpec.getTimestampColumn()));
         }
 
-        if (this.dataStoreSpec == null) {
+        if (this.dataStoreSpec == null && objectMapper != null) {
+            // Internally created schema does not have store
             try {
                 this.dataStoreSpec = objectMapper.readValue("{\"type\": \"metric\"}", IDataStoreSpec.class);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
         }
-        this.dataStoreSpec.setDataSourceSchema(this);
+        if (this.dataStoreSpec != null) {
+            this.dataStoreSpec.setDataSourceSchema(this);
+        }
     }
 
     public IColumn getColumnByName(String name) {
