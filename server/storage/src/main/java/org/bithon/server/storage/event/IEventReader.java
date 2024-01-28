@@ -18,7 +18,7 @@ package org.bithon.server.storage.event;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.IMetricReader;
+import org.bithon.server.storage.datasource.query.IDataSourceReader;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 4:18 下午
  */
-public interface IEventReader extends AutoCloseable, IMetricReader {
+public interface IEventReader extends AutoCloseable, IDataSourceReader {
     List<Event> getEventList(IExpression filter, TimeSpan start, TimeSpan end, int pageNumber, int pageSize);
 
     int getEventListSize(IExpression filter, TimeSpan start, TimeSpan end);

@@ -24,7 +24,7 @@ import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.datasource.DataSourceExistException;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.IMetricReader;
+import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
@@ -135,7 +135,7 @@ public class DataSourceApi implements IDataSourceApi {
                            .limit(request.getLimit())
                            .build();
 
-        try (IMetricReader reader = schema.getDataStoreSpec().createReader()) {
+        try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             return GeneralQueryResponse.builder()
                                        .total(reader.listSize(query))
                                        .data(reader.list(query))
@@ -152,7 +152,7 @@ public class DataSourceApi implements IDataSourceApi {
         validateQueryRequest(schema, request);
 
         Query query = this.dataSourceService.convertToQuery(schema, request, false, false);
-        try (IMetricReader reader = schema.getDataStoreSpec().createReader()) {
+        try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             return GeneralQueryResponse.builder()
                                        .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
                                        .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
@@ -168,7 +168,7 @@ public class DataSourceApi implements IDataSourceApi {
         validateQueryRequest(schema, request);
 
         Query query = this.dataSourceService.convertToQuery(schema, request, true, false);
-        try (IMetricReader reader = schema.getDataStoreSpec().createReader()) {
+        try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             return GeneralQueryResponse.builder()
                                        .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
                                        .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
@@ -237,12 +237,12 @@ public class DataSourceApi implements IDataSourceApi {
         IColumn column = schema.getColumnByName(request.getName());
         Preconditions.checkNotNull(column, "Field [%s] does not exist in the schema.", request.getName());
 
-        try (IMetricReader reader = schema.getDataStoreSpec().createReader()) {
-            return reader.getDistinctValues(TimeSpan.fromISO8601(request.getStartTimeISO8601()),
-                                            TimeSpan.fromISO8601(request.getEndTimeISO8601()),
-                                            schema,
-                                            FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters()),
-                                            column.getName());
+        try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
+            return reader.distinct(TimeSpan.fromISO8601(request.getStartTimeISO8601()),
+                                   TimeSpan.fromISO8601(request.getEndTimeISO8601()),
+                                   schema,
+                                   FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters()),
+                                   column.getName());
         }
     }
 

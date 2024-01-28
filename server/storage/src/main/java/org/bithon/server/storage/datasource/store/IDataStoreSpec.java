@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.component.commons.Experimental;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.IMetricReader;
+import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.tracing.TraceDataStore;
 
 import java.io.IOException;
@@ -55,5 +55,5 @@ public interface IDataStoreSpec {
 
     IDataStoreSpec withProperties(Map<String, String> properties);
 
-    IMetricReader createReader() throws IOException;
+    IDataSourceReader createReader() throws IOException;
 }

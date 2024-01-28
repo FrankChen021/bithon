@@ -23,7 +23,7 @@ import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.IMetricReader;
+import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
@@ -69,7 +69,7 @@ public class TopoApi {
     @PostMapping("/api/topo/getApplicationTopo")
     public Topo getTopo(@Valid @RequestBody GetTopoRequest request) {
         DataSourceSchema topoSchema = schemaManager.getDataSourceSchema("topo-metrics");
-        IMetricReader metricReader = metricStorage.createMetricReader(topoSchema);
+        IDataSourceReader metricReader = metricStorage.createMetricReader(topoSchema);
 
         // since the min granularity is minute, round down the timestamp to minute
         // and notice that the 'end' parameter is inclusive, so the round down has no impact on the query range

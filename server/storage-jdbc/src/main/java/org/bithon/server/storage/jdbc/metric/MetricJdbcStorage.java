@@ -23,7 +23,7 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.IMetricReader;
+import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
@@ -85,7 +85,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     }
 
     @Override
-    public final IMetricReader createMetricReader(DataSourceSchema schema) {
+    public final IDataSourceReader createMetricReader(DataSourceSchema schema) {
         return this.createReader(this.dslContext, sqlDialect);
     }
 
@@ -138,7 +138,7 @@ public class MetricJdbcStorage implements IMetricStorage {
         return new MetricJdbcWriter(dslContext, table, true, null);
     }
 
-    protected IMetricReader createReader(DSLContext dslContext, ISqlDialect sqlDialect) {
+    protected IDataSourceReader createReader(DSLContext dslContext, ISqlDialect sqlDialect) {
         return new MetricJdbcReader(dslContext, sqlDialect);
     }
 

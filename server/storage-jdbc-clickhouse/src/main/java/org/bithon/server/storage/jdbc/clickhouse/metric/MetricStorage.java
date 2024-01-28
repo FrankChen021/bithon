@@ -28,7 +28,7 @@ import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.IMetricReader;
+import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
@@ -131,17 +131,17 @@ public class MetricStorage extends MetricJdbcStorage {
     }
 
     @Override
-    protected IMetricReader createReader(DSLContext dslContext, ISqlDialect sqlDialect) {
+    protected IDataSourceReader createReader(DSLContext dslContext, ISqlDialect sqlDialect) {
         return new MetricJdbcReader(dslContext, sqlDialect) {
             /**
              * Rewrite the SQL to use group-by instead of distinct so that we can leverage PROJECTIONS defined at the underlying table to speed up queries
              */
             @Override
-            public List<Map<String, String>> getDistinctValues(TimeSpan start,
-                                                               TimeSpan end,
-                                                               DataSourceSchema dataSourceSchema,
-                                                               IExpression filter,
-                                                               String dimension) {
+            public List<Map<String, String>> distinct(TimeSpan start,
+                                                      TimeSpan end,
+                                                      DataSourceSchema dataSourceSchema,
+                                                      IExpression filter,
+                                                      String dimension) {
                 start = start.floor(Duration.ofMinutes(1));
                 end = end.ceil(Duration.ofMinutes(1));
 

@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.bithon.component.commons.Experimental;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.IMetricReader;
+import org.bithon.server.storage.datasource.query.IDataSourceReader;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -75,7 +75,7 @@ public class ExternalDataStoreSpec implements IDataStoreSpec {
     }
 
     @Override
-    public IMetricReader createReader() throws IOException {
+    public IDataSourceReader createReader() throws IOException {
         Map<String, Object> args = new HashMap<>();
 
         // Only JDBC type is supported now
@@ -84,7 +84,7 @@ public class ExternalDataStoreSpec implements IDataStoreSpec {
         args.put("type", "jdbc");
         args.put("name", store);
         args.put("props", this.properties);
-        return objectMapper.readValue(objectMapper.writeValueAsBytes(args), IMetricReader.class);
+        return objectMapper.readValue(objectMapper.writeValueAsBytes(args), IDataSourceReader.class);
     }
 
     @Override

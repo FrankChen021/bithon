@@ -23,7 +23,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.IMetricReader;
+import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -80,7 +80,7 @@ public class DataSourceService {
                                     .map((ResultColumn::getResultColumnName))
                                     .collect(Collectors.toList());
 
-        try (IMetricReader reader = query.getDataSource().getDataStoreSpec().createReader()) {
+        try (IDataSourceReader reader = query.getDataSource().getDataStoreSpec().createReader()) {
             return TimeSeriesQueryResult.build(query.getInterval().getStartTime(),
                                                query.getInterval().getEndTime(),
                                                query.getInterval().getStep(),

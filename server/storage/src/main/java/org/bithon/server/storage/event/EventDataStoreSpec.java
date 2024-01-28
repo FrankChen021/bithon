@@ -18,7 +18,7 @@ package org.bithon.server.storage.event;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.IMetricReader;
+import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 
 import java.util.Collections;
@@ -65,7 +65,7 @@ public class EventDataStoreSpec implements IDataStoreSpec {
     }
 
     @Override
-    public IMetricReader createReader() {
+    public IDataSourceReader createReader() {
         return storage.createReader();
     }
 }

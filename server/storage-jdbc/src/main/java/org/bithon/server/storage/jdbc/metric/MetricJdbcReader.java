@@ -27,7 +27,7 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.IMetricReader;
+import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Column;
@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
  * @date 2021/1/31 1:39 下午
  */
 @Slf4j
-public class MetricJdbcReader implements IMetricReader {
+public class MetricJdbcReader implements IDataSourceReader {
 
     private static final String TIMESTAMP_ALIAS_NAME = "_timestamp";
 
@@ -244,11 +244,11 @@ public class MetricJdbcReader implements IMetricReader {
     }
 
     @Override
-    public List<Map<String, String>> getDistinctValues(TimeSpan start,
-                                                       TimeSpan end,
-                                                       DataSourceSchema dataSourceSchema,
-                                                       IExpression filter,
-                                                       String dimension) {
+    public List<Map<String, String>> distinct(TimeSpan start,
+                                              TimeSpan end,
+                                              DataSourceSchema dataSourceSchema,
+                                              IExpression filter,
+                                              String dimension) {
         String filterText = filter == null ? "" : Expression2Sql.from(dataSourceSchema, sqlDialect, filter) + " AND ";
 
         String sql = StringUtils.format(

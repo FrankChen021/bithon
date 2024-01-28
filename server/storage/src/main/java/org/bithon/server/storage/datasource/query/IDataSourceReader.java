@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource;
+package org.bithon.server.storage.datasource.query;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.query.Query;
+import org.bithon.server.storage.datasource.DataSourceSchema;
 
 import java.util.List;
 import java.util.Map;
@@ -27,7 +27,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2020/12/11 11:09 上午
  */
-public interface IMetricReader extends AutoCloseable {
+public interface IDataSourceReader extends AutoCloseable {
 
     List<Map<String, Object>> timeseries(Query query);
 
@@ -39,11 +39,11 @@ public interface IMetricReader extends AutoCloseable {
     List<Map<String, Object>> list(Query query);
     int listSize(Query query);
 
-    List<Map<String, String>> getDistinctValues(TimeSpan start,
-                                                TimeSpan end,
-                                                DataSourceSchema dataSourceSchema,
-                                                IExpression filter,
-                                                String dimension);
+    List<Map<String, String>> distinct(TimeSpan start,
+                                       TimeSpan end,
+                                       DataSourceSchema dataSourceSchema,
+                                       IExpression filter,
+                                       String dimension);
 
     default void close() {
     }
