@@ -46,4 +46,11 @@ public class SettingJdbcWriter implements ISettingWriter {
                   .set(Tables.BITHON_AGENT_SETTING.UPDATEDAT, now)
                   .execute();
     }
+
+    @Override
+    public void deleteSetting(String app, String name) {
+        dslContext.deleteFrom(Tables.BITHON_AGENT_SETTING)
+                  .where(Tables.BITHON_AGENT_SETTING.SETTINGNAME.eq(name))
+                  .execute();
+    }
 }

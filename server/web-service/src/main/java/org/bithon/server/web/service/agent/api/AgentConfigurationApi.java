@@ -33,6 +33,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.constraints.NotNull;
@@ -48,10 +49,14 @@ import java.util.List;
 public class AgentConfigurationApi {
 
     private final ISettingStorage settingStorage;
+    private final ObjectMapper objectMapper;
     private final AgentControllerConfig agentControllerConfig;
 
-    public AgentConfigurationApi(ISettingStorage settingStorage, AgentControllerConfig agentControllerConfig) {
+    public AgentConfigurationApi(ISettingStorage settingStorage,
+                                 ObjectMapper objectMapper,
+                                 AgentControllerConfig agentControllerConfig) {
         this.settingStorage = settingStorage;
+        this.objectMapper = objectMapper;
         this.agentControllerConfig = agentControllerConfig;
     }
 
@@ -88,7 +93,8 @@ public class AgentConfigurationApi {
     }
 
     @PostMapping("/api/agent/configuration/add")
-    public void addConfiguration(@Validated @RequestBody AddRequest request) {
+    public void addConfiguration(@RequestHeader("token") String token,
+                                 @Validated @RequestBody AddRequest request) {
         String format = request.getFormat() != null ? request.getFormat() : "json";
         Preconditions.checkIfTrue("yaml".equals(request.getFormat()) || "json".equals(request.getFormat()),
                                   "Invalid format[%s] given. Only json or yaml is supported.",
@@ -106,12 +112,34 @@ public class AgentConfigurationApi {
             throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "The 'value' is not valid format of %s", format);
         }
 
-        this.agentControllerConfig.getPermission().getRules()
+        this.agentControllerConfig.getPermission().verifyPermission(objectMapper,
+                                                                    request.getAppName(),
+                                                                    token);
 
         ISettingWriter writer = settingStorage.createWriter();
         writer.addSetting(request.getAppName(),
                           request.getName(),
                           request.getValue(),
                           request.getFormat());
+    }
+
+    @Data
+    public static class DeleteRequest {
+        @NotNull
+        private String appName;
+
+        @NotNull
+        private String name;
+    }
+
+    @PostMapping("/api/agent/configuration/delete")
+    public void deleteConfiguration(@RequestHeader("token") String token, @Validated @RequestBody DeleteRequest request) {
+        this.agentControllerConfig.getPermission().verifyPermission(objectMapper,
+                                                                    request.getAppName(),
+                                                                    token);
+
+        ISettingWriter writer = settingStorage.createWriter();
+        writer.deleteSetting(request.getAppName(),
+                             request.getName());
     }
 }

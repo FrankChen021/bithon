@@ -22,4 +22,6 @@ package org.bithon.server.storage.setting;
  */
 public interface ISettingWriter {
     void addSetting(String app, String name, String value, String format);
+
+    void deleteSetting(String app, String name);
 }
