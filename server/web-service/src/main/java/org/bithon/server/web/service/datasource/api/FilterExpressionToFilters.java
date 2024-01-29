@@ -122,14 +122,18 @@ public class FilterExpressionToFilters {
         List<IExpression> expressions = new ArrayList<>();
         FilterToExpressionConverter converter = new FilterToExpressionConverter();
         for (IColumnFilter filter : filters) {
-            IColumn column = schema.getColumnByName(filter.getField());
-            if (column == null) {
-                throw new InvalidExpressionException("Identifier [%s] is not defined in schema [%s]",
-                                                     filter.getField(),
-                                                     schema.getName());
-            }
+            if (schema != null) {
+                IColumn column = schema.getColumnByName(filter.getField());
+                if (column == null) {
+                    throw new InvalidExpressionException("Identifier [%s] is not defined in schema [%s]",
+                                                         filter.getField(),
+                                                         schema.getName());
+                }
 
-            converter.setColumn(column);
+                converter.setColumn(column.getName());
+            } else {
+                converter.setColumn(filter.getField());
+            }
             expressions.add(filter.getMatcher().accept(converter));
         }
         return expressions.size() == 1 ? expressions.get(0) : new LogicalExpression.AND(expressions);
@@ -138,8 +142,8 @@ public class FilterExpressionToFilters {
     static class FilterToExpressionConverter implements IMatcherVisitor<IExpression> {
         private IdentifierExpression field;
 
-        public void setColumn(IColumn column) {
-            this.field = new IdentifierExpression(column.getName());
+        public void setColumn(String name) {
+            this.field = new IdentifierExpression(name);
         }
 
         @Override

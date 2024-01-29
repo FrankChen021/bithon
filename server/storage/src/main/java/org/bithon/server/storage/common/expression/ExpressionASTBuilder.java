@@ -73,7 +73,7 @@ public class ExpressionASTBuilder {
     }
 
     public ExpressionASTBuilder schema(IDataSource dataSource) {
-        this.identifiers = new IdentifierProvider(dataSource);
+        this.identifiers = dataSource != null ? new IdentifierProvider(dataSource) : null;
         return this;
     }
 

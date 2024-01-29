@@ -110,7 +110,7 @@ public class TraceJdbcReader implements ITraceReader {
     @Override
     public List<TraceSpan> getTraceList(IExpression filter,
                                         List<IExpression> nonIndexedTagFilters,
-                                        Map<Integer, IExpression> indexedTagFilter,
+                                        List<IExpression> indexedTagFilter,
                                         Timestamp start,
                                         Timestamp end,
                                         String orderBy,
@@ -176,7 +176,8 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public List<Map<String, Object>> getTraceDistribution(IExpression filter,
-                                                          List<IExpression> nonIndexedTagFilters, Map<Integer, IExpression> indexedTagFilter,
+                                                          List<IExpression> nonIndexedTagFilters,
+                                                          List<IExpression> indexedTagFilter,
                                                           Timestamp start,
                                                           Timestamp end,
                                                           int interval) {
@@ -238,7 +239,8 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public int getTraceListSize(IExpression filter,
-                                List<IExpression> nonIndexedTagFilters, Map<Integer, IExpression> indexedTagFilters,
+                                List<IExpression> nonIndexedTagFilters,
+                                List<IExpression> indexedTagFilters,
                                 Timestamp start,
                                 Timestamp end) {
         boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);

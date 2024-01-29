@@ -200,7 +200,7 @@ public class MetricOverSpanInputSource implements IInputSource {
             span.updateColumn("count", 1);
 
             MetricMessage metricMessage = new MetricMessage();
-            for(IColumn column : schema.getColumns()) {
+            for (IColumn column : schema.getColumns()) {
                 metricMessage.put(column.getName(), span.getCol(column.getName()));
             }
             metricMessage.setApplicationName(span.getAppName());

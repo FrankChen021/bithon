@@ -16,7 +16,6 @@
 
 package org.bithon.server.storage.common.expression;
 
-import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.validation.ExpressionValidationException;
 import org.bithon.component.commons.expression.validation.IIdentifier;
 import org.bithon.component.commons.expression.validation.IIdentifierProvider;
@@ -43,6 +42,7 @@ class IdentifierProvider implements IIdentifierProvider {
             // However, when searching spans with tag filters, the schema here does not contain the tags.
             // We need to ignore this case.
             // The ignored tags will be processed later in the trace module.
+            /*
             if (identifier.startsWith("tags.")) {
                 return new IIdentifier() {
                     @Override
@@ -55,7 +55,7 @@ class IdentifierProvider implements IIdentifierProvider {
                         return IDataType.STRING;
                     }
                 };
-            }
+            }*/
 
             throw new ExpressionValidationException("Identifier [%s] not defined in schema [%s]",
                                                     identifier,
