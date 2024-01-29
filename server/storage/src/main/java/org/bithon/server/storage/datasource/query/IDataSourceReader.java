@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.datasource.query;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.IDataSource;
@@ -27,6 +28,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2020/12/11 11:09 上午
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface IDataSourceReader extends AutoCloseable {
 
     List<Map<String, Object>> timeseries(Query query);

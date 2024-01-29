@@ -27,6 +27,7 @@ import org.bithon.server.pipeline.metrics.topo.ITopoTransformer;
 import org.bithon.server.pipeline.metrics.topo.TopoTransformers;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.TransformSpec;
 import org.bithon.server.storage.meta.IMetaStorage;
@@ -55,8 +56,8 @@ public class MetricMessageHandler {
     private static volatile IMetricWriter topoMetricWriter;
 
     private final Supplier<ThreadPoolExecutor> executorSupplier;
-    private final DataSourceSchema schema;
-    private final DataSourceSchema endpointSchema;
+    private final IDataSource schema;
+    private final IDataSource endpointSchema;
     private final IMetaStorage metaStorage;
     private final IMetricWriter metricWriter;
     private final TopoTransformers topoTransformers;
@@ -71,12 +72,11 @@ public class MetricMessageHandler {
 
         this.topoTransformers = new TopoTransformers(metaStorage);
 
-        this.schema = (DataSourceSchema) dataSourceSchemaManager.getDataSourceSchema(dataSourceName);
+        this.schema = dataSourceSchemaManager.getDataSourceSchema(dataSourceName);
         this.metaStorage = metaStorage;
         this.metricWriter = new MetricBatchWriter(dataSourceName, metricStorage.createMetricWriter(schema), metricPipelineConfig);
 
-        this.endpointSchema = (DataSourceSchema) dataSourceSchemaManager.getDataSourceSchema("topo-metrics");
-        this.endpointSchema.setEnforceDuplicationCheck(false);
+        this.endpointSchema = dataSourceSchemaManager.getDataSourceSchema("topo-metrics");
         if (topoMetricWriter == null) {
             synchronized (MetricMessageHandler.class) {
                 if (topoMetricWriter == null) {
@@ -135,7 +135,7 @@ public class MetricMessageHandler {
             }
 
             ITopoTransformer topoTransformer = topoTransformers.getTopoTransformer(getType());
-            MetricsAggregator endpointDataSource = new MetricsAggregator(endpointSchema, 60);
+            MetricsAggregator endpointDataSource = new MetricsAggregator((DataSourceSchema) endpointSchema, 60);
             ApplicationInstanceWriter instanceWriter = new ApplicationInstanceWriter();
 
             //

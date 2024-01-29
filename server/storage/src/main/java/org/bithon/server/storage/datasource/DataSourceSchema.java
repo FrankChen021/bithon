@@ -30,12 +30,13 @@ import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.column.DateTimeColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.LongColumn;
-import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -81,7 +82,9 @@ public class DataSourceSchema implements IDataSource {
     private final Period ttl;
 
     @JsonIgnore
-    private final Map<String, IColumn> columnMap = new HashMap<>(17);
+    private final Map<String, IColumn> columnMap = new LinkedHashMap<>(17);
+
+    private final Map<String, IColumn> aliasColumns = new HashMap<>(5);
 
     /**
      * check a {timestamp, dimensions} are unique to help find out some internal wrong implementation
@@ -98,15 +101,6 @@ public class DataSourceSchema implements IDataSource {
     @Setter
     @JsonIgnore
     private String signature;
-
-
-    /**
-     * A runtime property that the schema is only used for queries.
-     */
-    @Getter
-    @Setter
-    @JsonIgnore
-    private boolean isVirtual = false;
 
     private static final IColumn TIMESTAMP_COLUMN = new DateTimeColumn("timestamp", "timestamp");
 
@@ -137,24 +131,6 @@ public class DataSourceSchema implements IDataSource {
         this.dataStoreSpec = dataStoreSpec;
         this.ttl = ttl;
 
-        this.dimensionsSpec.forEach((dimensionSpec) -> {
-            columnMap.put(dimensionSpec.getName(), dimensionSpec);
-
-            if (!dimensionSpec.getAlias().equals(dimensionSpec.getName())) {
-                columnMap.put(dimensionSpec.getAlias(), dimensionSpec);
-            }
-        });
-
-        this.metricsSpec.forEach((metricSpec) -> {
-            columnMap.put(metricSpec.getName(), metricSpec);
-
-            if (!metricSpec.getAlias().equals(metricSpec.getName())) {
-                columnMap.put(metricSpec.getAlias(), metricSpec);
-            }
-        });
-
-        this.columnMap.putIfAbsent(IAggregatableColumn.COUNT, AggregateCountColumn.INSTANCE);
-
         if ("timestamp".equals(this.timestampSpec.getTimestampColumn())) {
             this.columnMap.put(TIMESTAMP_COLUMN.getName(), TIMESTAMP_COLUMN);
         } else {
@@ -163,8 +139,24 @@ public class DataSourceSchema implements IDataSource {
                                               this.timestampSpec.getTimestampColumn()));
         }
 
+        this.dimensionsSpec.forEach((dimensionSpec) -> {
+            columnMap.put(dimensionSpec.getName(), dimensionSpec);
+
+            if (!dimensionSpec.getAlias().equals(dimensionSpec.getName())) {
+                aliasColumns.put(dimensionSpec.getAlias(), dimensionSpec);
+            }
+        });
+
+        this.metricsSpec.forEach((metricSpec) -> {
+            columnMap.put(metricSpec.getName(), metricSpec);
+
+            if (!metricSpec.getAlias().equals(metricSpec.getName())) {
+                aliasColumns.put(metricSpec.getAlias(), metricSpec);
+            }
+        });
+
         if (this.dataStoreSpec == null && objectMapper != null) {
-            // Internally created schema does not have store
+            // Internally created schema does not have a store
             try {
                 this.dataStoreSpec = objectMapper.readValue("{\"type\": \"metric\"}", IDataStoreSpec.class);
             } catch (JsonProcessingException e) {
@@ -177,7 +169,16 @@ public class DataSourceSchema implements IDataSource {
     }
 
     public IColumn getColumnByName(String name) {
-        return columnMap.get(name);
+        IColumn column = columnMap.get(name);
+        if (column == null) {
+            return "count".equals(name) ? AggregateCountColumn.INSTANCE : this.aliasColumns.get(name);
+        }
+        return column;
+    }
+
+    @Override
+    public Collection<IColumn> getColumns() {
+        return this.columnMap.values();
     }
 
     @Override

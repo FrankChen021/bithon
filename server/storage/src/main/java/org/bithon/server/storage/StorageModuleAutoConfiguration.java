@@ -125,8 +125,8 @@ public class StorageModuleAutoConfiguration {
         ITraceStorage storage = storageProviderManager.createStorage(providerName, ITraceStorage.class);
         storage.initialize();
 
-        schemaManager.addDataSourceSchema(TraceDataSource.createSummary(storage));
-        schemaManager.addDataSourceSchema(TraceDataSource.createIndexSchema(storage, storageConfig.getIndexes()));
+        schemaManager.addDataSourceSchema(TraceDataSource.createSummary(storage), false);
+        schemaManager.addDataSourceSchema(TraceDataSource.createIndexSchema(storage, storageConfig.getIndexes()), false);
         return storage;
     }
 

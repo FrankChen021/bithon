@@ -23,7 +23,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.security.HashGenerator;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
@@ -76,7 +75,7 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     }
 
     @Override
-    public List<DataSourceSchema> getSchemas(long afterTimestamp) {
+    public List<IDataSource> getSchemas(long afterTimestamp) {
         return dslContext.selectFrom(Tables.BITHON_META_SCHEMA)
                          .where(Tables.BITHON_META_SCHEMA.TIMESTAMP.ge(new Timestamp(afterTimestamp).toLocalDateTime()))
                          .fetch((record) -> toSchema(record.getName(), record.getSchema(), record.getSignature()))
@@ -96,7 +95,7 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     }
 
     @Override
-    public List<DataSourceSchema> getSchemas() {
+    public List<IDataSource> getSchemas() {
         return dslContext.selectFrom(Tables.BITHON_META_SCHEMA)
                          .fetch((record) -> toSchema(record.getName(), record.getSchema(), record.getSignature()))
                          .stream()
@@ -105,15 +104,15 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     }
 
     @Override
-    public DataSourceSchema getSchemaByName(String name) {
+    public IDataSource getSchemaByName(String name) {
         return dslContext.selectFrom(Tables.BITHON_META_SCHEMA)
                          .where(Tables.BITHON_META_SCHEMA.NAME.eq(name))
                          .fetchOne((record) -> toSchema(name, record.getSchema(), record.getSignature()));
     }
 
-    protected DataSourceSchema toSchema(String name, String schemaPayload, String hash) {
+    protected IDataSource toSchema(String name, String schemaPayload, String hash) {
         try {
-            DataSourceSchema schema = objectMapper.readValue(schemaPayload, DataSourceSchema.class);
+            IDataSource schema = objectMapper.readValue(schemaPayload, IDataSource.class);
             schema.setSignature(hash);
             return schema;
         } catch (JsonProcessingException e) {

@@ -50,9 +50,13 @@ public class DataSourceSchemaManager implements SmartLifecycle {
     }
 
     public boolean addDataSourceSchema(IDataSource schema) {
+        return addDataSourceSchema(schema, true);
+    }
+
+    public boolean addDataSourceSchema(IDataSource schema, boolean saveSchema) {
         if (schema != null &&
             schemas.putIfAbsent(schema.getName(), schema) == null) {
-            if (!schema.isVirtual()) {
+            if (saveSchema && schema.getDataStoreSpec().isInternal()) {
                 try {
                     schemaStorage.putIfNotExist(schema.getName(), schema);
                 } catch (IOException e) {
@@ -72,7 +76,7 @@ public class DataSourceSchemaManager implements SmartLifecycle {
         return schemaStorage.containsSchema(name);
     }
 
-    public void updateDataSourceSchema(DataSourceSchema schema) {
+    public void updateDataSourceSchema(IDataSource schema) {
         try {
             this.schemaStorage.update(schema.getName(), schema);
         } catch (IOException e) {
@@ -109,11 +113,11 @@ public class DataSourceSchemaManager implements SmartLifecycle {
     }
 
     private void incrementalLoadSchemas() {
-        List<DataSourceSchema> changedSchemaList = schemaStorage.getSchemas(this.lastLoadAt);
+        List<IDataSource> changedSchemaList = schemaStorage.getSchemas(this.lastLoadAt);
 
         log.info("{} schema(s) have been changed since {}.", changedSchemaList.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
 
-        for (DataSourceSchema changedSchema : changedSchemaList) {
+        for (IDataSource changedSchema : changedSchemaList) {
             this.onChange(this.put(changedSchema.getName(), changedSchema), changedSchema);
         }
 
@@ -123,7 +127,7 @@ public class DataSourceSchemaManager implements SmartLifecycle {
     /**
      * for better debugging only
      */
-    private IDataSource put(String name, DataSourceSchema schema) {
+    private IDataSource put(String name, IDataSource schema) {
         return this.schemas.put(name, schema);
     }
 

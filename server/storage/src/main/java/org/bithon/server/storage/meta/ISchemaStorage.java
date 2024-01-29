@@ -17,7 +17,6 @@
 package org.bithon.server.storage.meta;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.IDataSource;
 
 import java.io.IOException;
@@ -33,16 +32,16 @@ public interface ISchemaStorage {
     /**
      * get changed schemas after given timestamp
      */
-    List<DataSourceSchema> getSchemas(long afterTimestamp);
+    List<IDataSource> getSchemas(long afterTimestamp);
 
     boolean containsSchema(String name);
 
     /**
      * get all schemas
      */
-    List<DataSourceSchema> getSchemas();
+    List<IDataSource> getSchemas();
 
-    DataSourceSchema getSchemaByName(String name);
+    IDataSource getSchemaByName(String name);
 
     void update(String name, IDataSource schema) throws IOException;
     void putIfNotExist(String name, IDataSource schema) throws IOException;

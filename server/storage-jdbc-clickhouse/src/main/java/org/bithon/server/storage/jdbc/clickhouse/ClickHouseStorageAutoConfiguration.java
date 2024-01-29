@@ -18,6 +18,7 @@ package org.bithon.server.storage.jdbc.clickhouse;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.bithon.server.storage.jdbc.clickhouse.event.EventStorage;
 import org.bithon.server.storage.jdbc.clickhouse.meta.MetadataStorage;
 import org.bithon.server.storage.jdbc.clickhouse.meta.SchemaStorage;
@@ -59,6 +60,10 @@ public class ClickHouseStorageAutoConfiguration {
                                          SettingStorage.class,
                                          DashboardStorage.class,
                                          ClickHouseSqlDialect.class);
+
+                // Allow reading external H2 directly
+                context.registerSubtypes(new NamedType(ExternalClickHouseDataStoreSpec.class, "clickhouse"));
+                context.registerSubtypes(new NamedType(ExternalClickHouseDataStoreSpec.class, "external"));
             }
         };
     }

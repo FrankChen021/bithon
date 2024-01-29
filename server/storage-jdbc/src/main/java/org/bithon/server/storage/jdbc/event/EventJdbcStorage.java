@@ -74,7 +74,7 @@ public class EventJdbcStorage implements IEventStorage {
         this.sqlDialect = sqlDialectManager.getSqlDialect(dslContext);
         this.eventTableSchema = EventDataSource.createEventTableSchema(this);
 
-        schemaManager.addDataSourceSchema(this.eventTableSchema);
+        schemaManager.addDataSourceSchema(this.eventTableSchema, false);
     }
 
     @Override

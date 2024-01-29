@@ -21,12 +21,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
@@ -35,11 +32,9 @@ import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfig
 import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.clickhouse.common.exception.RetryableExceptions;
-import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
-import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorageCleaner;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcWriter;
@@ -51,12 +46,8 @@ import org.jooq.Record;
 import org.jooq.Result;
 
 import java.sql.Timestamp;
-import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -78,7 +69,7 @@ public class MetricStorage extends MetricJdbcStorage {
     }
 
     @Override
-    protected void initialize(DataSourceSchema schema, MetricTable table) {
+    protected void initialize(IDataSource dataSource, MetricTable table) {
         if (!this.storageConfig.isCreateTable()) {
             return;
         }
@@ -86,7 +77,7 @@ public class MetricStorage extends MetricJdbcStorage {
     }
 
     @Override
-    protected MetricTable toMetricTable(DataSourceSchema schema) {
+    protected MetricTable toMetricTable(IDataSource schema) {
         return new MetricTable(schema, true);
     }
 
@@ -133,40 +124,7 @@ public class MetricStorage extends MetricJdbcStorage {
 
     @Override
     protected IDataSourceReader createReader(DSLContext dslContext, ISqlDialect sqlDialect) {
-        return new MetricJdbcReader(dslContext, sqlDialect) {
-            /**
-             * Rewrite the SQL to use group-by instead of distinct so that we can leverage PROJECTIONS defined at the underlying table to speed up queries
-             */
-            @Override
-            public List<Map<String, String>> distinct(TimeSpan start,
-                                                      TimeSpan end,
-                                                      IDataSource dataSource,
-                                                      IExpression filter,
-                                                      String dimension) {
-                start = start.floor(Duration.ofMinutes(1));
-                end = end.ceil(Duration.ofMinutes(1));
-
-                String condition = filter == null ? "" : Expression2Sql.from(dataSource, sqlDialect, filter) + " AND ";
-
-                String sql = StringUtils.format(
-                    "SELECT \"%s\" FROM \"%s\" WHERE %s toStartOfMinute(\"timestamp\") >= %s AND toStartOfMinute(\"timestamp\") < %s GROUP BY \"%s\" ORDER BY \"%s\"",
-                    dimension,
-                    dataSource.getDataStoreSpec().getStore(),
-                    condition,
-                    sqlDialect.formatTimestamp(start),
-                    sqlDialect.formatTimestamp(end),
-                    dimension,
-                    dimension);
-
-                log.info("Executing {}", sql);
-                List<Record> records = dsl.fetch(sql);
-                return records.stream().map(record -> {
-                    Map<String, String> mapObject = new HashMap<>();
-                    mapObject.put("value", record.get(0).toString());
-                    return mapObject;
-                }).collect(Collectors.toList());
-            }
-        };
+        return new JdbcReader(dslContext, sqlDialect);
     }
 
     @Override
@@ -195,4 +153,5 @@ public class MetricStorage extends MetricJdbcStorage {
                   .set(Tables.BITHON_METRICS_BASELINE.CREATE_TIME, now)
                   .execute();
     }
+
 }

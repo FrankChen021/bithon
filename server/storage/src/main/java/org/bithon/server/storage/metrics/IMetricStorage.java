@@ -19,7 +19,7 @@ package org.bithon.server.storage.metrics;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.common.IStorage;
 import org.bithon.server.storage.common.expiration.IExpirable;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 
 import java.io.IOException;
@@ -38,9 +38,9 @@ public interface IMetricStorage extends IStorage, IExpirable {
         return "metrics";
     }
 
-    IMetricWriter createMetricWriter(DataSourceSchema schema) throws IOException;
+    IMetricWriter createMetricWriter(IDataSource schema) throws IOException;
 
-    IDataSourceReader createMetricReader(DataSourceSchema schema);
+    IDataSourceReader createMetricReader(IDataSource schema);
 
     List<String> getBaselineDates();
 

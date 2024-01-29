@@ -23,8 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
@@ -48,8 +48,8 @@ public class TraceJdbcStorage implements ITraceStorage {
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
     protected final TraceStorageConfig storageConfig;
-    protected final DataSourceSchema traceSpanSchema;
-    protected final DataSourceSchema traceTagIndexSchema;
+    protected final IDataSource traceSpanSchema;
+    protected final IDataSource traceTagIndexSchema;
     protected final SqlDialectManager sqlDialectManager;
 
     @JsonCreator

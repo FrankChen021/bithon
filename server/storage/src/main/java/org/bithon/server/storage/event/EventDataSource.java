@@ -26,6 +26,7 @@ import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateC
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,11 +68,6 @@ public class EventDataSource implements IDataSource {
     }
 
     @Override
-    public boolean isVirtual() {
-        return true;
-    }
-
-    @Override
     public String getName() {
         return name;
     }
@@ -89,6 +85,11 @@ public class EventDataSource implements IDataSource {
     @Override
     public IColumn getColumnByName(String name) {
         return this.columnMap.get(name);
+    }
+
+    @Override
+    public Collection<IColumn> getColumns() {
+        return this.columnMap.values();
     }
 
     @Override

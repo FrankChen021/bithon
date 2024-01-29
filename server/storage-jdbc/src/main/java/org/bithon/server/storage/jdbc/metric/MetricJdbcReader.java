@@ -17,10 +17,7 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.Preconditions;
@@ -35,7 +32,6 @@ import org.bithon.server.storage.datasource.query.ast.SelectExpression;
 import org.bithon.server.storage.datasource.query.ast.StringNode;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
-import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -63,9 +59,9 @@ public class MetricJdbcReader implements IDataSourceReader {
     private final boolean shouldCloseContext;
 
     @JsonCreator
-    public MetricJdbcReader(@JsonProperty("name") String name,
-                            @JsonProperty("props") Map<String, Object> props,
-                            @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
+    public MetricJdbcReader(String name,
+                            Map<String, Object> props,
+                            ISqlDialect sqlDialect) {
         DruidDataSource jdbcDataSource = new DruidDataSource();
         jdbcDataSource.setDriverClassName((String) Preconditions.checkNotNull(props.get("driverClassName"), "Missing driverClassName property for %s", name));
         jdbcDataSource.setUrl((String) Preconditions.checkNotNull(props.get("url"), "Missing url property for %s", name));
@@ -80,7 +76,7 @@ public class MetricJdbcReader implements IDataSourceReader {
                                  .set(new JooqProperties().determineSqlDialect(jdbcDataSource))
                                  .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
 
-        this.sqlDialect = sqlDialectManager.getSqlDialect(this.dsl);
+        this.sqlDialect = sqlDialect;
         this.shouldCloseContext = true;
     }
 

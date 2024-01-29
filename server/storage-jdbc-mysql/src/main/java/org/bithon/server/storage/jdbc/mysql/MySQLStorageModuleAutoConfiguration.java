@@ -57,6 +57,10 @@ public class MySQLStorageModuleAutoConfiguration {
                 context.registerSubtypes(MySQLSqlDialect.class);
 
                 context.registerSubtypes(new NamedType(JdbcStorageProviderConfiguration.class, "mysql"),
+
+                                         // Allow reading external H2 directly
+                                         new NamedType(ExternalMySQLDataStoreSpec.class, "mysql"),
+
                                          new NamedType(MetricJdbcStorage.class, "mysql"),
                                          new NamedType(SettingJdbcStorage.class, "mysql"),
                                          new NamedType(TraceJdbcStorage.class, "mysql"),

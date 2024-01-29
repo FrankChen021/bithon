@@ -21,8 +21,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
@@ -76,7 +76,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     }
 
     @Override
-    public final IMetricWriter createMetricWriter(DataSourceSchema schema) {
+    public final IMetricWriter createMetricWriter(IDataSource schema) {
         MetricTable table = toMetricTable(schema);
         if (schema.getDataStoreSpec().isInternal()) {
             initialize(schema, table);
@@ -85,7 +85,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     }
 
     @Override
-    public final IDataSourceReader createMetricReader(DataSourceSchema schema) {
+    public final IDataSourceReader createMetricReader(IDataSource schema) {
         return this.createReader(this.dslContext, sqlDialect);
     }
 
@@ -130,7 +130,7 @@ public class MetricJdbcStorage implements IMetricStorage {
                   .execute();
     }
 
-    protected MetricTable toMetricTable(DataSourceSchema schema) {
+    protected MetricTable toMetricTable(IDataSource schema) {
         return new MetricTable(schema, false);
     }
 
@@ -142,7 +142,11 @@ public class MetricJdbcStorage implements IMetricStorage {
         return new MetricJdbcReader(dslContext, sqlDialect);
     }
 
-    protected void initialize(DataSourceSchema schema, MetricTable table) {
+    protected void initialize(IDataSource dataSource, MetricTable table) {
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
+
         CreateTableIndexStep s = dslContext.createTableIfNotExists(table)
                                            .columns(table.fields())
                                            .indexes(table.getIndexes());

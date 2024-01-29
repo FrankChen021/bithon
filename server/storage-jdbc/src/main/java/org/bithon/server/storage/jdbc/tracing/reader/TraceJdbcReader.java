@@ -32,7 +32,6 @@ import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.Order;
@@ -72,14 +71,14 @@ public class TraceJdbcReader implements ITraceReader {
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
     protected final TraceStorageConfig traceStorageConfig;
-    protected final DataSourceSchema traceSpanSchema;
-    protected final DataSourceSchema traceTagIndexSchema;
+    protected final IDataSource traceSpanSchema;
+    protected final IDataSource traceTagIndexSchema;
     protected final ISqlDialect sqlDialect;
 
     public TraceJdbcReader(DSLContext dslContext,
                            ObjectMapper objectMapper,
-                           DataSourceSchema traceSpanSchema,
-                           DataSourceSchema traceTagIndexSchema,
+                           IDataSource traceSpanSchema,
+                           IDataSource traceTagIndexSchema,
                            TraceStorageConfig traceStorageConfig,
                            ISqlDialect sqlDialect) {
         this.dslContext = dslContext;

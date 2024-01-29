@@ -22,7 +22,6 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.datasource.DataSourceExistException;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -191,7 +190,7 @@ public class DataSourceApi implements IDataSourceApi {
         if (dataSource != null && dataSource.getDataStoreSpec() != null) {
             IDataStoreSpec dataStoreSpec = dataSource.getDataStoreSpec();
 
-            Map<String, String> properties = new TreeMap<>(dataStoreSpec.getProperties());
+            Map<String, Object> properties = new TreeMap<>(dataStoreSpec.getProperties());
             properties.computeIfPresent("password", (k, old) -> "<HIDDEN>");
 
             return dataSource.withDataStore(dataStoreSpec.withProperties(properties));
@@ -200,7 +199,7 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public void createSchema(@RequestBody DataSourceSchema schema) {
+    public void createSchema(@RequestBody IDataSource schema) {
         if (schemaManager.containsSchema(schema.getName())) {
             throw new DataSourceExistException(schema.getName());
         }
@@ -217,7 +216,7 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public void updateSchema(@RequestBody DataSourceSchema newSchema) {
+    public void updateSchema(@RequestBody IDataSource newSchema) {
         schemaManager.updateDataSourceSchema(newSchema);
     }
 

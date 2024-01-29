@@ -17,7 +17,6 @@
 package org.bithon.server.web.service.datasource.api;
 
 import lombok.Data;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.IDataSource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,10 +57,10 @@ public interface IDataSourceApi {
     IDataSource getSchemaByName(@PathVariable("name") String schemaName);
 
     @PostMapping("/api/datasource/schema/create")
-    void createSchema(@RequestBody DataSourceSchema schema);
+    void createSchema(@RequestBody IDataSource schema);
 
     @PostMapping("/api/datasource/schema/update")
-    void updateSchema(@RequestBody DataSourceSchema schema);
+    void updateSchema(@RequestBody IDataSource schema);
 
     @PostMapping("/api/datasource/name")
     Collection<DisplayableText> getSchemaNames();

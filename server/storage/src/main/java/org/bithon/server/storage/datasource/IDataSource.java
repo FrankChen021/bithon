@@ -22,30 +22,31 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.store.ExternalDataStoreSpec;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
+
+import java.util.Collection;
 
 /**
  * @author frank.chen021@outlook.com
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = DataSourceSchema.class)
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "metric", value = DataSourceSchema.class),
-    @JsonSubTypes.Type(name = "external", value = ExternalDataStoreSpec.class),
+    @JsonSubTypes.Type(name = "internal", value = DataSourceSchema.class)
 })
 public interface IDataSource {
-    @JsonIgnore
-    boolean isVirtual();
-
     String getName();
+
     String getDisplayText();
 
     TimestampSpec getTimestampSpec();
+
     IColumn getColumnByName(String name);
+    Collection<IColumn> getColumns();
 
     JsonNode getInputSourceSpec();
 
     IDataStoreSpec getDataStoreSpec();
+
     IDataSource withDataStore(IDataStoreSpec spec);
 
     void setSignature(String signature);

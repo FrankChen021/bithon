@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.security.HashGenerator;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
@@ -68,7 +67,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
     }
 
     @Override
-    public List<DataSourceSchema> getSchemas(long afterTimestamp) {
+    public List<IDataSource> getSchemas(long afterTimestamp) {
         String sql = dslContext.select(Tables.BITHON_META_SCHEMA.NAME,
                                        Tables.BITHON_META_SCHEMA.SCHEMA,
                                        Tables.BITHON_META_SCHEMA.SIGNATURE)
@@ -90,7 +89,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
     }
 
     @Override
-    public List<DataSourceSchema> getSchemas() {
+    public List<IDataSource> getSchemas() {
         String sql = dslContext.select(Tables.BITHON_META_SCHEMA.NAME,
                                        Tables.BITHON_META_SCHEMA.SCHEMA,
                                        Tables.BITHON_META_SCHEMA.SIGNATURE).from(Tables.BITHON_META_SCHEMA).getSQL() + " FINAL";
@@ -109,7 +108,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
     }
 
     @Override
-    public DataSourceSchema getSchemaByName(String name) {
+    public IDataSource getSchemaByName(String name) {
         String sql = dslContext.select(Tables.BITHON_META_SCHEMA.SCHEMA,
                                        Tables.BITHON_META_SCHEMA.SIGNATURE).from(Tables.BITHON_META_SCHEMA).getSQL()
             + " FINAL where "

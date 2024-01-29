@@ -94,7 +94,7 @@ public class MetricOverSpanInputSource implements IInputSource {
         }
 
         try {
-            this.metricStorage.createMetricWriter((DataSourceSchema) schema).close();
+            this.metricStorage.createMetricWriter(schema).close();
             log.info("Success to initialize metric storage for [{}].", schema.getName());
         } catch (Exception e) {
             log.info("Failed to initialize metric storage for [{}]: {}", schema.getName(), e.getMessage());
@@ -196,21 +196,16 @@ public class MetricOverSpanInputSource implements IInputSource {
 
         private IInputRow spanToMetrics(TraceSpan span) {
             // must be the first.
-            // since 'count' is a special name that can be referenced by metricSpec in schema
+            // since 'count' is a special name that metricSpec can reference in the schema
             span.updateColumn("count", 1);
 
             MetricMessage metricMessage = new MetricMessage();
+            for(IColumn column : schema.getColumns()) {
+                metricMessage.put(column.getName(), span.getCol(column.getName()));
+            }
             metricMessage.setApplicationName(span.getAppName());
             metricMessage.setInstanceName(span.getInstanceName());
             metricMessage.setTimestamp(span.getStartTime() / 1000);
-
-            for (IColumn dimSpec : schema.getDimensionsSpec()) {
-                metricMessage.put(dimSpec.getName(), span.getCol(dimSpec.getName()));
-            }
-            for (IColumn metricSpec : schema.getMetricsSpec()) {
-                String name = metricSpec.getName();
-                metricMessage.put(name, span.getCol(name));
-            }
 
             return metricMessage;
         }

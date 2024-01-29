@@ -30,6 +30,7 @@ import org.bithon.server.storage.tracing.index.TagIndexConfig;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,12 +70,6 @@ public class TraceDataSource implements IDataSource {
         return name;
     }
 
-
-    @Override
-    public boolean isVirtual() {
-        return true;
-    }
-
     @Override
     public TimestampSpec getTimestampSpec() {
         return timestampSpec;
@@ -83,6 +78,11 @@ public class TraceDataSource implements IDataSource {
     @Override
     public IColumn getColumnByName(String name) {
         return this.columnMap.get(name);
+    }
+
+    @Override
+    public Collection<IColumn> getColumns() {
+        return this.columnMap.values();
     }
 
     @Override

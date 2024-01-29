@@ -32,8 +32,7 @@ import java.util.Map;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = InternalDataSourceSpec.class)
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "metric", value = InternalDataSourceSpec.class),
-    @JsonSubTypes.Type(name = "external", value = ExternalDataStoreSpec.class),
+    @JsonSubTypes.Type(name = "internal", value = InternalDataSourceSpec.class),
 })
 @Experimental
 public interface IDataStoreSpec {
@@ -48,9 +47,9 @@ public interface IDataStoreSpec {
     @JsonIgnore
     boolean isInternal();
 
-    Map<String, String> getProperties();
+    Map<String, Object> getProperties();
 
-    IDataStoreSpec withProperties(Map<String, String> properties);
+    IDataStoreSpec withProperties(Map<String, Object> properties);
 
     IDataSourceReader createReader() throws IOException;
 }

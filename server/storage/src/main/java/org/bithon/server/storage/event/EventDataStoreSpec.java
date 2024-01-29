@@ -55,12 +55,12 @@ class EventDataStoreSpec implements IDataStoreSpec {
     }
 
     @Override
-    public Map<String, String> getProperties() {
+    public Map<String, Object> getProperties() {
         return Collections.emptyMap();
     }
 
     @Override
-    public IDataStoreSpec withProperties(Map<String, String> properties) {
+    public IDataStoreSpec withProperties(Map<String, Object> properties) {
         return this;
     }
 

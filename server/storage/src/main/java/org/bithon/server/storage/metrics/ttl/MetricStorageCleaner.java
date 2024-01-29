@@ -49,7 +49,7 @@ public abstract class MetricStorageCleaner implements IExpirationRunnable {
     }
 
     private void expire(IDataSource schema, Timestamp before, List<TimeSpan> skipDateList) {
-        if (schema.isVirtual() || !schema.getDataStoreSpec().isInternal()) {
+        if (!schema.getDataStoreSpec().isInternal()) {
             return;
         }
 
