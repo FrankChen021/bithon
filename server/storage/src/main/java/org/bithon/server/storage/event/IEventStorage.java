@@ -36,7 +36,7 @@ public interface IEventStorage extends IStorage, IExpirable {
     default void initialize() {
     }
 
-    IDataSource getSchema();
+    IDataSource getDataSource();
 
     IEventWriter createWriter();
 

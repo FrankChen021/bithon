@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
+import java.io.IOException;
 
 /**
  * @author frank.chen021@outlook.com
@@ -29,5 +30,5 @@ import javax.validation.Valid;
 public interface IEventApi {
 
     @PostMapping("/api/event/getEventList")
-    GetEventListResponse getEventList(@Valid @RequestBody GetEventListRequest request);
+    GetEventListResponse getEventList(@Valid @RequestBody GetEventListRequest request) throws IOException;
 }

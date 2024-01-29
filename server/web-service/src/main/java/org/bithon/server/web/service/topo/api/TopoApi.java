@@ -29,7 +29,6 @@ import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.meta.EndPointType;
-import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.topo.service.EndpointBo;
@@ -58,13 +57,10 @@ import java.util.stream.Stream;
 @Conditional(WebServiceModuleEnabler.class)
 public class TopoApi {
 
-    private final IMetricStorage metricStorage;
     private final DataSourceSchemaManager schemaManager;
 
-    public TopoApi(DataSourceSchemaManager schemaManager,
-                   IMetricStorage metricStorage) {
+    public TopoApi(DataSourceSchemaManager schemaManager) {
         this.schemaManager = schemaManager;
-        this.metricStorage = metricStorage;
     }
 
     @PostMapping("/api/topo/getApplicationTopo")
@@ -97,8 +93,8 @@ public class TopoApi {
                                  .groupBy(Arrays.asList("dstEndpoint", "dstEndpointType"))
                                  .build();
 
-        try (IDataSourceReader metricReader = topoSchema.getDataStoreSpec().createReader()) {
-            List<Map<String, Object>> callees = (List<Map<String, Object>>) metricReader.groupBy(calleeQuery);
+        try (IDataSourceReader dataSourceReader = topoSchema.getDataStoreSpec().createReader()) {
+            List<Map<String, Object>> callees = (List<Map<String, Object>>) dataSourceReader.groupBy(calleeQuery);
 
             int x = 300;
             int y = 300;
@@ -147,7 +143,7 @@ public class TopoApi {
                                                                                                    LiteralExpression.create(EndPointType.APPLICATION.name()))))
                                      .interval(Interval.of(start, end))
                                      .groupBy(Arrays.asList("srcEndpoint", "srcEndpointType")).build();
-            List<Map<String, Object>> callers = (List<Map<String, Object>>) metricReader.groupBy(callerQuery);
+            List<Map<String, Object>> callers = (List<Map<String, Object>>) dataSourceReader.groupBy(callerQuery);
 
             y = 300;
             for (Map<String, Object> caller : callers) {

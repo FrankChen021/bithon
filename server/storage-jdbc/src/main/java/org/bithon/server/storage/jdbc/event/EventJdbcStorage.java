@@ -91,7 +91,7 @@ public class EventJdbcStorage implements IEventStorage {
     }
 
     @Override
-    public IDataSource getSchema() {
+    public IDataSource getDataSource() {
         return eventTableSchema;
     }
 
@@ -102,7 +102,7 @@ public class EventJdbcStorage implements IEventStorage {
 
     @Override
     public IEventReader createReader() {
-        return new EventJdbcReader(dslContext, sqlDialect, eventTableSchema);
+        return new EventJdbcReader(dslContext, sqlDialect);
     }
 
     @Override

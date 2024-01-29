@@ -16,76 +16,19 @@
 
 package org.bithon.server.storage.jdbc.event;
 
-import org.bithon.component.commons.expression.IExpression;
-import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.IDataSource;
-import org.bithon.server.storage.event.Event;
 import org.bithon.server.storage.event.IEventReader;
-import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
-import org.bithon.server.storage.jdbc.common.jooq.Tables;
-import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonEventRecord;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
 import org.jooq.DSLContext;
-import org.jooq.SelectConditionStep;
-import org.jooq.impl.DSL;
-
-import java.sql.Timestamp;
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2022/11/29 21:08
  */
 public class EventJdbcReader extends MetricJdbcReader implements IEventReader {
-    private final IDataSource eventTableSchema;
 
-    EventJdbcReader(DSLContext dslContext, ISqlDialect sqlDialect, IDataSource eventTableSchema) {
+    EventJdbcReader(DSLContext dslContext, ISqlDialect sqlDialect) {
         super(dslContext, sqlDialect);
 
-        this.eventTableSchema = eventTableSchema;
-    }
-
-    @Override
-    public void close() {
-        dsl.close();
-    }
-
-    @Override
-    public List<Event> getEventList(IExpression filter, TimeSpan start, TimeSpan end, int pageNumber, int pageSize) {
-        SelectConditionStep<BithonEventRecord> step = dsl.selectFrom(Tables.BITHON_EVENT)
-                                                         .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp().toLocalDateTime()))
-                                                         .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp().toLocalDateTime()));
-
-        if (filter != null) {
-            step = step.and(Expression2Sql.from(eventTableSchema, sqlDialect, filter));
-        }
-
-        return step.orderBy(Tables.BITHON_EVENT.TIMESTAMP.desc())
-                   .offset(pageNumber * pageSize)
-                   .limit(pageSize)
-                   .fetch((r) -> {
-                       Event e = new Event();
-                       e.setApplication(r.getAppname());
-                       e.setArgs(r.getArguments());
-                       e.setInstance(r.getInstancename());
-                       e.setType(r.getType());
-                       e.setTimestamp(Timestamp.valueOf(r.getTimestamp()).getTime());
-                       return e;
-                   });
-    }
-
-    @Override
-    public int getEventListSize(IExpression filter, TimeSpan start, TimeSpan end) {
-        SelectConditionStep<?> step = dsl.select(DSL.count())
-                                         .from(Tables.BITHON_EVENT)
-                                         .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp().toLocalDateTime()))
-                                         .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp().toLocalDateTime()));
-
-        if (filter != null) {
-            step = step.and(Expression2Sql.from(eventTableSchema, sqlDialect, filter));
-        }
-
-        return (int) step.fetchOne(0);
     }
 }

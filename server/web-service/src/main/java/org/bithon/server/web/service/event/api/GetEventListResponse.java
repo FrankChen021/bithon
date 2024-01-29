@@ -18,9 +18,9 @@ package org.bithon.server.web.service.event.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.bithon.server.storage.event.Event;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -30,5 +30,5 @@ import java.util.List;
 @AllArgsConstructor
 public class GetEventListResponse {
     private int total;
-    private List<Event> rows;
+    private List<Map<String, Object>> rows;
 }

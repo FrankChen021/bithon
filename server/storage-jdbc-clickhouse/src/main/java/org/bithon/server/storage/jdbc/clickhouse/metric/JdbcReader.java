@@ -75,7 +75,7 @@ public class JdbcReader extends MetricJdbcReader {
             dimension);
 
         log.info("Executing {}", sql);
-        List<Record> records = dsl.fetch(sql);
+        List<Record> records = dslContext.fetch(sql);
         return records.stream().map(record -> {
             Map<String, String> mapObject = new HashMap<>();
             mapObject.put("value", record.get(0).toString());

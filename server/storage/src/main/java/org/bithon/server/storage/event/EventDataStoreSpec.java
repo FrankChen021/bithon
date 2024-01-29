@@ -46,7 +46,7 @@ class EventDataStoreSpec implements IDataStoreSpec {
     }
 
     @Override
-    public void setDataSourceSchema(IDataSource schema) {
+    public void setDataSourceSchema(IDataSource dataSource) {
     }
 
     @Override

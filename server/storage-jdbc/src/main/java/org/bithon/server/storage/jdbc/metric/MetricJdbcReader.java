@@ -17,7 +17,6 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.Preconditions;
@@ -54,11 +53,10 @@ public class MetricJdbcReader implements IDataSourceReader {
 
     private static final String TIMESTAMP_ALIAS_NAME = "_timestamp";
 
-    protected final DSLContext dsl;
+    protected final DSLContext dslContext;
     protected final ISqlDialect sqlDialect;
     private final boolean shouldCloseContext;
 
-    @JsonCreator
     public MetricJdbcReader(String name,
                             Map<String, Object> props,
                             ISqlDialect sqlDialect) {
@@ -71,7 +69,7 @@ public class MetricJdbcReader implements IDataSourceReader {
 
         // Create a new one
         JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
-        this.dsl = DSL.using(new DefaultConfiguration()
+        this.dslContext = DSL.using(new DefaultConfiguration()
                                  .set(autoConfiguration.dataSourceConnectionProvider(jdbcDataSource))
                                  .set(new JooqProperties().determineSqlDialect(jdbcDataSource))
                                  .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
@@ -80,8 +78,8 @@ public class MetricJdbcReader implements IDataSourceReader {
         this.shouldCloseContext = true;
     }
 
-    public MetricJdbcReader(DSLContext dsl, ISqlDialect sqlDialect) {
-        this.dsl = dsl;
+    public MetricJdbcReader(DSLContext dslContext, ISqlDialect sqlDialect) {
+        this.dslContext = dslContext;
         this.sqlDialect = sqlDialect;
         this.shouldCloseContext = false;
     }
@@ -200,14 +198,14 @@ public class MetricJdbcReader implements IDataSourceReader {
             sqlDialect.formatTimestamp(query.getInterval().getEndTime())
                                        );
 
-        Record record = dsl.fetchOne(sql);
+        Record record = dslContext.fetchOne(sql);
         return ((Number) record.get(0)).intValue();
     }
 
     private List<?> fetch(String sql, Query.ResultFormat resultFormat) {
         log.info("Executing {}", sql);
 
-        List<Record> records = dsl.fetch(sql);
+        List<Record> records = dslContext.fetch(sql);
 
         if (resultFormat == Query.ResultFormat.Object) {
             return records.stream().map(record -> {
@@ -225,7 +223,7 @@ public class MetricJdbcReader implements IDataSourceReader {
     private List<Map<String, Object>> executeSql(String sql) {
         log.info("Executing {}", sql);
 
-        List<Record> records = dsl.fetch(sql);
+        List<Record> records = dslContext.fetch(sql);
 
         // PAY ATTENTION:
         //  although the explicit cast seems unnecessary, it must be kept so that compilation can pass
@@ -260,7 +258,7 @@ public class MetricJdbcReader implements IDataSourceReader {
                                        );
 
         log.info("Executing {}", sql);
-        List<Record> records = dsl.fetch(sql);
+        List<Record> records = dslContext.fetch(sql);
         return records.stream().map(record -> {
             Field<?>[] fields = record.fields();
             Map<String, String> mapObject = new HashMap<>(fields.length);
@@ -274,7 +272,7 @@ public class MetricJdbcReader implements IDataSourceReader {
     @Override
     public void close() {
         if (this.shouldCloseContext) {
-            this.dsl.close();
+            this.dslContext.close();
         }
     }
 }
