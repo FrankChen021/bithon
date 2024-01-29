@@ -17,14 +17,22 @@
 package org.bithon.server.storage.datasource;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.store.ExternalDataStoreSpec;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 
 /**
  * @author frank.chen021@outlook.com
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = DataSourceSchema.class)
+@JsonSubTypes(value = {
+    @JsonSubTypes.Type(name = "metric", value = DataSourceSchema.class),
+    @JsonSubTypes.Type(name = "external", value = ExternalDataStoreSpec.class),
+})
 public interface IDataSource {
     @JsonIgnore
     boolean isVirtual();

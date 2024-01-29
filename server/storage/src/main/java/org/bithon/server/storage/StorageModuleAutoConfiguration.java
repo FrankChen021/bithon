@@ -18,13 +18,7 @@ package org.bithon.server.storage;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.provider.StorageProviderManager;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.TimestampSpec;
-import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.column.StringColumn;
-import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
-import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.meta.CacheableMetadataStorage;
@@ -36,9 +30,8 @@ import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.storage.setting.ISettingStorage;
 import org.bithon.server.storage.setting.SettingStorageConfig;
 import org.bithon.server.storage.tracing.ITraceStorage;
-import org.bithon.server.storage.tracing.TraceDataStore;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
-import org.bithon.server.storage.tracing.index.TagIndexConfig;
+import org.bithon.server.storage.tracing.datasource.TraceDataSource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -47,11 +40,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -59,7 +47,6 @@ import java.util.Map;
  */
 @Configuration
 public class StorageModuleAutoConfiguration {
-
 
     @Bean
     @ConditionalOnProperty(value = "bithon.storage.metric.enabled", havingValue = "true")
@@ -138,8 +125,8 @@ public class StorageModuleAutoConfiguration {
         ITraceStorage storage = storageProviderManager.createStorage(providerName, ITraceStorage.class);
         storage.initialize();
 
-        schemaManager.addDataSourceSchema(this.createTraceSpanSchema(storage));
-        schemaManager.addDataSourceSchema(this.createTraceTagIndexSchema(storage, storageConfig.getIndexes()));
+        schemaManager.addDataSourceSchema(TraceDataSource.createSummary(storage));
+        schemaManager.addDataSourceSchema(TraceDataSource.createIndexSchema(storage, storageConfig.getIndexes()));
         return storage;
     }
 
@@ -171,57 +158,5 @@ public class StorageModuleAutoConfiguration {
         ISettingStorage storage = storageProviderManager.createStorage(providerName, ISettingStorage.class);
         storage.initialize();
         return storage;
-    }
-
-    private DataSourceSchema createTraceSpanSchema(ITraceStorage traceStorage) {
-        DataSourceSchema dataSourceSchema =
-            new DataSourceSchema("trace_span_summary",
-                                 "trace_span_summary",
-                                 new TimestampSpec("timestamp", null, null),
-                                 Arrays.asList(new StringColumn("appName",
-                                                                "appName"),
-                                               new StringColumn("instanceName",
-                                                                "instanceName"),
-                                               new StringColumn("status",
-                                                                "status"),
-                                               new StringColumn("name", "name"),
-                                               new StringColumn("normalizedUrl",
-                                                                "url"),
-                                               new StringColumn("kind", "kind")),
-                                 Arrays.asList(AggregateCountColumn.INSTANCE,
-                                               // microsecond
-                                               new AggregateLongSumColumn("costTimeMs",
-                                                                          "costTimeMs")),
-                                 null,
-                                 new TraceDataStore("bithon_trace_span_summary", traceStorage),
-                                 null,
-                                 null);
-        dataSourceSchema.setVirtual(true);
-        return dataSourceSchema;
-    }
-
-    private DataSourceSchema createTraceTagIndexSchema(ITraceStorage traceStorage, TagIndexConfig tagIndexConfig) {
-        List<IColumn> dimensionSpecs = new ArrayList<>();
-        if (tagIndexConfig != null) {
-            for (Map.Entry<String, Integer> entry : tagIndexConfig.getMap().entrySet()) {
-                String tagName = "tags." + entry.getKey();
-                Integer indexPos = entry.getValue();
-                dimensionSpecs.add(new StringColumn("f" + indexPos,
-                                                    // Alias
-                                                    tagName));
-            }
-        }
-
-        final DataSourceSchema spanTagSchema = new DataSourceSchema("trace_span_tag_index",
-                                                                    "trace_span_tag_index",
-                                                                    new TimestampSpec("timestamp", null, null),
-                                                                    dimensionSpecs,
-                                                                    Collections.singletonList(AggregateCountColumn.INSTANCE),
-                                                                    null,
-                                                                    new TraceDataStore("bithon_trace_span_tag_index", traceStorage),
-                                                                    null,
-                                                                    null);
-        spanTagSchema.setVirtual(true);
-        return spanTagSchema;
     }
 }

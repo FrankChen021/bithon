@@ -17,7 +17,7 @@
 package org.bithon.server.storage.event;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 
@@ -28,7 +28,7 @@ import java.util.Map;
  * @author Frank Chen
  * @date 27/1/24 11:44 am
  */
-public class EventDataStoreSpec implements IDataStoreSpec {
+class EventDataStoreSpec implements IDataStoreSpec {
 
     private final String store;
 
@@ -46,7 +46,7 @@ public class EventDataStoreSpec implements IDataStoreSpec {
     }
 
     @Override
-    public void setDataSourceSchema(DataSourceSchema schema) {
+    public void setDataSourceSchema(IDataSource schema) {
     }
 
     @Override

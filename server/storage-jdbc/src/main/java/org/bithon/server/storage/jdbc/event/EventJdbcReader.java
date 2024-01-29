@@ -18,7 +18,7 @@ package org.bithon.server.storage.jdbc.event;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.event.Event;
 import org.bithon.server.storage.event.IEventReader;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
@@ -38,9 +38,9 @@ import java.util.List;
  * @date 2022/11/29 21:08
  */
 public class EventJdbcReader extends MetricJdbcReader implements IEventReader {
-    private final DataSourceSchema eventTableSchema;
+    private final IDataSource eventTableSchema;
 
-    EventJdbcReader(DSLContext dslContext, ISqlDialect sqlDialect, DataSourceSchema eventTableSchema) {
+    EventJdbcReader(DSLContext dslContext, ISqlDialect sqlDialect, IDataSource eventTableSchema) {
         super(dslContext, sqlDialect);
 
         this.eventTableSchema = eventTableSchema;

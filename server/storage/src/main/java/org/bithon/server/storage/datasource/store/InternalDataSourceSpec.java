@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 
@@ -39,7 +40,7 @@ public class InternalDataSourceSpec implements IDataStoreSpec {
     @JsonIgnore
     private final IMetricStorage storage;
     @JsonIgnore
-    private DataSourceSchema schema;
+    private IDataSource schema;
 
     public InternalDataSourceSpec(@JacksonInject(useInput = OptBoolean.FALSE) IMetricStorage storage) {
         this.storage = storage;
@@ -51,7 +52,7 @@ public class InternalDataSourceSpec implements IDataStoreSpec {
     }
 
     @Override
-    public void setDataSourceSchema(DataSourceSchema schema) {
+    public void setDataSourceSchema(IDataSource schema) {
         this.store = "bithon_" + schema.getName().replaceAll("-", "_");
         this.schema = schema;
     }
@@ -74,7 +75,7 @@ public class InternalDataSourceSpec implements IDataStoreSpec {
 
     @Override
     public IDataSourceReader createReader() {
-        return storage.createMetricReader(schema);
+        return storage.createMetricReader((DataSourceSchema) schema);
     }
 
     @Override

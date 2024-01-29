@@ -14,12 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.tracing;
+package org.bithon.server.storage.tracing.datasource;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
+import org.bithon.server.storage.tracing.ITraceStorage;
 
 import java.util.Collections;
 import java.util.Map;
@@ -28,7 +29,7 @@ import java.util.Map;
  * @author Frank Chen
  * @date 26/1/24 3:43 pm
  */
-public class TraceDataStore implements IDataStoreSpec {
+class TraceDataStore implements IDataStoreSpec {
 
     private final String store;
 
@@ -46,7 +47,7 @@ public class TraceDataStore implements IDataStoreSpec {
     }
 
     @Override
-    public void setDataSourceSchema(DataSourceSchema schema) {
+    public void setDataSourceSchema(IDataSource schema) {
     }
 
     @Override

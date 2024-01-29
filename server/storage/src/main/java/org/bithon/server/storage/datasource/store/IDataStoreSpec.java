@@ -20,9 +20,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.component.commons.Experimental;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
-import org.bithon.server.storage.tracing.TraceDataStore;
 
 import java.io.IOException;
 import java.util.Map;
@@ -34,8 +33,6 @@ import java.util.Map;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = InternalDataSourceSpec.class)
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = "metric", value = InternalDataSourceSpec.class),
-    @JsonSubTypes.Type(name = "trace", value = TraceDataStore.class),
-    @JsonSubTypes.Type(name = "event", value = TraceDataStore.class),
     @JsonSubTypes.Type(name = "external", value = ExternalDataStoreSpec.class),
 })
 @Experimental
@@ -46,7 +43,7 @@ public interface IDataStoreSpec {
      */
     String getStore();
 
-    void setDataSourceSchema(DataSourceSchema schema);
+    void setDataSourceSchema(IDataSource schema);
 
     @JsonIgnore
     boolean isInternal();

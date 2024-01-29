@@ -23,9 +23,9 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.event.EventSchema;
+import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.event.EventDataSource;
 import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.event.IEventReader;
 import org.bithon.server.storage.event.IEventStorage;
@@ -46,7 +46,7 @@ public class EventJdbcStorage implements IEventStorage {
 
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
-    protected final DataSourceSchema eventTableSchema;
+    protected final IDataSource eventTableSchema;
     protected final EventStorageConfig storageConfig;
     private final ISqlDialect sqlDialect;
 
@@ -72,7 +72,7 @@ public class EventJdbcStorage implements IEventStorage {
         this.objectMapper = objectMapper;
         this.storageConfig = storageConfig;
         this.sqlDialect = sqlDialectManager.getSqlDialect(dslContext);
-        this.eventTableSchema = EventSchema.createEventTableSchema(this);
+        this.eventTableSchema = EventDataSource.createEventTableSchema(this);
 
         schemaManager.addDataSourceSchema(this.eventTableSchema);
     }
@@ -91,7 +91,7 @@ public class EventJdbcStorage implements IEventStorage {
     }
 
     @Override
-    public DataSourceSchema getSchema() {
+    public IDataSource getSchema() {
         return eventTableSchema;
     }
 

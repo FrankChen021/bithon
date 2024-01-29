@@ -24,7 +24,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.bithon.component.commons.Experimental;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IDataSource;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 
 import java.io.IOException;
@@ -62,7 +62,7 @@ public class ExternalDataStoreSpec implements IDataStoreSpec {
     }
 
     @Override
-    public void setDataSourceSchema(DataSourceSchema schema) {
+    public void setDataSourceSchema(IDataSource schema) {
     }
 
     @Override
