@@ -24,15 +24,17 @@ import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * @author Frank Chen
  * @date 18/5/23 1:59 pm
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = InternalDataSourceSpec.class)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = MetricDataSourceSpec.class)
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "internal", value = InternalDataSourceSpec.class),
+    // For backward compatibility
+    @JsonSubTypes.Type(name = "internal", value = MetricDataSourceSpec.class),
+
+    @JsonSubTypes.Type(name = "metric", value = MetricDataSourceSpec.class),
 })
 @Experimental
 public interface IDataStoreSpec {
@@ -42,14 +44,14 @@ public interface IDataStoreSpec {
      */
     String getStore();
 
-    void setDataSourceSchema(ISchema schema);
+    void setSchema(ISchema schema);
 
     @JsonIgnore
     boolean isInternal();
 
-    Map<String, Object> getProperties();
-
-    IDataStoreSpec withProperties(Map<String, Object> properties);
+    default IDataStoreSpec hideSensitiveInformation() {
+        return this;
+    }
 
     IDataSourceReader createReader() throws IOException;
 }

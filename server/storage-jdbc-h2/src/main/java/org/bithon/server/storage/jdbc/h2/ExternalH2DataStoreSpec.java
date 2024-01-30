@@ -43,8 +43,8 @@ public class ExternalH2DataStoreSpec extends ExternalDataStoreSpec {
     }
 
     @Override
-    public IDataStoreSpec withProperties(Map<String, Object> properties) {
-        return new ExternalH2DataStoreSpec(properties, this.store, this.sqlDialectManager);
+    public IDataStoreSpec hideSensitiveInformation() {
+        return new ExternalH2DataStoreSpec(this.getSensitiveHiddenProps(), this.store, this.sqlDialectManager);
     }
 
     @Override

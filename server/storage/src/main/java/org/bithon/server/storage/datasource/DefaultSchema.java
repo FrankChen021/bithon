@@ -164,7 +164,7 @@ public class DefaultSchema implements ISchema {
             }
         }
         if (this.dataStoreSpec != null) {
-            this.dataStoreSpec.setDataSourceSchema(this);
+            this.dataStoreSpec.setSchema(this);
         }
     }
 

@@ -55,7 +55,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -190,10 +189,11 @@ public class DataSourceApi implements IDataSourceApi {
         if (schema != null && schema.getDataStoreSpec() != null) {
             IDataStoreSpec dataStoreSpec = schema.getDataStoreSpec();
 
-            Map<String, Object> properties = new TreeMap<>(dataStoreSpec.getProperties());
-            properties.computeIfPresent("password", (k, old) -> "<HIDDEN>");
-
-            return schema.withDataStore(dataStoreSpec.withProperties(properties));
+            IDataStoreSpec newStore = dataStoreSpec.hideSensitiveInformation();
+            if (newStore != dataStoreSpec) {
+                // Use != to compare the object address
+                return schema.withDataStore(newStore);
+            }
         }
         return schema;
     }

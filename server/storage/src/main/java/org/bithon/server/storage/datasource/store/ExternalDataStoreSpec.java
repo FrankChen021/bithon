@@ -19,11 +19,13 @@ package org.bithon.server.storage.datasource.store;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.component.commons.Experimental;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.storage.datasource.ISchema;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 
 /**
  * @author Frank Chen
@@ -48,7 +50,7 @@ public abstract class ExternalDataStoreSpec implements IDataStoreSpec {
     }
 
     @Override
-    public void setDataSourceSchema(ISchema schema) {
+    public void setSchema(ISchema schema) {
     }
 
     @Override
@@ -56,6 +58,14 @@ public abstract class ExternalDataStoreSpec implements IDataStoreSpec {
         return false;
     }
 
+    protected Map<String, Object> getSensitiveHiddenProps() {
+        if (CollectionUtils.isNotEmpty(properties)) {
+            Map<String, Object> newProps = new TreeMap<>(this.properties);
+            newProps.computeIfPresent("password", (k, old) -> "<HIDDEN>");
+            return newProps;
+        }
+        return this.properties;
+    }
 
     @Override
     public boolean equals(Object o) {

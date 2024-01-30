@@ -43,8 +43,8 @@ public class ExternalClickHouseDataStoreSpec extends ExternalDataStoreSpec {
     }
 
     @Override
-    public IDataStoreSpec withProperties(Map<String, Object> properties) {
-        return new ExternalClickHouseDataStoreSpec(properties, this.store, this.sqlDialectManager);
+    public IDataStoreSpec hideSensitiveInformation() {
+        return new ExternalClickHouseDataStoreSpec(this.getSensitiveHiddenProps(), this.store, this.sqlDialectManager);
     }
 
     @Override

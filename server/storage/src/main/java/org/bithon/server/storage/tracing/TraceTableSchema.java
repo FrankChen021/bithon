@@ -32,7 +32,6 @@ import org.bithon.server.storage.tracing.index.TagIndexConfig;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -174,22 +173,12 @@ public class TraceTableSchema implements ISchema {
         }
 
         @Override
-        public void setDataSourceSchema(ISchema schema) {
+        public void setSchema(ISchema schema) {
         }
 
         @Override
         public boolean isInternal() {
             return true;
-        }
-
-        @Override
-        public Map<String, Object> getProperties() {
-            return Collections.emptyMap();
-        }
-
-        @Override
-        public IDataStoreSpec withProperties(Map<String, Object> properties) {
-            return this;
         }
 
         @Override

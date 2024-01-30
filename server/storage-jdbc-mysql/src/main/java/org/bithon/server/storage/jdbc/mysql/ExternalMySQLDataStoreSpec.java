@@ -43,8 +43,8 @@ public class ExternalMySQLDataStoreSpec extends ExternalDataStoreSpec {
     }
 
     @Override
-    public IDataStoreSpec withProperties(Map<String, Object> properties) {
-        return new ExternalMySQLDataStoreSpec(properties, this.store, this.sqlDialectManager);
+    public IDataStoreSpec hideSensitiveInformation() {
+        return new ExternalMySQLDataStoreSpec(this.getSensitiveHiddenProps(), this.store, this.sqlDialectManager);
     }
 
     @Override

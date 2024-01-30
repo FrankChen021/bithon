@@ -29,7 +29,6 @@ import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -142,22 +141,12 @@ public class EventTableSchema implements ISchema {
         }
 
         @Override
-        public void setDataSourceSchema(ISchema dataSource) {
+        public void setSchema(ISchema dataSource) {
         }
 
         @Override
         public boolean isInternal() {
             return true;
-        }
-
-        @Override
-        public Map<String, Object> getProperties() {
-            return Collections.emptyMap();
-        }
-
-        @Override
-        public IDataStoreSpec withProperties(Map<String, Object> properties) {
-            return this;
         }
 
         @Override

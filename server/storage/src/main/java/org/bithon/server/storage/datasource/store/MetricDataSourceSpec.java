@@ -23,15 +23,13 @@ import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 
-import java.util.Collections;
-import java.util.Map;
 import java.util.Objects;
 
 /**
  * @author Frank Chen
  * @date 22/6/23 4:10 pm
  */
-public class InternalDataSourceSpec implements IDataStoreSpec {
+public class MetricDataSourceSpec implements IDataStoreSpec {
 
     @JsonIgnore
     private String store;
@@ -41,7 +39,7 @@ public class InternalDataSourceSpec implements IDataStoreSpec {
     @JsonIgnore
     private ISchema schema;
 
-    public InternalDataSourceSpec(@JacksonInject(useInput = OptBoolean.FALSE) IMetricStorage storage) {
+    public MetricDataSourceSpec(@JacksonInject(useInput = OptBoolean.FALSE) IMetricStorage storage) {
         this.storage = storage;
     }
 
@@ -51,7 +49,7 @@ public class InternalDataSourceSpec implements IDataStoreSpec {
     }
 
     @Override
-    public void setDataSourceSchema(ISchema schema) {
+    public void setSchema(ISchema schema) {
         this.store = "bithon_" + schema.getName().replaceAll("-", "_");
         this.schema = schema;
     }
@@ -59,17 +57,6 @@ public class InternalDataSourceSpec implements IDataStoreSpec {
     @Override
     public boolean isInternal() {
         return true;
-    }
-
-    @JsonIgnore
-    @Override
-    public Map<String, Object> getProperties() {
-        return Collections.emptyMap();
-    }
-
-    @Override
-    public IDataStoreSpec withProperties(Map<String, Object> properties) {
-        return this;
     }
 
     @Override
@@ -85,7 +72,7 @@ public class InternalDataSourceSpec implements IDataStoreSpec {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        InternalDataSourceSpec that = (InternalDataSourceSpec) o;
+        MetricDataSourceSpec that = (MetricDataSourceSpec) o;
         return Objects.equals(store, that.store);
     }
 
