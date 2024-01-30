@@ -41,6 +41,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -48,6 +49,10 @@ import java.io.IOException;
  */
 @Configuration
 public class StorageModuleAutoConfiguration {
+
+    interface SchemaInitializer {
+        void initialize(SchemaManager schemaManager);
+    }
 
     @Bean
     @ConditionalOnProperty(value = "bithon.storage.metric.enabled", havingValue = "true")
@@ -107,16 +112,9 @@ public class StorageModuleAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnBean(ISchemaStorage.class)
-    SchemaManager schemaManager(ISchemaStorage schemaStorage) {
-        return new SchemaManager(schemaStorage);
-    }
-
-    @Bean
     @ConditionalOnProperty(value = "bithon.storage.tracing.enabled", havingValue = "true")
     public ITraceStorage traceStorage(TraceStorageConfig storageConfig,
-                                      StorageProviderManager storageProviderManager,
-                                      SchemaManager schemaManager) throws IOException {
+                                      StorageProviderManager storageProviderManager) throws IOException {
         String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
         InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
                                               "[%s] is not properly configured to enable the Tracing module.",
@@ -125,17 +123,36 @@ public class StorageModuleAutoConfiguration {
 
         ITraceStorage storage = storageProviderManager.createStorage(providerName, ITraceStorage.class);
         storage.initialize();
-
-        schemaManager.addSchema(TraceTableSchema.createSummaryTableSchema(storage), false);
-        schemaManager.addSchema(TraceTableSchema.createIndexTableSchema(storage, storageConfig.getIndexes()), false);
         return storage;
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "bithon.storage.tracing.enabled", havingValue = "true")
+    SchemaInitializer traceSchemaInitializer(ITraceStorage storage, TraceStorageConfig storageConfig) {
+        return new SchemaInitializer() {
+            @Override
+            public void initialize(SchemaManager schemaManager) {
+                schemaManager.addSchema(TraceTableSchema.createSummaryTableSchema(storage), false);
+                schemaManager.addSchema(TraceTableSchema.createIndexTableSchema(storage, storageConfig.getIndexes()), false);
+            }
+        };
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "bithon.storage.event.enabled", havingValue = "true")
+    SchemaInitializer eventSchemaInitializer(IEventStorage storage) {
+        return new SchemaInitializer() {
+            @Override
+            public void initialize(SchemaManager schemaManager) {
+                schemaManager.addSchema(EventTableSchema.createEventTableSchema(storage), false);
+            }
+        };
     }
 
     @Bean
     @ConditionalOnProperty(value = "bithon.storage.event.enabled", havingValue = "true")
     public IEventStorage eventStorage(EventStorageConfig storageConfig,
-                                      StorageProviderManager storageProviderManager,
-                                      SchemaManager schemaManager) throws IOException {
+                                      StorageProviderManager storageProviderManager) throws IOException {
         String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
         InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
                                               "[%s] is not properly configured to enable the Event module.",
@@ -144,8 +161,6 @@ public class StorageModuleAutoConfiguration {
 
         IEventStorage storage = storageProviderManager.createStorage(providerName, IEventStorage.class);
         storage.initialize();
-
-        schemaManager.addSchema(EventTableSchema.createEventTableSchema(storage), false);
         return storage;
     }
 
@@ -162,5 +177,15 @@ public class StorageModuleAutoConfiguration {
         ISettingStorage storage = storageProviderManager.createStorage(providerName, ISettingStorage.class);
         storage.initialize();
         return storage;
+    }
+
+    @Bean
+    @ConditionalOnBean(ISchemaStorage.class)
+    SchemaManager schemaManager(ISchemaStorage schemaStorage, List<SchemaInitializer> initializerList) {
+        SchemaManager manager = new SchemaManager(schemaStorage);
+        for (SchemaInitializer initializer : initializerList) {
+            initializer.initialize(manager);
+        }
+        return manager;
     }
 }

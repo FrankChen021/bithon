@@ -24,7 +24,6 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
-import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
@@ -49,9 +48,8 @@ public class EventStorage extends EventJdbcStorage {
     public EventStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration storageConfiguration,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                         @JacksonInject(useInput = OptBoolean.FALSE) EventStorageConfig storageConfig,
-                        @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
-                        @JacksonInject(useInput = OptBoolean.FALSE) SchemaManager schemaManager) {
-        super(storageConfiguration.getDslContext(), objectMapper, storageConfig, sqlDialectManager, schemaManager);
+                        @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
+        super(storageConfiguration.getDslContext(), objectMapper, storageConfig, sqlDialectManager);
         this.config = storageConfiguration.getClickHouseConfig();
     }
 

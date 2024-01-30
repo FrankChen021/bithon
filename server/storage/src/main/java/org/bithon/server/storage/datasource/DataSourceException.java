@@ -17,6 +17,7 @@
 package org.bithon.server.storage.datasource;
 
 import org.bithon.component.commons.exception.HttpResponseMapping;
+import org.bithon.component.commons.utils.StringUtils;
 
 /**
  * @author frank.chen021@outlook.com
@@ -31,14 +32,14 @@ public class DataSourceException extends RuntimeException {
     @HttpResponseMapping(statusCode = HttpResponseMapping.StatusCode.BAD_REQ)
     public static class NotFound extends DataSourceException {
         public NotFound(String name) {
-            super("Can't find schema for datasource " + name);
+            super("Can't find schema: " + name);
         }
     }
 
     @HttpResponseMapping(statusCode = HttpResponseMapping.StatusCode.BAD_REQ)
     public static class AlreadyExists extends DataSourceException {
         public AlreadyExists(String name) {
-            super("Schema for datasource " + name + " exists.");
+            super(StringUtils.format("Schema [%s] already exists.", name));
         }
     }
 }

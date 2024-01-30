@@ -19,6 +19,7 @@ package org.bithon.server.web.service.event.api;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.Query;
@@ -45,8 +46,8 @@ public class EventApi implements IEventApi {
 
     private final ISchema eventTableSchema;
 
-    public EventApi(IEventStorage eventStorage) {
-        this.eventTableSchema = eventStorage.getSchema();
+    public EventApi(SchemaManager schemaManager) {
+        this.eventTableSchema = schemaManager.getSchema("event");
     }
 
     @Override

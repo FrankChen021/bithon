@@ -23,8 +23,6 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
-import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.event.IEventReader;
 import org.bithon.server.storage.event.IEventStorage;
@@ -45,7 +43,6 @@ public class EventJdbcStorage implements IEventStorage {
 
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
-    protected final ISchema eventTableSchema;
     protected final EventStorageConfig storageConfig;
     private final ISqlDialect sqlDialect;
 
@@ -53,25 +50,21 @@ public class EventJdbcStorage implements IEventStorage {
     public EventJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration,
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                             @JacksonInject(useInput = OptBoolean.FALSE) EventStorageConfig storageConfig,
-                            @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
-                            @JacksonInject(useInput = OptBoolean.FALSE) SchemaManager schemaManager) {
+                            @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
         this(providerConfiguration.getDslContext(),
              objectMapper,
              storageConfig,
-             sqlDialectManager,
-             schemaManager);
+             sqlDialectManager);
     }
 
     protected EventJdbcStorage(DSLContext dslContext,
                                ObjectMapper objectMapper,
                                EventStorageConfig storageConfig,
-                               SqlDialectManager sqlDialectManager,
-                               SchemaManager schemaManager) {
+                               SqlDialectManager sqlDialectManager) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
         this.storageConfig = storageConfig;
         this.sqlDialect = sqlDialectManager.getSqlDialect(dslContext);
-        this.eventTableSchema = schemaManager.getSchema("event");
     }
 
     @Override
@@ -85,11 +78,6 @@ public class EventJdbcStorage implements IEventStorage {
                        .indexes(Tables.BITHON_EVENT.getIndexes())
                        .execute();
 
-    }
-
-    @Override
-    public ISchema getSchema() {
-        return eventTableSchema;
     }
 
     @Override
