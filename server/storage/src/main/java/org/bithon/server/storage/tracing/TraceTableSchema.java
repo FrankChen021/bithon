@@ -14,8 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.tracing.datasource;
+package org.bithon.server.storage.tracing;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.ISchema;
@@ -24,13 +25,14 @@ import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
+import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
-import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.index.TagIndexConfig;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,20 +120,20 @@ public class TraceTableSchema implements ISchema {
         return new TraceTableSchema("trace_span_summary",
                                     traceStorage,
                                     Arrays.asList(new StringColumn("appName",
-                                                                  "appName"),
-                                                 new StringColumn("instanceName",
-                                                                  "instanceName"),
-                                                 new StringColumn("status",
-                                                                  "status"),
-                                                 new StringColumn("name", "name"),
-                                                 new StringColumn("normalizedUrl",
-                                                                  "url"),
-                                                 new StringColumn("kind", "kind"),
+                                                                   "appName"),
+                                                  new StringColumn("instanceName",
+                                                                   "instanceName"),
+                                                  new StringColumn("status",
+                                                                   "status"),
+                                                  new StringColumn("name", "name"),
+                                                  new StringColumn("normalizedUrl",
+                                                                   "url"),
+                                                  new StringColumn("kind", "kind"),
 
-                                                 AggregateCountColumn.INSTANCE,
-                                                 // microsecond
-                                                 new AggregateLongSumColumn("costTimeMs",
-                                                                            "costTimeMs"))
+                                                  AggregateCountColumn.INSTANCE,
+                                                  // microsecond
+                                                  new AggregateLongSumColumn("costTimeMs",
+                                                                             "costTimeMs"))
         );
     }
 
@@ -153,4 +155,47 @@ public class TraceTableSchema implements ISchema {
                                     dimensionSpecs);
 
     }
+
+    static class TraceDataStore implements IDataStoreSpec {
+
+        private final String store;
+
+        @JsonIgnore
+        private final ITraceStorage storage;
+
+        TraceDataStore(String store, ITraceStorage storage) {
+            this.store = store;
+            this.storage = storage;
+        }
+
+        @Override
+        public String getStore() {
+            return store;
+        }
+
+        @Override
+        public void setDataSourceSchema(ISchema schema) {
+        }
+
+        @Override
+        public boolean isInternal() {
+            return true;
+        }
+
+        @Override
+        public Map<String, Object> getProperties() {
+            return Collections.emptyMap();
+        }
+
+        @Override
+        public IDataStoreSpec withProperties(Map<String, Object> properties) {
+            return this;
+        }
+
+        @Override
+        public IDataSourceReader createReader() {
+            return storage.createReader();
+        }
+    }
+
 }

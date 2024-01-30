@@ -20,6 +20,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.provider.StorageProviderManager;
 import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.event.EventStorageConfig;
+import org.bithon.server.storage.event.EventTableSchema;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.meta.CacheableMetadataStorage;
 import org.bithon.server.storage.meta.IMetaStorage;
@@ -31,7 +32,7 @@ import org.bithon.server.storage.setting.ISettingStorage;
 import org.bithon.server.storage.setting.SettingStorageConfig;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
-import org.bithon.server.storage.tracing.datasource.TraceTableSchema;
+import org.bithon.server.storage.tracing.TraceTableSchema;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -133,7 +134,8 @@ public class StorageModuleAutoConfiguration {
     @Bean
     @ConditionalOnProperty(value = "bithon.storage.event.enabled", havingValue = "true")
     public IEventStorage eventStorage(EventStorageConfig storageConfig,
-                                      StorageProviderManager storageProviderManager) throws IOException {
+                                      StorageProviderManager storageProviderManager,
+                                      SchemaManager schemaManager) throws IOException {
         String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
         InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
                                               "[%s] is not properly configured to enable the Event module.",
@@ -142,6 +144,8 @@ public class StorageModuleAutoConfiguration {
 
         IEventStorage storage = storageProviderManager.createStorage(providerName, IEventStorage.class);
         storage.initialize();
+
+        schemaManager.addSchema(EventTableSchema.createEventTableSchema(storage), false);
         return storage;
     }
 

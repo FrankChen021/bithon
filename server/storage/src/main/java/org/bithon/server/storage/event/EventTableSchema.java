@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.event;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.ISchema;
@@ -23,10 +24,12 @@ import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
+import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,12 +44,12 @@ public class EventTableSchema implements ISchema {
         return new EventTableSchema("event",
                                     eventStorage,
                                     Arrays.asList(new StringColumn("appName",
-                                                                  "appName"),
-                                                 new StringColumn("instanceName",
-                                                                  "instanceName"),
-                                                 new StringColumn("type",
-                                                                  "type"),
-                                                 AggregateCountColumn.INSTANCE));
+                                                                   "appName"),
+                                                  new StringColumn("instanceName",
+                                                                   "instanceName"),
+                                                  new StringColumn("type",
+                                                                   "type"),
+                                                  AggregateCountColumn.INSTANCE));
     }
 
     private final String name;
@@ -119,5 +122,47 @@ public class EventTableSchema implements ISchema {
     @Override
     public Period getTtl() {
         return null;
+    }
+
+    static class EventDataStoreSpec implements IDataStoreSpec {
+
+        private final String store;
+
+        @JsonIgnore
+        private final IEventStorage storage;
+
+        EventDataStoreSpec(String store, IEventStorage storage) {
+            this.store = store;
+            this.storage = storage;
+        }
+
+        @Override
+        public String getStore() {
+            return store;
+        }
+
+        @Override
+        public void setDataSourceSchema(ISchema dataSource) {
+        }
+
+        @Override
+        public boolean isInternal() {
+            return true;
+        }
+
+        @Override
+        public Map<String, Object> getProperties() {
+            return Collections.emptyMap();
+        }
+
+        @Override
+        public IDataStoreSpec withProperties(Map<String, Object> properties) {
+            return this;
+        }
+
+        @Override
+        public IDataSourceReader createReader() {
+            return storage.createReader();
+        }
     }
 }

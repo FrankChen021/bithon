@@ -46,7 +46,7 @@ public class EventApi implements IEventApi {
     private final ISchema eventTableSchema;
 
     public EventApi(IEventStorage eventStorage) {
-        this.eventTableSchema = eventStorage.getDataSource();
+        this.eventTableSchema = eventStorage.getSchema();
     }
 
     @Override
