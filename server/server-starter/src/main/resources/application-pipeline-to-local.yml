@@ -18,6 +18,9 @@ bithon:
       enabled: true
       receivers:
         - type: brpc
+        - type: bithon-trace-http
+        - type: otlp-trace-grpc
+        - type: otlp-trace-http
       processors:
         - type: filter
           expr: clazz <> 'org.bithon.server.sink.common.service.UriNormalizer'

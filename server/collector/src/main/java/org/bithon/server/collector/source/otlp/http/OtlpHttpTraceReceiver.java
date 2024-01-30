@@ -14,11 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.source.otel;
+package org.bithon.server.collector.source.otlp.http;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.collector.source.otlp.OtlpSpanConverter;
 import org.bithon.server.pipeline.tracing.ITraceProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
@@ -38,15 +39,15 @@ import java.util.zip.InflaterInputStream;
  */
 @Slf4j
 @RestController
-@ConditionalOnProperty(value = "bithon.receivers.traces.otel-http.enabled", havingValue = "true")
-public class OtelHttpTraceCollector {
+@ConditionalOnProperty(value = "bithon.receivers.traces.otlp-http.enabled", havingValue = "true")
+public class OtlpHttpTraceReceiver {
 
     @Setter
     private ITraceProcessor processor;
 
-    @PostMapping("/api/collector/otel/trace")
-    public void collectBinaryFormattedTrace(HttpServletRequest request,
-                                            HttpServletResponse response) throws IOException {
+    @PostMapping("/api/collector/otlp/trace")
+    public void collect(HttpServletRequest request,
+                        HttpServletResponse response) throws IOException {
         if (processor == null) {
             return;
         }
@@ -68,11 +69,11 @@ public class OtelHttpTraceCollector {
             is = request.getInputStream();
         }
 
-        OtelSpanConverter spanConverter;
+        OtlpSpanConverter spanConverter;
         if ("application/x-protobuf".equals(request.getContentType())) {
-            spanConverter = OtelSpanConverter.fromBinary(is);
+            spanConverter = OtlpSpanConverter.fromBinary(is);
         } else if ("application/json".equals(request.getContentType())) {
-            spanConverter = OtelSpanConverter.fromJson(is);
+            spanConverter = OtlpSpanConverter.fromJson(is);
         } else {
             String message = StringUtils.format("Not supported Content-Type [%s] from remote [%s]", request.getContentType(), request.getRemoteAddr());
             response.getWriter().println(message);

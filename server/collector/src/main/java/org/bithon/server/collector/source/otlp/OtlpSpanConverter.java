@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.source.otel;
+package org.bithon.server.collector.source.otlp;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
@@ -44,19 +44,20 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
+ *
  * @author frank.chen021@outlook.com
  * @date 2023/9/2 11:12
  */
-class OtelSpanConverter {
+public class OtlpSpanConverter {
 
-    public static OtelSpanConverter fromJson(InputStream is) throws IOException {
+    public static OtlpSpanConverter fromJson(InputStream is) throws IOException {
         TracesData.Builder builder = TracesData.newBuilder();
 
         try (InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
             JsonFormat.parser().merge(reader, builder);
         }
 
-        return new OtelSpanConverter(builder.build().getResourceSpansList()) {
+        return new OtlpSpanConverter(builder.build().getResourceSpansList()) {
             @Override
             protected String getTraceId(ByteString id) {
                 return StringUtils.encodeBase64String(id.toByteArray()).toLowerCase(Locale.ENGLISH);
@@ -69,19 +70,19 @@ class OtelSpanConverter {
         };
     }
 
-    public static OtelSpanConverter fromBinary(InputStream is) throws IOException {
+    public static OtlpSpanConverter fromBinary(InputStream is) throws IOException {
         TracesData.Builder builder = TracesData.newBuilder();
 
         CodedInputStream.newInstance(is)
                         .readMessage(builder,
                                      ExtensionRegistryLite.getEmptyRegistry());
 
-        return new OtelSpanConverter(builder.build().getResourceSpansList());
+        return new OtlpSpanConverter(builder.build().getResourceSpansList());
     }
 
     private final List<ResourceSpans> resourceSpansList;
 
-    OtelSpanConverter(List<ResourceSpans> resourceSpansList) {
+    public OtlpSpanConverter(List<ResourceSpans> resourceSpansList) {
         this.resourceSpansList = resourceSpansList;
     }
 

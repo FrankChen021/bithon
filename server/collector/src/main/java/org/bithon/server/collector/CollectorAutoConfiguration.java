@@ -21,6 +21,9 @@ import com.fasterxml.jackson.databind.Module;
 import org.bithon.server.collector.source.brpc.BrpcEventCollector;
 import org.bithon.server.collector.source.brpc.BrpcMetricCollector;
 import org.bithon.server.collector.source.brpc.BrpcTraceCollector;
+import org.bithon.server.collector.source.http.BithonHttpTraceEnabler;
+import org.bithon.server.collector.source.otlp.grpc.OtlpGrpcTraceReceiver;
+import org.bithon.server.collector.source.otlp.http.OtlpHttpTraceReceiverEnabler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -48,7 +51,11 @@ public class CollectorAutoConfiguration {
             public void setupModule(SetupContext context) {
                 context.registerSubtypes(BrpcTraceCollector.class,
                                          BrpcMetricCollector.class,
-                                         BrpcEventCollector.class);
+                                         BrpcEventCollector.class,
+
+                                         BithonHttpTraceEnabler.class,
+                                         OtlpHttpTraceReceiverEnabler.class,
+                                         OtlpGrpcTraceReceiver.class);
             }
         };
     }
