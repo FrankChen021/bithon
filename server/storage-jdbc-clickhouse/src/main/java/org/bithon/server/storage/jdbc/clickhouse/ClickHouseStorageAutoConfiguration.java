@@ -61,8 +61,9 @@ public class ClickHouseStorageAutoConfiguration {
                                          DashboardStorage.class,
                                          ClickHouseSqlDialect.class);
 
-                // Allow reading external H2 directly
+                // Allow reading external ClickHouse directly
                 context.registerSubtypes(new NamedType(ExternalClickHouseDataStoreSpec.class, "clickhouse"));
+                // For backward compatibility
                 context.registerSubtypes(new NamedType(ExternalClickHouseDataStoreSpec.class, "external"));
             }
         };
