@@ -19,7 +19,7 @@ package org.bithon.server.storage.datasource.store;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.component.commons.Experimental;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
 
 import java.util.Collections;
 import java.util.Map;
@@ -48,7 +48,7 @@ public abstract class ExternalDataStoreSpec implements IDataStoreSpec {
     }
 
     @Override
-    public void setDataSourceSchema(IDataSource schema) {
+    public void setDataSourceSchema(ISchema schema) {
     }
 
     @Override

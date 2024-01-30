@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.component.commons.Experimental;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 
 import java.io.IOException;
@@ -42,7 +42,7 @@ public interface IDataStoreSpec {
      */
     String getStore();
 
-    void setDataSourceSchema(IDataSource schema);
+    void setDataSourceSchema(ISchema schema);
 
     @JsonIgnore
     boolean isInternal();

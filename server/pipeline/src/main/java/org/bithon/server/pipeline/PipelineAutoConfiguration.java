@@ -36,7 +36,7 @@ import org.bithon.server.pipeline.tracing.metrics.MetricOverSpanInputSource;
 import org.bithon.server.pipeline.tracing.transform.TraceSpanTransformer;
 import org.bithon.server.pipeline.tracing.transform.sanitization.UrlSanitizeTransformer;
 import org.bithon.server.storage.StorageModuleAutoConfiguration;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -113,7 +113,7 @@ public class PipelineAutoConfiguration {
      */
     @Bean
     @ConditionalOnProperty(value = "bithon.storage.metric.enabled", havingValue = "true")
-    InputSourceManager inputSourceManager(DataSourceSchemaManager dataSourceSchemaManager, ObjectMapper objectMapper) {
-        return new InputSourceManager(dataSourceSchemaManager, objectMapper);
+    InputSourceManager inputSourceManager(SchemaManager schemaManager, ObjectMapper objectMapper) {
+        return new InputSourceManager(schemaManager, objectMapper);
     }
 }

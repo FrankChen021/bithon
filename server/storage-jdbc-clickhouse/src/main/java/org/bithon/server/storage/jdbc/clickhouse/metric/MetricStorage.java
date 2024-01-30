@@ -24,8 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
@@ -61,7 +61,7 @@ public class MetricStorage extends MetricJdbcStorage {
 
     @JsonCreator
     public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration providerConfiguration,
-                         @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
+                         @JacksonInject(useInput = OptBoolean.FALSE) SchemaManager schemaManager,
                          @JacksonInject(useInput = OptBoolean.FALSE) MetricStorageConfig storageConfig,
                          @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
         super(providerConfiguration.getDslContext(), schemaManager, storageConfig, sqlDialectManager);
@@ -69,7 +69,7 @@ public class MetricStorage extends MetricJdbcStorage {
     }
 
     @Override
-    protected void initialize(IDataSource dataSource, MetricTable table) {
+    protected void initialize(ISchema dataSource, MetricTable table) {
         if (!this.storageConfig.isCreateTable()) {
             return;
         }
@@ -77,7 +77,7 @@ public class MetricStorage extends MetricJdbcStorage {
     }
 
     @Override
-    protected MetricTable toMetricTable(IDataSource schema) {
+    protected MetricTable toMetricTable(ISchema schema) {
         return new MetricTable(schema, true);
     }
 
@@ -90,7 +90,7 @@ public class MetricStorage extends MetricJdbcStorage {
         private final ClickHouseConfig config;
 
         protected StorageCleaner(DSLContext dslContext,
-                                 DataSourceSchemaManager schemaManager,
+                                 SchemaManager schemaManager,
                                  ExpirationConfig ttlConfig,
                                  ClickHouseConfig config,
                                  ISqlDialect sqlDialect) {
@@ -107,7 +107,7 @@ public class MetricStorage extends MetricJdbcStorage {
         }
 
         @Override
-        protected void expireImpl(IDataSource schema, Timestamp before, List<TimeSpan> skipDateList) {
+        protected void expireImpl(ISchema schema, Timestamp before, List<TimeSpan> skipDateList) {
             String table = schema.getDataStoreSpec().getStore();
             new DataCleaner(config, dslContext).deleteFromPartition(table, before, skipDateList);
         }

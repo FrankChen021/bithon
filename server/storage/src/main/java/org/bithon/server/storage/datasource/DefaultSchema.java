@@ -43,7 +43,7 @@ import java.util.Map;
 /**
  * @author frank.chen021@outlook.com
  */
-public class DataSourceSchema implements IDataSource {
+public class DefaultSchema implements ISchema {
     @Getter
     private final String displayText;
 
@@ -104,24 +104,24 @@ public class DataSourceSchema implements IDataSource {
 
     private static final IColumn TIMESTAMP_COLUMN = new DateTimeColumn("timestamp", "timestamp");
 
-    public DataSourceSchema(String displayText,
-                            String name,
-                            TimestampSpec timestampSpec,
-                            List<IColumn> dimensionsSpec,
-                            List<IColumn> metricsSpec) {
+    public DefaultSchema(String displayText,
+                         String name,
+                         TimestampSpec timestampSpec,
+                         List<IColumn> dimensionsSpec,
+                         List<IColumn> metricsSpec) {
         this(displayText, name, timestampSpec, dimensionsSpec, metricsSpec, null, null, null, null);
     }
 
     @JsonCreator
-    public DataSourceSchema(@JsonProperty("displayText") @Nullable String displayText,
-                            @JsonProperty("name") String name,
-                            @JsonProperty("timestampSpec") @Nullable TimestampSpec timestampSpec,
-                            @JsonProperty("dimensionsSpec") List<IColumn> dimensionsSpec,
-                            @JsonProperty("metricsSpec") List<IColumn> metricsSpec,
-                            @JsonProperty("inputSourceSpec") @Nullable JsonNode inputSourceSpec,
-                            @JsonProperty("storeSpec") @Nullable IDataStoreSpec dataStoreSpec,
-                            @JsonProperty("ttl") @Nullable Period ttl,
-                            @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+    public DefaultSchema(@JsonProperty("displayText") @Nullable String displayText,
+                         @JsonProperty("name") String name,
+                         @JsonProperty("timestampSpec") @Nullable TimestampSpec timestampSpec,
+                         @JsonProperty("dimensionsSpec") List<IColumn> dimensionsSpec,
+                         @JsonProperty("metricsSpec") List<IColumn> metricsSpec,
+                         @JsonProperty("inputSourceSpec") @Nullable JsonNode inputSourceSpec,
+                         @JsonProperty("storeSpec") @Nullable IDataStoreSpec dataStoreSpec,
+                         @JsonProperty("ttl") @Nullable Period ttl,
+                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         this.displayText = displayText == null ? name : displayText;
         this.name = name;
         this.timestampSpec = timestampSpec == null ? new TimestampSpec("timestamp", "auto", null) : timestampSpec;
@@ -188,8 +188,8 @@ public class DataSourceSchema implements IDataSource {
 
     @Override
     public boolean equals(Object rhs) {
-        if (rhs instanceof DataSourceSchema) {
-            return ((DataSourceSchema) rhs).getName().equals(this.name);
+        if (rhs instanceof DefaultSchema) {
+            return ((DefaultSchema) rhs).getName().equals(this.name);
         } else {
             return false;
         }
@@ -203,15 +203,15 @@ public class DataSourceSchema implements IDataSource {
         return this.name;
     }
 
-    public DataSourceSchema withDataStore(IDataStoreSpec dataStoreSpec) {
-        return new DataSourceSchema(this.displayText,
-                                    this.name,
-                                    this.timestampSpec,
-                                    this.dimensionsSpec,
-                                    this.metricsSpec,
-                                    this.inputSourceSpec,
-                                    dataStoreSpec,
-                                    this.ttl,
-                                    null);
+    public DefaultSchema withDataStore(IDataStoreSpec dataStoreSpec) {
+        return new DefaultSchema(this.displayText,
+                                 this.name,
+                                 this.timestampSpec,
+                                 this.dimensionsSpec,
+                                 this.metricsSpec,
+                                 this.inputSourceSpec,
+                                 dataStoreSpec,
+                                 this.ttl,
+                                 null);
     }
 }

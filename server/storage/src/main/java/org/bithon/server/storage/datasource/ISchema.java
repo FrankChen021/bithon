@@ -29,11 +29,11 @@ import java.util.Collection;
 /**
  * @author frank.chen021@outlook.com
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = DataSourceSchema.class)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = DefaultSchema.class)
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "internal", value = DataSourceSchema.class)
+    @JsonSubTypes.Type(name = "internal", value = DefaultSchema.class)
 })
-public interface IDataSource {
+public interface ISchema {
     String getName();
 
     String getDisplayText();
@@ -47,7 +47,7 @@ public interface IDataSource {
 
     IDataStoreSpec getDataStoreSpec();
 
-    IDataSource withDataStore(IDataStoreSpec spec);
+    ISchema withDataStore(IDataStoreSpec spec);
 
     void setSignature(String signature);
 

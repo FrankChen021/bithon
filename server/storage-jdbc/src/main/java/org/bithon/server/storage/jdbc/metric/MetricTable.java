@@ -18,8 +18,8 @@ package org.bithon.server.storage.jdbc.metric;
 
 import lombok.Getter;
 import org.bithon.component.commons.expression.IDataType;
-import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.DefaultSchema;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.jooq.Field;
@@ -52,7 +52,7 @@ public class MetricTable extends TableImpl {
         return timestampField;
     }
 
-    public MetricTable(IDataSource dataSource, boolean useAllDimensionsAsIndex) {
+    public MetricTable(ISchema dataSource, boolean useAllDimensionsAsIndex) {
         super(DSL.name(dataSource.getDataStoreSpec().getStore()));
 
         //noinspection unchecked
@@ -61,7 +61,7 @@ public class MetricTable extends TableImpl {
         List<Field> indexesFields = new ArrayList<>();
         indexesFields.add(timestampField);
 
-        DataSourceSchema schema = (DataSourceSchema) dataSource;
+        DefaultSchema schema = (DefaultSchema) dataSource;
         for (IColumn dimension : schema.getDimensionsSpec()) {
             // For some DBMS, like MySQL, there's length limitation on the fields which are also used as index
             boolean isIndexField = useAllDimensionsAsIndex || dimension.getName().equals("appName") || dimension.getName().equals("instanceName");

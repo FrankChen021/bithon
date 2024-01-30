@@ -21,9 +21,9 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
-import org.bithon.server.storage.datasource.DataSourceExistException;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.DataSourceException;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.OrderBy;
@@ -68,12 +68,12 @@ import java.util.stream.Collectors;
 public class DataSourceApi implements IDataSourceApi {
     private final MetricStorageConfig storageConfig;
     private final IMetricStorage metricStorage;
-    private final DataSourceSchemaManager schemaManager;
+    private final SchemaManager schemaManager;
     private final DataSourceService dataSourceService;
 
     public DataSourceApi(MetricStorageConfig storageConfig,
                          IMetricStorage metricStorage,
-                         DataSourceSchemaManager schemaManager,
+                         SchemaManager schemaManager,
                          DataSourceService dataSourceService) {
         this.storageConfig = storageConfig;
         this.metricStorage = metricStorage;
@@ -83,7 +83,7 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public GeneralQueryResponse timeseriesV3(@Validated @RequestBody GeneralQueryRequest request) throws IOException {
-        IDataSource schema = schemaManager.getDataSourceSchema(request.getDataSource());
+        ISchema schema = schemaManager.getSchema(request.getDataSource());
 
         validateQueryRequest(schema, request);
 
@@ -99,7 +99,7 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public GeneralQueryResponse timeseriesV4(@Validated @RequestBody GeneralQueryRequest request) throws IOException {
-        IDataSource schema = schemaManager.getDataSourceSchema(request.getDataSource());
+        ISchema schema = schemaManager.getSchema(request.getDataSource());
 
         validateQueryRequest(schema, request);
 
@@ -115,12 +115,12 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public GeneralQueryResponse list(GeneralQueryRequest request) throws IOException {
-        IDataSource schema = schemaManager.getDataSourceSchema(request.getDataSource());
+        ISchema schema = schemaManager.getSchema(request.getDataSource());
 
         validateQueryRequest(schema, request);
 
         Query query = Query.builder()
-                           .dataSource(schema)
+                           .schema(schema)
                            .resultColumns(request.getFields()
                                                  .stream()
                                                  .map((field) -> {
@@ -147,7 +147,7 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public GeneralQueryResponse groupBy(GeneralQueryRequest request) throws IOException {
-        IDataSource schema = schemaManager.getDataSourceSchema(request.getDataSource());
+        ISchema schema = schemaManager.getSchema(request.getDataSource());
 
         validateQueryRequest(schema, request);
 
@@ -163,7 +163,7 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public GeneralQueryResponse groupByV3(GeneralQueryRequest request) throws IOException {
-        IDataSource schema = schemaManager.getDataSourceSchema(request.getDataSource());
+        ISchema schema = schemaManager.getSchema(request.getDataSource());
         validateQueryRequest(schema, request);
 
         Query query = this.dataSourceService.convertToQuery(schema, request, true, false);
@@ -177,31 +177,31 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public Map<String, IDataSource> getSchemas() {
-        return schemaManager.getDataSources();
+    public Map<String, ISchema> getSchemas() {
+        return schemaManager.getSchemas();
     }
 
     @Override
-    public IDataSource getSchemaByName(String schemaName) {
-        IDataSource dataSource = schemaManager.getDataSourceSchema(schemaName);
+    public ISchema getSchemaByName(String schemaName) {
+        ISchema schema = schemaManager.getSchema(schemaName);
 
         // Mask the sensitive information
         // This is experimental
-        if (dataSource != null && dataSource.getDataStoreSpec() != null) {
-            IDataStoreSpec dataStoreSpec = dataSource.getDataStoreSpec();
+        if (schema != null && schema.getDataStoreSpec() != null) {
+            IDataStoreSpec dataStoreSpec = schema.getDataStoreSpec();
 
             Map<String, Object> properties = new TreeMap<>(dataStoreSpec.getProperties());
             properties.computeIfPresent("password", (k, old) -> "<HIDDEN>");
 
-            return dataSource.withDataStore(dataStoreSpec.withProperties(properties));
+            return schema.withDataStore(dataStoreSpec.withProperties(properties));
         }
-        return dataSource;
+        return schema;
     }
 
     @Override
-    public void createSchema(@RequestBody IDataSource schema) {
+    public void createSchema(@RequestBody ISchema schema) {
         if (schemaManager.containsSchema(schema.getName())) {
-            throw new DataSourceExistException(schema.getName());
+            throw new DataSourceException.AlreadyExists(schema.getName());
         }
 
         // TODO:
@@ -212,17 +212,17 @@ public class DataSourceApi implements IDataSourceApi {
             throw new RuntimeException(e);
         }
 
-        schemaManager.addDataSourceSchema(schema);
+        schemaManager.addSchema(schema);
     }
 
     @Override
-    public void updateSchema(@RequestBody IDataSource newSchema) {
-        schemaManager.updateDataSourceSchema(newSchema);
+    public void updateSchema(@RequestBody ISchema newSchema) {
+        schemaManager.updateSchema(newSchema);
     }
 
     @Override
     public Collection<DisplayableText> getSchemaNames() {
-        return schemaManager.getDataSources()
+        return schemaManager.getSchemas()
                             .values()
                             .stream()
                             .map(schema -> new DisplayableText(schema.getName(), schema.getDisplayText()))
@@ -231,16 +231,16 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public Collection<Map<String, String>> getDimensions(GetDimensionRequest request) throws IOException {
-        IDataSource dataSource = schemaManager.getDataSourceSchema(request.getDataSource());
+        ISchema schema = schemaManager.getSchema(request.getDataSource());
 
-        IColumn column = dataSource.getColumnByName(request.getName());
+        IColumn column = schema.getColumnByName(request.getName());
         Preconditions.checkNotNull(column, "Field [%s] does not exist in the schema.", request.getName());
 
-        try (IDataSourceReader reader = dataSource.getDataStoreSpec().createReader()) {
+        try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             return reader.distinct(TimeSpan.fromISO8601(request.getStartTimeISO8601()),
                                    TimeSpan.fromISO8601(request.getEndTimeISO8601()),
-                                   dataSource,
-                                   FilterExpressionToFilters.toExpression(dataSource, request.getFilterExpression(), request.getFilters()),
+                                   schema,
+                                   FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters()),
                                    column.getName());
         }
     }
@@ -264,7 +264,7 @@ public class DataSourceApi implements IDataSourceApi {
     /**
      * Validate the request to ensure the safety
      */
-    private void validateQueryRequest(IDataSource schema, GeneralQueryRequest request) {
+    private void validateQueryRequest(ISchema schema, GeneralQueryRequest request) {
         if (CollectionUtils.isNotEmpty(request.getGroupBy())) {
             for (String field : request.getGroupBy()) {
                 Preconditions.checkNotNull(schema.getColumnByName(field),

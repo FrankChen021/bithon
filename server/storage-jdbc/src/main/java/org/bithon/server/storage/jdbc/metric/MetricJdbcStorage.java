@@ -21,8 +21,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
@@ -54,19 +54,19 @@ public class MetricJdbcStorage implements IMetricStorage {
 
     protected final DSLContext dslContext;
     protected final MetricStorageConfig storageConfig;
-    protected final DataSourceSchemaManager schemaManager;
+    protected final SchemaManager schemaManager;
     protected final ISqlDialect sqlDialect;
 
     @JsonCreator
     public MetricJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration,
-                             @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
+                             @JacksonInject(useInput = OptBoolean.FALSE) SchemaManager schemaManager,
                              @JacksonInject(useInput = OptBoolean.FALSE) MetricStorageConfig storageConfig,
                              @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
         this(providerConfiguration.getDslContext(), schemaManager, storageConfig, sqlDialectManager);
     }
 
     public MetricJdbcStorage(DSLContext dslContext,
-                             DataSourceSchemaManager schemaManager,
+                             SchemaManager schemaManager,
                              MetricStorageConfig storageConfig,
                              SqlDialectManager sqlDialectManager) {
         this.dslContext = dslContext;
@@ -76,7 +76,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     }
 
     @Override
-    public final IMetricWriter createMetricWriter(IDataSource schema) {
+    public final IMetricWriter createMetricWriter(ISchema schema) {
         MetricTable table = toMetricTable(schema);
         if (schema.getDataStoreSpec().isInternal()) {
             initialize(schema, table);
@@ -85,7 +85,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     }
 
     @Override
-    public final IDataSourceReader createMetricReader(IDataSource schema) {
+    public final IDataSourceReader createMetricReader(ISchema schema) {
         return this.createReader(this.dslContext, sqlDialect);
     }
 
@@ -130,7 +130,7 @@ public class MetricJdbcStorage implements IMetricStorage {
                   .execute();
     }
 
-    protected MetricTable toMetricTable(IDataSource schema) {
+    protected MetricTable toMetricTable(ISchema schema) {
         return new MetricTable(schema, false);
     }
 
@@ -142,7 +142,7 @@ public class MetricJdbcStorage implements IMetricStorage {
         return new MetricJdbcReader(dslContext, sqlDialect);
     }
 
-    protected void initialize(IDataSource dataSource, MetricTable table) {
+    protected void initialize(ISchema dataSource, MetricTable table) {
         if (!this.storageConfig.isCreateTable()) {
             return;
         }

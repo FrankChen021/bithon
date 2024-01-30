@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.security.HashGenerator;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
@@ -67,7 +67,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
     }
 
     @Override
-    public List<IDataSource> getSchemas(long afterTimestamp) {
+    public List<ISchema> getSchemas(long afterTimestamp) {
         String sql = dslContext.select(Tables.BITHON_META_SCHEMA.NAME,
                                        Tables.BITHON_META_SCHEMA.SCHEMA,
                                        Tables.BITHON_META_SCHEMA.SIGNATURE)
@@ -89,7 +89,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
     }
 
     @Override
-    public List<IDataSource> getSchemas() {
+    public List<ISchema> getSchemas() {
         String sql = dslContext.select(Tables.BITHON_META_SCHEMA.NAME,
                                        Tables.BITHON_META_SCHEMA.SCHEMA,
                                        Tables.BITHON_META_SCHEMA.SIGNATURE).from(Tables.BITHON_META_SCHEMA).getSQL() + " FINAL";
@@ -108,7 +108,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
     }
 
     @Override
-    public IDataSource getSchemaByName(String name) {
+    public ISchema getSchemaByName(String name) {
         String sql = dslContext.select(Tables.BITHON_META_SCHEMA.SCHEMA,
                                        Tables.BITHON_META_SCHEMA.SIGNATURE).from(Tables.BITHON_META_SCHEMA).getSQL()
             + " FINAL where "
@@ -122,7 +122,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
      * clickhouse does not support update, as we're using the replacing merge tree, just to insert one record
      */
     @Override
-    public void update(String name, IDataSource schema) throws IOException {
+    public void update(String name, ISchema schema) throws IOException {
         Timestamp now = new Timestamp(System.currentTimeMillis());
 
         String schemaText = objectMapper.writeValueAsString(schema);
@@ -137,7 +137,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
     }
 
     @Override
-    public void putIfNotExist(String name, IDataSource schema) throws IOException {
+    public void putIfNotExist(String name, ISchema schema) throws IOException {
         String schemaText = objectMapper.writeValueAsString(schema);
         schema.setSignature(HashGenerator.sha256Hex(schemaText));
 

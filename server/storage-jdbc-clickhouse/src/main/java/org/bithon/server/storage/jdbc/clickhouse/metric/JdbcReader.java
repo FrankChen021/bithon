@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
@@ -56,18 +56,18 @@ public class JdbcReader extends MetricJdbcReader {
     @Override
     public List<Map<String, String>> distinct(TimeSpan start,
                                               TimeSpan end,
-                                              IDataSource dataSource,
+                                              ISchema schema,
                                               IExpression filter,
                                               String dimension) {
         start = start.floor(Duration.ofMinutes(1));
         end = end.ceil(Duration.ofMinutes(1));
 
-        String condition = filter == null ? "" : Expression2Sql.from(dataSource, sqlDialect, filter) + " AND ";
+        String condition = filter == null ? "" : Expression2Sql.from(schema, sqlDialect, filter) + " AND ";
 
         String sql = StringUtils.format(
             "SELECT \"%s\" FROM \"%s\" WHERE %s toStartOfMinute(\"timestamp\") >= %s AND toStartOfMinute(\"timestamp\") < %s GROUP BY \"%s\" ORDER BY \"%s\"",
             dimension,
-            dataSource.getDataStoreSpec().getStore(),
+            schema.getDataStoreSpec().getStore(),
             condition,
             sqlDialect.formatTimestamp(start),
             sqlDialect.formatTimestamp(end),

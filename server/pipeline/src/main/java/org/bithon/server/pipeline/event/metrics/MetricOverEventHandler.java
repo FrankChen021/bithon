@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.pipeline.event.exporter.IEventExporter;
 import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
 import org.bithon.server.pipeline.metrics.exporter.MetricMessageHandler;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.event.EventMessage;
@@ -49,12 +49,12 @@ public class MetricOverEventHandler implements IEventExporter {
                                   ObjectMapper objectMapper,
                                   IMetaStorage metaStorage,
                                   IMetricStorage metricStorage,
-                                  DataSourceSchemaManager dataSourceSchemaManager,
+                                  SchemaManager schemaManager,
                                   MetricPipelineConfig metricPipelineConfig) throws IOException {
         metricHandler = new MetricMessageHandler(dataSourceName,
                                                  metaStorage,
                                                  metricStorage,
-                                                 dataSourceSchemaManager,
+                                                 schemaManager,
                                                  null,
                                                  metricPipelineConfig);
         this.eventType = eventType;

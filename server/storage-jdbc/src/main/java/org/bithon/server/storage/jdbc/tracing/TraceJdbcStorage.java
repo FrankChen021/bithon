@@ -23,8 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
@@ -48,15 +48,15 @@ public class TraceJdbcStorage implements ITraceStorage {
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
     protected final TraceStorageConfig storageConfig;
-    protected final IDataSource traceSpanSchema;
-    protected final IDataSource traceTagIndexSchema;
+    protected final ISchema traceSpanSchema;
+    protected final ISchema traceTagIndexSchema;
     protected final SqlDialectManager sqlDialectManager;
 
     @JsonCreator
     public TraceJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration,
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                             @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
-                            @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
+                            @JacksonInject(useInput = OptBoolean.FALSE) SchemaManager schemaManager,
                             @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
         this(providerConfiguration.getDslContext(), objectMapper, storageConfig, schemaManager, sqlDialectManager);
     }
@@ -64,7 +64,7 @@ public class TraceJdbcStorage implements ITraceStorage {
     public TraceJdbcStorage(DSLContext dslContext,
                             ObjectMapper objectMapper,
                             TraceStorageConfig storageConfig,
-                            DataSourceSchemaManager schemaManager,
+                            SchemaManager schemaManager,
                             SqlDialectManager sqlDialectManager) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;

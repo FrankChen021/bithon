@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.pipeline.metrics.IMetricProcessor;
 import org.bithon.server.pipeline.metrics.MetricMessage;
 import org.bithon.server.pipeline.metrics.SchemaMetricMessage;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DefaultSchema;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -71,7 +71,7 @@ public class MetricHttpCollector {
 
     @Data
     public static class MetricOverHttp {
-        private DataSourceSchema schema;
+        private DefaultSchema schema;
         private List<Measurement> metrics;
     }
 }

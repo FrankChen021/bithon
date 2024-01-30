@@ -18,7 +18,7 @@ package org.bithon.server.storage.event;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.server.commons.time.Period;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.StringColumn;
@@ -35,12 +35,12 @@ import java.util.Map;
  * @author Frank Chen
  * @date 27/1/24 12:13 pm
  */
-public class EventDataSource implements IDataSource {
+public class EventTableSchema implements ISchema {
 
-    public static IDataSource createEventTableSchema(IEventStorage eventStorage) {
-        return new EventDataSource("event",
-                                   eventStorage,
-                                   Arrays.asList(new StringColumn("appName",
+    public static ISchema createEventTableSchema(IEventStorage eventStorage) {
+        return new EventTableSchema("event",
+                                    eventStorage,
+                                    Arrays.asList(new StringColumn("appName",
                                                                   "appName"),
                                                  new StringColumn("instanceName",
                                                                   "instanceName"),
@@ -54,7 +54,7 @@ public class EventDataSource implements IDataSource {
     private final Map<String, IColumn> columnMap = new HashMap<>();
     private final IDataStoreSpec dataStoreSpec;
 
-    public EventDataSource(String name, IEventStorage storage, List<IColumn> columns) {
+    public EventTableSchema(String name, IEventStorage storage, List<IColumn> columns) {
         this.name = name;
         this.dataStoreSpec = new EventDataStoreSpec("bithon_event", storage);
 
@@ -103,7 +103,7 @@ public class EventDataSource implements IDataSource {
     }
 
     @Override
-    public IDataSource withDataStore(IDataStoreSpec spec) {
+    public ISchema withDataStore(IDataStoreSpec spec) {
         return null;
     }
 

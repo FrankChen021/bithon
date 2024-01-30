@@ -25,8 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.pipeline.common.input.IInputSource;
 import org.bithon.server.pipeline.metrics.exporter.MetricMessageHandler;
 import org.bithon.server.pipeline.metrics.exporter.MetricMessageHandlers;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.datasource.input.TransformSpec;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
@@ -60,14 +60,14 @@ public class MetricInputSource implements IInputSource {
     }
 
     @Override
-    public void start(IDataSource schema) {
+    public void start(ISchema schema) {
         name = schema.getName();
         try {
             MetricMessageHandlers.getInstance()
                                  .add(new MetricMessageHandler(name,
                                                                applicationContext.getBean(IMetaStorage.class),
                                                                applicationContext.getBean(IMetricStorage.class),
-                                                               applicationContext.getBean(DataSourceSchemaManager.class),
+                                                               applicationContext.getBean(SchemaManager.class),
                                                                this.transformSpec,
                                                                applicationContext.getBean(MetricPipelineConfig.class)));
         } catch (IOException e) {

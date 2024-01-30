@@ -19,7 +19,7 @@ package org.bithon.server.storage.common.expression;
 import org.bithon.component.commons.expression.validation.ExpressionValidationException;
 import org.bithon.component.commons.expression.validation.IIdentifier;
 import org.bithon.component.commons.expression.validation.IIdentifierProvider;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 
 /**
@@ -27,15 +27,15 @@ import org.bithon.server.storage.datasource.column.IColumn;
  * @date 21/1/24 11:45 am
  */
 class IdentifierProvider implements IIdentifierProvider {
-    private final IDataSource dataSource;
+    private final ISchema schema;
 
-    IdentifierProvider(IDataSource dataSource) {
-        this.dataSource = dataSource;
+    IdentifierProvider(ISchema schema) {
+        this.schema = schema;
     }
 
     @Override
     public IIdentifier getIdentifier(String identifier) {
-        IColumn column = dataSource.getColumnByName(identifier);
+        IColumn column = schema.getColumnByName(identifier);
         if (column == null) {
             // A special and ugly check.
             // For indexed tags filter, when querying the dimensions, we need to convert its alias to its field name.
@@ -59,7 +59,7 @@ class IdentifierProvider implements IIdentifierProvider {
 
             throw new ExpressionValidationException("Identifier [%s] not defined in schema [%s]",
                                                     identifier,
-                                                    dataSource.getName());
+                                                    schema.getName());
         }
 
         return column;

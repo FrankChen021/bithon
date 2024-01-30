@@ -34,9 +34,9 @@ import org.bithon.server.pipeline.metrics.MetricsAggregator;
 import org.bithon.server.pipeline.metrics.exporter.MetricMessageHandler;
 import org.bithon.server.pipeline.tracing.TracePipeline;
 import org.bithon.server.pipeline.tracing.exporter.ITraceExporter;
-import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.DefaultSchema;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.TransformSpec;
@@ -87,7 +87,7 @@ public class MetricOverSpanInputSource implements IInputSource {
     }
 
     @Override
-    public void start(IDataSource schema) {
+    public void start(ISchema schema) {
         if (!this.pipeline.getPipelineConfig().isEnabled()) {
             log.warn("The trace processing pipeline is not enabled in this module. The input source of [{}] has no effect.", schema.getName());
             return;
@@ -108,7 +108,7 @@ public class MetricOverSpanInputSource implements IInputSource {
         log.info("Adding metric-extractor for [{}({})] to tracing logs processors...", schema.getName(), schema.getSignature());
         MetricOverSpanExtractor extractor = null;
         try {
-            extractor = new MetricOverSpanExtractor(transformSpec, (DataSourceSchema) schema, metricStorage, applicationContext);
+            extractor = new MetricOverSpanExtractor(transformSpec, (DefaultSchema) schema, metricStorage, applicationContext);
             metricExtractor = (MetricOverSpanExtractor) this.pipeline.link(extractor);
         } catch (Exception e) {
             if (extractor != null) {
@@ -136,11 +136,11 @@ public class MetricOverSpanInputSource implements IInputSource {
 
     private static class MetricOverSpanExtractor implements ITraceExporter {
         private final TransformSpec transformSpec;
-        private final DataSourceSchema schema;
+        private final DefaultSchema schema;
         private final MetricMessageHandler metricHandler;
 
         public MetricOverSpanExtractor(TransformSpec transformSpec,
-                                       DataSourceSchema schema,
+                                       DefaultSchema schema,
                                        IMetricStorage metricStorage,
                                        ApplicationContext applicationContext) throws IOException {
             this.transformSpec = transformSpec;
@@ -148,7 +148,7 @@ public class MetricOverSpanInputSource implements IInputSource {
             this.metricHandler = new MetricMessageHandler(schema.getName(),
                                                           applicationContext.getBean(IMetaStorage.class),
                                                           metricStorage,
-                                                          applicationContext.getBean(DataSourceSchemaManager.class),
+                                                          applicationContext.getBean(SchemaManager.class),
                                                           null,
                                                           applicationContext.getBean(MetricPipelineConfig.class));
         }

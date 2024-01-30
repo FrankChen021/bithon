@@ -19,8 +19,8 @@ package org.bithon.server.pipeline.common.input;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.SchemaManager;
 
 import java.util.Map;
 import java.util.Objects;
@@ -31,19 +31,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2022/11/16 21:35
  */
 @Slf4j
-public class InputSourceManager implements DataSourceSchemaManager.IDataSourceSchemaListener {
+public class InputSourceManager implements SchemaManager.ISchemaChangeListener {
 
     private final Map<String, IInputSource> inputSources = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper;
 
-    public InputSourceManager(DataSourceSchemaManager dataSourceSchemaManager, ObjectMapper objectMapper) {
+    public InputSourceManager(SchemaManager schemaManager, ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
 
-        dataSourceSchemaManager.addListener(this);
+        schemaManager.addListener(this);
     }
 
     @Override
-    public void onChange(IDataSource oldSchema, IDataSource newSchema) {
+    public void onChange(ISchema oldSchema, ISchema newSchema) {
         if (oldSchema != null
             && Objects.equals(oldSchema.getSignature(), newSchema.getSignature())) {
             // same signature, do nothing

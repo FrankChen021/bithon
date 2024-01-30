@@ -46,7 +46,7 @@ import org.bithon.component.commons.expression.validation.IIdentifierProvider;
 import org.bithon.server.datasource.ast.ExpressionBaseVisitor;
 import org.bithon.server.datasource.ast.ExpressionLexer;
 import org.bithon.server.datasource.ast.ExpressionParser;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.builtin.IFunctionProvider;
 
 import java.util.ArrayList;
@@ -72,8 +72,8 @@ public class ExpressionASTBuilder {
         return this;
     }
 
-    public ExpressionASTBuilder schema(IDataSource dataSource) {
-        this.identifiers = dataSource != null ? new IdentifierProvider(dataSource) : null;
+    public ExpressionASTBuilder schema(ISchema schema) {
+        this.identifiers = schema != null ? new IdentifierProvider(schema) : null;
         return this;
     }
 

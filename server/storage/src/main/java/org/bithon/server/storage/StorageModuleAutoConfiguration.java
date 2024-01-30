@@ -18,7 +18,7 @@ package org.bithon.server.storage;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.provider.StorageProviderManager;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.meta.CacheableMetadataStorage;
@@ -31,7 +31,7 @@ import org.bithon.server.storage.setting.ISettingStorage;
 import org.bithon.server.storage.setting.SettingStorageConfig;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
-import org.bithon.server.storage.tracing.datasource.TraceDataSource;
+import org.bithon.server.storage.tracing.datasource.TraceTableSchema;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -107,15 +107,15 @@ public class StorageModuleAutoConfiguration {
 
     @Bean
     @ConditionalOnBean(ISchemaStorage.class)
-    DataSourceSchemaManager schemaManager(ISchemaStorage schemaStorage) {
-        return new DataSourceSchemaManager(schemaStorage);
+    SchemaManager schemaManager(ISchemaStorage schemaStorage) {
+        return new SchemaManager(schemaStorage);
     }
 
     @Bean
     @ConditionalOnProperty(value = "bithon.storage.tracing.enabled", havingValue = "true")
     public ITraceStorage traceStorage(TraceStorageConfig storageConfig,
                                       StorageProviderManager storageProviderManager,
-                                      DataSourceSchemaManager schemaManager) throws IOException {
+                                      SchemaManager schemaManager) throws IOException {
         String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
         InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
                                               "[%s] is not properly configured to enable the Tracing module.",
@@ -125,8 +125,8 @@ public class StorageModuleAutoConfiguration {
         ITraceStorage storage = storageProviderManager.createStorage(providerName, ITraceStorage.class);
         storage.initialize();
 
-        schemaManager.addDataSourceSchema(TraceDataSource.createSummary(storage), false);
-        schemaManager.addDataSourceSchema(TraceDataSource.createIndexSchema(storage, storageConfig.getIndexes()), false);
+        schemaManager.addSchema(TraceTableSchema.createSummaryTableSchema(storage), false);
+        schemaManager.addSchema(TraceTableSchema.createIndexTableSchema(storage, storageConfig.getIndexes()), false);
         return storage;
     }
 

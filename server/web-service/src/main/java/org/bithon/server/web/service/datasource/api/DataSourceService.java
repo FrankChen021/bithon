@@ -22,7 +22,7 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -74,13 +74,13 @@ public class DataSourceService {
                                             // TODO: check if the fields involved in the expression are all metrics
                                             return true;
                                         }
-                                        IColumn column = query.getDataSource().getColumnByName(resultColumn.getResultColumnName());
+                                        IColumn column = query.getSchema().getColumnByName(resultColumn.getResultColumnName());
                                         return column instanceof IAggregatableColumn || column instanceof ExpressionColumn;
                                     })
                                     .map((ResultColumn::getResultColumnName))
                                     .collect(Collectors.toList());
 
-        try (IDataSourceReader reader = query.getDataSource().getDataStoreSpec().createReader()) {
+        try (IDataSourceReader reader = query.getSchema().getDataStoreSpec().createReader()) {
             return TimeSeriesQueryResult.build(query.getInterval().getStartTime(),
                                                query.getInterval().getEndTime(),
                                                query.getInterval().getStep(),
@@ -91,7 +91,7 @@ public class DataSourceService {
         }
     }
 
-    public Query convertToQuery(IDataSource schema,
+    public Query convertToQuery(ISchema schema,
                                 GeneralQueryRequest query,
                                 boolean containsGroupBy,
                                 boolean bucketTimestamp) {
@@ -160,7 +160,7 @@ public class DataSourceService {
 
         return builder.groupBy(new ArrayList<>(groupBy))
                       .resultColumns(resultColumnList)
-                      .dataSource(schema)
+                      .schema(schema)
                       .filter(FilterExpressionToFilters.toExpression(schema, query.getFilterExpression(), query.getFilters()))
                       .interval(Interval.of(start, end, step, ExpressionASTBuilder.builder().functions(Functions.getInstance()).build(timestampColumn)))
                       .orderBy(query.getOrderBy())

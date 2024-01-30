@@ -21,8 +21,8 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
@@ -57,15 +57,15 @@ import java.util.stream.Stream;
 @Conditional(WebServiceModuleEnabler.class)
 public class TopoApi {
 
-    private final DataSourceSchemaManager schemaManager;
+    private final SchemaManager schemaManager;
 
-    public TopoApi(DataSourceSchemaManager schemaManager) {
+    public TopoApi(SchemaManager schemaManager) {
         this.schemaManager = schemaManager;
     }
 
     @PostMapping("/api/topo/getApplicationTopo")
     public Topo getTopo(@Valid @RequestBody GetTopoRequest request) throws IOException {
-        IDataSource topoSchema = schemaManager.getDataSourceSchema("topo-metrics");
+        ISchema topoSchema = schemaManager.getSchema("topo-metrics");
 
         // since the min granularity is minute, round down the timestamp to minute
         // and notice that the 'end' parameter is inclusive, so the round down has no impact on the query range
@@ -73,7 +73,7 @@ public class TopoApi {
         TimeSpan end = new TimeSpan((TimeSpan.fromISO8601(request.getEndTimeISO8601()).getMilliseconds()) / 60_000 * 60_000);
 
         Query calleeQuery = Query.builder()
-                                 .dataSource(topoSchema)
+                                 .schema(topoSchema)
                                  .resultColumns(Stream.of("dstEndpoint",
                                                           "dstEndpointType",
                                                           "callCount",
@@ -125,7 +125,7 @@ public class TopoApi {
             }
 
             Query callerQuery = Query.builder()
-                                     .dataSource(topoSchema)
+                                     .schema(topoSchema)
                                      .resultColumns(Stream.of("srcEndpoint",
                                                               "srcEndpointType",
                                                               "callCount",

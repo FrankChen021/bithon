@@ -18,7 +18,7 @@ package org.bithon.server.pipeline.metrics;
 
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.pipeline.metrics.topo.Measurement;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.input.IInputRow;
@@ -38,18 +38,18 @@ import java.util.function.Function;
  */
 public class MetricsAggregator {
     private final Map<Key, FieldAggregators> rows = new HashMap<>();
-    private final DataSourceSchema schema;
+    private final DefaultSchema schema;
     private final long granularityMs;
 
     /**
      * @param period granularity
      */
-    public MetricsAggregator(DataSourceSchema schema, Period period) {
+    public MetricsAggregator(DefaultSchema schema, Period period) {
         this.schema = schema;
         this.granularityMs = period.getMilliseconds();
     }
 
-    public MetricsAggregator(DataSourceSchema schema, long granularity) {
+    public MetricsAggregator(DefaultSchema schema, long granularity) {
         this.schema = schema;
         this.granularityMs = granularity * 1000;
     }
@@ -148,7 +148,7 @@ public class MetricsAggregator {
     }
 
     static class FieldAggregators extends HashMap<String, NumberAggregator> {
-        public FieldAggregators(DataSourceSchema schema) {
+        public FieldAggregators(DefaultSchema schema) {
             for (IColumn metricSpec : schema.getMetricsSpec()) {
                 NumberAggregator aggregator = metricSpec.createAggregator();
                 if (aggregator == null) {

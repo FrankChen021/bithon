@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.datasource.api;
 
 import lombok.Data;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,16 +51,16 @@ public interface IDataSourceApi {
     GeneralQueryResponse list(@Validated @RequestBody GeneralQueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/schemas")
-    Map<String, IDataSource> getSchemas();
+    Map<String, ISchema> getSchemas();
 
     @PostMapping("/api/datasource/schema/{name}")
-    IDataSource getSchemaByName(@PathVariable("name") String schemaName);
+    ISchema getSchemaByName(@PathVariable("name") String schemaName);
 
     @PostMapping("/api/datasource/schema/create")
-    void createSchema(@RequestBody IDataSource schema);
+    void createSchema(@RequestBody ISchema schema);
 
     @PostMapping("/api/datasource/schema/update")
-    void updateSchema(@RequestBody IDataSource schema);
+    void updateSchema(@RequestBody ISchema schema);
 
     @PostMapping("/api/datasource/name")
     Collection<DisplayableText> getSchemaNames();

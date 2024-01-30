@@ -18,7 +18,7 @@ package org.bithon.server.storage.tracing.datasource;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.server.commons.time.Period;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.StringColumn;
@@ -39,7 +39,7 @@ import java.util.Map;
  * @author Frank Chen
  * @date 29/1/24 10:14 am
  */
-public class TraceDataSource implements IDataSource {
+public class TraceTableSchema implements ISchema {
 
     private final TimestampSpec timestampSpec = new TimestampSpec("timestamp", "auto", null);
     private final String name;
@@ -47,7 +47,7 @@ public class TraceDataSource implements IDataSource {
     private final IDataStoreSpec dataStoreSpec;
     private final Map<String, IColumn> columnMap = new HashMap<>();
 
-    TraceDataSource(String name, ITraceStorage storage, List<IColumn> columns) {
+    TraceTableSchema(String name, ITraceStorage storage, List<IColumn> columns) {
         this.name = name;
         this.dataStoreSpec = new TraceDataStore("bithon_" + name, storage);
 
@@ -96,7 +96,7 @@ public class TraceDataSource implements IDataSource {
     }
 
     @Override
-    public IDataSource withDataStore(IDataStoreSpec spec) {
+    public ISchema withDataStore(IDataStoreSpec spec) {
         return null;
     }
 
@@ -114,10 +114,10 @@ public class TraceDataSource implements IDataSource {
         return null;
     }
 
-    public static TraceDataSource createSummary(ITraceStorage traceStorage) {
-        return new TraceDataSource("trace_span_summary",
-                                   traceStorage,
-                                   Arrays.asList(new StringColumn("appName",
+    public static TraceTableSchema createSummaryTableSchema(ITraceStorage traceStorage) {
+        return new TraceTableSchema("trace_span_summary",
+                                    traceStorage,
+                                    Arrays.asList(new StringColumn("appName",
                                                                   "appName"),
                                                  new StringColumn("instanceName",
                                                                   "instanceName"),
@@ -135,7 +135,7 @@ public class TraceDataSource implements IDataSource {
         );
     }
 
-    public static TraceDataSource createIndexSchema(ITraceStorage traceStorage, TagIndexConfig tagIndexConfig) {
+    public static TraceTableSchema createIndexTableSchema(ITraceStorage traceStorage, TagIndexConfig tagIndexConfig) {
         List<IColumn> dimensionSpecs = new ArrayList<>();
         if (tagIndexConfig != null) {
             for (Map.Entry<String, Integer> entry : tagIndexConfig.getMap().entrySet()) {
@@ -148,9 +148,9 @@ public class TraceDataSource implements IDataSource {
         }
 
         dimensionSpecs.add(AggregateCountColumn.INSTANCE);
-        return new TraceDataSource("trace_span_tag_index",
-                                   traceStorage,
-                                   dimensionSpecs);
+        return new TraceTableSchema("trace_span_tag_index",
+                                    traceStorage,
+                                    dimensionSpecs);
 
     }
 }

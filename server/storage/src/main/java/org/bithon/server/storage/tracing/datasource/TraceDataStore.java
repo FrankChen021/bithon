@@ -17,7 +17,7 @@
 package org.bithon.server.storage.tracing.datasource;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.tracing.ITraceStorage;
@@ -47,7 +47,7 @@ class TraceDataStore implements IDataStoreSpec {
     }
 
     @Override
-    public void setDataSourceSchema(IDataSource schema) {
+    public void setDataSourceSchema(ISchema schema) {
     }
 
     @Override

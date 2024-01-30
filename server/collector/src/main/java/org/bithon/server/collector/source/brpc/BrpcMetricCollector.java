@@ -34,7 +34,7 @@ import org.bithon.server.pipeline.metrics.IMetricProcessor;
 import org.bithon.server.pipeline.metrics.MetricMessage;
 import org.bithon.server.pipeline.metrics.SchemaMetricMessage;
 import org.bithon.server.pipeline.metrics.receiver.IMetricReceiver;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.StringColumn;
@@ -129,11 +129,11 @@ public class BrpcMetricCollector implements IMetricCollector, IMetricReceiver {
                                      .map(dimSpec -> new StringColumn(dimSpec.getName(), dimSpec.getName()))
                                      .collect(Collectors.toList()));
 
-        DataSourceSchema schema = new DataSourceSchema(message.getSchema().getName(),
-                                                       message.getSchema().getName(),
-                                                       new TimestampSpec("timestamp", "auto", null),
-                                                       dimensionSpecs,
-                                                       message.getSchema().getMetricsSpecList().stream().map(metricSpec -> {
+        DefaultSchema schema = new DefaultSchema(message.getSchema().getName(),
+                                                 message.getSchema().getName(),
+                                                 new TimestampSpec("timestamp", "auto", null),
+                                                 dimensionSpecs,
+                                                 message.getSchema().getMetricsSpecList().stream().map(metricSpec -> {
                                                            if ("longMax".equals(metricSpec.getType())) {
                                                                return new AggregateLongMaxColumn(metricSpec.getName(), metricSpec.getName());
                                                            }

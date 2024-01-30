@@ -19,7 +19,7 @@ package org.bithon.server.storage.datasource.query;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
 
 import java.util.List;
 import java.util.Map;
@@ -43,7 +43,7 @@ public interface IDataSourceReader extends AutoCloseable {
 
     List<Map<String, String>> distinct(TimeSpan start,
                                        TimeSpan end,
-                                       IDataSource dataSourceSchema,
+                                       ISchema schema,
                                        IExpression filter,
                                        String dimension);
 

@@ -19,7 +19,7 @@ package org.bithon.server.storage.common.expression;
 import org.bithon.component.commons.expression.validation.ExpressionValidationException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.column.LongColumn;
@@ -38,7 +38,7 @@ import java.util.Collections;
  */
 public class ExpressionValidationTest {
 
-    private final DataSourceSchema schema = new DataSourceSchema(
+    private final DefaultSchema schema = new DefaultSchema(
         "schema",
         "schema",
         new TimestampSpec("timestamp", null, null),

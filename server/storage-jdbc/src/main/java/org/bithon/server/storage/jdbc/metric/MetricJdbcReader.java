@@ -22,7 +22,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
@@ -87,7 +87,7 @@ public class MetricJdbcReader implements IDataSourceReader {
     @Override
     public List<Map<String, Object>> timeseries(Query query) {
         SelectExpression selectExpression = SelectExpressionBuilder.builder()
-                                                                   .dataSource(query.getDataSource())
+                                                                   .dataSource(query.getSchema())
                                                                    .fields(query.getResultColumns())
                                                                    .filter(query.getFilter())
                                                                    .interval(query.getInterval())
@@ -122,7 +122,7 @@ public class MetricJdbcReader implements IDataSourceReader {
     @Override
     public List<?> groupBy(Query query) {
         SelectExpression selectExpression = SelectExpressionBuilder.builder()
-                                                                   .dataSource(query.getDataSource())
+                                                                   .dataSource(query.getSchema())
                                                                    .fields(query.getResultColumns())
                                                                    .filter(query.getFilter())
                                                                    .interval(query.getInterval())
@@ -146,9 +146,9 @@ public class MetricJdbcReader implements IDataSourceReader {
 
     @Override
     public List<Map<String, Object>> list(Query query) {
-        String sqlTableName = query.getDataSource().getDataStoreSpec().getStore();
-        String timestampCol = query.getDataSource().getTimestampSpec().getTimestampColumn();
-        String filter = Expression2Sql.from(query.getDataSource(), sqlDialect, query.getFilter());
+        String sqlTableName = query.getSchema().getDataStoreSpec().getStore();
+        String timestampCol = query.getSchema().getTimestampSpec().getTimestampColumn();
+        String filter = Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter());
         String sql = StringUtils.format(
             "SELECT %s FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s %s LIMIT %d OFFSET %d",
             query.getResultColumns()
@@ -183,10 +183,10 @@ public class MetricJdbcReader implements IDataSourceReader {
 
     @Override
     public int listSize(Query query) {
-        String sqlTableName = query.getDataSource().getDataStoreSpec().getStore();
-        String timestampCol = query.getDataSource().getTimestampSpec().getTimestampColumn();
+        String sqlTableName = query.getSchema().getDataStoreSpec().getStore();
+        String timestampCol = query.getSchema().getTimestampSpec().getTimestampColumn();
 
-        String filter = Expression2Sql.from(query.getDataSource(), sqlDialect, query.getFilter());
+        String filter = Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter());
         String sql = StringUtils.format(
             "SELECT count(1) FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s",
             sqlTableName,
@@ -240,16 +240,16 @@ public class MetricJdbcReader implements IDataSourceReader {
     @Override
     public List<Map<String, String>> distinct(TimeSpan start,
                                               TimeSpan end,
-                                              IDataSource dataSourceSchema,
+                                              ISchema schema,
                                               IExpression filter,
                                               String dimension) {
-        String filterText = filter == null ? "" : Expression2Sql.from(dataSourceSchema, sqlDialect, filter) + " AND ";
+        String filterText = filter == null ? "" : Expression2Sql.from(schema, sqlDialect, filter) + " AND ";
 
         String sql = StringUtils.format(
             "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s AND \"%s\" IS NOT NULL ORDER BY \"%s\"",
             dimension,
             dimension,
-            dataSourceSchema.getDataStoreSpec().getStore(),
+            schema.getDataStoreSpec().getStore(),
             filterText,
             sqlDialect.formatTimestamp(start),
             sqlDialect.formatTimestamp(end),

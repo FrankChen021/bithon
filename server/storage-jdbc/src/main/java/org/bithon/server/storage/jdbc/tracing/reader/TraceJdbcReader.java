@@ -32,7 +32,7 @@ import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.datasource.query.Query;
@@ -71,14 +71,14 @@ public class TraceJdbcReader implements ITraceReader {
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
     protected final TraceStorageConfig traceStorageConfig;
-    protected final IDataSource traceSpanSchema;
-    protected final IDataSource traceTagIndexSchema;
+    protected final ISchema traceSpanSchema;
+    protected final ISchema traceTagIndexSchema;
     protected final ISqlDialect sqlDialect;
 
     public TraceJdbcReader(DSLContext dslContext,
                            ObjectMapper objectMapper,
-                           IDataSource traceSpanSchema,
-                           IDataSource traceTagIndexSchema,
+                           ISchema traceSpanSchema,
+                           ISchema traceTagIndexSchema,
                            TraceStorageConfig traceStorageConfig,
                            ISqlDialect sqlDialect) {
         this.dslContext = dslContext;
@@ -426,10 +426,10 @@ public class TraceJdbcReader implements ITraceReader {
     @Override
     public List<Map<String, String>> distinct(TimeSpan start,
                                               TimeSpan end,
-                                              IDataSource dataSource,
+                                              ISchema schema,
                                               IExpression filter,
                                               String dimension) {
-        return getDataSourceReader().distinct(start, end, dataSource, filter, dimension);
+        return getDataSourceReader().distinct(start, end, schema, filter, dimension);
     }
 
     static class SpanKindIsRootDetector implements IExpressionVisitor {

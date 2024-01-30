@@ -18,7 +18,7 @@ package org.bithon.server.web.service.event.api;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.IDataSource;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.Query;
@@ -43,10 +43,10 @@ import java.util.Arrays;
 @ConditionalOnBean(IEventStorage.class)
 public class EventApi implements IEventApi {
 
-    private final IDataSource dataSource;
+    private final ISchema eventTableSchema;
 
     public EventApi(IEventStorage eventStorage) {
-        this.dataSource = eventStorage.getDataSource();
+        this.eventTableSchema = eventStorage.getDataSource();
     }
 
     @Override
@@ -54,12 +54,12 @@ public class EventApi implements IEventApi {
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
 
-        IExpression filter = FilterExpressionToFilters.toExpression(this.dataSource,
+        IExpression filter = FilterExpressionToFilters.toExpression(this.eventTableSchema,
                                                                     null,
                                                                     request.getFilters());
-        try (IDataSourceReader reader = dataSource.getDataStoreSpec().createReader()) {
+        try (IDataSourceReader reader = eventTableSchema.getDataStoreSpec().createReader()) {
             Query query = Query.builder()
-                               .dataSource(dataSource)
+                               .schema(eventTableSchema)
                                .resultColumns(Arrays.asList(new ResultColumn("appName"),
                                                             new ResultColumn("instanceName"),
                                                             new ResultColumn("type"),
