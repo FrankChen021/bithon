@@ -60,7 +60,7 @@
     <!-- OTLP Receiver-->
     <dependency>
       <groupId>org.bithon</groupId>
-      <artifactId>opentelemetry-proto</artifactId>
+      <artifactId>opentelemetry</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.protobuf</groupId>

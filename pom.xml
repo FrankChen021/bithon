@@ -287,8 +287,8 @@
       </dependency>
       <dependency>
         <groupId>org.bithon</groupId>
-        <artifactId>opentelemetry-proto</artifactId>
-        <version>1.0</version>
+        <artifactId>opentelemetry</artifactId>
+        <version>${project.version}</version>
       </dependency>
 
       <dependency>
