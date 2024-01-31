@@ -65,13 +65,53 @@
     </dependency>
 
     <!-- Otel Protobuf Interface Support -->
-    <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>opentelemetry-proto</artifactId>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.bithon</groupId>-->
+<!--      <artifactId>opentelemetry-proto</artifactId>-->
+<!--      <exclusions>-->
+<!--        <exclusion>-->
+<!--          <groupId>com.google.protobuf</groupId>-->
+<!--          <artifactId>protobuf-java</artifactId>-->
+<!--        </exclusion>-->
+<!--        <exclusion>-->
+<!--          <groupId>io.grpc</groupId>-->
+<!--          <artifactId>grpc-netty-shaded</artifactId>-->
+<!--        </exclusion>-->
+<!--        <exclusion>-->
+<!--          <groupId>io.grpc</groupId>-->
+<!--          <artifactId>grpc-stub</artifactId>-->
+<!--        </exclusion>-->
+<!--        <exclusion>-->
+<!--          <groupId>io.grpc</groupId>-->
+<!--          <artifactId>grpc-protobuf</artifactId>-->
+<!--        </exclusion>-->
+<!--      </exclusions>-->
+<!--    </dependency>-->
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java-util</artifactId>
+      <version>3.25.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <version>3.25.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-netty-shaded</artifactId>
+      <version>1.59.1</version> <!-- Make sure to use the latest version -->
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-stub</artifactId>
+      <version>1.59.1</version>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-protobuf</artifactId>
+      <version>1.59.1</version>
     </dependency>
 
   </dependencies>
