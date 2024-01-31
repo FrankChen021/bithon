@@ -69,7 +69,7 @@ public class TraceSpanTransformer implements ITransformer {
 
         Map<String, String> tags = span.getTags();
         if (CollectionUtils.isEmpty(tags)) {
-            return false;
+            return true;
         }
 
         //
