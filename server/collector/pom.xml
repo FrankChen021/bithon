@@ -24,36 +24,29 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.kafka</groupId>
-      <artifactId>spring-kafka</artifactId>
-    </dependency>
 
+    <!-- YAML Support -->
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-yaml</artifactId>
-    </dependency>
-
-    <!-- BRPC -->
-    <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>agent-rpc-brpc</artifactId>
-    </dependency>
-
-    <!-- BRPC -->
-    <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>server-pipeline</artifactId>
     </dependency>
 
     <!-- Bithon Commons -->
     <dependency>
       <groupId>org.bithon</groupId>
       <artifactId>component-commons</artifactId>
+    </dependency>
+
+    <!-- BRPC Receiver-->
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>agent-rpc-brpc</artifactId>
+    </dependency>
+
+    <!-- Pipelline -->
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>server-pipeline</artifactId>
     </dependency>
 
     <!-- Collector is declared as a discoverable service,
@@ -64,56 +57,15 @@
       <artifactId>service-discovery-declaration</artifactId>
     </dependency>
 
-    <!-- Otel Protobuf Interface Support -->
-<!--    <dependency>-->
-<!--      <groupId>org.bithon</groupId>-->
-<!--      <artifactId>opentelemetry-proto</artifactId>-->
-<!--      <exclusions>-->
-<!--        <exclusion>-->
-<!--          <groupId>com.google.protobuf</groupId>-->
-<!--          <artifactId>protobuf-java</artifactId>-->
-<!--        </exclusion>-->
-<!--        <exclusion>-->
-<!--          <groupId>io.grpc</groupId>-->
-<!--          <artifactId>grpc-netty-shaded</artifactId>-->
-<!--        </exclusion>-->
-<!--        <exclusion>-->
-<!--          <groupId>io.grpc</groupId>-->
-<!--          <artifactId>grpc-stub</artifactId>-->
-<!--        </exclusion>-->
-<!--        <exclusion>-->
-<!--          <groupId>io.grpc</groupId>-->
-<!--          <artifactId>grpc-protobuf</artifactId>-->
-<!--        </exclusion>-->
-<!--      </exclusions>-->
-<!--    </dependency>-->
+    <!-- OTLP Receiver-->
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>opentelemetry-proto</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java-util</artifactId>
-      <version>3.25.1</version>
     </dependency>
-    <dependency>
-      <groupId>com.google.protobuf</groupId>
-      <artifactId>protobuf-java</artifactId>
-      <version>3.25.1</version>
-    </dependency>
-
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-netty-shaded</artifactId>
-      <version>1.59.1</version> <!-- Make sure to use the latest version -->
-    </dependency>
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-stub</artifactId>
-      <version>1.59.1</version>
-    </dependency>
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-protobuf</artifactId>
-      <version>1.59.1</version>
-    </dependency>
-
   </dependencies>
 
   <build>
