@@ -30,6 +30,7 @@ import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.storage.common.ApplicationType;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.io.IOException;
@@ -44,7 +45,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- *
  * @author frank.chen021@outlook.com
  * @date 2023/9/2 11:12
  */
@@ -60,12 +60,12 @@ public class OtlpSpanConverter {
         return new OtlpSpanConverter(builder.build().getResourceSpansList()) {
             @Override
             protected String getTraceId(ByteString id) {
-                return StringUtils.encodeBase64String(id.toByteArray()).toLowerCase(Locale.ENGLISH);
+                return StringUtils.base64BytesToString(id.toByteArray()).toLowerCase(Locale.ENGLISH);
             }
 
             @Override
             protected String getSpanId(ByteString id) {
-                return StringUtils.encodeBase64String(id.toByteArray()).toLowerCase(Locale.ENGLISH);
+                return StringUtils.base64BytesToString(id.toByteArray()).toLowerCase(Locale.ENGLISH);
             }
         };
     }
@@ -91,26 +91,44 @@ public class OtlpSpanConverter {
         for (ResourceSpans resourceSpans : resourceSpansList) {
             Map<String, String> resourceAttributes = toAttributeMap(resourceSpans.getResource().getAttributesList());
 
+            String appType = toAppType(resourceAttributes.get(OtlpAttributes.TELEMETRY_SDK_LANGUAGE));
+            String instanceName = resourceAttributes.getOrDefault(OtlpAttributes.SERVICE_INSTANCE_ID, "");
+
             for (ScopeSpans scopeSpans : resourceSpans.getScopeSpansList()) {
                 for (Span span : scopeSpans.getSpansList()) {
-                    spans.add(toInternalSpan(resourceAttributes, scopeSpans, span));
+                    TraceSpan internalSpan = toInternalSpan(span);
+                    internalSpan.appType = appType;
+                    internalSpan.appName = resourceAttributes.getOrDefault(OtlpAttributes.SERVICE_NAME, scopeSpans.getScope().getName());
+                    internalSpan.instanceName = instanceName;
+                    spans.add(internalSpan);
                 }
             }
         }
         return spans;
     }
 
+    protected String toAppType(String language) {
+        if (language == null) {
+            return null;
+        }
+        if (ApplicationType.CPP.equalsIgnoreCase(language)) {
+            return ApplicationType.CPP;
+        }
+        if (ApplicationType.JAVA.equalsIgnoreCase(language)) {
+            return ApplicationType.JAVA;
+        }
+        return language;
+    }
+
     protected String getTraceId(ByteString id) {
-        return id.toStringUtf8();
+        return StringUtils.base16BytesToString(id::byteAt, id.size());
     }
 
     protected String getSpanId(ByteString id) {
-        return id.toStringUtf8();
+        return StringUtils.base16BytesToString(id::byteAt, id.size());
     }
 
-    private TraceSpan toInternalSpan(Map<String, String> resourceAttributes,
-                                     ScopeSpans scopeSpans,
-                                     Span span) {
+    private TraceSpan toInternalSpan(Span span) {
         TraceSpan internalSpan = new TraceSpan();
 
         internalSpan.traceId = getTraceId(span.getTraceId());
@@ -129,9 +147,6 @@ public class OtlpSpanConverter {
             internalSpan.setTag(Tags.Exception.MESSAGE, span.getStatus().getMessage());
         }
 
-        internalSpan.appName = resourceAttributes.getOrDefault("service.name",
-                                                               scopeSpans.getScope().getName());
-        internalSpan.instanceName = "";
         internalSpan.method = "";
 
         return internalSpan;

@@ -23,7 +23,6 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
-import io.opentelemetry.proto.collector.trace.v1.ExportTracePartialSuccess;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceResponse;
 import io.opentelemetry.proto.collector.trace.v1.TraceServiceGrpc;
@@ -37,7 +36,7 @@ import org.springframework.core.env.Environment;
 import java.io.IOException;
 
 /**
- * https://opentelemetry.io/docs/specs/otlp/#otlpgrpc
+ * See <a href="https://opentelemetry.io/docs/specs/otlp/#otlpgrpc">OTLP-GRPC</a>
  *
  * @author Frank Chen
  * @date 30/1/24 8:35 pm
@@ -54,7 +53,7 @@ public class OtlpGrpcTraceReceiver extends TraceServiceGrpc.TraceServiceImplBase
     @JsonCreator
     public OtlpGrpcTraceReceiver(@JacksonInject(useInput = OptBoolean.FALSE) Environment env) {
         // https://opentelemetry.io/docs/specs/otlp/#otlpgrpc-default-port
-        port = env.getProperty("bithon.receivers.traces.otel-grpc.port", int.class, 4317);
+        port = env.getProperty("bithon.receivers.traces.otlp-grpc.port", int.class, 4317);
     }
 
     @Override
@@ -92,11 +91,8 @@ public class OtlpGrpcTraceReceiver extends TraceServiceGrpc.TraceServiceImplBase
                                    new OtlpSpanConverter(request.getResourceSpansList()).toSpanList());
         }
 
-        ExportTraceServiceResponse response = ExportTraceServiceResponse.newBuilder()
-                                                                        .setPartialSuccess(ExportTracePartialSuccess.newBuilder()
-                                                                                                                    .setRejectedSpans(0)
-                                                                                                                    .build())
-                                                                        .build();
+        // Returns empty as success as stated in the doc: https://opentelemetry.io/docs/specs/otlp/#otlpgrpc-response
+        ExportTraceServiceResponse response = ExportTraceServiceResponse.newBuilder().build();
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
