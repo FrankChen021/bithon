@@ -184,20 +184,20 @@ public class TraceTopoBuilder {
     }
 
     public static class UserAgentAnalyzer {
-        private final static Pattern browserLeadingPattern = Pattern.compile("^Mozilla/\\d+\\.\\d+ ");
-        private final static Pattern osPattern = Pattern.compile("(^\\([^)]+\\)) ");
+        private static final Pattern BROWSER_LEADING_PATTERN = Pattern.compile("^Mozilla/\\d+\\.\\d+ ");
+        private static final Pattern OPERATING_SYSTEM_PATTERN = Pattern.compile("(^\\([^)]+\\)) ");
 
         /**
          * Analyze user agent that from web browser so that the UI shows shorter text
          */
         static String shorten(String userAgent) {
             // If the user agent has a pattern as 'Mozilla/5.0', we treat it as a request from a web browser
-            Matcher leadingMatcher = browserLeadingPattern.matcher(userAgent);
+            Matcher leadingMatcher = BROWSER_LEADING_PATTERN.matcher(userAgent);
             if (leadingMatcher.find()) {
                 userAgent = userAgent.substring(leadingMatcher.end());
 
                 String os = "";
-                Matcher osMatcher = osPattern.matcher(userAgent);
+                Matcher osMatcher = OPERATING_SYSTEM_PATTERN.matcher(userAgent);
                 if (osMatcher.find()) {
                     os = osMatcher.group(1);
                 }
