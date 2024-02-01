@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.ctrl.service;
+package org.bithon.server.agent.controller.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +32,8 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
+ * The BRPC implementation to get agent settings for agents.
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/6/30 3:34 下午
  */

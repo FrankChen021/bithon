@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.ctrl.api;
+package org.bithon.server.agent.controller.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.brpc.channel.BrpcServer;
@@ -24,9 +24,9 @@ import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
-import org.bithon.server.collector.ctrl.config.AgentControllerConfig;
-import org.bithon.server.collector.ctrl.config.PermissionConfig;
-import org.bithon.server.collector.ctrl.service.AgentController;
+import org.bithon.server.agent.controller.config.AgentControllerConfig;
+import org.bithon.server.agent.controller.config.PermissionConfig;
+import org.bithon.server.agent.controller.service.AgentControllerServer;
 import org.bithon.server.commons.exception.ErrorResponse;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
@@ -48,8 +48,6 @@ import java.util.stream.Collectors;
  * The management API for agents.
  * Since the management API between agents and bithon is bored on brpc interface,
  * the management REST API is only available when the brpc is enabled.
- * <p>
- * TODO: We can separate the deployment of agent management from current collector module into a independent module which can be deployed as a single application.
  *
  * @author Frank Chen
  * @date 2022/8/7 20:46
@@ -59,38 +57,38 @@ import java.util.stream.Collectors;
 public class AgentProxyApi implements IAgentProxyApi {
 
     private final ObjectMapper objectMapper;
-    private final AgentController agentController;
+    private final AgentControllerServer agentControllerServer;
     private final PermissionConfig permissionConfig;
 
     public AgentProxyApi(ObjectMapper objectMapper,
-                         AgentController agentController,
+                         AgentControllerServer agentControllerServer,
                          AgentControllerConfig agentConfig) {
         this.objectMapper = objectMapper;
-        this.agentController = agentController;
+        this.agentControllerServer = agentControllerServer;
         this.permissionConfig = agentConfig.getPermission();
     }
 
     @Override
     public ServiceResponse<AgentInstanceRecord> getAgentInstanceList() {
-        return ServiceResponse.success(agentController.getBrpcServer()
-                                                      .getSessions()
-                                                      .stream()
-                                                      .map((session) -> {
-                                                          AgentInstanceRecord instance = new AgentInstanceRecord();
-                                                          instance.setAppName(session.getRemoteApplicationName());
-                                                          instance.setInstance(session.getRemoteAttribute(Headers.HEADER_APP_ID, session.getRemoteEndpoint()));
-                                                          instance.setEndpoint(session.getRemoteEndpoint());
-                                                          instance.setCollector(session.getLocalEndpoint());
-                                                          instance.setAgentVersion(session.getRemoteAttribute(Headers.HEADER_VERSION));
-                                                          long start = 0;
-                                                          try {
-                                                              start = Long.parseLong(session.getRemoteAttribute(Headers.HEADER_START_TIME, "0"));
-                                                          } catch (NumberFormatException ignored) {
-                                                          }
-                                                          instance.setStartAt(new Timestamp(start).toLocalDateTime());
-                                                          return instance;
-                                                      })
-                                                      .collect(Collectors.toList()));
+        return ServiceResponse.success(agentControllerServer.getBrpcServer()
+                                                            .getSessions()
+                                                            .stream()
+                                                            .map((session) -> {
+                                                                AgentInstanceRecord instance = new AgentInstanceRecord();
+                                                                instance.setAppName(session.getRemoteApplicationName());
+                                                                instance.setInstance(session.getRemoteAttribute(Headers.HEADER_APP_ID, session.getRemoteEndpoint()));
+                                                                instance.setEndpoint(session.getRemoteEndpoint());
+                                                                instance.setCollector(session.getLocalEndpoint());
+                                                                instance.setAgentVersion(session.getRemoteAttribute(Headers.HEADER_VERSION));
+                                                                long start = 0;
+                                                                try {
+                                                                    start = Long.parseLong(session.getRemoteAttribute(Headers.HEADER_START_TIME, "0"));
+                                                                } catch (NumberFormatException ignored) {
+                                                                }
+                                                                instance.setStartAt(new Timestamp(start).toLocalDateTime());
+                                                                return instance;
+                                                            })
+                                                            .collect(Collectors.toList()));
     }
 
     @Override
@@ -99,7 +97,7 @@ public class AgentProxyApi implements IAgentProxyApi {
                         @RequestBody byte[] body) throws IOException {
 
         // Get the session first
-        BrpcServer.Session agentSession = agentController.getBrpcServer().getSession(instance);
+        BrpcServer.Session agentSession = agentControllerServer.getBrpcServer().getSession(instance);
 
         //
         // Parse input request stream

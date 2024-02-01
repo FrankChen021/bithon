@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.sentinel.degrade.IDegradingRuleManager;
 import org.bithon.agent.sentinel.flow.IFlowRuleManager;
 import org.bithon.component.brpc.IServiceController;
-import org.bithon.server.collector.ctrl.service.AgentController;
+import org.bithon.server.agent.controller.service.AgentControllerServer;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Conditional;
@@ -39,13 +39,13 @@ import javax.validation.Valid;
 @CrossOrigin
 @RestController
 @Conditional(WebServiceModuleEnabler.class)
-@ConditionalOnBean(AgentController.class)
+@ConditionalOnBean(AgentControllerServer.class)
 public class SentinelRuleApi {
 
-    private final AgentController agentController;
+    private final AgentControllerServer agentController;
 
-    public SentinelRuleApi(AgentController commandService) {
-        this.agentController = commandService;
+    public SentinelRuleApi(AgentControllerServer agentController) {
+        this.agentController = agentController;
     }
 
     @PostMapping("/api/sentinel/flow/create")

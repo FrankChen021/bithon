@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.source.brpc;
+package org.bithon.server.collector.brpc;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -25,8 +25,8 @@ import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.collector.source.http.TraceHttpCollector;
-import org.bithon.server.collector.source.otel.OtelHttpTraceCollector;
+import org.bithon.server.collector.http.TraceHttpCollector;
+import org.bithon.server.collector.otel.OtelHttpTraceCollector;
 import org.bithon.server.pipeline.tracing.ITraceProcessor;
 import org.bithon.server.pipeline.tracing.receiver.ITraceReceiver;
 import org.bithon.server.storage.tracing.TraceSpan;

@@ -14,22 +14,16 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.ctrl.config;
+package org.bithon.server.collector.brpc;
 
 import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
 /**
- * @author Frank Chen
- * @date 24/1/24 9:41 pm
+ * @author frank.chen021@outlook.com
+ * @date 2021/1/23 11:45 下午
  */
 @Data
-@Configuration
-@ConfigurationProperties("bithon.agent-controller")
-public class AgentControllerConfig {
+public class BrpcCollectorConfig {
     private boolean enabled;
     private int port;
-
-    private PermissionConfig permission;
 }
