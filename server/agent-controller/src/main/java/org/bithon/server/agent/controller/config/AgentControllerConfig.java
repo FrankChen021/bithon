@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.ctrl.config;
+package org.bithon.server.agent.controller.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

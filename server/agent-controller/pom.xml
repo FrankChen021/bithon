@@ -9,9 +9,9 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>server-collector</artifactId>
-  <name>server-collector</name>
-  <description>Bithon Collector</description>
+  <artifactId>agent-controller</artifactId>
+  <name>agent-controller</name>
+  <description>Bithon Agent Controller</description>
 
   <properties>
     <java.version>1.8</java.version>
@@ -20,16 +20,15 @@
   </properties>
 
   <dependencies>
-    <!-- Metric/Trace Collector over BRPC -->
     <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>agent-rpc-brpc</artifactId>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
 
-    <!-- Pipeline for the Collector or Receivers -->
+    <!-- YAML Support -->
     <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>server-pipeline</artifactId>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
     </dependency>
 
     <!-- Bithon Commons -->
@@ -38,16 +37,25 @@
       <artifactId>component-commons</artifactId>
     </dependency>
 
-    <!-- Otel Protobuf Interface Support -->
+    <!-- Controller over BRPC -->
     <dependency>
       <groupId>org.bithon</groupId>
-      <artifactId>opentelemetry-proto</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.protobuf</groupId>
-      <artifactId>protobuf-java-util</artifactId>
+      <artifactId>agent-rpc-brpc</artifactId>
     </dependency>
 
+    <!-- Storage for Agent setting -->
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>server-storage</artifactId>
+    </dependency>
+
+    <!-- Controller is declared as a discoverable service,
+     so that its implementation can be invoked from other services to interacts with agents
+-->
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>service-discovery-declaration</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
