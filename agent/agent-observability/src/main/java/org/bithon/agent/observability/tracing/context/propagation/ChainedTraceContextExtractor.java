@@ -30,16 +30,16 @@ import org.bithon.agent.observability.tracing.sampler.ISampler;
  */
 public class ChainedTraceContextExtractor implements ITraceContextExtractor {
 
-    private final ITraceContextExtractor[] extractors = new ITraceContextExtractor[]{
-            new B3Extractor(),
-            new PinpointExtractor(),
-            new W3CTraceContextExtractor(),
-    };
-
     private final ISampler sampler;
+    private final ITraceContextExtractor[] extractors;
 
     public ChainedTraceContextExtractor(ISampler sampler) {
+        this(sampler, new W3CTraceContextExtractor(), new B3Extractor(), new PinpointExtractor());
+    }
+
+    public ChainedTraceContextExtractor(ISampler sampler, ITraceContextExtractor... extractors) {
         this.sampler = sampler;
+        this.extractors = extractors;
     }
 
     @Override

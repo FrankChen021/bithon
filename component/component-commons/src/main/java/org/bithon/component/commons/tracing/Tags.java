@@ -17,12 +17,14 @@
 package org.bithon.component.commons.tracing;
 
 /**
+ * https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/semantic_conventions
+ *
  * @author frank.chen021@outlook.com
  * @date 25/12/21 5:56 PM
  */
 public class Tags {
     /**
-     * https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/http/#common-attributes
+     * See: https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/semantic_conventions/http.md
      */
     public static class Http {
         /**
@@ -46,9 +48,8 @@ public class Tags {
          * <p>
          * For example: http://localhost:8080
          * <p>
-         * The OpenTelemetry standard defines it as 'http.url' but for backward compatibility, it's http.uri still
          */
-        public static final String URL = "http.uri";
+        public static final String URL = "http.url";
 
         public static final String STATUS = "http.status";
 
@@ -177,5 +178,17 @@ public class Tags {
     public static class Thread {
         public static final String ID = "thread.id";
         public static final String NAME = "thread.name";
+    }
+
+    /**
+     *
+     */
+    public static class Rpc {
+        /**
+         * example: grpc
+         */
+        public static final String SYSTEM = "rpc.system";
+
+        public static final String REQUEST_META_PREFIX = "rpc.grpc.request.metadata.";
     }
 }
