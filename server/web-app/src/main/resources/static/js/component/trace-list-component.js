@@ -104,8 +104,8 @@ class TraceListComponent {
             }, {
                 field: 'tags',
                 title: 'URL',
-                formatter: function (value) {
-                    return value['uri'] || value['http.uri'] || value['http.target'];
+                formatter: (value) => {
+                    return value['http.url'] || value['uri'] || value['http.uri'] || value['http.target'];
                 }
             }],
 

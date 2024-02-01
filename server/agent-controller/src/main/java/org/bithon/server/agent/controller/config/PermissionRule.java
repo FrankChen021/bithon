@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.ctrl.config;
+package org.bithon.server.agent.controller.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;

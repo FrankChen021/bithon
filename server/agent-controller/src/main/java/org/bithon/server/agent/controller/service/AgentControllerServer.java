@@ -14,16 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.ctrl.service;
+package org.bithon.server.agent.controller.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.collector.ctrl.config.AgentControllerConfig;
-import org.bithon.server.collector.source.brpc.BrpcCollectorServer;
+import org.bithon.server.agent.controller.config.AgentControllerConfig;
 import org.bithon.server.storage.setting.ISettingStorage;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
@@ -31,26 +32,51 @@ import org.springframework.stereotype.Service;
  * @author frank.chen021@outlook.com
  * @date 2021/1/16 7:37 下午
  */
+@Slf4j
 @Service
 @ConditionalOnProperty(value = "bithon.agent-controller.enabled", havingValue = "true")
-public class AgentController {
+public class AgentControllerServer implements SmartLifecycle {
+
+    static {
+        // Make sure the underlying netty use JDK direct memory region so that the memory can be tracked
+        System.setProperty("org.bithon.shaded.io.netty.maxDirectMemory", "0");
+    }
 
     private final BrpcServer brpcServer;
+    private final int port;
+    private boolean isRunning = false;
 
-    public AgentController(ObjectMapper jsonFormatter,
-                           ISettingStorage storage,
-                           Environment env,
-                           BrpcCollectorServer server) {
+    public AgentControllerServer(ObjectMapper jsonFormatter,
+                                 ISettingStorage storage,
+                                 Environment env) {
         AgentControllerConfig config = Binder.get(env).bind("bithon.agent-controller", AgentControllerConfig.class).get();
         Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535, "The port of bithon.agent-controller property must be in the range of [1000, 65535)");
 
-        brpcServer = server.addService("ctrl",
-                                       new AgentSettingFetcher(storage.createReader(), jsonFormatter),
-                                       config.getPort())
-                           .getBrpcServer();
+        this.port = config.getPort();
+        this.brpcServer = new BrpcServer("ctrl");
+        this.brpcServer.bindService(new AgentSettingFetcher(storage.createReader(), jsonFormatter));
     }
 
     public BrpcServer getBrpcServer() {
+        Preconditions.checkNotNull(this.brpcServer, "The controller server has not started yet.");
         return this.brpcServer;
+    }
+
+    @Override
+    public void start() {
+        log.info("Starting Agent controller at port {}", this.port);
+        this.brpcServer.start(this.port);
+        this.isRunning = true;
+    }
+
+    @Override
+    public void stop() {
+        log.info("Stopping Agent controller at port {}", this.port);
+        this.brpcServer.close();
+    }
+
+    @Override
+    public boolean isRunning() {
+        return isRunning;
     }
 }

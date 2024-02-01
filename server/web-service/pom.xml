@@ -36,10 +36,10 @@
       <version>1.0-SNAPSHOT</version>
     </dependency>
 
-    <!-- Bithon Commons -->
+    <!-- Agent Controller -->
     <dependency>
       <groupId>org.bithon</groupId>
-      <artifactId>server-collector</artifactId>
+      <artifactId>agent-controller</artifactId>
     </dependency>
 
     <!-- Discoverable Service client -->

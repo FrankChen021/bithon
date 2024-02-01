@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.tracing.service;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -33,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -113,6 +115,22 @@ public class TraceTopoBuilder {
         return link;
     }
 
+    @AllArgsConstructor
+    static class UserNameDetector {
+        private String tag;
+        private Function<String, String> nameSupplier;
+    }
+
+    static UserNameDetector[] detectors = new UserNameDetector[]{
+        new UserNameDetector(Tags.Http.REQUEST_HEADER_PREFIX + "user-agent", UserAgentAnalyzer::shorten),
+
+        // Compatible with old tags
+        new UserNameDetector("http.header.User-Agent", UserAgentAnalyzer::shorten),
+
+        new UserNameDetector(Tags.Rpc.REQUEST_META_PREFIX + "user-agent", (userAgent) -> userAgent),
+        new UserNameDetector(Tags.Rpc.SYSTEM, (system) -> system + "-client"),
+    };
+
     @SuppressWarnings("unchecked")
     public TraceTopo build(List<? extends TraceSpan> spans) {
         //
@@ -129,14 +147,12 @@ public class TraceTopoBuilder {
         user.setAppName("user");
         for (TraceSpan root : spans) {
             if ("SERVER".equals(root.kind)) {
-                String userAgent = root.getTag(Tags.Http.REQUEST_HEADER_PREFIX + "user-agent");
-                if (StringUtils.isEmpty(userAgent)) {
-                    // Compatible with old tags
-                    userAgent = root.getTag("http.header.User-Agent");
-                }
-                if (StringUtils.hasText(userAgent)) {
-                    // Use the user agent as the name of the USER node
-                    user.setAppName(new UserAgentAnalyzer().shorten(userAgent));
+                for (UserNameDetector detector : detectors) {
+                    String val = root.getTag(detector.tag);
+                    if (StringUtils.hasText(val)) {
+                        user.setAppName(detector.nameSupplier.apply(val));
+                        break;
+                    }
                 }
             } else if (SpanKind.CONSUMER.name().equals(root.kind)) {
 
@@ -168,20 +184,20 @@ public class TraceTopoBuilder {
     }
 
     public static class UserAgentAnalyzer {
-        private final Pattern browserLeadingPattern = Pattern.compile("^Mozilla/\\d+\\.\\d+ ");
-        private final Pattern osPattern = Pattern.compile("(^\\([^)]+\\)) ");
+        private static final Pattern BROWSER_LEADING_PATTERN = Pattern.compile("^Mozilla/\\d+\\.\\d+ ");
+        private static final Pattern OPERATING_SYSTEM_PATTERN = Pattern.compile("(^\\([^)]+\\)) ");
 
         /**
          * Analyze user agent that from web browser so that the UI shows shorter text
          */
-        private String shorten(String userAgent) {
+        static String shorten(String userAgent) {
             // If the user agent has a pattern as 'Mozilla/5.0', we treat it as a request from a web browser
-            Matcher leadingMatcher = browserLeadingPattern.matcher(userAgent);
+            Matcher leadingMatcher = BROWSER_LEADING_PATTERN.matcher(userAgent);
             if (leadingMatcher.find()) {
                 userAgent = userAgent.substring(leadingMatcher.end());
 
                 String os = "";
-                Matcher osMatcher = osPattern.matcher(userAgent);
+                Matcher osMatcher = OPERATING_SYSTEM_PATTERN.matcher(userAgent);
                 if (osMatcher.find()) {
                     os = osMatcher.group(1);
                 }
