@@ -20,7 +20,7 @@ bithon:
         - type: brpc
       processors:
         - type: filter
-          expr: clazz <> 'org.bithon.server.sink.common.service.UriNormalizer'
+          expr: not endsWith(clazz,  'UriNormalizer')
         - type: url-sanitize-transform
           sensitiveParameters:
             - password

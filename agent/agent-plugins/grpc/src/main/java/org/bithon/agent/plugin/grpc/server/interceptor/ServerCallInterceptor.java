@@ -26,6 +26,7 @@ import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 import io.grpc.Status;
 import org.bithon.agent.observability.tracing.Tracer;
+import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
@@ -34,17 +35,22 @@ import org.bithon.agent.observability.tracing.context.propagation.ITraceContextE
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
+import java.util.Locale;
+
 /**
  * @author Frank Chen
  */
 public class ServerCallInterceptor implements ServerInterceptor {
 
     private final ITraceContextExtractor contextExtractor;
+    private final TraceConfig traceConfig;
 
     /**
      * Declare the ctor as public to allow reflection without setting extra flags to access it
      */
-    public ServerCallInterceptor(ITraceContextExtractor contextExtractor) {
+    public ServerCallInterceptor(TraceConfig traceConfig,
+                                 ITraceContextExtractor contextExtractor) {
+        this.traceConfig = traceConfig;
         this.contextExtractor = contextExtractor;
     }
 
@@ -63,7 +69,13 @@ public class ServerCallInterceptor implements ServerInterceptor {
                                      .component("grpc-server")
                                      .kind(SpanKind.SERVER)
                                      .method(call.getMethodDescriptor().getServiceName(), call.getMethodDescriptor().getBareMethodName())
+                                     .tag(Tags.Rpc.SYSTEM, "grpc")
                                      .tag("uri", "grpc://" + call.getMethodDescriptor().getFullMethodName())
+                                     .configIfTrue(!traceConfig.getHeaders().getRequest().isEmpty(),
+                                                   (span) -> traceConfig.getHeaders()
+                                                                        .getRequest()
+                                                                        .forEach((header) -> span.tag(Tags.Rpc.REQUEST_META_PREFIX + header.toLowerCase(Locale.ENGLISH),
+                                                                                                      headers.get(Metadata.Key.of(header, Metadata.ASCII_STRING_MARSHALLER)))))
                                      .start();
 
         return new TracedServerCall<>(call, rootSpan).start(headers, next);

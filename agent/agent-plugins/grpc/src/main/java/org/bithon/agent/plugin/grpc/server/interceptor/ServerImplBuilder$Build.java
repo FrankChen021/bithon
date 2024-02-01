@@ -20,9 +20,11 @@ import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.instrumentation.bytecode.ClassCopier;
+import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.observability.tracing.context.propagation.ChainedTraceContextExtractor;
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
+import org.bithon.agent.observability.tracing.context.propagation.w3c.W3CTraceContextExtractor;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
 import org.bithon.agent.plugin.grpc.ShadedGrpcList;
 import org.bithon.agent.plugin.grpc.client.interceptor.ManagedChannelImplBuilder$Build;
@@ -49,12 +51,17 @@ public class ServerImplBuilder$Build extends BeforeInterceptor {
     private final Map<String, String> shadedGrpcClassMap = new HashMap<>();
     private final List<String> shadedGrpcList;
     private final ChainedTraceContextExtractor contextExtractor;
+    private final TraceConfig traceConfig;
 
     public ServerImplBuilder$Build() {
-        shadedGrpcList = ConfigurationManager.getInstance().getConfig(ShadedGrpcList.class);
-        contextExtractor = new ChainedTraceContextExtractor(SamplerFactory.createSampler(ConfigurationManager.getInstance()
-                                                                                                             .getDynamicConfig("tracing.samplingConfigs.grpc",
-                                                                                                                               TraceSamplingConfig.class)));
+        this.shadedGrpcList = ConfigurationManager.getInstance().getConfig(ShadedGrpcList.class);
+        this.traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
+
+        TraceSamplingConfig grpcSamplingConfig = ConfigurationManager.getInstance()
+                                                                     .getDynamicConfig("tracing.samplingConfigs.grpc",
+                                                                                       TraceSamplingConfig.class);
+        contextExtractor = new ChainedTraceContextExtractor(SamplerFactory.createSampler(grpcSamplingConfig),
+                                                            new W3CTraceContextExtractor());
     }
 
     @Override
@@ -126,15 +133,16 @@ public class ServerImplBuilder$Build extends BeforeInterceptor {
         try {
             Object builder = aopContext.getTarget();
 
-            // Create server call interceptor object
+            // Create a server call interceptor object, See the ServerCallInterceptor
             Class<?> interceptorClazz = Class.forName(interceptorClassName, true, this.getClass().getClassLoader());
-            Object interceptor = interceptorClazz.getConstructor(ITraceContextExtractor.class).newInstance(contextExtractor);
+            Object interceptor = interceptorClazz.getConstructor(TraceConfig.class,
+                                                                 ITraceContextExtractor.class).newInstance(this.traceConfig, this.contextExtractor);
 
             // Hook the interceptor
             Optional<Method> interceptMethod = Stream.of(builder.getClass().getDeclaredMethods())
                                                      .filter(m -> "intercept".equals(m.getName())
-                                                                  && m.getParameterCount() == 1
-                                                                  && "ServerInterceptor".equals(m.getParameters()[0].getType().getSimpleName()))
+                                                         && m.getParameterCount() == 1
+                                                         && "ServerInterceptor".equals(m.getParameters()[0].getType().getSimpleName()))
                                                      .findFirst();
             if (interceptMethod.isPresent()) {
                 interceptMethod.get().invoke(builder, interceptor);
