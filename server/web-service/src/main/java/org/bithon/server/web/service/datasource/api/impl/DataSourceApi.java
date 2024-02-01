@@ -86,7 +86,7 @@ public class DataSourceApi implements IDataSourceApi {
 
         validateQueryRequest(schema, request);
 
-        Query query = this.dataSourceService.convertToQuery(schema, request, false, true);
+        Query query = QueryBuilder.build(schema, request, false, true);
         TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
         return GeneralQueryResponse.builder()
                                    .data(result.getMetrics())
@@ -102,7 +102,7 @@ public class DataSourceApi implements IDataSourceApi {
 
         validateQueryRequest(schema, request);
 
-        Query query = this.dataSourceService.convertToQuery(schema, request, true, true);
+        Query query = QueryBuilder.build(schema, request, true, true);
         TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
         return GeneralQueryResponse.builder()
                                    .data(result.getMetrics())
@@ -150,7 +150,7 @@ public class DataSourceApi implements IDataSourceApi {
 
         validateQueryRequest(schema, request);
 
-        Query query = this.dataSourceService.convertToQuery(schema, request, false, false);
+        Query query = QueryBuilder.build(schema, request, false, false);
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             return GeneralQueryResponse.builder()
                                        .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
@@ -165,7 +165,7 @@ public class DataSourceApi implements IDataSourceApi {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
         validateQueryRequest(schema, request);
 
-        Query query = this.dataSourceService.convertToQuery(schema, request, true, false);
+        Query query = QueryBuilder.build(schema, request, true, false);
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             return GeneralQueryResponse.builder()
                                        .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
