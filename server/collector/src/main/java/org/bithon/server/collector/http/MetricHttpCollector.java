@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.source.http;
+package org.bithon.server.collector.http;
 
 import lombok.Data;
 import lombok.Setter;

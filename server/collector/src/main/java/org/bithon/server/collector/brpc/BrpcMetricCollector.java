@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.source.brpc;
+package org.bithon.server.collector.brpc;
 
 
 import com.fasterxml.jackson.annotation.JacksonInject;
@@ -29,7 +29,7 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.ReflectionUtils;
-import org.bithon.server.collector.source.http.MetricHttpCollector;
+import org.bithon.server.collector.http.MetricHttpCollector;
 import org.bithon.server.pipeline.metrics.IMetricProcessor;
 import org.bithon.server.pipeline.metrics.MetricMessage;
 import org.bithon.server.pipeline.metrics.SchemaMetricMessage;

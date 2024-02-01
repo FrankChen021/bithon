@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.source.otel;
+package org.bithon.server.collector.otel;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;

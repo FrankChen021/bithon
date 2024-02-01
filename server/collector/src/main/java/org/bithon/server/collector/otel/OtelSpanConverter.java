@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.source.otel;
+package org.bithon.server.collector.otel;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
