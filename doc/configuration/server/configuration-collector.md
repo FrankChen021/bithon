@@ -8,8 +8,6 @@ collector-brpc:
     event: 9896
     metric: 9898
     ctrl: 9899
-  sink:
-    type: local
 ```
 
 > Note:

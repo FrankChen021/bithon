@@ -1,10 +1,11 @@
 
 # Supported Components that can initialize tracing context
 
- 1. HTTP Server           
- 2. Quartz                
- 3. Spring Scheduling     
- 4. Spring Kafka Listener 
+1. HTTP Server
+2. Quartz                
+3. Spring Scheduling     
+4. Spring Kafka Listener
+5. GPRC Server(including shaded GRPC) 
 
 Different components have different conditions to enable tracing context which is described as follows.
 

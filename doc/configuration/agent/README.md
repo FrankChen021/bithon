@@ -53,13 +53,15 @@ Note that all environment variables are in underscore mode.
 
 ## Dynamic Configuration
 
-Configurations via command line arguments or environment variables.
-Each static configuration item has a corresponding dynamic configuration item.
+The Bithon server can store configurations for agents. We can use the API to manage(create/update/delete) configurations of an application or a group of applications.
+And the agent itself will fetch configurations from the server periodically.
 
-Given a static configuration `agent.plugin.http.incoming.filter.uri.suffixes`, it could be set by dynamic configuration as
-
-```bash
--Dbithon.agent.plugin.http.incoming.filter.uri.suffixes=.html
+You can take a look at the API in the code for reference:
+```
+/api/agent/configuration/add
+/api/agent/configuration/update
+/api/agent/configuration/delete
+/api/agent/configuration/get
 ```
 
 # Configuration Instruction
