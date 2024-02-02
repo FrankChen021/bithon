@@ -30,10 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,12 +42,9 @@ import java.util.Set;
 public class DynamicConfigurationManager {
     private static final ILogAdaptor log = LoggerFactory.getLogger(DynamicConfigurationManager.class);
 
-    private static DynamicConfigurationManager INSTANCE = null;
-
     private final String appName;
     private final String env;
     private final IAgentController controller;
-    private final List<IConfigurationChangedListener> listeners;
 
     private final PeriodicTask updateConfigTask;
 
@@ -58,27 +52,18 @@ public class DynamicConfigurationManager {
         this.appName = appName;
         this.env = env;
         this.controller = controller;
-        this.listeners = Collections.synchronizedList(new ArrayList<>());
         this.updateConfigTask = new UpdateConfigurationTask();
 
         // Attach service on this channel
         this.controller.attachCommands(new ConfigurationCommandImpl());
 
-        // Trigger re-retrieve on immediately once some changes happen
+        // Trigger re-retrieve on immediately once some values holding at the controller side change
         this.controller.refreshListener(updateConfigTask::runImmediately);
     }
 
     public static void createInstance(String appName, String env, IAgentController controller) {
-        INSTANCE = new DynamicConfigurationManager(appName, env, controller);
-        INSTANCE.updateConfigTask.start();
-    }
-
-    public static DynamicConfigurationManager getInstance() {
-        return INSTANCE;
-    }
-
-    public void addConfigurationChangeListener(IConfigurationChangedListener listener) {
-        listeners.add(listener);
+        DynamicConfigurationManager manager = new DynamicConfigurationManager(appName, env, controller);
+        manager.updateConfigTask.start();
     }
 
     private class UpdateConfigurationTask extends PeriodicTask {
@@ -141,18 +126,6 @@ public class DynamicConfigurationManager {
             Set<String> changedKeys = ConfigurationManager.getInstance().refresh(config);
             if (changedKeys.isEmpty()) {
                 return;
-            }
-
-            //
-            // Notify listeners about changes
-            // Copy a new one to iterate to avoid a concurrent problem
-            List<IConfigurationChangedListener> ls = new ArrayList<>(listeners);
-            for (IConfigurationChangedListener listener : ls) {
-                try {
-                    listener.onChange(changedKeys);
-                } catch (Exception e) {
-                    log.warn("Exception when refresh setting", e);
-                }
             }
 
             lastModifiedAt = System.currentTimeMillis();
