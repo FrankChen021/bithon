@@ -118,11 +118,48 @@ public class AgentConfigurationApi {
                                                                     request.getAppName(),
                                                                     token);
 
+        Object existingSetting = settingStorage.createReader().getSetting(request.getAppName(), request.getName());
+        Preconditions.checkIfTrue(existingSetting == null, "Setting already exist.");
+
         ISettingWriter writer = settingStorage.createWriter();
         writer.addSetting(request.getAppName(),
                           request.getName(),
                           request.getValue(),
                           request.getFormat());
+    }
+
+    @PostMapping("/api/agent/configuration/update")
+    public void updateConfiguration(@RequestHeader("token") String token,
+                                    @Validated @RequestBody AddRequest request) {
+        String format = request.getFormat() != null ? request.getFormat() : "json";
+        Preconditions.checkIfTrue("yaml".equals(request.getFormat()) || "json".equals(request.getFormat()),
+                                  "Invalid format[%s] given. Only json or yaml is supported.",
+                                  format);
+
+        ObjectMapper mapper;
+        if ("json".equals(format)) {
+            mapper = new ObjectMapper();
+        } else {
+            mapper = new ObjectMapper(new YAMLFactory());
+        }
+        try {
+            mapper.readTree(request.getValue());
+        } catch (JsonProcessingException e) {
+            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "The 'value' is not valid format of %s", format);
+        }
+
+        this.agentControllerConfig.getPermission().verifyPermission(objectMapper,
+                                                                    request.getAppName(),
+                                                                    token);
+
+        Object existingSetting = settingStorage.createReader().getSetting(request.getAppName(), request.getName());
+        Preconditions.checkIfTrue(existingSetting != null, "Setting does not exist.");
+
+        ISettingWriter writer = settingStorage.createWriter();
+        writer.updateSetting(request.getAppName(),
+                             request.getName(),
+                             request.getValue(),
+                             request.getFormat());
     }
 
     @Data

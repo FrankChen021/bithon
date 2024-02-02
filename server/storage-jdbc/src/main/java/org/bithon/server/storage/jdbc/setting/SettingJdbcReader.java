@@ -47,7 +47,19 @@ public class SettingJdbcReader implements ISettingReader {
                          .map(this::toSettingEntry);
     }
 
+    @Override
+    public SettingEntry getSetting(String appName, String setting) {
+        Record record = dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
+                                  .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName))
+                                  .and(Tables.BITHON_AGENT_SETTING.SETTINGNAME.eq(setting))
+                                  .fetchOne();
+        return toSettingEntry(record);
+    }
+
     protected SettingEntry toSettingEntry(Record record) {
+        if (record == null) {
+            return null;
+        }
         SettingEntry entry = new SettingEntry();
         entry.setName(record.get(Tables.BITHON_AGENT_SETTING.SETTINGNAME));
         entry.setValue(record.get(Tables.BITHON_AGENT_SETTING.SETTING));

@@ -37,4 +37,6 @@ public interface ISettingReader {
     }
 
     List<SettingEntry> getSettings(String appName, long since);
+
+    SettingEntry getSetting(String appName, String setting);
 }

@@ -53,4 +53,17 @@ public class SettingJdbcWriter implements ISettingWriter {
                   .where(Tables.BITHON_AGENT_SETTING.SETTINGNAME.eq(name))
                   .execute();
     }
+
+    @Override
+    public void updateSetting(String appName, String name, String value, String format) {
+        LocalDateTime now = new Timestamp(System.currentTimeMillis()).toLocalDateTime();
+        dslContext.update(Tables.BITHON_AGENT_SETTING)
+                  .set(Tables.BITHON_AGENT_SETTING.SETTING, value)
+                  .set(Tables.BITHON_AGENT_SETTING.FORMAT, format)
+                  .set(Tables.BITHON_AGENT_SETTING.TIMESTAMP, now)
+                  .set(Tables.BITHON_AGENT_SETTING.UPDATEDAT, now)
+                  .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName))
+                  .and(Tables.BITHON_AGENT_SETTING.SETTINGNAME.eq(name))
+                  .execute();
+    }
 }

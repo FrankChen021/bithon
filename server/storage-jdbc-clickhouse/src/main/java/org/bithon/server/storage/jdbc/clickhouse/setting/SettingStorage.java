@@ -26,7 +26,9 @@ import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcReader;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
+import org.bithon.server.storage.jdbc.setting.SettingJdbcWriter;
 import org.bithon.server.storage.setting.ISettingReader;
+import org.bithon.server.storage.setting.ISettingWriter;
 import org.bithon.server.storage.setting.SettingStorageConfig;
 
 import java.sql.Timestamp;
@@ -72,6 +74,27 @@ public class SettingStorage extends SettingJdbcStorage {
                                                                                    .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.ge(new Timestamp(since).toLocalDateTime())));
 
                 return dslContext.fetch(sql).map(this::toSettingEntry);
+            }
+
+            @Override
+            public SettingEntry getSetting(String appName, String setting) {
+                String sql = dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
+                                       .getSQL() + " FINAL WHERE ";
+
+                sql += dslContext.renderInlined(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName)
+                                                                                   .and(Tables.BITHON_AGENT_SETTING.SETTINGNAME.eq(setting)));
+
+                return super.toSettingEntry(dslContext.fetchOne(sql));
+            }
+        };
+    }
+
+    @Override
+    public ISettingWriter createWriter() {
+        return new SettingJdbcWriter(dslContext) {
+            @Override
+            public void updateSetting(String appName, String name, String value, String format) {
+                super.addSetting(appName, name, value, format);
             }
         };
     }
