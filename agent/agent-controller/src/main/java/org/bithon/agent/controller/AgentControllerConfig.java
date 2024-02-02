@@ -18,6 +18,7 @@ package org.bithon.agent.controller;
 
 import org.bithon.agent.config.RpcClientConfig;
 import org.bithon.agent.configuration.ConfigurationProperties;
+import org.bithon.agent.configuration.validation.GreaterThan;
 import org.bithon.agent.configuration.validation.Validated;
 
 
@@ -31,6 +32,9 @@ public class AgentControllerConfig {
     private RpcClientConfig client;
 
     private String servers;
+
+    @GreaterThan(value = 0)
+    private int refreshInterval = 60;
 
     public RpcClientConfig getClient() {
         return client;
@@ -46,5 +50,13 @@ public class AgentControllerConfig {
 
     public void setServers(String servers) {
         this.servers = servers;
+    }
+
+    public int getRefreshInterval() {
+        return refreshInterval;
+    }
+
+    public void setRefreshInterval(int refreshInterval) {
+        this.refreshInterval = refreshInterval;
     }
 }

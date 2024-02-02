@@ -68,7 +68,7 @@ public class Configuration {
                                        String dynamicPropertyPrefix,
                                        String... environmentVariables) {
         JsonNode staticConfiguration = readStaticConfiguration(configFileFormat, staticConfig);
-        JsonNode dynamicConfiguration = readDynamicConfiguration(dynamicPropertyPrefix, environmentVariables);
+        JsonNode dynamicConfiguration = readConfigurationFromArgs(dynamicPropertyPrefix, environmentVariables);
         return new Configuration(mergeNodes(staticConfiguration, dynamicConfiguration, false));
     }
 
@@ -150,8 +150,8 @@ public class Configuration {
         }
     }
 
-    private static JsonNode readDynamicConfiguration(String dynamicPropertyPrefix,
-                                                     String[] environmentVariables) {
+    private static JsonNode readConfigurationFromArgs(String dynamicPropertyPrefix,
+                                                      String[] environmentVariables) {
         Map<String, String> userPropertyMap = new LinkedHashMap<>();
 
         //
@@ -332,11 +332,13 @@ public class Configuration {
                                      e.getMessage());
         }
 
-        String violation = Validator.validate(prefixes, value);
-        if (violation != null) {
-            throw new AgentException("Invalid configuration for type of [%s]: %s",
-                                     clazz.getSimpleName(),
-                                     violation);
+        if (value != null) {
+            String violation = Validator.validate(prefixes, value);
+            if (violation != null) {
+                throw new AgentException("Invalid configuration for type of [%s]: %s",
+                                         clazz.getSimpleName(),
+                                         violation);
+            }
         }
 
         return value;

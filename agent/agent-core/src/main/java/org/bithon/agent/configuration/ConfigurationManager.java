@@ -147,7 +147,8 @@ public class ConfigurationManager {
     }
 
     /**
-     * Bind configuration to an object. And if the configuration changes, it will reflect on this object
+     * Bind configuration to an object. And if the configuration changes, it will reflect on this object.
+     * NOTE: The clazz must have a default ctor if it's annotated by {@link ConfigurationProperties}
      */
     public <T> T getConfig(Class<T> clazz) {
         ConfigurationProperties cfg = clazz.getAnnotation(ConfigurationProperties.class);

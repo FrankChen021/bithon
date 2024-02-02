@@ -24,6 +24,10 @@ import java.util.Map;
  */
 public interface IAgentController extends AutoCloseable {
 
+    /**
+     * An encapsulation of underlying configuration retrieval
+     * So that higher level does not care which RPC is used to get the setting.
+     */
     Map<String, String> getAgentConfiguration(String appName,
                                               String env,
                                               long lastModifiedSince);

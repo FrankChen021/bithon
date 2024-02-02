@@ -21,7 +21,8 @@ import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.controller.cmd.IAgentCommand;
 import org.bithon.agent.controller.cmd.InstrumentationCommand;
 import org.bithon.agent.controller.cmd.JvmCommand;
-import org.bithon.agent.controller.config.DynamicConfigurationManager;
+import org.bithon.agent.controller.config.AgentSettingFetchTask;
+import org.bithon.agent.controller.config.ConfigurationCommandImpl;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;
 import org.bithon.agent.starter.IAgentService;
@@ -29,6 +30,7 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
 
+import java.time.Duration;
 import java.util.ServiceLoader;
 
 /**
@@ -39,6 +41,7 @@ public class AgentControllerService implements IAgentService {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(AgentControllerService.class);
 
     private static IAgentController controller;
+    private AgentSettingFetchTask fetchTask;
 
     public static IAgentController getControllerInstance() {
         return controller;
@@ -68,16 +71,20 @@ public class AgentControllerService implements IAgentService {
 
         attachCommand(controller, new JvmCommand());
         attachCommand(controller, new InstrumentationCommand());
+        attachCommand(controller, new ConfigurationCommandImpl());
         loadAgentCommands(controller, AgentClassLoader.getClassLoader());
         loadAgentCommands(controller, PluginClassLoaderManager.getDefaultLoader());
+
 
         //
         // Start fetcher
         //
         AppConfig appConfig = ConfigurationManager.getInstance().getConfig(AppConfig.class);
-        DynamicConfigurationManager.createInstance(appConfig.getName(),
-                                                   appConfig.getEnv(),
-                                                   controller);
+        fetchTask = new AgentSettingFetchTask(appConfig.getName(),
+                                              appConfig.getEnv(),
+                                              controller,
+                                              Duration.ofSeconds(ctrlConfig.getRefreshInterval()));
+        fetchTask.start();
     }
 
     @Override
@@ -86,6 +93,8 @@ public class AgentControllerService implements IAgentService {
             controller.close();
         } catch (Exception ignored) {
         }
+
+        this.fetchTask.stop();
     }
 
     private void loadAgentCommands(IAgentController controller, ClassLoader classLoader) {

@@ -17,6 +17,7 @@
 package org.bithon.agent.controller.config;
 
 import org.bithon.agent.configuration.ConfigurationManager;
+import org.bithon.agent.controller.cmd.IAgentCommand;
 import org.bithon.agent.rpc.brpc.cmd.IConfigurationCommand;
 
 import java.util.Collections;
@@ -27,7 +28,7 @@ import java.util.Locale;
  * @author frank.chen021@outlook.com
  * @date 2023/1/7 17:33
  */
-public class ConfigurationCommandImpl implements IConfigurationCommand {
+public class ConfigurationCommandImpl implements IConfigurationCommand, IAgentCommand {
     @Override
     public List<String> getConfiguration(String format, boolean prettyFormat) {
         return Collections.singletonList(ConfigurationManager.getInstance()
