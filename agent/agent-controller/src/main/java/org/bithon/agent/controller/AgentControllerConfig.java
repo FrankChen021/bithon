@@ -16,9 +16,10 @@
 
 package org.bithon.agent.controller;
 
+import org.bithon.agent.config.RpcClientConfig;
 import org.bithon.agent.configuration.ConfigurationProperties;
 import org.bithon.agent.configuration.validation.Validated;
-import org.bithon.agent.observability.dispatcher.config.DispatcherClient;
+
 
 /**
  * @author frank.chen021@outlook.com
@@ -27,15 +28,15 @@ import org.bithon.agent.observability.dispatcher.config.DispatcherClient;
 @ConfigurationProperties(prefix = "controller", dynamic = false)
 public class AgentControllerConfig {
     @Validated
-    private DispatcherClient client;
+    private RpcClientConfig client;
 
     private String servers;
 
-    public DispatcherClient getClient() {
+    public RpcClientConfig getClient() {
         return client;
     }
 
-    public void setClient(DispatcherClient client) {
+    public void setClient(RpcClientConfig client) {
         this.client = client;
     }
 

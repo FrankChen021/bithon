@@ -16,6 +16,7 @@
 
 package org.bithon.agent.controller;
 
+import org.bithon.agent.config.AppConfig;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.controller.cmd.IAgentCommand;
 import org.bithon.agent.controller.cmd.InstrumentationCommand;
@@ -23,7 +24,6 @@ import org.bithon.agent.controller.cmd.JvmCommand;
 import org.bithon.agent.controller.config.DynamicConfigurationManager;
 import org.bithon.agent.instrumentation.loader.AgentClassLoader;
 import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;
-import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.starter.IAgentService;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -74,8 +74,9 @@ public class AgentControllerService implements IAgentService {
         //
         // Start fetcher
         //
-        DynamicConfigurationManager.createInstance(AppInstance.getInstance().getAppName(),
-                                                   AppInstance.getInstance().getEnv(),
+        AppConfig appConfig = ConfigurationManager.getInstance().getConfig(AppConfig.class);
+        DynamicConfigurationManager.createInstance(appConfig.getName(),
+                                                   appConfig.getEnv(),
                                                    controller);
     }
 

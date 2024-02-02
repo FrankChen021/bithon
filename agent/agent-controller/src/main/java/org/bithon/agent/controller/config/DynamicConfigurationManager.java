@@ -145,7 +145,7 @@ public class DynamicConfigurationManager {
 
             //
             // Notify listeners about changes
-            // Copy a new one to iterate to avoid concurrent problem
+            // Copy a new one to iterate to avoid a concurrent problem
             List<IConfigurationChangedListener> ls = new ArrayList<>(listeners);
             for (IConfigurationChangedListener listener : ls) {
                 try {
