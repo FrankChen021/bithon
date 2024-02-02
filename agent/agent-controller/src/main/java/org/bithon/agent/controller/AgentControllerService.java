@@ -82,7 +82,10 @@ public class AgentControllerService implements IAgentService {
 
     @Override
     public void stop() {
-
+        try {
+            controller.close();
+        } catch (Exception ignored) {
+        }
     }
 
     private void loadAgentCommands(IAgentController controller, ClassLoader classLoader) {

@@ -22,7 +22,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/1/16 2:45 下午
  */
-public interface IAgentController {
+public interface IAgentController extends AutoCloseable {
 
     Map<String, String> getAgentConfiguration(String appName,
                                               String env,
