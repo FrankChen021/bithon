@@ -14,38 +14,23 @@
     <name>opentelemetry</name>
     <description>OpenTelemetry</description>
 
-    <properties>
-        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-        <java.version>8</java.version>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-
-        <!-- The matched protobuf in GRPC -->
-        <proto.version>3.24.0</proto.version>
-        <grpc.version>1.59.1</grpc.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
-            <version>${proto.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty-shaded</artifactId>
-            <version>1.59.1</version> <!-- Make sure to use the latest version -->
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-stub</artifactId>
-            <version>1.59.1</version>
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-protobuf</artifactId>
-            <version>1.59.1</version>
         </dependency>
 
         <!-- See https://github.com/grpc/grpc-java/issues/9179 -->
@@ -63,7 +48,6 @@
             <plugin>
                 <groupId>com.github.os72</groupId>
                 <artifactId>protoc-jar-maven-plugin</artifactId>
-                <version>3.11.4</version> <!-- Use the latest version -->
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>
@@ -71,7 +55,7 @@
                             <goal>run</goal>
                         </goals>
                         <configuration>
-                            <protocArtifact>com.google.protobuf:protoc:${proto.version}</protocArtifact>
+                            <protocArtifact>com.google.protobuf:protoc:${protobuf.version}</protocArtifact>
                             <inputDirectories>
                                 <inputDirectory>./opentelemetry-proto</inputDirectory>
                             </inputDirectories>
@@ -91,18 +75,11 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!--Skip spot bug for this module -->
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>4.7.2.1</version>
-                <dependencies>
-                    <!-- overwrite dependency on spotbugs if you want to specify the version of spotbugs -->
-                    <dependency>
-                        <groupId>com.github.spotbugs</groupId>
-                        <artifactId>spotbugs</artifactId>
-                        <version>4.7.3</version>
-                    </dependency>
-                </dependencies>
                 <configuration>
                     <skip>true</skip>
                 </configuration>
