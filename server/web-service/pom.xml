@@ -39,7 +39,7 @@
     <!-- Agent Controller -->
     <dependency>
       <groupId>org.bithon</groupId>
-      <artifactId>agent-controller</artifactId>
+      <artifactId>server-agent-controller</artifactId>
     </dependency>
 
     <!-- Discoverable Service client -->
