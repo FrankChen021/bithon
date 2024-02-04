@@ -89,12 +89,13 @@ public class AgentControllerService implements IAgentService {
 
     @Override
     public void stop() {
+        // Stop the task first because the task relies on the controller internally
+        this.fetchTask.stop();
+
         try {
             controller.close();
         } catch (Exception ignored) {
         }
-
-        this.fetchTask.stop();
     }
 
     private void loadAgentCommands(IAgentController controller, ClassLoader classLoader) {
