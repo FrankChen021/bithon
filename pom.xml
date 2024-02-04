@@ -336,6 +336,12 @@
           <artifactId>spotbugs-maven-plugin</artifactId>
           <version>4.8.3.0</version>
         </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>3.6.0</version>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -539,7 +545,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.3.0</version>
         <configuration>
           <ignoreNonCompile>true</ignoreNonCompile>
           <failOnWarning>true</failOnWarning>
@@ -562,7 +567,6 @@
             <!-- jdbc -->
             <dependency>com.alibaba:druid-spring-boot-starter</dependency>
             <dependency>com.h2database:h2</dependency>
-            <dependency>mysql:mysql-connector-java</dependency>
             <dependency>org.jooq:jooq</dependency>
 
             <!-- starter -->
