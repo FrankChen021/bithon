@@ -25,12 +25,9 @@ import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.collector.http.TraceHttpCollector;
-import org.bithon.server.collector.otel.OtelHttpTraceCollector;
 import org.bithon.server.pipeline.tracing.ITraceProcessor;
 import org.bithon.server.pipeline.tracing.receiver.ITraceReceiver;
 import org.bithon.server.storage.tracing.TraceSpan;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
@@ -76,16 +73,6 @@ public class BrpcTraceCollector implements ITraceCollector, ITraceReceiver {
     @Override
     public void registerProcessor(ITraceProcessor processor) {
         this.processor = processor;
-
-        try {
-            this.applicationContext.getBean(TraceHttpCollector.class).setProcessor(processor);
-        } catch (NoSuchBeanDefinitionException ignored) {
-        }
-
-        try {
-            this.applicationContext.getBean(OtelHttpTraceCollector.class).setProcessor(processor);
-        } catch (NoSuchBeanDefinitionException ignored) {
-        }
     }
 
     @Override

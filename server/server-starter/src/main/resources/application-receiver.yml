@@ -26,5 +26,8 @@ bithon:
         port: 9895
       http:
         enabled: true
-      otel-http:
+      otlp-http:
         enabled: true
+      otlp-grpc:
+        enabled: true
+        port: 4317
