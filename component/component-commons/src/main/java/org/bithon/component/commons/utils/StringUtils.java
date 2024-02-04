@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Locale;
+import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -66,6 +67,10 @@ public class StringUtils {
         return false;
     }
 
+    public static String getOrEmpty(String v) {
+        return v == null ? "" : v;
+    }
+
     public static String from(InputStream inputStream) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         int length;
@@ -78,15 +83,54 @@ public class StringUtils {
         return new String(bos.toByteArray(), StandardCharsets.UTF_8);
     }
 
-    public static String encodeBase64String(byte[] input) {
+    public static String base64BytesToString(byte[] input) {
         return BASE64_ENCODER.encodeToString(input);
     }
 
-    public static byte[] decodeBase64String(String input) {
+    public static byte[] base64StringToBytes(String input) {
         return BASE64_DECODER.decode(input);
     }
 
-    public static String getOrEmpty(String v) {
-        return v == null ? "" : v;
+    public static String base16BytesToString(byte[] input) {
+        int index = 0;
+        char[] buf = new char[input.length * 2];
+        for (byte b : input) {
+            char upper = (char) ((b & 0xF0) >> 4);
+            buf[index++] = (char) (upper >= 10 ? 'a' + upper - 10 : '0' + upper);
+
+            char lower = (char) (b & 0x0F);
+            buf[index++] = (char) (lower >= 10 ? 'a' + lower - 10 : '0' + lower);
+        }
+        return new String(buf);
+    }
+
+    public static String base16BytesToString(Function<Integer, Byte> byteAccessor, int length) {
+        int index = 0;
+        char[] buf = new char[length * 2];
+        for (int i = 0; i < length; i++) {
+            byte b = byteAccessor.apply(i);
+
+            char upper = (char) ((b & 0xF0) >> 4);
+            buf[index++] = (char) (upper >= 10 ? 'a' + upper - 10 : '0' + upper);
+
+            char lower = (char) (b & 0x0F);
+            buf[index++] = (char) (lower >= 10 ? 'a' + lower - 10 : '0' + lower);
+        }
+        return new String(buf);
+    }
+
+    public static byte[] base16StringToBytes(String input) {
+        byte[] bytes = new byte[input.length() / 2];
+        int index = 0;
+        for (int i = 0, size = input.length(); i < size; i += 2) {
+            char higher = input.charAt(i);
+            higher = (char) (higher > '9' ? higher - 'a' + 10 : higher - '0');
+
+            char lower = input.charAt(i + 1);
+            lower = (char) (lower > '9' ? lower - 'a' + 10 : lower - '0');
+
+            bytes[index++] = (byte) ((higher << 4) | lower);
+        }
+        return bytes;
     }
 }
