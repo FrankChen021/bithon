@@ -67,19 +67,28 @@ public class AgentConfigurationApi {
         @NotNull
         private String appName;
 
+        /**
+         * Optional
+         */
+        private String environment;
+
         private String format = "default";
     }
 
     @PostMapping("/api/agent/configuration/get")
     public List<ISettingReader.SettingEntry> getConfiguration(@RequestBody GetRequest request) {
         return settingStorage.createReader()
-                             .getSettings(request.getAppName(), 0);
+                             .getSettings(request.getAppName().trim(),
+                                          request.getEnvironment() == null ? "" : request.getEnvironment(),
+                                          0);
     }
 
     @Data
     public static class AddRequest {
         @NotNull
         private String appName;
+
+        private String environment;
 
         @NotNull
         private String name;
@@ -97,8 +106,8 @@ public class AgentConfigurationApi {
     @PostMapping("/api/agent/configuration/add")
     public void addConfiguration(@RequestHeader("token") String token,
                                  @Validated @RequestBody AddRequest request) {
-        String format = request.getFormat() != null ? request.getFormat() : "json";
-        Preconditions.checkIfTrue("yaml".equals(request.getFormat()) || "json".equals(request.getFormat()),
+        String format = request.getFormat() != null ? request.getFormat().trim() : "json";
+        Preconditions.checkIfTrue("yaml".equals(format) || "json".equals(format),
                                   "Invalid format[%s] given. Only json or yaml is supported.",
                                   format);
 
@@ -114,25 +123,27 @@ public class AgentConfigurationApi {
             throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "The 'value' is not valid format of %s", format);
         }
 
+        String application = request.getAppName().trim();
+        String environment = request.getEnvironment() == null ? "" : request.getEnvironment().trim();
+        String settingName = request.getName().trim();
+        String settingVal = request.getValue().trim();
+
         this.agentControllerConfig.getPermission().verifyPermission(objectMapper,
-                                                                    request.getAppName(),
+                                                                    application,
                                                                     token);
 
-        Object existingSetting = settingStorage.createReader().getSetting(request.getAppName(), request.getName());
+        Object existingSetting = settingStorage.createReader().getSetting(application, environment, settingName);
         Preconditions.checkIfTrue(existingSetting == null, "Setting already exist.");
 
         ISettingWriter writer = settingStorage.createWriter();
-        writer.addSetting(request.getAppName(),
-                          request.getName(),
-                          request.getValue(),
-                          request.getFormat());
+        writer.addSetting(application, environment, settingName, settingVal, format);
     }
 
     @PostMapping("/api/agent/configuration/update")
     public void updateConfiguration(@RequestHeader("token") String token,
                                     @Validated @RequestBody AddRequest request) {
-        String format = request.getFormat() != null ? request.getFormat() : "json";
-        Preconditions.checkIfTrue("yaml".equals(request.getFormat()) || "json".equals(request.getFormat()),
+        String format = request.getFormat() != null ? request.getFormat().trim() : "json";
+        Preconditions.checkIfTrue("yaml".equals(format) || "json".equals(format),
                                   "Invalid format[%s] given. Only json or yaml is supported.",
                                   format);
 
@@ -148,18 +159,18 @@ public class AgentConfigurationApi {
             throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "The 'value' is not valid format of %s", format);
         }
 
-        this.agentControllerConfig.getPermission().verifyPermission(objectMapper,
-                                                                    request.getAppName(),
-                                                                    token);
+        String application = request.getAppName().trim();
+        String environment = request.getEnvironment() == null ? "" : request.getEnvironment().trim();
+        String settingName = request.getName().trim();
+        String settingVal = request.getValue().trim();
 
-        Object existingSetting = settingStorage.createReader().getSetting(request.getAppName(), request.getName());
+        this.agentControllerConfig.getPermission().verifyPermission(objectMapper, application, token);
+
+        Object existingSetting = settingStorage.createReader().getSetting(application, environment, settingName);
         Preconditions.checkIfTrue(existingSetting != null, "Setting does not exist.");
 
         ISettingWriter writer = settingStorage.createWriter();
-        writer.updateSetting(request.getAppName(),
-                             request.getName(),
-                             request.getValue(),
-                             request.getFormat());
+        writer.updateSetting(application, environment, settingName, settingVal, format);
     }
 
     @Data
