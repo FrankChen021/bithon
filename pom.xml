@@ -136,9 +136,18 @@
         <artifactId>server-commons</artifactId>
         <version>${project.version}</version>
       </dependency>
+
+      <!-- Trace/Metrics/Events Collector -->
       <dependency>
         <groupId>org.bithon</groupId>
         <artifactId>server-collector</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <!-- Agent Controller -->
+      <dependency>
+        <groupId>org.bithon</groupId>
+        <artifactId>agent-controller</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -599,6 +608,7 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <modules>
+        <module>server/agent-controller</module>
         <module>server/server-commons</module>
         <module>server/service-discovery/declaration</module>
         <module>server/service-discovery/client</module>

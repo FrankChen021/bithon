@@ -51,7 +51,6 @@ public class TraceSpanTransformer implements ITransformer {
     /**
      * flatten some properties in tags.
      * SHOULD be called AFTER all properties have been set
-     *
      */
     @Override
     public boolean transform(IInputRow inputRow) throws TransformException {
@@ -82,36 +81,41 @@ public class TraceSpanTransformer implements ITransformer {
         }
         if ("".equals(status)) {
             status = tags.containsKey("exception")
-                     || tags.containsKey(Tags.Exception.MESSAGE)
-                     || tags.containsKey(Tags.Exception.STACKTRACE)
-                     || tags.containsKey(Tags.Exception.TYPE) ? "500" : "200";
+                || tags.containsKey(Tags.Exception.MESSAGE)
+                || tags.containsKey(Tags.Exception.STACKTRACE)
+                || tags.containsKey(Tags.Exception.TYPE) ? "500" : "200";
         }
         span.setStatus(status);
 
         String uri = tags.getOrDefault(Tags.Http.URL, "");
         if ("".equals(uri)) {
             // compatibility
-            uri = tags.getOrDefault("uri", "");
+            uri = tags.getOrDefault("http.uri", "");
+            if ("".equals(uri)) {
+                uri = tags.getOrDefault("uri", "");
+            }
         }
 
         // For the http.uri tag, if it's from the HttpClient,
         // related tags will be transformed so that tracing logs can be easily integrated with metrics
-        if (StringUtils.hasText(uri)
-            && SpanKind.CLIENT.name().equals(span.getKind())
-            && "httpclient".equals(span.getName())) {
-            try {
-                URL url = new URL(uri);
-                String path = url.getPath();
-                String query = url.getQuery();
+        if (StringUtils.hasText(uri)) {
+            if (SpanKind.CLIENT.name().equals(span.getKind())) {
+                try {
+                    URL url = new URL(uri);
+                    String path = url.getPath();
+                    String query = url.getQuery();
 
-                tags.remove(Tags.Http.URL);
-                tags.put(Tags.Http.TARGET, query == null ? path : (path + "?" + query));
-                tags.put(Tags.Net.PEER, url.getPort() == -1 ? url.getHost() : (url.getHost() + ":" + url.getPort()));
+                    tags.remove(Tags.Http.URL);
+                    tags.put(Tags.Http.TARGET, query == null ? path : (path + "?" + query));
+                    tags.put(Tags.Net.PEER, url.getPort() == -1 ? url.getHost() : (url.getHost() + ":" + url.getPort()));
 
-                // Use the path to normalize
-                uri = path;
-            } catch (MalformedURLException ignored) {
+                    // Use the path to normalize
+                    uri = path;
+                } catch (MalformedURLException ignored) {
+                }
             }
+        } else {
+            uri = tags.getOrDefault(Tags.Http.TARGET, "");
         }
 
         if (StringUtils.hasText(uri)) {

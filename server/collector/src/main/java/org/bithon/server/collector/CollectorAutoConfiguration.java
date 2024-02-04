@@ -18,12 +18,12 @@ package org.bithon.server.collector;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
-import org.bithon.server.collector.source.brpc.BrpcEventCollector;
-import org.bithon.server.collector.source.brpc.BrpcMetricCollector;
-import org.bithon.server.collector.source.brpc.BrpcTraceCollector;
-import org.bithon.server.collector.source.http.BithonHttpTraceEnabler;
-import org.bithon.server.collector.source.otlp.grpc.OtlpGrpcTraceReceiver;
-import org.bithon.server.collector.source.otlp.http.OtlpHttpTraceReceiverEnabler;
+import org.bithon.server.collector.brpc.BrpcEventCollector;
+import org.bithon.server.collector.brpc.BrpcMetricCollector;
+import org.bithon.server.collector.brpc.BrpcTraceCollector;
+import org.bithon.server.collector.http.BithonHttpTraceEnabler;
+import org.bithon.server.collector.otlp.grpc.OtlpGrpcTraceReceiver;
+import org.bithon.server.collector.otlp.http.OtlpHttpTraceReceiverEnabler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

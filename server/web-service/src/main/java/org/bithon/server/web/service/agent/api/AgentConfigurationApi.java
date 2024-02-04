@@ -22,11 +22,12 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.Data;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.collector.ctrl.config.AgentControllerConfig;
+import org.bithon.server.agent.controller.config.AgentControllerConfig;
 import org.bithon.server.storage.setting.ISettingReader;
 import org.bithon.server.storage.setting.ISettingStorage;
 import org.bithon.server.storage.setting.ISettingWriter;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -46,6 +47,7 @@ import java.util.List;
 @CrossOrigin
 @RestController
 @Conditional(WebServiceModuleEnabler.class)
+@ConditionalOnProperty(value = "bithon.agent-controller.enabled", havingValue = "true")
 public class AgentConfigurationApi {
 
     private final ISettingStorage settingStorage;
