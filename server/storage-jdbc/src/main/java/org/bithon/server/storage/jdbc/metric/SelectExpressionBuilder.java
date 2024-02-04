@@ -22,7 +22,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.ast.Column;
@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
  */
 public class SelectExpressionBuilder {
 
-    private DataSourceSchema dataSource;
+    private ISchema schema;
 
     private List<ResultColumn> resultColumns;
 
@@ -79,8 +79,8 @@ public class SelectExpressionBuilder {
         return new SelectExpressionBuilder();
     }
 
-    public SelectExpressionBuilder dataSource(DataSourceSchema dataSource) {
-        this.dataSource = dataSource;
+    public SelectExpressionBuilder dataSource(ISchema dataSource) {
+        this.schema = dataSource;
         return this;
     }
 
@@ -129,9 +129,9 @@ public class SelectExpressionBuilder {
 
         @Getter
         private final Set<String> metrics = new HashSet<>();
-        private final DataSourceSchema schema;
+        private final ISchema schema;
 
-        FieldExpressionAnalyzer(DataSourceSchema schema,
+        FieldExpressionAnalyzer(ISchema schema,
                                 Set<String> aggregatedColumns,
                                 ISqlDialect sqlFormatter) {
             this.schema = schema;
@@ -140,7 +140,7 @@ public class SelectExpressionBuilder {
         }
 
         @Override
-        protected DataSourceSchema getSchema() {
+        protected ISchema getSchema() {
             return schema;
         }
 
@@ -175,9 +175,9 @@ public class SelectExpressionBuilder {
         protected final Map<String, Object> internalVariables;
         private final Set<String> aggregatedFields;
 
-        private final DataSourceSchema schema;
+        private final ISchema schema;
 
-        SQLGenerator4Expression(DataSourceSchema schema,
+        SQLGenerator4Expression(ISchema schema,
                                 ISqlDialect sqlDialect,
                                 Set<String> aggregatedFields,
                                 SqlGenerator4SimpleAggregationFunction sqlGenerator4SimpleAggregationFunction,
@@ -264,7 +264,7 @@ public class SelectExpressionBuilder {
      * </pre>
      */
     public SelectExpression build() {
-        String sqlTableName = dataSource.getDataStoreSpec().getStore();
+        String sqlTableName = schema.getDataStoreSpec().getStore();
 
         //
         // Turn some metrics (those use window functions for aggregation) in expression into pre-aggregator first
@@ -285,7 +285,7 @@ public class SelectExpressionBuilder {
         SqlGenerator4SimpleAggregationFunction generator = new SqlGenerator4SimpleAggregationFunction(sqlDialect,
                                                                                                       interval);
 
-        SQLGenerator4Expression sqlGenerator4Expression = new SQLGenerator4Expression(dataSource,
+        SQLGenerator4Expression sqlGenerator4Expression = new SQLGenerator4Expression(schema,
                                                                                       sqlDialect,
                                                                                       aggregatedFields,
                                                                                       generator,
@@ -329,7 +329,7 @@ public class SelectExpressionBuilder {
         }
 
         // Make sure all referenced metrics in field expression are in the sub-query
-        FieldExpressionAnalyzer fieldExpressionAnalyzer = new FieldExpressionAnalyzer(this.dataSource, aggregatedFields, this.sqlDialect);
+        FieldExpressionAnalyzer fieldExpressionAnalyzer = new FieldExpressionAnalyzer(this.schema, aggregatedFields, this.sqlDialect);
         this.resultColumns.stream()
                           .filter((f) -> f.getColumnExpression() instanceof Expression)
                           .forEach((f) -> ((Expression) f.getColumnExpression()).getParsedExpression().accept(fieldExpressionAnalyzer));
@@ -354,7 +354,7 @@ public class SelectExpressionBuilder {
         where.addExpression(StringUtils.format("%s >= %s", Expression2Sql.from((String) null, sqlDialect, timestampCol), sqlDialect.formatTimestamp(interval.getStartTime())));
         where.addExpression(StringUtils.format("%s < %s", Expression2Sql.from((String) null, sqlDialect, timestampCol), sqlDialect.formatTimestamp(interval.getEndTime())));
         if (filter != null) {
-            where.addExpression(Expression2Sql.from(dataSource, sqlDialect, filter));
+            where.addExpression(Expression2Sql.from(schema, sqlDialect, filter));
         }
 
         //

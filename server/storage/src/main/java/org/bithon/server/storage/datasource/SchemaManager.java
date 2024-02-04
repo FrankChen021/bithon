@@ -38,23 +38,25 @@ import java.util.concurrent.TimeUnit;
  * @date 2020-08-21 15:13:41
  */
 @Slf4j
-public class DataSourceSchemaManager implements SmartLifecycle {
-    private final List<IDataSourceSchemaListener> listeners = Collections.synchronizedList(new ArrayList<>());
+public class SchemaManager implements SmartLifecycle {
+    private final List<ISchemaChangeListener> listeners = Collections.synchronizedList(new ArrayList<>());
     private final ISchemaStorage schemaStorage;
     private ScheduledExecutorService loaderScheduler;
-    private final Map<String, DataSourceSchema> schemas = new ConcurrentHashMap<>();
+    private final Map<String, ISchema> schemas = new ConcurrentHashMap<>();
     private long lastLoadAt;
 
-    public DataSourceSchemaManager(ISchemaStorage schemaStorage) {
+    public SchemaManager(ISchemaStorage schemaStorage) {
         this.schemaStorage = schemaStorage;
-
-        start();
     }
 
-    public boolean addDataSourceSchema(DataSourceSchema schema) {
+    public boolean addSchema(ISchema schema) {
+        return addSchema(schema, true);
+    }
+
+    public boolean addSchema(ISchema schema, boolean saveSchema) {
         if (schema != null &&
             schemas.putIfAbsent(schema.getName(), schema) == null) {
-            if (!schema.isVirtual()) {
+            if (saveSchema && schema.getDataStoreSpec().isInternal()) {
                 try {
                     schemaStorage.putIfNotExist(schema.getName(), schema);
                 } catch (IOException e) {
@@ -74,7 +76,7 @@ public class DataSourceSchemaManager implements SmartLifecycle {
         return schemaStorage.containsSchema(name);
     }
 
-    public void updateDataSourceSchema(DataSourceSchema schema) {
+    public void updateSchema(ISchema schema) {
         try {
             this.schemaStorage.update(schema.getName(), schema);
         } catch (IOException e) {
@@ -83,9 +85,9 @@ public class DataSourceSchemaManager implements SmartLifecycle {
         this.onChange(this.put(schema.getName(), schema), schema);
     }
 
-    public DataSourceSchema getDataSourceSchema(String name) {
+    public ISchema getSchema(String name) {
         // load from cache first
-        DataSourceSchema schema = schemas.get(name);
+        ISchema schema = schemas.get(name);
         if (schema != null) {
             return schema;
         }
@@ -97,25 +99,25 @@ public class DataSourceSchemaManager implements SmartLifecycle {
             return schema;
         }
 
-        throw new DataSourceNotFoundException(name);
+        throw new DataSourceException.NotFound(name);
     }
 
-    public Map<String, DataSourceSchema> getDataSources() {
+    public Map<String, ISchema> getSchemas() {
         return new TreeMap<>(schemas);
     }
 
-    public void addListener(IDataSourceSchemaListener listener) {
+    public void addListener(ISchemaChangeListener listener) {
         listeners.add(listener);
 
         this.schemas.forEach((name, schema) -> listener.onChange(null, schema));
     }
 
     private void incrementalLoadSchemas() {
-        List<DataSourceSchema> changedSchemaList = schemaStorage.getSchemas(this.lastLoadAt);
+        List<ISchema> changedSchemaList = schemaStorage.getSchemas(this.lastLoadAt);
 
         log.info("{} schema(s) have been changed since {}.", changedSchemaList.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
 
-        for (DataSourceSchema changedSchema : changedSchemaList) {
+        for (ISchema changedSchema : changedSchemaList) {
             this.onChange(this.put(changedSchema.getName(), changedSchema), changedSchema);
         }
 
@@ -125,17 +127,17 @@ public class DataSourceSchemaManager implements SmartLifecycle {
     /**
      * for better debugging only
      */
-    private DataSourceSchema put(String name, DataSourceSchema schema) {
+    private ISchema put(String name, ISchema schema) {
         return this.schemas.put(name, schema);
     }
 
-    private void onChange(DataSourceSchema oldSchema, DataSourceSchema dataSourceSchema) {
+    private void onChange(ISchema oldSchema, ISchema newSchema) {
         // Copy to list first to avoid a concurrency problem
-        IDataSourceSchemaListener[] listenerList = this.listeners.toArray(new IDataSourceSchemaListener[0]);
+        ISchemaChangeListener[] listenerList = this.listeners.toArray(new ISchemaChangeListener[0]);
 
-        for (IDataSourceSchemaListener listener : listenerList) {
+        for (ISchemaChangeListener listener : listenerList) {
             try {
-                listener.onChange(oldSchema, dataSourceSchema);
+                listener.onChange(oldSchema, newSchema);
             } catch (Exception e) {
                 log.error("notify onAdd exception", e);
             }
@@ -186,7 +188,7 @@ public class DataSourceSchemaManager implements SmartLifecycle {
         return loaderScheduler != null && !loaderScheduler.isShutdown();
     }
 
-    public interface IDataSourceSchemaListener {
-        void onChange(DataSourceSchema oldSchema, DataSourceSchema dataSourceSchema);
+    public interface ISchemaChangeListener {
+        void onChange(ISchema oldSchema, ISchema newSchema);
     }
 }

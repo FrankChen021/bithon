@@ -20,42 +20,38 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.component.commons.Experimental;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.query.IDataSourceReader;
 
-import java.util.Map;
+import java.io.IOException;
 
 /**
  * @author Frank Chen
  * @date 18/5/23 1:59 pm
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = MetricDataSourceSpec.class)
 @JsonSubTypes(value = {
-        @JsonSubTypes.Type(name = "internal", value = InternalDataSourceSpec.class),
-        @JsonSubTypes.Type(name = "external", value = ExternalDataStoreSpec.class)
+    // For backward compatibility
+    @JsonSubTypes.Type(name = "internal", value = MetricDataSourceSpec.class),
+
+    @JsonSubTypes.Type(name = "metric", value = MetricDataSourceSpec.class),
 })
 @Experimental
 public interface IDataStoreSpec {
-    /**
-     * internal | external
-     */
-    @JsonIgnore
-    String getType();
 
     /**
      * the name of data source at store layer
      */
     String getStore();
 
-    @JsonIgnore
-    default boolean isInternal() {
-        return "internal".equals(getType());
-    }
+    void setSchema(ISchema schema);
 
     @JsonIgnore
-    default String getProperty(String name) {
-        return getProperties().get(name);
+    boolean isInternal();
+
+    default IDataStoreSpec hideSensitiveInformation() {
+        return this;
     }
 
-    Map<String, String> getProperties();
-
-    IDataStoreSpec withProperties(Map<String, String> properties);
+    IDataSourceReader createReader() throws IOException;
 }

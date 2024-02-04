@@ -25,8 +25,9 @@ import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
 import org.bithon.server.pipeline.metrics.MetricsAggregator;
 import org.bithon.server.pipeline.metrics.topo.ITopoTransformer;
 import org.bithon.server.pipeline.metrics.topo.TopoTransformers;
-import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.DefaultSchema;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.TransformSpec;
 import org.bithon.server.storage.meta.IMetaStorage;
@@ -55,8 +56,8 @@ public class MetricMessageHandler {
     private static volatile IMetricWriter topoMetricWriter;
 
     private final Supplier<ThreadPoolExecutor> executorSupplier;
-    private final DataSourceSchema schema;
-    private final DataSourceSchema endpointSchema;
+    private final ISchema schema;
+    private final ISchema endpointSchema;
     private final IMetaStorage metaStorage;
     private final IMetricWriter metricWriter;
     private final TopoTransformers topoTransformers;
@@ -65,18 +66,17 @@ public class MetricMessageHandler {
     public MetricMessageHandler(String dataSourceName,
                                 IMetaStorage metaStorage,
                                 IMetricStorage metricStorage,
-                                DataSourceSchemaManager dataSourceSchemaManager,
+                                SchemaManager schemaManager,
                                 TransformSpec transformSpec,
                                 MetricPipelineConfig metricPipelineConfig) throws IOException {
 
         this.topoTransformers = new TopoTransformers(metaStorage);
 
-        this.schema = dataSourceSchemaManager.getDataSourceSchema(dataSourceName);
+        this.schema = schemaManager.getSchema(dataSourceName);
         this.metaStorage = metaStorage;
         this.metricWriter = new MetricBatchWriter(dataSourceName, metricStorage.createMetricWriter(schema), metricPipelineConfig);
 
-        this.endpointSchema = dataSourceSchemaManager.getDataSourceSchema("topo-metrics");
-        this.endpointSchema.setEnforceDuplicationCheck(false);
+        this.endpointSchema = schemaManager.getSchema("topo-metrics");
         if (topoMetricWriter == null) {
             synchronized (MetricMessageHandler.class) {
                 if (topoMetricWriter == null) {
@@ -135,7 +135,7 @@ public class MetricMessageHandler {
             }
 
             ITopoTransformer topoTransformer = topoTransformers.getTopoTransformer(getType());
-            MetricsAggregator endpointDataSource = new MetricsAggregator(endpointSchema, 60);
+            MetricsAggregator endpointDataSource = new MetricsAggregator((DefaultSchema) endpointSchema, 60);
             ApplicationInstanceWriter instanceWriter = new ApplicationInstanceWriter();
 
             //

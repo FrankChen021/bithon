@@ -29,17 +29,17 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
+import org.bithon.component.commons.expression.validation.ExpressionValidationException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.SchemaManager;
+import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.TraceSpan;
-import org.bithon.server.storage.tracing.TraceStorageConfig;
-import org.bithon.server.storage.tracing.index.TagIndexConfig;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.common.bucket.TimeBucket;
@@ -57,7 +57,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -69,15 +68,14 @@ import java.util.stream.Collectors;
 public class TraceService {
 
     private final ITraceReader traceReader;
-    private final TraceStorageConfig traceStorageConfig;
-    private final DataSourceSchema traceSpanSummarySchema;
+    private final ISchema summaryTableSchema;
+    private final ISchema indexTableSchema;
 
-    public TraceService(ITraceStorage traceStorage,
-                        TraceStorageConfig traceStorageConfig,
-                        DataSourceSchemaManager dataSourceSchemaManager) {
+    public TraceService(ITraceStorage traceStorage, SchemaManager schemaManager) {
         this.traceReader = traceStorage.createReader();
-        this.traceStorageConfig = traceStorageConfig;
-        this.traceSpanSummarySchema = dataSourceSchemaManager.getDataSourceSchema("trace_span_summary");
+
+        this.summaryTableSchema = schemaManager.getSchema("trace_span_summary");
+        this.indexTableSchema = schemaManager.getSchema("trace_span_tag_index");
     }
 
     public List<TraceSpan> getTraceByParentSpanId(String parentSpanId) {
@@ -142,8 +140,8 @@ public class TraceService {
                                 String filterExpression,
                                 Timestamp start,
                                 Timestamp end) {
-        FilterSplitter splitter = new FilterSplitter(this.traceStorageConfig);
-        splitter.split(FilterExpressionToFilters.toExpression(traceSpanSummarySchema, filterExpression, filters));
+        FilterSplitter splitter = new FilterSplitter(this.summaryTableSchema, this.indexTableSchema);
+        splitter.split(FilterExpressionToFilters.toExpression(null, filterExpression, filters));
 
         return traceReader.getTraceListSize(splitter.expression,
                                             splitter.nonIndexedTagFilters,
@@ -160,8 +158,8 @@ public class TraceService {
                                         Order order,
                                         int pageNumber,
                                         int pageSize) {
-        FilterSplitter splitter = new FilterSplitter(this.traceStorageConfig);
-        splitter.split(FilterExpressionToFilters.toExpression(traceSpanSummarySchema, filterExpression, filters));
+        FilterSplitter splitter = new FilterSplitter(this.summaryTableSchema, this.indexTableSchema);
+        splitter.split(FilterExpressionToFilters.toExpression(null, filterExpression, filters));
 
         return traceReader.getTraceList(splitter.expression,
                                         splitter.nonIndexedTagFilters,
@@ -178,8 +176,8 @@ public class TraceService {
                                                       TimeSpan start,
                                                       TimeSpan end,
                                                       int bucketCount) {
-        FilterSplitter splitter = new FilterSplitter(this.traceStorageConfig);
-        splitter.split(FilterExpressionToFilters.toExpression(this.traceSpanSummarySchema, filterExpression, filters));
+        FilterSplitter splitter = new FilterSplitter(this.summaryTableSchema, this.indexTableSchema);
+        splitter.split(FilterExpressionToFilters.toExpression(null, filterExpression, filters));
 
         int interval = TimeBucket.calculate(start.getMilliseconds(), end.getMilliseconds(), bucketCount).getLength();
         List<Map<String, Object>> dataPoints = traceReader.getTraceDistribution(splitter.expression,
@@ -199,13 +197,16 @@ public class TraceService {
     }
 
     static class FilterSplitter {
-        private final TraceStorageConfig traceStorageConfig;
         private IExpression expression;
-        private Map<Integer, IExpression> indexedTagFilters;
+        private List<IExpression> indexedTagFilters;
         private List<IExpression> nonIndexedTagFilters;
+        private final ISchema summaryDataSource;
+        private final ISchema indexDataSource;
 
-        public FilterSplitter(TraceStorageConfig traceStorageConfig) {
-            this.traceStorageConfig = traceStorageConfig;
+        public FilterSplitter(ISchema summaryDataSource,
+                              ISchema indexDataSource) {
+            this.summaryDataSource = summaryDataSource;
+            this.indexDataSource = indexDataSource;
         }
 
         void split(IExpression expression) {
@@ -221,7 +222,7 @@ public class TraceService {
                                                 expression.getType());
             }
 
-            TagFilterExtractor extractor = new TagFilterExtractor(this.traceStorageConfig);
+            TagFilterExtractor extractor = new TagFilterExtractor(this.summaryDataSource, this.indexDataSource);
             expression.accept(extractor);
             this.indexedTagFilters = extractor.indexedTagFilter;
             this.nonIndexedTagFilters = extractor.nonIndexedTagFilter;
@@ -231,17 +232,20 @@ public class TraceService {
 
     static class TagFilterExtractor implements IExpressionVisitor2<Boolean> {
 
-        private int currentTagIndex = -1;
+        private final ISchema indexDataSource;
+        private final ISchema summaryDataSource;
+        private boolean isFilterOnTag = false;
 
-        private final Map<Integer, IExpression> indexedTagFilter;
+        private final List<IExpression> indexedTagFilter;
         private final List<IExpression> nonIndexedTagFilter;
 
-        private final TagIndexConfig indexedTagConfig;
 
-        public TagFilterExtractor(TraceStorageConfig traceStorageConfig) {
-            this.indexedTagFilter = new TreeMap<>();
+        public TagFilterExtractor(ISchema summaryDataSource,
+                                  ISchema indexDataSource) {
+            this.indexedTagFilter = new ArrayList<>();
             this.nonIndexedTagFilter = new ArrayList<>();
-            indexedTagConfig = traceStorageConfig.getIndexes();
+            this.summaryDataSource = summaryDataSource;
+            this.indexDataSource = indexDataSource;
         }
 
         @Override
@@ -291,8 +295,8 @@ public class TraceService {
             List<IExpression> nonTagsFilters = new ArrayList<>();
             for (IExpression subExpression : expression.getOperands()) {
                 if (subExpression.accept(this)) {
-                    if (currentTagIndex > 0) {
-                        indexedTagFilter.put(currentTagIndex, subExpression);
+                    if (isFilterOnTag) {
+                        indexedTagFilter.add(subExpression);
                     } else {
                         nonIndexedTagFilter.add(subExpression);
                     }
@@ -311,17 +315,22 @@ public class TraceService {
 
         private boolean isFilterOnIndexedTag(IdentifierExpression expression) {
             String identifier = expression.getIdentifier();
+
+            IColumn column;
             if (identifier.startsWith("tags.")) {
-
-                String tagName = identifier.substring("tags.".length());
-                if (!StringUtils.hasText(tagName)) {
-                    throw new RuntimeException(StringUtils.format("Wrong tag name [%s]", identifier));
-                }
-
-                currentTagIndex = indexedTagConfig == null ? 0 : indexedTagConfig.getColumnPos(tagName);
-                return true;
+                column = this.indexDataSource.getColumnByName(identifier);
+                isFilterOnTag = true;
+            } else {
+                column = this.summaryDataSource.getColumnByName(identifier);
+                isFilterOnTag = false;
             }
-            return false;
+
+            if (column == null) {
+                throw new ExpressionValidationException("Identifier [%s] is not defined in the data source [%s]", identifier, this.indexDataSource.getName());
+            }
+            expression.setIdentifier(column.getName());
+
+            return isFilterOnTag;
         }
     }
 }

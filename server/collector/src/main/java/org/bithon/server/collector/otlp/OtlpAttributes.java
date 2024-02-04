@@ -14,17 +14,16 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource;
-
-import org.bithon.component.commons.exception.HttpResponseMapping;
+package org.bithon.server.collector.otlp;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 7/10/21 11:49 am
+ * See: io.opentelemetry.semconv.ResourceAttributes
+ *
+ * @author Frank Chen
+ * @date 31/1/24 11:26 am
  */
-@HttpResponseMapping(statusCode = HttpResponseMapping.StatusCode.BAD_REQ)
-public class DataSourceNotFoundException extends RuntimeException {
-    public DataSourceNotFoundException(String name) {
-        super("Can't find schema for datasource " + name);
-    }
+public class OtlpAttributes {
+    public static final String SERVICE_NAME = "service.name";
+    public static final String SERVICE_INSTANCE_ID = "service.instance.id";
+    public static final String TELEMETRY_SDK_LANGUAGE = "telemetry.sdk.language";
 }

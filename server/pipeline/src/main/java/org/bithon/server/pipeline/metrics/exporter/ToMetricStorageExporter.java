@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
 import org.bithon.server.pipeline.metrics.SchemaMetricMessage;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.springframework.context.ApplicationContext;
@@ -36,13 +36,13 @@ public class ToMetricStorageExporter implements IMetricExporter {
 
     private final ApplicationContext applicationContext;
     final MetricMessageHandlers handlers;
-    private final DataSourceSchemaManager schemaManager;
+    private final SchemaManager schemaManager;
 
     @JsonCreator
     public ToMetricStorageExporter(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
         this.handlers = MetricMessageHandlers.getInstance();
-        this.schemaManager = applicationContext.getBean(DataSourceSchemaManager.class);
+        this.schemaManager = applicationContext.getBean(SchemaManager.class);
     }
 
     @Override
@@ -77,7 +77,7 @@ public class ToMetricStorageExporter implements IMetricExporter {
                 return handler;
             }
 
-            schemaManager.addDataSourceSchema(message.getSchema());
+            schemaManager.addSchema(message.getSchema());
             try {
                 handler = new MetricMessageHandler(messageType,
                                                    applicationContext.getBean(IMetaStorage.class),

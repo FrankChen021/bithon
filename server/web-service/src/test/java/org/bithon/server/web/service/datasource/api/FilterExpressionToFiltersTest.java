@@ -21,7 +21,7 @@ import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.validation.ExpressionValidationException;
 import org.bithon.server.storage.common.expression.InvalidExpressionException;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.LongColumn;
 import org.bithon.server.storage.datasource.column.StringColumn;
@@ -37,18 +37,17 @@ import java.util.Collections;
  */
 public class FilterExpressionToFiltersTest {
 
-    private final DataSourceSchema schema = new DataSourceSchema(
+    private final DefaultSchema schema = new DefaultSchema(
         "schema",
         "schema",
         new TimestampSpec("timestamp", null, null),
-        Arrays.asList(new StringColumn("a", "a"), new LongColumn("intB", "intB")),
+        Arrays.asList(new StringColumn("a", "a"),
+                      new LongColumn("intB", "intB")),
         Collections.emptyList()
     );
 
     @Test
     public void testValidatedFilterExpression() {
-        FilterExpressionToFilters.toExpression(schema, "tags.clickhouse.cluster = 'cluster' AND tags.clickhouse.user = 'lv' AND tags.clickhouse.queryType = 'INSERT' AND a = 'SERVER' ", null);
-
         // Unary literal is not a valid expression
         Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "123", null));
         Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "'123'", null));

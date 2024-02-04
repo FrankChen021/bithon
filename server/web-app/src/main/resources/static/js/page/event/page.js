@@ -86,11 +86,11 @@ class EventPage {
                 },
                 width: 200
             }, {
-                field: 'application',
+                field: 'appName',
                 title: 'Application',
                 width: 200
             }, {
-                field: 'instance',
+                field: 'instanceName',
                 title: 'Instance',
                 width: 200
             }, {
@@ -98,7 +98,7 @@ class EventPage {
                 title: 'Event',
                 width: 100
             }, {
-                field: 'args',
+                field: 'arguments',
                 title: 'Args',
                 formatter: function (value, row, index) {
                     return `<button class="btn btn-sm btn-outline-info" onclick="javascript:toggleArgument(${index})">Toggle argument</button>`;
@@ -108,7 +108,7 @@ class EventPage {
             detailView: true,
             detailFormatter: (index, row) => {
                 if (row.formattedArgs === undefined) {
-                    row.formattedArgs = "<pre>" + JSON.stringify(JSON.parse(row.args), null, 2) + "</pre>";
+                    row.formattedArgs = "<pre>" + JSON.stringify(JSON.parse(row.arguments), null, 2) + "</pre>";
                 }
                 return row.formattedArgs;
             }

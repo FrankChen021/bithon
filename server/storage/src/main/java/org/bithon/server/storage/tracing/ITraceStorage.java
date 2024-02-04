@@ -38,5 +38,4 @@ public interface ITraceStorage extends IStorage, IExpirable {
     ITraceWriter createWriter();
 
     ITraceReader createReader();
-
 }

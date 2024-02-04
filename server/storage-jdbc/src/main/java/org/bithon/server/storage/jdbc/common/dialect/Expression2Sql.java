@@ -19,7 +19,7 @@ package org.bithon.server.storage.jdbc.common.dialect;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.ISchema;
 
 /**
  * @author frank.chen021@outlook.com
@@ -27,8 +27,8 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
  */
 public class Expression2Sql extends ExpressionSerializer {
 
-    public static String from(DataSourceSchema schema, ISqlDialect sqlDialect, IExpression expression) {
-        return from(schema.getDataStoreSpec().getStore(), sqlDialect, expression);
+    public static String from(ISchema dataSource, ISqlDialect sqlDialect, IExpression expression) {
+        return from(dataSource.getDataStoreSpec().getStore(), sqlDialect, expression);
     }
 
     public static String from(String qualifier, ISqlDialect sqlDialect, IExpression expression) {

@@ -16,14 +16,16 @@
 
 package org.bithon.server.storage.datasource.store;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.component.commons.Experimental;
+import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.server.storage.datasource.ISchema;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 
 /**
  * @author Frank Chen
@@ -31,21 +33,15 @@ import java.util.Objects;
  */
 @Experimental
 @Getter
-public class ExternalDataStoreSpec implements IDataStoreSpec {
+public abstract class ExternalDataStoreSpec implements IDataStoreSpec {
 
-    private final Map<String, String> properties;
-    private final String store;
+    protected final Map<String, Object> properties;
+    protected final String store;
 
-    @JsonCreator
-    public ExternalDataStoreSpec(@JsonProperty("properties") Map<String, String> properties,
+    public ExternalDataStoreSpec(@JsonProperty("properties") Map<String, Object> properties,
                                  @JsonProperty("store") String store) {
         this.properties = properties == null ? Collections.emptyMap() : properties;
         this.store = store;
-    }
-
-    @Override
-    public String getType() {
-        return "external";
     }
 
     @Override
@@ -53,8 +49,22 @@ public class ExternalDataStoreSpec implements IDataStoreSpec {
         return store;
     }
 
-    public ExternalDataStoreSpec withProperties(Map<String, String> properties) {
-        return new ExternalDataStoreSpec(properties, store);
+    @Override
+    public void setSchema(ISchema schema) {
+    }
+
+    @Override
+    public boolean isInternal() {
+        return false;
+    }
+
+    protected Map<String, Object> getSensitiveHiddenProps() {
+        if (CollectionUtils.isNotEmpty(properties)) {
+            Map<String, Object> newProps = new TreeMap<>(this.properties);
+            newProps.computeIfPresent("password", (k, old) -> "<HIDDEN>");
+            return newProps;
+        }
+        return this.properties;
     }
 
     @Override
