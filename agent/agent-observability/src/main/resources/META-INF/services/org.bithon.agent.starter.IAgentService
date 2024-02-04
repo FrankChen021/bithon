@@ -1,1 +1,2 @@
+org.bithon.agent.observability.tracing.dynamic.DynamicInstrumentationService
 org.bithon.agent.observability.jvm.JvmMonitorService
