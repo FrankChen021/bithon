@@ -32,11 +32,14 @@ import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.Order;
+import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
+import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
@@ -68,14 +71,14 @@ public class TraceJdbcReader implements ITraceReader {
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
     protected final TraceStorageConfig traceStorageConfig;
-    protected final DataSourceSchema traceSpanSchema;
-    protected final DataSourceSchema traceTagIndexSchema;
+    protected final ISchema traceSpanSchema;
+    protected final ISchema traceTagIndexSchema;
     protected final ISqlDialect sqlDialect;
 
     public TraceJdbcReader(DSLContext dslContext,
                            ObjectMapper objectMapper,
-                           DataSourceSchema traceSpanSchema,
-                           DataSourceSchema traceTagIndexSchema,
+                           ISchema traceSpanSchema,
+                           ISchema traceTagIndexSchema,
                            TraceStorageConfig traceStorageConfig,
                            ISqlDialect sqlDialect) {
         this.dslContext = dslContext;
@@ -107,7 +110,7 @@ public class TraceJdbcReader implements ITraceReader {
     @Override
     public List<TraceSpan> getTraceList(IExpression filter,
                                         List<IExpression> nonIndexedTagFilters,
-                                        Map<Integer, IExpression> indexedTagFilter,
+                                        List<IExpression> indexedTagFilter,
                                         Timestamp start,
                                         Timestamp end,
                                         String orderBy,
@@ -173,7 +176,8 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public List<Map<String, Object>> getTraceDistribution(IExpression filter,
-                                                          List<IExpression> nonIndexedTagFilters, Map<Integer, IExpression> indexedTagFilter,
+                                                          List<IExpression> nonIndexedTagFilters,
+                                                          List<IExpression> indexedTagFilter,
                                                           Timestamp start,
                                                           Timestamp end,
                                                           int interval) {
@@ -235,7 +239,8 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public int getTraceListSize(IExpression filter,
-                                List<IExpression> nonIndexedTagFilters, Map<Integer, IExpression> indexedTagFilters,
+                                List<IExpression> nonIndexedTagFilters,
+                                List<IExpression> indexedTagFilters,
                                 Timestamp start,
                                 Timestamp end) {
         boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
@@ -392,6 +397,39 @@ public class TraceJdbcReader implements ITraceReader {
         } catch (JsonProcessingException ignored) {
             return Collections.emptyMap();
         }
+    }
+
+    protected IDataSourceReader getDataSourceReader() {
+        return new MetricJdbcReader(this.dslContext, sqlDialect);
+    }
+
+    @Override
+    public List<Map<String, Object>> timeseries(Query query) {
+        return getDataSourceReader().timeseries(query);
+    }
+
+    @Override
+    public List<?> groupBy(Query query) {
+        return getDataSourceReader().groupBy(query);
+    }
+
+    @Override
+    public List<Map<String, Object>> list(Query query) {
+        return getDataSourceReader().list(query);
+    }
+
+    @Override
+    public int listSize(Query query) {
+        return getDataSourceReader().listSize(query);
+    }
+
+    @Override
+    public List<Map<String, String>> distinct(TimeSpan start,
+                                              TimeSpan end,
+                                              ISchema schema,
+                                              IExpression filter,
+                                              String dimension) {
+        return getDataSourceReader().distinct(start, end, schema, filter, dimension);
     }
 
     static class SpanKindIsRootDetector implements IExpressionVisitor {

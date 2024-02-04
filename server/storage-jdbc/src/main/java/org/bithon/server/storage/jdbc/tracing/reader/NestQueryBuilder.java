@@ -22,7 +22,7 @@ import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 
 import java.time.LocalDateTime;
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -55,5 +55,5 @@ abstract class NestQueryBuilder {
         return this;
     }
 
-    public abstract SelectConditionStep<Record1<String>> build(Map<Integer, IExpression> filters);
+    public abstract SelectConditionStep<Record1<String>> build(List<IExpression> filters);
 }

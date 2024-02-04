@@ -18,14 +18,13 @@ package org.bithon.server.storage.jdbc.tracing.reader;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -40,23 +39,14 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
     }
 
     @Override
-    public SelectConditionStep<Record1<String>> build(Map<Integer, IExpression> filters) {
+    public SelectConditionStep<Record1<String>> build(List<IExpression> filters) {
         if (filters.isEmpty()) {
             return null;
         }
 
+        Expression2Sql expression2Sql = new Expression2Sql(null, sqlDialect);
         SelectConditionStep<Record1<String>> query = null;
-        for (Map.Entry<Integer, IExpression> entry : filters.entrySet()) {
-            Integer index = entry.getKey();
-            IExpression filter = entry.getValue();
-
-            if (index > Tables.BITHON_TRACE_SPAN_TAG_INDEX.fieldsRow().size() - 2) {
-                throw new RuntimeException(StringUtils.format("Tag [%s] is configured to use wrong index [%d]. Should be in the range [1, %d]",
-                                                              filter.serializeToText(),
-                                                              index,
-                                                              Tables.BITHON_TRACE_SPAN_TAG_INDEX.fieldsRow().size() - 2));
-            }
-
+        for (IExpression filter : filters) {
             if (query == null) {
                 query = dslContext.select(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TRACEID)
                                   .from(Tables.BITHON_TRACE_SPAN_TAG_INDEX)
@@ -67,7 +57,7 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
             // NOTE:
             // instantiate the TagFilterSerializer for each loop
             // because it internally holds some states for each 'serialize' method call
-            query = query.and(new TagFilterSerializer(sqlDialect, index).serialize(filter));
+            query = query.and(expression2Sql.serialize(filter));
         }
 
         if (query != null) {

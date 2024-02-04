@@ -46,7 +46,7 @@ import org.bithon.component.commons.expression.validation.IIdentifierProvider;
 import org.bithon.server.datasource.ast.ExpressionBaseVisitor;
 import org.bithon.server.datasource.ast.ExpressionLexer;
 import org.bithon.server.datasource.ast.ExpressionParser;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.builtin.IFunctionProvider;
 
 import java.util.ArrayList;
@@ -72,8 +72,8 @@ public class ExpressionASTBuilder {
         return this;
     }
 
-    public ExpressionASTBuilder schema(DataSourceSchema schema) {
-        this.identifiers = new IdentifierProvider(schema);
+    public ExpressionASTBuilder schema(ISchema schema) {
+        this.identifiers = schema != null ? new IdentifierProvider(schema) : null;
         return this;
     }
 
@@ -131,13 +131,13 @@ public class ExpressionASTBuilder {
     }
 
     private static class ParserImpl extends ExpressionBaseVisitor<IExpression> {
-        private final IFunctionProvider functionProvider;
-        private final IIdentifierProvider identifierValidator;
+        private final IFunctionProvider functions;
+        private final IIdentifierProvider identifiers;
 
-        private ParserImpl(IFunctionProvider functionProvider,
-                           IIdentifierProvider identifierValidator) {
-            this.functionProvider = functionProvider;
-            this.identifierValidator = identifierValidator;
+        private ParserImpl(IFunctionProvider functions,
+                           IIdentifierProvider identifiers) {
+            this.functions = functions;
+            this.identifiers = identifiers;
         }
 
         /**
@@ -349,8 +349,8 @@ public class ExpressionASTBuilder {
         @Override
         public IExpression visitIdentifierExpression(ExpressionParser.IdentifierExpressionContext ctx) {
             String identifier = ctx.getText();
-            if (identifierValidator != null) {
-                IIdentifier id = identifierValidator.getIdentifier(identifier);
+            if (identifiers != null) {
+                IIdentifier id = identifiers.getIdentifier(identifier);
                 IdentifierExpression expression = new IdentifierExpression(id.getName());
                 expression.setDataType(id.getDataType());
                 return expression;
@@ -418,8 +418,8 @@ public class ExpressionASTBuilder {
 
             IFunction function = null;
             String functionName = ctx.getChild(0).getText();
-            if (this.functionProvider != null) {
-                function = this.functionProvider.getFunction(functionName);
+            if (this.functions != null) {
+                function = this.functions.getFunction(functionName);
                 if (function == null) {
                     // Only allow defined functions for safe
                     throw new InvalidExpressionException("Function [%s] is not supported.", functionName);

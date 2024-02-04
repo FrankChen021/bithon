@@ -21,8 +21,8 @@ import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
-import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.SchemaManager;
 
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -37,19 +37,19 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public abstract class MetricStorageCleaner implements IExpirationRunnable {
 
-    protected abstract DataSourceSchemaManager getSchemaManager();
+    protected abstract SchemaManager getSchemaManager();
 
     @Override
     public void expire(Timestamp before) {
         List<TimeSpan> skipDateList = getSkipDateList();
 
-        for (DataSourceSchema schema : getSchemaManager().getDataSources().values()) {
+        for (ISchema schema : getSchemaManager().getSchemas().values()) {
             expire(schema, before, skipDateList);
         }
     }
 
-    private void expire(DataSourceSchema schema, Timestamp before, List<TimeSpan> skipDateList) {
-        if (schema.isVirtual() || !schema.getDataStoreSpec().isInternal()) {
+    private void expire(ISchema schema, Timestamp before, List<TimeSpan> skipDateList) {
+        if (!schema.getDataStoreSpec().isInternal()) {
             return;
         }
 
@@ -74,5 +74,5 @@ public abstract class MetricStorageCleaner implements IExpirationRunnable {
         return Collections.emptyList();
     }
 
-    protected abstract void expireImpl(DataSourceSchema schema, Timestamp before, List<TimeSpan> skipDateList);
+    protected abstract void expireImpl(ISchema schema, Timestamp before, List<TimeSpan> skipDateList);
 }

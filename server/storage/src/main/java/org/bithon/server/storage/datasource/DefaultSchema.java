@@ -16,30 +16,34 @@
 
 package org.bithon.server.storage.datasource;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.column.DateTimeColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.LongColumn;
-import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
-import org.bithon.server.storage.datasource.store.InternalDataSourceSpec;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
  */
-public class DataSourceSchema {
+public class DefaultSchema implements ISchema {
     @Getter
     private final String displayText;
 
@@ -66,7 +70,8 @@ public class DataSourceSchema {
      * Experimental
      */
     @Getter
-    private final IDataStoreSpec dataStoreSpec;
+    @Setter
+    private IDataStoreSpec dataStoreSpec;
 
     /**
      * Data source level ttl.
@@ -77,7 +82,9 @@ public class DataSourceSchema {
     private final Period ttl;
 
     @JsonIgnore
-    private final Map<String, IColumn> columnMap = new HashMap<>(17);
+    private final Map<String, IColumn> columnMap = new LinkedHashMap<>(17);
+
+    private final Map<String, IColumn> aliasColumns = new HashMap<>(5);
 
     /**
      * check a {timestamp, dimensions} are unique to help find out some internal wrong implementation
@@ -95,60 +102,34 @@ public class DataSourceSchema {
     @JsonIgnore
     private String signature;
 
-
-    /**
-     * A runtime property that the schema is only used for queries.
-     */
-    @Getter
-    @Setter
-    @JsonIgnore
-    private boolean isVirtual = false;
-
     private static final IColumn TIMESTAMP_COLUMN = new DateTimeColumn("timestamp", "timestamp");
 
-    public DataSourceSchema(String displayText,
-                            String name,
-                            TimestampSpec timestampSpec,
-                            List<IColumn> dimensionsSpec,
-                            List<IColumn> metricsSpec) {
-        this(displayText, name, timestampSpec, dimensionsSpec, metricsSpec, null, null, null);
+    public DefaultSchema(String displayText,
+                         String name,
+                         TimestampSpec timestampSpec,
+                         List<IColumn> dimensionsSpec,
+                         List<IColumn> metricsSpec) {
+        this(displayText, name, timestampSpec, dimensionsSpec, metricsSpec, null, null, null, null);
     }
 
     @JsonCreator
-    public DataSourceSchema(@JsonProperty("displayText") @Nullable String displayText,
-                            @JsonProperty("name") String name,
-                            @JsonProperty("timestampSpec") @Nullable TimestampSpec timestampSpec,
-                            @JsonProperty("dimensionsSpec") List<IColumn> dimensionsSpec,
-                            @JsonProperty("metricsSpec") List<IColumn> metricsSpec,
-                            @JsonProperty("inputSourceSpec") @Nullable JsonNode inputSourceSpec,
-                            @JsonProperty("storeSpec") @Nullable IDataStoreSpec dataStoreSpec,
-                            @JsonProperty("ttl") @Nullable Period ttl) {
+    public DefaultSchema(@JsonProperty("displayText") @Nullable String displayText,
+                         @JsonProperty("name") String name,
+                         @JsonProperty("timestampSpec") @Nullable TimestampSpec timestampSpec,
+                         @JsonProperty("dimensionsSpec") List<IColumn> dimensionsSpec,
+                         @JsonProperty("metricsSpec") List<IColumn> metricsSpec,
+                         @JsonProperty("inputSourceSpec") @Nullable JsonNode inputSourceSpec,
+                         @JsonProperty("storeSpec") @Nullable IDataStoreSpec dataStoreSpec,
+                         @JsonProperty("ttl") @Nullable Period ttl,
+                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         this.displayText = displayText == null ? name : displayText;
         this.name = name;
         this.timestampSpec = timestampSpec == null ? new TimestampSpec("timestamp", "auto", null) : timestampSpec;
         this.dimensionsSpec = dimensionsSpec;
         this.metricsSpec = metricsSpec;
         this.inputSourceSpec = inputSourceSpec;
-        this.dataStoreSpec = dataStoreSpec == null ? new InternalDataSourceSpec("bithon_" + name.replaceAll("-", "_")) : dataStoreSpec;
+        this.dataStoreSpec = dataStoreSpec;
         this.ttl = ttl;
-
-        this.dimensionsSpec.forEach((dimensionSpec) -> {
-            columnMap.put(dimensionSpec.getName(), dimensionSpec);
-
-            if (!dimensionSpec.getAlias().equals(dimensionSpec.getName())) {
-                columnMap.put(dimensionSpec.getAlias(), dimensionSpec);
-            }
-        });
-
-        this.metricsSpec.forEach((metricSpec) -> {
-            columnMap.put(metricSpec.getName(), metricSpec);
-
-            if (!metricSpec.getAlias().equals(metricSpec.getName())) {
-                columnMap.put(metricSpec.getAlias(), metricSpec);
-            }
-        });
-
-        columnMap.putIfAbsent(IAggregatableColumn.COUNT, AggregateCountColumn.INSTANCE);
 
         if ("timestamp".equals(this.timestampSpec.getTimestampColumn())) {
             this.columnMap.put(TIMESTAMP_COLUMN.getName(), TIMESTAMP_COLUMN);
@@ -157,10 +138,47 @@ public class DataSourceSchema {
                                new LongColumn(this.timestampSpec.getTimestampColumn(),
                                               this.timestampSpec.getTimestampColumn()));
         }
+
+        this.dimensionsSpec.forEach((dimensionSpec) -> {
+            columnMap.put(dimensionSpec.getName(), dimensionSpec);
+
+            if (!dimensionSpec.getAlias().equals(dimensionSpec.getName())) {
+                aliasColumns.put(dimensionSpec.getAlias(), dimensionSpec);
+            }
+        });
+
+        this.metricsSpec.forEach((metricSpec) -> {
+            columnMap.put(metricSpec.getName(), metricSpec);
+
+            if (!metricSpec.getAlias().equals(metricSpec.getName())) {
+                aliasColumns.put(metricSpec.getAlias(), metricSpec);
+            }
+        });
+
+        if (this.dataStoreSpec == null && objectMapper != null) {
+            // Internally created schema does not have a store
+            try {
+                this.dataStoreSpec = objectMapper.readValue("{\"type\": \"metric\"}", IDataStoreSpec.class);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if (this.dataStoreSpec != null) {
+            this.dataStoreSpec.setSchema(this);
+        }
     }
 
     public IColumn getColumnByName(String name) {
-        return columnMap.get(name);
+        IColumn column = columnMap.get(name);
+        if (column == null) {
+            return "count".equals(name) ? AggregateCountColumn.INSTANCE : this.aliasColumns.get(name);
+        }
+        return column;
+    }
+
+    @Override
+    public Collection<IColumn> getColumns() {
+        return this.columnMap.values();
     }
 
     @Override
@@ -170,8 +188,8 @@ public class DataSourceSchema {
 
     @Override
     public boolean equals(Object rhs) {
-        if (rhs instanceof DataSourceSchema) {
-            return ((DataSourceSchema) rhs).getName().equals(this.name);
+        if (rhs instanceof DefaultSchema) {
+            return ((DefaultSchema) rhs).getName().equals(this.name);
         } else {
             return false;
         }
@@ -185,14 +203,15 @@ public class DataSourceSchema {
         return this.name;
     }
 
-    public DataSourceSchema withDataStore(IDataStoreSpec dataStoreSpec) {
-        return new DataSourceSchema(this.displayText,
-                                    this.name,
-                                    this.timestampSpec,
-                                    this.dimensionsSpec,
-                                    this.metricsSpec,
-                                    this.inputSourceSpec,
-                                    dataStoreSpec,
-                                    this.ttl);
+    public DefaultSchema withDataStore(IDataStoreSpec dataStoreSpec) {
+        return new DefaultSchema(this.displayText,
+                                 this.name,
+                                 this.timestampSpec,
+                                 this.dimensionsSpec,
+                                 this.metricsSpec,
+                                 this.inputSourceSpec,
+                                 dataStoreSpec,
+                                 this.ttl,
+                                 null);
     }
 }

@@ -21,7 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 import javax.annotation.Nullable;
@@ -40,7 +40,7 @@ public class SchemaMetricMessage {
      * It's nullable because not all messages(like some predefined metrics such as jvm-metrics) contains schema
      */
     @Nullable
-    private DataSourceSchema schema;
+    private DefaultSchema schema;
 
     /**
      * Since we support extract metrics from TraceSpan, we here use {@link IInputRow} as type declaration instead of {@link MetricMessage}.

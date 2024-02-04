@@ -19,6 +19,7 @@ package org.bithon.server.storage.tracing;
 import lombok.Data;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 
@@ -30,12 +31,12 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/2/6 3:28 下午
  */
-public interface ITraceReader {
+public interface ITraceReader extends IDataSourceReader {
     List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end);
 
     List<TraceSpan> getTraceList(IExpression filter,
                                  List<IExpression> nonIndexedTagFilters,
-                                 Map<Integer, IExpression> indexedTagFilters,
+                                 List<IExpression> indexedTagFilters,
                                  Timestamp start,
                                  Timestamp end,
                                  String orderBy,
@@ -44,14 +45,15 @@ public interface ITraceReader {
                                  int pageSize);
 
     List<Map<String, Object>> getTraceDistribution(IExpression filter,
-                                                   List<IExpression> nonIndexedTagFilters, Map<Integer, IExpression> indexedTagFilters,
+                                                   List<IExpression> nonIndexedTagFilters,
+                                                   List<IExpression> indexedTagFilters,
                                                    Timestamp start,
                                                    Timestamp end,
                                                    int interval);
 
     int getTraceListSize(IExpression filter,
                          List<IExpression> nonIndexedTagFilters,
-                         Map<Integer, IExpression> indexedTagFilters,
+                         List<IExpression> indexedTagFilters,
                          Timestamp start,
                          Timestamp end);
 

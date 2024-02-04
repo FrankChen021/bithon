@@ -19,8 +19,8 @@ package org.bithon.server.storage.jdbc.metric;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
-import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.metrics.ttl.MetricStorageCleaner;
@@ -48,12 +48,12 @@ import java.util.stream.Collectors;
  */
 public class MetricJdbcStorageCleaner extends MetricStorageCleaner {
     protected final DSLContext dslContext;
-    protected final DataSourceSchemaManager schemaManager;
+    protected final SchemaManager schemaManager;
     protected final ExpirationConfig ttlConfig;
     protected final ISqlDialect sqlDialect;
 
     protected MetricJdbcStorageCleaner(DSLContext dslContext,
-                                       DataSourceSchemaManager schemaManager,
+                                       SchemaManager schemaManager,
                                        ExpirationConfig ttlConfig,
                                        ISqlDialect sqlDialect) {
         this.dslContext = dslContext;
@@ -68,7 +68,7 @@ public class MetricJdbcStorageCleaner extends MetricStorageCleaner {
     }
 
     @Override
-    protected DataSourceSchemaManager getSchemaManager() {
+    protected SchemaManager getSchemaManager() {
         return schemaManager;
     }
 
@@ -117,7 +117,7 @@ public class MetricJdbcStorageCleaner extends MetricStorageCleaner {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    protected void expireImpl(DataSourceSchema schema, Timestamp before, List<TimeSpan> skipDateList) {
+    protected void expireImpl(ISchema schema, Timestamp before, List<TimeSpan> skipDateList) {
         final DeleteTable table = new DeleteTable(schema.getDataStoreSpec().getStore());
         DeleteConditionStep delete = dslContext.deleteFrom(table)
                                                .where(table.timestampField.le(before));

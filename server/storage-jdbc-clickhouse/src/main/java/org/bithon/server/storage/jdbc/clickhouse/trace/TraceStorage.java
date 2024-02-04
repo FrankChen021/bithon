@@ -30,7 +30,6 @@ import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
@@ -67,12 +66,10 @@ public class TraceStorage extends TraceJdbcStorage {
     public TraceStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration configuration,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
-                        @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager,
                         @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
         super(configuration.getDslContext(),
               objectMapper,
               storageConfig,
-              schemaManager,
               sqlDialectManager);
         this.clickHouseConfig = configuration.getClickHouseConfig();
     }

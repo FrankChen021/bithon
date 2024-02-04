@@ -17,7 +17,7 @@
 package org.bithon.server.pipeline.metrics;
 
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.max.AggregateLongMaxColumn;
@@ -42,18 +42,18 @@ import java.util.List;
 @RunWith(Parameterized.class)
 public class MetricAggregatorTest {
 
-    private final DataSourceSchema schema;
+    private final DefaultSchema schema;
 
     /**
      * The arguments are passed from the method {@link #createSchemas()} below.
      */
-    public MetricAggregatorTest(String name, DataSourceSchema schema) {
+    public MetricAggregatorTest(String name, DefaultSchema schema) {
         this.schema = schema;
     }
 
     @Parameterized.Parameters(name = "{0}")
     public static Object[] createSchemas() {
-        DataSourceSchema emptyDimensionSchema = new DataSourceSchema(
+        DefaultSchema emptyDimensionSchema = new DefaultSchema(
             "empty-dimension-table",
             "empty-dimension-table",
             new TimestampSpec("timestamp", null, null),
@@ -63,7 +63,7 @@ public class MetricAggregatorTest {
                           new AggregateLongMaxColumn("maxTime", "maxTime"))
         );
 
-        DataSourceSchema hasDimensionSchema = new DataSourceSchema(
+        DefaultSchema hasDimensionSchema = new DefaultSchema(
             "one-dimension-table",
             "one-dimension-table",
             new TimestampSpec("timestamp", null, null),

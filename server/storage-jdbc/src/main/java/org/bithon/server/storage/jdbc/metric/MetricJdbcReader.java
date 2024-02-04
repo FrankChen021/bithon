@@ -16,11 +16,14 @@
 
 package org.bithon.server.storage.jdbc.metric;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Column;
@@ -28,10 +31,13 @@ import org.bithon.server.storage.datasource.query.ast.SelectExpression;
 import org.bithon.server.storage.datasource.query.ast.StringNode;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
-import org.bithon.server.storage.metrics.IMetricReader;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultConfiguration;
+import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
+import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 
 import java.util.HashMap;
 import java.util.List;
@@ -43,22 +49,45 @@ import java.util.stream.Collectors;
  * @date 2021/1/31 1:39 下午
  */
 @Slf4j
-public class MetricJdbcReader implements IMetricReader {
+public class MetricJdbcReader implements IDataSourceReader {
 
     private static final String TIMESTAMP_ALIAS_NAME = "_timestamp";
 
-    protected final DSLContext dsl;
+    protected final DSLContext dslContext;
     protected final ISqlDialect sqlDialect;
+    private final boolean shouldCloseContext;
 
-    public MetricJdbcReader(DSLContext dsl, ISqlDialect sqlDialect) {
-        this.dsl = dsl;
+    public MetricJdbcReader(String name,
+                            Map<String, Object> props,
+                            ISqlDialect sqlDialect) {
+        DruidDataSource jdbcDataSource = new DruidDataSource();
+        jdbcDataSource.setDriverClassName((String) Preconditions.checkNotNull(props.get("driverClassName"), "Missing driverClassName property for %s", name));
+        jdbcDataSource.setUrl((String) Preconditions.checkNotNull(props.get("url"), "Missing url property for %s", name));
+        jdbcDataSource.setUsername((String) Preconditions.checkNotNull(props.get("username"), "Missing userName property for %s", name));
+        jdbcDataSource.setPassword((String) Preconditions.checkNotNull(props.get("password"), "Missing password property for %s", name));
+        jdbcDataSource.setName(name);
+
+        // Create a new one
+        JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
+        this.dslContext = DSL.using(new DefaultConfiguration()
+                                 .set(autoConfiguration.dataSourceConnectionProvider(jdbcDataSource))
+                                 .set(new JooqProperties().determineSqlDialect(jdbcDataSource))
+                                 .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
+
         this.sqlDialect = sqlDialect;
+        this.shouldCloseContext = true;
+    }
+
+    public MetricJdbcReader(DSLContext dslContext, ISqlDialect sqlDialect) {
+        this.dslContext = dslContext;
+        this.sqlDialect = sqlDialect;
+        this.shouldCloseContext = false;
     }
 
     @Override
     public List<Map<String, Object>> timeseries(Query query) {
         SelectExpression selectExpression = SelectExpressionBuilder.builder()
-                                                                   .dataSource(query.getDataSource())
+                                                                   .dataSource(query.getSchema())
                                                                    .fields(query.getResultColumns())
                                                                    .filter(query.getFilter())
                                                                    .interval(query.getInterval())
@@ -93,7 +122,7 @@ public class MetricJdbcReader implements IMetricReader {
     @Override
     public List<?> groupBy(Query query) {
         SelectExpression selectExpression = SelectExpressionBuilder.builder()
-                                                                   .dataSource(query.getDataSource())
+                                                                   .dataSource(query.getSchema())
                                                                    .fields(query.getResultColumns())
                                                                    .filter(query.getFilter())
                                                                    .interval(query.getInterval())
@@ -117,9 +146,9 @@ public class MetricJdbcReader implements IMetricReader {
 
     @Override
     public List<Map<String, Object>> list(Query query) {
-        String sqlTableName = query.getDataSource().getDataStoreSpec().getStore();
-        String timestampCol = query.getDataSource().getTimestampSpec().getTimestampColumn();
-        String filter = Expression2Sql.from(query.getDataSource(), sqlDialect, query.getFilter());
+        String sqlTableName = query.getSchema().getDataStoreSpec().getStore();
+        String timestampCol = query.getSchema().getTimestampSpec().getTimestampColumn();
+        String filter = Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter());
         String sql = StringUtils.format(
             "SELECT %s FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s %s LIMIT %d OFFSET %d",
             query.getResultColumns()
@@ -154,10 +183,10 @@ public class MetricJdbcReader implements IMetricReader {
 
     @Override
     public int listSize(Query query) {
-        String sqlTableName = query.getDataSource().getDataStoreSpec().getStore();
-        String timestampCol = query.getDataSource().getTimestampSpec().getTimestampColumn();
+        String sqlTableName = query.getSchema().getDataStoreSpec().getStore();
+        String timestampCol = query.getSchema().getTimestampSpec().getTimestampColumn();
 
-        String filter = Expression2Sql.from(query.getDataSource(), sqlDialect, query.getFilter());
+        String filter = Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter());
         String sql = StringUtils.format(
             "SELECT count(1) FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s",
             sqlTableName,
@@ -169,14 +198,14 @@ public class MetricJdbcReader implements IMetricReader {
             sqlDialect.formatTimestamp(query.getInterval().getEndTime())
                                        );
 
-        Record record = dsl.fetchOne(sql);
+        Record record = dslContext.fetchOne(sql);
         return ((Number) record.get(0)).intValue();
     }
 
     private List<?> fetch(String sql, Query.ResultFormat resultFormat) {
         log.info("Executing {}", sql);
 
-        List<Record> records = dsl.fetch(sql);
+        List<Record> records = dslContext.fetch(sql);
 
         if (resultFormat == Query.ResultFormat.Object) {
             return records.stream().map(record -> {
@@ -191,11 +220,10 @@ public class MetricJdbcReader implements IMetricReader {
         }
     }
 
-    @Override
-    public List<Map<String, Object>> executeSql(String sql) {
+    private List<Map<String, Object>> executeSql(String sql) {
         log.info("Executing {}", sql);
 
-        List<Record> records = dsl.fetch(sql);
+        List<Record> records = dslContext.fetch(sql);
 
         // PAY ATTENTION:
         //  although the explicit cast seems unnecessary, it must be kept so that compilation can pass
@@ -210,18 +238,18 @@ public class MetricJdbcReader implements IMetricReader {
     }
 
     @Override
-    public List<Map<String, String>> getDistinctValues(TimeSpan start,
-                                                       TimeSpan end,
-                                                       DataSourceSchema dataSourceSchema,
-                                                       IExpression filter,
-                                                       String dimension) {
-        String filterText = filter == null ? "" : Expression2Sql.from(dataSourceSchema, sqlDialect, filter) + " AND ";
+    public List<Map<String, String>> distinct(TimeSpan start,
+                                              TimeSpan end,
+                                              ISchema schema,
+                                              IExpression filter,
+                                              String dimension) {
+        String filterText = filter == null ? "" : Expression2Sql.from(schema, sqlDialect, filter) + " AND ";
 
         String sql = StringUtils.format(
             "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s AND \"%s\" IS NOT NULL ORDER BY \"%s\"",
             dimension,
             dimension,
-            dataSourceSchema.getDataStoreSpec().getStore(),
+            schema.getDataStoreSpec().getStore(),
             filterText,
             sqlDialect.formatTimestamp(start),
             sqlDialect.formatTimestamp(end),
@@ -230,7 +258,7 @@ public class MetricJdbcReader implements IMetricReader {
                                        );
 
         log.info("Executing {}", sql);
-        List<Record> records = dsl.fetch(sql);
+        List<Record> records = dslContext.fetch(sql);
         return records.stream().map(record -> {
             Field<?>[] fields = record.fields();
             Map<String, String> mapObject = new HashMap<>(fields.length);
@@ -239,5 +267,12 @@ public class MetricJdbcReader implements IMetricReader {
             }
             return mapObject;
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public void close() {
+        if (this.shouldCloseContext) {
+            this.dslContext.close();
+        }
     }
 }

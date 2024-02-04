@@ -17,13 +17,14 @@
 package org.bithon.server.web.service.datasource.api;
 
 import lombok.Data;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.ISchema;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.constraints.Min;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -35,31 +36,31 @@ import java.util.Map;
 public interface IDataSourceApi {
 
     @PostMapping("/api/datasource/timeseries/v3")
-    GeneralQueryResponse timeseriesV3(@Validated @RequestBody GeneralQueryRequest request);
+    GeneralQueryResponse timeseriesV3(@Validated @RequestBody GeneralQueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/timeseries/v4")
-    GeneralQueryResponse timeseriesV4(@Validated @RequestBody GeneralQueryRequest request);
+    GeneralQueryResponse timeseriesV4(@Validated @RequestBody GeneralQueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/groupBy/v2")
-    GeneralQueryResponse groupBy(@Validated @RequestBody GeneralQueryRequest request);
+    GeneralQueryResponse groupBy(@Validated @RequestBody GeneralQueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/groupBy/v3")
-    GeneralQueryResponse groupByV3(@Validated @RequestBody GeneralQueryRequest request);
+    GeneralQueryResponse groupByV3(@Validated @RequestBody GeneralQueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/list/v2")
-    GeneralQueryResponse list(@Validated @RequestBody GeneralQueryRequest request);
+    GeneralQueryResponse list(@Validated @RequestBody GeneralQueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/schemas")
-    Map<String, DataSourceSchema> getSchemas();
+    Map<String, ISchema> getSchemas();
 
     @PostMapping("/api/datasource/schema/{name}")
-    DataSourceSchema getSchemaByName(@PathVariable("name") String schemaName);
+    ISchema getSchemaByName(@PathVariable("name") String schemaName);
 
     @PostMapping("/api/datasource/schema/create")
-    void createSchema(@RequestBody DataSourceSchema schema);
+    void createSchema(@RequestBody ISchema schema);
 
     @PostMapping("/api/datasource/schema/update")
-    void updateSchema(@RequestBody DataSourceSchema schema);
+    void updateSchema(@RequestBody ISchema schema);
 
     @PostMapping("/api/datasource/name")
     Collection<DisplayableText> getSchemaNames();
@@ -68,7 +69,7 @@ public interface IDataSourceApi {
      * Get distinct values of a specific column under given condition
      */
     @PostMapping("/api/datasource/dimensions/v2")
-    Collection<Map<String, String>> getDimensions(@Validated @RequestBody GetDimensionRequest request);
+    Collection<Map<String, String>> getDimensions(@Validated @RequestBody GetDimensionRequest request) throws IOException;
 
     @PostMapping("/api/datasource/ttl/update")
     void updateSpecifiedDataSourceTTL(@RequestBody UpdateTTLRequest request);
