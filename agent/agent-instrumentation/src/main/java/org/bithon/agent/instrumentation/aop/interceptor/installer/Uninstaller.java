@@ -16,27 +16,54 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.installer;
 
+import org.bithon.agent.instrumentation.logging.ILogger;
+import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import org.bithon.shaded.net.bytebuddy.agent.builder.ResettableClassFileTransformer;
 
 import java.lang.instrument.Instrumentation;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Frank Chen
  * @date 2/2/24 6:22 pm
  */
-public class Uninstaller {
-    private final ResettableClassFileTransformer transformer;
-    private final Instrumentation instance;
+public class Uninstaller extends AgentBuilder.InstallationListener.Adapter {
+    private static final ILogger LOG = LoggerFactory.getLogger(Uninstaller.class);
 
-    public Uninstaller(ResettableClassFileTransformer transformer, Instrumentation instance) {
-        this.transformer = transformer;
+    private ResettableClassFileTransformer transformer;
+    private final Instrumentation instance;
+    private final Map<String, Set<String>> interceptors = new HashMap<>();
+
+    public Uninstaller(Instrumentation instance,
+                       Map<String, DynamicInterceptorInstaller.AopDescriptor> descriptors) {
         this.instance = instance;
+        descriptors.forEach((clazz, aop) -> interceptors.computeIfAbsent(aop.getInterceptorName(), k -> new HashSet<>())
+                                                    .add(clazz));
+    }
+
+    public void setTransformer(ResettableClassFileTransformer transformer) {
+        this.transformer = transformer;
     }
 
     public void uninstall() {
         transformer.reset(instance, AgentBuilder.RedefinitionStrategy.REDEFINITION);
+    }
 
-        // TODO: remove records from InstallerRecorder
+    @Override
+    public void onReset(Instrumentation instrumentation, ResettableClassFileTransformer classFileTransformer) {
+        LOG.info("Interceptors uninstalled.");
+
+        InstallerRecorder.INSTANCE.deleteInterceptorIf((m) -> {
+            Set<String> clazzList = this.interceptors.get(m.getInterceptor());
+            if (clazzList != null) {
+                return clazzList.contains(m.getType());
+            } else {
+                return false;
+            }
+        });
     }
 }

@@ -71,9 +71,13 @@ public class DynamicInterceptorInstaller {
     }
 
     /**
-     * Install multiple interceptors at one time
+     * Install multiple interceptors at one time.
+     * @param descriptors key - the class name that is going to be instrumented
+     *                    val - the descriptor
      */
     public Uninstaller install(Map<String, AopDescriptor> descriptors) {
+        Uninstaller uninstaller = new Uninstaller(InstrumentationHelper.getInstance(), descriptors);
+
         ElementMatcher<? super TypeDescription> typeMatcher = new NameMatcher<>(new StringSetMatcher(new HashSet<>(descriptors.keySet())));
 
         ResettableClassFileTransformer transformer =
@@ -104,10 +108,14 @@ public class DynamicInterceptorInstaller {
                 }
 
                 return install(descriptor, builder, classLoader);
-            }).with(new AgentBuilder.Listener.WithTransformationsOnly(AgentBuilder.Listener.StreamWriting.toSystemOut()))
+            })
+            .with(InstrumentationHelper.getAopDebugger().withTypes(new HashSet<>(descriptors.keySet())))
+            // Install the InstallationListener
+            .with(uninstaller)
             .installOn(InstrumentationHelper.getInstance());
 
-        return new Uninstaller(transformer, InstrumentationHelper.getInstance());
+        uninstaller.setTransformer(transformer);
+        return uninstaller;
     }
 
     /**
@@ -141,6 +149,10 @@ public class DynamicInterceptorInstaller {
 
         public String getTargetClass() {
             return targetClass;
+        }
+
+        public String getInterceptorName() {
+            return interceptorName;
         }
     }
 }

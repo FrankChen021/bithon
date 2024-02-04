@@ -22,8 +22,11 @@ import org.bithon.agent.configuration.IConfigurationChangedListener;
 import org.bithon.agent.instrumentation.aop.interceptor.installer.DynamicInterceptorInstaller;
 import org.bithon.agent.instrumentation.aop.interceptor.installer.Uninstaller;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
+import org.bithon.agent.instrumentation.logging.ILogger;
+import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.agent.starter.IAgentService;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.ArrayList;
@@ -41,6 +44,8 @@ import java.util.Set;
  */
 public class DynamicInstrumentationService implements IAgentService, IConfigurationChangedListener {
 
+    private static final ILogger LOG = LoggerFactory.getLogger(DynamicInstrumentationService.class);
+
     private Uninstaller uninstaller;
 
     @Override
@@ -54,13 +59,17 @@ public class DynamicInstrumentationService implements IAgentService, IConfigurat
 
     @Override
     public void onChange(Set<String> keys) {
-        if (keys.contains("tracing.instrumentation.methods")) {
-            if (uninstaller != null) {
-                uninstaller.uninstall();
-                uninstaller = null;
-            }
-            uninstaller = install();
+        if (!keys.contains("tracing.instrumentation.methods")) {
+            return;
         }
+
+        if (uninstaller != null) {
+            LOG.info("Instrumentation methods changed, uninstalling interceptors first...");
+            uninstaller.uninstall();
+            uninstaller = null;
+        }
+
+        uninstaller = install();
     }
 
     @ConfigurationProperties(prefix = "tracing.instrumentation.methods")
@@ -69,8 +78,7 @@ public class DynamicInstrumentationService implements IAgentService, IConfigurat
         }
     }
 
-    static class Methods {
-        private boolean all;
+    static class InstrumentedMethod {
         private final Set<String> methods = new HashSet<>();
     }
 
@@ -80,7 +88,9 @@ public class DynamicInstrumentationService implements IAgentService, IConfigurat
             return null;
         }
 
-        Map<String, Methods> descriptors = new HashMap<>();
+        LOG.info("Instrumentation methods changed, install new interceptors...");
+
+        Map<String, InstrumentedMethod> instrumentedMethods = new HashMap<>();
         for (String signature : signatureList) {
             signature = signature.trim();
 
@@ -92,26 +102,24 @@ public class DynamicInstrumentationService implements IAgentService, IConfigurat
                 clazzName = signature;
             } else {
                 clazzName = signature.substring(0, methodSplitter);
-                method = signature.substring(methodSplitter + 1);
+                method = signature.substring(methodSplitter + 1).trim();
             }
 
-            Methods m = descriptors.computeIfAbsent(clazzName, k -> new Methods());
-            if (method == null) {
-                m.all = true;
-            } else {
+            InstrumentedMethod m = instrumentedMethods.computeIfAbsent(clazzName, k -> new InstrumentedMethod());
+            if (StringUtils.hasText(method)) {
                 m.methods.add(method);
             }
         }
 
         Map<String, DynamicInterceptorInstaller.AopDescriptor> aop = new HashMap<>();
-        for (Map.Entry<String, Methods> entry : descriptors.entrySet()) {
+        for (Map.Entry<String, InstrumentedMethod> entry : instrumentedMethods.entrySet()) {
             String clazz = entry.getKey();
-            Methods methods = entry.getValue();
+            InstrumentedMethod instrumentedMethod = entry.getValue();
 
             aop.put(clazz,
                     new DynamicInterceptorInstaller.AopDescriptor(
                         clazz,
-                        methods.all ? ElementMatchers.not(ElementMatchers.isConstructor()) : Matchers.withNames(methods.methods),
+                        instrumentedMethod.methods.isEmpty() ? ElementMatchers.not(ElementMatchers.isConstructor()) : Matchers.withNames(instrumentedMethod.methods),
                         Interceptor.class.getName()
                     ));
         }
