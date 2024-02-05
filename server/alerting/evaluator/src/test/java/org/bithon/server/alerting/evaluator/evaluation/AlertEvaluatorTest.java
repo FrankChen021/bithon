@@ -25,7 +25,8 @@ import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DefaultSchema;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.web.service.datasource.api.GeneralQueryResponse;
@@ -36,6 +37,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Collections;
 
@@ -63,11 +65,11 @@ public class AlertEvaluatorTest {
 
     @Before
     public void setUp() {
-        DataSourceSchema schema = new DataSourceSchema("test-metrics",
-                                                       "test-metrics",
-                                                       new TimestampSpec("timestamp", null, null),
-                                                       Collections.emptyList(),
-                                                       Collections.singletonList(new AggregateLongSumColumn(metric, metric)));
+        ISchema schema = new DefaultSchema("test-metrics",
+                                           "test-metrics",
+                                           new TimestampSpec("timestamp", null, null),
+                                           Collections.emptyList(),
+                                           Collections.singletonList(new AggregateLongSumColumn(metric, metric)));
         dataSourceProvider = EasyMock.createMock(IDataSourceApi.class);
         EasyMock.expect(dataSourceProvider.getSchemaByName(schema.getName())).andReturn(schema);
     }
@@ -78,7 +80,7 @@ public class AlertEvaluatorTest {
     }
 
     @Test
-    public void testConditionGreaterThan() {
+    public void testConditionGreaterThan() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
                 .andReturn(GeneralQueryResponse.builder()
                                                .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
@@ -100,7 +102,7 @@ public class AlertEvaluatorTest {
     }
 
     @Test
-    public void testConditionGreaterThanOrEqual() {
+    public void testConditionGreaterThanOrEqual() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
                 .andReturn(GeneralQueryResponse.builder()
                                                .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
@@ -122,7 +124,7 @@ public class AlertEvaluatorTest {
     }
 
     @Test
-    public void testConditionLessThan() {
+    public void testConditionLessThan() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
                 .andReturn(GeneralQueryResponse.builder()
                                                .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
@@ -144,7 +146,7 @@ public class AlertEvaluatorTest {
     }
 
     @Test
-    public void testConditionLessThanOrEqual() {
+    public void testConditionLessThanOrEqual() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
                 .andReturn(GeneralQueryResponse.builder()
                                                .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
@@ -167,7 +169,7 @@ public class AlertEvaluatorTest {
 
 
     @Test
-    public void testConditionNull_OnEmptyMap() {
+    public void testConditionNull_OnEmptyMap() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
                 .andReturn(GeneralQueryResponse.builder()
                                                .data(Collections.emptyList())
@@ -189,7 +191,7 @@ public class AlertEvaluatorTest {
     }
 
     @Test
-    public void testConditionNull_OnNullReturn() {
+    public void testConditionNull_OnNullReturn() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
                 .andReturn(GeneralQueryResponse.builder()
                                                .data(null)

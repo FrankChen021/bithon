@@ -30,6 +30,7 @@ import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,7 @@ public class NullValuePredicate implements IMetricEvaluator {
                                       TimeSpan end,
                                       String filterExpression,
                                       List<String> groupBy,
-                                      EvaluationContext context) {
+                                      EvaluationContext context) throws IOException {
         GeneralQueryResponse response = dataSourceApi.groupBy(GeneralQueryRequest.builder()
                                                                                  .dataSource(dataSource)
                                                                                  .interval(IntervalRequest.builder()

@@ -33,6 +33,7 @@ import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collections;
@@ -69,7 +70,7 @@ public class AbstractRelativeThresholdPredicate implements IMetricEvaluator {
                                       QueryField metric, TimeSpan start,
                                       TimeSpan end,
                                       String filterExpression,
-                                      List<String> groupBy, EvaluationContext context) {
+                                      List<String> groupBy, EvaluationContext context) throws IOException {
 
         GeneralQueryResponse response = dataSourceApi.groupBy(GeneralQueryRequest.builder()
                                                                                  .dataSource(dataSource)

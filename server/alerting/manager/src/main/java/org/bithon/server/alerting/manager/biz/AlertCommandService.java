@@ -31,7 +31,7 @@ import org.bithon.server.storage.alerting.IAlertNotificationProviderStorage;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.ObjectAction;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.meta.api.IMetadataApi;
@@ -91,7 +91,7 @@ public class AlertCommandService {
 
         alert.setExpression(new AlertExpressionSerializer().serialize(alert.getEvaluationExpression()));
 
-        Map<String, DataSourceSchema> schemas = dataSourceApi.getSchemas();
+        Map<String, ISchema> schemas = dataSourceApi.getSchemas();
 
         Set<String> ids = new HashSet<>();
         for (AlertExpression alertExpression : alert.getFlattenExpressions().values()) {
@@ -102,7 +102,7 @@ public class AlertCommandService {
             if (!StringUtils.hasText(alertExpression.getFrom())) {
                 throw new BizException("data-source is missed for expression [%s]", alertExpression.serializeToText());
             }
-            DataSourceSchema schema = schemas.get(alertExpression.getFrom());
+            ISchema schema = schemas.get(alertExpression.getFrom());
             if (schema == null) {
                 throw new BizException("data-source [%s] does not exist for expression [%s]", alertExpression.getFrom(), alertExpression.serializeToText());
             }

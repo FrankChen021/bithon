@@ -34,6 +34,7 @@ import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
 import javax.validation.constraints.NotNull;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +92,7 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
                                       TimeSpan end,
                                       String filterExpression,
                                       List<String> groupBy,
-                                      EvaluationContext context) {
+                                      EvaluationContext context) throws IOException {
         GeneralQueryResponse response = dataSourceApi.groupBy(GeneralQueryRequest.builder()
                                                                                  .dataSource(dataSource)
                                                                                  .interval(IntervalRequest.builder()

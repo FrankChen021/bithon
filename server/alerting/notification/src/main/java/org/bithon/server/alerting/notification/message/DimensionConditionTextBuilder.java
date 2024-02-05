@@ -19,7 +19,7 @@ package org.bithon.server.alerting.notification.message;
 import lombok.Getter;
 import lombok.Setter;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.filter.IColumnFilterVisitor;
@@ -29,13 +29,13 @@ import org.bithon.server.storage.datasource.filter.IColumnFilterVisitor;
  * @date 2021/1/4
  */
 public class DimensionConditionTextBuilder implements IColumnFilterVisitor<String> {
-    private final DataSourceSchema dataSource;
+    private final ISchema dataSource;
 
     @Getter
     @Setter
     private String dimension;
 
-    public DimensionConditionTextBuilder(String dimension, DataSourceSchema dataSource) {
+    public DimensionConditionTextBuilder(String dimension, ISchema dataSource) {
         this.dimension = dimension;
         this.dataSource = dataSource;
     }

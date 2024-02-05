@@ -22,6 +22,7 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -37,5 +38,5 @@ public interface IMetricEvaluator {
                                TimeSpan end,
                                String filterExpression,
                                List<String> groupBy,
-                               EvaluationContext context);
+                               EvaluationContext context) throws IOException;
 }

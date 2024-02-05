@@ -31,7 +31,7 @@ import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.notification.NotificationModuleEnabler;
 import org.bithon.server.alerting.notification.message.ImageMode;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
 import org.bithon.server.web.service.datasource.api.GeneralQueryResponse;
@@ -125,7 +125,7 @@ public class AlertImageRenderService {
             return null;
         }
 
-        DataSourceSchema schema = this.dataSourceApi.getSchemaByName(expression.getFrom());
+        ISchema schema = this.dataSourceApi.getSchemaByName(expression.getFrom());
         IColumn metricSpec = schema.getColumnByName(expression.getSelect().getName());
 
         GeneralQueryRequest request = GeneralQueryRequest.builder()

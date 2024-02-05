@@ -33,6 +33,7 @@ import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
 import javax.validation.constraints.NotNull;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
@@ -84,7 +85,7 @@ public class AbstractBaselinePredicate implements IMetricEvaluator {
                                       TimeSpan end,
                                       String filterExpression,
                                       List<String> groupBy,
-                                      EvaluationContext context) {
+                                      EvaluationContext context) throws IOException {
 
         GeneralQueryResponse response = dataSourceApi.groupBy(GeneralQueryRequest.builder()
                                                                                  .dataSource(dataSource)
