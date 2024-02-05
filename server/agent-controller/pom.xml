@@ -9,8 +9,8 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>agent-controller</artifactId>
-  <name>agent-controller</name>
+  <artifactId>server-agent-controller</artifactId>
+  <name>server-agent-controller</name>
   <description>Bithon Agent Controller</description>
 
   <properties>

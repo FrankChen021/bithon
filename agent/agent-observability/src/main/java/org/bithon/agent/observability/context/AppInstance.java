@@ -16,6 +16,7 @@
 
 package org.bithon.agent.observability.context;
 
+import org.bithon.agent.config.AppConfig;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.observability.utils.NetworkUtils;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -32,7 +33,7 @@ import java.util.List;
  */
 public class AppInstance {
 
-    private static final AppInstance INSTANCE = new AppInstance(ConfigurationManager.getInstance().getConfig(AppConfiguration.class));
+    private static final AppInstance INSTANCE = new AppInstance(ConfigurationManager.getInstance().getConfig(AppConfig.class));
 
     private final String appName;
     private final String qualifiedAppName;
@@ -42,20 +43,20 @@ public class AppInstance {
     private int port;
     private String hostAndPort;
 
-    private AppInstance(AppConfiguration appConfiguration) {
-        this.appName = appConfiguration.getName();
-        this.qualifiedAppName = appName + "-" + appConfiguration.getEnv();
-        this.env = appConfiguration.getEnv();
-        this.port = appConfiguration.getPort();
+    private AppInstance(AppConfig appConfig) {
+        this.appName = appConfig.getName();
+        this.qualifiedAppName = appName + "-" + appConfig.getEnv();
+        this.env = appConfig.getEnv();
+        this.port = appConfig.getPort();
 
-        if (StringUtils.isEmpty(appConfiguration.getInstance())) {
+        if (StringUtils.isEmpty(appConfig.getInstance())) {
             NetworkUtils.IpAddress ipAddress = NetworkUtils.getIpAddress();
             InetAddress address = null != ipAddress.getInetAddress()
                                   ? ipAddress.getInetAddress()
                                   : ipAddress.getLocalInetAddress();
             this.hostIp = address.getHostAddress();
         } else {
-            this.hostIp = appConfiguration.getInstance();
+            this.hostIp = appConfig.getInstance();
         }
 
         this.hostAndPort = this.port > 0 ? hostIp + ":" + this.port : hostIp;

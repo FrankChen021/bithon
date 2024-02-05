@@ -29,12 +29,17 @@ import java.util.Map;
  * @date 2021/8/7 10:37
  */
 public class Validator {
+    /**
+     * Validate the rules declared on each field
+     */
     public static String validate(String prefix, Object obj) {
 
         Map<String, IValueValidator> validators = new HashMap<String, IValueValidator>() {{
             put(NotBlank.class.getName(), new NotBlankValidator());
             put(Range.class.getName(), new RangeValidator());
             put(GreaterThan.class.getName(), new GreaterThanValidator());
+
+            // Validated is declared on an object, validate the object recursively
             put(Validated.class.getName(), (annotation, objectType, property, value) -> validate(property, value));
         }};
 

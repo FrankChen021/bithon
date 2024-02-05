@@ -16,6 +16,8 @@
 
 package org.bithon.agent.observability.dispatcher.config;
 
+import org.bithon.agent.config.RpcClientConfig;
+
 import java.util.Collections;
 import java.util.Map;
 
@@ -49,7 +51,7 @@ public class DispatcherConfig {
 
     private String servers;
 
-    private DispatcherClient client;
+    private RpcClientConfig client;
 
     /**
      * The size of a batch that messages are bundled to send.
@@ -72,11 +74,11 @@ public class DispatcherConfig {
         this.servers = servers;
     }
 
-    public DispatcherClient getClient() {
+    public RpcClientConfig getClient() {
         return client;
     }
 
-    public void setClient(DispatcherClient client) {
+    public void setClient(RpcClientConfig client) {
         this.client = client;
     }
 

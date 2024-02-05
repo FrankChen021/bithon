@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller.config;
+package org.bithon.agent.configuration;
 
 import java.util.Set;
 

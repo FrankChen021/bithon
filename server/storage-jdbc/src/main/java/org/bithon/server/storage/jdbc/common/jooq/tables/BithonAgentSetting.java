@@ -17,7 +17,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row6;
+import org.jooq.Row7;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -32,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
 
-    private static final long serialVersionUID = -39706613;
+    private static final long serialVersionUID = -1060097659;
 
     /**
      * The reference instance of <code>bithon_agent_setting</code>
@@ -58,6 +58,11 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
     public final TableField<BithonAgentSettingRecord, String> APPNAME = createField(DSL.name("appName"), org.jooq.impl.SQLDataType.VARCHAR(128).nullable(false), this, "");
 
     /**
+     * The column <code>bithon_agent_setting.environment</code>.
+     */
+    public final TableField<BithonAgentSettingRecord, String> ENVIRONMENT = createField(DSL.name("environment"), org.jooq.impl.SQLDataType.VARCHAR(128).nullable(false), this, "");
+
+    /**
      * The column <code>bithon_agent_setting.settingName</code>.
      */
     public final TableField<BithonAgentSettingRecord, String> SETTINGNAME = createField(DSL.name("settingName"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
@@ -68,9 +73,9 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
     public final TableField<BithonAgentSettingRecord, String> SETTING = createField(DSL.name("setting"), org.jooq.impl.SQLDataType.CLOB, this, "Setting text");
 
     /**
-     * The column <code>bithon_agent_setting.format</code>. Format of the Setting, can be either json or yaml
+     * The column <code>bithon_agent_setting.format</code>. Format of the Setting, can be either "json" or "yaml"
      */
-    public final TableField<BithonAgentSettingRecord, String> FORMAT = createField(DSL.name("format"), org.jooq.impl.SQLDataType.VARCHAR(16).nullable(false), this, "Format of the Setting, can be either json or yaml");
+    public final TableField<BithonAgentSettingRecord, String> FORMAT = createField(DSL.name("format"), org.jooq.impl.SQLDataType.VARCHAR(16).nullable(false), this, "Format of the Setting, can be either \"json\" or \"yaml\"");
 
     /**
      * The column <code>bithon_agent_setting.updatedAt</code>.
@@ -152,11 +157,11 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row6 type methods
+    // Row7 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row6<LocalDateTime, String, String, String, String, LocalDateTime> fieldsRow() {
-        return (Row6) super.fieldsRow();
+    public Row7<LocalDateTime, String, String, String, String, String, LocalDateTime> fieldsRow() {
+        return (Row7) super.fieldsRow();
     }
 }

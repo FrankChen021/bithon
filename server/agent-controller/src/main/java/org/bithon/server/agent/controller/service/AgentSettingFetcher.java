@@ -22,7 +22,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.component.commons.utils.SupplierUtils;
 import org.bithon.server.storage.setting.ISettingReader;
 
@@ -57,11 +56,7 @@ public class AgentSettingFetcher implements ISettingFetcher {
     }
 
     private Map<String, String> getConfiguration(String appName, String env, long since) {
-        if (StringUtils.hasText(env)) {
-            appName += "-" + env;
-        }
-
-        List<ISettingReader.SettingEntry> settings = reader.getSettings(appName, since);
+        List<ISettingReader.SettingEntry> settings = reader.getSettings(appName, env, since);
 
         Map<String, String> map = new HashMap<>();
         for (ISettingReader.SettingEntry record : settings) {
