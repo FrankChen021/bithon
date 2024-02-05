@@ -55,4 +55,6 @@ tracing:
       samplingRate: 1
     kafka-consumer:
       samplingRate: 1
+    grpc:
+      samplingRate: 1
   traceResponseHeader: "X-Bithon-Trace"
