@@ -91,6 +91,7 @@
                 <configuration>
                     <ignoredUnusedDeclaredDependencies>
                         <dependency>javax.annotation:javax.annotation-api</dependency>
+                        <dependency>io.grpc:grpc-netty-shaded</dependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
