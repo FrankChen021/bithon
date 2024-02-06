@@ -139,6 +139,11 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
 
     @Override
     public void start() {
+        if (!this.pipelineConfig.isEnabled()) {
+            getLogger().info("Pipeline is not enabled.");
+            return;
+        }
+
         this.registerProcessor();
 
         getLogger().info("Starting exporters of process pipeline");
@@ -160,6 +165,10 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
 
     @Override
     public void stop() {
+        if (!this.pipelineConfig.isEnabled()) {
+            return;
+        }
+
         // Stop the receiver first
         getLogger().info("Stopping receivers of process pipeline...");
         for (IReceiver receiver : this.receivers) {
@@ -170,8 +179,7 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
         for (IExporter exporter : this.exporters) {
             try {
                 exporter.stop();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            } catch (Exception ignored) {
             }
         }
     }
