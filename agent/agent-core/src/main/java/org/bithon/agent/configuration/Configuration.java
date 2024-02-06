@@ -20,7 +20,6 @@ import org.bithon.agent.configuration.validation.Validator;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.com.fasterxml.jackson.core.JsonProcessingException;
-import org.bithon.shaded.com.fasterxml.jackson.databind.DeserializationFeature;
 import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.shaded.com.fasterxml.jackson.databind.SerializationFeature;
@@ -142,9 +141,8 @@ public class Configuration {
         }
 
         try {
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-            return mapper.readTree(configStream);
+            return ObjectMapperConfigurer.configure(mapper)
+                                         .readTree(configStream);
         } catch (IOException e) {
             throw new AgentException("Failed to read property from static file[%s]:%s",
                                      configFileFormat,
@@ -201,11 +199,10 @@ public class Configuration {
             userProperties.append('\n');
         }
         JavaPropsMapper mapper = new JavaPropsMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
 
         try {
-            return mapper.readTree(userProperties.toString());
+            return ObjectMapperConfigurer.configure(mapper)
+                                         .readTree(userProperties.toString());
         } catch (IOException e) {
             throw new AgentException("Failed to read property user configuration:%s",
                                      e.getMessage());
@@ -321,14 +318,10 @@ public class Configuration {
     }
 
     private <T> T getConfig(String prefixes, JsonNode configurationNode, Class<T> clazz) {
-
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-
         T value;
         try {
-            value = mapper.convertValue(configurationNode, clazz);
+            value = ObjectMapperConfigurer.configure(new ObjectMapper())
+                                          .convertValue(configurationNode, clazz);
         } catch (IllegalArgumentException e) {
             throw new AgentException(e,
                                      "Unable to read type of [%s] from configuration: %s",

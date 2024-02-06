@@ -46,15 +46,15 @@ tracing:
     response: ["Content-Length", "X-ClickHouse-Exception-Code", "X-ClickHouse-Summary", "X-ClickHouse-Query-Id", "X-ClickHouse-Server-Display-Name"]
   samplingConfigs:
     default:
-      samplingRate: 1
+      samplingPercentage: 1%
     brpc:
-      samplingRate: 1
+      samplingPercentage: 1%
     quartz:
-      samplingRate: 1
+      samplingPercentage: 1%
     spring-scheduler:
-      samplingRate: 1
+      samplingPercentage: 1%
     kafka-consumer:
-      samplingRate: 1
+      samplingPercentage: 1%
     grpc:
-      samplingRate: 1
+      samplingPercentage: 1%
   traceResponseHeader: "X-Bithon-Trace"

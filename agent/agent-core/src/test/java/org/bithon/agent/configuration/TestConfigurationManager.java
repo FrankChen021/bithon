@@ -16,6 +16,7 @@
 
 package org.bithon.agent.configuration;
 
+import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
@@ -35,12 +36,15 @@ public class TestConfigurationManager {
         private int a;
         private int b;
 
+        private HumanReadablePercentage percentage;
+
         public TestConfig() {
         }
 
-        public TestConfig(int a, int b) {
+        public TestConfig(int a, int b, String p) {
             this.a = a;
             this.b = b;
+            this.percentage = HumanReadablePercentage.parse(p);
         }
 
         public int getA() {
@@ -58,22 +62,35 @@ public class TestConfigurationManager {
         public void setB(int b) {
             this.b = b;
         }
+
+        public HumanReadablePercentage getPercentage() {
+            return percentage;
+        }
+
+        public void setPercentage(HumanReadablePercentage percentage) {
+            this.percentage = percentage;
+        }
     }
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = ObjectMapperConfigurer.configure(new ObjectMapper());
 
     @Test
     public void test() throws IOException {
-        JsonNode json = objectMapper.readTree(objectMapper.writeValueAsBytes(Collections.singletonMap("test", new TestConfig(1, 7))));
+        JsonNode json = objectMapper.readTree(objectMapper.writeValueAsBytes(Collections.singletonMap("test", new TestConfig(1, 7, "8%"))));
         ConfigurationManager manager = ConfigurationManager.create(new Configuration(json));
 
         TestConfig testConfig = manager.getConfig(TestConfig.class);
         Assert.assertEquals(1, testConfig.getA());
         Assert.assertEquals(7, testConfig.getB());
+        Assert.assertEquals("8%", testConfig.getPercentage().toString());
 
-        JsonNode json2 = objectMapper.readTree(objectMapper.writeValueAsBytes(Collections.singletonMap("test", new TestConfig(2, 8))));
+        //
+        // Use new value to refresh the old one
+        //
+        JsonNode json2 = objectMapper.readTree(objectMapper.writeValueAsBytes(Collections.singletonMap("test", new TestConfig(2, 8, "500%"))));
         manager.refresh(new Configuration(json2));
         Assert.assertEquals(2, testConfig.getA());
         Assert.assertEquals(8, testConfig.getB());
+        Assert.assertEquals(5, testConfig.getPercentage().intValue());
     }
 }
