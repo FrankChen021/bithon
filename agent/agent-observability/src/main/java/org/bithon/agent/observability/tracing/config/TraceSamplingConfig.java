@@ -16,6 +16,7 @@
 
 package org.bithon.agent.observability.tracing.config;
 
+import org.bithon.agent.configuration.validation.Range;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 
 /**
@@ -23,6 +24,23 @@ import org.bithon.component.commons.utils.HumanReadablePercentage;
  * @date 2023/1/7 20:27
  */
 public class TraceSamplingConfig {
+    /**
+     * in range of [0, 100]
+     * This is only kept for backward compatibility
+     */
+    @Deprecated()
+    @Range(min = 0, max = 100)
+    private int samplingRate = 0;
+
+    public int getSamplingRate() {
+        return samplingRate;
+    }
+
+    public void setSamplingRate(int samplingRate) {
+        this.samplingRate = samplingRate;
+        this.setSamplingPercentage(new HumanReadablePercentage(samplingRate / 100.0));
+    }
+
     /**
      * The minimum is 0.001%, that is 0.00001
      */
