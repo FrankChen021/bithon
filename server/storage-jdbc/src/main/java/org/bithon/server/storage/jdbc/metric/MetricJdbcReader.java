@@ -43,6 +43,7 @@ import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -51,6 +52,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class MetricJdbcReader implements IDataSourceReader {
+    private static final AtomicInteger SEQUENCE = new AtomicInteger();
 
     private static final String TIMESTAMP_ALIAS_NAME = "_timestamp";
 
@@ -66,7 +68,8 @@ public class MetricJdbcReader implements IDataSourceReader {
         jdbcDataSource.setUrl((String) Preconditions.checkNotNull(props.get("url"), "Missing url property for %s", name));
         jdbcDataSource.setUsername((String) Preconditions.checkNotNull(props.get("username"), "Missing userName property for %s", name));
         jdbcDataSource.setPassword((String) Preconditions.checkNotNull(props.get("password"), "Missing password property for %s", name));
-        jdbcDataSource.setName(name);
+        // Make sure the name is unique to avoid exception thrown when closing the data source
+        jdbcDataSource.setName(name + "-" + SEQUENCE.getAndIncrement());
         jdbcDataSource.setTestWhileIdle(false);
         jdbcDataSource.setAsyncInit(false);
         jdbcDataSource.setMaxWait(5_000);
