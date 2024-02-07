@@ -73,8 +73,8 @@ public class SentinelRuleManager {
 
     private SentinelRuleManager() {
         ConfigurationManager manager = ConfigurationManager.getInstance();
-        manager.addConfigurationChangeListener(new FlowRuleChangedListener());
-        manager.addConfigurationChangeListener(new DegradingRuleChangedListener());
+        manager.addConfigurationChangedListener("flowRules", new FlowRuleChangedListener());
+        manager.addConfigurationChangedListener("degradingRules", new DegradingRuleChangedListener());
 
         refreshFlowRules();
         refreshDegradingRule();
@@ -484,19 +484,15 @@ public class SentinelRuleManager {
 
     class FlowRuleChangedListener implements IConfigurationChangedListener {
         @Override
-        public void onChange(Set<String> keys) {
-            if (keys.contains("flowRules")) {
-                refreshFlowRules();
-            }
+        public void onChange() {
+            refreshFlowRules();
         }
     }
 
     class DegradingRuleChangedListener implements IConfigurationChangedListener {
         @Override
-        public void onChange(Set<String> keys) {
-            if (keys.contains("degradingRules")) {
-                refreshDegradingRule();
-            }
+        public void onChange() {
+            refreshDegradingRule();
         }
     }
 }

@@ -50,7 +50,7 @@ public class DynamicInstrumentationService implements IAgentService, IConfigurat
 
     @Override
     public void start() throws Exception {
-        ConfigurationManager.getInstance().addConfigurationChangeListener(this);
+        ConfigurationManager.getInstance().addConfigurationChangedListener("tracing.instrumentation.methods", this);
     }
 
     @Override
@@ -58,11 +58,7 @@ public class DynamicInstrumentationService implements IAgentService, IConfigurat
     }
 
     @Override
-    public void onChange(Set<String> keys) {
-        if (!keys.contains("tracing.instrumentation.methods")) {
-            return;
-        }
-
+    public void onChange() {
         if (uninstaller != null) {
             LOG.info("Instrumentation methods changed, uninstalling interceptors first...");
             uninstaller.uninstall();

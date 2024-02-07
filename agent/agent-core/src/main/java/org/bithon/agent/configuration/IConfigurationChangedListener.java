@@ -16,8 +16,6 @@
 
 package org.bithon.agent.configuration;
 
-import java.util.Set;
-
 /**
  * @author frankchen
  * @date 2020-05-27 14:41:22
@@ -26,5 +24,5 @@ public interface IConfigurationChangedListener {
     /**
      * @param keys changes keys
      */
-    void onChange(Set<String> keys);
+    void onChange();
 }
