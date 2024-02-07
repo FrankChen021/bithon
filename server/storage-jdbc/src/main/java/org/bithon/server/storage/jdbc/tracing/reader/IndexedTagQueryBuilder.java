@@ -44,7 +44,6 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
             return null;
         }
 
-        Expression2Sql expression2Sql = new Expression2Sql(null, sqlDialect);
         SelectConditionStep<Record1<String>> query = null;
         for (IExpression filter : filters) {
             if (query == null) {
@@ -57,7 +56,7 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
             // NOTE:
             // instantiate the TagFilterSerializer for each loop
             // because it internally holds some states for each 'serialize' method call
-            query = query.and(expression2Sql.serialize(filter));
+            query = query.and(new Expression2Sql(null, sqlDialect).serialize(filter));
         }
 
         if (query != null) {
