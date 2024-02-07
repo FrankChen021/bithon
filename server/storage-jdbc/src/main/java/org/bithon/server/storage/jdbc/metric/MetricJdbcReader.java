@@ -35,6 +35,7 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
+import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqProperties;
@@ -66,13 +67,17 @@ public class MetricJdbcReader implements IDataSourceReader {
         jdbcDataSource.setUsername((String) Preconditions.checkNotNull(props.get("username"), "Missing userName property for %s", name));
         jdbcDataSource.setPassword((String) Preconditions.checkNotNull(props.get("password"), "Missing password property for %s", name));
         jdbcDataSource.setName(name);
+        jdbcDataSource.setTestWhileIdle(false);
+        jdbcDataSource.setAsyncInit(false);
+        jdbcDataSource.setMaxWait(5_000);
+        jdbcDataSource.setMaxCreateTaskCount(2);
 
         // Create a new one
         JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
         this.dslContext = DSL.using(new DefaultConfiguration()
-                                 .set(autoConfiguration.dataSourceConnectionProvider(jdbcDataSource))
-                                 .set(new JooqProperties().determineSqlDialect(jdbcDataSource))
-                                 .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
+                                        .set(new DataSourceConnectionProvider(jdbcDataSource))
+                                        .set(new JooqProperties().determineSqlDialect(jdbcDataSource))
+                                        .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
 
         this.sqlDialect = sqlDialect;
         this.shouldCloseContext = true;
@@ -272,6 +277,11 @@ public class MetricJdbcReader implements IDataSourceReader {
     @Override
     public void close() {
         if (this.shouldCloseContext) {
+            try {
+                DataSourceConnectionProvider cp = (DataSourceConnectionProvider) this.dslContext.configuration().connectionProvider();
+                ((DruidDataSource) cp.dataSource()).close();
+            } catch (Exception ignored) {
+            }
             this.dslContext.close();
         }
     }
