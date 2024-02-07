@@ -35,8 +35,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -78,7 +76,7 @@ public class AgentProxyApi implements IAgentProxyApi {
                                                                 instance.setAppName(session.getRemoteApplicationName());
                                                                 instance.setInstance(session.getRemoteAttribute(Headers.HEADER_APP_ID, session.getRemoteEndpoint()));
                                                                 instance.setEndpoint(session.getRemoteEndpoint());
-                                                                instance.setCollector(session.getLocalEndpoint());
+                                                                instance.setController(session.getLocalEndpoint());
                                                                 instance.setAgentVersion(session.getRemoteAttribute(Headers.HEADER_VERSION));
                                                                 long start = 0;
                                                                 try {
@@ -92,44 +90,41 @@ public class AgentProxyApi implements IAgentProxyApi {
     }
 
     @Override
-    public byte[] proxy(@RequestParam(name = INSTANCE_FIELD) String instance,
-                        @RequestParam(name = "token") String token,
-                        @RequestBody byte[] body) throws IOException {
-
+    public byte[] proxy(String token, String instance, Integer timeout, byte[] rawMessage) throws IOException {
         // Get the session first
         BrpcServer.Session agentSession = agentControllerServer.getBrpcServer().getSession(instance);
 
         //
         // Parse input request stream
         //
-        CodedInputStream input = CodedInputStream.newInstance(body);
-        input.pushLimit(body.length);
-        ServiceRequestMessageIn fromClient = ServiceRequestMessageIn.from(input);
+        CodedInputStream input = CodedInputStream.newInstance(rawMessage);
+        input.pushLimit(rawMessage.length);
+        ServiceRequestMessageIn rawRequest = ServiceRequestMessageIn.from(input);
 
         // Verify if the given token matches
         // By default if a method that starts with 'get' or 'dump' will be seen as a READ method that requires no permission check.
-        if (!fromClient.getMethodName().startsWith("get") && !fromClient.getMethodName().startsWith("dump")) {
+        if (!rawRequest.getMethodName().startsWith("get") && !rawRequest.getMethodName().startsWith("dump")) {
             permissionConfig.verifyPermission(objectMapper, agentSession.getRemoteApplicationName(), token);
         }
 
         // Turn the input request stream to the request that is going to send to remote
         ServiceRequestMessageOut toTarget = ServiceRequestMessageOut.builder()
-                                                                    .applicationName(fromClient.getApplicationName())
-                                                                    .headers(fromClient.getHeaders())
+                                                                    .applicationName(rawRequest.getApplicationName())
+                                                                    .headers(rawRequest.getHeaders())
                                                                     .isOneway(false)
-                                                                    .messageType(fromClient.getMessageType())
-                                                                    .serviceName(fromClient.getServiceName())
-                                                                    .methodName(fromClient.getMethodName())
-                                                                    .transactionId(fromClient.getTransactionId())
-                                                                    .serializer(fromClient.getSerializer())
-                                                                    .rawArgs(fromClient.getRawArgs())
+                                                                    .messageType(rawRequest.getMessageType())
+                                                                    .serviceName(rawRequest.getServiceName())
+                                                                    .methodName(rawRequest.getMethodName())
+                                                                    .transactionId(rawRequest.getTransactionId())
+                                                                    .serializer(rawRequest.getSerializer())
+                                                                    .rawArgs(rawRequest.getRawArgs())
                                                                     .build();
 
         // Forwarding the request to agent and wait for response
         ServiceResponseMessageOut.Builder responseBuilder = ServiceResponseMessageOut.builder()
-                                                                                     .txId(fromClient.getTransactionId());
+                                                                                     .txId(rawRequest.getTransactionId());
         try {
-            responseBuilder.returningRaw(agentSession.getLowLevelInvoker().invoke(toTarget, 30_000));
+            responseBuilder.returningRaw(agentSession.getLowLevelInvoker().invoke(toTarget, timeout == null ? 30_000 : timeout));
         } catch (Throwable e) {
             responseBuilder.exception(e);
         } finally {

@@ -118,7 +118,7 @@ public class AgentServiceProxyFactory {
             this.proxyServiceName = proxyServiceName;
             this.brpcServiceInvoker = brpcServiceInvoker;
 
-            // Make sure the context is modifiable because we' going to add token into the context
+            // Make sure the context is modifiable because we're going to add token into the context
             this.context = new TreeMap<>(context);
         }
 
@@ -139,11 +139,11 @@ public class AgentServiceProxyFactory {
                 context.put("X-Bithon-Token", authentication.getCredentials());
             }
 
-            // Get all instances first
+            // Get all service provider instance from the service discovery center
             List<IDiscoveryClient.HostAndPort> proxyServerList = serviceDiscoveryClient.getInstanceList(proxyServiceName);
 
             //
-            // Invoke remote service on each instance
+            // Invoke remote service on each proxy server
             //
             List<Future<Collection<?>>> futures = new ArrayList<>(proxyServerList.size());
             for (IDiscoveryClient.HostAndPort proxyServer : proxyServerList) {
@@ -177,7 +177,7 @@ public class AgentServiceProxyFactory {
             List mergedRows = new ArrayList<>();
 
             //
-            // Merge the result together
+            // Merge the result
             //
             for (Future<Collection<?>> future : futures) {
                 try {
@@ -254,8 +254,9 @@ public class AgentServiceProxyFactory {
                                                                              .target(IAgentProxyApi.class, "http://" + proxyHost.getHost() + ":" + proxyHost.getPort());
 
                                               try {
-                                                  return proxyApi.proxy((String) context.getOrDefault(IAgentProxyApi.INSTANCE_FIELD, ""),
-                                                                        (String) context.getOrDefault("_token", ""),
+                                                  return proxyApi.proxy((String) context.getOrDefault("_token", ""),
+                                                                        (String) context.getOrDefault(IAgentProxyApi.INSTANCE_FIELD, ""),
+                                                                        30_000,
                                                                         message);
                                               } catch (IOException e) {
                                                   throw new RuntimeException(e);
