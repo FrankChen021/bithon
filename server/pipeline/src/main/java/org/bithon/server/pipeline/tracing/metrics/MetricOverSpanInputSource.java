@@ -209,5 +209,10 @@ public class MetricOverSpanInputSource implements IInputSource {
 
             return metricMessage;
         }
+
+        @Override
+        public String toString() {
+            return "MetricOverSpanInputSource[" + this.schema.getName() + "]";
+        }
     }
 }
