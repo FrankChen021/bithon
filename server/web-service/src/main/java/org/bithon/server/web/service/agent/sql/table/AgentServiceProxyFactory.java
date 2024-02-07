@@ -157,7 +157,7 @@ public class AgentServiceProxyFactory {
                                                                          agentServiceMethod,
                                                                          args);
                     } catch (HttpMappableException e) {
-                        if (SessionNotFoundException.class.getName().equals(e.getException())) {
+                        if (SessionNotFoundException.class.getName().equals(e.getCauseExceptionClass())) {
                             // We're issuing broadcast invocations on all proxy servers,
                             // but there will be only one proxy server that connects to the target agent instance.
                             // For any other proxy servers, a SessionNotFoundException is thrown which should be ignored.

@@ -28,7 +28,7 @@ public class TraceSamplingConfig {
      * in range of [0, 100]
      * This is only kept for backward compatibility
      */
-    @Deprecated()
+    @Deprecated
     @Range(min = 0, max = 100)
     private int samplingRate = 0;
 

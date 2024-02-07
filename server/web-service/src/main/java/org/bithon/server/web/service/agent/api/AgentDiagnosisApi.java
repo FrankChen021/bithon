@@ -34,7 +34,7 @@ import org.apache.calcite.sql.validate.SqlValidatorException;
 import org.apache.calcite.util.NlsString;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
+import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.agent.sql.AgentSchema;
@@ -70,13 +70,13 @@ public class AgentDiagnosisApi {
     private final SqlExecutionEngine sqlExecutionEngine;
     private final ObjectMapper objectMapper;
 
-    public AgentDiagnosisApi(ServiceBroadcastInvoker serviceBroadcastInvoker,
+    public AgentDiagnosisApi(DiscoveredServiceInvoker discoveredServiceInvoker,
                              SqlExecutionEngine sqlExecutionEngine,
                              ObjectMapper objectMapper,
                              ApplicationContext applicationContext) {
         this.objectMapper = objectMapper;
         this.sqlExecutionEngine = sqlExecutionEngine;
-        this.sqlExecutionEngine.addSchema("agent", new AgentSchema(serviceBroadcastInvoker, applicationContext));
+        this.sqlExecutionEngine.addSchema("agent", new AgentSchema(discoveredServiceInvoker, applicationContext));
     }
 
     @PostMapping(value = "/api/agent/query")

@@ -16,7 +16,7 @@
 
 package org.bithon.server.web.service.agent.sql.table;
 
-import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
+import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
@@ -31,8 +31,8 @@ import java.util.stream.Collectors;
 public class InstanceTable extends AbstractBaseTable {
     private final IAgentProxyApi impl;
 
-    public InstanceTable(ServiceBroadcastInvoker invoker) {
-        this.impl = invoker.create(IAgentProxyApi.class);
+    public InstanceTable(DiscoveredServiceInvoker invoker) {
+        this.impl = invoker.createBroadcastApi(IAgentProxyApi.class);
     }
 
     @Override

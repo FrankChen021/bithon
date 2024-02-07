@@ -61,7 +61,7 @@ public interface IAgentProxyApi {
     String INSTANCE_FIELD = "instance";
 
     /**
-     * Proxy Brpc services provided at agent side to allow them to be used over HTTP.
+     * Proxy Brpc services provided at agent side over HTTP.
      *
      * @param instance          the target client instance that the request will be sent to.
      * @param token             For WRITE operations (the method name does not start with 'get' or 'dump'), the token is required.
@@ -69,7 +69,7 @@ public interface IAgentProxyApi {
      * @param suppressException suppress the
      */
     @PostMapping("/api/agent/service/proxy")
-    byte[] proxy(@RequestHeader(name = "token") String token,
+    byte[] proxy(@RequestHeader(name = "token", required = false) String token,
                  @RequestParam(name = INSTANCE_FIELD) String instance,
                  @RequestParam(name = "timeout", required = false) Integer timeout,
                  @RequestBody byte[] rawMessage) throws IOException;

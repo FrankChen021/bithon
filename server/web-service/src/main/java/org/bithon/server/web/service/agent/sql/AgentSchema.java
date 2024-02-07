@@ -19,7 +19,7 @@ package org.bithon.server.web.service.agent.sql;
 import com.google.common.collect.ImmutableMap;
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.schema.impl.AbstractSchema;
-import org.bithon.server.discovery.client.ServiceBroadcastInvoker;
+import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.web.service.agent.sql.table.AgentServiceProxyFactory;
 import org.bithon.server.web.service.agent.sql.table.ClassTable;
 import org.bithon.server.web.service.agent.sql.table.ConfigurationTable;
@@ -39,7 +39,7 @@ import java.util.Map;
 public class AgentSchema extends AbstractSchema {
     private final ImmutableMap<String, Table> tableMap;
 
-    public AgentSchema(ServiceBroadcastInvoker serviceInvoker, ApplicationContext applicationContext) {
+    public AgentSchema(DiscoveredServiceInvoker serviceInvoker, ApplicationContext applicationContext) {
         AgentServiceProxyFactory agentServiceProxyFactory = new AgentServiceProxyFactory(serviceInvoker.getDiscoveryClient(),
                                                                                          serviceInvoker.getExecutor(),
                                                                                          applicationContext);
