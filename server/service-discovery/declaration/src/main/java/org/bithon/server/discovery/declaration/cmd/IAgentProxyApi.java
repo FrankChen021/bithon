@@ -22,6 +22,7 @@ import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
@@ -45,12 +46,12 @@ public interface IAgentProxyApi {
         public String appName;
         public String instance;
         public String endpoint;
-        public String collector;
+        public String controller;
         public String agentVersion;
         public LocalDateTime startAt;
 
         public Object[] toObjectArray() {
-            return new Object[]{appName, instance, endpoint, collector, agentVersion, startAt};
+            return new Object[]{appName, instance, endpoint, controller, agentVersion, startAt};
         }
     }
 
@@ -60,13 +61,16 @@ public interface IAgentProxyApi {
     String INSTANCE_FIELD = "instance";
 
     /**
-     * Proxy Brpc services provided at agent side to allow them to be used over HTTP.
+     * Proxy Brpc services provided at agent side over HTTP.
      *
-     * @param instance the target client instance that the request will be sent to.
-     * @param token    For WRITE operations(the method name does not start with 'get' or 'dump'), the token is required.
+     * @param instance          the target client instance that the request will be sent to.
+     * @param token             For WRITE operations (the method name does not start with 'get' or 'dump'), the token is required.
+     * @param timeout           timeout value in milliseconds
+     * @param suppressException suppress the
      */
     @PostMapping("/api/agent/service/proxy")
-    byte[] proxy(@RequestParam(name = INSTANCE_FIELD) String instance,
-                 @RequestParam(name = "token") String token,
-                 @RequestBody byte[] body) throws IOException;
+    byte[] proxy(@RequestHeader(name = "token", required = false) String token,
+                 @RequestParam(name = INSTANCE_FIELD) String instance,
+                 @RequestParam(name = "timeout", required = false) Integer timeout,
+                 @RequestBody byte[] rawMessage) throws IOException;
 }

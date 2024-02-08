@@ -17,6 +17,9 @@
 package org.bithon.agent.observability.tracing.context.propagation;
 
 import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.propagation.b3.B3Extractor;
+import org.bithon.agent.observability.tracing.context.propagation.pinpoint.PinpointExtractor;
+import org.bithon.agent.observability.tracing.context.propagation.w3c.W3CTraceContextExtractor;
 import org.bithon.agent.observability.tracing.context.propagation.w3c.W3CTraceContextInjector;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 
@@ -33,7 +36,7 @@ public class DefaultPropagator implements ITracePropagator {
     private final ITraceContextExtractor extractor;
 
     public DefaultPropagator(ISampler sampler) {
-        extractor = new ChainedTraceContextExtractor(sampler);
+        extractor = new ChainedTraceContextExtractor(sampler, new W3CTraceContextExtractor(), new B3Extractor(), new PinpointExtractor());
     }
 
     @Override

@@ -34,7 +34,6 @@ public class PercentageSampler implements ISampler {
     /**
      * Holding SamplingConfig object so that it supports dynamic configuration
      *
-     * @param samplingConfig [1, 100]
      */
     public PercentageSampler(TraceSamplingConfig samplingConfig) {
         this.samplingConfig = samplingConfig;
@@ -42,16 +41,16 @@ public class PercentageSampler implements ISampler {
 
     @Override
     public SamplingMode decideSamplingMode(Object request) {
-        int samplingRate = samplingConfig.getSamplingRate();
+        int samplingRate = samplingConfig.getRate();
 
         if (samplingRate <= 0) {
             return SamplingMode.NONE;
         }
-        if (samplingRate >= 100) {
+        if (samplingRate >= TraceSamplingConfig.PRECISION_MULTIPLIER) {
             return SamplingMode.FULL;
         }
 
-        long reminder = MathUtils.floorMod(counter.addAndGet(samplingRate), 100);
+        long reminder = MathUtils.floorMod(counter.addAndGet(samplingRate), TraceSamplingConfig.PRECISION_MULTIPLIER);
         return reminder > 0 && reminder <= samplingRate ? SamplingMode.FULL : SamplingMode.NONE;
     }
 }

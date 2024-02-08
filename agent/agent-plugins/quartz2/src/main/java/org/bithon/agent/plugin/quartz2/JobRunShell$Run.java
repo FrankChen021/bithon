@@ -21,12 +21,12 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.observability.tracing.context.propagation.ChainedTraceContextExtractor;
+import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
@@ -44,14 +44,21 @@ import java.lang.reflect.Field;
 public class JobRunShell$Run extends AroundInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(JobRunShell$Run.class);
 
-    private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
-                                                                                      .getDynamicConfig("tracing.samplingConfigs.quartz",
-                                                                                                        TraceSamplingConfig.class));
+    private final ITraceContextExtractor extractor;
+
+    public JobRunShell$Run() {
+        ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
+                                                                            .getDynamicConfig("tracing.samplingConfigs.quartz",
+                                                                                              TraceSamplingConfig.class));
+        this.extractor = new ChainedTraceContextExtractor(sampler);
+    }
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceContext context = TraceContextFactory.create(sampler.decideSamplingMode(null),
-                                                           Tracer.get().traceIdGenerator().newTraceId());
+        ITraceContext context = this.extractor.extract(null, null);
+        if (context == null) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
 
         aopContext.setUserContext(context.currentSpan()
                                          .component("quartz")

@@ -30,7 +30,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,17 +82,16 @@ public class ConfigurationManager {
     /**
      * the value in the map is actually a dynamic type of {@link IDelegation}
      */
-    private final Map<String, Object> delegatedBeans = new ConcurrentHashMap<>(19);
+    private final Map<String, Object> delegatedBeans = new ConcurrentHashMap<>(13);
 
-    private final List<IConfigurationChangedListener> listeners;
+    private final Map<String, IConfigurationChangedListener> listeners = new ConcurrentHashMap<>(13);
 
     private ConfigurationManager(Configuration configuration) {
         this.configuration = configuration;
-        this.listeners = Collections.synchronizedList(new ArrayList<>());
     }
 
-    public void addConfigurationChangeListener(IConfigurationChangedListener listener) {
-        listeners.add(listener);
+    public void addConfigurationChangedListener(String keyPrefix, IConfigurationChangedListener listener) {
+        listeners.put(keyPrefix, listener);
     }
 
     /**
@@ -133,13 +131,17 @@ public class ConfigurationManager {
 
         //
         // Notify listeners about changes
-        // Copy a new one to iterate to avoid a concurrent problem
-        List<IConfigurationChangedListener> ls = new ArrayList<>(listeners);
-        for (IConfigurationChangedListener listener : ls) {
-            try {
-                listener.onChange(changedKeys);
-            } catch (Exception e) {
-                log.warn("Exception when refresh setting", e);
+        //
+        for (Map.Entry<String, IConfigurationChangedListener> entry : listeners.entrySet()) {
+            String watchedKey = entry.getKey();
+            IConfigurationChangedListener listener = entry.getValue();
+
+            if (changedKeys.contains(watchedKey)) {
+                try {
+                    listener.onChange();
+                } catch (Exception e) {
+                    log.warn("Exception when notify configuration change", e);
+                }
             }
         }
 

@@ -63,7 +63,7 @@ Say we want to disable the `webserver-tomcat` plugin, passing the following prop
 
 #### Agent Plugin Configuration
 
-Plugin configuration locates each plugin's resource directory with the name 'plugin.yml'q
+Plugin configuration locates each plugin's resource directory with the name 'plugin.yml'
 
 | configuration                                         | description                          | default | example     |
 |-------------------------------------------------------|--------------------------------------|---------|-------------|
@@ -72,15 +72,17 @@ Plugin configuration locates each plugin's resource directory with the name 'plu
 
 # Tracing Configurations
 
-| configuration                                         | description                                                                                     | default | example                                |
-|-------------------------------------------------------|-------------------------------------------------------------------------------------------------|---------|----------------------------------------|
-| tracing.samplingConfigs.default.samplingRate          | Percentage of incoming HTTP requests to be sampled. <br/>Value must be in the range of [0,100]. | 1       | 50(means 50% requests will be sampled) |
-| tracing.samplingConfigs.brpc.samplingRate             | Percentage of BRPC requests to be sampled. <br/>Value must be in the range of [0,100].          | 1       | 50(means 50% requests will be sampled) |
-| tracing.samplingConfigs.quartz.samplingRate           | Percentage of quartz jobs to be sampled. <br/>Value must be in the range of [0,100].            | 1       | 50(means 50% jobs will be sampled)     |
-| tracing.samplingConfigs.spring-scheduler.samplingRate | Percentage of spring scheduled jobs to be sampled. <br/>Value must be in the range of [0,100].  | 1       | 50(means 50% jobs will be sampled)     |
-| tracing.samplingConfigs.kafka-consumer.samplingRate   | Percentage of spring scheduled jobs to be sampled. <br/>Value must be in the range of [0,100].  | 1       | 50(means 50% jobs will be sampled)     |
-| tracing.debug                                         | Whether to enable the logging of span events.                                                   | false   |                                        |
-| tracing.traceIdInResponse                             | The header name in a HTTP response that contains the trace-id.                                  | null    |                                        |                                  
+| configuration                                               | description                                                                                                                                                                       | default           | example                                 |
+|-------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|-----------------------------------------|
+| tracing.samplingConfigs.default.samplingPercentage          | Percentage of incoming HTTP requests to be sampled. <br/>Zero or negative means no sampling, while 100% or above means all requests will be sampled. The minimum value is 0.001%. | 1%                | 50%(means 50% requests will be sampled) |
+| tracing.samplingConfigs.brpc.samplingPercentage             | Percentage of BRPC requests to be sampled.                                                                                                                                        | 1%                | 50%(means 50% requests will be sampled) |
+| tracing.samplingConfigs.quartz.samplingPercentage           | Percentage of quartz jobs to be sampled.                                                                                                                                          | 1%                | 50%(means 50% jobs will be sampled)     |
+| tracing.samplingConfigs.spring-scheduler.samplingPercentage | Percentage of spring scheduled jobs to be sampled.                                                                                                                                | 1%                | 50%(means 50% jobs will be sampled)     |
+| tracing.samplingConfigs.kafka-consumer.samplingPercentage   | Percentage of spring scheduled jobs to be sampled.                                                                                                                                | 1%                | 50%(means 50% jobs will be sampled)     |
+| tracing.samplingConfigs.grpc.samplingPercentage             | Percentage of GRPC requests at the server side to be sampled.                                                                                                                     | 1%                | 50%(means 50% requests will be sampled) |
+| tracing.disabled                                            | Whether to enable tracing.                                                                                                                                                        | false             |                                         |
+| tracing.debug                                               | Whether to enable the logging of span events.                                                                                                                                     | false             |                                         |
+| tracing.traceResponseHeader                                 | The header name in a HTTP response that contains the trace-id.                                                                                                                    | 'X-Bithon-Trace-' |                                         |                                  
 
 # Plugin Configurations
 

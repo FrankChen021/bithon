@@ -119,7 +119,7 @@ public class DefaultSchema implements ISchema {
                          @JsonProperty("dimensionsSpec") List<IColumn> dimensionsSpec,
                          @JsonProperty("metricsSpec") List<IColumn> metricsSpec,
                          @JsonProperty("inputSourceSpec") @Nullable JsonNode inputSourceSpec,
-                         @JsonProperty("storeSpec") @Nullable IDataStoreSpec dataStoreSpec,
+                         @JsonProperty("dataStoreSpec") @Nullable IDataStoreSpec dataStoreSpec,
                          @JsonProperty("ttl") @Nullable Period ttl,
                          @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         this.displayText = displayText == null ? name : displayText;

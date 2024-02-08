@@ -25,38 +25,45 @@ import org.bithon.component.commons.utils.StringUtils;
 public class HttpMappableException extends RuntimeException {
 
     private final int statusCode;
-    private final String exception;
+    private final String causeExceptionClass;
 
 
     public HttpMappableException(int statusCode, String message) {
         super(message);
         this.statusCode = statusCode;
-        this.exception = null;
+        this.causeExceptionClass = null;
     }
 
-    public HttpMappableException(String exception, int statusCode, String message) {
+    public HttpMappableException(String causeExceptionClass, int statusCode, String message) {
         super(message);
         this.statusCode = statusCode;
-        this.exception = exception;
+        this.causeExceptionClass = causeExceptionClass;
     }
 
     public HttpMappableException(int statusCode, String messageFormat, Object... args) {
         super(StringUtils.format(messageFormat, args));
         this.statusCode = statusCode;
-        this.exception = null;
+        this.causeExceptionClass = null;
     }
 
-    public HttpMappableException(String exception, int statusCode, String messageFormat, Object... args) {
+    public HttpMappableException(String causeExceptionClass, int statusCode, String messageFormat, Object... args) {
         super(StringUtils.format(messageFormat, args));
         this.statusCode = statusCode;
-        this.exception = exception;
+        this.causeExceptionClass = causeExceptionClass;
+    }
+
+
+    public HttpMappableException(Throwable cause, int statusCode, String messageFormat, Object... args) {
+        super(StringUtils.format(messageFormat, args), cause);
+        this.statusCode = statusCode;
+        this.causeExceptionClass = cause.getClass().getName();
     }
 
     public int getStatusCode() {
         return statusCode;
     }
 
-    public String getException() {
-        return exception;
+    public String getCauseExceptionClass() {
+        return causeExceptionClass;
     }
 }

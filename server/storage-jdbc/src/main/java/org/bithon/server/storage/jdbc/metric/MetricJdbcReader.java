@@ -35,6 +35,7 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
+import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqProperties;
@@ -42,6 +43,7 @@ import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -50,6 +52,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class MetricJdbcReader implements IDataSourceReader {
+    private static final AtomicInteger SEQUENCE = new AtomicInteger();
 
     private static final String TIMESTAMP_ALIAS_NAME = "_timestamp";
 
@@ -65,14 +68,19 @@ public class MetricJdbcReader implements IDataSourceReader {
         jdbcDataSource.setUrl((String) Preconditions.checkNotNull(props.get("url"), "Missing url property for %s", name));
         jdbcDataSource.setUsername((String) Preconditions.checkNotNull(props.get("username"), "Missing userName property for %s", name));
         jdbcDataSource.setPassword((String) Preconditions.checkNotNull(props.get("password"), "Missing password property for %s", name));
-        jdbcDataSource.setName(name);
+        // Make sure the name is unique to avoid exception thrown when closing the data source
+        jdbcDataSource.setName(name + "-" + SEQUENCE.getAndIncrement());
+        jdbcDataSource.setTestWhileIdle(false);
+        jdbcDataSource.setAsyncInit(false);
+        jdbcDataSource.setMaxWait(5_000);
+        jdbcDataSource.setMaxCreateTaskCount(2);
 
         // Create a new one
         JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
         this.dslContext = DSL.using(new DefaultConfiguration()
-                                 .set(autoConfiguration.dataSourceConnectionProvider(jdbcDataSource))
-                                 .set(new JooqProperties().determineSqlDialect(jdbcDataSource))
-                                 .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
+                                        .set(new DataSourceConnectionProvider(jdbcDataSource))
+                                        .set(new JooqProperties().determineSqlDialect(jdbcDataSource))
+                                        .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
 
         this.sqlDialect = sqlDialect;
         this.shouldCloseContext = true;
@@ -272,6 +280,11 @@ public class MetricJdbcReader implements IDataSourceReader {
     @Override
     public void close() {
         if (this.shouldCloseContext) {
+            try {
+                DataSourceConnectionProvider cp = (DataSourceConnectionProvider) this.dslContext.configuration().connectionProvider();
+                ((DruidDataSource) cp.dataSource()).close();
+            } catch (Exception ignored) {
+            }
             this.dslContext.close();
         }
     }

@@ -20,6 +20,9 @@ import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 
 /**
+ * The low-level invoker sends an encoded message on the underlying message channel
+ * and receives response from remote on the same channel and then returns the encoded response.
+ *
  * @author frank.chen021@outlook.com
  * @date 2023/4/8 19:49
  */
@@ -33,7 +36,7 @@ public class LowLevelInvoker {
         this.invocationManager = invocationManager;
     }
 
-    public byte[] invoke(ServiceRequestMessageOut serviceRequest, int timeout) throws Throwable {
-        return invocationManager.invoke(channel, serviceRequest, timeout);
+    public byte[] invoke(ServiceRequestMessageOut serviceRequest, int timeoutMillisecond) throws Throwable {
+        return invocationManager.invoke(channel, serviceRequest, timeoutMillisecond);
     }
 }

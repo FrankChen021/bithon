@@ -19,9 +19,6 @@ package org.bithon.agent.observability.tracing.context.propagation;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
-import org.bithon.agent.observability.tracing.context.propagation.b3.B3Extractor;
-import org.bithon.agent.observability.tracing.context.propagation.pinpoint.PinpointExtractor;
-import org.bithon.agent.observability.tracing.context.propagation.w3c.W3CTraceContextExtractor;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 
 /**
@@ -34,7 +31,8 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
     private final ITraceContextExtractor[] extractors;
 
     public ChainedTraceContextExtractor(ISampler sampler) {
-        this(sampler, new W3CTraceContextExtractor(), new B3Extractor(), new PinpointExtractor());
+        this.sampler = sampler;
+        this.extractors = null;
     }
 
     public ChainedTraceContextExtractor(ISampler sampler, ITraceContextExtractor... extractors) {
@@ -44,13 +42,19 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
 
     @Override
     public <R> ITraceContext extract(R request, PropagationGetter<R> getter) {
+        if (Tracer.get().disabled()) {
+            return null;
+        }
+
         //
         // extract trace context based on upstream service request
         //
-        for (ITraceContextExtractor extractor : extractors) {
-            ITraceContext context = extractor.extract(request, getter);
-            if (context != null) {
-                return context;
+        if (this.extractors != null) {
+            for (ITraceContextExtractor extractor : extractors) {
+                ITraceContext context = extractor.extract(request, getter);
+                if (context != null) {
+                    return context;
+                }
             }
         }
 
@@ -58,10 +62,9 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
         // no trace context,
         // then handle to sampling decision maker to decide whether this request should be sampled
         //
-        return TraceContextFactory.create(sampler.decideSamplingMode(request),
-                                          Tracer.get().traceIdGenerator().newTraceId())
+        return TraceContextFactory.create(sampler.decideSamplingMode(request))
                                   .currentSpan()
-                                  .parentApplication(getter.get(request, ITracePropagator.TRACE_HEADER_SRC_APPLICATION))
+                                  .parentApplication(getter == null ? null : getter.get(request, ITracePropagator.TRACE_HEADER_SRC_APPLICATION))
                                   .context();
     }
 }

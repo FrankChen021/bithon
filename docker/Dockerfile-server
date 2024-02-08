@@ -48,7 +48,7 @@ RUN --mount=type=cache,target=/root/.m2 if [ "$BUILD_FROM_SOURCE" = "true" ]; th
       -DskipTests \
     ; fi
 
-FROM openjdk:${JDK}-slim
+FROM eclipse-temurin:${JDK}
 COPY --from=builder /src/server/server-starter/target/server-starter.jar /opt/bithon-server-starter.jar
 
 RUN apt-get -qq update \
