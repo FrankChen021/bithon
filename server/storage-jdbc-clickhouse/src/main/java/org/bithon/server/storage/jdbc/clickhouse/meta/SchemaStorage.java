@@ -25,6 +25,7 @@ import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
+import org.bithon.server.storage.jdbc.clickhouse.common.SecondaryIndex;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
@@ -62,7 +63,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
         }
         new TableCreator(config, dslContext).useReplacingMergeTree(Tables.BITHON_META_SCHEMA.TIMESTAMP.getName())
                                             .partitionByExpression(null)
-                                            .secondaryIndex(Tables.BITHON_META_SCHEMA.TIMESTAMP.getName(), new TableCreator.SecondaryIndex("minmax", 128))
+                                            .secondaryIndex(Tables.BITHON_META_SCHEMA.TIMESTAMP.getName(), new SecondaryIndex("minmax", 128))
                                             .createIfNotExist(Tables.BITHON_META_SCHEMA);
     }
 

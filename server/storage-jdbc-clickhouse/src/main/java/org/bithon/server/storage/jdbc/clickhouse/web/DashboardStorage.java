@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
+import org.bithon.server.storage.jdbc.clickhouse.common.SecondaryIndex;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.web.DashboardJdbcStorage;
@@ -58,7 +59,7 @@ public class DashboardStorage extends DashboardJdbcStorage {
 
         new TableCreator(config, dslContext).useReplacingMergeTree(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.getName())
                                             .partitionByExpression(null)
-                                            .secondaryIndex(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.getName(), new TableCreator.SecondaryIndex("minmax", 512))
+                                            .secondaryIndex(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP.getName(), new SecondaryIndex("minmax", 512))
                                             .createIfNotExist(Tables.BITHON_WEB_DASHBOARD);
     }
 

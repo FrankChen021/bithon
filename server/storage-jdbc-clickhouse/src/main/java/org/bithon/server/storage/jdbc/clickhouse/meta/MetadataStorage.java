@@ -25,6 +25,7 @@ import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
+import org.bithon.server.storage.jdbc.clickhouse.common.SecondaryIndex;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
@@ -65,7 +66,7 @@ public class MetadataStorage extends MetadataJdbcStorage {
                                                  // This is a tradeoff for the data expiration.
                                                  .partitionByExpression(null)
                                                  // Add minmax index to timestamp column
-                                                 .secondaryIndex(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.getName(), new TableCreator.SecondaryIndex("minmax", 4096))
+                                                 .secondaryIndex(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.getName(), new SecondaryIndex("minmax", 4096))
                                                  .createIfNotExist(Tables.BITHON_APPLICATION_INSTANCE);
     }
 
