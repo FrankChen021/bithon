@@ -10,6 +10,7 @@ bithon:
     # Pipelines that consume data from brpc-collector to kafka
     brpc-event-kafka:
       type: events
+      enabled: true
       receivers:
         - type: brpc
       exporters:
@@ -26,6 +27,7 @@ bithon:
 
     brpc-metric-kafka:
       type: metrics
+      enabled: true
       receivers:
         - type: brpc
       exporters:
@@ -42,6 +44,7 @@ bithon:
 
     brpc-traces-kafka:
       type: traces
+      enabled: true
       receivers:
         - type: brpc
       exporters:

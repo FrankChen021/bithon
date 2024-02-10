@@ -21,13 +21,13 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceMode;
+import org.bithon.agent.observability.tracing.context.propagation.ChainedTraceContextExtractor;
+import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
@@ -43,10 +43,14 @@ import org.bithon.component.commons.tracing.Tags;
  */
 public class ListenerConsumer$PollAndInvoke extends AroundInterceptor {
 
-    private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
-                                                                                      .getDynamicConfig(
-                                                                                          "tracing.samplingConfigs.kafka-consumer",
-                                                                                          TraceSamplingConfig.class));
+    private final ITraceContextExtractor extractor;
+
+    public ListenerConsumer$PollAndInvoke() {
+        ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
+                                                                            .getDynamicConfig("tracing.samplingConfigs.kafka-consumer",
+                                                                                              TraceSamplingConfig.class));
+        this.extractor = new ChainedTraceContextExtractor(sampler);
+    }
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
@@ -56,8 +60,10 @@ public class ListenerConsumer$PollAndInvoke extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceContext context = TraceContextFactory.create(sampler.decideSamplingMode(null),
-                                                           Tracer.get().traceIdGenerator().newTraceId());
+        ITraceContext context = this.extractor.extract(null, null);
+        if (context == null) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
 
         if (TraceMode.TRACING.equals(context.traceMode())) {
             aopContext.setUserContext(context.currentSpan()

@@ -5,6 +5,7 @@
 bithon:
   pipelines:
     events:
+      enabled: true
       metricOverEventEnabled: false
       receivers:
         - type: brpc
@@ -21,6 +22,7 @@ bithon:
             "[retries]": 3
 
     metrics:
+      enabled: true
       receivers:
         - type: brpc
       exporters:
@@ -36,9 +38,13 @@ bithon:
             "[retries]": 3
 
     traces:
+      enabled: true
       metricOverSpanEnabled: false
       receivers:
         - type: brpc
+        - type: bithon-trace-http
+        - type: otlp-trace-grpc
+        - type: otlp-trace-http
       exporters:
         - type: kafka
           props:

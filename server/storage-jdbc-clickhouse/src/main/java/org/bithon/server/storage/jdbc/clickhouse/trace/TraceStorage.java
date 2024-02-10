@@ -33,6 +33,7 @@ import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
+import org.bithon.server.storage.jdbc.clickhouse.common.SecondaryIndex;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.clickhouse.common.exception.RetryableExceptions;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
@@ -80,22 +81,39 @@ public class TraceStorage extends TraceJdbcStorage {
             return;
         }
 
-        Table<?>[] tables = new Table[]{
-            Tables.BITHON_TRACE_SPAN_SUMMARY,
-            Tables.BITHON_TRACE_SPAN,
-            Tables.BITHON_TRACE_MAPPING,
-            Tables.BITHON_TRACE_SPAN_TAG_INDEX
-        };
-        for (Table<?> table : tables) {
-            TableCreator tableCreator = new TableCreator(clickHouseConfig, dslContext);
+        getDefaultTableCreator(Tables.BITHON_TRACE_SPAN_SUMMARY)
+            .secondaryIndex(Tables.BITHON_TRACE_SPAN_SUMMARY.NORMALIZEDURL.getName(), new SecondaryIndex("bloom_filter", 4096))
+            .secondaryIndex(StringUtils.format("mapKeys(%s)", Tables.BITHON_TRACE_SPAN_SUMMARY.ATTRIBUTES.getName()), new SecondaryIndex("bloom_filter", 4096, "idx_attr_keys"))
+            .secondaryIndex(StringUtils.format("mapValues(%s)", Tables.BITHON_TRACE_SPAN_SUMMARY.ATTRIBUTES.getName()), new SecondaryIndex("bloom_filter", 4096, "idx_attr_vals"))
+            .createIfNotExist(Tables.BITHON_TRACE_SPAN_SUMMARY);
 
-            ClickHouseConfig.SecondaryPartition partition = clickHouseConfig.getSecondaryPartitions().get(table.getName());
-            if (partition != null) {
-                tableCreator.partitionByExpression(StringUtils.format("(toYYYYMMDD(timestamp), cityHash64(%s) %% %d)", partition.getColumn(), partition.getCount()));
-            }
+        getDefaultTableCreator(Tables.BITHON_TRACE_SPAN)
+            .secondaryIndex(Tables.BITHON_TRACE_SPAN.NORMALIZEDURL.getName(), new SecondaryIndex("bloom_filter", 4096))
+            .secondaryIndex(StringUtils.format("mapKeys(%s)", Tables.BITHON_TRACE_SPAN_SUMMARY.ATTRIBUTES.getName()), new SecondaryIndex("bloom_filter", 4096, "idx_attr_keys"))
+            .secondaryIndex(StringUtils.format("mapValues(%s)", Tables.BITHON_TRACE_SPAN_SUMMARY.ATTRIBUTES.getName()), new SecondaryIndex("bloom_filter", 4096, "idx_attr_vals"))
+            .createIfNotExist(Tables.BITHON_TRACE_SPAN);
 
-            tableCreator.createIfNotExist(table);
+        getDefaultTableCreator(Tables.BITHON_TRACE_MAPPING)
+            .createIfNotExist(Tables.BITHON_TRACE_MAPPING);
+
+        getDefaultTableCreator(Tables.BITHON_TRACE_SPAN_TAG_INDEX)
+            .secondaryIndex(Tables.BITHON_TRACE_SPAN_TAG_INDEX.F1.getName(), new SecondaryIndex("bloom_filter", 4096))
+            .secondaryIndex(Tables.BITHON_TRACE_SPAN_TAG_INDEX.F2.getName(), new SecondaryIndex("bloom_filter", 4096))
+            .secondaryIndex(Tables.BITHON_TRACE_SPAN_TAG_INDEX.F3.getName(), new SecondaryIndex("bloom_filter", 4096))
+            .secondaryIndex(Tables.BITHON_TRACE_SPAN_TAG_INDEX.F4.getName(), new SecondaryIndex("bloom_filter", 4096))
+            .secondaryIndex(Tables.BITHON_TRACE_SPAN_TAG_INDEX.F5.getName(), new SecondaryIndex("bloom_filter", 4096))
+            .createIfNotExist(Tables.BITHON_TRACE_SPAN_TAG_INDEX);
+    }
+
+    private TableCreator getDefaultTableCreator(Table<?> table) {
+        TableCreator tableCreator = new TableCreator(clickHouseConfig, dslContext);
+
+        ClickHouseConfig.SecondaryPartition partition = clickHouseConfig.getSecondaryPartitions().get(table.getName());
+        if (partition != null) {
+            tableCreator.partitionByExpression(StringUtils.format("(toYYYYMMDD(timestamp), cityHash64(%s) %% %d)", partition.getColumn(), partition.getCount()));
         }
+
+        return tableCreator;
     }
 
     @Override

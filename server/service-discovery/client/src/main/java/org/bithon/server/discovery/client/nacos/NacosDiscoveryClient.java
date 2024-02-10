@@ -19,9 +19,10 @@ package org.bithon.server.discovery.client.nacos;
 import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
 import com.alibaba.cloud.nacos.discovery.NacosServiceDiscovery;
 import com.alibaba.nacos.api.exception.NacosException;
+import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.server.discovery.client.IDiscoveryClient;
+import org.springframework.http.HttpStatus;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,7 +46,9 @@ public class NacosDiscoveryClient implements IDiscoveryClient {
                             .map(serviceInstance -> new HostAndPort(serviceInstance.getHost(), serviceInstance.getPort()))
                             .collect(Collectors.toList());
         } catch (NacosException e) {
-            return Collections.emptyList();
+            throw new HttpMappableException(e,
+                                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                            "Failed to found any instances of service [%s]: [%s]", serviceName, e.getMessage());
         }
     }
 }

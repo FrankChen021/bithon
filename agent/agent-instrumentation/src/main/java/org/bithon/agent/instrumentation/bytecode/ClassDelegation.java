@@ -50,12 +50,26 @@ import java.util.Map;
  *     }
  * </pre>
  *
+ * The generated class:
  * <pre>
- *     class GeneratedA extends A {
+ *     class GeneratedA extends A implements IDelegation {
  *         private A delegation;
+ *
+ *         public GeneratedA(Object delegation) {
+ *             super();
+ *             this.delegation = delegation;
+ *         }
  *
  *         public void getA() {
  *            delegation.getA();
+ *         }
+ *
+ *         public void setDelegate(Object val) {
+ *             this.delegation = val;
+ *         }
+ *
+ *         public Class getDelegationClass() {
+ *             return delegation.getClass();
  *         }
  *     }
  * </pre>
@@ -73,7 +87,7 @@ public class ClassDelegation {
         try {
             defaultCtor = baseClass.getConstructor();
         } catch (NoSuchMethodException e) {
-            throw new AgentException("Configuration class [%s] does not define a default constructor.", baseClass.getName());
+            throw new AgentException("The lass [%s] does not define a default constructor.", baseClass.getName());
         }
 
         ElementMatcher<? super MethodDescription> delegationMethods = ElementMatchers.isMethod()
@@ -84,7 +98,7 @@ public class ClassDelegation {
                                                       .implement(IDelegation.class)
                                                       // Create delegation field
                                                       .defineField("delegation", baseClass, Modifier.PRIVATE)
-                                                      // Override getter and setter to call methods on delegation object
+                                                      // Override all public and non-native methods to call methods on the delegation object
                                                       .method(delegationMethods)
                                                       .intercept(MethodDelegation.withDefaultConfiguration()
                                                                                  .withBindingResolver(new MethodSignatureMatchResolver())
@@ -92,7 +106,7 @@ public class ClassDelegation {
                                                                                  .toField("delegation"))
                                                       // Define IDelegation.getDelegationClass
                                                       .defineMethod("getDelegationClass", Class.class, Visibility.PUBLIC)
-                                                      .intercept(MethodCall.invoke(ElementMatchers.<MethodDescription>named("getClass")).onField("delegation"))
+                                                      .intercept(MethodCall.invoke(ElementMatchers.named("getClass")).onField("delegation"))
                                                       // Define IDelegation.setDelegation
                                                       .defineMethod("setDelegation", void.class, Visibility.PUBLIC).withParameters(Object.class)
                                                       .intercept(FieldAccessor.ofField("delegation")
@@ -107,8 +121,6 @@ public class ClassDelegation {
                                                                            .andThen(FieldAccessor.ofField("delegation").setsArgumentAt(0)))
                                                       .make();
 
-        // AopDebugger.saveClassToFile(type);
-
         //
         // Inject this dynamic class into class loader
         //
@@ -118,9 +130,15 @@ public class ClassDelegation {
         ClassInjector.UsingUnsafe.Factory factory = ClassInjector.UsingUnsafe.Factory.resolve(InstrumentationHelper.getInstance());
         factory.make(baseClass.getClassLoader(), null).injectRaw(typeMap);
         try {
-            return baseClass.getClassLoader().loadClass(type.getTypeDescription().getTypeName());
+            return baseClass.getClassLoader()
+                            .loadClass(type.getTypeDescription().getTypeName());
         } catch (ClassNotFoundException e) {
             throw new AgentException(e);
+        } finally {
+            try {
+                type.close();
+            } catch (Exception ignored) {
+            }
         }
     }
 

@@ -17,8 +17,7 @@
 package org.bithon.agent.sentinel;
 
 import org.bithon.agent.configuration.ConfigurationManager;
-import org.bithon.agent.controller.config.DynamicConfigurationManager;
-import org.bithon.agent.controller.config.IConfigurationChangedListener;
+import org.bithon.agent.configuration.IConfigurationChangedListener;
 import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
 import org.bithon.agent.sentinel.expt.SentinelCommandException;
 import org.bithon.agent.sentinel.flow.FlowRuleDto;
@@ -73,9 +72,9 @@ public class SentinelRuleManager {
     }
 
     private SentinelRuleManager() {
-        DynamicConfigurationManager manager = DynamicConfigurationManager.getInstance();
-        manager.addConfigurationChangeListener(new FlowRuleChangedListener());
-        manager.addConfigurationChangeListener(new DegradingRuleChangedListener());
+        ConfigurationManager manager = ConfigurationManager.getInstance();
+        manager.addConfigurationChangedListener("flowRules", new FlowRuleChangedListener());
+        manager.addConfigurationChangedListener("degradingRules", new DegradingRuleChangedListener());
 
         refreshFlowRules();
         refreshDegradingRule();
@@ -129,7 +128,7 @@ public class SentinelRuleManager {
 
             FlowRuleDto configRule = configRules.remove(key);
             if (configRule == null) {
-                // this rule in memory does not exist in current configuration
+                // this rule in memory does not exist in the current configuration
                 deleteRules.add(key);
             } else {
                 if (!configRule.equals(inMemoryRule)) {
@@ -203,7 +202,7 @@ public class SentinelRuleManager {
 
             DegradingRuleDto configRule = configRules.remove(key);
             if (configRule == null) {
-                // this rule in memory does not exist in current configuration
+                // this rule in memory does not exist in the current configuration
                 deleted.add(key);
             } else {
                 if (!configRule.equals(inMemoryRule)) {
@@ -485,19 +484,15 @@ public class SentinelRuleManager {
 
     class FlowRuleChangedListener implements IConfigurationChangedListener {
         @Override
-        public void onChange(Set<String> keys) {
-            if (keys.contains("flowRules")) {
-                refreshFlowRules();
-            }
+        public void onChange() {
+            refreshFlowRules();
         }
     }
 
     class DegradingRuleChangedListener implements IConfigurationChangedListener {
         @Override
-        public void onChange(Set<String> keys) {
-            if (keys.contains("degradingRules")) {
-                refreshDegradingRule();
-            }
+        public void onChange() {
+            refreshDegradingRule();
         }
     }
 }

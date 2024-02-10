@@ -14,17 +14,29 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller.config;
+package org.bithon.server.storage.jdbc.clickhouse.common;
 
-import java.util.Set;
+import lombok.Getter;
 
 /**
- * @author frankchen
- * @date 2020-05-27 14:41:22
+ * @author frank.chen021@outlook.com
+ * @date 2024/2/9 21:35
  */
-public interface IConfigurationChangedListener {
-    /**
-     * @param keys changes keys
-     */
-    void onChange(Set<String> keys);
+@Getter
+public class SecondaryIndex {
+    private final String type;
+    private final int granularity;
+    private final String indexName;
+
+    public SecondaryIndex(String type, int granularity) {
+        this.type = type;
+        this.granularity = granularity;
+        this.indexName = null;
+    }
+
+    public SecondaryIndex(String type, int granularity, String indexName) {
+        this.type = type;
+        this.granularity = granularity;
+        this.indexName = indexName;
+    }
 }

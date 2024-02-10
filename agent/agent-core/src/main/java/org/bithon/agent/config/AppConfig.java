@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.context;
+package org.bithon.agent.config;
 
 import org.bithon.agent.configuration.ConfigurationProperties;
 import org.bithon.agent.configuration.validation.NotBlank;
@@ -24,7 +24,7 @@ import org.bithon.agent.configuration.validation.NotBlank;
  * @date 2023/1/5 22:30
  */
 @ConfigurationProperties(prefix = "application", dynamic = false)
-public class AppConfiguration {
+public class AppConfig {
 
     @NotBlank(message = "'bithon.application.env' should not be blank")
     private String env;
@@ -33,8 +33,8 @@ public class AppConfiguration {
     private String name;
 
     /**
-     * For non web application, the port can't be detected automatically.
-     * In this case in order to make the agent work, the port needs to be specified manually.
+     * For non-web application, the port can't be detected automatically.
+     * In this case, to make the agent work, the port needs to be specified manually.
      */
     private int port = 0;
 
@@ -43,9 +43,9 @@ public class AppConfiguration {
      * In the format of ip:port
      * <p>
      * This is not for configuration.
-     * In most cases, this field is automatically retrieved by the agent.
-     * But if the applications is deployed in Docker on different host, the container ip may be the same.
-     * In such case, user can use this configuration to override the automatically retrieved instance name.
+     * In most cases, the agent automatically retrieves this field.
+     * But if the application is deployed in Docker on different host, the container ip may be the same.
+     * In such a case, user can use this configuration to override the automatically retrieved instance name.
      */
     private String instance;
 

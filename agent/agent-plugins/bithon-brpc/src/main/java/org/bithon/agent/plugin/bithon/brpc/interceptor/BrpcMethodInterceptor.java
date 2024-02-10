@@ -20,12 +20,12 @@ import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.observability.tracing.context.propagation.ChainedTraceContextExtractor;
+import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -36,14 +36,21 @@ import org.bithon.component.commons.tracing.SpanKind;
  */
 public class BrpcMethodInterceptor extends AroundInterceptor {
 
-    private final ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
-                                                                                      .getDynamicConfig("tracing.samplingConfigs.brpc",
-                                                                                                        TraceSamplingConfig.class));
+    private final ITraceContextExtractor extractor;
+
+    public BrpcMethodInterceptor() {
+        ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
+                                                                            .getDynamicConfig("tracing.samplingConfigs.brpc",
+                                                                                              TraceSamplingConfig.class));
+        this.extractor = new ChainedTraceContextExtractor(sampler);
+    }
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceContext context = TraceContextFactory.create(sampler.decideSamplingMode(null),
-                                                           Tracer.get().traceIdGenerator().newTraceId());
+        ITraceContext context = this.extractor.extract(null, null);
+        if (context == null) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
 
         aopContext.setUserContext(context.currentSpan()
                                          .component("brpc")

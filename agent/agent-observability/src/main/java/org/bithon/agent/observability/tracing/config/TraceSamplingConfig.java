@@ -17,6 +17,7 @@
 package org.bithon.agent.observability.tracing.config;
 
 import org.bithon.agent.configuration.validation.Range;
+import org.bithon.component.commons.utils.HumanReadablePercentage;
 
 /**
  * @author frank.chen021@outlook.com
@@ -25,7 +26,9 @@ import org.bithon.agent.configuration.validation.Range;
 public class TraceSamplingConfig {
     /**
      * in range of [0, 100]
+     * This is only kept for backward compatibility
      */
+    @Deprecated
     @Range(min = 0, max = 100)
     private int samplingRate = 0;
 
@@ -35,5 +38,35 @@ public class TraceSamplingConfig {
 
     public void setSamplingRate(int samplingRate) {
         this.samplingRate = samplingRate;
+        this.setSamplingPercentage(new HumanReadablePercentage(samplingRate / 100.0));
+    }
+
+    /**
+     * The minimum is 0.001%, that is 0.00001
+     */
+    public static final int PRECISION_MULTIPLIER = 100_000;
+
+    /**
+     * Supported precision: [0.001%, 100%]
+     * The precision is limited because we're using a more definitive way to calculate if a request should be sampled.
+     */
+    private HumanReadablePercentage samplingPercentage = new HumanReadablePercentage(0);
+
+    /**
+     * A runtime value calculated by the percentage above
+     */
+    private int rate;
+
+    public HumanReadablePercentage getSamplingPercentage() {
+        return samplingPercentage;
+    }
+
+    public void setSamplingPercentage(HumanReadablePercentage samplingPercentage) {
+        this.samplingPercentage = samplingPercentage;
+        this.rate = (int) (samplingPercentage.doubleValue() * PRECISION_MULTIPLIER);
+    }
+
+    public int getRate() {
+        return rate;
     }
 }

@@ -47,6 +47,11 @@ public class HumanReadablePercentage extends Number {
         }
     }
 
+    public HumanReadablePercentage(double fraction) {
+        this.readableText = fraction * 100 + "%";
+        this.fraction = fraction;
+    }
+
     public double getFraction() {
         return this.fraction;
     }

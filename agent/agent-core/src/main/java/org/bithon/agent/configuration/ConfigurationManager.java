@@ -20,6 +20,8 @@ import org.bithon.agent.instrumentation.bytecode.ClassDelegation;
 import org.bithon.agent.instrumentation.bytecode.IDelegation;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.File;
@@ -40,6 +42,8 @@ import static java.io.File.separator;
  * @date 2023/1/5 22:20
  */
 public class ConfigurationManager {
+
+    private static final ILogAdaptor log = LoggerFactory.getLogger(ConfigurationManager.class);
 
     public static final String BITHON_APPLICATION_ENV = "application.env";
     public static final String BITHON_APPLICATION_NAME = "application.name";
@@ -78,10 +82,16 @@ public class ConfigurationManager {
     /**
      * the value in the map is actually a dynamic type of {@link IDelegation}
      */
-    private final Map<String, Object> delegatedBeans = new ConcurrentHashMap<>(19);
+    private final Map<String, Object> delegatedBeans = new ConcurrentHashMap<>(13);
+
+    private final Map<String, IConfigurationChangedListener> listeners = new ConcurrentHashMap<>(13);
 
     private ConfigurationManager(Configuration configuration) {
         this.configuration = configuration;
+    }
+
+    public void addConfigurationChangedListener(String keyPrefix, IConfigurationChangedListener listener) {
+        listeners.put(keyPrefix, listener);
     }
 
     /**
@@ -95,7 +105,7 @@ public class ConfigurationManager {
 
         Set<String> changedKeys = newConfiguration.getKeys();
 
-        // Re-bind the based on changes
+        // Re-bind the values based on changes
         List<String> beanPrefixList = new ArrayList<>(delegatedBeans.keySet());
         for (String beanPrefix : beanPrefixList) {
 
@@ -107,7 +117,8 @@ public class ConfigurationManager {
 
                     // Create a new configuration object
                     Object newValue = getConfig(beanPrefix,
-                                                // the delegated object is a generated class which inherits from real configuration class
+                                                // the delegated object is a generated class
+                                                // that inherits from real configuration class
                                                 delegatedObject.getDelegationClass(),
                                                 false);
 
@@ -118,11 +129,28 @@ public class ConfigurationManager {
             }
         }
 
+        //
+        // Notify listeners about changes
+        //
+        for (Map.Entry<String, IConfigurationChangedListener> entry : listeners.entrySet()) {
+            String watchedKey = entry.getKey();
+            IConfigurationChangedListener listener = entry.getValue();
+
+            if (changedKeys.contains(watchedKey)) {
+                try {
+                    listener.onChange();
+                } catch (Exception e) {
+                    log.warn("Exception when notify configuration change", e);
+                }
+            }
+        }
+
         return changedKeys;
     }
 
     /**
-     * Bind configuration to an object. And if configuration changes, it will reflect on this object
+     * Bind configuration to an object. And if the configuration changes, it will reflect on this object.
+     * NOTE: The clazz must have a default ctor if it's annotated by {@link ConfigurationProperties}
      */
     public <T> T getConfig(Class<T> clazz) {
         ConfigurationProperties cfg = clazz.getAnnotation(ConfigurationProperties.class);
@@ -138,7 +166,7 @@ public class ConfigurationManager {
     }
 
     /**
-     * Bind configuration to an object. And if configuration changes, it will reflect on this object
+     * Bind configuration to an object. And if the configuration changes, it will reflect on this object
      */
     public <T> T getConfig(String prefixes, Class<T> clazz) {
         return getConfig(prefixes, clazz, false);
@@ -150,7 +178,7 @@ public class ConfigurationManager {
             return configuration.getConfig(prefixes, clazz);
         }
 
-        // If this configuration clazz is defined as dynamic(it means configuration changes will dynamically reflect on its corresponding configuration clazz object),
+        // If this configuration clazz is defined as dynamic (it means configuration changes will dynamically reflect on its corresponding configuration clazz object),
         // a delegation class is created
         return (T) delegatedBeans.computeIfAbsent(prefixes, (k) -> {
             Class<?> proxyClass = ClassDelegation.create(clazz);

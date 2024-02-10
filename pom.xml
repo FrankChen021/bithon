@@ -144,10 +144,10 @@
         <version>${project.version}</version>
       </dependency>
 
-      <!-- Agent Controller -->
+      <!-- Agent Controller Server-->
       <dependency>
         <groupId>org.bithon</groupId>
-        <artifactId>agent-controller</artifactId>
+        <artifactId>server-agent-controller</artifactId>
         <version>${project.version}</version>
       </dependency>
 

@@ -137,4 +137,9 @@ public class BrpcAgentController implements IAgentController {
             brpcClient.bindService(cmd);
         }
     }
+
+    @Override
+    public void close() {
+        brpcClient.close();
+    }
 }

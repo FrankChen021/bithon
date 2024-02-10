@@ -14,19 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.dispatcher.config;
+package org.bithon.agent.config;
 
 import org.bithon.agent.configuration.validation.GreaterThan;
 import org.bithon.agent.configuration.validation.NotBlank;
-import org.bithon.agent.observability.dispatcher.channel.IMessageChannelFactory;
 
 /**
  * @author frankchen
  */
-public class DispatcherClient {
+public class RpcClientConfig {
 
     /**
-     * must be subclass of {@link IMessageChannelFactory}
+     * The factor class that creates the RPC object.
+     * Example:
+     * IAgentControllerFactory
+     * IMessageChannelFactory
      */
     @NotBlank(message = "factory should not be blank.")
     private String factory;

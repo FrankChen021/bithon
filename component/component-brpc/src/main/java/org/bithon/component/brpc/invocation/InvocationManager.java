@@ -204,7 +204,6 @@ public class InvocationManager {
             }
         }
 
-        //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (inflightRequest) {
             inflightRequest.responseReceived = true;
             inflightRequest.notify();
@@ -219,7 +218,6 @@ public class InvocationManager {
 
         inflightRequest.exception = e;
 
-        //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (inflightRequest) {
             inflightRequest.responseReceived = true;
             inflightRequest.notify();

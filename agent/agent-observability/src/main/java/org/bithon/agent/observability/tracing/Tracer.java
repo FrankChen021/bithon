@@ -20,6 +20,7 @@ import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.observability.dispatcher.Dispatcher;
 import org.bithon.agent.observability.dispatcher.Dispatchers;
+import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.propagation.DefaultPropagator;
@@ -53,6 +54,7 @@ public class Tracer {
     private ITraceReporter reporter;
     private ITracePropagator propagator;
     private ISpanIdGenerator spanIdGenerator;
+    private TraceConfig traceConfig;
 
     public Tracer(String appName, String instanceName) {
         this.appName = appName;
@@ -69,6 +71,7 @@ public class Tracer {
                                                                                             .getDynamicConfig("tracing.samplingConfigs.default",
                                                                                                               TraceSamplingConfig.class));
                         INSTANCE = new Tracer(appInstance.getQualifiedAppName(), appInstance.getHostAndPort())
+                            .traceConfig(ConfigurationManager.getInstance().getConfig(TraceConfig.class))
                             .propagator(new DefaultPropagator(sampler))
                             .traceIdGenerator(new UUIDGenerator())
                             .spanIdGenerator(new DefaultSpanIdGenerator())
@@ -80,6 +83,15 @@ public class Tracer {
             }
         }
         return INSTANCE;
+    }
+
+    public Tracer traceConfig(TraceConfig traceConfig) {
+        this.traceConfig = traceConfig;
+        return this;
+    }
+
+    public boolean disabled() {
+        return this.traceConfig.isDisabled();
     }
 
     public Tracer traceIdGenerator(ITraceIdGenerator idGenerator) {

@@ -26,7 +26,9 @@ import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcReader;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
+import org.bithon.server.storage.jdbc.setting.SettingJdbcWriter;
 import org.bithon.server.storage.setting.ISettingReader;
+import org.bithon.server.storage.setting.ISettingWriter;
 import org.bithon.server.storage.setting.SettingStorageConfig;
 
 import java.sql.Timestamp;
@@ -64,14 +66,39 @@ public class SettingStorage extends SettingJdbcStorage {
     public ISettingReader createReader() {
         return new SettingJdbcReader(this.dslContext) {
             @Override
-            public List<SettingEntry> getSettings(String appName, long since) {
+            public List<SettingEntry> getSettings(String appName, String env, long since) {
                 String sql = dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
                                        .getSQL() + " FINAL WHERE ";
 
                 sql += dslContext.renderInlined(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName)
+                                                                                   .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env).or(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")))
                                                                                    .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.ge(new Timestamp(since).toLocalDateTime())));
 
                 return dslContext.fetch(sql).map(this::toSettingEntry);
+            }
+
+            @Override
+            public SettingEntry getSetting(String appName, String env, String setting) {
+                String sql = dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
+                                       .getSQL() + " FINAL WHERE ";
+
+                sql += dslContext.renderInlined(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName)
+                                                                                   .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env).or(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")))
+                                                                                   .and(Tables.BITHON_AGENT_SETTING.SETTINGNAME.eq(setting)));
+
+                return super.toSettingEntry(dslContext.fetchOne(sql));
+            }
+        };
+    }
+
+    @Override
+    public ISettingWriter createWriter() {
+        return new SettingJdbcWriter(dslContext) {
+            @Override
+            public void updateSetting(String appName, String env, String name, String value, String format) {
+                // For ClickHouse, since the ReplacingMergeTree is used,
+                // we just INSERT a new record to overwrite the old one
+                super.addSetting(appName, env, name, value, format);
             }
         };
     }

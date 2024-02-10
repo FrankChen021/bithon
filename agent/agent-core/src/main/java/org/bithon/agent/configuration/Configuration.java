@@ -20,12 +20,12 @@ import org.bithon.agent.configuration.validation.Validator;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.com.fasterxml.jackson.core.JsonProcessingException;
-import org.bithon.shaded.com.fasterxml.jackson.databind.DeserializationFeature;
 import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.shaded.com.fasterxml.jackson.databind.SerializationFeature;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import org.bithon.shaded.com.fasterxml.jackson.databind.node.NullNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.bithon.shaded.com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import org.bithon.shaded.com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -68,7 +69,7 @@ public class Configuration {
                                        String dynamicPropertyPrefix,
                                        String... environmentVariables) {
         JsonNode staticConfiguration = readStaticConfiguration(configFileFormat, staticConfig);
-        JsonNode dynamicConfiguration = readDynamicConfiguration(dynamicPropertyPrefix, environmentVariables);
+        JsonNode dynamicConfiguration = readConfigurationFromArgs(dynamicPropertyPrefix, environmentVariables);
         return new Configuration(mergeNodes(staticConfiguration, dynamicConfiguration, false));
     }
 
@@ -140,9 +141,8 @@ public class Configuration {
         }
 
         try {
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-            return mapper.readTree(configStream);
+            return ObjectMapperConfigurer.configure(mapper)
+                                         .readTree(configStream);
         } catch (IOException e) {
             throw new AgentException("Failed to read property from static file[%s]:%s",
                                      configFileFormat,
@@ -150,8 +150,8 @@ public class Configuration {
         }
     }
 
-    private static JsonNode readDynamicConfiguration(String dynamicPropertyPrefix,
-                                                     String[] environmentVariables) {
+    private static JsonNode readConfigurationFromArgs(String dynamicPropertyPrefix,
+                                                      String[] environmentVariables) {
         Map<String, String> userPropertyMap = new LinkedHashMap<>();
 
         //
@@ -199,11 +199,10 @@ public class Configuration {
             userProperties.append('\n');
         }
         JavaPropsMapper mapper = new JavaPropsMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
 
         try {
-            return mapper.readTree(userProperties.toString());
+            return ObjectMapperConfigurer.configure(mapper)
+                                         .readTree(userProperties.toString());
         } catch (IOException e) {
             throw new AgentException("Failed to read property user configuration:%s",
                                      e.getMessage());
@@ -288,7 +287,9 @@ public class Configuration {
                                  if (clazz.isArray()) {
                                      return (T) Array.newInstance(clazz.getComponentType(), 0);
                                  }
-                                 return clazz.getDeclaredConstructor().newInstance();
+                                 Constructor<T> ctor = clazz.getDeclaredConstructor();
+                                 ctor.setAccessible(true);
+                                 return ctor.newInstance();
                              } catch (IllegalAccessException e) {
                                  throw new AgentException("Unable create instance for [%s]: %s", clazz.getName(), e.getMessage());
                              } catch (NoSuchMethodException | InvocationTargetException | InstantiationException e) {
@@ -310,21 +311,17 @@ public class Configuration {
             node = node.get(prefix);
         }
 
-        if (node == null) {
+        if (node == null || node instanceof NullNode) {
             return defaultSupplier.get();
         }
         return getConfig(prefixes, node, clazz);
     }
 
     private <T> T getConfig(String prefixes, JsonNode configurationNode, Class<T> clazz) {
-
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-
         T value;
         try {
-            value = mapper.convertValue(configurationNode, clazz);
+            value = ObjectMapperConfigurer.configure(new ObjectMapper())
+                                          .convertValue(configurationNode, clazz);
         } catch (IllegalArgumentException e) {
             throw new AgentException(e,
                                      "Unable to read type of [%s] from configuration: %s",

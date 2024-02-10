@@ -22,5 +22,9 @@ package org.bithon.agent.instrumentation.bytecode;
  */
 public interface IDelegation {
     Class<?> getDelegationClass();
+
+    /**
+     * Allow dynamically changing the delegated object
+     */
     void setDelegation(Object val);
 }

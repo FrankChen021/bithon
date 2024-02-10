@@ -73,6 +73,16 @@ public class TraceConfig {
         this.debug = debug;
     }
 
+    private boolean disabled = false;
+
+    public boolean isDisabled() {
+        return disabled;
+    }
+
+    public void setDisabled(boolean disabled) {
+        this.disabled = disabled;
+    }
+
     /**
      * If this field is set, the trace id (if the current request has) will be added to the header of response.
      * The header name is the value of this field, header value is the trace id.

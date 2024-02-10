@@ -14,30 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.setting;
-
-import lombok.Data;
-
-import java.sql.Timestamp;
-import java.util.List;
+package org.bithon.agent.configuration;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 4/11/21 3:15 pm
+ * @author frankchen
+ * @date 2020-05-27 14:41:22
  */
-public interface ISettingReader {
-
-    @Data
-    class SettingEntry {
-        private String environment;
-        private String name;
-        private String value;
-        private String format;
-        private Timestamp createdAt;
-        private Timestamp updatedAt;
-    }
-
-    List<SettingEntry> getSettings(String appName, String env, long since);
-
-    SettingEntry getSetting(String appName, String env, String setting);
+public interface IConfigurationChangedListener {
+    /**
+     * @param keys changes keys
+     */
+    void onChange();
 }

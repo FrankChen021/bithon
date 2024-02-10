@@ -32,8 +32,8 @@ import java.util.regex.Pattern;
 public class TraceContextFactory {
     static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-zA-Z]{32}");
 
-    public static ITraceContext create(SamplingMode samplingMode, String traceId) {
-        return create(samplingMode, traceId, null);
+    public static ITraceContext create(SamplingMode samplingMode) {
+        return create(samplingMode, Tracer.get().traceIdGenerator().newTraceId(), null);
     }
 
     public static ITraceContext create(SamplingMode samplingMode, String traceId, String parentSpanId) {

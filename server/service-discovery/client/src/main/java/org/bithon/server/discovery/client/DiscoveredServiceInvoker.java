@@ -42,12 +42,15 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
+ * Invoke the discovered service on service provider(providers) instance(s).
+ *
  * @author Frank Chen
  * @date 23/2/23 12:47 am
  */
-public class ServiceBroadcastInvoker implements ApplicationContextAware {
+public class DiscoveredServiceInvoker implements ApplicationContextAware {
     @Getter
     private IDiscoveryClient serviceDiscoveryClient;
 
@@ -60,7 +63,7 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
     private ObjectMapper objectMapper;
     private ApplicationContext applicationContext;
 
-    public ServiceBroadcastInvoker(IDiscoveryClient discoveryClient, ServiceInvocationExecutor executor) {
+    public DiscoveredServiceInvoker(IDiscoveryClient discoveryClient, ServiceInvocationExecutor executor) {
         this.discoveryClient = discoveryClient;
         this.executor = executor;
     }
@@ -75,9 +78,10 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
     /**
      * Create invoker for given interface.
      *
-     * @param serviceDeclaration An interface which MUST be annotated by {@link DiscoverableService}
+     * @param serviceDeclaration An interface which MUST be annotated by {@link DiscoverableService}.
+     *                           And the returning type of invokable methods SHOULD be type of {@link ServiceResponse}
      */
-    public <T> T create(Class<T> serviceDeclaration) {
+    public <T> T createBroadcastApi(Class<T> serviceDeclaration) {
         DiscoverableService metadata = serviceDeclaration.getAnnotation(DiscoverableService.class);
         if (metadata == null) {
             throw new RuntimeException(StringUtils.format("Given class [%s] is not marked by annotation [%s].",
@@ -91,6 +95,56 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
                                           new ServiceBroadcastInvocationHandler<>(objectMapper,
                                                                                   serviceDeclaration,
                                                                                   metadata.name()));
+    }
+
+    public <T> T createUnicastApi(Class<T> serviceDeclaration) {
+        DiscoverableService metadata = serviceDeclaration.getAnnotation(DiscoverableService.class);
+        if (metadata == null) {
+            throw new RuntimeException(StringUtils.format("Given class [%s] is not marked by annotation [%s].",
+                                                          serviceDeclaration.getName(),
+                                                          DiscoverableService.class.getSimpleName()));
+        }
+
+        //noinspection unchecked
+        return (T) Proxy.newProxyInstance(serviceDeclaration.getClassLoader(),
+                                          new Class<?>[]{serviceDeclaration},
+                                          new ServiceUnicastInvocationHandler<>(objectMapper,
+                                                                                serviceDeclaration,
+                                                                                metadata.name()));
+    }
+
+    private class ServiceUnicastInvocationHandler<T> implements InvocationHandler {
+        private final ObjectMapper objectMapper;
+        private final Class<T> type;
+        private final String serviceName;
+
+        private ServiceUnicastInvocationHandler(ObjectMapper objectMapper,
+                                                Class<T> type,
+                                                String name) {
+            this.objectMapper = objectMapper;
+            this.type = type;
+            this.serviceName = name;
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) {
+            if (serviceDiscoveryClient == null) {
+                throw new HttpMappableException(HttpStatus.SERVICE_UNAVAILABLE.value(),
+                                                "This API is unavailable because Service Discovery is not configured.");
+            }
+            // Get all instances first
+            List<IDiscoveryClient.HostAndPort> instanceList = serviceDiscoveryClient.getInstanceList(serviceName);
+
+            // Find one random instance
+            IDiscoveryClient.HostAndPort oneInstance = instanceList.get(ThreadLocalRandom.current().nextInt(instanceList.size()));
+
+            // The discovered client might be the current process, which enables the security model.
+            // Under the current security implementation, an API token is needed.
+            Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
+            Object token = authentication == null ? null : authentication.getCredentials();
+
+            return new RemoteServiceCaller<>(objectMapper, type, oneInstance, method, args, token).call();
+        }
     }
 
     private class ServiceBroadcastInvocationHandler<T> implements InvocationHandler {
@@ -114,8 +168,8 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
                                                 "This API is unavailable because Service Discovery is not configured.");
             }
 
-            // The discovered client might be the current process that enables the security module,
-            // Under current security implementation, an API is needed.
+            // The discovered client might be the current process, which enables the security model.
+            // Under the current security implementation, an API token is needed.
             Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
             Object token = authentication == null ? null : authentication.getCredentials();
 
@@ -134,7 +188,7 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
             List mergedRows = new ArrayList();
 
             //
-            // Merge the result together
+            // Merge the result
             //
             for (Future<ServiceResponse<?>> future : futures) {
                 try {
@@ -182,13 +236,12 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
             this.hostAndPort = hostAndPort;
             this.method = method;
             this.args = args;
-            Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
-            this.token = authentication == null ? null : authentication.getCredentials();
+            this.token = token;
         }
 
         @Override
         public ServiceResponse<?> call() {
-            Object proxyObject = Feign.builder()
+            Object feignObject = Feign.builder()
                                       .contract(applicationContext.getBean(Contract.class))
                                       .encoder(applicationContext.getBean(Encoder.class))
                                       .decoder(applicationContext.getBean(Decoder.class))
@@ -200,17 +253,19 @@ public class ServiceBroadcastInvoker implements ApplicationContextAware {
                                       })
                                       .target(type, "http://" + hostAndPort.getHost() + ":" + hostAndPort.getPort());
 
-            InvocationHandler handler = Proxy.getInvocationHandler(proxyObject);
+            // The created feignObject is also a java proxy.
+            // To invoke the method on the proxy object, we need to get its InvocationHandler object first.
+            InvocationHandler handler = Proxy.getInvocationHandler(feignObject);
+
             try {
                 // The remote service must return a type of Collection
-                return (ServiceResponse<?>) handler.invoke(proxyObject, method, args);
+                return (ServiceResponse<?>) handler.invoke(feignObject, method, args);
             } catch (FeignException.NotFound e) {
                 // Ignore the exception that the target service does not have data of given args
                 // This might also ignore the HTTP layer 404 problem
                 return ServiceResponse.EMPTY;
             } catch (FeignException.Forbidden e) {
-                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
-                                                e.getMessage());
+                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(), e.getMessage());
             } catch (HttpMappableException e) {
                 // Customized ErrorDecoder decodes exception
                 throw e;

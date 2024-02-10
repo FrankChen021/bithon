@@ -16,8 +16,6 @@
 
 package org.bithon.server.storage.jdbc.clickhouse.common;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
@@ -41,13 +39,6 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class TableCreator {
-
-    @Getter
-    @AllArgsConstructor
-    public static class SecondaryIndex {
-        private String type;
-        private int granularity;
-    }
 
     private final ClickHouseConfig config;
     private final DSLContext dslContext;
@@ -192,7 +183,7 @@ public class TableCreator {
 
         //
         // Create distributed table if necessary.
-        // In such case, the table.getName() points to the distributed table.
+        // In such a case, the table.getName() points to the distributed table.
         //
         if (config.isOnDistributedTable()) {
             StringBuilder sb = new StringBuilder(128);
@@ -283,7 +274,8 @@ public class TableCreator {
             String field = entry.getKey();
             SecondaryIndex idx = entry.getValue();
 
-            sb.append(StringUtils.format(",%nINDEX idx_%s %s TYPE %s GRANULARITY %d", field, field, idx.getType(), idx.getGranularity()));
+            String indexName = StringUtils.hasText(idx.getIndexName()) ? idx.getIndexName() : "idx_" + field;
+            sb.append(StringUtils.format(",%nINDEX %s %s TYPE %s GRANULARITY %d", indexName, field, idx.getType(), idx.getGranularity()));
         }
         return sb.toString();
     }

@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * @author Frank Chen
@@ -87,11 +88,11 @@ public class InstallerRecorder {
             }
             InstrumentedMethod that = (InstrumentedMethod) o;
             return isStatic == that.isStatic
-                    && Objects.equals(interceptor, that.interceptor)
-                    && Objects.equals(type, that.type)
-                    && Objects.equals(returnType, that.returnType)
-                    && Objects.equals(methodName, that.methodName)
-                    && Objects.equals(parameters, that.parameters);
+                && Objects.equals(interceptor, that.interceptor)
+                && Objects.equals(type, that.type)
+                && Objects.equals(returnType, that.returnType)
+                && Objects.equals(methodName, that.methodName)
+                && Objects.equals(parameters, that.parameters);
         }
 
         @Override
@@ -139,5 +140,9 @@ public class InstallerRecorder {
                                                            instrumentedMethod.isStatic(),
                                                            parameters.toString());
         this.instrumentedMethods.add(method);
+    }
+
+    public void deleteInterceptorIf(Predicate<InstrumentedMethod> predicate) {
+        this.instrumentedMethods.removeIf(predicate);
     }
 }
