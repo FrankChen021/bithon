@@ -63,8 +63,10 @@ public class AlertNotificationApi {
     }
 
     @PostMapping("/alerting/api/alert/notification/create")
-    public ApiResponse createProvider(@RequestBody Map<String, Object> request) throws JsonProcessingException {
-        String id = (String) request.remove("id");
+    public ApiResponse<?> createProvider(@RequestBody Map<String, Object> request) throws JsonProcessingException {
+        // Allow the id to be type of integer
+        Object id = request.remove("id");
+
         String name = (String) request.remove("name");
 
         Preconditions.checkIfTrue(id != null, "id property is missed.");
@@ -74,7 +76,7 @@ public class AlertNotificationApi {
         String s = objectMapper.writeValueAsString(request);
         objectMapper.readValue(s, INotificationProvider.class);
 
-        storage.creatProvider(id,
+        storage.creatProvider(id.toString(),
                               name,
                               (String) request.get("type"),
                               s);
