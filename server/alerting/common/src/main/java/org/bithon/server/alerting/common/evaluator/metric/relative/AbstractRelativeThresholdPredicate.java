@@ -87,7 +87,11 @@ public class AbstractRelativeThresholdPredicate implements IMetricEvaluator {
         if (CollectionUtils.isEmpty(currWindow) || !currWindow.get(0).containsKey(metric.getName())) {
             return null;
         }
-        BigDecimal currWindowValue = NumberUtils.scaleTo(((Number) currWindow.get(0).get(metric.getName())).doubleValue(), 2);
+        Number currValue = (Number)currWindow.get(0).get(metric.getName());
+        if (currValue == null) {
+            return null;
+        }
+        BigDecimal currWindowValue = NumberUtils.scaleTo(currValue.doubleValue(), 2);
 
         response = dataSourceApi.groupBy(GeneralQueryRequest.builder()
                                                             .dataSource(dataSource)
