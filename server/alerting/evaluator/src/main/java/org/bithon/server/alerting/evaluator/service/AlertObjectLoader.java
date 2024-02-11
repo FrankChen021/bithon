@@ -96,13 +96,13 @@ public class AlertObjectLoader {
         this.lastLoadedAt = now;
     }
 
-    private AlertRule toAlert(AlertStorageObject alarmObject) {
+    private AlertRule toAlert(AlertStorageObject alertObject) {
         try {
-            AlertRule alertRule = objectMapper.readValue(alarmObject.getPayload(), AlertRule.class);
-            alertRule.setId(alarmObject.getAlertId());
-            alertRule.setName(alarmObject.getAlertName());
-            alertRule.setEnabled(!alarmObject.getDisabled());
-            alertRule.setAppName(alarmObject.getAppName());
+            AlertRule alertRule = objectMapper.readValue(alertObject.getPayload(), AlertRule.class);
+            alertRule.setId(alertObject.getAlertId());
+            alertRule.setName(alertObject.getAlertName());
+            alertRule.setEnabled(!alertObject.getDisabled());
+            alertRule.setAppName(alertObject.getAppName());
             Validator.validate(alertRule);
             try {
                 return alertRule.initialize();
@@ -111,7 +111,7 @@ public class AlertObjectLoader {
                 return null;
             }
         } catch (IOException e) {
-            log.error("Unable to deserialize alarm object Exception: {}\n. Alarm Object: {}\n Stack Trace: {}", e.getMessage(), alarmObject, e);
+            log.error("Unable to deserialize alarm object Exception: {}\n. Alarm Object: {}\n Stack Trace: {}", e.getMessage(), alertObject, e);
             return null;
         }
     }

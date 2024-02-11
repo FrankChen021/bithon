@@ -49,7 +49,8 @@ import java.util.concurrent.TimeUnit;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AlertRule {
-    public final static HumanReadableDuration DEFAULT_FOR_DURATION = HumanReadableDuration.of(3, TimeUnit.MINUTES);
+
+    public static final HumanReadableDuration DEFAULT_FOR_DURATION = HumanReadableDuration.of(3, TimeUnit.MINUTES);
 
     /**
      * 32 bytes UUID. Can be null. If it's null, the server generates a new one
@@ -87,7 +88,7 @@ public class AlertRule {
     @JsonProperty
     private List<String> notifications;
 
-    @JsonProperty
+    @JsonIgnore
     private boolean enabled = true;
 
     @JsonIgnore
@@ -98,7 +99,7 @@ public class AlertRule {
 
     @JsonIgnore
     public int getExpectedMatchCount() {
-        return (int)(this.forDuration.getDuration().toMinutes() / this.evaluationInterval);
+        return (int) (this.forDuration.getDuration().toMinutes() / this.evaluationInterval);
     }
 
     public AlertRule initialize() throws InvalidExpressionException {

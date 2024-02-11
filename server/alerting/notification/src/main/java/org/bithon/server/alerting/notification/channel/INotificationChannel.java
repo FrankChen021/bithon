@@ -19,12 +19,12 @@ package org.bithon.server.alerting.notification.channel;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.alerting.notification.image.ImageMode;
-import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.alerting.notification.channel.console.ConsoleNotificationChannel;
 import org.bithon.server.alerting.notification.channel.ding.DingNotificationChannel;
 import org.bithon.server.alerting.notification.channel.http.HttpNotificationChannel;
 import org.bithon.server.alerting.notification.channel.kafka.KafkaNotificationChannel;
+import org.bithon.server.alerting.notification.image.ImageMode;
+import org.bithon.server.alerting.notification.message.NotificationMessage;
 
 /**
  * @author frank.chen021@outlook.com

@@ -1,4 +1,4 @@
-### Create an Console notification provider
+### Create an Console notification channel
 POST http://localhost:9897/alerting/api/alert/notification/create
 Content-Type: application/yaml
 
@@ -6,7 +6,7 @@ type: console
 name: console-1
 
 
-### Create an HTTP notification provider
+### Create an HTTP notification channel
 POST http://localhost:9897/alerting/api/alert/notification/create
 Content-Type: application/yaml
 
@@ -17,7 +17,7 @@ headers:
   "X-Fake": "value"
 
 
-### Create an Kafka notification provider
+### Create an Kafka notification channel
 POST http://localhost:9897/alerting/api/alert/notification/create
 Content-Type: application/yaml
 
@@ -31,10 +31,10 @@ Content-Type: application/yaml
   }
 }
 
-### Get all providers
+### Get all notification channel
 POST http://localhost:9897/alerting/api/alert/notification/get
 
 
-### DELETE an HTTP notification provider
+### DELETE an HTTP notification channel
 POST http://localhost:9897/alerting/api/alert/notification/delete?name=http
 

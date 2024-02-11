@@ -6,12 +6,12 @@ id: "f7f87ce1e0b444919b123849f4c7939d"
 checkApplication: "false"
 appName: "bithon-web-local"
 evaluationInterval: 1
-matchTimes: 1
 
 name: "Alert1"
 expr: "avg(jvm-metrics.processCpuLoad)[1m] > 0.1[-1h] AND max(jvm-gc-metrics.gcCount) >= 0"
+for: 3m
 notifications:
-  - "1"
+  - console-1
 
 
 ### Update an alert

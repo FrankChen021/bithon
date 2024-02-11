@@ -19,6 +19,7 @@ package org.bithon.server.alerting.manager.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertRule;
@@ -29,6 +30,7 @@ import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -65,8 +67,14 @@ public class AlertNotificationApi {
     @PostMapping("/alerting/api/alert/notification/create")
     public ApiResponse<?> createProvider(@RequestBody Map<String, Object> request) throws JsonProcessingException {
         String name = (String) request.remove("name");
-
         Preconditions.checkIfTrue(name != null, "name property is missed.");
+
+        if (channelStorage.exists(name)) {
+            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                            "The channel with name [%s] already exists",
+                                            name);
+        }
+
         Preconditions.checkIfTrue(request.containsKey("type"), "type property is missed.");
 
         String payload = objectMapper.writeValueAsString(request);
@@ -99,15 +107,15 @@ public class AlertNotificationApi {
             this.channelStorage.getChannels(0)
                                .stream()
                                .map((obj) -> {
-                            try {
-                                Map<String, Object> props = objectMapper.readValue(obj.getPayload(), new TypeReference<TreeMap<String, Object>>() {
-                                });
-                                props.put("name", obj.getName());
-                                props.put("type", obj.getType());
-                                return props;
-                            } catch (JsonProcessingException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }));
+                                   try {
+                                       Map<String, Object> props = objectMapper.readValue(obj.getPayload(), new TypeReference<TreeMap<String, Object>>() {
+                                       });
+                                       props.put("name", obj.getName());
+                                       props.put("type", obj.getType());
+                                       return props;
+                                   } catch (JsonProcessingException e) {
+                                       throw new RuntimeException(e);
+                                   }
+                               }));
     }
 }

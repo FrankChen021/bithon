@@ -33,8 +33,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
-import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
+import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.springframework.http.MediaType;
 
 import javax.annotation.Nonnull;

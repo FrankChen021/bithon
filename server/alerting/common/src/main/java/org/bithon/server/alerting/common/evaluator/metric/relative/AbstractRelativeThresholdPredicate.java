@@ -87,7 +87,7 @@ public class AbstractRelativeThresholdPredicate implements IMetricEvaluator {
         if (CollectionUtils.isEmpty(currWindow) || !currWindow.get(0).containsKey(metric.getName())) {
             return null;
         }
-        Number currValue = (Number)currWindow.get(0).get(metric.getName());
+        Number currValue = (Number) currWindow.get(0).get(metric.getName());
         if (currValue == null) {
             return null;
         }

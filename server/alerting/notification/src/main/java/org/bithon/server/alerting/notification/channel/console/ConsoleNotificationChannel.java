@@ -21,8 +21,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
+import org.bithon.server.alerting.notification.message.NotificationMessage;
 
 /**
  * Mainly for development

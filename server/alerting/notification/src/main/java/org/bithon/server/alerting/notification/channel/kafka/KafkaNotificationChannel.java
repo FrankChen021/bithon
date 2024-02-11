@@ -31,8 +31,8 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
+import org.bithon.server.alerting.notification.message.NotificationMessage;
 
 import java.io.IOException;
 import java.util.HashMap;

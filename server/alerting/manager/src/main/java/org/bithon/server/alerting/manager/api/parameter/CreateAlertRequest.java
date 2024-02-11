@@ -19,6 +19,7 @@ package org.bithon.server.alerting.manager.api.parameter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.bithon.component.commons.utils.HumanReadableDuration;
+import org.bithon.component.commons.utils.HumanReadableDurationConstraint;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.manager.biz.CommandArgs;
 
@@ -28,7 +29,6 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
@@ -61,9 +61,8 @@ public class CreateAlertRequest {
     @Max(60)
     private int evaluationInterval = 1;
 
-    @Min(1)
-    @Max(60)
     @JsonProperty("for")
+    @HumanReadableDurationConstraint(min = "1m", max = "60m")
     private HumanReadableDuration forDuration = AlertRule.DEFAULT_FOR_DURATION;
 
     @NotEmpty

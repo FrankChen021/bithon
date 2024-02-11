@@ -18,8 +18,8 @@ package org.bithon.server.alerting.notification.message;
 
 import lombok.Data;
 import org.bithon.component.commons.utils.HumanReadableDuration;
-import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.AlertExpression;
+import org.bithon.server.alerting.common.model.AlertRule;
 
 import java.util.List;
 import java.util.Map;
