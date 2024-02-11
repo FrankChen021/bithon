@@ -22,13 +22,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
-import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
-import org.bithon.server.alerting.notification.api.INotificationApi;
-import org.bithon.server.alerting.notification.image.RenderingConfig;
+import org.bithon.server.alerting.evaluator.rpc.NotificationServiceClientApi;
 import org.bithon.server.alerting.notification.message.ConditionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.alerting.notification.message.OutputMessage;
@@ -38,7 +36,6 @@ import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
@@ -59,22 +56,19 @@ public class AlertEvaluator {
 
     private final IAlertStateStorage stateStorage;
     private final IEvaluationLogStorage evaluationLoggerFactory;
-    private final RenderingConfig renderingConfig;
     private final IAlertRecordStorage alertRecordStorage;
     private final ObjectMapper objectMapper;
     private final IDataSourceApi dataSourceApi;
-    private final INotificationApi notificationApi;
+    private final NotificationServiceClientApi notificationApi;
 
     public AlertEvaluator(IAlertStateStorage stateStorage,
-                          IEvaluationLogStorage evaluationLoggerFactory,
-                          RenderingConfig notificationConfig,
-                          IAlertRecordStorage alertRecordDao,
+                          IEvaluationLogStorage logStorage,
+                          IAlertRecordStorage recordStorage,
                           IDataSourceApi dataSourceApi,
-                          @Qualifier("alerting-notification-client-api") INotificationApi notificationApi) {
+                          NotificationServiceClientApi notificationApi) {
         this.stateStorage = stateStorage;
-        this.evaluationLoggerFactory = evaluationLoggerFactory;
-        this.renderingConfig = notificationConfig;
-        this.alertRecordStorage = alertRecordDao;
+        this.evaluationLoggerFactory = logStorage;
+        this.alertRecordStorage = recordStorage;
         this.dataSourceApi = dataSourceApi;
         this.objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
         this.notificationApi = notificationApi;
@@ -166,11 +160,7 @@ public class AlertEvaluator {
         notification.setStart(context.getIntervalEnd().before(alertRule.getForDuration()).getMilliseconds());
         notification.setEnd(context.getIntervalEnd().getMilliseconds());
         notification.setDuration(alertRule.getForDuration());
-
         notification.setConditionEvaluation(new HashMap<>());
-        if (this.renderingConfig.isEnabled()) {
-            notification.setImages(new HashMap<>());
-        }
         context.getEvaluationResults().forEach((expressionId, result) -> {
             AlertExpression condition = context.getAlertExpressions().get(expressionId);
 
@@ -183,19 +173,6 @@ public class AlertEvaluator {
                                                                                                  .delta(outputs.getDeltaText())
                                                                                                  .threshold(outputs.getThresholdText())
                                                                                                  .build()));
-
-            if (result == EvaluationResult.MATCHED && this.renderingConfig.isEnabled()) {
-                /*
-                notification.getImages().put(ruleId,
-                                             this.imageRenderService.renderAndSaveAsync(alert.getNotifications().getImageMode(),
-                                                                                        alert.getName(),
-                                                                                        condition,
-                                                                                        alert.getMatchTimes(),
-                                                                                        context.getIntervalEnd()
-                                                                                               .before(condition.getMetric().getWindow(), TimeUnit.MINUTES),
-                                                                                        context.getIntervalEnd()));
-                 */
-            }
         });
 
         //

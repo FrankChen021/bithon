@@ -27,6 +27,6 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 public class ManagerModuleEnabler implements Condition {
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        return "true".equals(context.getEnvironment().getProperty("bithon.alerting.module.manager.enabled"));
+        return "true".equals(context.getEnvironment().getProperty("bithon.alerting.manager.enabled"));
     }
 }

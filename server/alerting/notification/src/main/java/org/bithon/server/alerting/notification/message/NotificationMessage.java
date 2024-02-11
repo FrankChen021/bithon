@@ -23,7 +23,6 @@ import org.bithon.server.alerting.common.model.AlertRule;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Future;
 
 /**
  * @author Frank Chen
@@ -39,10 +38,4 @@ public class NotificationMessage {
     private Map<String, ConditionEvaluationResult> conditionEvaluation;
     private AlertRule alertRule;
     private Long lastAlertAt;
-
-    /**
-     * key: condition id
-     * val: base64 image data
-     */
-    private Map<String, Future<String>> images;
 }

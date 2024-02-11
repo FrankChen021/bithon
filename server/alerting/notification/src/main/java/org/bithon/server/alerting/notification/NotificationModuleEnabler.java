@@ -27,6 +27,6 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 public class NotificationModuleEnabler implements Condition {
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        return "true".equals(context.getEnvironment().getProperty("bithon.alerting.module.notification.enabled"));
+        return "true".equals(context.getEnvironment().getProperty("bithon.alerting.notification.enabled"));
     }
 }

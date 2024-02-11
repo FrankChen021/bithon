@@ -26,6 +26,7 @@ import feign.codec.Decoder;
 import feign.codec.Encoder;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.alerting.evaluator.rpc.NotificationServiceClientApi;
 import org.bithon.server.alerting.evaluator.storage.local.AlertStateLocalMemoryStorage;
 import org.bithon.server.alerting.evaluator.storage.redis.AlertStateRedisStorage;
 import org.bithon.server.alerting.notification.api.INotificationApi;
@@ -60,9 +61,9 @@ public class EvaluatorModuleAutoConfiguration {
     public IAlertStateStorage alertStateStorage(ObjectMapper objectMapper,
                                                 Environment environment) throws IOException {
         HashMap<?, ?> stateConfig = Binder.get(environment)
-                                          .bind("bithon.alerting.module.evaluator.state", HashMap.class)
+                                          .bind("bithon.alerting.evaluator.state", HashMap.class)
                                           .orElseGet(() -> null);
-        Preconditions.checkIfTrue(stateConfig.containsKey("type"), "Missed 'type' property for bithon.alerting.module.evaluator.state");
+        Preconditions.checkIfTrue(stateConfig.containsKey("type"), "Missed 'type' property for bithon.alerting.evaluator.state");
 
         String jsonType = objectMapper.writeValueAsString(stateConfig);
         try {
@@ -72,24 +73,24 @@ public class EvaluatorModuleAutoConfiguration {
         }
     }
 
-    @Bean(value = "alerting-notification-client-api")
-    public INotificationApi alertNotificationService(DiscoveredServiceInvoker discoveredServiceInvoker,
-                                                     Contract contract,
-                                                     Encoder encoder,
-                                                     Decoder decoder,
-                                                     Environment environment) {
+    @Bean
+    public NotificationServiceClientApi alertNotificationService(DiscoveredServiceInvoker discoveredServiceInvoker,
+                                                                 Contract contract,
+                                                                 Encoder encoder,
+                                                                 Decoder decoder,
+                                                                 Environment environment) {
 
-        String service = environment.getProperty("bithon.alerting.module.evaluator.notification-service", "discovery");
+        String service = environment.getProperty("bithon.alerting.evaluator.notification-service", "discovery");
         if ("discovery".equalsIgnoreCase(service)) {
-            return discoveredServiceInvoker.createUnicastApi(INotificationApi.class);
+            return new NotificationServiceClientApi(discoveredServiceInvoker.createUnicastApi(INotificationApi.class));
         }
 
         if (service.startsWith("http:") || service.startsWith("https:")) {
-            return Feign.builder()
-                        .contract(contract)
-                        .encoder(encoder)
-                        .decoder(decoder)
-                        .target(INotificationApi.class, service);
+            return new NotificationServiceClientApi(Feign.builder()
+                                                         .contract(contract)
+                                                         .encoder(encoder)
+                                                         .decoder(decoder)
+                                                         .target(INotificationApi.class, service));
         }
 
         throw new RuntimeException(StringUtils.format("Invalid notification property configured. Only 'discovery' or URL is allowed, but got [%s]", service));

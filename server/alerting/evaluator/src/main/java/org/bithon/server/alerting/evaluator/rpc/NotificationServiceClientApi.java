@@ -14,19 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.evaluator;
+package org.bithon.server.alerting.evaluator.rpc;
 
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.bithon.server.alerting.notification.api.INotificationApi;
+import org.bithon.server.alerting.notification.message.NotificationMessage;
 
 /**
- * @author Frank Chen
- * @date 30/4/22 3:54 PM
+ * @author frank.chen021@outlook.com
+ * @date 2024/2/11 19:07
  */
-public class EvaluatorModuleEnabler implements Condition {
+public class NotificationServiceClientApi implements INotificationApi {
+
+    private final INotificationApi delegate;
+
+    public NotificationServiceClientApi(INotificationApi delegate) {
+        this.delegate = delegate;
+    }
+
     @Override
-    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        return "true".equals(context.getEnvironment().getProperty("bithon.alerting.evaluator.enabled"));
+    public void notify(String name, NotificationMessage message) throws Exception {
+        this.delegate.notify(name, message);
     }
 }

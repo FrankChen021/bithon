@@ -39,10 +39,10 @@ public class ManagerModuleAutoConfiguration {
     IUserProvider alertingModuleUserProvider(Environment environment) {
         boolean allowAnonymous;
         try {
-            allowAnonymous = environment.getProperty("bithon.alerting.module.manager.allow-anonymous", Boolean.class, false);
+            allowAnonymous = environment.getProperty("bithon.alerting.manager.allow-anonymous", Boolean.class, false);
         } catch (ConversionFailedException e) {
-            throw new RuntimeException(StringUtils.format("Invalid value [%s] for 'bithon.alerting.module.manager.allow-anonymous' property. It must be a Boolean.",
-                                                          environment.getProperty("bithon.alerting.module.manager.allow-anonymous")));
+            throw new RuntimeException(StringUtils.format("Invalid value [%s] for 'bithon.alerting.manager.allow-anonymous' property. It must be a Boolean.",
+                                                          environment.getProperty("bithon.alerting.manager.allow-anonymous")));
         }
         return new DefaultUserProvider(allowAnonymous);
     }
