@@ -18,6 +18,7 @@ package org.bithon.server.alerting.evaluator.evaluator;
 
 import lombok.Builder;
 import lombok.Data;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.notification.message.ConditionEvaluationResult;
 
@@ -33,7 +34,7 @@ import java.util.Map;
 public class AlertRecordPayload {
     private long start;
     private long end;
-    private int detectionLength;
+    private HumanReadableDuration duration;
     private Collection<AlertExpression> expressions;
     private Map<String, ConditionEvaluationResult> conditionEvaluation;
 }

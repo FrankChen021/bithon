@@ -26,8 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
-import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.AlertExpression;
+import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.utils.FreeMarkerUtil;
 import org.bithon.server.alerting.notification.format.NotificationContent;
 import org.bithon.server.alerting.notification.format.NotificationTextSection;
@@ -85,9 +85,8 @@ public class DingNotificationProvider implements INotificationProvider {
                .add("Time Window",
                     StringUtils.format("%s ~ %s",
                                        DateTime.formatDateTime("MM-dd HH:mm",
-                                                               new TimeSpan(message.getEnd())
-                                                                   .before(alertRule.getMatchTimes(), TimeUnit.MINUTES)
-                                                                   .getMilliseconds()),
+                                                               new TimeSpan(message.getEnd()).before(alertRule.getForDuration())
+                                                                                             .getMilliseconds()),
                                        DateTime.formatDateTime("MM-dd HH:mm", message.getEnd())));
 
         if (message.getLastAlertAt() != null) {
@@ -103,7 +102,7 @@ public class DingNotificationProvider implements INotificationProvider {
 
             StringBuilder text = new StringBuilder("Expression");
             text.append(expression.getId());
-            text.append(StringUtils.format(": %d minutes", alertRule.getMatchTimes()));
+            text.append(StringUtils.format(": %d minutes", alertRule.getForDuration()));
             text.append(expression.getWhere());
 
             OutputMessage output = result.getOutputs();

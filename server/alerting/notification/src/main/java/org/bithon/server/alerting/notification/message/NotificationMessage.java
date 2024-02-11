@@ -17,6 +17,7 @@
 package org.bithon.server.alerting.notification.message;
 
 import lombok.Data;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.AlertExpression;
 
@@ -33,7 +34,7 @@ public class NotificationMessage {
     private String alertRecordId;
     private long start;
     private long end;
-    private int detectionLength;
+    private HumanReadableDuration duration;
     private List<AlertExpression> expressions;
     private Map<String, ConditionEvaluationResult> conditionEvaluation;
     private AlertRule alertRule;

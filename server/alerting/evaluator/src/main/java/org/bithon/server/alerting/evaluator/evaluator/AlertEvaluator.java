@@ -23,8 +23,8 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
-import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.AlertExpression;
+import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
 import org.bithon.server.alerting.notification.api.INotificationApi;
 import org.bithon.server.alerting.notification.image.RenderingConfig;
@@ -118,16 +118,16 @@ public class AlertEvaluator {
                 context.log(AlertEvaluator.class, "alert [%s] tested successfully.", alertRule.getName());
 
                 long successiveCount = stateStorage.incrTriggerMatchCount(alertRule.getId(), "");
-                if (successiveCount >= alertRule.getMatchTimes()) {
+                if (successiveCount >= alertRule.getExpectedMatchCount()) {
                     stateStorage.resetTriggerMatchCount(alertRule.getId(), "");
 
                     context.log(AlertEvaluator.class,
                                 "Rule tested %d times successively，and reaches the expected count：%d",
                                 successiveCount,
-                                alertRule.getMatchTimes());
+                                alertRule.getForDuration());
 
                 } else {
-                    context.log(AlertEvaluator.class, "Rule tested %d times successively，expected times：%d", successiveCount, alertRule.getMatchTimes());
+                    context.log(AlertEvaluator.class, "Rule tested %d times successively，expected times：%d", successiveCount, alertRule.getForDuration());
                 }
                 return true;
             } else {
@@ -159,9 +159,9 @@ public class AlertEvaluator {
 
         NotificationMessage notification = new NotificationMessage();
         notification.setAlertRule(alertRule);
-        notification.setStart(context.getIntervalEnd().before(alertRule.getMatchTimes(), TimeUnit.MINUTES).getMilliseconds());
+        notification.setStart(context.getIntervalEnd().before(alertRule.getForDuration()).getMilliseconds());
         notification.setEnd(context.getIntervalEnd().getMilliseconds());
-        notification.setDetectionLength(alertRule.getMatchTimes());
+        notification.setDuration(alertRule.getForDuration());
 
         notification.setConditionEvaluation(new HashMap<>());
         if (this.renderingConfig.isEnabled()) {
@@ -209,7 +209,7 @@ public class AlertEvaluator {
                                                                                  .end(notification.getEnd())
                                                                                  .expressions(context.getAlertExpressions().values())
                                                                                  .conditionEvaluation(notification.getConditionEvaluation())
-                                                                                 .detectionLength(notification.getDetectionLength())
+                                                                                 .duration(notification.getDuration())
                                                                                  .build()));
         alertRecord.setNotificationStatus(IAlertRecordStorage.STATUS_CODE_UNCHECKED);
         alertRecordStorage.addAlertRecord(alertRecord);

@@ -49,6 +49,22 @@ public class HumanReadableDuration {
         return text;
     }
 
+    public static HumanReadableDuration of(int duration, TimeUnit timeUnit) {
+        if (timeUnit == TimeUnit.SECONDS) {
+            return new HumanReadableDuration(duration + "s", Duration.ofSeconds(duration), timeUnit);
+        }
+        if (timeUnit == TimeUnit.MINUTES) {
+            return new HumanReadableDuration(duration + "m", Duration.ofMinutes(duration), timeUnit);
+        }
+        if (timeUnit == TimeUnit.HOURS) {
+            return new HumanReadableDuration(duration + "h", Duration.ofHours(duration), timeUnit);
+        }
+        if (timeUnit == TimeUnit.DAYS) {
+            return new HumanReadableDuration(duration + "d", Duration.ofDays(duration), timeUnit);
+        }
+        throw new RuntimeException("Invalid timeunit");
+    }
+
     public static HumanReadableDuration parse(String durationText) {
         Preconditions.checkNotNull(durationText, "durationText can not be null.");
         durationText = durationText.trim();

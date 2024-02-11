@@ -27,6 +27,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
@@ -37,6 +38,7 @@ import javax.validation.constraints.Size;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author frankchen
@@ -47,6 +49,8 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AlertRule {
+    public final static HumanReadableDuration DEFAULT_FOR_DURATION = HumanReadableDuration.of(3, TimeUnit.MINUTES);
+
     /**
      * 32 bytes UUID. Can be null. If it's null, the server generates a new one
      */
@@ -63,13 +67,13 @@ public class AlertRule {
     private String name;
 
     /**
-     * in minute
+     * in minutes
      */
     @JsonProperty
     private int evaluationInterval = 1;
 
-    @JsonProperty
-    private int matchTimes = 3;
+    @JsonProperty("for")
+    private HumanReadableDuration forDuration = DEFAULT_FOR_DURATION;
 
     /**
      * silence period in minute
@@ -92,6 +96,11 @@ public class AlertRule {
     @JsonIgnore
     private Map<String, AlertExpression> flattenExpressions;
 
+    @JsonIgnore
+    public int getExpectedMatchCount() {
+        return (int)(this.forDuration.getDuration().toMinutes() / this.evaluationInterval);
+    }
+
     public AlertRule initialize() throws InvalidExpressionException {
         if (evaluationExpression != null) {
             return this;
@@ -110,7 +119,7 @@ public class AlertRule {
         IExpression appNameFilter = new ComparisonExpression.EQ(new IdentifierExpression("appName"), LiteralExpression.create(this.getAppName()));
 
         this.evaluationExpression.accept((IAlertExpressionVisitor) expression -> {
-            // Save to the flatten list
+            // Save to the flattened list
             flattenExpressions.put(expression.getId(), expression);
 
             IExpression whereExpression = expression.getWhereExpression();
