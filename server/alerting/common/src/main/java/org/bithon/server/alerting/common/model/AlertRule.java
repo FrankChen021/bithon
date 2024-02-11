@@ -80,7 +80,7 @@ public class AlertRule {
      * silence period in minute
      */
     @JsonProperty
-    private int silence = 3;
+    private HumanReadableDuration silence = DEFAULT_FOR_DURATION;
 
     @JsonProperty
     private String expr;

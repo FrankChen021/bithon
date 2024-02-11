@@ -20,7 +20,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
-import org.bithon.server.alerting.evaluator.service.AlertObjectLoader;
+import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.commons.time.TimeSpan;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -43,12 +43,12 @@ import java.util.concurrent.TimeUnit;
 public class AlertEvaluatorScheduler {
 
     private final AlertEvaluator alertEvaluator;
-    private final AlertObjectLoader alertObjectLoader;
+    private final AlertRepository alertRepository;
     private final ThreadPoolExecutor executor;
 
-    public AlertEvaluatorScheduler(AlertEvaluator alertEvaluator, AlertObjectLoader alertObjectLoader) {
+    public AlertEvaluatorScheduler(AlertEvaluator alertEvaluator, AlertRepository alertRepository) {
         this.alertEvaluator = alertEvaluator;
-        this.alertObjectLoader = alertObjectLoader;
+        this.alertRepository = alertRepository;
         this.executor = new ThreadPoolExecutor(10,
                                                50,
                                                5,
@@ -64,10 +64,10 @@ public class AlertEvaluatorScheduler {
         log.info("Starting alert evaluation...");
 
         // Load changes first
-        alertObjectLoader.loadChanges();
+        alertRepository.loadChanges();
 
         TimeSpan now = TimeSpan.now().floor(Duration.ofMinutes(1));
-        for (AlertRule alertRule : alertObjectLoader.getLoadedAlerts().values()) {
+        for (AlertRule alertRule : alertRepository.getLoadedAlerts().values()) {
             executor.execute(() -> alertEvaluator.evaluate(now, alertRule));
         }
     }
@@ -76,7 +76,7 @@ public class AlertEvaluatorScheduler {
      * for debugging
      */
     private void evaluate(String alertId) {
-        AlertRule alertRule = alertObjectLoader.getLoadedAlerts().get(alertId);
+        AlertRule alertRule = alertRepository.getLoadedAlerts().get(alertId);
         if (alertRule != null) {
             alertEvaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)), alertRule);
         }

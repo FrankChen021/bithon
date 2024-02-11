@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.evaluator.service;
+package org.bithon.server.alerting.evaluator.repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +29,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -41,15 +43,16 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Service
 @Conditional(EvaluatorModuleEnabler.class)
-public class AlertObjectLoader {
+public class AlertRepository {
 
     private final IAlertObjectStorage alertObjectStorage;
     private final ObjectMapper objectMapper;
     private final Map<String, AlertRule> loadedAlerts = new ConcurrentHashMap<>();
+    private final List<IAlertChangeListener> changeListeners = Collections.synchronizedList(new ArrayList<>());
     private Timestamp lastLoadedAt = new Timestamp(0);
 
-    public AlertObjectLoader(IAlertObjectStorage alertObjectDao,
-                             ObjectMapper objectMapper) {
+    public AlertRepository(IAlertObjectStorage alertObjectDao,
+                           ObjectMapper objectMapper) {
         this.alertObjectStorage = alertObjectDao;
         this.objectMapper = objectMapper;
 
@@ -116,12 +119,28 @@ public class AlertObjectLoader {
         }
     }
 
-    private void onCreated(AlertRule alertRule) {
+    public void addListener(IAlertChangeListener listener) {
+        this.changeListeners.add(listener);
     }
 
-    private void onUpdated(AlertRule original, AlertRule alertRule) {
+    private void onCreated(AlertRule alertRule) {
+        IAlertChangeListener[] listeners = this.changeListeners.toArray(new IAlertChangeListener[0]);
+        for (IAlertChangeListener listener : listeners) {
+            listener.onCreated(alertRule);
+        }
+    }
+
+    private void onUpdated(AlertRule oldRule, AlertRule newRule) {
+        IAlertChangeListener[] listeners = this.changeListeners.toArray(new IAlertChangeListener[0]);
+        for (IAlertChangeListener listener : listeners) {
+            listener.onUpdated(oldRule, newRule);
+        }
     }
 
     private void onRemoved(AlertRule alertRule) {
+        IAlertChangeListener[] listeners = this.changeListeners.toArray(new IAlertChangeListener[0]);
+        for (IAlertChangeListener listener : listeners) {
+            listener.onRemoved(alertRule);
+        }
     }
 }

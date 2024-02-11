@@ -300,21 +300,28 @@
         <version>${project.version}</version>
       </dependency>
 
-        <dependency>
-            <groupId>org.bithon.server</groupId>
-            <artifactId>server-alerting-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.bithon.server</groupId>
-            <artifactId>server-alerting-evaluator</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.bithon.server</groupId>
-            <artifactId>server-alerting-manager</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+      <!-- Override the declared jedis in SpringBoot from 3.3.0 to the latest-->
+      <dependency>
+        <groupId>redis.clients</groupId>
+        <artifactId>jedis</artifactId>
+        <version>4.4.3</version>
+      </dependency>
+      <dependency>
+          <groupId>org.bithon.server</groupId>
+          <artifactId>server-alerting-common</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.bithon.server</groupId>
+          <artifactId>server-alerting-evaluator</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.bithon.server</groupId>
+          <artifactId>server-alerting-manager</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.bithon.server</groupId>
         <artifactId>server-alerting-notification</artifactId>

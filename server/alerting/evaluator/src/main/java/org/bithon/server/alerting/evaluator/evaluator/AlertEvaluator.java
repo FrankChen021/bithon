@@ -19,6 +19,7 @@ package org.bithon.server.alerting.evaluator.evaluator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
@@ -41,6 +42,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -111,15 +113,15 @@ public class AlertEvaluator {
         }
 
         AlertRule alertRule = context.getAlertRule();
-        context.log(AlertEvaluator.class, "Evaluating alert [%s]", alertRule.getName());
+        context.log(AlertEvaluator.class, "Evaluating alert [%s] %s ", alertRule.getName(), alertRule.getExpr());
 
         try {
             if ((boolean) (alertRule.getEvaluationExpression().evaluate(context))) {
                 context.log(AlertEvaluator.class, "alert [%s] tested successfully.", alertRule.getName());
 
-                long successiveCount = stateStorage.incrTriggerMatchCount(alertRule.getId(), "");
+                long successiveCount = stateStorage.incrMatchCount(alertRule.getId(), alertRule.getForDuration().getDuration());
                 if (successiveCount >= alertRule.getExpectedMatchCount()) {
-                    stateStorage.resetTriggerMatchCount(alertRule.getId(), "");
+                    stateStorage.resetMatchCount(alertRule.getId());
 
                     context.log(AlertEvaluator.class,
                                 "Rule tested %d times successively，and reaches the expected count：%d",
@@ -131,7 +133,7 @@ public class AlertEvaluator {
                 }
                 return true;
             } else {
-                stateStorage.resetTriggerMatchCount(alertRule.getId(), "");
+                stateStorage.resetMatchCount(alertRule.getId());
                 return false;
             }
         } catch (Exception e) {
@@ -146,12 +148,13 @@ public class AlertEvaluator {
 
     private void notify(AlertRule alertRule, EvaluationContext context) throws Exception {
         long now = System.currentTimeMillis();
-        int silencePeriod = context.getAlertRule().getSilence();
-        if (stateStorage.tryEnterSilence(alertRule.getId(), silencePeriod)) {
-            long silenceRemainTime = stateStorage.getSilenceRemainTime(alertRule.getId());
-            context.log(AlertEvaluator.class, "Alerting，but is under silence period(%d minutes)。Last alert at:%s",
-                        silencePeriod,
-                        TimeSpan.of(now - (TimeUnit.MILLISECONDS.convert(silencePeriod, TimeUnit.MINUTES) - silenceRemainTime)).toISO8601());
+
+        HumanReadableDuration silenceDuration = context.getAlertRule().getSilence();
+        if (stateStorage.tryEnterSilence(alertRule.getId(), silenceDuration.getDuration())) {
+            Duration silenceRemainTime = stateStorage.getSilenceRemainTime(alertRule.getId());
+            context.log(AlertEvaluator.class, "Alerting，but is under silence period(%s)。Last alert at:%s",
+                        silenceDuration,
+                        TimeSpan.of(now - silenceDuration.getDuration().toMillis() - silenceRemainTime.toMillis()).toISO8601());
             return;
         }
 

@@ -4,7 +4,14 @@ bithon:
       evaluator:
         enabled: true
         state:
-          type: local
+#          type: local
+          type: redis
+          props:
+            host: localhost
+            port: 6379
+            timeout: 3s
+            #cluster:
+            #  nodes:
       manager:
         enabled: true
         allowAnonymous: true

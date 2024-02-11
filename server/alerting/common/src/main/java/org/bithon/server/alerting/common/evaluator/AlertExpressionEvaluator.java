@@ -38,7 +38,7 @@ public class AlertExpressionEvaluator {
     }
 
     public boolean evaluate(EvaluationContext context) {
-        context.log(AlertExpressionEvaluator.class, "Evaluating expression: %s", expression.serializeToText());
+        context.log(AlertExpressionEvaluator.class, "Evaluating expression[%s]: %s", expression.getId(), expression.serializeToText());
 
         EvaluationResult result = context.getConditionEvaluationResult(expression.getId());
         if (EvaluationResult.MATCHED.equals(result)) {

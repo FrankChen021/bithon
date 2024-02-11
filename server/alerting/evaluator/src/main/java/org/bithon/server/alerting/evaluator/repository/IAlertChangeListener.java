@@ -14,31 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.alerting;
+package org.bithon.server.alerting.evaluator.repository;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
-import java.time.Duration;
+import org.bithon.server.alerting.common.model.AlertRule;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/14 2:51 下午
+ * @date 2024/2/11 16:15
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IAlertStateStorage {
+public interface IAlertChangeListener {
+    void onCreated(AlertRule alert);
 
-    void resetMatchCount(String alertId);
+    void onUpdated(AlertRule original, AlertRule updated);
 
-    /**
-     *
-     * @param duration The duration of an alert rule
-     */
-    long incrMatchCount(String alertId, Duration duration);
-
-    /**
-     * Check if there's an alert sending out in the past {@param silencePeriod} minutes.
-     */
-    boolean tryEnterSilence(String alertId, Duration silenceDuration);
-
-    Duration getSilenceRemainTime(String alertId);
+    void onRemoved(AlertRule alert);
 }
