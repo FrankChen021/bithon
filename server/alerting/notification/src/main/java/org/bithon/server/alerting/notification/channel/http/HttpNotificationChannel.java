@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.notification.provider.http;
+package org.bithon.server.alerting.notification.channel.http;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -34,7 +34,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
-import org.bithon.server.alerting.notification.provider.INotificationProvider;
+import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.springframework.http.MediaType;
 
 import javax.annotation.Nonnull;
@@ -48,7 +48,7 @@ import java.util.Map;
  * @date 18/3/22 10:09 PM
  */
 @Slf4j
-public class HttpNotificationProvider implements INotificationProvider {
+public class HttpNotificationChannel implements INotificationChannel {
 
     @Getter
     private final String url;
@@ -65,9 +65,9 @@ public class HttpNotificationProvider implements INotificationProvider {
     private String name;
 
     @JsonCreator
-    public HttpNotificationProvider(@JsonProperty("url") @Nonnull String url,
-                                    @JsonProperty("headers") @Nullable Map<String, String> headers,
-                                    @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+    public HttpNotificationChannel(@JsonProperty("url") @Nonnull String url,
+                                   @JsonProperty("headers") @Nullable Map<String, String> headers,
+                                   @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         this.url = url;
         this.headers = headers == null ? Collections.emptyMap() : headers;
         this.objectMapper = objectMapper;

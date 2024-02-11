@@ -14,25 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.notification.format;
+package org.bithon.server.alerting.notification.message.format;
 
 import lombok.Getter;
 
 /**
- * @author
+ * @author frank.chen021@outlook.com
  * @date
  */
-public class QuotedTextLine implements INotificationTextLine {
+public class ListItemTextLine implements INotificationTextLine {
 
     @Getter
     private final String text;
 
-    public QuotedTextLine(String text) {
+    public ListItemTextLine(String text) {
         this.text = text;
     }
 
     @Override
     public String getType() {
-        return "quote";
+        return "list";
     }
 }

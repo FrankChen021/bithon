@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.notification.format;
+package org.bithon.server.alerting.notification.message.format;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;

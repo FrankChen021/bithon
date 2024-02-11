@@ -14,30 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.notification.provider.ding;
+package org.bithon.server.alerting.notification.message.format;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 
 /**
  * @author frank.chen021@outlook.com
+ * @date 2021/1/27
  */
-@Data
-@Builder
-public class DingMessage {
+public class TextLine implements INotificationTextLine {
 
-    private long createdTime;
+    @Getter
+    private final String text;
 
-    private String applicationName;
-    private String header;
+    public TextLine(String text) {
+        this.text = text;
+    }
 
-    private String uuid;
-
-    private String title;
-
-    private String content;
-
-    private String alertUrl;
-
-    private long errorCount;
+    @Override
+    public String getType() {
+        return "text";
+    }
 }

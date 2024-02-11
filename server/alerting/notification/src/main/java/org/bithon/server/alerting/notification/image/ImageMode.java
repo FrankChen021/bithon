@@ -14,18 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.notification.format;
+package org.bithon.server.alerting.notification.image;
 
 /**
- * @author frank.chen021@outlook.com
- * @date
+ * @author Frank Chen
+ * @date 19/3/22 8:22 PM
  */
-public class SeparatorTextLine implements INotificationTextLine {
-
-    public static final SeparatorTextLine SEPARATOR = new SeparatorTextLine();
-
-    @Override
-    public String getType() {
-        return "separator";
-    }
+public enum ImageMode {
+    URL,
+    BASE64,
+    NONE
 }

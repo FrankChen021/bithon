@@ -89,13 +89,12 @@ CREATE TABLE `bithon_alert_evaluation_log`
     KEY         `bithon_alert_evaluation_log_timestamp_id` (`alert_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Running logs of alert';
 
-DROP TABLE IF EXISTS `bithon_alert_notification_provider`;
-CREATE TABLE `bithon_alert_notification_provider`
+DROP TABLE IF EXISTS `bithon_alert_notification_channel`;
+CREATE TABLE `bithon_alert_notification_channel`
 (
-    `provider_id`      varchar(128) NOT NULL,
     `name` varchar(64) NOT NULL,
     `type` varchar(16) NOT NULL,
-    `payload`   text NOT NULL COMMENT 'provider payload',
+    `payload`   text NOT NULL COMMENT 'channel payload',
     `created_at` timestamp(3) NOT NULL COMMENT 'create time',
     UNIQUE KEY  `alert_notification_provider_name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Alert notification providers';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Alert channels';

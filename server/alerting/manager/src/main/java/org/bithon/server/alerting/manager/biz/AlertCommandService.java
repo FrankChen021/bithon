@@ -27,7 +27,7 @@ import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
 import org.bithon.server.alerting.common.parser.InvalidExpressionException;
 import org.bithon.server.alerting.manager.security.IUserProvider;
-import org.bithon.server.storage.alerting.IAlertNotificationProviderStorage;
+import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.ObjectAction;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
@@ -55,14 +55,14 @@ public class AlertCommandService {
     final ObjectMapper objectMapper;
     final IDataSourceApi dataSourceApi;
     final IUserProvider userProvider;
-    final IAlertNotificationProviderStorage notificationProviderStorage;
+    final IAlertNotificationChannelStorage notificationProviderStorage;
 
     public AlertCommandService(final IAlertObjectStorage dao,
                                final IMetadataApi metadataApi,
                                ObjectMapper objectMapper,
                                IDataSourceApi dataSourceApi,
                                IUserProvider userProvider,
-                               IAlertNotificationProviderStorage notificationProviderStorage) {
+                               IAlertNotificationChannelStorage notificationProviderStorage) {
         this.alertObjectStorage = dao;
         this.metadataApi = metadataApi;
         this.objectMapper = objectMapper;

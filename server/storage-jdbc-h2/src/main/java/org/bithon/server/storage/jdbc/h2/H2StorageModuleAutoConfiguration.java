@@ -23,7 +23,7 @@ import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.alerting.AlertObjectJdbcStorage;
 import org.bithon.server.storage.jdbc.alerting.AlertRecordJdbcStorage;
 import org.bithon.server.storage.jdbc.alerting.EvaluationLogJdbcStorage;
-import org.bithon.server.storage.jdbc.alerting.NotificationProviderJdbcStorage;
+import org.bithon.server.storage.jdbc.alerting.NotificationChannelJdbcStorage;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
@@ -78,7 +78,7 @@ public class H2StorageModuleAutoConfiguration {
                                          new NamedType(EvaluationLogJdbcStorage.class, "h2"),
                                          new NamedType(AlertObjectJdbcStorage.class, "h2"),
                                          new NamedType(AlertRecordJdbcStorage.class, "h2"),
-                                         new NamedType(NotificationProviderJdbcStorage.class, "h2")
+                                         new NamedType(NotificationChannelJdbcStorage.class, "h2")
                                          );
             }
         };

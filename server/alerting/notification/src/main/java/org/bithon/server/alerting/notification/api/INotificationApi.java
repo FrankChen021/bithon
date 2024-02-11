@@ -25,6 +25,9 @@ import org.springframework.web.bind.annotation.PostMapping;
  */
 public interface INotificationApi {
 
+    /**
+     * @param name The name of channel
+     */
     @PostMapping("/alerting/api/alert/notify")
-    void notify(String providerId, NotificationMessage message) throws Exception;
+    void notify(String name, NotificationMessage message) throws Exception;
 }

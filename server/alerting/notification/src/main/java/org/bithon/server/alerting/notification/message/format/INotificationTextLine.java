@@ -14,14 +14,8 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.notification.message;
+package org.bithon.server.alerting.notification.message.format;
 
-/**
- * @author Frank Chen
- * @date 19/3/22 8:22 PM
- */
-public enum ImageMode {
-    URL,
-    BASE64,
-    NONE
+public interface INotificationTextLine {
+    String getType();
 }

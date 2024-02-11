@@ -219,11 +219,11 @@ public class AlertEvaluator {
         //
         notification.setLastAlertAt(lastAlertAt == null ? null : lastAlertAt.getTime());
         notification.setAlertRecordId(alertRecord.getRecordId());
-        for (String providerId : alertRule.getNotifications()) {
+        for (String name : alertRule.getNotifications()) {
             try {
-                notificationApi.notify(providerId, notification);
+                notificationApi.notify(name, notification);
             } catch (Exception e) {
-                log.error("Exception when notifying " + providerId, e);
+                log.error("Exception when notifying " + name, e);
             }
         }
     }

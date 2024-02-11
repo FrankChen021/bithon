@@ -14,17 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.notification.provider;
+package org.bithon.server.alerting.notification.channel;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.alerting.notification.message.ImageMode;
+import org.bithon.server.alerting.notification.image.ImageMode;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
-import org.bithon.server.alerting.notification.provider.console.ConsoleNotificationProvider;
-import org.bithon.server.alerting.notification.provider.ding.DingNotificationProvider;
-import org.bithon.server.alerting.notification.provider.http.HttpNotificationProvider;
-import org.bithon.server.alerting.notification.provider.kafka.KafkaNotificationProvider;
+import org.bithon.server.alerting.notification.channel.console.ConsoleNotificationChannel;
+import org.bithon.server.alerting.notification.channel.ding.DingNotificationChannel;
+import org.bithon.server.alerting.notification.channel.http.HttpNotificationChannel;
+import org.bithon.server.alerting.notification.channel.kafka.KafkaNotificationChannel;
 
 /**
  * @author frank.chen021@outlook.com
@@ -32,12 +32,12 @@ import org.bithon.server.alerting.notification.provider.kafka.KafkaNotificationP
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "ding", value = DingNotificationProvider.class),
-    @JsonSubTypes.Type(name = "console", value = ConsoleNotificationProvider.class),
-    @JsonSubTypes.Type(name = "http", value = HttpNotificationProvider.class),
-    @JsonSubTypes.Type(name = "kafka", value = KafkaNotificationProvider.class)
+    @JsonSubTypes.Type(name = "ding", value = DingNotificationChannel.class),
+    @JsonSubTypes.Type(name = "console", value = ConsoleNotificationChannel.class),
+    @JsonSubTypes.Type(name = "http", value = HttpNotificationChannel.class),
+    @JsonSubTypes.Type(name = "kafka", value = KafkaNotificationChannel.class)
 })
-public interface INotificationProvider {
+public interface INotificationChannel {
     @JsonIgnore
     default ImageMode getImageMode() {
         return ImageMode.BASE64;

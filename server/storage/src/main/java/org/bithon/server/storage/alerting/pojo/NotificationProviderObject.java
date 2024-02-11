@@ -24,8 +24,7 @@ import lombok.Data;
  */
 @Data
 public class NotificationProviderObject {
-    private String providerId;
-    private String name;
     private String type;
+    private String name;
     private String payload;
 }

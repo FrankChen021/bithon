@@ -11,7 +11,7 @@ import java.util.List;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAgentSetting;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertChangeLog;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertEvaluationLog;
-import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertNotificationProvider;
+import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertNotificationChannel;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertObject;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertRecord;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertState;
@@ -36,7 +36,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DefaultSchema extends SchemaImpl {
 
-    private static final long serialVersionUID = 1150170016;
+    private static final long serialVersionUID = -1214420415;
 
     /**
      * The reference instance of <code></code>
@@ -59,9 +59,9 @@ public class DefaultSchema extends SchemaImpl {
     public final BithonAlertEvaluationLog BITHON_ALERT_EVALUATION_LOG = org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertEvaluationLog.BITHON_ALERT_EVALUATION_LOG;
 
     /**
-     * Alert notification providers
+     * Alert channels
      */
-    public final BithonAlertNotificationProvider BITHON_ALERT_NOTIFICATION_PROVIDER = org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertNotificationProvider.BITHON_ALERT_NOTIFICATION_PROVIDER;
+    public final BithonAlertNotificationChannel BITHON_ALERT_NOTIFICATION_CHANNEL = org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL;
 
     /**
      * Alert
@@ -153,7 +153,7 @@ public class DefaultSchema extends SchemaImpl {
             BithonAgentSetting.BITHON_AGENT_SETTING,
             BithonAlertChangeLog.BITHON_ALERT_CHANGE_LOG,
             BithonAlertEvaluationLog.BITHON_ALERT_EVALUATION_LOG,
-            BithonAlertNotificationProvider.BITHON_ALERT_NOTIFICATION_PROVIDER,
+            BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL,
             BithonAlertObject.BITHON_ALERT_OBJECT,
             BithonAlertRecord.BITHON_ALERT_RECORD,
             BithonAlertState.BITHON_ALERT_STATE,

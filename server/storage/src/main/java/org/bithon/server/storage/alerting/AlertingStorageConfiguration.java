@@ -33,9 +33,9 @@ import java.io.IOException;
 public class AlertingStorageConfiguration {
 
     @Bean
-    IAlertNotificationProviderStorage notificationProviderStorage(AlertStorageConfig config,
-                                                                  StorageProviderManager storageProviderManager) throws IOException {
-        IAlertNotificationProviderStorage storage = storageProviderManager.createStorage(config.getProvider(), IAlertNotificationProviderStorage.class);
+    IAlertNotificationChannelStorage notificationProviderStorage(AlertStorageConfig config,
+                                                                 StorageProviderManager storageProviderManager) throws IOException {
+        IAlertNotificationChannelStorage storage = storageProviderManager.createStorage(config.getProvider(), IAlertNotificationChannelStorage.class);
         storage.initialize();
         return storage;
     }

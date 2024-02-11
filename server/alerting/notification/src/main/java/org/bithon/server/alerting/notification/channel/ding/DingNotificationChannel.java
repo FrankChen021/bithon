@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.notification.provider.ding;
+package org.bithon.server.alerting.notification.channel.ding;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -29,15 +29,14 @@ import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.utils.FreeMarkerUtil;
-import org.bithon.server.alerting.notification.format.NotificationContent;
-import org.bithon.server.alerting.notification.format.NotificationTextSection;
-import org.bithon.server.alerting.notification.format.QuotedTextLine;
-import org.bithon.server.alerting.notification.format.TextLine;
+import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.message.ConditionEvaluationResult;
-import org.bithon.server.alerting.notification.message.DimensionConditionTextManager;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.alerting.notification.message.OutputMessage;
-import org.bithon.server.alerting.notification.provider.INotificationProvider;
+import org.bithon.server.alerting.notification.message.format.NotificationContent;
+import org.bithon.server.alerting.notification.message.format.NotificationTextSection;
+import org.bithon.server.alerting.notification.message.format.QuotedTextLine;
+import org.bithon.server.alerting.notification.message.format.TextLine;
 import org.bithon.server.commons.time.TimeSpan;
 
 import javax.annotation.Nullable;
@@ -50,13 +49,12 @@ import java.util.concurrent.TimeUnit;
  * @date 2020/11/30 6:53 下午
  */
 @Slf4j
-public class DingNotificationProvider implements INotificationProvider {
+public class DingNotificationChannel implements INotificationChannel {
     @Getter
     @NotEmpty
     private final String url;
 
     private final DingNotificationConfig config;
-    private final DimensionConditionTextManager dimensionConditionTextManager;
 
     @Getter
     @Setter
@@ -64,12 +62,10 @@ public class DingNotificationProvider implements INotificationProvider {
     private String name;
 
     @JsonCreator
-    public DingNotificationProvider(@JsonProperty("url") @Nullable String url,
-                                    @JacksonInject DingNotificationConfig config,
-                                    @JacksonInject DimensionConditionTextManager conditionTextManager) {
+    public DingNotificationChannel(@JsonProperty("url") @Nullable String url,
+                                   @JacksonInject DingNotificationConfig config) {
         this.url = url;
         this.config = config;
-        this.dimensionConditionTextManager = conditionTextManager;
     }
 
     @Override

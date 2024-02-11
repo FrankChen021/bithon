@@ -23,7 +23,7 @@ import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.alerting.AlertObjectJdbcStorage;
 import org.bithon.server.storage.jdbc.alerting.AlertRecordJdbcStorage;
 import org.bithon.server.storage.jdbc.alerting.EvaluationLogJdbcStorage;
-import org.bithon.server.storage.jdbc.alerting.NotificationProviderJdbcStorage;
+import org.bithon.server.storage.jdbc.alerting.NotificationChannelJdbcStorage;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
@@ -77,7 +77,7 @@ public class MySQLStorageModuleAutoConfiguration {
                                          new NamedType(EvaluationLogJdbcStorage.class, "mysql"),
                                          new NamedType(AlertObjectJdbcStorage.class, "mysql"),
                                          new NamedType(AlertRecordJdbcStorage.class, "mysql"),
-                                         new NamedType(NotificationProviderJdbcStorage.class, "mysql")
+                                         new NamedType(NotificationChannelJdbcStorage.class, "mysql")
                                          );
             }
         };

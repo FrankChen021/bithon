@@ -14,25 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.notification.format;
-
-import lombok.Getter;
+package org.bithon.server.alerting.notification.message.format;
 
 /**
  * @author frank.chen021@outlook.com
  * @date
  */
-public class ListItemTextLine implements INotificationTextLine {
+public class SeparatorTextLine implements INotificationTextLine {
 
-    @Getter
-    private final String text;
-
-    public ListItemTextLine(String text) {
-        this.text = text;
-    }
+    public static final SeparatorTextLine SEPARATOR = new SeparatorTextLine();
 
     @Override
     public String getType() {
-        return "list";
+        return "separator";
     }
 }

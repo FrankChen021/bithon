@@ -7,7 +7,7 @@ package org.bithon.server.storage.jdbc.common.jooq;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAgentSetting;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertChangeLog;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertEvaluationLog;
-import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertNotificationProvider;
+import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertNotificationChannel;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertObject;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertRecord;
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertState;
@@ -45,9 +45,9 @@ public class Tables {
     public static final BithonAlertEvaluationLog BITHON_ALERT_EVALUATION_LOG = BithonAlertEvaluationLog.BITHON_ALERT_EVALUATION_LOG;
 
     /**
-     * Alert notification providers
+     * Alert channels
      */
-    public static final BithonAlertNotificationProvider BITHON_ALERT_NOTIFICATION_PROVIDER = BithonAlertNotificationProvider.BITHON_ALERT_NOTIFICATION_PROVIDER;
+    public static final BithonAlertNotificationChannel BITHON_ALERT_NOTIFICATION_CHANNEL = BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL;
 
     /**
      * Alert

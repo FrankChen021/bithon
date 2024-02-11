@@ -14,33 +14,30 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.notification.format;
+package org.bithon.server.alerting.notification.channel.ding;
 
-import lombok.Getter;
-
-import java.util.Objects;
+import lombok.Builder;
+import lombok.Data;
 
 /**
- * @author frankchen
- * @date 2020-08-27 11:03:24
+ * @author frank.chen021@outlook.com
  */
-public class PropertyTextLine implements INotificationTextLine {
+@Data
+@Builder
+public class DingMessage {
 
-    @Getter
-    private final String name;
+    private long createdTime;
 
-    @Getter
-    private final String value;
+    private String applicationName;
+    private String header;
 
-    public PropertyTextLine(String name, String value) {
-        Objects.requireNonNull(name);
-        Objects.requireNonNull(value);
-        this.name = name;
-        this.value = value;
-    }
+    private String uuid;
 
-    @Override
-    public String getType() {
-        return "property";
-    }
+    private String title;
+
+    private String content;
+
+    private String alertUrl;
+
+    private long errorCount;
 }

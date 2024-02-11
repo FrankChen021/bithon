@@ -29,7 +29,6 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.metric.absolute.AbstractAbsoluteThresholdPredicate;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.notification.NotificationModuleEnabler;
-import org.bithon.server.alerting.notification.message.ImageMode;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;

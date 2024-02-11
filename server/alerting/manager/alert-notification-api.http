@@ -2,31 +2,26 @@
 POST http://localhost:9897/alerting/api/alert/notification/create
 Content-Type: application/yaml
 
-id: 1
 type: console
 name: console-1
 
 
 ### Create an HTTP notification provider
 POST http://localhost:9897/alerting/api/alert/notification/create
-Content-Type: application/json
+Content-Type: application/yaml
 
-{
-  "id": "2",
-  "type": "http",
-  "name": "http-1",
-  "url": "http://localhost:9897/api/no-exist",
-  "headers": {
-    "X-Fake": "value"
-  }
-}
+name: "http-1"
+type: "http"
+url: "http://localhost:9897/api/no-exist"
+headers:
+  "X-Fake": "value"
+
 
 ### Create an Kafka notification provider
 POST http://localhost:9897/alerting/api/alert/notification/create
-Content-Type: application/json
+Content-Type: application/yaml
 
 {
-  "id": "3",
   "name": "kafka",
   "type": "kafka",
   "bootstrapServer": "localhost:9092",
@@ -41,5 +36,5 @@ POST http://localhost:9897/alerting/api/alert/notification/get
 
 
 ### DELETE an HTTP notification provider
-POST http://localhost:9897/alerting/api/alert/notification/delete?id=1
+POST http://localhost:9897/alerting/api/alert/notification/delete?name=http
 

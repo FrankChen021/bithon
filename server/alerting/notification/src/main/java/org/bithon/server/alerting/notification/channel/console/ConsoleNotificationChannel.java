@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.notification.provider.console;
+package org.bithon.server.alerting.notification.channel.console;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
@@ -22,7 +22,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
-import org.bithon.server.alerting.notification.provider.INotificationProvider;
+import org.bithon.server.alerting.notification.channel.INotificationChannel;
 
 /**
  * Mainly for development
@@ -31,7 +31,7 @@ import org.bithon.server.alerting.notification.provider.INotificationProvider;
  * @date 18/3/22 10:07 PM
  */
 @Slf4j
-public class ConsoleNotificationProvider implements INotificationProvider {
+public class ConsoleNotificationChannel implements INotificationChannel {
 
     @Getter
     @Setter

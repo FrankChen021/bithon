@@ -19,11 +19,12 @@ package org.bithon.server.alerting.notification.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.notification.NotificationModuleEnabler;
+import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.image.AlertImageRenderService;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
-import org.bithon.server.alerting.notification.provider.INotificationProvider;
-import org.bithon.server.storage.alerting.IAlertNotificationProviderStorage;
+import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,37 +39,37 @@ import java.util.Map;
 @Slf4j
 @RestController
 @Conditional(NotificationModuleEnabler.class)
-public class NotificationServiceImpl implements INotificationApi {
+public class NotificationApiImpl implements INotificationApi {
 
-    private final IAlertNotificationProviderStorage notificationProviderStorage;
-    private Map<String, INotificationProvider> providers = new HashMap<>();
+    private final IAlertNotificationChannelStorage channelStorage;
+    private Map<String, INotificationChannel> channels = new HashMap<>();
     private final AlertImageRenderService imageService;
     private final ObjectMapper objectMapper;
 
-    public NotificationServiceImpl(AlertImageRenderService imageService,
-                                   IAlertNotificationProviderStorage notificationProviderStorage, ObjectMapper objectMapper) {
+    public NotificationApiImpl(AlertImageRenderService imageService,
+                               IAlertNotificationChannelStorage channelStorage, ObjectMapper objectMapper) {
         this.imageService = imageService;
         this.objectMapper = objectMapper;
-        this.notificationProviderStorage = notificationProviderStorage;
+        this.channelStorage = channelStorage;
     }
 
     @Scheduled(cron = "3 0/1 * 1/1 * ?")
-    public void loadProviders() {
-        log.info("Loading notification providers...");
-        Map<String, INotificationProvider> newProviders = new HashMap<>();
-        notificationProviderStorage.loadProviders(0)
-                                   .forEach((provider) -> {
-                   try {
-                       newProviders.put(provider.getProviderId(), objectMapper.readValue(provider.getPayload(), INotificationProvider.class));
-                   } catch (JsonProcessingException e) {
-                       throw new RuntimeException(e);
-                   }
-               });
-        this.providers = newProviders;
+    public void loadChannels() {
+        log.info("Loading notification channels...");
+        Map<String, INotificationChannel> newChannels = new HashMap<>();
+        channelStorage.getChannels(0)
+                      .forEach((provider) -> {
+                          try {
+                              newChannels.put(provider.getName(), objectMapper.readValue(provider.getPayload(), INotificationChannel.class));
+                          } catch (JsonProcessingException e) {
+                              throw new RuntimeException(e);
+                          }
+                      });
+        this.channels = newChannels;
     }
 
     @Override
-    public void notify(String providerId, NotificationMessage message) throws Exception {
+    public void notify(String name, NotificationMessage message) throws Exception {
         if (imageService.isEnabled()) {
             /*
             message.setImages(new HashMap<>());
@@ -85,9 +86,10 @@ public class NotificationServiceImpl implements INotificationApi {
             });*/
         }
 
-        INotificationProvider provider = providers.get(providerId);
-        if (provider != null) {
-            provider.notify(message);
+        INotificationChannel channel = channels.get(name);
+        if (channel == null) {
+            throw new RuntimeException(StringUtils.format("Channel [%s] not found.", name));
         }
+        channel.notify(message);
     }
 }

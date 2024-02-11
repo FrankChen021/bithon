@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.alerting.pojo.NotificationProviderObject;
-import org.bithon.server.storage.jdbc.alerting.NotificationProviderJdbcStorage;
+import org.bithon.server.storage.jdbc.alerting.NotificationChannelJdbcStorage;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
@@ -35,27 +35,27 @@ import java.util.List;
  * @date 2023/12/22 17:48
  */
 @JsonTypeName("clickhouse")
-public class NotificationProviderStorage extends NotificationProviderJdbcStorage {
+public class NotificationChannelStorage extends NotificationChannelJdbcStorage {
 
     private final ClickHouseConfig clickHouseConfig;
 
     @JsonCreator
-    public NotificationProviderStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration provider) {
+    public NotificationChannelStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration provider) {
         super(provider.getDslContext());
         this.clickHouseConfig = provider.getClickHouseConfig();
     }
 
     @Override
-    public List<NotificationProviderObject> loadProviders(long since) {
-        return super.loadProviders(since);
+    public List<NotificationProviderObject> getChannels(long since) {
+        return super.getChannels(since);
     }
 
     @Override
-    public void deleteProvider(String id) {
+    public void deleteChannel(String name) {
         String sql = StringUtils.format("ALTER TABLE %s DELETE WHERE %s = '%s'",
-                                        Tables.BITHON_ALERT_NOTIFICATION_PROVIDER.getName(),
-                                        Tables.BITHON_ALERT_NOTIFICATION_PROVIDER.PROVIDER_ID.getName(),
-                                        id);
+                                        Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.getName(),
+                                        Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.getName(),
+                                        name);
         dslContext.execute(sql);
     }
 
@@ -63,7 +63,7 @@ public class NotificationProviderStorage extends NotificationProviderJdbcStorage
     public void initialize() {
         new TableCreator(this.clickHouseConfig, this.dslContext)
             .partitionByExpression(null)
-            .useReplacingMergeTree(Tables.BITHON_ALERT_NOTIFICATION_PROVIDER.CREATED_AT.getName())
-            .createIfNotExist(Tables.BITHON_ALERT_NOTIFICATION_PROVIDER);
+            .useReplacingMergeTree(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.CREATED_AT.getName())
+            .createIfNotExist(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL);
     }
 }

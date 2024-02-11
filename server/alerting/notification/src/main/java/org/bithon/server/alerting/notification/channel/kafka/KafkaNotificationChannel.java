@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.notification.provider.kafka;
+package org.bithon.server.alerting.notification.channel.kafka;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +32,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
-import org.bithon.server.alerting.notification.provider.INotificationProvider;
+import org.bithon.server.alerting.notification.channel.INotificationChannel;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -43,7 +42,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  */
 @Slf4j
-public class KafkaNotificationProvider implements INotificationProvider {
+public class KafkaNotificationChannel implements INotificationChannel {
 
     @Getter
     private final String topic;
@@ -58,12 +57,6 @@ public class KafkaNotificationProvider implements INotificationProvider {
     @JsonIgnore
     private String name;
 
-    @Data
-    public static class KafkaProps {
-        private String bootstrapServers;
-        private String topic;
-    }
-
     @JsonIgnore
     private volatile KafkaProducer<String, String> alertProducer;
 
@@ -72,10 +65,10 @@ public class KafkaNotificationProvider implements INotificationProvider {
 
 
     @JsonCreator
-    public KafkaNotificationProvider(@JsonProperty("producerProps") Map<String, String> producerProps,
-                                     @JsonProperty("topic") String topic,
-                                     @JsonProperty("bootstrapServers") String bootstrapServers,
-                                     @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper om) {
+    public KafkaNotificationChannel(@JsonProperty("producerProps") Map<String, String> producerProps,
+                                    @JsonProperty("topic") String topic,
+                                    @JsonProperty("bootstrapServers") String bootstrapServers,
+                                    @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper om) {
         this.producerProps = Preconditions.checkNotNull(producerProps, "producerProps can't be null");
         this.om = om;
 

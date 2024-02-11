@@ -14,19 +14,27 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.notification.provider.ding;
+package org.bithon.server.storage.alerting;
 
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.storage.alerting.pojo.NotificationProviderObject;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/2
+ * @date 2023/12/22 17:40
  */
-@Data
-@Configuration
-@ConfigurationProperties(prefix = "app.notification.ding")
-public class DingNotificationConfig {
-    private String recordLinkTemplate;
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+public interface IAlertNotificationChannelStorage {
+
+    List<NotificationProviderObject> getChannels(long since);
+
+    void initialize();
+
+    void createChannel(String type, String name, String props);
+
+    void deleteChannel(String name);
+
+    boolean exists(String name);
 }

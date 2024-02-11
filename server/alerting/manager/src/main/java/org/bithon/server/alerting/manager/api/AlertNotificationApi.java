@@ -24,8 +24,8 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
-import org.bithon.server.alerting.notification.provider.INotificationProvider;
-import org.bithon.server.storage.alerting.IAlertNotificationProviderStorage;
+import org.bithon.server.alerting.notification.channel.INotificationChannel;
+import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.springframework.context.annotation.Conditional;
@@ -50,64 +50,58 @@ import java.util.TreeMap;
 @Conditional(ManagerModuleEnabler.class)
 public class AlertNotificationApi {
 
-    private final IAlertNotificationProviderStorage storage;
+    private final IAlertNotificationChannelStorage channelStorage;
     private final IAlertObjectStorage alertStorage;
     private final ObjectMapper objectMapper;
 
-    public AlertNotificationApi(IAlertNotificationProviderStorage storage,
+    public AlertNotificationApi(IAlertNotificationChannelStorage channelStorage,
                                 IAlertObjectStorage alertStorage,
                                 ObjectMapper objectMapper) {
-        this.storage = storage;
+        this.channelStorage = channelStorage;
         this.alertStorage = alertStorage;
         this.objectMapper = objectMapper;
     }
 
     @PostMapping("/alerting/api/alert/notification/create")
     public ApiResponse<?> createProvider(@RequestBody Map<String, Object> request) throws JsonProcessingException {
-        // Allow the id to be type of integer
-        Object id = request.remove("id");
-
         String name = (String) request.remove("name");
 
-        Preconditions.checkIfTrue(id != null, "id property is missed.");
         Preconditions.checkIfTrue(name != null, "name property is missed.");
         Preconditions.checkIfTrue(request.containsKey("type"), "type property is missed.");
 
-        String s = objectMapper.writeValueAsString(request);
-        objectMapper.readValue(s, INotificationProvider.class);
+        String payload = objectMapper.writeValueAsString(request);
+        objectMapper.readValue(payload, INotificationChannel.class);
 
-        storage.creatProvider(id.toString(),
-                              name,
-                              (String) request.get("type"),
-                              s);
+        channelStorage.createChannel((String) request.get("type"),
+                                     name,
+                                     payload);
         return ApiResponse.success();
     }
 
     @PostMapping("/alerting/api/alert/notification/delete")
-    public ApiResponse deleteProvider(@RequestParam("id") String id) throws IOException {
+    public ApiResponse<?> deleteProvider(@RequestParam("name") String name) throws IOException {
         // Check if it's used
         List<AlertStorageObject> alerts = alertStorage.getAlertListByTime(new Timestamp(0), new Timestamp(System.currentTimeMillis()));
         for (AlertStorageObject alert : alerts) {
             List<String> notifications = this.objectMapper.readValue(alert.getPayload(), AlertRule.class).getNotifications();
-            if (notifications.contains(id)) {
-                return ApiResponse.fail(StringUtils.format("The notification can't be deleted because it's used by alert [%s].", alert.getAlertName()));
+            if (notifications.contains(name)) {
+                return ApiResponse.fail(StringUtils.format("The notification channel can't be deleted because it's used by alert [%s].", alert.getAlertName()));
             }
         }
 
-        storage.deleteProvider(id);
+        channelStorage.deleteChannel(name);
         return ApiResponse.success();
     }
 
     @PostMapping("/alerting/api/alert/notification/get")
-    public ApiResponse getProviders() {
+    public ApiResponse<?> getChannels() {
         return ApiResponse.success(
-            this.storage.loadProviders(0)
-                        .stream()
-                        .map((obj) -> {
+            this.channelStorage.getChannels(0)
+                               .stream()
+                               .map((obj) -> {
                             try {
                                 Map<String, Object> props = objectMapper.readValue(obj.getPayload(), new TypeReference<TreeMap<String, Object>>() {
                                 });
-                                props.put("id", obj.getProviderId());
                                 props.put("name", obj.getName());
                                 props.put("type", obj.getType());
                                 return props;

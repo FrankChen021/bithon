@@ -19,7 +19,7 @@ package org.bithon.server.storage.jdbc.alerting;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.server.storage.alerting.IAlertNotificationProviderStorage;
+import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.pojo.NotificationProviderObject;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
@@ -32,53 +32,50 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2023/12/22 17:38
  */
-public class NotificationProviderJdbcStorage implements IAlertNotificationProviderStorage {
+public class NotificationChannelJdbcStorage implements IAlertNotificationChannelStorage {
 
     protected DSLContext dslContext;
 
     @JsonCreator
-    public NotificationProviderJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration storageConfiguration) {
+    public NotificationChannelJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration storageConfiguration) {
         this(storageConfiguration.getDslContext());
     }
 
-    protected NotificationProviderJdbcStorage(DSLContext dslContext) {
+    protected NotificationChannelJdbcStorage(DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 
     @Override
-    public void creatProvider(String id,
+    public void createChannel(String type,
                               String name,
-                              String type,
                               String props) {
-        dslContext.insertInto(Tables.BITHON_ALERT_NOTIFICATION_PROVIDER)
-                  .set(Tables.BITHON_ALERT_NOTIFICATION_PROVIDER.PROVIDER_ID, id)
-                  .set(Tables.BITHON_ALERT_NOTIFICATION_PROVIDER.NAME, name)
-                  .set(Tables.BITHON_ALERT_NOTIFICATION_PROVIDER.TYPE, type)
-                  .set(Tables.BITHON_ALERT_NOTIFICATION_PROVIDER.PAYLOAD, props)
-                  .set(Tables.BITHON_ALERT_NOTIFICATION_PROVIDER.CREATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+        dslContext.insertInto(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
+                  .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.TYPE, type)
+                  .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME, name)
+                  .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.PAYLOAD, props)
+                  .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.CREATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                   .execute();
     }
 
     @Override
-    public void deleteProvider(String id) {
-        dslContext.deleteFrom(Tables.BITHON_ALERT_NOTIFICATION_PROVIDER)
-                  .where(Tables.BITHON_ALERT_NOTIFICATION_PROVIDER.PROVIDER_ID.eq(id))
+    public void deleteChannel(String name) {
+        dslContext.deleteFrom(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
+                  .where(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name))
                   .execute();
     }
 
     @Override
-    public boolean exists(String id) {
-        return dslContext.fetchExists(dslContext.selectFrom(Tables.BITHON_ALERT_NOTIFICATION_PROVIDER)
-                                                .where(Tables.BITHON_ALERT_NOTIFICATION_PROVIDER.PROVIDER_ID.eq(id)));
+    public boolean exists(String name) {
+        return dslContext.fetchExists(dslContext.selectFrom(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
+                                                .where(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name)));
     }
 
     @Override
-    public List<NotificationProviderObject> loadProviders(long since) {
-        return dslContext.selectFrom(Tables.BITHON_ALERT_NOTIFICATION_PROVIDER)
+    public List<NotificationProviderObject> getChannels(long since) {
+        return dslContext.selectFrom(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
                          .fetch()
                          .map((record) -> {
                              NotificationProviderObject obj = new NotificationProviderObject();
-                             obj.setProviderId(record.getProviderId());
                              obj.setName(record.getName());
                              obj.setType(record.getType());
                              obj.setPayload(record.getPayload());
@@ -88,9 +85,9 @@ public class NotificationProviderJdbcStorage implements IAlertNotificationProvid
 
     @Override
     public void initialize() {
-        this.dslContext.createTableIfNotExists(Tables.BITHON_ALERT_NOTIFICATION_PROVIDER)
-                       .columns(Tables.BITHON_ALERT_NOTIFICATION_PROVIDER.fields())
-                       .indexes(Tables.BITHON_ALERT_NOTIFICATION_PROVIDER.getIndexes())
+        this.dslContext.createTableIfNotExists(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
+                       .columns(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.fields())
+                       .indexes(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.getIndexes())
                        .execute();
     }
 }

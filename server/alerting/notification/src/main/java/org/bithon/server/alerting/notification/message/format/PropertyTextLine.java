@@ -14,8 +14,33 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.notification.format;
+package org.bithon.server.alerting.notification.message.format;
 
-public interface INotificationTextLine {
-    String getType();
+import lombok.Getter;
+
+import java.util.Objects;
+
+/**
+ * @author frankchen
+ * @date 2020-08-27 11:03:24
+ */
+public class PropertyTextLine implements INotificationTextLine {
+
+    @Getter
+    private final String name;
+
+    @Getter
+    private final String value;
+
+    public PropertyTextLine(String name, String value) {
+        Objects.requireNonNull(name);
+        Objects.requireNonNull(value);
+        this.name = name;
+        this.value = value;
+    }
+
+    @Override
+    public String getType() {
+        return "property";
+    }
 }
