@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
-import org.bithon.server.storage.alerting.pojo.NotificationProviderObject;
+import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.DSLContext;
@@ -71,11 +71,11 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
     }
 
     @Override
-    public List<NotificationProviderObject> getChannels(long since) {
+    public List<NotificationChannelObject> getChannels(long since) {
         return dslContext.selectFrom(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
                          .fetch()
                          .map((record) -> {
-                             NotificationProviderObject obj = new NotificationProviderObject();
+                             NotificationChannelObject obj = new NotificationChannelObject();
                              obj.setName(record.getName());
                              obj.setType(record.getType());
                              obj.setPayload(record.getPayload());

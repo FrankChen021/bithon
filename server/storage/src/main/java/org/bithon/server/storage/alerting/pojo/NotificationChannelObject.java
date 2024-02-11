@@ -14,27 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.alerting;
+package org.bithon.server.storage.alerting.pojo;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
-
-import java.util.List;
+import lombok.Data;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/12/22 17:40
+ * @date 2023/12/22 17:58
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IAlertNotificationChannelStorage {
-
-    List<NotificationChannelObject> getChannels(long since);
-
-    void initialize();
-
-    void createChannel(String type, String name, String props);
-
-    void deleteChannel(String name);
-
-    boolean exists(String name);
+@Data
+public class NotificationChannelObject {
+    private String type;
+    private String name;
+    private String payload;
 }

@@ -16,7 +16,8 @@
 
 package org.bithon.server.alerting.notification.message;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
 
@@ -25,8 +26,14 @@ import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
  * @date 19/3/22 8:00 PM
  */
 @Data
-@AllArgsConstructor
 public class ConditionEvaluationResult {
     private EvaluationResult result;
     private OutputMessage outputs;
+
+    @JsonCreator
+    public ConditionEvaluationResult(@JsonProperty("result") EvaluationResult result,
+                                     @JsonProperty("outputs") OutputMessage outputs) {
+        this.result = result;
+        this.outputs = outputs;
+    }
 }

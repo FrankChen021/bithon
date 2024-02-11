@@ -114,19 +114,23 @@ public class AlertEvaluator {
             if ((boolean) (alertRule.getEvaluationExpression().evaluate(context))) {
                 context.log(AlertEvaluator.class, "alert [%s] tested successfully.", alertRule.getName());
 
+                long expectedMatchCount = alertRule.getExpectedMatchCount();
                 long successiveCount = stateStorage.incrMatchCount(alertRule.getId(), alertRule.getForDuration().getDuration());
-                if (successiveCount >= alertRule.getExpectedMatchCount()) {
+                if (successiveCount >= expectedMatchCount) {
                     stateStorage.resetMatchCount(alertRule.getId());
 
                     context.log(AlertEvaluator.class,
                                 "Rule tested %d times successively，and reaches the expected count：%d",
                                 successiveCount,
-                                alertRule.getForDuration());
-
+                                expectedMatchCount);
+                    return true;
                 } else {
-                    context.log(AlertEvaluator.class, "Rule tested %d times successively，expected times：%d", successiveCount, alertRule.getForDuration());
+                    context.log(AlertEvaluator.class,
+                                "Rule tested %d times successively，expected times：%d",
+                                successiveCount,
+                                expectedMatchCount);
+                    return false;
                 }
-                return true;
             } else {
                 stateStorage.resetMatchCount(alertRule.getId());
                 return false;

@@ -19,6 +19,8 @@ package org.bithon.server.alerting.notification.api;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * This interface is declared
@@ -34,5 +36,6 @@ public interface INotificationApi {
      * @param name The name of channel
      */
     @PostMapping("/alerting/api/alert/notify")
-    void notify(String name, NotificationMessage message) throws Exception;
+    void notify(@RequestParam("name") String name,
+                @RequestBody NotificationMessage message) throws Exception;
 }

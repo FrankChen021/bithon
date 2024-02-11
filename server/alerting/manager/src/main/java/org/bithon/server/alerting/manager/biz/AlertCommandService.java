@@ -31,13 +31,13 @@ import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.ObjectAction;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
+import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.meta.api.IMetadataApi;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -143,11 +143,13 @@ public class AlertCommandService {
         alertObject.setAppName(alertRule.getAppName());
         alertObject.setNamespace("");
         alertObject.setDisabled(!alertRule.isEnabled());
-        try {
-            alertObject.setPayload(this.objectMapper.writeValueAsString(alertRule));
-        } catch (IOException e) {
-            throw new BizException("Serialization failed", e);
-        }
+        alertObject.setPayload(AlertStorageObjectPayload.builder()
+                                                        .evaluationInterval(alertRule.getEvaluationInterval())
+                                                        .expr(alertRule.getExpr())
+                                                        .forDuration(alertRule.getForDuration())
+                                                        .notifications(alertRule.getNotifications())
+                                                        .silence(alertRule.getSilence())
+                                                        .build());
         return alertObject;
     }
 
@@ -161,20 +163,18 @@ public class AlertCommandService {
         }
 
         AlertStorageObject alertObject = toAlertObject(alertRule);
-        String alertId = this.alertObjectStorage.executeTransaction(() -> {
+        return this.alertObjectStorage.executeTransaction(() -> {
             final String operator = userProvider.getCurrentUser().getUserName();
 
             String id = this.alertObjectStorage.createAlert(alertObject, operator);
 
-            this.alertObjectStorage.addChangelog(id, ObjectAction.CREATE, operator, "{}", alertObject.getPayload());
+            this.alertObjectStorage.addChangelog(id,
+                                                 ObjectAction.CREATE,
+                                                 operator, "{}",
+                                                 objectMapper.writeValueAsString(alertObject.getPayload()));
 
             return id;
         });
-
-        alertRule.setId(alertId);
-        alertRule.setAppName(alertObject.getAppName());
-        sendOperationNotification("Alert Created", alertRule, alertRule.isEnabled(), userProvider.getCurrentUser().getUserName());
-        return alertId;
     }
 
     public void updateAlert(AlertRule newAlertRule) throws BizException {
@@ -185,22 +185,18 @@ public class AlertCommandService {
 
         AlertStorageObject newObject = toAlertObject(newAlertRule);
 
-        boolean successful = this.alertObjectStorage.executeTransaction(() -> {
+        this.alertObjectStorage.executeTransaction(() -> {
             if (!this.alertObjectStorage.updateAlert(oldObject, newObject, userProvider.getCurrentUser().getUserName())) {
                 return false;
             }
 
-            this.alertObjectStorage.addChangelog(newAlertRule.getId(), ObjectAction.UPDATE, userProvider.getCurrentUser().getUserName(),
-                                                 oldObject.getPayload(),
-                                                 newObject.getPayload());
+            this.alertObjectStorage.addChangelog(newAlertRule.getId(),
+                                                 ObjectAction.UPDATE,
+                                                 userProvider.getCurrentUser().getUserName(),
+                                                 objectMapper.writeValueAsString(oldObject.getPayload()),
+                                                 objectMapper.writeValueAsString(newObject.getPayload()));
             return true;
         });
-        if (!successful) {
-            return;
-        }
-
-        newAlertRule.setAppName(newObject.getAppName());
-        sendOperationNotification("Alert Updated", newAlertRule, newAlertRule.isEnabled(), userProvider.getCurrentUser().getUserName());
     }
 
     public void enableAlert(String alertId) throws BizException {
@@ -209,7 +205,7 @@ public class AlertCommandService {
             throw new BizException("Alert object [%s] not exist.", alertId);
         }
 
-        boolean successful = this.alertObjectStorage.executeTransaction(() -> {
+        this.alertObjectStorage.executeTransaction(() -> {
             if (!this.alertObjectStorage.enableAlert(alertId, userProvider.getCurrentUser().getUserName())) {
                 return false;
             }
@@ -220,20 +216,6 @@ public class AlertCommandService {
                                                  "{\"enabled\": true}");
             return true;
         });
-        if (!successful) {
-            return;
-        }
-
-        try {
-            AlertRule oldAlertRule = objectMapper.readValue(alertObject.getPayload(), AlertRule.class);
-            oldAlertRule.setId(alertObject.getAlertId());
-            oldAlertRule.setEnabled(!alertObject.getDisabled());
-            oldAlertRule.setAppName(alertObject.getAppName());
-            oldAlertRule.setName(alertObject.getAlertName());
-            sendOperationNotification("Alert Enabled", oldAlertRule, true, userProvider.getCurrentUser().getUserName());
-        } catch (IOException e) {
-            log.error("send notification", e);
-        }
     }
 
     public void disableAlert(String alertId) throws BizException {
@@ -241,7 +223,7 @@ public class AlertCommandService {
         if (alertObject == null) {
             throw new BizException("Alert object [%s] not exist.", alertId);
         }
-        boolean successful = this.alertObjectStorage.executeTransaction(() -> {
+        this.alertObjectStorage.executeTransaction(() -> {
             if (!this.alertObjectStorage.disableAlert(alertId, userProvider.getCurrentUser().getUserName())) {
                 return false;
             }
@@ -252,20 +234,6 @@ public class AlertCommandService {
                                                  "{\"enabled\": false}");
             return true;
         });
-        if (!successful) {
-            return;
-        }
-
-        try {
-            AlertRule oldAlertRule = objectMapper.readValue(alertObject.getPayload(), AlertRule.class);
-            oldAlertRule.setId(alertObject.getAlertId());
-            oldAlertRule.setEnabled(!alertObject.getDisabled());
-            oldAlertRule.setAppName(alertObject.getAppName());
-            oldAlertRule.setName(alertObject.getAlertName());
-            sendOperationNotification("Alert Disabled", oldAlertRule, false, userProvider.getCurrentUser().getUserName());
-        } catch (IOException e) {
-            log.error("send notification", e);
-        }
     }
 
     public void deleteAlert(String alertId) throws BizException {
@@ -274,35 +242,16 @@ public class AlertCommandService {
             throw new BizException("Alert object [%s] not exist.", alertId);
         }
 
-        boolean successful = this.alertObjectStorage.executeTransaction(() -> {
+        this.alertObjectStorage.executeTransaction(() -> {
             if (!this.alertObjectStorage.deleteAlert(alertId, userProvider.getCurrentUser().getUserName())) {
                 return false;
             }
             this.alertObjectStorage.addChangelog(alertId,
                                                  ObjectAction.DELETE,
                                                  userProvider.getCurrentUser().getUserName(),
-                                                 alertObject.getPayload(),
+                                                 objectMapper.writeValueAsString(alertObject.getPayload()),
                                                  "{}");
             return true;
         });
-        if (!successful) {
-            return;
-        }
-
-        try {
-            AlertRule oldAlertRule = objectMapper.readValue(alertObject.getPayload(), AlertRule.class);
-            oldAlertRule.setId(alertObject.getAlertId());
-            oldAlertRule.setEnabled(!alertObject.getDisabled());
-            oldAlertRule.setAppName(alertObject.getAppName());
-            oldAlertRule.setName(alertObject.getAlertName());
-            sendOperationNotification("Alert Deleted", oldAlertRule, oldAlertRule.isEnabled(), userProvider.getCurrentUser().getUserName());
-        } catch (IOException ignored) {
-        }
-    }
-
-    private void sendOperationNotification(String title,
-                                           AlertRule alertRule,
-                                           boolean enabled,
-                                           String operator) {
     }
 }

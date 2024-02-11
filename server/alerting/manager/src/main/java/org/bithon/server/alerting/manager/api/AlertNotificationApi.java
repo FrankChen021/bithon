@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
@@ -37,7 +36,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
@@ -87,12 +85,11 @@ public class AlertNotificationApi {
     }
 
     @PostMapping("/alerting/api/alert/notification/delete")
-    public ApiResponse<?> deleteProvider(@RequestParam("name") String name) throws IOException {
+    public ApiResponse<?> deleteProvider(@RequestParam("name") String name) {
         // Check if it's used
         List<AlertStorageObject> alerts = alertStorage.getAlertListByTime(new Timestamp(0), new Timestamp(System.currentTimeMillis()));
         for (AlertStorageObject alert : alerts) {
-            List<String> notifications = this.objectMapper.readValue(alert.getPayload(), AlertRule.class).getNotifications();
-            if (notifications.contains(name)) {
+            if (alert.getPayload().getNotifications().contains(name)) {
                 return ApiResponse.fail(StringUtils.format("The notification channel can't be deleted because it's used by alert [%s].", alert.getAlertName()));
             }
         }

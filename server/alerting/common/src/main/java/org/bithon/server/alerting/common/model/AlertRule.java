@@ -32,6 +32,7 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.alerting.common.parser.InvalidExpressionException;
+import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
@@ -41,6 +42,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * The object during the evaluation
+ *
  * @author frankchen
  * @date 2020-08-21 16:22:12
  */
@@ -55,16 +58,13 @@ public class AlertRule {
     /**
      * 32 bytes UUID. Can be null. If it's null, the server generates a new one
      */
-    @JsonIgnore
     @Size(max = 32)
     private String id;
 
-    @JsonIgnore
     @NotBlank
     private String appName;
 
     @NotBlank
-    @JsonIgnore
     private String name;
 
     /**
@@ -147,5 +147,19 @@ public class AlertRule {
         });
 
         return this;
+    }
+
+    public static AlertRule from(AlertStorageObject alertObject) {
+        AlertRule rule = new AlertRule();
+        rule.setId(alertObject.getAlertId());
+        rule.setEnabled(!alertObject.getDisabled());
+        rule.setAppName(alertObject.getAppName());
+        rule.setName(alertObject.getAlertName());
+        rule.setEvaluationInterval(alertObject.getPayload().getEvaluationInterval());
+        rule.setExpr(alertObject.getPayload().getExpr());
+        rule.setSilence(alertObject.getPayload().getSilence());
+        rule.setForDuration(alertObject.getPayload().getForDuration());
+        rule.setNotifications(alertObject.getPayload().getNotifications());
+        return rule;
     }
 }

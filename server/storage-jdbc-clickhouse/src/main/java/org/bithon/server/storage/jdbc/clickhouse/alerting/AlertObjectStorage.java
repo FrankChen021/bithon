@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.jdbc.alerting.AlertObjectJdbcStorage;
@@ -43,11 +45,13 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
 
     @JsonCreator
     public AlertObjectStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration provider,
-                              @JacksonInject(useInput = OptBoolean.FALSE)SqlDialectManager sqlDialectManager) {
+                              @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
+                              @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         super(provider.getDslContext(),
               sqlDialectManager.getSqlDialect(provider.getDslContext()),
               Tables.BITHON_ALERT_OBJECT.getName() + " FINAL",
-              Tables.BITHON_ALERT_STATE.getName() + " FINAL");
+              Tables.BITHON_ALERT_STATE.getName() + " FINAL",
+              objectMapper);
 
         this.config = provider.getClickHouseConfig();
     }
@@ -69,34 +73,42 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
 
     @Override
     public boolean updateAlert(AlertStorageObject oldObject, AlertStorageObject newObject, String operator) {
-        return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
-                         .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, newObject.getAlertName())
-                         .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, newObject.getAppName())
-                         .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, newObject.getNamespace())
-                         .set(Tables.BITHON_ALERT_OBJECT.DISABLED, newObject.getDisabled())
-                         .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, newObject.getPayload())
-                         .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, newObject.getAlertId())
-                         .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
-                         .set(Tables.BITHON_ALERT_OBJECT.CREATED_AT, oldObject.getCreatedAt().toLocalDateTime())
-                         .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                         .execute() > 0;
+        try {
+            return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
+                             .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, newObject.getAlertName())
+                             .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, newObject.getAppName())
+                             .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, newObject.getNamespace())
+                             .set(Tables.BITHON_ALERT_OBJECT.DISABLED, newObject.getDisabled())
+                             .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, objectMapper.writeValueAsString(newObject.getPayload()))
+                             .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, newObject.getAlertId())
+                             .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
+                             .set(Tables.BITHON_ALERT_OBJECT.CREATED_AT, oldObject.getCreatedAt().toLocalDateTime())
+                             .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                             .execute() > 0;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public boolean disableAlert(String alertId, String operator) {
         AlertStorageObject object = this.getAlertById(alertId);
         if (object != null) {
-            return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
-                             .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, object.getAlertName())
-                             .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, object.getAppName())
-                             .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, object.getNamespace())
-                             .set(Tables.BITHON_ALERT_OBJECT.DISABLED, true)
-                             .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, object.getPayload())
-                             .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, object.getAlertId())
-                             .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
-                             .set(Tables.BITHON_ALERT_OBJECT.CREATED_AT, object.getCreatedAt().toLocalDateTime())
-                             .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                             .execute() > 0;
+            try {
+                return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
+                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, object.getAlertName())
+                                 .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, object.getAppName())
+                                 .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, object.getNamespace())
+                                 .set(Tables.BITHON_ALERT_OBJECT.DISABLED, true)
+                                 .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, objectMapper.writeValueAsString(object.getPayload()))
+                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, object.getAlertId())
+                                 .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
+                                 .set(Tables.BITHON_ALERT_OBJECT.CREATED_AT, object.getCreatedAt().toLocalDateTime())
+                                 .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                                 .execute() > 0;
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         }
         return false;
     }
@@ -105,17 +117,21 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
     public boolean enableAlert(String alertId, String operator) {
         AlertStorageObject object = this.getAlertById(alertId);
         if (object != null) {
-            return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
-                             .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, object.getAlertName())
-                             .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, object.getAppName())
-                             .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, object.getNamespace())
-                             .set(Tables.BITHON_ALERT_OBJECT.DISABLED, false)
-                             .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, object.getPayload())
-                             .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, object.getAlertId())
-                             .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
-                             .set(Tables.BITHON_ALERT_OBJECT.CREATED_AT, object.getCreatedAt().toLocalDateTime())
-                             .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                             .execute() > 0;
+            try {
+                return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
+                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, object.getAlertName())
+                                 .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, object.getAppName())
+                                 .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, object.getNamespace())
+                                 .set(Tables.BITHON_ALERT_OBJECT.DISABLED, false)
+                                 .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, objectMapper.writeValueAsString(object.getPayload()))
+                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, object.getAlertId())
+                                 .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
+                                 .set(Tables.BITHON_ALERT_OBJECT.CREATED_AT, object.getCreatedAt().toLocalDateTime())
+                                 .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                                 .execute() > 0;
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         }
         return false;
     }
@@ -124,18 +140,22 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
     public boolean deleteAlert(String alertId, String operator) {
         AlertStorageObject object = this.getAlertById(alertId);
         if (object != null) {
-            return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
-                             .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, object.getAlertName())
-                             .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, object.getAppName())
-                             .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, object.getNamespace())
-                             .set(Tables.BITHON_ALERT_OBJECT.DISABLED, false)
-                             .set(Tables.BITHON_ALERT_OBJECT.DELETED, true)
-                             .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, object.getPayload())
-                             .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, object.getAlertId())
-                             .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
-                             .set(Tables.BITHON_ALERT_OBJECT.CREATED_AT, object.getCreatedAt().toLocalDateTime())
-                             .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                             .execute() > 0;
+            try {
+                return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
+                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, object.getAlertName())
+                                 .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, object.getAppName())
+                                 .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, object.getNamespace())
+                                 .set(Tables.BITHON_ALERT_OBJECT.DISABLED, false)
+                                 .set(Tables.BITHON_ALERT_OBJECT.DELETED, true)
+                                 .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, objectMapper.writeValueAsString(object.getPayload()))
+                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, object.getAlertId())
+                                 .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
+                                 .set(Tables.BITHON_ALERT_OBJECT.CREATED_AT, object.getCreatedAt().toLocalDateTime())
+                                 .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                                 .execute() > 0;
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         }
         return false;
     }

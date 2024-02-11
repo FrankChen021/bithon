@@ -19,11 +19,14 @@ package org.bithon.server.storage.jdbc.alerting;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.ObjectAction;
 import org.bithon.server.storage.alerting.pojo.AlertChangeLogObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
+import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
 import org.bithon.server.storage.alerting.pojo.ListAlertDO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
 import org.bithon.server.storage.datasource.query.Limit;
@@ -35,11 +38,13 @@ import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.DSLContext;
 import org.jooq.Field;
+import org.jooq.Record;
 import org.jooq.SelectConditionStep;
 import org.jooq.SortField;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -52,27 +57,32 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
 
     protected final DSLContext dslContext;
     protected final ISqlDialect sqlDialect;
+    protected final ObjectMapper objectMapper;
     private final String quotedObjectTableSelectName;
     private final String quotedStateTableSelectName;
 
     @JsonCreator
     public AlertObjectJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration provider,
-                                  @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
+                                  @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
+                                  @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         this(provider.getDslContext(),
              sqlDialectManager.getSqlDialect(provider.getDslContext()),
              sqlDialectManager.getSqlDialect(provider.getDslContext()).quoteIdentifier(Tables.BITHON_ALERT_OBJECT.getName()),
-             sqlDialectManager.getSqlDialect(provider.getDslContext()).quoteIdentifier(Tables.BITHON_ALERT_STATE.getName())
+             sqlDialectManager.getSqlDialect(provider.getDslContext()).quoteIdentifier(Tables.BITHON_ALERT_STATE.getName()),
+             objectMapper
             );
     }
 
     public AlertObjectJdbcStorage(DSLContext dslContext,
                                   ISqlDialect sqlDialect,
                                   String objectTableSelectName,
-                                  String stateTableSelectName) {
+                                  String stateTableSelectName,
+                                  ObjectMapper objectMapper) {
         this.dslContext = dslContext;
         this.sqlDialect = sqlDialect;
         this.quotedObjectTableSelectName = objectTableSelectName;
         this.quotedStateTableSelectName = stateTableSelectName;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -96,7 +106,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
     public List<AlertStorageObject> getAlertListByTime(Timestamp start, Timestamp end) {
         return dslContext.selectFrom(this.quotedObjectTableSelectName)
                          .where(Tables.BITHON_ALERT_OBJECT.UPDATED_AT.between(start.toLocalDateTime(), end.toLocalDateTime()))
-                         .fetchInto(AlertStorageObject.class);
+                         .fetch(this::toStorageObject);
     }
 
     @Override
@@ -115,7 +125,32 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
         return dslContext.selectFrom(this.quotedObjectTableSelectName)
                          .where(Tables.BITHON_ALERT_OBJECT.ALERT_ID.eq(alertId))
                          .and(Tables.BITHON_ALERT_OBJECT.DELETED.eq(false))
-                         .fetchOneInto(AlertStorageObject.class);
+                         .fetchOne(this::toStorageObject);
+    }
+
+    protected AlertStorageObject toStorageObject(Record record) {
+        AlertStorageObject obj = new AlertStorageObject();
+        obj.setAlertId(record.get(Tables.BITHON_ALERT_OBJECT.ALERT_ID));
+        obj.setAlertName(record.get(Tables.BITHON_ALERT_OBJECT.ALERT_NAME));
+        obj.setDeleted(record.get(Tables.BITHON_ALERT_OBJECT.DELETED));
+        obj.setDisabled(record.get(Tables.BITHON_ALERT_OBJECT.DISABLED));
+
+        // It's strange that at runtime, the CREATE_AT is type of Timestamp
+        Object ts = record.get(Tables.BITHON_ALERT_OBJECT.CREATED_AT);
+        obj.setCreatedAt(ts instanceof Timestamp ? (Timestamp) ts : Timestamp.valueOf((LocalDateTime) ts));
+
+        ts = record.get(Tables.BITHON_ALERT_OBJECT.UPDATED_AT);
+        obj.setUpdatedAt(ts instanceof Timestamp ? (Timestamp) ts : Timestamp.valueOf((LocalDateTime) ts));
+
+        obj.setAppName(record.get(Tables.BITHON_ALERT_OBJECT.APP_NAME));
+        obj.setLastOperator(record.get(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR));
+        obj.setNamespace(record.get(Tables.BITHON_ALERT_OBJECT.NAMESPACE));
+        try {
+            obj.setPayload(objectMapper.readValue(record.get(Tables.BITHON_ALERT_OBJECT.PAYLOAD), AlertStorageObjectPayload.class));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return obj;
     }
 
     @Override
@@ -130,7 +165,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                       .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, alert.getAppName())
                       .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, alert.getNamespace())
                       .set(Tables.BITHON_ALERT_OBJECT.DISABLED, alert.getDisabled())
-                      .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, alert.getPayload())
+                      .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, objectMapper.writeValueAsString(alert.getPayload()))
                       .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, alert.getAlertId())
                       .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
                       .set(Tables.BITHON_ALERT_OBJECT.CREATED_AT, createTimestamp.toLocalDateTime())
@@ -138,6 +173,8 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                       .execute();
         } catch (DuplicateKeyException e) {
             throw new RuntimeException(StringUtils.format("Alert object with id [%s] already exists.", alert.getAlertId()));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
 
         return alert.getAlertId();
@@ -145,16 +182,20 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
 
     @Override
     public boolean updateAlert(AlertStorageObject oldObject, AlertStorageObject newObject, String operator) {
-        return dslContext.update(Tables.BITHON_ALERT_OBJECT)
-                         .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, newObject.getAlertName())
-                         .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, newObject.getAppName())
-                         .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, newObject.getNamespace())
-                         .set(Tables.BITHON_ALERT_OBJECT.DISABLED, newObject.getDisabled())
-                         .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, newObject.getPayload())
-                         .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
-                         .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                         .where(Tables.BITHON_ALERT_OBJECT.ALERT_ID.eq(newObject.getAlertId()))
-                         .execute() > 0;
+        try {
+            return dslContext.update(Tables.BITHON_ALERT_OBJECT)
+                             .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, newObject.getAlertName())
+                             .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, newObject.getAppName())
+                             .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, newObject.getNamespace())
+                             .set(Tables.BITHON_ALERT_OBJECT.DISABLED, newObject.getDisabled())
+                             .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, objectMapper.writeValueAsString(newObject.getPayload()))
+                             .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
+                             .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                             .where(Tables.BITHON_ALERT_OBJECT.ALERT_ID.eq(newObject.getAlertId()))
+                             .execute() > 0;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

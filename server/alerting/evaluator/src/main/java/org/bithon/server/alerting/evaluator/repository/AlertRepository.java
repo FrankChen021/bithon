@@ -16,7 +16,6 @@
 
 package org.bithon.server.alerting.evaluator.repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.parser.InvalidExpressionException;
@@ -27,7 +26,6 @@ import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,15 +44,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AlertRepository {
 
     private final IAlertObjectStorage alertObjectStorage;
-    private final ObjectMapper objectMapper;
     private final Map<String, AlertRule> loadedAlerts = new ConcurrentHashMap<>();
     private final List<IAlertChangeListener> changeListeners = Collections.synchronizedList(new ArrayList<>());
     private Timestamp lastLoadedAt = new Timestamp(0);
 
-    public AlertRepository(IAlertObjectStorage alertObjectDao,
-                           ObjectMapper objectMapper) {
+    public AlertRepository(IAlertObjectStorage alertObjectDao) {
         this.alertObjectStorage = alertObjectDao;
-        this.objectMapper = objectMapper;
 
         loadChanges();
     }
@@ -86,13 +81,14 @@ public class AlertRepository {
         //
         alertObjects.stream()
                     .filter(alert -> !alert.getDeleted())
-                    .map(this::toAlert).filter(Objects::nonNull)
+                    .map(this::toAlert)
+                    .filter(Objects::nonNull)
                     .forEach((alert) -> {
-                        AlertRule original = this.loadedAlerts.put(alert.getId(), alert);
-                        if (original == null) {
+                        AlertRule oldRule = this.loadedAlerts.put(alert.getId(), alert);
+                        if (oldRule == null) {
                             this.onCreated(alert);
                         } else {
-                            this.onUpdated(original, alert);
+                            this.onUpdated(oldRule, alert);
                         }
                     });
 
@@ -100,21 +96,12 @@ public class AlertRepository {
     }
 
     private AlertRule toAlert(AlertStorageObject alertObject) {
+        AlertRule alertRule = AlertRule.from(alertObject);
+        Validator.validate(alertRule);
         try {
-            AlertRule alertRule = objectMapper.readValue(alertObject.getPayload(), AlertRule.class);
-            alertRule.setId(alertObject.getAlertId());
-            alertRule.setName(alertObject.getAlertName());
-            alertRule.setEnabled(!alertObject.getDisabled());
-            alertRule.setAppName(alertObject.getAppName());
-            Validator.validate(alertRule);
-            try {
-                return alertRule.initialize();
-            } catch (InvalidExpressionException e) {
-                log.error("Unable to build alert[{}] due to {}", alertRule.getName(), e.getMessage());
-                return null;
-            }
-        } catch (IOException e) {
-            log.error("Unable to deserialize alarm object Exception: {}\n. Alarm Object: {}\n Stack Trace: {}", e.getMessage(), alertObject, e);
+            return alertRule.initialize();
+        } catch (InvalidExpressionException e) {
+            log.error("Unable to build alert[{}] due to {}", alertRule.getName(), e.getMessage());
             return null;
         }
     }

@@ -32,7 +32,12 @@ public class AlertStorageObject {
     private String namespace;
     private Boolean disabled;
     private Boolean deleted;
-    private String payload;
+
+    /**
+     * {@link AlertStorageObjectPayload}
+     */
+    private AlertStorageObjectPayload payload;
+
     private Timestamp createdAt;
     private Timestamp updatedAt;
     private String lastOperator;

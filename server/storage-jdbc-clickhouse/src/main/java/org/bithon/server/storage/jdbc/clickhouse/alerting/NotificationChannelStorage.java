@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.alerting.pojo.NotificationProviderObject;
+import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
 import org.bithon.server.storage.jdbc.alerting.NotificationChannelJdbcStorage;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
@@ -46,7 +46,7 @@ public class NotificationChannelStorage extends NotificationChannelJdbcStorage {
     }
 
     @Override
-    public List<NotificationProviderObject> getChannels(long since) {
+    public List<NotificationChannelObject> getChannels(long since) {
         return super.getChannels(since);
     }
 

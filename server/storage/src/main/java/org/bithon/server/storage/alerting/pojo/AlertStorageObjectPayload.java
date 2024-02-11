@@ -16,15 +16,39 @@
 
 package org.bithon.server.storage.alerting.pojo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.bithon.component.commons.utils.HumanReadableDuration;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/12/22 17:58
+ * @date 2024/2/11 19:51
  */
 @Data
-public class NotificationProviderObject {
-    private String type;
-    private String name;
-    private String payload;
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class AlertStorageObjectPayload {
+    @JsonProperty
+    private int evaluationInterval = 1;
+
+    @JsonProperty("for")
+    private HumanReadableDuration forDuration;
+
+    /**
+     * silence period in minute
+     */
+    @JsonProperty
+    private HumanReadableDuration silence;
+
+    @JsonProperty
+    private String expr;
+
+    @JsonProperty
+    private List<String> notifications;
 }
