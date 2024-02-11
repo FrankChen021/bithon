@@ -16,6 +16,9 @@
 
 package org.bithon.component.commons.utils;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/4/6 9:34 下午
@@ -81,5 +84,15 @@ public class NumberUtils {
             sb.append(HEX_CHARS[v & 0x0F]);
         }
         return sb.toString();
+    }
+
+    public static BigDecimal scaleTo(double val,
+                                     int scale) {
+        return new BigDecimal(val).setScale(scale, RoundingMode.HALF_UP);
+    }
+
+    public static String toString(double val,
+                                  int scale) {
+        return BigDecimal.valueOf(val).setScale(scale, RoundingMode.HALF_UP).toString();
     }
 }

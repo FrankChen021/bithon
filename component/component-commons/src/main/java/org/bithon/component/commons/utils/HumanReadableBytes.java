@@ -14,9 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.common.utils;
-
-import org.bithon.component.commons.utils.StringUtils;
+package org.bithon.component.commons.utils;
 
 import java.util.Locale;
 

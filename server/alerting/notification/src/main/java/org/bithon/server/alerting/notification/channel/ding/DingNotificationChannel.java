@@ -28,7 +28,6 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
-import org.bithon.server.alerting.common.utils.FreeMarkerUtil;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.message.ConditionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
@@ -110,7 +109,7 @@ public class DingNotificationChannel implements INotificationChannel {
                                            output.getDelta()));
 
             section.add(new QuotedTextLine(text.toString()));
-            Future<String> url = message.getImages().get(expression.getId());
+            Future<String> url = null; //message.getImages().get(expression.getId());
             if (url == null) {
                 continue;
             }

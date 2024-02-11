@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.common.utils;
+package org.bithon.server.alerting.notification.channel.ding;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
