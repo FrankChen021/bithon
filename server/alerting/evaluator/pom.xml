@@ -60,6 +60,11 @@
       <artifactId>spring-cloud-starter-openfeign</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>service-discovery-client</artifactId>
+    </dependency>
+
     <!-- Testing -->
     <dependency>
       <groupId>junit</groupId>

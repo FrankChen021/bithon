@@ -17,12 +17,17 @@
 package org.bithon.server.alerting.notification.api;
 
 import org.bithon.server.alerting.notification.message.NotificationMessage;
+import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.springframework.web.bind.annotation.PostMapping;
 
 /**
+ * This interface is declared
+ * as {@link DiscoverableService} so that the evaluator module can find it by using service discovery
+ *
  * @author frank.chen021@outlook.com
  * @date 2023/12/22 16:59
  */
+@DiscoverableService(name = "alerting-notification-api")
 public interface INotificationApi {
 
     /**

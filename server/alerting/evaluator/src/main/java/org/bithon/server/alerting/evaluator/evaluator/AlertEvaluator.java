@@ -38,6 +38,7 @@ import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
@@ -69,7 +70,7 @@ public class AlertEvaluator {
                           RenderingConfig notificationConfig,
                           IAlertRecordStorage alertRecordDao,
                           IDataSourceApi dataSourceApi,
-                          INotificationApi notificationApi) {
+                          @Qualifier("alerting-notification-client-api") INotificationApi notificationApi) {
         this.stateStorage = stateStorage;
         this.evaluationLoggerFactory = evaluationLoggerFactory;
         this.renderingConfig = notificationConfig;

@@ -16,14 +16,16 @@
 
 package org.bithon.server.alerting.manager;
 
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.manager.security.DefaultUserProvider;
 import org.bithon.server.alerting.manager.security.IUserProvider;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.ConversionFailedException;
+import org.springframework.core.env.Environment;
 
 /**
  * @author Frank Chen
@@ -34,7 +36,14 @@ import org.springframework.context.annotation.Configuration;
 @ImportAutoConfiguration(value = {AlertingStorageConfiguration.class})
 public class ManagerModuleAutoConfiguration {
     @Bean
-    IUserProvider alertingModuleUserProvider(@Value("${bithon.alerting.module.manager.allowAnonymous}") boolean allowAnonymous) {
+    IUserProvider alertingModuleUserProvider(Environment environment) {
+        boolean allowAnonymous;
+        try {
+            allowAnonymous = environment.getProperty("bithon.alerting.module.manager.allow-anonymous", Boolean.class, false);
+        } catch (ConversionFailedException e) {
+            throw new RuntimeException(StringUtils.format("Invalid value [%s] for 'bithon.alerting.module.manager.allow-anonymous' property. It must be a Boolean.",
+                                                          environment.getProperty("bithon.alerting.module.manager.allow-anonymous")));
+        }
         return new DefaultUserProvider(allowAnonymous);
     }
 }
