@@ -17,9 +17,9 @@
 package org.bithon.server.alerting.common.evaluator.result;
 
 import lombok.Data;
+import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
-import org.bithon.server.alerting.common.model.PercentageNumber;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -56,6 +56,6 @@ public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
 
     @Override
     public String getDeltaText() {
-        return threshold instanceof PercentageNumber ? delta + "%" : String.valueOf(delta);
+        return threshold instanceof HumanReadablePercentage ? delta + "%" : String.valueOf(delta);
     }
 }

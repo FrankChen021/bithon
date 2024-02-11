@@ -23,7 +23,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
-import org.bithon.server.alerting.common.model.Alert;
+import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
 import org.bithon.server.alerting.notification.api.INotificationApi;
@@ -77,32 +77,32 @@ public class AlertEvaluator {
         this.notificationApi = notificationApi;
     }
 
-    public void evaluate(TimeSpan now, Alert alert) {
+    public void evaluate(TimeSpan now, AlertRule alertRule) {
         EvaluationContext context = new EvaluationContext(now,
                                                           evaluationLoggerFactory.createWriter(),
-                                                          alert,
+                                                          alertRule,
                                                           dataSourceApi);
         try {
-            if (!alert.isEnabled()) {
+            if (!alertRule.isEnabled()) {
                 context.log(AlertEvaluator.class, "Alert is disabled. Evaluation is skipped.");
                 return;
             }
             if (evaluate(context)) {
-                notify(alert, context);
+                notify(alertRule, context);
             }
         } catch (Exception e) {
-            log.error(StringUtils.format("ERROR to evaluate alert %s", alert.getName()), e);
+            log.error(StringUtils.format("ERROR to evaluate alert %s", alertRule.getName()), e);
         } finally {
             try {
                 context.getEvaluatorLogger().flush();
             } catch (Exception e) {
-                log.error("Flush log for alert {} failed: {}", alert.getId(), e.toString());
+                log.error("Flush log for alert {} failed: {}", alertRule.getId(), e.toString());
             }
         }
     }
 
     private boolean evaluate(EvaluationContext context) {
-        long waitMinute = context.getIntervalEnd().getMilliseconds() % (context.getAlert().getEvaluationInterval() * 60L);
+        long waitMinute = context.getIntervalEnd().getMilliseconds() % (context.getAlertRule().getEvaluationInterval() * 60L);
         if (waitMinute != 0) {
             context.log(AlertEvaluator.class,
                         "Alert not evaluated because it's not the right time. Will evaluate this alert at [%s]",
@@ -110,45 +110,45 @@ public class AlertEvaluator {
             return false;
         }
 
-        Alert alert = context.getAlert();
-        context.log(AlertEvaluator.class, "Evaluating alert [%s]", alert.getName());
+        AlertRule alertRule = context.getAlertRule();
+        context.log(AlertEvaluator.class, "Evaluating alert [%s]", alertRule.getName());
 
         try {
-            if ((boolean) (alert.getEvaluationExpression().evaluate(context))) {
-                context.log(AlertEvaluator.class, "alert [%s] tested successfully.", alert.getName());
+            if ((boolean) (alertRule.getEvaluationExpression().evaluate(context))) {
+                context.log(AlertEvaluator.class, "alert [%s] tested successfully.", alertRule.getName());
 
-                long successiveCount = stateStorage.incrTriggerMatchCount(alert.getId(), "");
-                if (successiveCount >= alert.getMatchTimes()) {
-                    stateStorage.resetTriggerMatchCount(alert.getId(), "");
+                long successiveCount = stateStorage.incrTriggerMatchCount(alertRule.getId(), "");
+                if (successiveCount >= alertRule.getMatchTimes()) {
+                    stateStorage.resetTriggerMatchCount(alertRule.getId(), "");
 
                     context.log(AlertEvaluator.class,
                                 "Rule tested %d times successively，and reaches the expected count：%d",
                                 successiveCount,
-                                alert.getMatchTimes());
+                                alertRule.getMatchTimes());
 
                 } else {
-                    context.log(AlertEvaluator.class, "Rule tested %d times successively，expected times：%d", successiveCount, alert.getMatchTimes());
+                    context.log(AlertEvaluator.class, "Rule tested %d times successively，expected times：%d", successiveCount, alertRule.getMatchTimes());
                 }
                 return true;
             } else {
-                stateStorage.resetTriggerMatchCount(alert.getId(), "");
+                stateStorage.resetTriggerMatchCount(alertRule.getId(), "");
                 return false;
             }
         } catch (Exception e) {
             context.logException(AlertEvaluator.class,
                                  e,
                                  "Exception during evaluation of alert [%s]: %s",
-                                 alert.getName(),
+                                 alertRule.getName(),
                                  e.getMessage());
             return true;
         }
     }
 
-    private void notify(Alert alert, EvaluationContext context) throws Exception {
+    private void notify(AlertRule alertRule, EvaluationContext context) throws Exception {
         long now = System.currentTimeMillis();
-        int silencePeriod = context.getAlert().getSilence();
-        if (stateStorage.tryEnterSilence(alert.getId(), silencePeriod)) {
-            long silenceRemainTime = stateStorage.getSilenceRemainTime(alert.getId());
+        int silencePeriod = context.getAlertRule().getSilence();
+        if (stateStorage.tryEnterSilence(alertRule.getId(), silencePeriod)) {
+            long silenceRemainTime = stateStorage.getSilenceRemainTime(alertRule.getId());
             context.log(AlertEvaluator.class, "Alerting，but is under silence period(%d minutes)。Last alert at:%s",
                         silencePeriod,
                         TimeSpan.of(now - (TimeUnit.MILLISECONDS.convert(silencePeriod, TimeUnit.MINUTES) - silenceRemainTime)).toISO8601());
@@ -158,10 +158,10 @@ public class AlertEvaluator {
         context.log(AlertEvaluator.class, "Sending alert");
 
         NotificationMessage notification = new NotificationMessage();
-        notification.setAlert(alert);
-        notification.setStart(context.getIntervalEnd().before(alert.getMatchTimes(), TimeUnit.MINUTES).getMilliseconds());
+        notification.setAlertRule(alertRule);
+        notification.setStart(context.getIntervalEnd().before(alertRule.getMatchTimes(), TimeUnit.MINUTES).getMilliseconds());
         notification.setEnd(context.getIntervalEnd().getMilliseconds());
-        notification.setDetectionLength(alert.getMatchTimes());
+        notification.setDetectionLength(alertRule.getMatchTimes());
 
         notification.setConditionEvaluation(new HashMap<>());
         if (this.renderingConfig.isEnabled()) {
@@ -197,12 +197,12 @@ public class AlertEvaluator {
         //
         // save
         //
-        Timestamp lastAlertAt = alertRecordStorage.getLastAlert(alert.getId());
+        Timestamp lastAlertAt = alertRecordStorage.getLastAlert(alertRule.getId());
         AlertRecordObject alertRecord = new AlertRecordObject();
         alertRecord.setRecordId(UUID.randomUUID().toString().replace("-", ""));
-        alertRecord.setAlertId(alert.getId());
-        alertRecord.setAlertName(alert.getName());
-        alertRecord.setAppName(alert.getAppName());
+        alertRecord.setAlertId(alertRule.getId());
+        alertRecord.setAlertName(alertRule.getName());
+        alertRecord.setAppName(alertRule.getAppName());
         alertRecord.setNamespace("");
         alertRecord.setPayload(objectMapper.writeValueAsString(AlertRecordPayload.builder()
                                                                                  .start(notification.getStart())
@@ -219,7 +219,7 @@ public class AlertEvaluator {
         //
         notification.setLastAlertAt(lastAlertAt == null ? null : lastAlertAt.getTime());
         notification.setAlertRecordId(alertRecord.getRecordId());
-        for (String providerId : alert.getNotifications()) {
+        for (String providerId : alertRule.getNotifications()) {
             try {
                 notificationApi.notify(providerId, notification);
             } catch (Exception e) {

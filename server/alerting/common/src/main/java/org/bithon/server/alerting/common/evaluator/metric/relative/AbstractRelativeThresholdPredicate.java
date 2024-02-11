@@ -18,13 +18,13 @@ package org.bithon.server.alerting.common.evaluator.metric.relative;
 
 import lombok.Getter;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.evaluator.result.RelativeComparisonEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
-import org.bithon.server.alerting.common.model.PercentageNumber;
 import org.bithon.server.alerting.common.utils.NumberUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
@@ -120,7 +120,7 @@ public class AbstractRelativeThresholdPredicate implements IMetricEvaluator {
 
         double delta;
         if (isUp) {
-            if (threshold instanceof PercentageNumber) {
+            if (threshold instanceof HumanReadablePercentage) {
                 delta = ZERO.equals(baseValue)
                     ? currWindowValue.subtract(baseValue).doubleValue()
                     : currWindowValue.subtract(baseValue).divide(baseValue, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();
@@ -128,7 +128,7 @@ public class AbstractRelativeThresholdPredicate implements IMetricEvaluator {
                 delta = currWindowValue.subtract(baseValue).doubleValue();
             }
         } else {
-            if (threshold instanceof PercentageNumber) {
+            if (threshold instanceof HumanReadablePercentage) {
                 delta = ZERO.equals(baseValue)
                     ? currWindowValue.subtract(baseValue).doubleValue()
                     : baseValue.subtract(currWindowValue).divide(baseValue, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();

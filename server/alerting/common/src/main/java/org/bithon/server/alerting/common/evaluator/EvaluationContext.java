@@ -22,7 +22,7 @@ import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
-import org.bithon.server.alerting.common.model.Alert;
+import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
@@ -42,7 +42,7 @@ import java.util.Map;
 public class EvaluationContext implements IEvaluationContext {
     private final TimeSpan intervalEnd;
     private final IEvaluationLogWriter evaluatorLogger;
-    private final Alert alert;
+    private final AlertRule alertRule;
     private final Map<String, IEvaluationOutput> evaluatedExpressions = new HashMap<>();
 
     // Use LinkedHashMap to keep the order of expressions
@@ -63,17 +63,17 @@ public class EvaluationContext implements IEvaluationContext {
 
     public EvaluationContext(TimeSpan intervalEnd,
                              IEvaluationLogWriter logger,
-                             Alert alert,
+                             AlertRule alertRule,
                              IDataSourceApi dataSourceApi) {
         this.intervalEnd = intervalEnd;
         this.dataSourceApi = dataSourceApi;
         this.evaluatorLogger = logger;
-        this.alert = alert;
+        this.alertRule = alertRule;
 
-        this.alert.getFlattenExpressions().forEach((id, alertExpression) -> {
+        this.alertRule.getFlattenExpressions().forEach((id, alertExpression) -> {
             evaluationResults.put(id, EvaluationResult.UNEVALUATED);
         });
-        this.alertExpressions.putAll(alert.getFlattenExpressions());
+        this.alertExpressions.putAll(alertRule.getFlattenExpressions());
     }
 
     public EvaluationResult getConditionEvaluationResult(String expressionId) {
@@ -95,18 +95,18 @@ public class EvaluationContext implements IEvaluationContext {
     }
 
     public void log(Class<?> loggerClass, String message) {
-        this.evaluatorLogger.log(this.alert.getId(), this.alert.getName(), loggerClass, message);
+        this.evaluatorLogger.log(this.alertRule.getId(), this.alertRule.getName(), loggerClass, message);
     }
 
     public void log(Class<?> loggerClass, String messageFormat, Object... args) {
-        this.evaluatorLogger.log(this.alert.getId(), this.alert.getName(), loggerClass, messageFormat, args);
+        this.evaluatorLogger.log(this.alertRule.getId(), this.alertRule.getName(), loggerClass, messageFormat, args);
     }
 
     public void logException(Class<?> loggerClass,
                              Throwable e,
                              String format,
                              Object... args) {
-        this.evaluatorLogger.error(this.alert.getId(), alert.getName(), loggerClass, e, format, args);
+        this.evaluatorLogger.error(this.alertRule.getId(), alertRule.getName(), loggerClass, e, format, args);
     }
 
     @Override

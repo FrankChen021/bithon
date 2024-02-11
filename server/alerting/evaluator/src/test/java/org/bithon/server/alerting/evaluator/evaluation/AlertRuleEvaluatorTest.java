@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
-import org.bithon.server.alerting.common.model.Alert;
+import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.commons.time.TimeSpan;
@@ -46,7 +46,7 @@ import java.util.Collections;
  * @date 28/3/22 9:42 PM
  */
 @Slf4j
-public class AlertEvaluatorTest {
+public class AlertRuleEvaluatorTest {
 
     private static final IEvaluationLogWriter CONSOLE_LOGGER = new IEvaluationLogWriter() {
         @Override
@@ -90,14 +90,14 @@ public class AlertEvaluatorTest {
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] > 4", metric);
         AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
 
-        Alert alert = Alert.builder()
-                           .expression(expr)
-                           .build()
-                           .initialize();
+        AlertRule alertRule = AlertRule.builder()
+                                       .expr(expr)
+                                       .build()
+                                       .initialize();
 
         Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                                             CONSOLE_LOGGER,
-                                                                            alert,
+                                                                            alertRule,
                                                                             dataSourceProvider)));
     }
 
@@ -112,14 +112,14 @@ public class AlertEvaluatorTest {
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] >= 5", metric);
         AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
 
-        Alert alert = Alert.builder()
-                           .expression(expr)
-                           .build()
-                           .initialize();
+        AlertRule alertRule = AlertRule.builder()
+                                       .expr(expr)
+                                       .build()
+                                       .initialize();
 
         Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                                             CONSOLE_LOGGER,
-                                                                            alert,
+                                                                            alertRule,
                                                                             dataSourceProvider)));
     }
 
@@ -134,14 +134,14 @@ public class AlertEvaluatorTest {
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] < 6", metric);
         AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
 
-        Alert alert = Alert.builder()
-                           .expression(expr)
-                           .build()
-                           .initialize();
+        AlertRule alertRule = AlertRule.builder()
+                                       .expr(expr)
+                                       .build()
+                                       .initialize();
 
         Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                                             CONSOLE_LOGGER,
-                                                                            alert,
+                                                                            alertRule,
                                                                             dataSourceProvider)));
     }
 
@@ -156,14 +156,14 @@ public class AlertEvaluatorTest {
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] <= 5", metric);
         AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
 
-        Alert alert = Alert.builder()
-                           .expression(expr)
-                           .build()
-                           .initialize();
+        AlertRule alertRule = AlertRule.builder()
+                                       .expr(expr)
+                                       .build()
+                                       .initialize();
 
         Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                                             CONSOLE_LOGGER,
-                                                                            alert,
+                                                                            alertRule,
                                                                             dataSourceProvider)));
     }
 
@@ -179,14 +179,14 @@ public class AlertEvaluatorTest {
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] is null", metric);
         AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
 
-        Alert alert = Alert.builder()
-                           .expression(expr)
-                           .build()
-                           .initialize();
+        AlertRule alertRule = AlertRule.builder()
+                                       .expr(expr)
+                                       .build()
+                                       .initialize();
 
         Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                                             CONSOLE_LOGGER,
-                                                                            alert,
+                                                                            alertRule,
                                                                             dataSourceProvider)));
     }
 
@@ -201,14 +201,14 @@ public class AlertEvaluatorTest {
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] is null", metric);
         AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
 
-        Alert alert = Alert.builder()
-                           .expression(expr)
-                           .build()
-                           .initialize();
+        AlertRule alertRule = AlertRule.builder()
+                                       .expr(expr)
+                                       .build()
+                                       .initialize();
 
         Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                                             CONSOLE_LOGGER,
-                                                                            alert,
+                                                                            alertRule,
                                                                             dataSourceProvider)));
     }
 }

@@ -33,6 +33,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.metric.absolute.EqualPredicate;
@@ -46,7 +47,6 @@ import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeGreat
 import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLessThanPredicate;
 import org.bithon.server.alerting.common.model.AggregatorEnum;
 import org.bithon.server.alerting.common.model.AlertExpression;
-import org.bithon.server.alerting.common.model.PercentageNumber;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
 import java.math.BigDecimal;
@@ -372,7 +372,7 @@ public class AlertExpressionASTParser {
                     return LiteralExpression.create(Integer.parseInt(symbol.getText()));
 
                 case AlertExpressionParser.PERCENTAGE_LITERAL:
-                    return LiteralExpression.create(new PercentageNumber(symbol.getText()));
+                    return LiteralExpression.create(new HumanReadablePercentage(symbol.getText()));
 
                 case AlertExpressionParser.STRING_LITERAL:
                     return LiteralExpression.create(getUnQuotedString(symbol));

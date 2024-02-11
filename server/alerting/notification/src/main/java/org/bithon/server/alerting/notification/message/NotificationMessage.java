@@ -17,7 +17,7 @@
 package org.bithon.server.alerting.notification.message;
 
 import lombok.Data;
-import org.bithon.server.alerting.common.model.Alert;
+import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.AlertExpression;
 
 import java.util.List;
@@ -36,7 +36,7 @@ public class NotificationMessage {
     private int detectionLength;
     private List<AlertExpression> expressions;
     private Map<String, ConditionEvaluationResult> conditionEvaluation;
-    private Alert alert;
+    private AlertRule alertRule;
     private Long lastAlertAt;
 
     /**

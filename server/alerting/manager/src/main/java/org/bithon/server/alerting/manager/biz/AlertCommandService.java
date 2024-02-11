@@ -22,7 +22,7 @@ import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.model.Alert;
+import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
 import org.bithon.server.alerting.common.parser.InvalidExpressionException;
@@ -82,19 +82,19 @@ public class AlertCommandService {
         }
     }
 
-    private AlertStorageObject toAlertObject(Alert alert) throws BizException {
+    private AlertStorageObject toAlertObject(AlertRule alertRule) throws BizException {
         try {
-            alert.initialize();
+            alertRule.initialize();
         } catch (InvalidExpressionException e) {
             throw new BizException(e.getMessage());
         }
 
-        alert.setExpression(new AlertExpressionSerializer().serialize(alert.getEvaluationExpression()));
+        alertRule.setExpr(new AlertExpressionSerializer().serialize(alertRule.getEvaluationExpression()));
 
         Map<String, ISchema> schemas = dataSourceApi.getSchemas();
 
         Set<String> ids = new HashSet<>();
-        for (AlertExpression alertExpression : alert.getFlattenExpressions().values()) {
+        for (AlertExpression alertExpression : alertRule.getFlattenExpressions().values()) {
             if (!ids.add(alertExpression.getId())) {
                 throw new BizException("There are multiple conditions with the same id[%s]", alertExpression.serializeToText());
             }
@@ -131,36 +131,36 @@ public class AlertCommandService {
             }
         }
 
-        for (String id : alert.getNotifications()) {
+        for (String id : alertRule.getNotifications()) {
             if (!this.notificationProviderStorage.exists(id)) {
                 throw new BizException("Notification [%s] does not exists.", id);
             }
         }
 
         AlertStorageObject alertObject = new AlertStorageObject();
-        alertObject.setAlertId(alert.getId());
-        alertObject.setAlertName(alert.getName());
-        alertObject.setAppName(alert.getAppName());
+        alertObject.setAlertId(alertRule.getId());
+        alertObject.setAlertName(alertRule.getName());
+        alertObject.setAppName(alertRule.getAppName());
         alertObject.setNamespace("");
-        alertObject.setDisabled(!alert.isEnabled());
+        alertObject.setDisabled(!alertRule.isEnabled());
         try {
-            alertObject.setPayload(this.objectMapper.writeValueAsString(alert));
+            alertObject.setPayload(this.objectMapper.writeValueAsString(alertRule));
         } catch (IOException e) {
             throw new BizException("Serialization failed", e);
         }
         return alertObject;
     }
 
-    public String createAlert(Alert alert, CommandArgs args) throws BizException {
-        if (args.isCheckApplicationExist() && !metadataApi.isApplicationExist(alert.getAppName())) {
-            throw new BizException("Target application [%s] does not exist", alert.getAppName());
+    public String createAlert(AlertRule alertRule, CommandArgs args) throws BizException {
+        if (args.isCheckApplicationExist() && !metadataApi.isApplicationExist(alertRule.getAppName())) {
+            throw new BizException("Target application [%s] does not exist", alertRule.getAppName());
         }
 
-        if (StringUtils.hasText(alert.getId()) && this.alertObjectStorage.existAlert(alert.getId())) {
-            throw new BizException("Alert object [%s] already exists.", alert.getId());
+        if (StringUtils.hasText(alertRule.getId()) && this.alertObjectStorage.existAlert(alertRule.getId())) {
+            throw new BizException("Alert object [%s] already exists.", alertRule.getId());
         }
 
-        AlertStorageObject alertObject = toAlertObject(alert);
+        AlertStorageObject alertObject = toAlertObject(alertRule);
         String alertId = this.alertObjectStorage.executeTransaction(() -> {
             final String operator = userProvider.getCurrentUser().getUserName();
 
@@ -171,26 +171,26 @@ public class AlertCommandService {
             return id;
         });
 
-        alert.setId(alertId);
-        alert.setAppName(alertObject.getAppName());
-        sendOperationNotification("Alert Created", alert, alert.isEnabled(), userProvider.getCurrentUser().getUserName());
+        alertRule.setId(alertId);
+        alertRule.setAppName(alertObject.getAppName());
+        sendOperationNotification("Alert Created", alertRule, alertRule.isEnabled(), userProvider.getCurrentUser().getUserName());
         return alertId;
     }
 
-    public void updateAlert(Alert newAlert) throws BizException {
-        AlertStorageObject oldObject = this.alertObjectStorage.getAlertById(newAlert.getId());
+    public void updateAlert(AlertRule newAlertRule) throws BizException {
+        AlertStorageObject oldObject = this.alertObjectStorage.getAlertById(newAlertRule.getId());
         if (oldObject == null) {
-            throw new BizException("Alert object [%s] not exist.", newAlert.getName());
+            throw new BizException("Alert object [%s] not exist.", newAlertRule.getName());
         }
 
-        AlertStorageObject newObject = toAlertObject(newAlert);
+        AlertStorageObject newObject = toAlertObject(newAlertRule);
 
         boolean successful = this.alertObjectStorage.executeTransaction(() -> {
             if (!this.alertObjectStorage.updateAlert(oldObject, newObject, userProvider.getCurrentUser().getUserName())) {
                 return false;
             }
 
-            this.alertObjectStorage.addChangelog(newAlert.getId(), ObjectAction.UPDATE, userProvider.getCurrentUser().getUserName(),
+            this.alertObjectStorage.addChangelog(newAlertRule.getId(), ObjectAction.UPDATE, userProvider.getCurrentUser().getUserName(),
                                                  oldObject.getPayload(),
                                                  newObject.getPayload());
             return true;
@@ -199,8 +199,8 @@ public class AlertCommandService {
             return;
         }
 
-        newAlert.setAppName(newObject.getAppName());
-        sendOperationNotification("Alert Updated", newAlert, newAlert.isEnabled(), userProvider.getCurrentUser().getUserName());
+        newAlertRule.setAppName(newObject.getAppName());
+        sendOperationNotification("Alert Updated", newAlertRule, newAlertRule.isEnabled(), userProvider.getCurrentUser().getUserName());
     }
 
     public void enableAlert(String alertId) throws BizException {
@@ -225,12 +225,12 @@ public class AlertCommandService {
         }
 
         try {
-            Alert oldAlert = objectMapper.readValue(alertObject.getPayload(), Alert.class);
-            oldAlert.setId(alertObject.getAlertId());
-            oldAlert.setEnabled(!alertObject.getDisabled());
-            oldAlert.setAppName(alertObject.getAppName());
-            oldAlert.setName(alertObject.getAlertName());
-            sendOperationNotification("Alert Enabled", oldAlert, true, userProvider.getCurrentUser().getUserName());
+            AlertRule oldAlertRule = objectMapper.readValue(alertObject.getPayload(), AlertRule.class);
+            oldAlertRule.setId(alertObject.getAlertId());
+            oldAlertRule.setEnabled(!alertObject.getDisabled());
+            oldAlertRule.setAppName(alertObject.getAppName());
+            oldAlertRule.setName(alertObject.getAlertName());
+            sendOperationNotification("Alert Enabled", oldAlertRule, true, userProvider.getCurrentUser().getUserName());
         } catch (IOException e) {
             log.error("send notification", e);
         }
@@ -257,12 +257,12 @@ public class AlertCommandService {
         }
 
         try {
-            Alert oldAlert = objectMapper.readValue(alertObject.getPayload(), Alert.class);
-            oldAlert.setId(alertObject.getAlertId());
-            oldAlert.setEnabled(!alertObject.getDisabled());
-            oldAlert.setAppName(alertObject.getAppName());
-            oldAlert.setName(alertObject.getAlertName());
-            sendOperationNotification("Alert Disabled", oldAlert, false, userProvider.getCurrentUser().getUserName());
+            AlertRule oldAlertRule = objectMapper.readValue(alertObject.getPayload(), AlertRule.class);
+            oldAlertRule.setId(alertObject.getAlertId());
+            oldAlertRule.setEnabled(!alertObject.getDisabled());
+            oldAlertRule.setAppName(alertObject.getAppName());
+            oldAlertRule.setName(alertObject.getAlertName());
+            sendOperationNotification("Alert Disabled", oldAlertRule, false, userProvider.getCurrentUser().getUserName());
         } catch (IOException e) {
             log.error("send notification", e);
         }
@@ -290,18 +290,18 @@ public class AlertCommandService {
         }
 
         try {
-            Alert oldAlert = objectMapper.readValue(alertObject.getPayload(), Alert.class);
-            oldAlert.setId(alertObject.getAlertId());
-            oldAlert.setEnabled(!alertObject.getDisabled());
-            oldAlert.setAppName(alertObject.getAppName());
-            oldAlert.setName(alertObject.getAlertName());
-            sendOperationNotification("Alert Deleted", oldAlert, oldAlert.isEnabled(), userProvider.getCurrentUser().getUserName());
+            AlertRule oldAlertRule = objectMapper.readValue(alertObject.getPayload(), AlertRule.class);
+            oldAlertRule.setId(alertObject.getAlertId());
+            oldAlertRule.setEnabled(!alertObject.getDisabled());
+            oldAlertRule.setAppName(alertObject.getAppName());
+            oldAlertRule.setName(alertObject.getAlertName());
+            sendOperationNotification("Alert Deleted", oldAlertRule, oldAlertRule.isEnabled(), userProvider.getCurrentUser().getUserName());
         } catch (IOException ignored) {
         }
     }
 
     private void sendOperationNotification(String title,
-                                           Alert alert,
+                                           AlertRule alertRule,
                                            boolean enabled,
                                            String operator) {
     }

@@ -46,7 +46,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Alert {
+public class AlertRule {
     /**
      * 32 bytes UUID. Can be null. If it's null, the server generates a new one
      */
@@ -78,7 +78,7 @@ public class Alert {
     private int silence = 3;
 
     @JsonProperty
-    private String expression;
+    private String expr;
 
     @JsonProperty
     private List<String> notifications;
@@ -92,14 +92,14 @@ public class Alert {
     @JsonIgnore
     private Map<String, AlertExpression> flattenExpressions;
 
-    public Alert initialize() throws InvalidExpressionException {
+    public AlertRule initialize() throws InvalidExpressionException {
         if (evaluationExpression != null) {
             return this;
         }
 
-        Preconditions.checkIfTrue(!StringUtils.isEmpty(expression), "There must be at least one expression in the alert [%s]", this.name);
+        Preconditions.checkIfTrue(!StringUtils.isEmpty(expr), "There must be at least one expression in the alert [%s]", this.name);
 
-        this.evaluationExpression = AlertExpressionASTParser.parse(this.expression);
+        this.evaluationExpression = AlertExpressionASTParser.parse(this.expr);
 
         // Use LinkedHashMap to keep order
         this.flattenExpressions = new LinkedHashMap<>();

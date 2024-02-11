@@ -18,7 +18,7 @@ package org.bithon.server.alerting.evaluator.evaluator;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.alerting.common.model.Alert;
+import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
 import org.bithon.server.alerting.evaluator.service.AlertObjectLoader;
 import org.bithon.server.commons.time.TimeSpan;
@@ -67,8 +67,8 @@ public class AlertEvaluatorScheduler {
         alertObjectLoader.loadChanges();
 
         TimeSpan now = TimeSpan.now().floor(Duration.ofMinutes(1));
-        for (Alert alert : alertObjectLoader.getLoadedAlerts().values()) {
-            executor.execute(() -> alertEvaluator.evaluate(now, alert));
+        for (AlertRule alertRule : alertObjectLoader.getLoadedAlerts().values()) {
+            executor.execute(() -> alertEvaluator.evaluate(now, alertRule));
         }
     }
 
@@ -76,9 +76,9 @@ public class AlertEvaluatorScheduler {
      * for debugging
      */
     private void evaluate(String alertId) {
-        Alert alert = alertObjectLoader.getLoadedAlerts().get(alertId);
-        if (alert != null) {
-            alertEvaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)), alert);
+        AlertRule alertRule = alertObjectLoader.getLoadedAlerts().get(alertId);
+        if (alertRule != null) {
+            alertEvaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)), alertRule);
         }
     }
 }

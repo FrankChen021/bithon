@@ -18,7 +18,7 @@ package org.bithon.server.alerting.evaluator.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.alerting.common.model.Alert;
+import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.parser.InvalidExpressionException;
 import org.bithon.server.alerting.common.utils.Validator;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
@@ -45,7 +45,7 @@ public class AlertObjectLoader {
 
     private final IAlertObjectStorage alertObjectStorage;
     private final ObjectMapper objectMapper;
-    private final Map<String, Alert> loadedAlerts = new ConcurrentHashMap<>();
+    private final Map<String, AlertRule> loadedAlerts = new ConcurrentHashMap<>();
     private Timestamp lastLoadedAt = new Timestamp(0);
 
     public AlertObjectLoader(IAlertObjectStorage alertObjectDao,
@@ -56,7 +56,7 @@ public class AlertObjectLoader {
         loadChanges();
     }
 
-    public Map<String, Alert> getLoadedAlerts() {
+    public Map<String, AlertRule> getLoadedAlerts() {
         return this.loadedAlerts;
     }
 
@@ -71,7 +71,7 @@ public class AlertObjectLoader {
         alertObjects.stream()
                     .filter(AlertStorageObject::getDeleted)
                     .forEach((alertObject) -> {
-                        Alert original = this.loadedAlerts.remove(alertObject.getAlertId());
+                        AlertRule original = this.loadedAlerts.remove(alertObject.getAlertId());
                         if (original != null) {
                             log.info("Remove Alerts [{}]{}", original.getId(), original.getName());
                             this.onRemoved(original);
@@ -85,7 +85,7 @@ public class AlertObjectLoader {
                     .filter(alert -> !alert.getDeleted())
                     .map(this::toAlert).filter(Objects::nonNull)
                     .forEach((alert) -> {
-                        Alert original = this.loadedAlerts.put(alert.getId(), alert);
+                        AlertRule original = this.loadedAlerts.put(alert.getId(), alert);
                         if (original == null) {
                             this.onCreated(alert);
                         } else {
@@ -96,18 +96,18 @@ public class AlertObjectLoader {
         this.lastLoadedAt = now;
     }
 
-    private Alert toAlert(AlertStorageObject alarmObject) {
+    private AlertRule toAlert(AlertStorageObject alarmObject) {
         try {
-            Alert alert = objectMapper.readValue(alarmObject.getPayload(), Alert.class);
-            alert.setId(alarmObject.getAlertId());
-            alert.setName(alarmObject.getAlertName());
-            alert.setEnabled(!alarmObject.getDisabled());
-            alert.setAppName(alarmObject.getAppName());
-            Validator.validate(alert);
+            AlertRule alertRule = objectMapper.readValue(alarmObject.getPayload(), AlertRule.class);
+            alertRule.setId(alarmObject.getAlertId());
+            alertRule.setName(alarmObject.getAlertName());
+            alertRule.setEnabled(!alarmObject.getDisabled());
+            alertRule.setAppName(alarmObject.getAppName());
+            Validator.validate(alertRule);
             try {
-                return alert.initialize();
+                return alertRule.initialize();
             } catch (InvalidExpressionException e) {
-                log.error("Unable to build alert[{}] due to {}", alert.getName(), e.getMessage());
+                log.error("Unable to build alert[{}] due to {}", alertRule.getName(), e.getMessage());
                 return null;
             }
         } catch (IOException e) {
@@ -116,12 +116,12 @@ public class AlertObjectLoader {
         }
     }
 
-    private void onCreated(Alert alert) {
+    private void onCreated(AlertRule alertRule) {
     }
 
-    private void onUpdated(Alert original, Alert alert) {
+    private void onUpdated(AlertRule original, AlertRule alertRule) {
     }
 
-    private void onRemoved(Alert alert) {
+    private void onRemoved(AlertRule alertRule) {
     }
 }

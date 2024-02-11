@@ -41,7 +41,7 @@ public class ConsoleNotificationProvider implements INotificationProvider {
     @Override
     public void notify(NotificationMessage message) {
         StringBuilder sb = new StringBuilder(">>>>>>>>>>>ALERT<<<<<<<<<<<<<<<\n");
-        sb.append(StringUtils.format("Name: %s\n", message.getAlert().getName()));
+        sb.append(StringUtils.format("Name: %s\n", message.getAlertRule().getName()));
         message.getConditionEvaluation().forEach((sn, cnd) -> {
             sb.append(StringUtils.format("Condition %s: %s", sn, cnd.getOutputs()));
         });

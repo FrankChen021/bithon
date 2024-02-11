@@ -19,7 +19,7 @@ package org.bithon.server.alerting.manager.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.alerting.common.model.Alert;
+import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.utils.Validator;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
@@ -59,7 +59,7 @@ public class AlertCommandApi {
     @PostMapping("/alerting/api/alert/create")
     public ApiResponse<String> createAlert(@Valid @RequestBody CreateAlertRequest request) {
         try {
-            return ApiResponse.success(commandService.createAlert((Alert) Validator.validate(request.toAlert()),
+            return ApiResponse.success(commandService.createAlert((AlertRule) Validator.validate(request.toAlert()),
                                                                   request.toCommandArgs()));
         } catch (BizException e) {
             return ApiResponse.fail(e.getMessage());
@@ -70,7 +70,7 @@ public class AlertCommandApi {
     public ApiResponse<?> updateAlert(@Valid @RequestBody CreateAlertRequest request) {
         Preconditions.checkNotNull(request.getId(), "id should not be null");
         try {
-            commandService.updateAlert((Alert) Validator.validate(request.toAlert()));
+            commandService.updateAlert((AlertRule) Validator.validate(request.toAlert()));
             return ApiResponse.success();
         } catch (BizException e) {
             return ApiResponse.fail(e.getMessage());

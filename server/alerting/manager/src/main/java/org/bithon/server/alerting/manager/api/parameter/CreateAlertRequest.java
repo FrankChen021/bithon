@@ -16,8 +16,9 @@
 
 package org.bithon.server.alerting.manager.api.parameter;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import org.bithon.server.alerting.common.model.Alert;
+import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.manager.biz.CommandArgs;
 
 import javax.validation.Valid;
@@ -60,27 +61,27 @@ public class CreateAlertRequest {
 
     @Min(1)
     @Max(60)
-    private int matchTimes = 3;
+    @JsonProperty("for")
+    private int forDuration = 3;
 
     @NotEmpty
-    private String expression;
+    private String expr;
 
     @Valid
     @NotNull
     private List<String> notifications;
 
-    private boolean disabled = false;
-
-    public Alert toAlert() {
-        Alert alert = new Alert();
-        alert.setId(this.getId());
-        alert.setAppName(this.getAppName());
-        alert.setExpression(this.expression);
-        alert.setName(this.getName());
-        alert.setNotifications(this.getNotifications());
-        alert.setMatchTimes(this.getMatchTimes());
-        alert.setEnabled(!disabled);
-        return alert;
+    public AlertRule toAlert() {
+        AlertRule alertRule = new AlertRule();
+        alertRule.setId(this.id);
+        alertRule.setAppName(this.appName);
+        alertRule.setExpr(this.expr);
+        alertRule.setName(this.name);
+        alertRule.setNotifications(this.notifications);
+        alertRule.setMatchTimes(this.forDuration);
+        alertRule.setEvaluationInterval(this.evaluationInterval);
+        alertRule.setEnabled(true);
+        return alertRule;
     }
 
     public CommandArgs toCommandArgs() {

@@ -21,7 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.model.Alert;
+import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
 import org.bithon.server.alerting.notification.provider.INotificationProvider;
@@ -88,7 +88,7 @@ public class AlertNotificationApi {
         // Check if it's used
         List<AlertStorageObject> alerts = alertStorage.getAlertListByTime(new Timestamp(0), new Timestamp(System.currentTimeMillis()));
         for (AlertStorageObject alert : alerts) {
-            List<String> notifications = this.objectMapper.readValue(alert.getPayload(), Alert.class).getNotifications();
+            List<String> notifications = this.objectMapper.readValue(alert.getPayload(), AlertRule.class).getNotifications();
             if (notifications.contains(id)) {
                 return ApiResponse.fail(StringUtils.format("The notification can't be deleted because it's used by alert [%s].", alert.getAlertName()));
             }

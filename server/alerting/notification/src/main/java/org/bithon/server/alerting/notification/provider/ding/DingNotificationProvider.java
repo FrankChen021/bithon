@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
-import org.bithon.server.alerting.common.model.Alert;
+import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.utils.FreeMarkerUtil;
 import org.bithon.server.alerting.notification.format.NotificationContent;
@@ -74,19 +74,19 @@ public class DingNotificationProvider implements INotificationProvider {
 
     @Override
     public void notify(NotificationMessage message) throws Exception {
-        Alert alert = message.getAlert();
+        AlertRule alertRule = message.getAlertRule();
 
         long alertAt = System.currentTimeMillis();
 
         String title = StringUtils.format("[%s]Application Alert", StringUtils.format("MM-dd HH:mm:ss", alertAt));
         NotificationContent notificationContent = new NotificationContent();
         NotificationTextSection section = notificationContent.getDefaultSection();
-        section.add("Name", alert.getName())
+        section.add("Name", alertRule.getName())
                .add("Time Window",
                     StringUtils.format("%s ~ %s",
                                        DateTime.formatDateTime("MM-dd HH:mm",
                                                                new TimeSpan(message.getEnd())
-                                                                   .before(alert.getMatchTimes(), TimeUnit.MINUTES)
+                                                                   .before(alertRule.getMatchTimes(), TimeUnit.MINUTES)
                                                                    .getMilliseconds()),
                                        DateTime.formatDateTime("MM-dd HH:mm", message.getEnd())));
 
@@ -103,7 +103,7 @@ public class DingNotificationProvider implements INotificationProvider {
 
             StringBuilder text = new StringBuilder("Expression");
             text.append(expression.getId());
-            text.append(StringUtils.format(": %d minutes", alert.getMatchTimes()));
+            text.append(StringUtils.format(": %d minutes", alertRule.getMatchTimes()));
             text.append(expression.getWhere());
 
             OutputMessage output = result.getOutputs();
@@ -138,7 +138,7 @@ public class DingNotificationProvider implements INotificationProvider {
         DingMessage.builder()
                    .content(content)
                    .createdTime(alertAt)
-                   .applicationName(alert.getAppName())
+                   .applicationName(alertRule.getAppName())
                    .header(title)
                    .title(title)
                    .build();
