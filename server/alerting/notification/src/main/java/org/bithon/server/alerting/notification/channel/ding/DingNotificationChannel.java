@@ -39,8 +39,6 @@ import org.bithon.server.alerting.notification.message.format.TextLine;
 import org.bithon.server.commons.time.TimeSpan;
 
 import javax.validation.constraints.NotEmpty;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
@@ -95,7 +93,7 @@ public class DingNotificationChannel implements INotificationChannel {
 
             StringBuilder text = new StringBuilder("Expression");
             text.append(expression.getId());
-            text.append(StringUtils.format(": %d minutes", alertRule.getForDuration()));
+            text.append(StringUtils.format(": %d minutes", alertRule.getForDuration().getDuration().toMinutes()));
             text.append(expression.getWhere());
 
             OutputMessage output = result.getOutputs();
@@ -107,7 +105,8 @@ public class DingNotificationChannel implements INotificationChannel {
                                            output.getDelta()));
 
             section.add(new QuotedTextLine(text.toString()));
-            Future<String> url = null; //message.getImages().get(expression.getId());
+            /*
+            Future<String> url = message.getImages().get(expression.getId());
             if (url == null) {
                 continue;
             }
@@ -120,6 +119,7 @@ public class DingNotificationChannel implements INotificationChannel {
             } catch (Exception e) {
                 //context.logException(DingNotificationProvider.class, e, "Exception");
             }
+            */
         }
         if (config.getRecordLinkTemplate() != null) {
             section.add(new TextLine(StringUtils.format("[View Detail](" + config.getRecordLinkTemplate() + ")", message.getAlertRecordId())));
