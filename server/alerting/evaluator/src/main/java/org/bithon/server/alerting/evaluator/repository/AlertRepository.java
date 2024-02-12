@@ -69,7 +69,7 @@ public class AlertRepository {
         alertObjects.stream()
                     .filter(AlertStorageObject::getDeleted)
                     .forEach((alertObject) -> {
-                        AlertRule original = this.loadedAlerts.remove(alertObject.getAlertId());
+                        AlertRule original = this.loadedAlerts.remove(alertObject.getId());
                         if (original != null) {
                             log.info("Remove Alerts [{}]{}", original.getId(), original.getName());
                             this.onRemoved(original);

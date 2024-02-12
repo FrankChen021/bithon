@@ -68,7 +68,7 @@ public class HumanReadableDuration {
     public static HumanReadableDuration parse(String durationText) {
         Preconditions.checkNotNull(durationText, "durationText can not be null.");
         durationText = durationText.trim();
-        Preconditions.checkIfTrue(durationText.length() >= 2, "durationText has invalid format.");
+        Preconditions.checkIfTrue(durationText.length() >= 2, "[%s] is not a valid format of duration", durationText);
 
         TimeUnit timeUnit;
         char unit = durationText.charAt(durationText.length() - 1);
@@ -101,7 +101,7 @@ public class HumanReadableDuration {
         for (int i = 0, len = durationText.length() - 1; i < len; i++) {
             char chr = durationText.charAt(i);
             if (!Character.isDigit(chr)) {
-                throw new RuntimeException("Invalid number");
+                throw new RuntimeException("Invalid duration: " + durationText);
             }
 
             int v = val + chr - '0';

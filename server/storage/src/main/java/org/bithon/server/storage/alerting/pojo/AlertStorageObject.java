@@ -26,8 +26,8 @@ import java.sql.Timestamp;
  */
 @Data
 public class AlertStorageObject {
-    private String alertId;
-    private String alertName;
+    private String id;
+    private String name;
     private String appName;
     private String namespace;
     private Boolean disabled;

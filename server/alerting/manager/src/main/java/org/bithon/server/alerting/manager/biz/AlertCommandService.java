@@ -41,6 +41,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author frank.chen021@outlook.com
@@ -133,13 +134,13 @@ public class AlertCommandService {
 
         for (String id : alertRule.getNotifications()) {
             if (!this.notificationProviderStorage.exists(id)) {
-                throw new BizException("Notification [%s] does not exists.", id);
+                throw new BizException("Notification channel [%s] does not exist", id);
             }
         }
 
         AlertStorageObject alertObject = new AlertStorageObject();
-        alertObject.setAlertId(alertRule.getId());
-        alertObject.setAlertName(alertRule.getName());
+        alertObject.setId(alertRule.getId());
+        alertObject.setName(alertRule.getName());
         alertObject.setAppName(alertRule.getAppName());
         alertObject.setNamespace("");
         alertObject.setDisabled(!alertRule.isEnabled());
@@ -163,17 +164,21 @@ public class AlertCommandService {
         }
 
         AlertStorageObject alertObject = toAlertObject(alertRule);
+        if (!StringUtils.hasText(alertObject.getId())) {
+            alertObject.setId(UUID.randomUUID().toString().replace("-", ""));
+        }
+
         return this.alertObjectStorage.executeTransaction(() -> {
             final String operator = userProvider.getCurrentUser().getUserName();
 
-            String id = this.alertObjectStorage.createAlert(alertObject, operator);
+            this.alertObjectStorage.createAlert(alertObject, operator);
 
-            this.alertObjectStorage.addChangelog(id,
+            this.alertObjectStorage.addChangelog(alertObject.getId(),
                                                  ObjectAction.CREATE,
                                                  operator, "{}",
                                                  objectMapper.writeValueAsString(alertObject.getPayload()));
 
-            return id;
+            return alertObject.getId();
         });
     }
 

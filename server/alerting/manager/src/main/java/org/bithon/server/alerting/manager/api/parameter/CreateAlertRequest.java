@@ -40,7 +40,7 @@ public class CreateAlertRequest {
     /**
      * check if target application exists before create an alert for that application
      */
-    private boolean checkApplication = true;
+    private boolean checkApplication = false;
 
     /**
      * Optional.
@@ -48,7 +48,6 @@ public class CreateAlertRequest {
      */
     private String id;
 
-    @NotEmpty
     private String appName;
 
     @NotEmpty
@@ -75,9 +74,9 @@ public class CreateAlertRequest {
     public AlertRule toAlert() {
         AlertRule alertRule = new AlertRule();
         alertRule.setId(this.id);
-        alertRule.setAppName(this.appName);
-        alertRule.setExpr(this.expr);
-        alertRule.setName(this.name);
+        alertRule.setAppName(this.appName == null ? "" : this.appName.trim());
+        alertRule.setExpr(this.expr.trim());
+        alertRule.setName(this.name.trim());
         alertRule.setNotifications(this.notifications);
         alertRule.setForDuration(this.forDuration);
         alertRule.setEvaluationInterval(this.evaluationInterval);

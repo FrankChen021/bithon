@@ -46,7 +46,6 @@ import org.springframework.dao.DuplicateKeyException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 
 /**
@@ -130,8 +129,8 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
 
     protected AlertStorageObject toStorageObject(Record record) {
         AlertStorageObject obj = new AlertStorageObject();
-        obj.setAlertId(record.get(Tables.BITHON_ALERT_OBJECT.ALERT_ID));
-        obj.setAlertName(record.get(Tables.BITHON_ALERT_OBJECT.ALERT_NAME));
+        obj.setId(record.get(Tables.BITHON_ALERT_OBJECT.ALERT_ID));
+        obj.setName(record.get(Tables.BITHON_ALERT_OBJECT.ALERT_NAME));
         obj.setDeleted(record.get(Tables.BITHON_ALERT_OBJECT.DELETED));
         obj.setDisabled(record.get(Tables.BITHON_ALERT_OBJECT.DISABLED));
 
@@ -154,44 +153,38 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
     }
 
     @Override
-    public String createAlert(AlertStorageObject alert, String operator, Timestamp createTimestamp, Timestamp updateTimestamp) {
-        if (!StringUtils.hasText(alert.getAlertId())) {
-            alert.setAlertId(UUID.randomUUID().toString().replace("-", ""));
-        }
-
+    public void createAlert(AlertStorageObject alert, String operator, Timestamp createTimestamp, Timestamp updateTimestamp) {
         try {
             dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
-                      .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, alert.getAlertName())
+                      .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, alert.getName())
                       .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, alert.getAppName())
                       .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, alert.getNamespace())
                       .set(Tables.BITHON_ALERT_OBJECT.DISABLED, alert.getDisabled())
                       .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, objectMapper.writeValueAsString(alert.getPayload()))
-                      .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, alert.getAlertId())
+                      .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, alert.getId())
                       .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
                       .set(Tables.BITHON_ALERT_OBJECT.CREATED_AT, createTimestamp.toLocalDateTime())
                       .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, updateTimestamp.toLocalDateTime())
                       .execute();
         } catch (DuplicateKeyException e) {
-            throw new RuntimeException(StringUtils.format("Alert object with id [%s] already exists.", alert.getAlertId()));
+            throw new RuntimeException(StringUtils.format("Alert object with id [%s] already exists.", alert.getId()));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-
-        return alert.getAlertId();
     }
 
     @Override
     public boolean updateAlert(AlertStorageObject oldObject, AlertStorageObject newObject, String operator) {
         try {
             return dslContext.update(Tables.BITHON_ALERT_OBJECT)
-                             .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, newObject.getAlertName())
+                             .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, newObject.getName())
                              .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, newObject.getAppName())
                              .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, newObject.getNamespace())
                              .set(Tables.BITHON_ALERT_OBJECT.DISABLED, newObject.getDisabled())
                              .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, objectMapper.writeValueAsString(newObject.getPayload()))
                              .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
                              .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                             .where(Tables.BITHON_ALERT_OBJECT.ALERT_ID.eq(newObject.getAlertId()))
+                             .where(Tables.BITHON_ALERT_OBJECT.ALERT_ID.eq(newObject.getId()))
                              .execute() > 0;
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

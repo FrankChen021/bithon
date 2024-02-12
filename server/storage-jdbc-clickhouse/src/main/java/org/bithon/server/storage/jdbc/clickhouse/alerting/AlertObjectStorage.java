@@ -75,12 +75,12 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
     public boolean updateAlert(AlertStorageObject oldObject, AlertStorageObject newObject, String operator) {
         try {
             return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
-                             .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, newObject.getAlertName())
+                             .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, newObject.getName())
                              .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, newObject.getAppName())
                              .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, newObject.getNamespace())
                              .set(Tables.BITHON_ALERT_OBJECT.DISABLED, newObject.getDisabled())
                              .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, objectMapper.writeValueAsString(newObject.getPayload()))
-                             .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, newObject.getAlertId())
+                             .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, newObject.getId())
                              .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
                              .set(Tables.BITHON_ALERT_OBJECT.CREATED_AT, oldObject.getCreatedAt().toLocalDateTime())
                              .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
@@ -96,12 +96,12 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
         if (object != null) {
             try {
                 return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
-                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, object.getAlertName())
+                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, object.getName())
                                  .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, object.getAppName())
                                  .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, object.getNamespace())
                                  .set(Tables.BITHON_ALERT_OBJECT.DISABLED, true)
                                  .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, objectMapper.writeValueAsString(object.getPayload()))
-                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, object.getAlertId())
+                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, object.getId())
                                  .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
                                  .set(Tables.BITHON_ALERT_OBJECT.CREATED_AT, object.getCreatedAt().toLocalDateTime())
                                  .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
@@ -119,12 +119,12 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
         if (object != null) {
             try {
                 return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
-                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, object.getAlertName())
+                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, object.getName())
                                  .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, object.getAppName())
                                  .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, object.getNamespace())
                                  .set(Tables.BITHON_ALERT_OBJECT.DISABLED, false)
                                  .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, objectMapper.writeValueAsString(object.getPayload()))
-                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, object.getAlertId())
+                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, object.getId())
                                  .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
                                  .set(Tables.BITHON_ALERT_OBJECT.CREATED_AT, object.getCreatedAt().toLocalDateTime())
                                  .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
@@ -142,13 +142,13 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
         if (object != null) {
             try {
                 return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
-                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, object.getAlertName())
+                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, object.getName())
                                  .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, object.getAppName())
                                  .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, object.getNamespace())
                                  .set(Tables.BITHON_ALERT_OBJECT.DISABLED, false)
                                  .set(Tables.BITHON_ALERT_OBJECT.DELETED, true)
                                  .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, objectMapper.writeValueAsString(object.getPayload()))
-                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, object.getAlertId())
+                                 .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, object.getId())
                                  .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
                                  .set(Tables.BITHON_ALERT_OBJECT.CREATED_AT, object.getCreatedAt().toLocalDateTime())
                                  .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())

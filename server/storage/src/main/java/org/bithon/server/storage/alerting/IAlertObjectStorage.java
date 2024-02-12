@@ -41,12 +41,12 @@ public interface IAlertObjectStorage {
 
     AlertStorageObject getAlertById(String alertId);
 
-    default String createAlert(AlertStorageObject alert, String operator) {
+    default void createAlert(AlertStorageObject alert, String operator) {
         Timestamp ts = new Timestamp(System.currentTimeMillis());
-        return createAlert(alert, operator, ts, ts);
+        createAlert(alert, operator, ts, ts);
     }
 
-    String createAlert(AlertStorageObject alert, String operator, Timestamp createTimestamp, Timestamp updateTimestamp);
+    void createAlert(AlertStorageObject alert, String operator, Timestamp createTimestamp, Timestamp updateTimestamp);
 
     boolean updateAlert(AlertStorageObject oldObject, AlertStorageObject newObject, String operator);
 

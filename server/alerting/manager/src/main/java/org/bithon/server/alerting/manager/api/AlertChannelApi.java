@@ -152,7 +152,7 @@ public class AlertChannelApi {
         List<AlertStorageObject> alerts = alertStorage.getAlertListByTime(new Timestamp(0), new Timestamp(System.currentTimeMillis()));
         for (AlertStorageObject alert : alerts) {
             if (alert.getPayload().getNotifications().contains(request.getName())) {
-                return ApiResponse.fail(StringUtils.format("The notification channel can't be deleted because it's used by alert [%s].", alert.getAlertName()));
+                return ApiResponse.fail(StringUtils.format("The notification channel can't be deleted because it's used by alert [%s].", alert.getName()));
             }
         }
 

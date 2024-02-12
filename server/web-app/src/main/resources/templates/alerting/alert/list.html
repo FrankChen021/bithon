@@ -16,9 +16,9 @@
 <body>
 <div layout:fragment="content">
 
-<!--    <div id="toolbar">-->
-<!--        &lt;!&ndash;        <button class="btn btn-primary btn-create">New Alert</button>&ndash;&gt;-->
-<!--    </div>-->
+    <div id="toolbar">
+        <button class="btn btn-outline-info btn-create">New Alert</button>
+    </div>
 
     <!-- Table -->
     <table class="table" data-buttons-align="right" id="alertTable">
@@ -47,7 +47,7 @@
             );
 
             $('#alertTable').bootstrapTable({
-                //toolbar: '#toolbar',
+                toolbar: '#toolbar',
 
                 url: apiHost + '/api/alerting/alert/list',
                 method: 'post',
@@ -151,11 +151,11 @@
                 }]
             });
 
-            $('.btn-create').click(function (e) {
+            $('.btn-create').click((e) => {
                 if (g_SelectedApp != null) {
-                    window.location.href = 'create?appName=' + g_SelectedApp;
+                    window.location.href = '/web/alerting/alert/create?appName=' + g_SelectedApp;
                 } else {
-                    window.location.href = 'create';
+                    window.location.href = '/web/alerting/alert/create';
                 }
             });
         });
