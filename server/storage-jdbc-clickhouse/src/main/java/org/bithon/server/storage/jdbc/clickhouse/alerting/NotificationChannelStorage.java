@@ -21,14 +21,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
 import org.bithon.server.storage.jdbc.alerting.NotificationChannelJdbcStorage;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
-
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -43,11 +40,6 @@ public class NotificationChannelStorage extends NotificationChannelJdbcStorage {
     public NotificationChannelStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration provider) {
         super(provider.getDslContext());
         this.clickHouseConfig = provider.getClickHouseConfig();
-    }
-
-    @Override
-    public List<NotificationChannelObject> getChannels(long since) {
-        return super.getChannels(since);
     }
 
     @Override

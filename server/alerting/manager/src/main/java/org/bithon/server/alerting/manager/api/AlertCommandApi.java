@@ -56,7 +56,7 @@ public class AlertCommandApi {
         this.om = om;
     }
 
-    @PostMapping("/alerting/api/alert/create")
+    @PostMapping("/api/alerting/alert/create")
     public ApiResponse<String> createAlert(@Valid @RequestBody CreateAlertRequest request) {
         try {
             return ApiResponse.success(commandService.createAlert((AlertRule) Validator.validate(request.toAlert()),
@@ -66,7 +66,7 @@ public class AlertCommandApi {
         }
     }
 
-    @PostMapping("/alerting/api/alert/update")
+    @PostMapping("/api/alerting/alert/update")
     public ApiResponse<?> updateAlert(@Valid @RequestBody CreateAlertRequest request) {
         Preconditions.checkNotNull(request.getId(), "id should not be null");
         try {
@@ -77,7 +77,7 @@ public class AlertCommandApi {
         }
     }
 
-    @PostMapping("/alerting/api/alert/enable")
+    @PostMapping("/api/alerting/alert/enable")
     public ApiResponse<?> enable(@Valid @RequestBody GenericAlertByIdRequest request) {
         try {
             commandService.enableAlert(request.getAlertId());
@@ -87,7 +87,7 @@ public class AlertCommandApi {
         }
     }
 
-    @PostMapping("/alerting/api/alert/disable")
+    @PostMapping("/api/alerting/alert/disable")
     public ApiResponse<Long> disable(@Valid @RequestBody GenericAlertByIdRequest request) {
         try {
             commandService.disableAlert(request.getAlertId());
@@ -97,7 +97,7 @@ public class AlertCommandApi {
         }
     }
 
-    @PostMapping("/alerting/api/alert/delete")
+    @PostMapping("/api/alerting/alert/delete")
     public ApiResponse<?> deleteAlertById(@Valid @RequestBody GenericAlertByIdRequest request) {
         try {
             commandService.deleteAlert(request.getAlertId());

@@ -39,16 +39,16 @@ public class AlertController {
         this.serviceDiscovery = serviceDiscovery;
     }
 
-    @GetMapping("/web/alert/create")
+    @GetMapping("/web/alerting/alert/create")
     public String createAlert(@RequestParam(value = "appName", required = false) String appName,
                               Model m) {
         m.addAttribute("appName", appName);
         m.addAttribute("apiHost", serviceDiscovery.getApiHost());
         m.addAttribute("model", "alert");
-        return "alert/create";
+        return "alerting/alert/create";
     }
 
-    @GetMapping("/web/alert/list")
+    @GetMapping("/web/alerting/alert/list")
     public String getAlertList(@RequestParam(value = "appName", required = false) String appName,
                                @RequestParam(value = "env", required = false) String env,
                                Model m) {
@@ -56,56 +56,73 @@ public class AlertController {
         m.addAttribute("env", env);
         m.addAttribute("apiHost", serviceDiscovery.getApiHost());
         m.addAttribute("model", "alert");
-        return "alert/list";
+        return "alerting/alert/list";
     }
 
-    @GetMapping("/web/alert/detail")
-    public String showAlertDetail(@RequestParam(value = "id", required = true) String alertId,
+    @GetMapping("/web/alerting/alert/detail")
+    public String showAlertDetail(@RequestParam(value = "id") String alertId,
                                   @RequestParam(value = "returnUrl", required = false) String returnUrl,
                                   Model m) {
         m.addAttribute("alertId", alertId);
         m.addAttribute("returnUrl", returnUrl);
         m.addAttribute("apiHost", serviceDiscovery.getApiHost());
         m.addAttribute("model", "alert");
-        return "alert/detail";
+        return "alerting/alert/detail";
     }
 
-    @GetMapping("/web/alert/update")
-    public String updateAlert(@RequestParam(value = "id", required = true) String alertId, Model m) {
+    @GetMapping("/web/alerting/alert/update")
+    public String updateAlert(@RequestParam(value = "id") String alertId, Model m) {
         m.addAttribute("alertId", alertId);
         m.addAttribute("apiHost", serviceDiscovery.getApiHost());
         m.addAttribute("model", "alert");
-        return "alert/update";
+        return "alerting/alert/update";
     }
 
-    @GetMapping("/web/alert/records")
+    @GetMapping("/web/alerting/records")
     public String alertRecordsPage(Model m) {
         m.addAttribute("model", "alert");
-        return "alert/records";
+        return "alerting/record/records";
     }
 
-    @GetMapping("/web/alert/record-list")
+    @GetMapping("/web/alerting/record/list")
     public String recordListPage(Model m) {
         m.addAttribute("apiHost", serviceDiscovery.getApiHost());
         m.addAttribute("model", "alert");
-        return "alert/record-list";
+        return "alerting/record/list";
     }
 
-    @GetMapping("/web/alert/record-detail")
+    @GetMapping("/web/alerting/record/detail")
     public String showRecordDetail(Model m) {
         m.addAttribute("apiHost", serviceDiscovery.getApiHost());
         m.addAttribute("model", "alert");
-        return "alert/record-detail";
+        return "alerting/record/detail";
     }
 
     /**
      * provide an external link
      */
-    @GetMapping("/web/alert/record/{id}")
-    public String viewRecord(@PathVariable(value = "id", required = true) String recordId, Model m) {
+    @GetMapping("/web/alerting/record/{id}")
+    public String viewRecord(@PathVariable(value = "id") String recordId, Model m) {
         m.addAttribute("recordId", recordId);
         m.addAttribute("apiHost", serviceDiscovery.getApiHost());
         m.addAttribute("model", "alert");
-        return "alert/record-detail";
+        return "alerting/record/detail";
+    }
+
+    /**
+     * Create notification channel
+     */
+    @GetMapping("/web/alerting/channel/create")
+    public String createChannel(Model m) {
+        m.addAttribute("apiHost", serviceDiscovery.getApiHost());
+        m.addAttribute("model", "alert");
+        return "alerting/channel/create";
+    }
+
+    @GetMapping("/web/alerting/channel/list")
+    public String listChannel(Model m) {
+        m.addAttribute("apiHost", serviceDiscovery.getApiHost());
+        m.addAttribute("model", "alert");
+        return "alerting/channel/list";
     }
 }

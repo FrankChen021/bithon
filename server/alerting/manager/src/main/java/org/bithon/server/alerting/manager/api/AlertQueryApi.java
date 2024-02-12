@@ -70,12 +70,12 @@ public class AlertQueryApi {
         this.evaluationLogService = evaluationLogService;
     }
 
-    @PostMapping("/alerting/api/alert/getAlertById")
+    @PostMapping("/api/alerting/alert/get")
     public ApiResponse<AlertStorageObject> getAlertById(@Valid @RequestBody GenericAlertByIdRequest request) {
         return ApiResponse.success(alertStorage.getAlertById(request.getAlertId()));
     }
 
-    @PostMapping("/alerting/api/alert/getAlerts")
+    @PostMapping("/api/alerting/alert/list")
     public GetAlertListResponse getAlerts(@Valid @RequestBody GetAlertListRequest request) {
         if ("updateAt".equals(request.getOrderBy().getName())) {
             request.getOrderBy().setName("server_update_time");
@@ -102,13 +102,13 @@ public class AlertQueryApi {
         }).collect(Collectors.toList()));
     }
 
-    @PostMapping("/alerting/api/alert/getRecordById")
+    @PostMapping("/api/alerting/alert/record/get")
     public ApiResponse<AlertRecordObject> getAlertRecordById(@Valid @RequestBody GetAlertRecordByIdRequest request) {
         AlertRecordObject recordObject = alertRecordStorage.getAlertRecord(request.getId());
         return recordObject == null ? ApiResponse.fail(StringUtils.format("Record [%s] does not exist.", request.getId())) : ApiResponse.success(recordObject);
     }
 
-    @PostMapping("/alerting/api/alert/getRecordList")
+    @PostMapping("/api/alerting/alert/record/list")
     public GetAlertRecordListResponse getRecordList(@Valid @RequestBody GetAlertRecordListRequest request) {
         ListResult<AlertRecordObject> results = alertRecordStorage.getAlertRecords(request.getAlertId(), request.getPageNumber(), request.getPageSize());
         return new GetAlertRecordListResponse(results.getRows(),
@@ -126,7 +126,7 @@ public class AlertQueryApi {
                                                      }).collect(Collectors.toList()));
     }
 
-    @PostMapping("/alerting/api/alert/getChangeLogs")
+    @PostMapping("/api/alerting/alert/change-log/get")
     public GetChangeLogListResponse getChangeLogs(@Valid @RequestBody GetAlertChangeLogListRequest request) {
         ListResult<AlertChangeLogObject> results = alertStorage.getChangeLogs(request.getAlertId(), request.getPageNumber(), request.getPageSize());
         return new GetChangeLogListResponse(results.getRows(),
@@ -140,7 +140,7 @@ public class AlertQueryApi {
                                                    }).collect(Collectors.toList()));
     }
 
-    @PostMapping("/alerting/api/alert/getEvaluationLogs")
+    @PostMapping("/api/alerting/alert/evaluation-log/get")
     public GetEvaluationLogsResponse getEvaluationLogs(@Valid @RequestBody GetEvaluationLogsRequest request) {
         return this.evaluationLogService.getEvaluationLogs(request.getAlertId(),
                                                            TimeSpan.fromISO8601(request.getInterval().getStartISO8601()),

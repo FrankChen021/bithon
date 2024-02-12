@@ -21,11 +21,13 @@ import org.bithon.component.brpc.exception.BadRequestException;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.exception.HttpResponseMapping;
 import org.bithon.component.commons.expression.validation.ExpressionValidationException;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.exception.ErrorResponse;
 import org.bithon.server.storage.common.expression.InvalidExpressionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -44,11 +46,26 @@ import javax.servlet.http.HttpServletRequest;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler({
+        MethodArgumentNotValidException.class,
+    })
+    public ResponseEntity<ErrorResponse> handleKnownExceptions(HttpServletRequest request, MethodArgumentNotValidException exception) {
+        FieldError error = exception.getBindingResult().getFieldError();
+        return ResponseEntity.badRequest().body(ErrorResponse.builder()
+                                                             .traceId((String) request.getAttribute("X-Bithon-TraceId"))
+                                                             .traceMode((String) request.getAttribute("X-Bithon-Trace-Mode"))
+                                                             .path(request.getRequestURI())
+                                                             .message(StringUtils.format("Validation on '%s' of object '%s' failed: %s", error.getField(),
+                                                                                         error.getObjectName(),
+                                                                                         error.getDefaultMessage()))
+                                                             .exception(exception.getClass().getName())
+                                                             .build());
+    }
+
+    @ExceptionHandler({
         BadRequestException.class,
         InvalidExpressionException.class,
         ExpressionValidationException.class,
         HttpMessageNotReadableException.class,
-        MethodArgumentNotValidException.class,
         HttpRequestMethodNotSupportedException.class,
         HttpMediaTypeNotSupportedException.class,
         ServletRequestBindingException.class

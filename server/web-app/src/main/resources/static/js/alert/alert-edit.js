@@ -124,7 +124,7 @@ function create() {
 
     $.ajax({
         type: "POST",
-        url: apiHost + "/alerting/api/alert/create",
+        url: apiHost + "/api/alerting/alert/create",
         async: true,
         data: data,
         dataType: "json",
@@ -156,7 +156,7 @@ function update() {
 
     $.ajax({
         type: "POST",
-        url: "/alerting/api/alert/update",
+        url: "/api/alerting/alert/update",
         async: true,
         data: data,
         dataType: "json",

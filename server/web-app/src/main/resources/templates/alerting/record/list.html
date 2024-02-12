@@ -14,7 +14,7 @@
             const win = window.parent == null ? window : window.parent;
             const alertId = win.queryParams['alertId'];
             $('#historyTable').bootstrapTable({
-                url: '/alerting/api/alert/getRecordList',
+                url: '/api/alerting/alert/record/list',
                 method: 'post',
                 contentType: "application/json",
                 showRefresh: false,

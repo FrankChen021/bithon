@@ -16,7 +16,10 @@
 
 package org.bithon.server.alerting.notification.message;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
@@ -29,6 +32,9 @@ import java.util.Map;
  * @date 19/3/22 7:59 PM
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class NotificationMessage {
     private String alertRecordId;
     private long start;

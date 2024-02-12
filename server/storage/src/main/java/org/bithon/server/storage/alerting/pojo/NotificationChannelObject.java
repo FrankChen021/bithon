@@ -18,6 +18,8 @@ package org.bithon.server.storage.alerting.pojo;
 
 import lombok.Data;
 
+import java.sql.Timestamp;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/12/22 17:58
@@ -27,4 +29,5 @@ public class NotificationChannelObject {
     private String type;
     private String name;
     private String payload;
+    private Timestamp createdAt;
 }

@@ -173,11 +173,21 @@
                         </a>
                     </li>
 
-                    <li class="sidebar">
-                        <a href="#" onclick="javascript:redirect('/web/alert/list')">
+                    <li class="sidebar-dropdown alerting">
+                        <a class="alerting-anchor" href="#">
                             <i class="far fa-gem"></i>
-                            <span class="menu-text">Alert</span>
+                            <span class="menu-text">Alerting</span>
                         </a>
+                        <div class="sidebar-submenu">
+                            <ul>
+                                <li>
+                                    <a onclick="redirect('/web/alerting/alert/list')">Rules</a>
+                                </li>
+                                <li>
+                                    <a onclick="redirect('/web/alerting/channel/list')">Notification Channels</a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
 
                 </ul>
@@ -369,6 +379,8 @@
             $('.metrics-anchor').click();
         } else if (window.location.href.indexOf('/web/trace/') > 0) {
             $('.tracing-anchor').click();
+        } else if (window.location.href.indexOf('/web/alerting/') > 0) {
+            $('.alerting-anchor').click();
         }
         $('.page-wrapper').bind('pinned', () => {
             const handler = window.setInterval(() => {

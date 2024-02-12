@@ -49,7 +49,7 @@
             $('#alertTable').bootstrapTable({
                 //toolbar: '#toolbar',
 
-                url: apiHost + '/alerting/api/alert/getAlerts',
+                url: apiHost + '/api/alerting/alert/list',
                 method: 'post',
                 contentType: "application/json",
                 showRefresh: false,
@@ -101,7 +101,7 @@
                     field: 'name',
                     title: 'Name',
                     formatter: function (value, row) {
-                        return `<a href="/web/alert/detail?id=${row.alertId}&appName=${row.appName}">${value}</a>`;
+                        return `<a href="/web/alerting/alert/detail?id=${row.alertId}&appName=${row.appName}">${value}</a>`;
                     }
                 }, {
                     field: 'enabled',
@@ -118,7 +118,7 @@
                             return '-';
                         }
                         const text = new Date().diff(value);
-                        return `<a target="_blank" href="/web/alert/records?alertId=${row.alertId}&recordId=${row.lastRecordId}">${text}</a>`;
+                        return `<a target="_blank" href="/web/alerting/record/records?alertId=${row.alertId}&recordId=${row.lastRecordId}">${text}</a>`;
                     }
                 }, {
                     field: 'createdAt',
@@ -161,7 +161,7 @@
         });
 
         function showDetail(id, appName) {
-            window.location.href = 'detail?id=' + id + '&appName=' + appName;
+            window.location.href = '/web/alerting/alert/detail?id=' + id + '&appName=' + appName;
             return false;
         }
 
@@ -170,10 +170,10 @@
             let api = "";
             let action = "";
             if (alert.enabled) {
-                api = "/alerting/api/alert/disable";
+                api = "/api/alerting/alert/disable";
                 action = "DISABLE";
             } else {
-                api = "/alerting/api/alert/enable";
+                api = "/api/alerting/alert/enable";
                 action = "ENABLE";
             }
             bootbox.confirm({
@@ -233,7 +233,7 @@
 
                     $.ajax({
                         type: "POST",
-                        url: "/alerting/api/alert/delete",
+                        url: "/api/alerting/alert/delete",
                         async: true,
                         data: JSON.stringify({
                             alertId: id
@@ -269,7 +269,7 @@
         }
 
         function updateAlert(alertId) {
-            window.location.href = "update?id=" + alertId;
+            window.location.href = "/web/alerting/alert/update?id=" + alertId;
         }
 
         function showRunningLogs(alertId) {

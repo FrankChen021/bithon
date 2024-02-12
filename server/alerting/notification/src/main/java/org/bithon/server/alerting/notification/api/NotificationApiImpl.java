@@ -16,12 +16,12 @@
 
 package org.bithon.server.alerting.notification.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.notification.NotificationModuleEnabler;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
+import org.bithon.server.alerting.notification.channel.NotificationChannelFactory;
 import org.bithon.server.alerting.notification.image.AlertImageRenderService;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
@@ -29,6 +29,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,7 +48,8 @@ public class NotificationApiImpl implements INotificationApi {
     private final ObjectMapper objectMapper;
 
     public NotificationApiImpl(AlertImageRenderService imageService,
-                               IAlertNotificationChannelStorage channelStorage, ObjectMapper objectMapper) {
+                               IAlertNotificationChannelStorage channelStorage,
+                               ObjectMapper objectMapper) {
         this.imageService = imageService;
         this.objectMapper = objectMapper;
         this.channelStorage = channelStorage;
@@ -58,10 +60,13 @@ public class NotificationApiImpl implements INotificationApi {
         log.info("Loading notification channels...");
         Map<String, INotificationChannel> newChannels = new HashMap<>();
         channelStorage.getChannels(0)
-                      .forEach((provider) -> {
+                      .forEach((channel) -> {
                           try {
-                              newChannels.put(provider.getName(), objectMapper.readValue(provider.getPayload(), INotificationChannel.class));
-                          } catch (JsonProcessingException e) {
+                              newChannels.put(channel.getName(), NotificationChannelFactory.create(channel.getType(),
+                                                                                                   channel.getName(),
+                                                                                                   channel.getPayload(),
+                                                                                                   this.objectMapper));
+                          } catch (IOException e) {
                               throw new RuntimeException(e);
                           }
                       });
@@ -90,6 +95,6 @@ public class NotificationApiImpl implements INotificationApi {
         if (channel == null) {
             throw new RuntimeException(StringUtils.format("Channel [%s] not found.", name));
         }
-        channel.notify(message);
+        channel.send(message);
     }
 }

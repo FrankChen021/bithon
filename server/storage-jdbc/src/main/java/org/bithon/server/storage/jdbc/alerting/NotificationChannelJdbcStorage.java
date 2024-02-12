@@ -79,6 +79,7 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
                              obj.setName(record.getName());
                              obj.setType(record.getType());
                              obj.setPayload(record.getPayload());
+                             obj.setCreatedAt(Timestamp.valueOf(record.getCreatedAt()));
                              return obj;
                          });
     }

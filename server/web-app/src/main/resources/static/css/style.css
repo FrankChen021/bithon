@@ -276,23 +276,6 @@ select {
     border-radius: 3px;
 }
 
-.alerting {
-    display: inline-block;
-    width: 140px;
-    box-sizing: border-box;
-    padding: 3px;
-    margin: 2px 0px;
-    color: #fff;
-    text-align: center;
-    background: #d46f4f;
-    border-radius: 3px;
-    -webkit-animation-timing-function: ease-in-out;
-    -webkit-animation-name: breathe;
-    -webkit-animation-duration: 2s;
-    -webkit-animation-iteration-count: infinite;
-    -webkit-animation-direction: alternate;
-}
-
 .alerting-circle {
     display: inline-block;
     padding: 6px;

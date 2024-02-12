@@ -35,7 +35,7 @@ public interface INotificationApi {
     /**
      * @param name The name of channel
      */
-    @PostMapping("/alerting/api/alert/notify")
+    @PostMapping("/api/alerting/alert/notify")
     void notify(@RequestParam("name") String name,
                 @RequestBody NotificationMessage message) throws Exception;
 }

@@ -18,16 +18,16 @@ package org.bithon.server.alerting.notification.channel.ding;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
+import org.bithon.server.alerting.common.utils.Validator;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.message.ConditionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
@@ -38,7 +38,6 @@ import org.bithon.server.alerting.notification.message.format.QuotedTextLine;
 import org.bithon.server.alerting.notification.message.format.TextLine;
 import org.bithon.server.commons.time.TimeSpan;
 
-import javax.annotation.Nullable;
 import javax.validation.constraints.NotEmpty;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -49,26 +48,25 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class DingNotificationChannel implements INotificationChannel {
-    @Getter
-    @NotEmpty
-    private final String url;
+    @Data
+    public static class Props {
+        @NotEmpty
+        private final String url;
+    }
 
+    private final Props props;
     private final DingNotificationConfig config;
 
-    @Getter
-    @Setter
-    @JsonIgnore
-    private String name;
-
     @JsonCreator
-    public DingNotificationChannel(@JsonProperty("url") @Nullable String url,
+    public DingNotificationChannel(@JsonProperty("props") Props props,
                                    @JacksonInject DingNotificationConfig config) {
-        this.url = url;
+        this.props = Preconditions.checkNotNull(props, "props property can not be null");
+        Validator.validate(props);
         this.config = config;
     }
 
     @Override
-    public void notify(NotificationMessage message) throws Exception {
+    public void send(NotificationMessage message) throws Exception {
         AlertRule alertRule = message.getAlertRule();
 
         long alertAt = System.currentTimeMillis();
@@ -140,8 +138,8 @@ public class DingNotificationChannel implements INotificationChannel {
 
     @Override
     public String toString() {
-        return "DingNotificationProvider{" +
-            "url='" + url + '\'' +
+        return "DingNotificationChannel{" +
+            "url='" + this.props.url + '\'' +
             '}';
     }
 }

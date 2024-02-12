@@ -39,7 +39,7 @@ class LogComponent {
         this.alertId = alertId;
         $.ajax({
             type: "POST",
-            url: "/alerting/api/alert/getEvaluationLogs",
+            url: "/api/alerting/alert/evaluation-log/get",
             async: true,
             data: JSON.stringify({
                 alertId: alertId,

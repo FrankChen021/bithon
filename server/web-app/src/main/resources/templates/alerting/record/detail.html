@@ -68,7 +68,7 @@
         function loadRecord(recordId, callback) {
             $.ajax({
                 type: "POST",
-                url: "/alerting/api/alert/getRecordById",
+                url: "/api/alerting/alert/record/get",
                 async: true,
                 data: JSON.stringify({
                     id: recordId

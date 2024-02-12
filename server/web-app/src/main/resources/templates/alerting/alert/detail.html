@@ -131,7 +131,7 @@
 
         function loadRecords() {
             $('#alertTable').bootstrapTable({
-                url: '/alerting/api/alert/getRecordList',
+                url: '/api/alerting/alert/record/list',
                 method: 'post',
                 contentType: "application/json",
 
@@ -182,7 +182,7 @@
 
         function loadChangeLogs() {
             $('#changelogsTable').bootstrapTable({
-                url: '/alerting/api/alert/getChangeLogs',
+                url: '/api/alerting/alert/change-log/get',
                 method: 'post',
                 contentType: "application/json",
 

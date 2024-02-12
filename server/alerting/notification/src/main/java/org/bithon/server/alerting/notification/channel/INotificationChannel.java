@@ -16,14 +16,12 @@
 
 package org.bithon.server.alerting.notification.channel;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.alerting.notification.channel.console.ConsoleNotificationChannel;
 import org.bithon.server.alerting.notification.channel.ding.DingNotificationChannel;
 import org.bithon.server.alerting.notification.channel.http.HttpNotificationChannel;
 import org.bithon.server.alerting.notification.channel.kafka.KafkaNotificationChannel;
-import org.bithon.server.alerting.notification.image.ImageMode;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 
 /**
@@ -37,11 +35,10 @@ import org.bithon.server.alerting.notification.message.NotificationMessage;
     @JsonSubTypes.Type(name = "http", value = HttpNotificationChannel.class),
     @JsonSubTypes.Type(name = "kafka", value = KafkaNotificationChannel.class)
 })
-public interface INotificationChannel {
-    @JsonIgnore
-    default ImageMode getImageMode() {
-        return ImageMode.BASE64;
-    }
+public interface INotificationChannel extends AutoCloseable {
 
-    void notify(NotificationMessage message) throws Exception;
+    void send(NotificationMessage message) throws Exception;
+
+    default void close() {
+    }
 }

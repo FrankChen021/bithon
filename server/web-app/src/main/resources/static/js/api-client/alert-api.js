@@ -3,7 +3,7 @@ class AlertApi {
     getAlertById(alertId, onGetCallback) {
         $.ajax({
             type: "POST",
-            url: "/alerting/api/alert/getAlertById",
+            url: "/api/alerting/alert/get",
             async: true,
             data: JSON.stringify({
                 alertId: alertId

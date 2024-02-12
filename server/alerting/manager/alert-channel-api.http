@@ -1,0 +1,48 @@
+### Create an Console notification channel
+POST http://localhost:9897/api/alerting/channel/create
+Content-Type: application/yaml
+
+type: console
+name: console-1
+
+
+### Create an HTTP notification channel
+POST http://localhost:9897/api/alerting/channel/create
+Content-Type: application/yaml
+
+name: "http-1"
+type: "http"
+props:
+  url: "http://localhost:9897/api/no-exist"
+  headers:
+    "X-Fake": "value"
+
+
+### Create an Kafka notification channel
+POST http://localhost:9897/api/alerting/channel/create
+Content-Type: application/json
+
+{
+  "name": "kafka",
+  "type": "kafka",
+  "props": {
+    "bootstrapServers": "localhost:9092",
+    "topic": "alert",
+    "producerProps": {
+      "request.ms": 100
+    }
+  }
+}
+
+### Get all notification channel
+POST http://localhost:9897/api/alerting/channel/get
+
+
+### DELETE an HTTP notification channel
+POST http://localhost:9897/api/alerting/channel/delete
+Content-Type: application/json
+
+{
+ "name": "console-1"
+}
+
