@@ -37,21 +37,24 @@ import java.sql.Timestamp;
  */
 public class EvaluationLogJdbcStorage implements IEvaluationLogStorage {
     protected final DSLContext dslContext;
-    protected final AlertingStorageConfiguration.EvaluationLogConfig config;
+    protected final AlertingStorageConfiguration.EvaluationLogConfig storageConfig;
 
     @JsonCreator
-    public EvaluationLogJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration provider,
-                                    @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.EvaluationLogConfig config) {
-        this(provider.getDslContext(), config);
+    public EvaluationLogJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration storageProvider,
+                                    @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.EvaluationLogConfig storageConfig) {
+        this(storageProvider.getDslContext(), storageConfig);
     }
 
-    public EvaluationLogJdbcStorage(DSLContext dslContext, AlertingStorageConfiguration.EvaluationLogConfig config) {
+    public EvaluationLogJdbcStorage(DSLContext dslContext, AlertingStorageConfiguration.EvaluationLogConfig storageConfig) {
         this.dslContext = dslContext;
-        this.config = config;
+        this.storageConfig = storageConfig;
     }
 
     @Override
     public void initialize() {
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
         dslContext.createTableIfNotExists(Tables.BITHON_ALERT_EVALUATION_LOG)
                   .columns(Tables.BITHON_ALERT_EVALUATION_LOG.fields())
                   .indexes(Tables.BITHON_ALERT_EVALUATION_LOG.getIndexes())
@@ -73,7 +76,7 @@ public class EvaluationLogJdbcStorage implements IEvaluationLogStorage {
         return new IExpirationRunnable() {
             @Override
             public ExpirationConfig getExpirationConfig() {
-                return config.getTtl();
+                return storageConfig.getTtl();
             }
 
             @Override

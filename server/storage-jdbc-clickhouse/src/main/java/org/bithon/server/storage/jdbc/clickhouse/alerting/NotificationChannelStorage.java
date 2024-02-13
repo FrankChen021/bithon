@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.jdbc.alerting.NotificationChannelJdbcStorage;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
@@ -37,9 +38,10 @@ public class NotificationChannelStorage extends NotificationChannelJdbcStorage {
     private final ClickHouseConfig clickHouseConfig;
 
     @JsonCreator
-    public NotificationChannelStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration provider) {
-        super(provider.getDslContext());
-        this.clickHouseConfig = provider.getClickHouseConfig();
+    public NotificationChannelStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration storageProvider,
+                                      @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
+        super(storageProvider.getDslContext(), storageConfig);
+        this.clickHouseConfig = storageProvider.getClickHouseConfig();
     }
 
     @Override
@@ -53,6 +55,10 @@ public class NotificationChannelStorage extends NotificationChannelJdbcStorage {
 
     @Override
     public void initialize() {
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
+
         new TableCreator(this.clickHouseConfig, this.dslContext)
             .partitionByExpression(null)
             .useReplacingMergeTree(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.CREATED_AT.getName())

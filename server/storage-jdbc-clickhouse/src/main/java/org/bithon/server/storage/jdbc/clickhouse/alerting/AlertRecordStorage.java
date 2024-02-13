@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
@@ -44,15 +45,20 @@ public class AlertRecordStorage extends AlertRecordJdbcStorage {
     private final ClickHouseConfig clickHouseConfig;
 
     @JsonCreator
-    public AlertRecordStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration provider,
-                              @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig config) {
-        super(provider.getDslContext(), config);
-        this.clickHouseConfig = provider.getClickHouseConfig();
+    public AlertRecordStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration storageProvider,
+                              @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
+        super(storageProvider.getDslContext(), storageConfig);
+        this.clickHouseConfig = storageProvider.getClickHouseConfig();
     }
 
     @Override
     public void initialize() {
-        new TableCreator(this.clickHouseConfig, dslContext).createIfNotExist(Tables.BITHON_ALERT_RECORD);
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
+        new TableCreator(this.clickHouseConfig, dslContext)
+            .partitionByExpression(StringUtils.format("toYYYYMMDD(%s)", Tables.BITHON_ALERT_RECORD.CREATED_AT.getName()))
+            .createIfNotExist(Tables.BITHON_ALERT_RECORD);
     }
 
     @Override
@@ -95,7 +101,7 @@ public class AlertRecordStorage extends AlertRecordJdbcStorage {
         return new IExpirationRunnable() {
             @Override
             public ExpirationConfig getExpirationConfig() {
-                return config.getTtl();
+                return storageConfig.getTtl();
             }
 
             @Override

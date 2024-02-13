@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.jdbc.alerting.AlertObjectJdbcStorage;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
@@ -44,20 +45,26 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public AlertObjectStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration provider,
+    public AlertObjectStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration storageProvider,
                               @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
-                              @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
-        super(provider.getDslContext(),
-              sqlDialectManager.getSqlDialect(provider.getDslContext()),
+                              @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
+                              @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
+        super(storageProvider.getDslContext(),
+              sqlDialectManager.getSqlDialect(storageProvider.getDslContext()),
               Tables.BITHON_ALERT_OBJECT.getName() + " FINAL",
               Tables.BITHON_ALERT_STATE.getName() + " FINAL",
-              objectMapper);
+              objectMapper,
+              storageConfig);
 
-        this.config = provider.getClickHouseConfig();
+        this.config = storageProvider.getClickHouseConfig();
     }
 
     @Override
     public void initialize() {
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
+
         new TableCreator(this.config, this.dslContext).useReplacingMergeTree(Tables.BITHON_ALERT_OBJECT.UPDATED_AT.getName())
                                                       .partitionByExpression(null)
                                                       .createIfNotExist(Tables.BITHON_ALERT_OBJECT);

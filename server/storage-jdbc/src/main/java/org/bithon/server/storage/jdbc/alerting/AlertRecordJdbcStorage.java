@@ -43,20 +43,23 @@ import java.util.List;
 public class AlertRecordJdbcStorage implements IAlertRecordStorage {
 
     protected final DSLContext dslContext;
-    protected final AlertingStorageConfiguration.AlertStorageConfig config;
+    protected final AlertingStorageConfiguration.AlertStorageConfig storageConfig;
 
     @JsonCreator
-    public AlertRecordJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration provider,
-                                  @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig config) {
-        this(provider.getDslContext(), config);
+    public AlertRecordJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration storageProvider,
+                                  @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
+        this(storageProvider.getDslContext(), storageConfig);
     }
 
-    public AlertRecordJdbcStorage(DSLContext dslContext, AlertingStorageConfiguration.AlertStorageConfig config) {
+    public AlertRecordJdbcStorage(DSLContext dslContext, AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
         this.dslContext = dslContext;
-        this.config = config;
+        this.storageConfig = storageConfig;
     }
 
     public void initialize() {
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
         this.dslContext.createTableIfNotExists(Tables.BITHON_ALERT_RECORD)
                        .columns(Tables.BITHON_ALERT_RECORD.fields())
                        .indexes(Tables.BITHON_ALERT_RECORD.getIndexes())
@@ -144,7 +147,7 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
         return new IExpirationRunnable() {
             @Override
             public ExpirationConfig getExpirationConfig() {
-                return config.getTtl();
+                return storageConfig.getTtl();
             }
 
             @Override

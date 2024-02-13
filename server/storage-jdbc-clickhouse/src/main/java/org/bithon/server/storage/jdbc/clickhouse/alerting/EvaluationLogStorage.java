@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
@@ -42,16 +43,21 @@ public class EvaluationLogStorage extends EvaluationLogJdbcStorage {
     private final ClickHouseConfig clickHouseConfig;
 
     @JsonCreator
-    public EvaluationLogStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration provider,
-                                @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.EvaluationLogConfig config) {
-        super(provider.getDslContext(), config);
+    public EvaluationLogStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration storageProvider,
+                                @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.EvaluationLogConfig storageConfig) {
+        super(storageProvider.getDslContext(), storageConfig);
 
-        this.clickHouseConfig = provider.getClickHouseConfig();
+        this.clickHouseConfig = storageProvider.getClickHouseConfig();
     }
 
     @Override
     public void initialize() {
-        new TableCreator(this.clickHouseConfig, this.dslContext).createIfNotExist(Tables.BITHON_ALERT_EVALUATION_LOG);
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
+        new TableCreator(this.clickHouseConfig, this.dslContext)
+            .partitionByExpression(StringUtils.format("toYYYYMMDD(%s)", Tables.BITHON_ALERT_EVALUATION_LOG.TIMESTAMP.getName()))
+            .createIfNotExist(Tables.BITHON_ALERT_EVALUATION_LOG);
     }
 
     @Override
@@ -59,7 +65,7 @@ public class EvaluationLogStorage extends EvaluationLogJdbcStorage {
         return new IExpirationRunnable() {
             @Override
             public ExpirationConfig getExpirationConfig() {
-                return config.getTtl();
+                return storageConfig.getTtl();
             }
 
             @Override

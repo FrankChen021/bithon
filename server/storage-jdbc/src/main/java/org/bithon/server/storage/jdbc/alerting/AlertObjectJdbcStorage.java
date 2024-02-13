@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.ObjectAction;
 import org.bithon.server.storage.alerting.pojo.AlertChangeLogObject;
@@ -59,16 +60,19 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
     protected final ObjectMapper objectMapper;
     private final String quotedObjectTableSelectName;
     private final String quotedStateTableSelectName;
+    protected final AlertingStorageConfiguration.AlertStorageConfig storageConfig;
 
     @JsonCreator
-    public AlertObjectJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration provider,
+    public AlertObjectJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration storageProvider,
                                   @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
-                                  @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
-        this(provider.getDslContext(),
-             sqlDialectManager.getSqlDialect(provider.getDslContext()),
-             sqlDialectManager.getSqlDialect(provider.getDslContext()).quoteIdentifier(Tables.BITHON_ALERT_OBJECT.getName()),
-             sqlDialectManager.getSqlDialect(provider.getDslContext()).quoteIdentifier(Tables.BITHON_ALERT_STATE.getName()),
-             objectMapper
+                                  @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
+                                  @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
+        this(storageProvider.getDslContext(),
+             sqlDialectManager.getSqlDialect(storageProvider.getDslContext()),
+             sqlDialectManager.getSqlDialect(storageProvider.getDslContext()).quoteIdentifier(Tables.BITHON_ALERT_OBJECT.getName()),
+             sqlDialectManager.getSqlDialect(storageProvider.getDslContext()).quoteIdentifier(Tables.BITHON_ALERT_STATE.getName()),
+             objectMapper,
+             storageConfig
             );
     }
 
@@ -76,16 +80,21 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                                   ISqlDialect sqlDialect,
                                   String objectTableSelectName,
                                   String stateTableSelectName,
-                                  ObjectMapper objectMapper) {
+                                  ObjectMapper objectMapper,
+                                  AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
         this.dslContext = dslContext;
         this.sqlDialect = sqlDialect;
         this.quotedObjectTableSelectName = objectTableSelectName;
         this.quotedStateTableSelectName = stateTableSelectName;
         this.objectMapper = objectMapper;
+        this.storageConfig = storageConfig;
     }
 
     @Override
     public void initialize() {
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
         this.dslContext.createTableIfNotExists(Tables.BITHON_ALERT_OBJECT)
                        .columns(Tables.BITHON_ALERT_OBJECT.fields())
                        .indexes(Tables.BITHON_ALERT_OBJECT.getIndexes()).execute();

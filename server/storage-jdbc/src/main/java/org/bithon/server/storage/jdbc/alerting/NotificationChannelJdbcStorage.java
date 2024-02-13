@@ -19,6 +19,7 @@ package org.bithon.server.storage.jdbc.alerting;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
@@ -34,15 +35,19 @@ import java.util.List;
  */
 public class NotificationChannelJdbcStorage implements IAlertNotificationChannelStorage {
 
+    protected final AlertingStorageConfiguration.AlertStorageConfig storageConfig;
     protected DSLContext dslContext;
 
     @JsonCreator
-    public NotificationChannelJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration storageConfiguration) {
-        this(storageConfiguration.getDslContext());
+    public NotificationChannelJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration storageConfiguration,
+                                          @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
+        this(storageConfiguration.getDslContext(),
+             storageConfig);
     }
 
-    protected NotificationChannelJdbcStorage(DSLContext dslContext) {
+    protected NotificationChannelJdbcStorage(DSLContext dslContext, AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
         this.dslContext = dslContext;
+        this.storageConfig = storageConfig;
     }
 
     @Override
@@ -66,8 +71,8 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
 
     @Override
     public boolean exists(String name) {
-        return dslContext.fetchExists(dslContext.selectFrom(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
-                                                .where(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name)));
+        return dslContext.fetchCount(dslContext.selectFrom(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
+                                               .where(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name))) > 0;
     }
 
     @Override
@@ -86,6 +91,9 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
 
     @Override
     public void initialize() {
+        if (!this.storageConfig.isCreateTable()) {
+            return;
+        }
         this.dslContext.createTableIfNotExists(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
                        .columns(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.fields())
                        .indexes(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.getIndexes())
