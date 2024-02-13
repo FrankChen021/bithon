@@ -172,6 +172,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                       .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, objectMapper.writeValueAsString(alert.getPayload()))
                       .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, alert.getId())
                       .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
+                      .set(Tables.BITHON_ALERT_OBJECT.DELETED, false)
                       .set(Tables.BITHON_ALERT_OBJECT.CREATED_AT, createTimestamp.toLocalDateTime())
                       .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, updateTimestamp.toLocalDateTime())
                       .execute();
