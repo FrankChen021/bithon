@@ -80,4 +80,37 @@ public class UrlUtilsTest {
         Assert.assertEquals("2", parameters.get("n"));
         Assert.assertEquals("3", parameters.get("l"));
     }
+
+    @Test
+    public void test_Sanitize() {
+        // No value after the '='
+        Assert.assertEquals("http://localhost?password=", UrlUtils.sanitize("http://localhost?password=", "password", "HIDDEN"));
+
+        // Value is empty
+        Assert.assertEquals("http://localhost?password=HIDDEN", UrlUtils.sanitize("http://localhost?password=    ", "password", "HIDDEN"));
+
+        // Only one parameter
+        Assert.assertEquals("http://localhost?password=HIDDEN", UrlUtils.sanitize("http://localhost?password=2", "password", "HIDDEN"));
+
+        // More parameters, and it's at the end
+        Assert.assertEquals("http://localhost?user=1&password=HIDDEN", UrlUtils.sanitize("http://localhost?user=1&password=2", "password", "HIDDEN"));
+
+        // More parameters, and it's in the middle
+        Assert.assertEquals("http://localhost?user=1&password=HIDDEN&database=default", UrlUtils.sanitize("http://localhost?user=1&password=2&database=default", "password", "HIDDEN"));
+
+        // No parameters
+        Assert.assertEquals("http://localhost", UrlUtils.sanitize("http://localhost", "localhost", "HIDDEN"));
+
+        // No matched parameter
+        Assert.assertEquals("http://localhost?p=1&q=2&r=3", UrlUtils.sanitize("http://localhost?p=1&q=2&r=3", "localhost", "HIDDEN"));
+
+        // No host
+        Assert.assertEquals("?query=select+1&password=HIDDEN", UrlUtils.sanitize("?query=select+1&password=2", "password", "HIDDEN"));
+
+        // No host
+        Assert.assertEquals("?password1=2&password=HIDDEN", UrlUtils.sanitize("?password1=2&password=3", "password", "HIDDEN"));
+
+        Assert.assertEquals("?p1=1&pass=&p3=3", UrlUtils.sanitize("?p1=1&pass=&p3=3", "pass", "HIDDEN"));
+
+    }
 }

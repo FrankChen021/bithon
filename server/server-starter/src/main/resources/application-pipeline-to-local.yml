@@ -26,7 +26,9 @@ bithon:
           expr: not endsWith(clazz,  'UriNormalizer')
         - type: url-sanitize-transform
           sensitiveParameters:
-            - password
+            - "http.uri": password
+            - "http.url": password
+            - "uri": password
         - type: builtin-span-transform
       exporters:
         - type: store
