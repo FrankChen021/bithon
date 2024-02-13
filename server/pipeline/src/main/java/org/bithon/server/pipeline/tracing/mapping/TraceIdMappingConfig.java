@@ -16,21 +16,17 @@
 
 package org.bithon.server.pipeline.tracing.mapping;
 
-import lombok.Data;
-
-import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Extract a user-defined transaction id on a given parameter to trace id
+ * See {@link ITraceIdMappingExtractor} and its implementation
  *
  * - type: xxx
- * - params:
+ * - args:
  *
  * @author frank.chen021@outlook.com
  * @date 10/12/21 3:08 PM
  */
-@Data
-public class TraceIdMappingConfig {
-    private String type;
-    private Map<String, Object> args;
+public class TraceIdMappingConfig extends HashMap<String, Object> {
 }

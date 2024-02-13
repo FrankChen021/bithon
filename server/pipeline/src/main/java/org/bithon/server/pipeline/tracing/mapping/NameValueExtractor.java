@@ -34,23 +34,27 @@ import java.util.function.BiConsumer;
  */
 public class NameValueExtractor implements ITraceIdMappingExtractor {
 
-    private final Collection<String> names;
+    private final Collection<String> tags;
 
-    public NameValueExtractor(@JsonProperty("names") Collection<String> names) {
-        this.names = names;
+    public NameValueExtractor(Collection<String> tags) {
+        this.tags = tags;
     }
 
+    /**
+     * This object is created by deserializing the SpringBoot configuration.
+     * However, it treats the List/Set in the configuration as the type of Map.
+     */
     @JsonCreator
-    public NameValueExtractor(@JsonProperty("names") Map<String, String> names) {
-        this(new ArrayList<>(names.values()));
+    public NameValueExtractor(@JsonProperty("tags") Map<String, String> tags) {
+        this(new ArrayList<>(tags.values()));
     }
 
     @Override
-    public void extract(TraceSpan span, BiConsumer<TraceSpan, String> callback) {
-        for (String name : names) {
-            String value = span.getTags().get(name);
+    public void extract(TraceSpan span, BiConsumer<TraceSpan, String> consumer) {
+        for (String tag : tags) {
+            String value = span.getTags().get(tag);
             if (StringUtils.hasText(value)) {
-                callback.accept(span, value);
+                consumer.accept(span, value);
             }
         }
     }

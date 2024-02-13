@@ -19,15 +19,12 @@ package org.bithon.server.pipeline.tracing.transform.sanitization;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.utils.UrlUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.tracing.TraceSpan;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -43,70 +40,35 @@ import java.util.Map;
  */
 @JsonTypeName("url-sanitize-transform")
 public class UrlSanitizeTransformer extends AbstractSanitizer {
-    private final Collection<String> sensitiveParameters;
-
     /**
-     * NOTE: the ctor is passed from configuration which are deserialized from the application yml
-     * The default deserialization treats the list as a LinkedHashMap, so we have to define the ctor as the map
+     * key - the attribute name in the 'tags'
+     * val - the parameter name
+     * <p>
+     * For example:
+     * key: http.uri
+     * val: password
+     * This means sanitize the 'password' parameter on the 'http.uri' attribute
      */
+    private final Map<String, String> sensitiveParameters;
+
     @JsonCreator
     public UrlSanitizeTransformer(@JsonProperty("where") String where,
                                   @JsonProperty("sensitiveParameters") Map<String, String> sensitiveParameters) {
         super(where);
-        this.sensitiveParameters = new ArrayList<>(sensitiveParameters.values());
+        this.sensitiveParameters = sensitiveParameters == null ? Collections.emptyMap() : sensitiveParameters;
     }
 
     @Override
     protected void sanitize(IInputRow inputRow) {
         TraceSpan span = (TraceSpan) inputRow;
+        for (Map.Entry<String, String> entry : this.sensitiveParameters.entrySet()) {
+            String attribName = entry.getKey();
+            String parameterName = entry.getValue();
 
-        boolean sanitized = false;
-
-        Map<String, String> parameters = span.getUriParameters();
-        for (String sensitiveParameter : sensitiveParameters) {
-            if (parameters.containsKey(sensitiveParameter)) {
-                parameters.put(sensitiveParameter, "***HIDDEN***");
-                sanitized = true;
+            String attribVal = span.getTag(attribName);
+            if (StringUtils.hasText(attribVal)) {
+                span.setTag(attribName, UrlUtils.sanitize(attribVal, parameterName, "***HIDDEN***"));
             }
-        }
-        if (!sanitized) {
-            return;
-        }
-
-        // write back the query parameters to uri
-        String uriText = span.getTag(Tags.Http.URL);
-        if (StringUtils.isBlank(uriText)) {
-            // compatibility
-            uriText = span.getTag("uri");
-        }
-        if (StringUtils.isBlank(uriText)) {
-            return;
-        }
-
-        try {
-            URI uri = new URI(uriText);
-
-            StringBuilder query = new StringBuilder();
-            parameters.forEach((key, val) -> {
-                query.append(key);
-                query.append("=");
-                query.append(val);
-                query.append("&");
-            });
-            query.deleteCharAt(query.length() - 1);
-
-            URI modified = new URI(uri.getScheme(),
-                                   uri.getUserInfo(),
-                                   uri.getHost(),
-                                   uri.getPort(),
-                                   uri.getPath(),
-                                   query.toString(),
-                                   uri.getFragment());
-
-            // for backward compatibility
-            span.getTags().remove("uri");
-            span.setTag(Tags.Http.URL, modified.toString());
-        } catch (URISyntaxException ignored) {
         }
     }
 }

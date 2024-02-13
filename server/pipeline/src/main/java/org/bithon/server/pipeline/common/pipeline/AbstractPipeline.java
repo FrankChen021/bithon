@@ -92,7 +92,8 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
         for (Object transform : pipelineConfig.getProcessors()) {
             try {
                 transformers.add(new ExceptionSafeTransformer(createObject(ITransformer.class, objectMapper, transform)));
-            } catch (IOException ignored) {
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to initialize transformer", e);
             }
         }
         return transformers;

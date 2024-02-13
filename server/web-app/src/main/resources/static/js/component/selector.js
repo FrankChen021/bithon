@@ -79,9 +79,11 @@ class AppSelector {
 
         const filterSpecs = [];
         // Note: the first two dimensions MUST be app/instance
-        for (let index = 0; index < schema.dimensionsSpec.length; index++) {
-            const dimension = schema.dimensionsSpec[index];
-
+        for (let index = 0; index < schema.columns.length; index++) {
+            const dimension = schema.columns[index];
+            if (dimension.type !== 'string') {
+                continue;
+            }
             if (index === 0 && dimension.alias === 'appName' && !keepAppFilter) {
                 // for appName filter, createAppSelector should be explicitly called
                 continue;
@@ -93,7 +95,7 @@ class AppSelector {
                 source: schema.name,
                 name: dimension.name,
                 alias: dimension.alias,
-                displayText: dimension.alias,
+                displayText: dimension.alias.startsWith('tags.') ? dimension.alias.substring(5) : dimension.alias,
                 onPreviousFilters: true
             });
         }
