@@ -26,6 +26,7 @@ import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
 import org.bithon.server.alerting.common.parser.InvalidExpressionException;
+import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.security.IUserProvider;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
@@ -36,6 +37,7 @@ import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.meta.api.IMetadataApi;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -49,6 +51,7 @@ import java.util.UUID;
  */
 @Slf4j
 @Service
+@Conditional(ManagerModuleEnabler.class)
 public class AlertCommandService {
 
     final IAlertObjectStorage alertObjectStorage;

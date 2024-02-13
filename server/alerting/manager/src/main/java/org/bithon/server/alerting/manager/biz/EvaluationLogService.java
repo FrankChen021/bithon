@@ -16,11 +16,13 @@
 
 package org.bithon.server.alerting.manager.biz;
 
+import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.api.parameter.GetEvaluationLogsResponse;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogReader;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.pojo.LogItem;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,6 +32,7 @@ import java.util.List;
  * @date 2021/1/26
  */
 @Service
+@Conditional(ManagerModuleEnabler.class)
 public class EvaluationLogService {
 
     private final IEvaluationLogReader logReader;
