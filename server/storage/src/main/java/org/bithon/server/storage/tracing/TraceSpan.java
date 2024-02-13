@@ -26,8 +26,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.commons.utils.UrlUtils;
 import org.bithon.server.storage.common.ApplicationType;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
@@ -110,9 +108,6 @@ public class TraceSpan implements IInputRow {
     public String normalizedUri = "";
 
     @JsonIgnore
-    private volatile Map<String, String> uriParameters;
-
-    @JsonIgnore
     private Map<String, Object> properties;
 
     public String getTag(String name) {
@@ -121,22 +116,6 @@ public class TraceSpan implements IInputRow {
 
     public void setTag(String name, String value) {
         this.tags.put(name, value);
-    }
-
-    public Map<String, String> getUriParameters() {
-        if (this.uriParameters == null) {
-            synchronized (this) {
-                if (this.uriParameters == null) {
-                    String uri = this.getTag("http.uri");
-                    if (StringUtils.isBlank(uri)) {
-                        // compatibility
-                        uri = this.getTag("uri");
-                    }
-                    this.uriParameters = UrlUtils.parseURLParameters(uri);
-                }
-            }
-        }
-        return this.uriParameters;
     }
 
     @Override

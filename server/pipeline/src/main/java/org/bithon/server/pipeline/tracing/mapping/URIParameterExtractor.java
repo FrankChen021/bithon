@@ -18,13 +18,16 @@ package org.bithon.server.pipeline.tracing.mapping;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.utils.UrlUtils;
 import org.bithon.server.storage.tracing.TraceSpan;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 /**
@@ -36,29 +39,42 @@ import java.util.function.BiConsumer;
 @Slf4j
 public class URIParameterExtractor implements ITraceIdMappingExtractor {
 
-    private final Collection<String> parameters;
-
-    public URIParameterExtractor(@JsonProperty("parameters") Collection<String> parameters) {
-        this.parameters = parameters;
-    }
+    /**
+     * key - The tag name whose value has the form of URL
+     * val - The parameter name in the URL
+     */
+    private final Map<String, Set<String>> args;
 
     /**
-     * yaml deserialize the value of args parameter on {@link TraceIdMappingConfig} into a Map instead of an expected array
+     * This object is created by deserializing the SpringBoot configuration.
+     * However, it treats the List/Set in the configuration as the type of Map.
      */
     @JsonCreator
-    public URIParameterExtractor(@JsonProperty("parameters") Map<String, String> parameters) {
-        this(new ArrayList<>(parameters.values()));
+    public URIParameterExtractor(@JsonProperty("tags") HashMap<String, Map<String, String>> tags) {
+        this.args = new HashMap<>();
+
+        tags.forEach((key, val) -> this.args.put(key, new HashSet<>(val.values())));
+    }
+
+    @VisibleForTesting
+    URIParameterExtractor(Map<String, Set<String>> args) {
+        this.args = args;
     }
 
     @Override
-    public void extract(TraceSpan span, BiConsumer<TraceSpan, String> callback) {
-        Map<String, String> urlParameters = span.getUriParameters();
+    public void extract(TraceSpan span, BiConsumer<TraceSpan, String> consumer) {
+        for (Map.Entry<String, Set<String>> entry : args.entrySet()) {
+            String tag = entry.getKey();
+            Set<String> parameters = entry.getValue();
 
-        for (String parameter : this.parameters) {
-            String userTxId = urlParameters.get(parameter);
-            if (StringUtils.hasText(userTxId)) {
-                callback.accept(span, userTxId);
+            String val = span.getTag(tag);
+            if (!StringUtils.hasText(val)) {
+                continue;
             }
+
+            UrlUtils.parseURLParameters(val, parameters)
+                    .values()
+                    .forEach((v) -> consumer.accept(span, v));
         }
     }
 }

@@ -113,6 +113,15 @@ bithon:
             "[http.url]": password
             "uri": password
         - type: builtin-span-transform
+      mapping:
+        - type: uri
+          tags:
+            "[http.uri]": ["query_id"]
+            "[http.url]": ["query_id"]
+            "uri": ["query_id"]
+        - type: name
+          tags:
+            names: ["clickhouse.query_id"]
       exporters:
         - type: store
 

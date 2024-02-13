@@ -16,6 +16,7 @@
 
 package org.bithon.server.commons.utils;
 
+import com.google.common.collect.ImmutableSet;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,14 +29,14 @@ import java.util.Map;
 public class UrlUtilsTest {
 
     @Test
-    public void testParseParameters_Empty() {
+    public void test_ParseParameters_EmptyQueryString() {
         Assert.assertTrue(UrlUtils.parseURLParameters("http://localhost").isEmpty());
         Assert.assertTrue(UrlUtils.parseURLParameters("http://localhost?").isEmpty());
         Assert.assertTrue(UrlUtils.parseURLParameters("http://localhost?=").isEmpty());
     }
 
     @Test
-    public void test2() {
+    public void test_ParseParameters_EmptyValue() {
         Map<String, String> parameters = UrlUtils.parseURLParameters("http://localhost?m=");
         Assert.assertEquals(1, parameters.size());
         Assert.assertTrue(parameters.containsKey("m"));
@@ -43,7 +44,7 @@ public class UrlUtilsTest {
     }
 
     @Test
-    public void test3() {
+    public void test_ParseParameters_MultipleEmptyValues() {
         Map<String, String> parameters = UrlUtils.parseURLParameters("http://localhost?m=&n=");
         Assert.assertEquals(2, parameters.size());
         Assert.assertEquals("", parameters.get("m"));
@@ -73,12 +74,25 @@ public class UrlUtilsTest {
     }
 
     @Test
-    public void test_Normal() {
+    public void test_ParseParameters_Normal() {
         Map<String, String> parameters = UrlUtils.parseURLParameters("http://localhost?m=1&n=2&l=3&");
         Assert.assertEquals(3, parameters.size());
         Assert.assertEquals("1", parameters.get("m"));
         Assert.assertEquals("2", parameters.get("n"));
         Assert.assertEquals("3", parameters.get("l"));
+    }
+
+    @Test
+    public void test_ParseParameters_WhiteList() {
+        {
+            Map<String, String> parameters = UrlUtils.parseURLParameters("http://localhost?m=1&n=2&l=3&", ImmutableSet.of("n"));
+            Assert.assertEquals(1, parameters.size());
+            Assert.assertEquals("2", parameters.get("n"));
+        }
+        {
+            Map<String, String> parameters = UrlUtils.parseURLParameters("http://localhost?m=1&n=2&l=3&", ImmutableSet.of("x"));
+            Assert.assertEquals(0, parameters.size());
+        }
     }
 
     @Test

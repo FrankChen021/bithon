@@ -33,7 +33,7 @@ import java.util.function.BiConsumer;
 })
 public interface ITraceIdMappingExtractor {
     /**
-     * @param callback once a user id is successfully extracted from given span, this callback will be invoked
+     * @param consumer once a user id is successfully extracted from a given span, this callback will be invoked
      */
-    void extract(TraceSpan span, BiConsumer<TraceSpan, String> callback);
+    void extract(TraceSpan span, BiConsumer<TraceSpan, String> consumer);
 }

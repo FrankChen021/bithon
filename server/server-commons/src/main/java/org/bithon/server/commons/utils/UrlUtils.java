@@ -16,12 +16,9 @@
 
 package org.bithon.server.commons.utils;
 
-import org.springframework.util.StringUtils;
-
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -29,43 +26,44 @@ import java.util.TreeMap;
  * @date 2022/12/1 20:56
  */
 public class UrlUtils {
-    public static Map<String, String> parseURLParameters(String uriText) {
-        if (uriText == null) {
+
+    public static Map<String, String> parseURLParameters(String url) {
+        return parseURLParameters(url, null);
+    }
+
+    public static Map<String, String> parseURLParameters(String url, Set<String> parameters) {
+        if (url == null) {
             return Collections.emptyMap();
         }
 
-        URI uri;
-        try {
-            uri = new URI(uriText);
-        } catch (URISyntaxException ignored) {
+        // Locate the start of query string
+        int queryParameterIndex = url.indexOf('?');
+        if (queryParameterIndex < 0) {
             return Collections.emptyMap();
         }
 
-        String queryString = uri.getQuery();
-        if (!StringUtils.hasText(queryString)) {
-            return Collections.emptyMap();
-        }
-
-        Map<String, String> variables = new TreeMap<>();
-        int tokenStart = 0;
+        Map<String, String> parsed = new TreeMap<>();
+        int tokenStart = queryParameterIndex + 1;
         int tokenEnd = 0;
         do {
-            tokenEnd = queryString.indexOf('=', tokenStart);
+            tokenEnd = url.indexOf('=', tokenStart);
             if (tokenEnd > tokenStart) {
                 // Find the parameter name
-                String name = queryString.substring(tokenStart, tokenEnd);
+                String name = url.substring(tokenStart, tokenEnd);
 
                 // +1 to skip the '='
                 tokenStart = tokenEnd + 1;
 
                 // Find the parameter value
-                tokenEnd = queryString.indexOf('&', tokenStart);
-                if (tokenEnd == -1) {
-                    // If there's no '&' found, the whole is the value
-                    variables.put(name, queryString.substring(tokenStart));
-                } else {
-                    // If there's a '&' found, get the substring as value
-                    variables.put(name, queryString.substring(tokenStart, tokenEnd));
+                tokenEnd = url.indexOf('&', tokenStart);
+                if (tokenEnd == -1) { // If there's no '&' found, the whole is the value
+                    if (parameters == null || parameters.contains(name)) {
+                        parsed.put(name, url.substring(tokenStart));
+                    }
+                } else { // If there's a '&' found, get the substring as value
+                    if (parameters == null || parameters.contains(name)) {
+                        parsed.put(name, url.substring(tokenStart, tokenEnd));
+                    }
                 }
 
                 tokenStart = tokenEnd + 1;
@@ -77,7 +75,7 @@ public class UrlUtils {
             }
         } while (tokenEnd != -1);
 
-        return variables;
+        return parsed;
     }
 
     /**

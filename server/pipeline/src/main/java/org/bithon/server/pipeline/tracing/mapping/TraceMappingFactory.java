@@ -29,10 +29,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -58,14 +56,10 @@ public class TraceMappingFactory {
             ObjectMapper mapper = context.getBean(ObjectMapper.class);
             for (TraceIdMappingConfig mappingConfig : config.getMapping()) {
                 try {
-                    // Flatten the configuration
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("type", mappingConfig.getType());
-                    map.putAll(mappingConfig.getArgs());
-                    String json = mapper.writeValueAsString(map);
+                    String json = mapper.writeValueAsString(mappingConfig);
                     extractorList.add(mapper.readValue(json, ITraceIdMappingExtractor.class));
                 } catch (IOException e) {
-                    log.error("Unable to create extractor for type " + mappingConfig.getType(), e);
+                    throw new RuntimeException("Unable to create extractor for type " + mappingConfig.getOrDefault("type", ""), e);
                 }
             }
         }
@@ -93,7 +87,7 @@ public class TraceMappingFactory {
 
             for (TraceSpan span : spanList) {
                 // extractors extract mapping from tags,
-                // if there's no tags, it's no need to call extractors
+                // if there are no tags, it's no need to call extractors
                 if (CollectionUtils.isEmpty(span.getTags())) {
                     continue;
                 }
@@ -122,13 +116,13 @@ public class TraceMappingFactory {
         static final ITraceIdMappingExtractor INSTANCE = new CompatibilityIdMappingExtractor();
 
         @Override
-        public void extract(TraceSpan span, BiConsumer<TraceSpan, String> callback) {
+        public void extract(TraceSpan span, BiConsumer<TraceSpan, String> consumer) {
             if (!"SERVER".equals(span.getKind())) {
                 return;
             }
             String upstreamTraceId = span.getTags().get("upstreamTraceId");
             if (StringUtils.hasText(upstreamTraceId)) {
-                callback.accept(span, upstreamTraceId);
+                consumer.accept(span, upstreamTraceId);
             }
         }
     }
@@ -141,8 +135,8 @@ public class TraceMappingFactory {
         static final ITraceIdMappingExtractor INSTANCE = new TraceIdExtractor();
 
         @Override
-        public void extract(TraceSpan span, BiConsumer<TraceSpan, String> callback) {
-            callback.accept(span, span.getTraceId());
+        public void extract(TraceSpan span, BiConsumer<TraceSpan, String> consumer) {
+            consumer.accept(span, span.getTraceId());
         }
     }
 }
