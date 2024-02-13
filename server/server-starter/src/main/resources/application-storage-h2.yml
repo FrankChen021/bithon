@@ -37,6 +37,22 @@ bithon:
       enabled: true
     web:
       provider: h2-local
+      type: jdbc
+
+    alerting:
+      all:
+        provider: h2-local
+        ttl:
+          enabled: true
+          ttl: P1D
+          cleanPeriod: PT3M
+
+      log:
+        provider: h2-local
+        ttl:
+          enabled: true
+          ttl: P1D
+          cleanPeriod: PT3M
 
     providers:
       h2-local:

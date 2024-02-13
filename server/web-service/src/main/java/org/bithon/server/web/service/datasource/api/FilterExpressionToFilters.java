@@ -36,6 +36,7 @@ import org.bithon.server.commons.matcher.LessThanMatcher;
 import org.bithon.server.commons.matcher.LessThanOrEqualMatcher;
 import org.bithon.server.commons.matcher.NotEqualMatcher;
 import org.bithon.server.commons.matcher.NotMatcher;
+import org.bithon.server.commons.matcher.NullMatcher;
 import org.bithon.server.commons.matcher.StringAntPathMatcher;
 import org.bithon.server.commons.matcher.StringContainsMatcher;
 import org.bithon.server.commons.matcher.StringEndWithMatcher;
@@ -232,6 +233,11 @@ public class FilterExpressionToFilters {
             return new LogicalExpression.NOT(
                 matcher.getMatcher().accept(this)
             );
+        }
+
+        @Override
+        public IExpression visit(NullMatcher nullMatcher) {
+            return null;
         }
     }
 }

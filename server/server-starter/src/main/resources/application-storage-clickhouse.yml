@@ -36,6 +36,22 @@ bithon:
       enabled: true
     web:
       provider: clickhouse
+      type: clickhouse
+
+    alerting:
+      all:
+        provider: clickhouse
+        ttl:
+          enabled: true
+          ttl: P1D
+          cleanPeriod: PT3M
+      log:
+        provider: clickhouse
+        ttl:
+          enabled: true
+          ttl: P1D
+          cleanPeriod: PT3M
+
     providers:
       clickhouse:
         url: jdbc:clickhouse://localhost:8123/bithon

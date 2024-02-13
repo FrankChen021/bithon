@@ -28,6 +28,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import org.bithon.server.commons.serializer.ExpressionDeserializer;
+import org.bithon.server.commons.serializer.HumanReadableDurationDeserializer;
+import org.bithon.server.commons.serializer.HumanReadableDurationSerializer;
 import org.bithon.server.commons.time.Period;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -69,9 +71,11 @@ public class ObjectMapperConfigurer {
                                        public Class<Period> handledType() {
                                            return Period.class;
                                        }
-                                   }
+                                   },
+                                   new HumanReadableDurationSerializer()
                       )
-                .deserializers(new ExpressionDeserializer())
+                .deserializers(new ExpressionDeserializer(),
+                               new HumanReadableDurationDeserializer())
                       .build()
                       .setInjectableValues(new InjectableValues() {
                           @Override

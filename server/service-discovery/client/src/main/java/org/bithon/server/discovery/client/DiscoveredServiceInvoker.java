@@ -211,7 +211,7 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
         }
     }
 
-    private class RemoteServiceCaller<T> implements Callable<ServiceResponse<?>> {
+    private class RemoteServiceCaller<T, RESP> implements Callable<RESP> {
         final ObjectMapper objectMapper;
 
         private final Class<T> type;
@@ -240,7 +240,7 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
         }
 
         @Override
-        public ServiceResponse<?> call() {
+        public RESP call() {
             Object feignObject = Feign.builder()
                                       .contract(applicationContext.getBean(Contract.class))
                                       .encoder(applicationContext.getBean(Encoder.class))
@@ -259,11 +259,8 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
 
             try {
                 // The remote service must return a type of Collection
-                return (ServiceResponse<?>) handler.invoke(feignObject, method, args);
-            } catch (FeignException.NotFound e) {
-                // Ignore the exception that the target service does not have data of given args
-                // This might also ignore the HTTP layer 404 problem
-                return ServiceResponse.EMPTY;
+                //noinspection unchecked
+                return (RESP) handler.invoke(feignObject, method, args);
             } catch (FeignException.Forbidden e) {
                 throw new HttpMappableException(HttpStatus.FORBIDDEN.value(), e.getMessage());
             } catch (HttpMappableException e) {

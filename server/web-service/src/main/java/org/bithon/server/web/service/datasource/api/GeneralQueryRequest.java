@@ -16,7 +16,10 @@
 
 package org.bithon.server.web.service.datasource.api;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.OrderBy;
@@ -33,6 +36,9 @@ import java.util.List;
  * @date 29/10/22 9:04 pm
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class GeneralQueryRequest {
 
     @NotEmpty

@@ -9,3 +9,4 @@ spring:
       - pipeline-to-local
       - storage-h2
       - webapp
+      - alerting

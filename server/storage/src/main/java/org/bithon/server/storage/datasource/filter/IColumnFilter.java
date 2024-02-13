@@ -71,6 +71,16 @@ public interface IColumnFilter {
             this.expected = expected;
             this.matcher = matcher;
         }
+
+        @Override
+        public String toString() {
+            if (expected instanceof String) {
+                return field + " " + predicate + " '" + expected + "'";
+            }
+            else {
+                return field + " " + predicate + " " + expected;
+            }
+        }
     }
 
     class GreaterThanFilter extends AbstractFilter {

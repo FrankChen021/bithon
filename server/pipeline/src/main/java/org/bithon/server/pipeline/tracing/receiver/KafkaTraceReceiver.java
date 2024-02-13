@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.bithon.server.pipeline.common.kafka.AbstractKafkaConsumer;
@@ -42,14 +41,10 @@ import java.util.Map;
 public class KafkaTraceReceiver extends AbstractKafkaConsumer implements ITraceReceiver {
     private final Map<String, Object> props;
     private ITraceProcessor processor;
-    private final TypeReference<List<TraceSpan>> typeReference;
 
     public KafkaTraceReceiver(@JsonProperty("props") Map<String, Object> props,
                               @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         super(applicationContext);
-
-        this.typeReference = new TypeReference<List<TraceSpan>>() {
-        };
         this.props = props;
     }
 

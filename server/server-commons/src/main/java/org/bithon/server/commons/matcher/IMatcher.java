@@ -40,6 +40,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @JsonSubTypes.Type(name = "lt", value = LessThanMatcher.class),
     @JsonSubTypes.Type(name = "lte", value = LessThanOrEqualMatcher.class),
     @JsonSubTypes.Type(name = "like", value = StringLikeMatcher.class),
+    @JsonSubTypes.Type(name = "null", value = NullMatcher.class),
 })
 public interface IMatcher {
     boolean matches(Object input);

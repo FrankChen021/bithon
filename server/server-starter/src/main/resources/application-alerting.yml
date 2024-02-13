@@ -1,0 +1,29 @@
+# This configuration file demonstrates the alerting deployment in one process.
+bithon:
+  alerting:
+    evaluator:
+      enabled: true
+      state:
+        type: local
+
+         # Use Redis(including Redis Sentinel as state storage)
+#          type: redis
+#          props:
+#            host: localhost
+#            port: 6379
+#            timeout: 3s
+
+         # Use Redis Cluster as state storage
+#          type: redis
+#          props:
+#            timeout: 3s
+#            cluster:
+#              nodes: localhost:6379, localhost:6380, localhost:6381
+
+      # Where the evaluator module uses the notification services
+      notification-service: discovery
+    manager:
+      enabled: true
+      allow-anonymous: true
+    notification:
+      enabled: true

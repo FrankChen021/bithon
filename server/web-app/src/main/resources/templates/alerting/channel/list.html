@@ -1,0 +1,172 @@
+<!DOCTYPE HTML>
+<html lang="zh_CN"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{app/app-layout}"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.ultraq.net.nz/thymeleaf/layout ">
+<head>
+    <title>Bithon Notification Channel</title>
+
+    <script th:src="@{/js/dialog.js}" type="text/javascript"></script>
+    <script th:src="@{/js/utils.js}" type="text/javascript"></script>
+
+    <script th:src="@{/js/alert/log-component.js}" type="text/javascript"></script>
+</head>
+<body>
+<div layout:fragment="content">
+    <div id="toolbar">
+        <button class="btn btn-outline-info btn-create">New Channel</button>
+    </div>
+
+    <!-- Table -->
+    <table class="table" data-buttons-align="right" id="channelTable">
+    </table>
+
+    <script type="text/javascript">
+        function refreshPage() {
+            $('#channelTable').bootstrapTable('refreshOptions', {
+                pageNumber: 1
+            });
+        }
+
+        $(document).ready(function () {
+            $('#channelTable').bootstrapTable({
+                toolbar: '#toolbar',
+
+                url: apiHost + '/api/alerting/channel/get',
+                method: 'post',
+                contentType: "application/json",
+                showRefresh: true,
+
+                buttonsAlign: 'right',
+                sidePagination: "client",
+                pagination: true,
+                paginationPreText: '<',
+                paginationNextText: '>',
+                pageNumber: 1,
+                pageSize: 10,
+                pageList: [50, 100, 200],
+                sortName: 'name',
+                sortOrder: 'desc',
+
+                queryParamsType: '',
+                queryParams: (params) => {
+                    return {
+                        name: params.searchText,
+                        limit: {
+                            limit: params.pageSize,
+                            offset: (params.pageNumber - 1) * params.pageSize,
+                        },
+                        order: {
+                            name: params.sortName,
+                            order: params.sortOrder
+                        }
+                    };
+                },
+
+                filterControl: true,
+                filterShowClear: true,
+                search: true,
+                searchHighlight: true,
+                showSearchClearButton: true,
+                searchOnEnterKey: false,
+                formatSearch: () => {
+                    return 'Search by name';
+                },
+
+                detailView: true,
+                detailFormatter: (index, row) => {
+                    return `<pre>${JSON.stringify(row.props, null, 2)}</pre>`;
+                },
+
+                uniqueId: 'name',
+                columns: [{
+                    field: 'name',
+                    title: 'name',
+                    sortable: true
+                }, {
+                    field: 'type',
+                    title: 'type',
+                    sortable: true
+                }, {
+                    field: 'createdAt',
+                    title: 'created at',
+                    sortable: true,
+                    searchable: false,
+                    formatter: (value) => {
+                        return moment(value).local().format('yyyy-MM-DD HH:mm:ss');
+                    }
+                }, {
+                    field: 'name',
+                    title: 'operations',
+                    searchable: false,
+                    formatter: (value, row, index) => {
+                        return '<div class="btn-group btn-group-sm" role="group" aria-label="...">' +
+                            '<button class="btn btn-outline-primary" onclick="toggleProps(\'' + index + '\')"><span class="glyphicon glyphicon-remove"></span>&nbsp;Show Props</button>' +
+                            '<button class="btn btn-outline-primary" onclick="deleteChannel(\'' + value + '\')"><span class="glyphicon glyphicon-remove"></span>&nbsp;Delete</button>' +
+                            '</div>';
+                    }
+                }]
+            });
+
+            $('.btn-create').click(() => {
+                window.location.href = '/web/alerting/channel/create';
+            });
+        });
+
+        function toggleProps(index) {
+            $('#channelTable').bootstrapTable('toggleDetailView', index);
+        }
+
+        function deleteChannel(name) {
+            const channelObj = $('#channelTable').bootstrapTable('getRowByUniqueId', name);
+
+            bootbox.confirm({
+                title: "Confirmation",
+                message: "Are you sure to <b>delete</b> this channel <u>" + channelObj.name + "</u>?",
+                callback: (confirmed) => {
+                    if (!confirmed) {
+                        return null;
+                    }
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/api/alerting/channel/delete",
+                        async: true,
+                        data: JSON.stringify({
+                            name: name
+                        }),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (data) {
+                            if (data.code !== 200) {
+                                bootbox.alert({
+                                    backdrop: true,
+                                    title: "Error",
+                                    message: data.message
+                                });
+                                return;
+                            }
+                            $('#channelTable').bootstrapTable('removeByUniqueId', name);
+                            bootbox.alert({
+                                backdrop: true,
+                                message: "Channel has been deleted successfully."
+                            });
+                        },
+                        error: (data) => {
+                            console.log(data);
+                            bootbox.alert({
+                                backdrop: true,
+                                title: "Error",
+                                message: data.responseText
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+</div>
+</body>
+</html>

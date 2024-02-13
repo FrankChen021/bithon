@@ -17,6 +17,10 @@
 package org.bithon.server.storage.common.expiration;
 
 /**
+ *
+ * If implemented, no need to do extract registration to be scheduled.
+ * The {@link ExpirationScheduler} will schedule the implementation automatically.
+ *
  * @author frank chen
  */
 public interface IExpirable {

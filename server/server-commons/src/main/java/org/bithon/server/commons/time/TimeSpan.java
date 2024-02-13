@@ -16,6 +16,8 @@
 
 package org.bithon.server.commons.time;
 
+import org.bithon.component.commons.utils.HumanReadableDuration;
+
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -54,6 +56,10 @@ public class TimeSpan {
 
     public TimeSpan before(long value, TimeUnit timeUnit) {
         return new TimeSpan(milliseconds - timeUnit.toMillis(value));
+    }
+
+    public TimeSpan before(HumanReadableDuration duration) {
+        return new TimeSpan(milliseconds - duration.getDuration().toMillis());
     }
 
     public TimeSpan after(long value, TimeUnit timeUnit) {
@@ -128,5 +134,9 @@ public class TimeSpan {
 
     public TimeSpan minus(long millis) {
         return new TimeSpan(this.milliseconds - millis);
+    }
+
+    public String format(String format) {
+        return new SimpleDateFormat(format, Locale.ENGLISH).format(new Date(this.milliseconds));
     }
 }

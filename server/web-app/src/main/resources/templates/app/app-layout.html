@@ -172,6 +172,24 @@
                             <span class="menu-text">Event</span>
                         </a>
                     </li>
+
+                    <li class="sidebar-dropdown alerting">
+                        <a class="alerting-anchor" href="#">
+                            <i class="far fa-gem"></i>
+                            <span class="menu-text">Alerting</span>
+                        </a>
+                        <div class="sidebar-submenu">
+                            <ul>
+                                <li>
+                                    <a onclick="redirect('/web/alerting/alert/list')">Alerts</a>
+                                </li>
+                                <li>
+                                    <a onclick="redirect('/web/alerting/channel/list')">Notification Channels</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
                     <li class="sidebar">
                         <a onclick="redirect('/web/diagnosis/diagnosis')">
                             <i class="fa fa-diagnoses"></i>
@@ -179,32 +197,6 @@
                         </a>
                     </li>
 
-<!--                    <li class="sidebar-dropdown">-->
-<!--                        <a href="#">-->
-<!--                            <i class="far fa-gem"></i>-->
-<!--                            <span class="menu-text">Alert</span>-->
-<!--                        </a>-->
-<!--                        <div class="sidebar-submenu">-->
-<!--                            <ul>-->
-<!--                                <li>-->
-<!--                                    <a href="#">General</a>-->
-<!--                                </li>-->
-<!--                            </ul>-->
-<!--                        </div>-->
-<!--                    </li>-->
-<!--                    <li class="sidebar-dropdown">-->
-<!--                        <a href="#">-->
-<!--                            <i class="fa fa-chart-line"></i>-->
-<!--                            <span class="menu-text">Log</span>-->
-<!--                        </a>-->
-<!--                        <div class="sidebar-submenu">-->
-<!--                            <ul>-->
-<!--                                <li>-->
-<!--                                    <a href="#">Pie chart</a>-->
-<!--                                </li>-->
-<!--                            </ul>-->
-<!--                        </div>-->
-<!--                    </li>-->
                 </ul>
             </div>
             <!-- sidebar-menu  -->
@@ -394,6 +386,8 @@
             $('.metrics-anchor').click();
         } else if (window.location.href.indexOf('/web/trace/') > 0) {
             $('.tracing-anchor').click();
+        } else if (window.location.href.indexOf('/web/alerting/') > 0) {
+            $('.alerting-anchor').click();
         }
         $('.page-wrapper').bind('pinned', () => {
             const handler = window.setInterval(() => {

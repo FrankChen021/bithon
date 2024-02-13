@@ -43,7 +43,7 @@ public class IntervalRequest {
     /**
      * An expression that allows the client to change the default timestamp column,
      * so that some functions can be used upon the timestamp column before aggregation.
-     * This helps if the underlying datasource provides PROJECTION support upoon the timestamp column.
+     * This helps if the underlying datasource provides PROJECTION support upon the timestamp column.
      */
     @Nullable
     private String timestampColumn;
@@ -56,6 +56,9 @@ public class IntervalRequest {
     @Nullable
     private Integer bucketCount;
 
+    /**
+     * In second
+     */
     @Nullable
     private Integer minBucketLength;
 }

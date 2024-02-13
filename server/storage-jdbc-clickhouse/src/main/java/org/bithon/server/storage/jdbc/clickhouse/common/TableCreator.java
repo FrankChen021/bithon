@@ -29,6 +29,7 @@ import org.jooq.Table;
 import org.jooq.impl.SQLDataType;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -249,7 +250,11 @@ public class TableCreator {
 
             Field<?> defaultValue = dataType.defaultValue();
             if (defaultValue != null) {
-                sb.append(StringUtils.format("DEFAULT %s", defaultValue.toString()));
+                String defaultValueText = defaultValue.toString();
+                if (defaultValueText.toUpperCase(Locale.ENGLISH).startsWith("CURRENT_TIMESTAMP")) {
+                    defaultValueText = "now()";
+                }
+                sb.append(StringUtils.format("DEFAULT %s", defaultValueText));
             }
 
             sb.append(",\n");

@@ -94,6 +94,10 @@
         <Class name="org.bithon.agent.plugin.tomcat.interceptor.StandardWrapperValve$Exception"/>
         <Bug pattern="NM_CLASS_NOT_EXCEPTION" />
     </Match>
+    <Match>
+        <Class name="org.bithon.server.metric.DataSourceSchemaManager"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE" />
+    </Match>
 
     <!-- agent-controller -->
     <Match>

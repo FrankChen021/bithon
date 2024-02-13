@@ -15,3 +15,8 @@ java.util.concurrent.Executors#newSingleThreadScheduledExecutor()
 java.util.concurrent.Executors#newSingleThreadScheduledExecutor(java.util.concurrent.ThreadFactory)
 java.util.concurrent.Executors#newScheduledThreadPool(int)
 java.util.concurrent.Executors#newScheduledThreadPool(int, java.util.concurrent.ThreadFactory)
+
+ @defaultMessage The fetchExists generates 'exists' sub-queries which is not supported by ClickHouse. Use fetchCount instead
+org.jooq.DSLContext#fetchExists(org.jooq.Select)
+org.jooq.DSLContext#fetchExists(org.jooq.Table)
+org.jooq.DSLContext#fetchExists(org.jooq.Table, org.jooq.Condition)
