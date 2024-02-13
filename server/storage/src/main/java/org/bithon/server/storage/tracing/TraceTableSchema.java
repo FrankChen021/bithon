@@ -47,6 +47,7 @@ public class TraceTableSchema implements ISchema {
 
     private final IDataStoreSpec dataStoreSpec;
     private final Map<String, IColumn> columnMap = new HashMap<>();
+    private final Map<String, IColumn> aliasMap = new HashMap<>();
 
     TraceTableSchema(String name, ITraceStorage storage, List<IColumn> columns) {
         this.name = name;
@@ -56,7 +57,7 @@ public class TraceTableSchema implements ISchema {
             columnMap.put(column.getName(), column);
 
             if (!column.getAlias().equals(column.getName())) {
-                columnMap.put(column.getAlias(), column);
+                aliasMap.put(column.getAlias(), column);
             }
         });
     }
@@ -78,7 +79,8 @@ public class TraceTableSchema implements ISchema {
 
     @Override
     public IColumn getColumnByName(String name) {
-        return this.columnMap.get(name);
+        IColumn column = this.columnMap.get(name);
+        return column == null ? this.aliasMap.get(name) : column;
     }
 
     @Override
