@@ -20,17 +20,9 @@ import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
-import feign.Contract;
-import feign.Feign;
-import feign.codec.Decoder;
-import feign.codec.Encoder;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.evaluator.rpc.NotificationServiceClientApi;
 import org.bithon.server.alerting.evaluator.storage.local.AlertStateLocalMemoryStorage;
 import org.bithon.server.alerting.evaluator.storage.redis.AlertStateRedisStorage;
-import org.bithon.server.alerting.notification.api.INotificationApi;
-import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -71,29 +63,6 @@ public class EvaluatorModuleAutoConfiguration {
         } catch (InvalidTypeIdException e) {
             throw new RuntimeException("Not found state storage with type " + stateConfig.get("type"));
         }
-    }
-
-    @Bean
-    public NotificationServiceClientApi alertNotificationService(DiscoveredServiceInvoker discoveredServiceInvoker,
-                                                                 Contract contract,
-                                                                 Encoder encoder,
-                                                                 Decoder decoder,
-                                                                 Environment environment) {
-
-        String service = environment.getProperty("bithon.alerting.evaluator.notification-service", "discovery");
-        if ("discovery".equalsIgnoreCase(service)) {
-            return new NotificationServiceClientApi(discoveredServiceInvoker.createUnicastApi(INotificationApi.class));
-        }
-
-        if (service.startsWith("http:") || service.startsWith("https:")) {
-            return new NotificationServiceClientApi(Feign.builder()
-                                                         .contract(contract)
-                                                         .encoder(encoder)
-                                                         .decoder(decoder)
-                                                         .target(INotificationApi.class, service));
-        }
-
-        throw new RuntimeException(StringUtils.format("Invalid notification property configured. Only 'discovery' or URL is allowed, but got [%s]", service));
     }
 
     @Bean

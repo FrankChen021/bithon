@@ -18,6 +18,10 @@ package org.bithon.server.alerting.evaluator.evaluator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import feign.Contract;
+import feign.Feign;
+import feign.codec.Decoder;
+import feign.codec.Encoder;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
@@ -26,17 +30,20 @@ import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
-import org.bithon.server.alerting.evaluator.rpc.NotificationServiceClientApi;
+import org.bithon.server.alerting.notification.api.INotificationApi;
 import org.bithon.server.alerting.notification.message.ConditionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.alerting.notification.message.OutputMessage;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -59,19 +66,19 @@ public class AlertEvaluator {
     private final IAlertRecordStorage alertRecordStorage;
     private final ObjectMapper objectMapper;
     private final IDataSourceApi dataSourceApi;
-    private final NotificationServiceClientApi notificationApi;
+    private final INotificationApi notificationApi;
 
     public AlertEvaluator(IAlertStateStorage stateStorage,
                           IEvaluationLogStorage logStorage,
                           IAlertRecordStorage recordStorage,
                           IDataSourceApi dataSourceApi,
-                          NotificationServiceClientApi notificationApi) {
+                          ApplicationContext applicationContext) {
         this.stateStorage = stateStorage;
         this.evaluationLoggerFactory = logStorage;
         this.alertRecordStorage = recordStorage;
         this.dataSourceApi = dataSourceApi;
         this.objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-        this.notificationApi = notificationApi;
+        this.notificationApi = createNotificationApi(applicationContext);
     }
 
     public void evaluate(TimeSpan now, AlertRule alertRule) {
@@ -96,6 +103,28 @@ public class AlertEvaluator {
                 log.error("Flush log for alert {} failed: {}", alertRule.getId(), e.toString());
             }
         }
+    }
+
+    private INotificationApi createNotificationApi(ApplicationContext context) {
+        // Even the notification module is deployed with the evaluator module together,
+        // we still call the notification module via HTTP instead of direct API method calls in process
+        // So that it simulates the 'remote call' via discovered service
+        String service = context.getBean(Environment.class).getProperty("bithon.alerting.evaluator.notification-service", "discovery");
+        if ("discovery".equalsIgnoreCase(service)) {
+            return context.getBean(DiscoveredServiceInvoker.class).createUnicastApi(INotificationApi.class);
+        }
+
+        // The service is configured as a remote service at fixed address
+        // Create a feign client to call it
+        if (service.startsWith("http:") || service.startsWith("https:")) {
+            return Feign.builder()
+                        .contract(context.getBean(Contract.class))
+                        .encoder(context.getBean(Encoder.class))
+                        .decoder(context.getBean(Decoder.class))
+                        .target(INotificationApi.class, service);
+        }
+
+        throw new RuntimeException(StringUtils.format("Invalid notification property configured. Only 'discovery' or URL is allowed, but got [%s]", service));
     }
 
     private boolean evaluate(EvaluationContext context) {
