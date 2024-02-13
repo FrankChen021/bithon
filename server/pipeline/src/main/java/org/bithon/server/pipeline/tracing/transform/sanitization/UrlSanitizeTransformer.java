@@ -51,10 +51,6 @@ public class UrlSanitizeTransformer extends AbstractSanitizer {
      */
     private final Map<String, String> sensitiveParameters;
 
-    /**
-     * NOTE: the ctor is passed from configuration which are deserialized from the application yml
-     * The default deserialization treats the list as a LinkedHashMap, so we have to define the ctor as the map
-     */
     @JsonCreator
     public UrlSanitizeTransformer(@JsonProperty("where") String where,
                                   @JsonProperty("sensitiveParameters") Map<String, String> sensitiveParameters) {
@@ -71,7 +67,7 @@ public class UrlSanitizeTransformer extends AbstractSanitizer {
 
             String attribVal = span.getTag(attribName);
             if (StringUtils.hasText(attribVal)) {
-                span.setTag(attribName, UrlUtils.sanitize(attribVal, parameterName, "*HIDDEN*"));
+                span.setTag(attribName, UrlUtils.sanitize(attribVal, parameterName, "***HIDDEN***"));
             }
         }
     }

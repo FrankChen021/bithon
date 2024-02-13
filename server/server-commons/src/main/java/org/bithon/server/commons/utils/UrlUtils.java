@@ -109,8 +109,9 @@ public class UrlUtils {
 
             // After the parameter name, it should be the '='
             // To make the function robust, we skip any spaces before the '=' character
-            while (parameterIndex < url.length() && url.charAt(parameterIndex) == ' ')
+            while (parameterIndex < url.length() && url.charAt(parameterIndex) == ' ') {
                 parameterIndex++;
+            }
 
             if (parameterIndex < url.length()) {
                 // A '=' is expected.

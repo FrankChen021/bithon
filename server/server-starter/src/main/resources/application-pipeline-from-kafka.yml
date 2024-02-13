@@ -43,6 +43,14 @@ bithon:
             "[bootstrap.servers]": localhost:9092
             "[fetch.min.bytes]": 1048576
       processors:
+        - type: filter
+          expr: not endsWith(clazz,  'UriNormalizer')
+        - type: url-sanitize-transform
+          sensitiveParameters:
+            "[http.uri]": password
+            "[http.url]": password
+            "uri": password
+        - type: builtin-span-transform
       exporters:
         - type: store
 
