@@ -8,53 +8,40 @@
         alerting-evaluator -. Read Alert .-> Storage
         alerting-evaluator -. Read Metrics .-> bithon-server
         alerting-evaluator -. Generate images .-> image-render-service
-        alerting-evaluator -. Notification .-> external-application
+        alerting-evaluator -. Notification(HTTP) .-> external-application
+        alerting-evaluator -. Notification(Kafka) .-> Kafka
 ```
 
-## Alert Object
+## Alert Rule
 
 ### Template
 
-The alert in Bithon is defined as following template in JSON.
+The alert in Bithon is defined as the following template in YAML.
 
-```json
-{
-  "name" : "name of this alert",
-  "appName" : "application owner of this alert",
-  "enabled": "true/false",
-  
-  "evaluateInterval" : "interval for each alert evaluation. In minute",
-  "matchTimes": "should alert if the conditions match up to the value of this parameter",
-  
-  "conditions": [{
-    "id": "A-Z",
-    "dataSource": "data source name of this condition",
-    "dimensions": [{
-      "dimension": "name of dimension",
-      "matcher": {
-        "type": "contains|equal|notEqual|icontains|startwith|endwith|regex|antPath|in",
-        "pattern": "target value"
-      }
-    }],
-    "metric": {
-      "comparator": ">|>=|<=|<|mom-up|mom-down|dod-up|dod-down",
-      "name": "metric name",
-      "aggregator": "avg|count|sum|min|max|rate",
-      "expected": "expected value of object.",
-      "window": "the metric aggregating window from the time point when the alert is evaluating to past N minutes"
-    }
-  }],
-  "rules": [{
-    "expression": "A",
-    "enabled": "true/false",
-    "severity": "CRITICAL/SEVERE/MODERATE"
-  }],
-  "notifications": [{
-    "type": "ding|console|http"
-  }]
-}
+```yaml
+id: "f7f87ce1e0b444919b123849f4c7939f"
+checkApplication: "false"
+appName: "optional, the name of "
+evaluationInterval: optional, the interval of evaluation in minutes
+
+name: "the name of the alert"
+expr: "PromQL style expression, for example: avg(jvm-metrics.processCpuLoad)[1m] > 0.1[-1h]"
+for: "The duration before the alert should be fired. In the format of duration. Like 1m, 1h"
+notifications: [name list of notification channels]
+```
+
+### Expression Syntax
+
+```text
+expression: aggregator(datasource.metric{dim1='val1' AND dim2='val2'})[duration] op expected_value
+aggregator: 'sum'|'avg'|'min'|'max'|'first'|'last'|'count'
+duration: number 's'|'m'|'h'|'d'
+op: '>'|'>='|'<'|'<='|'<>'|'='
+expected_value: number | percentage
+percentage: number '%'
 ```
 
 ### Example
 
-There are some Scratch Files under [this](admin/src/test/java) directory. You can directly run these scratch files in Intellij to see how the APIs work.
+There are some Scratch Files under the [manager module](manager) directory. 
+You can directly run these scratch files in Intellij to see how the APIs work.
