@@ -40,7 +40,7 @@ public class UrlSanitizeTransformTest {
                                                                       "url", "/?database=default&user=1&password=123"))).build();
         transformer.transform(span);
 
-        Assert.assertEquals("/?database=default&user=1&password=*HIDDEN*", span.getTag("http.url"));
-        Assert.assertEquals("/?database=default&user=1&password=*HIDDEN*", span.getTag("url"));
+        Assert.assertEquals("/?database=default&user=1&password=***HIDDEN***", span.getTag("http.url"));
+        Assert.assertEquals("/?database=default&user=1&password=***HIDDEN***", span.getTag("url"));
     }
 }
