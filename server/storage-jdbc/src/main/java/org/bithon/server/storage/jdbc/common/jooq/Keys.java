@@ -41,7 +41,7 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_KEY_APPNAME = UniqueKeys0.KEY_BITHON_AGENT_SETTING_KEY_APPNAME;
-    public static final UniqueKey<BithonAlertNotificationChannelRecord> KEY_BITHON_ALERT_NOTIFICATION_CHANNEL_ALERT_NOTIFICATION_PROVIDER_NAME = UniqueKeys0.KEY_BITHON_ALERT_NOTIFICATION_CHANNEL_ALERT_NOTIFICATION_PROVIDER_NAME;
+    public static final UniqueKey<BithonAlertNotificationChannelRecord> KEY_BITHON_ALERT_NOTIFICATION_CHANNEL_ALERT_NOTIFICATION_CHANNEL_NAME = UniqueKeys0.KEY_BITHON_ALERT_NOTIFICATION_CHANNEL_ALERT_NOTIFICATION_CHANNEL_NAME;
     public static final UniqueKey<BithonAlertObjectRecord> KEY_BITHON_ALERT_OBJECT_UQ_ALERT_OBJECT_ID = UniqueKeys0.KEY_BITHON_ALERT_OBJECT_UQ_ALERT_OBJECT_ID;
     public static final UniqueKey<BithonAlertStateRecord> KEY_BITHON_ALERT_STATE_UQ_ALERT_ID = UniqueKeys0.KEY_BITHON_ALERT_STATE_UQ_ALERT_ID;
     public static final UniqueKey<BithonApplicationInstanceRecord> KEY_BITHON_APPLICATION_INSTANCE_UQ_NAME_TYPE_INSTANCE = UniqueKeys0.KEY_BITHON_APPLICATION_INSTANCE_UQ_NAME_TYPE_INSTANCE;
@@ -60,7 +60,7 @@ public class Keys {
 
     private static class UniqueKeys0 {
         public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_KEY_APPNAME = Internal.createUniqueKey(BithonAgentSetting.BITHON_AGENT_SETTING, "KEY_bithon_agent_setting_key_appName", BithonAgentSetting.BITHON_AGENT_SETTING.APPNAME, BithonAgentSetting.BITHON_AGENT_SETTING.SETTINGNAME);
-        public static final UniqueKey<BithonAlertNotificationChannelRecord> KEY_BITHON_ALERT_NOTIFICATION_CHANNEL_ALERT_NOTIFICATION_PROVIDER_NAME = Internal.createUniqueKey(BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL, "KEY_bithon_alert_notification_channel_alert_notification_provider_name", BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME);
+        public static final UniqueKey<BithonAlertNotificationChannelRecord> KEY_BITHON_ALERT_NOTIFICATION_CHANNEL_ALERT_NOTIFICATION_CHANNEL_NAME = Internal.createUniqueKey(BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL, "KEY_bithon_alert_notification_channel_alert_notification_channel_name", BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME);
         public static final UniqueKey<BithonAlertObjectRecord> KEY_BITHON_ALERT_OBJECT_UQ_ALERT_OBJECT_ID = Internal.createUniqueKey(BithonAlertObject.BITHON_ALERT_OBJECT, "KEY_bithon_alert_object_uq_alert_object_id", BithonAlertObject.BITHON_ALERT_OBJECT.ALERT_ID);
         public static final UniqueKey<BithonAlertStateRecord> KEY_BITHON_ALERT_STATE_UQ_ALERT_ID = Internal.createUniqueKey(BithonAlertState.BITHON_ALERT_STATE, "KEY_bithon_alert_state_uq_alert_id", BithonAlertState.BITHON_ALERT_STATE.ALERT_ID);
         public static final UniqueKey<BithonApplicationInstanceRecord> KEY_BITHON_APPLICATION_INSTANCE_UQ_NAME_TYPE_INSTANCE = Internal.createUniqueKey(BithonApplicationInstance.BITHON_APPLICATION_INSTANCE, "KEY_bithon_application_instance_uq_name_type_instance", BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPNAME, BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPTYPE, BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.INSTANCENAME);

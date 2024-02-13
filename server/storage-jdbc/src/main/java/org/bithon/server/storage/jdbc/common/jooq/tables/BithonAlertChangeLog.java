@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertChangeLog extends TableImpl<BithonAlertChangeLogRecord> {
 
-    private static final long serialVersionUID = 496342581;
+    private static final long serialVersionUID = -742280622;
 
     /**
      * The reference instance of <code>bithon_alert_change_log</code>
@@ -115,7 +115,7 @@ public class BithonAlertChangeLog extends TableImpl<BithonAlertChangeLogRecord> 
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_ALERT_CHANGE_LOG_IDX_ALERT_CHANGE_LOG_ALERT_ID, Indexes.BITHON_ALERT_CHANGE_LOG_IDX_ALERT_CHANGE_LOG_CREATD_AT);
+        return Arrays.<Index>asList(Indexes.BITHON_ALERT_CHANGE_LOG_IDX_ALERT_CHANGE_LOG_ALERT_ID, Indexes.BITHON_ALERT_CHANGE_LOG_IDX_ALERT_CHANGE_LOG_CREATED_AT);
     }
 
     @Override

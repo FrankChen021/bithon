@@ -14,12 +14,12 @@ import org.jooq.impl.TableRecordImpl;
 
 
 /**
- * Alert channels
+ * Alert Notification channels
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertNotificationChannelRecord extends TableRecordImpl<BithonAlertNotificationChannelRecord> implements Record4<String, String, String, LocalDateTime> {
 
-    private static final long serialVersionUID = 2116284931;
+    private static final long serialVersionUID = -2130573694;
 
     /**
      * Setter for <code>bithon_alert_notification_channel.name</code>.

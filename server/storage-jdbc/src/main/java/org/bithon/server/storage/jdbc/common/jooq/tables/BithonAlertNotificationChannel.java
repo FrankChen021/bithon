@@ -27,12 +27,12 @@ import org.jooq.impl.TableImpl;
 
 
 /**
- * Alert channels
+ * Alert Notification channels
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertNotificationChannel extends TableImpl<BithonAlertNotificationChannelRecord> {
 
-    private static final long serialVersionUID = 1214059355;
+    private static final long serialVersionUID = -1930576341;
 
     /**
      * The reference instance of <code>bithon_alert_notification_channel</code>
@@ -93,7 +93,7 @@ public class BithonAlertNotificationChannel extends TableImpl<BithonAlertNotific
     }
 
     private BithonAlertNotificationChannel(Name alias, Table<BithonAlertNotificationChannelRecord> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment("Alert channels"));
+        super(alias, null, aliased, parameters, DSL.comment("Alert Notification channels"));
     }
 
     public <O extends Record> BithonAlertNotificationChannel(Table<O> child, ForeignKey<O, BithonAlertNotificationChannelRecord> key) {
@@ -107,12 +107,12 @@ public class BithonAlertNotificationChannel extends TableImpl<BithonAlertNotific
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_ALERT_NOTIFICATION_CHANNEL_ALERT_NOTIFICATION_PROVIDER_NAME);
+        return Arrays.<Index>asList(Indexes.BITHON_ALERT_NOTIFICATION_CHANNEL_ALERT_NOTIFICATION_CHANNEL_NAME);
     }
 
     @Override
     public List<UniqueKey<BithonAlertNotificationChannelRecord>> getKeys() {
-        return Arrays.<UniqueKey<BithonAlertNotificationChannelRecord>>asList(Keys.KEY_BITHON_ALERT_NOTIFICATION_CHANNEL_ALERT_NOTIFICATION_PROVIDER_NAME);
+        return Arrays.<UniqueKey<BithonAlertNotificationChannelRecord>>asList(Keys.KEY_BITHON_ALERT_NOTIFICATION_CHANNEL_ALERT_NOTIFICATION_CHANNEL_NAME);
     }
 
     @Override

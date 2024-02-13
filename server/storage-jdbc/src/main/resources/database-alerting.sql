@@ -25,8 +25,8 @@ CREATE TABLE `bithon_alert_object`
     `alert_name`    varchar(128) NOT NULL DEFAULT '' COMMENT '',
     `app_name`      varchar(128) NOT NULL DEFAULT '' COMMENT '',
     `namespace`     varchar(64)  NOT NULL COMMENT 'namespace of application',
-    `disabled`      tinyint(2) NOT NULL DEFAULT '0' COMMENT '',
-    `deleted`       tinyint(2) NOT NULL DEFAULT '0' COMMENT '',
+    `disabled`      tinyint(2) NOT NULL COMMENT '',
+    `deleted`       tinyint(2) NOT NULL COMMENT '',
     `payload`       text COMMENT 'JSON formatted alert',
     `created_at`    timestamp(3) NOT NULL COMMENT '',
     `updated_at`    timestamp(3) NOT NULL COMMENT '',
@@ -48,7 +48,7 @@ CREATE TABLE `bithon_alert_record`
     `payload`             text COMMENT 'JSON formatted alert object',
     `data_source`         text COMMENT 'JSON formatted data source configuration',
     `created_at`          timestamp(3) NOT NULL COMMENT 'create timestamp',
-    `notification_status` int(11) NOT NULL DEFAULT '0' COMMENT '-1:waiting ack，1:ACK',
+    `notification_status` int(11) NOT NULL DEFAULT 0 COMMENT '-1:waiting ack，1:ACK',
     `notification_result` text COMMENT 'JSON formatted',
     KEY                   `idx_bithon_alert_record_id` (`record_id`),
     KEY                   `idx_bithon_alert_record_alert_id` (`alert_id`),
@@ -74,7 +74,7 @@ CREATE TABLE `bithon_alert_change_log`
     `editor`             varchar(64)  DEFAULT NULL COMMENT '',
     `created_at`         timestamp(3) NOT NULL COMMENT 'Create timestamp',
     KEY                  `idx_alert_change_log_alert_id` (`alert_id`),
-    KEY                  `idx_alert_change_log_creatd_at` (`created_at`)
+    KEY                  `idx_alert_change_log_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Change logs of alert';
 
 DROP TABLE IF EXISTS `bithon_alert_evaluation_log`;
@@ -96,5 +96,5 @@ CREATE TABLE `bithon_alert_notification_channel`
     `type` varchar(16) NOT NULL,
     `payload`   text NOT NULL COMMENT 'channel payload',
     `created_at` timestamp(3) NOT NULL COMMENT 'create time',
-    UNIQUE KEY  `alert_notification_provider_name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Alert channels';
+    UNIQUE KEY  `alert_notification_channel_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Alert Notification channels';

@@ -45,7 +45,7 @@ public class Tables {
     public static final BithonAlertEvaluationLog BITHON_ALERT_EVALUATION_LOG = BithonAlertEvaluationLog.BITHON_ALERT_EVALUATION_LOG;
 
     /**
-     * Alert channels
+     * Alert Notification channels
      */
     public static final BithonAlertNotificationChannel BITHON_ALERT_NOTIFICATION_CHANNEL = BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL;
 

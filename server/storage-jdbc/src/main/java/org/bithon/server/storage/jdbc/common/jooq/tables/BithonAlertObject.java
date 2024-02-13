@@ -32,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
 
-    private static final long serialVersionUID = -26445323;
+    private static final long serialVersionUID = -33481061;
 
     /**
      * The reference instance of <code>bithon_alert_object</code>
@@ -70,12 +70,12 @@ public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
     /**
      * The column <code>bithon_alert_object.disabled</code>.
      */
-    public final TableField<BithonAlertObjectRecord, Boolean> DISABLED = createField(DSL.name("disabled"), org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.inline("0", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
+    public final TableField<BithonAlertObjectRecord, Boolean> DISABLED = createField(DSL.name("disabled"), org.jooq.impl.SQLDataType.BOOLEAN.nullable(false), this, "");
 
     /**
      * The column <code>bithon_alert_object.deleted</code>.
      */
-    public final TableField<BithonAlertObjectRecord, Boolean> DELETED = createField(DSL.name("deleted"), org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.inline("0", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
+    public final TableField<BithonAlertObjectRecord, Boolean> DELETED = createField(DSL.name("deleted"), org.jooq.impl.SQLDataType.BOOLEAN.nullable(false), this, "");
 
     /**
      * The column <code>bithon_alert_object.payload</code>. JSON formatted alert
