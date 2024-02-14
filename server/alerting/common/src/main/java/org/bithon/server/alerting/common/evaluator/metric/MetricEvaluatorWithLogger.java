@@ -47,7 +47,7 @@ public class MetricEvaluatorWithLogger implements IMetricEvaluator {
                                       EvaluationContext context) {
         try {
             context.log(delegate.getClass(),
-                        "Evaluating %s in interval [%s, %s]",
+                        "Evaluating %s in interval [%s, %s)",
                         context.getEvaluatingExpression().serializeToText(false),
                         start.format("MM-dd HH:mm"),
                         end.format("MM-dd HH:mm"));

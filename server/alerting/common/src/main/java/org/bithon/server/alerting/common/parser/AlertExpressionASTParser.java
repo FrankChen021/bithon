@@ -117,7 +117,7 @@ public class AlertExpressionASTParser {
             String from = names[0];
             String metric = names[1];
 
-            String aggregator = selectExpression.aggregatorExpression().getText();
+            String aggregator = selectExpression.aggregatorExpression().getText().toLowerCase(Locale.ENGLISH);
             try {
                 AggregatorEnum.valueOf(aggregator);
             } catch (RuntimeException ignored) {

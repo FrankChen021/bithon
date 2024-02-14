@@ -104,21 +104,33 @@ public class AlertRepository {
     private void onCreated(AlertRule alertRule) {
         IAlertChangeListener[] listeners = this.changeListeners.toArray(new IAlertChangeListener[0]);
         for (IAlertChangeListener listener : listeners) {
-            listener.onCreated(alertRule);
+            try {
+                listener.onCreated(alertRule);
+            } catch (Exception e) {
+                log.info("Exception when notify onCreated", e);
+            }
         }
     }
 
     private void onUpdated(AlertRule oldRule, AlertRule newRule) {
         IAlertChangeListener[] listeners = this.changeListeners.toArray(new IAlertChangeListener[0]);
         for (IAlertChangeListener listener : listeners) {
-            listener.onUpdated(oldRule, newRule);
+            try {
+                listener.onUpdated(oldRule, newRule);
+            } catch (Exception e) {
+                log.info("Exception when notify onUpdated", e);
+            }
         }
     }
 
     private void onRemoved(AlertRule alertRule) {
         IAlertChangeListener[] listeners = this.changeListeners.toArray(new IAlertChangeListener[0]);
         for (IAlertChangeListener listener : listeners) {
-            listener.onRemoved(alertRule);
+            try {
+                listener.onRemoved(alertRule);
+            } catch (Exception e) {
+                log.info("Exception when notify onRemoved", e);
+            }
         }
     }
 }
