@@ -16,17 +16,63 @@
 
 package org.bithon.server.alerting.common.model;
 
+import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.column.StringColumn;
+
 /**
  * @author Frank Chen
  * @date 24/4/22 3:46 PM
  */
 public enum AggregatorEnum {
-    avg,
-    count,
-    first,
-    last,
-    max,
-    min,
-    rate,
-    sum
+    avg {
+        @Override
+        public boolean isColumnSupported(IColumn column) {
+            return !(column instanceof StringColumn);
+        }
+    },
+    count {
+        @Override
+        public boolean isColumnSupported(IColumn column) {
+            // Count aggregator can be performed on any types of columns
+            return true;
+        }
+    },
+    first {
+        @Override
+        public boolean isColumnSupported(IColumn column) {
+            return !(column instanceof StringColumn);
+        }
+    },
+    last {
+        @Override
+        public boolean isColumnSupported(IColumn column) {
+            return !(column instanceof StringColumn);
+        }
+    },
+    max {
+        @Override
+        public boolean isColumnSupported(IColumn column) {
+            return !(column instanceof StringColumn);
+        }
+    },
+    min {
+        @Override
+        public boolean isColumnSupported(IColumn column) {
+            return !(column instanceof StringColumn);
+        }
+    },
+    rate {
+        @Override
+        public boolean isColumnSupported(IColumn column) {
+            return !(column instanceof StringColumn);
+        }
+    },
+    sum {
+        @Override
+        public boolean isColumnSupported(IColumn column) {
+            return !(column instanceof StringColumn);
+        }
+    };
+
+    public abstract boolean isColumnSupported(IColumn column);
 }

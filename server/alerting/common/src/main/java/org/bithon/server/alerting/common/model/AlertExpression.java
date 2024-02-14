@@ -27,6 +27,8 @@ import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IExpressionVisitor2;
+import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.AlertExpressionEvaluator;
@@ -127,20 +129,19 @@ public class AlertExpression implements IExpression {
     private IExpression whereExpression;
 
     @JsonIgnore
-    private String promQLStyleWhereExpressionText;
+    private String rawWhere;
 
     @JsonIgnore
     private IMetricEvaluator metricEvaluator;
 
-    public void setWhereExpression(String text, IExpression whereExpression) {
-        this.whereExpression = whereExpression;
-        this.promQLStyleWhereExpressionText = text;
-        this.where = whereExpression == null ? null : whereExpression.serializeToText(null);
-    }
-
     public void setWhereExpression(IExpression whereExpression) {
         this.whereExpression = whereExpression;
+
+        // The where property holds the internal expression that will be passed to the query module
         this.where = whereExpression == null ? null : whereExpression.serializeToText(null);
+
+        // This variable holds the raw text
+        this.rawWhere = whereExpression == null ? "" : "{" + new WhereExpressionSerializer().serialize(whereExpression) + "}";
     }
 
     @Override
@@ -159,11 +160,11 @@ public class AlertExpression implements IExpression {
         if (CollectionUtils.isNotEmpty(this.groupBy)) {
             sb.append(StringUtils.format(" BY (%s) ", String.join(",", this.groupBy)));
         }
-        String filter = promQLStyleWhereExpressionText != null ? "{" + promQLStyleWhereExpressionText + "}" : "";
+
         sb.append(StringUtils.format("(%s.%s%s)[%d%s]",
                                      from,
                                      select.getName(),
-                                     filter,
+                                     this.rawWhere,
                                      window.getDuration(),
                                      window.getUnit()));
         if (includePredication) {
@@ -179,6 +180,24 @@ public class AlertExpression implements IExpression {
             }
         }
         return sb.toString();
+    }
+
+    static class WhereExpressionSerializer extends ExpressionSerializer {
+
+        public WhereExpressionSerializer() {
+            super(null);
+        }
+
+        @Override
+        public boolean visit(LogicalExpression expression) {
+            for (int i = 0, size = expression.getOperands().size(); i < size; i++) {
+                if (i > 0) {
+                    sb.append(", ");
+                }
+                expression.getOperands().get(i).accept(this);
+            }
+            return false;
+        }
     }
 
     @Override

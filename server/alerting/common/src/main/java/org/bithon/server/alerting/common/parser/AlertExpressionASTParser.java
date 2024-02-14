@@ -229,7 +229,7 @@ public class AlertExpressionASTParser {
             AlertExpression expression = new AlertExpression();
             expression.setId(String.valueOf(index++));
             expression.setFrom(from);
-            expression.setWhereExpression(where == null ? null : where.getText(), whereExpression);
+            expression.setWhereExpression(whereExpression);
             expression.setSelect(QueryField.of(metric, aggregator));
             expression.setGroupBy(groupBy);
             expression.setWindow(windowExpression);

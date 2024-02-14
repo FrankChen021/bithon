@@ -46,7 +46,11 @@ public class MetricEvaluatorWithLogger implements IMetricEvaluator {
                                       List<String> groupBy,
                                       EvaluationContext context) {
         try {
-            context.log(delegate.getClass(), "Evaluating metric: %s", context.getEvaluatingExpression().serializeToText(false));
+            context.log(delegate.getClass(),
+                        "Evaluating %s in interval [%s, %s]",
+                        context.getEvaluatingExpression().serializeToText(false),
+                        start.toISO8601(),
+                        end.toISO8601());
 
             IEvaluationOutput output = delegate.evaluate(dataSourceApi,
                                                          dataSource,

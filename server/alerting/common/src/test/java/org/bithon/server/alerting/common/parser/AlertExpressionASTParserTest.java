@@ -189,4 +189,28 @@ public class AlertExpressionASTParserTest {
 
         Assert.assertThrows(InvalidExpressionException.class, () -> AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] is null[-5m]"));
     }
+
+    @Test
+    public void testExpressionSerialization() {
+        // No filter
+        {
+            AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu)[5m] > 1[-5m]");
+            Assert.assertEquals("avg(jvm-metrics.cpu)[5m] > 1[-5m]",
+                                expression.serializeToText(null));
+        }
+
+        // One filter
+        {
+            AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName = 'a'})[5m] > 1[-5m]");
+            Assert.assertEquals("avg(jvm-metrics.cpu{appName = 'a'})[5m] > 1[-5m]",
+                                expression.serializeToText(null));
+        }
+
+        // Two filters
+        {
+            AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] > 1[-5m]");
+            Assert.assertEquals("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] > 1[-5m]",
+                                expression.serializeToText(null));
+        }
+    }
 }
