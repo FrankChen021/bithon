@@ -59,11 +59,19 @@ public class TimeSpan {
     }
 
     public TimeSpan before(HumanReadableDuration duration) {
-        return new TimeSpan(milliseconds - duration.getDuration().toMillis());
+        return before(duration.getDuration());
+    }
+
+    public TimeSpan before(Duration duration) {
+        return new TimeSpan(milliseconds - duration.toMillis());
     }
 
     public TimeSpan after(long value, TimeUnit timeUnit) {
         return new TimeSpan(milliseconds + timeUnit.toMillis(value));
+    }
+
+    public TimeSpan after(Duration duration) {
+        return new TimeSpan(milliseconds + duration.toMillis());
     }
 
     public Timestamp toTimestamp() {

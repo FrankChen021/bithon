@@ -155,7 +155,7 @@ public class AlertCommandService {
         alertObject.setNamespace("");
         alertObject.setDisabled(!alertRule.isEnabled());
         alertObject.setPayload(AlertStorageObjectPayload.builder()
-                                                        .evaluationInterval(alertRule.getEvaluationInterval())
+                                                        .every(alertRule.getEvery())
                                                         .expr(alertRule.getExpr())
                                                         .forDuration(alertRule.getForDuration())
                                                         .notifications(alertRule.getNotifications())

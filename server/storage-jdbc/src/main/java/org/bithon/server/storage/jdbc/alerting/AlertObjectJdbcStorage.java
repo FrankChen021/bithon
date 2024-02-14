@@ -315,12 +315,21 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                              obj.setDisabled(record.get(Tables.BITHON_ALERT_OBJECT.DISABLED) != 0);
 
                              obj.setAppName(record.get(Tables.BITHON_ALERT_OBJECT.APP_NAME));
-                             obj.setCreatedAt(Timestamp.valueOf(record.get(Tables.BITHON_ALERT_OBJECT.CREATED_AT)));
-                             obj.setUpdatedAt(Timestamp.valueOf(record.get(Tables.BITHON_ALERT_OBJECT.UPDATED_AT)));
+
+                             // It's very strange that under H2,
+                             // the returned object is a type of Timestamp instead of LocalDateTime
+                             Object timestamp = record.get(Tables.BITHON_ALERT_OBJECT.CREATED_AT);
+                             obj.setCreatedAt(timestamp instanceof Timestamp ? (Timestamp) timestamp : Timestamp.valueOf((LocalDateTime) timestamp));
+
+                             timestamp = record.get(Tables.BITHON_ALERT_OBJECT.UPDATED_AT);
+                             obj.setUpdatedAt(timestamp instanceof Timestamp ? (Timestamp) timestamp : Timestamp.valueOf((LocalDateTime) timestamp));
                              obj.setLastOperator(record.get(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR));
 
-                             LocalDateTime lastAlertAt = record.get(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT);
-                             obj.setLastAlertAt(lastAlertAt == null ? null : Timestamp.valueOf(lastAlertAt));
+                             // The lastAlertAt can be NULL
+                             timestamp = record.get(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT);
+                             if (timestamp != null) {
+                                 obj.setLastAlertAt(timestamp instanceof Timestamp ? (Timestamp) timestamp : Timestamp.valueOf((LocalDateTime) timestamp));
+                             }
                              obj.setLastRecordId(record.get(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID));
                              return obj;
                          });

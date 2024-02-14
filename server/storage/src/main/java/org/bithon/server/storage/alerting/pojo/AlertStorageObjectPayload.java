@@ -35,7 +35,7 @@ import java.util.List;
 @AllArgsConstructor
 public class AlertStorageObjectPayload {
     @JsonProperty
-    private int evaluationInterval = 1;
+    private HumanReadableDuration every = HumanReadableDuration.DURATION_1_MINUTE;
 
     @JsonProperty("for")
     private HumanReadableDuration forDuration;

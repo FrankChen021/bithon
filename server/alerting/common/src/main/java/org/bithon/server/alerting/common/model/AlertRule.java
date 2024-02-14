@@ -39,7 +39,6 @@ import javax.validation.constraints.Size;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * The object during the evaluation
@@ -52,8 +51,6 @@ import java.util.concurrent.TimeUnit;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AlertRule {
-
-    public static final HumanReadableDuration DEFAULT_FOR_DURATION = HumanReadableDuration.of(3, TimeUnit.MINUTES);
 
     /**
      * 32 bytes UUID. Can be null. If it's null, the server generates a new one
@@ -70,16 +67,16 @@ public class AlertRule {
      * in minutes
      */
     @JsonProperty
-    private int evaluationInterval = 1;
+    private HumanReadableDuration every = HumanReadableDuration.DURATION_1_MINUTE;
 
     @JsonProperty("for")
-    private HumanReadableDuration forDuration = DEFAULT_FOR_DURATION;
+    private HumanReadableDuration forDuration = HumanReadableDuration.DURATION_3_MINUTE;
 
     /**
      * silence period in minute
      */
     @JsonProperty
-    private HumanReadableDuration silence = DEFAULT_FOR_DURATION;
+    private HumanReadableDuration silence = HumanReadableDuration.DURATION_3_MINUTE;
 
     @JsonProperty
     private String expr;
@@ -98,7 +95,7 @@ public class AlertRule {
 
     @JsonIgnore
     public int getExpectedMatchCount() {
-        return (int) (this.forDuration.getDuration().toMinutes() / this.evaluationInterval);
+        return (int) (this.forDuration.getDuration().toMinutes() / this.every.getDuration().toMinutes());
     }
 
     public AlertRule initialize() throws InvalidExpressionException {
@@ -155,7 +152,7 @@ public class AlertRule {
         rule.setEnabled(!alertObject.isDisabled());
         rule.setAppName(alertObject.getAppName());
         rule.setName(alertObject.getName());
-        rule.setEvaluationInterval(alertObject.getPayload().getEvaluationInterval());
+        rule.setEvery(alertObject.getPayload().getEvery());
         rule.setExpr(alertObject.getPayload().getExpr());
         rule.setSilence(alertObject.getPayload().getSilence());
         rule.setForDuration(alertObject.getPayload().getForDuration());

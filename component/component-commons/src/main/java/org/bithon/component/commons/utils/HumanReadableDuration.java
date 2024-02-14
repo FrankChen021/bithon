@@ -24,6 +24,9 @@ import java.util.concurrent.TimeUnit;
  * @date 2024/2/11 11:38
  */
 public class HumanReadableDuration {
+    public static final HumanReadableDuration DURATION_1_MINUTE = HumanReadableDuration.of(1, TimeUnit.MINUTES);
+    public static final HumanReadableDuration DURATION_3_MINUTE = HumanReadableDuration.of(3, TimeUnit.MINUTES);
+
     private final String text;
     private final Duration duration;
     private final TimeUnit unit;

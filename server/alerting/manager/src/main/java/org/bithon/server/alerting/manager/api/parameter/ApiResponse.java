@@ -40,8 +40,8 @@ public class ApiResponse<T> {
         this.data = data;
     }
 
-    public static ApiResponse fail(String message) {
-        return new ApiResponse(message);
+    public static <T> ApiResponse<T> fail(String message) {
+        return new ApiResponse<>(message);
     }
 
     public static <T> ApiResponse<T> success(T data) {

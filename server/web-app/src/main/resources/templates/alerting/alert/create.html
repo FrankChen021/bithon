@@ -24,10 +24,12 @@
                   id="props"
                   style="width:100%; height: 200px"
                   placeholder="YAML style properties">
-name: the name of alert. Must be unique
-expr:
+name: unique alert name
+expr: the alert expression
+every: 1m
 for: 3m
-notifications: []
+notifications:
+  - the notification channel name
         </textarea>
 
         <div class="sub-btn-panel text-center">

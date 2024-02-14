@@ -50,7 +50,6 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
@@ -86,11 +85,22 @@ public class AlertEvaluator {
                                                           evaluationLoggerFactory.createWriter(),
                                                           alertRule,
                                                           dataSourceApi);
+
+        Duration interval = alertRule.getEvery().getDuration();
         try {
             if (!alertRule.isEnabled()) {
                 context.log(AlertEvaluator.class, "Alert is disabled. Evaluation is skipped.");
                 return;
             }
+
+            TimeSpan lastEvaluationAt = TimeSpan.of(this.stateStorage.getEvaluationTimestamp(alertRule.getId()));
+            if (now.diff(lastEvaluationAt) < interval.toMillis()) {
+                context.log(AlertEvaluator.class,
+                            "Evaluation skipped, it's expected to be evaluated at %s",
+                            lastEvaluationAt.after(interval).format("HH:mm"));
+                return;
+            }
+
             if (evaluate(context)) {
                 notify(alertRule, context);
             }
@@ -103,6 +113,8 @@ public class AlertEvaluator {
                 log.error("Flush log for alert {} failed: {}", alertRule.getId(), e.toString());
             }
         }
+
+        this.stateStorage.setEvaluationTime(alertRule.getId(), now.getMilliseconds(), interval);
     }
 
     private INotificationApi createNotificationApi(ApplicationContext context) {
@@ -128,14 +140,6 @@ public class AlertEvaluator {
     }
 
     private boolean evaluate(EvaluationContext context) {
-        long waitMinute = context.getIntervalEnd().getMilliseconds() % (context.getAlertRule().getEvaluationInterval() * 60L);
-        if (waitMinute != 0) {
-            context.log(AlertEvaluator.class,
-                        "Alert not evaluated because it's not the right time. Will evaluate this alert at [%s]",
-                        context.getIntervalEnd().after(waitMinute, TimeUnit.MINUTES).format("HH:mm"));
-            return false;
-        }
-
         AlertRule alertRule = context.getAlertRule();
         context.log(AlertEvaluator.class, "Evaluating alert [%s] %s ", alertRule.getName(), alertRule.getExpr());
 

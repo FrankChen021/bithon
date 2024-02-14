@@ -49,11 +49,11 @@ public class AlertEvaluatorScheduler {
     public AlertEvaluatorScheduler(AlertEvaluator alertEvaluator, AlertRepository alertRepository) {
         this.alertEvaluator = alertEvaluator;
         this.alertRepository = alertRepository;
-        this.executor = new ThreadPoolExecutor(10,
+        this.executor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
                                                50,
                                                5,
                                                TimeUnit.MINUTES,
-                                               new LinkedBlockingQueue<>(2048),
+                                               new LinkedBlockingQueue<>(128),
                                                new ThreadFactoryBuilder().setDaemon(true).setNameFormat("alert-evaluator-%d").build(),
                                                new ThreadPoolExecutor.CallerRunsPolicy());
     }
