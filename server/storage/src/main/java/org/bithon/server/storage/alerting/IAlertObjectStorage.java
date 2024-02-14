@@ -37,7 +37,9 @@ public interface IAlertObjectStorage {
 
     List<AlertStorageObject> getAlertListByTime(Timestamp start, Timestamp end);
 
-    boolean existAlert(String alertId);
+    boolean existAlertById(String alertId);
+
+    boolean existAlertByName(String name);
 
     AlertStorageObject getAlertById(String alertId);
 
@@ -56,12 +58,18 @@ public interface IAlertObjectStorage {
 
     boolean deleteAlert(String alertId, String operator);
 
-    void addChangelog(String alertId, ObjectAction action, String operator, String before, String after);
+    void addChangelog(String alertId,
+                      ObjectAction action,
+                      String operator,
+                      String beforeJsonString,
+                      String afterJsonString);
 
-    ListResult<ListAlertDO> getAlertList(String appName,
-                                         String alertName,
-                                         OrderBy orderBy,
-                                         Limit limit);
+    int getAlertListSize(String appName, String alertName);
+
+    List<ListAlertDO> getAlertList(String appName,
+                                   String alertName,
+                                   OrderBy orderBy,
+                                   Limit limit);
 
     ListResult<AlertChangeLogObject> getChangeLogs(String alertId, Integer pageNumber, Integer pageSize);
 

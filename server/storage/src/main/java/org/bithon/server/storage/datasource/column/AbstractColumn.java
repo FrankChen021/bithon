@@ -30,7 +30,7 @@ import javax.validation.constraints.NotNull;
 public abstract class AbstractColumn implements IColumn {
 
     /**
-     * this is the name that is used at the underlying storage
+     * this is the name used at the underlying storage
      */
     @Getter
     @NotNull

@@ -30,8 +30,8 @@ public class ListAlertDO {
     private String alertName;
     private String appName;
     private String namespace;
-    private Boolean disabled;
-    private Boolean deleted;
+    private boolean disabled;
+    private boolean deleted;
     private String payload;
     private Timestamp createdAt;
     private Timestamp updatedAt;

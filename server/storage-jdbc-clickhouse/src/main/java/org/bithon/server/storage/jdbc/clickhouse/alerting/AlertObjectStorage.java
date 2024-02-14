@@ -31,6 +31,7 @@ import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfig
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
+import org.jooq.Select;
 
 import java.sql.Timestamp;
 import java.util.concurrent.Callable;
@@ -85,7 +86,7 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
                              .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, newObject.getName())
                              .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, newObject.getAppName())
                              .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, newObject.getNamespace())
-                             .set(Tables.BITHON_ALERT_OBJECT.DISABLED, newObject.getDisabled())
+                             .set(Tables.BITHON_ALERT_OBJECT.DISABLED, newObject.isDisabled() ? 1 : 0)
                              .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, objectMapper.writeValueAsString(newObject.getPayload()))
                              .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, newObject.getId())
                              .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
@@ -106,7 +107,8 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
                                  .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, object.getName())
                                  .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, object.getAppName())
                                  .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, object.getNamespace())
-                                 .set(Tables.BITHON_ALERT_OBJECT.DISABLED, true)
+                                 .set(Tables.BITHON_ALERT_OBJECT.DISABLED, 1)
+                                 .set(Tables.BITHON_ALERT_OBJECT.DELETED, object.isDeleted() ? 1 : 0)
                                  .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, objectMapper.writeValueAsString(object.getPayload()))
                                  .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, object.getId())
                                  .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
@@ -129,7 +131,7 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
                                  .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, object.getName())
                                  .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, object.getAppName())
                                  .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, object.getNamespace())
-                                 .set(Tables.BITHON_ALERT_OBJECT.DISABLED, false)
+                                 .set(Tables.BITHON_ALERT_OBJECT.DISABLED, 0)
                                  .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, objectMapper.writeValueAsString(object.getPayload()))
                                  .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, object.getId())
                                  .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
@@ -152,8 +154,8 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
                                  .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, object.getName())
                                  .set(Tables.BITHON_ALERT_OBJECT.APP_NAME, object.getAppName())
                                  .set(Tables.BITHON_ALERT_OBJECT.NAMESPACE, object.getNamespace())
-                                 .set(Tables.BITHON_ALERT_OBJECT.DISABLED, false)
-                                 .set(Tables.BITHON_ALERT_OBJECT.DELETED, true)
+                                 .set(Tables.BITHON_ALERT_OBJECT.DISABLED, 0)
+                                 .set(Tables.BITHON_ALERT_OBJECT.DELETED, 1)
                                  .set(Tables.BITHON_ALERT_OBJECT.PAYLOAD, objectMapper.writeValueAsString(object.getPayload()))
                                  .set(Tables.BITHON_ALERT_OBJECT.ALERT_ID, object.getId())
                                  .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
@@ -165,6 +167,12 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
             }
         }
         return false;
+    }
+
+    @Override
+    protected String getAlertListSql(Select<?> selectQuery) {
+        // Make sure the un-joined rows are filled with NULL or the default timestamp might be wrong
+        return dslContext.renderInlined(selectQuery) + " SETTINGS join_use_nulls = 1";
     }
 
     @Override
