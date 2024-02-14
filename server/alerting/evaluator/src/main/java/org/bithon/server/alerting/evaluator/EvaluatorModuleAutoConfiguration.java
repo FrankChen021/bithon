@@ -21,10 +21,12 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.alerting.common.evaluator.metric.relative.baseline.BaselineMetricCacheManager;
 import org.bithon.server.alerting.evaluator.storage.local.AlertStateLocalMemoryStorage;
 import org.bithon.server.alerting.evaluator.storage.redis.AlertStateRedisStorage;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
+import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.openfeign.EnableFeignClients;
@@ -63,6 +65,11 @@ public class EvaluatorModuleAutoConfiguration {
         } catch (InvalidTypeIdException e) {
             throw new RuntimeException("Not found state storage with type " + stateConfig.get("type"));
         }
+    }
+
+    @Bean
+    public BaselineMetricCacheManager cacheManager(IDataSourceApi dataSourceApi) {
+        return new BaselineMetricCacheManager(dataSourceApi);
     }
 
     @Bean
