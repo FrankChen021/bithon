@@ -41,4 +41,18 @@ public class StringUtilsTest {
         String id2 = StringUtils.base16BytesToString((idx) -> bytes[idx], bytes.length);
         Assert.assertEquals(id, id2);
     }
+
+    @Test
+    public void testCamelToSnake() {
+        Assert.assertNull(StringUtils.camelToSnake(null));
+        Assert.assertEquals("", StringUtils.camelToSnake(""));
+
+        Assert.assertEquals("print", StringUtils.camelToSnake("print"));
+        Assert.assertEquals("show_database", StringUtils.camelToSnake("showDatabase"));
+        Assert.assertEquals("show_database_and_table", StringUtils.camelToSnake("showDatabaseAndTable"));
+
+        Assert.assertEquals("print_i", StringUtils.camelToSnake("printI"));
+        Assert.assertEquals("print_io", StringUtils.camelToSnake("printIO"));
+        Assert.assertEquals("print_io_and", StringUtils.camelToSnake("printIOAnd"));
+    }
 }
