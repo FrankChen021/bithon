@@ -113,15 +113,16 @@ public class AlertRule {
         // Use LinkedHashMap to keep order
         this.flattenExpressions = new LinkedHashMap<>();
 
-        if (StringUtils.isBlank(this.appName)) {
-            return this;
-        }
-        IExpression appNameFilter = new ComparisonExpression.EQ(new IdentifierExpression("appName"), LiteralExpression.create(this.getAppName()));
-
         this.evaluationExpression.accept((IAlertExpressionVisitor) expression -> {
             // Save to the flattened list
             flattenExpressions.put(expression.getId(), expression);
 
+            if (StringUtils.isBlank(this.appName)) {
+                return;
+            }
+
+            // Add appName filter to the AST
+            IExpression appNameFilter = new ComparisonExpression.EQ(new IdentifierExpression("appName"), LiteralExpression.create(this.getAppName()));
             IExpression whereExpression = expression.getWhereExpression();
             if (whereExpression == null) {
                 expression.setWhereExpression(appNameFilter);
@@ -151,7 +152,7 @@ public class AlertRule {
     public static AlertRule from(AlertStorageObject alertObject) {
         AlertRule rule = new AlertRule();
         rule.setId(alertObject.getId());
-        rule.setEnabled(!alertObject.getDisabled());
+        rule.setEnabled(!alertObject.isDisabled());
         rule.setAppName(alertObject.getAppName());
         rule.setName(alertObject.getName());
         rule.setEvaluationInterval(alertObject.getPayload().getEvaluationInterval());
