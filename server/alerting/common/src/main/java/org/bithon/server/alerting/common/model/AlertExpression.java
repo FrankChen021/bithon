@@ -16,8 +16,6 @@
 
 package org.bithon.server.alerting.common.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IEvaluationContext;
@@ -36,12 +34,15 @@ import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
 import javax.annotation.Nullable;
-import javax.validation.constraints.Size;
 import java.util.List;
 import java.util.function.Function;
 
 /**
- * NOTE: No Change of field names because this object is also serialized to the FE.
+ * NOTE: When changes are made to this class,
+ * do check if the {@link org.bithon.server.alerting.common.serializer.AlertExpressionSerializer} needs to be modified.
+ * <p>
+ * This class is constructed by {@link org.bithon.server.alerting.common.parser.AlertExpressionASTParser}
+ *
  * <p>
  * Absolute comparison
  * avg by (a) (data-source.metric{dim1 = 'x'}) > 0.5
@@ -59,45 +60,25 @@ import java.util.function.Function;
 @Data
 public class AlertExpression implements IExpression {
 
-    @JsonProperty
-    @Size(min = 1, max = 1)
     private String id;
-
-    @JsonProperty
     private String from;
-
-    @JsonProperty
     private String where;
-
-    @JsonProperty
     private QueryField select;
-
-    @JsonProperty
     private HumanReadableDuration window = HumanReadableDuration.DURATION_1_MINUTE;
 
     @Nullable
-    @JsonProperty
     private List<String> groupBy;
-
-    @JsonProperty
     private String alertPredicate;
-
-    @JsonProperty
     private Object alertExpected;
 
-    @JsonProperty
+    @Nullable
     private HumanReadableDuration expectedWindow = null;
 
     /**
      * Runtime properties
      */
-    @JsonIgnore
     private IExpression whereExpression;
-
-    @JsonIgnore
     private String rawWhere;
-
-    @JsonIgnore
     private IMetricEvaluator metricEvaluator;
 
     public void setWhereExpression(IExpression whereExpression) {
@@ -188,6 +169,7 @@ public class AlertExpression implements IExpression {
 
     @Override
     public String getType() {
+        // No need
         return null;
     }
 

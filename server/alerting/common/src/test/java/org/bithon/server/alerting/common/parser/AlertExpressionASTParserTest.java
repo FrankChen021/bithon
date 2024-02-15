@@ -217,7 +217,7 @@ public class AlertExpressionASTParserTest {
         {
             AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("count(   jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m]  >  1");
             Assert.assertEquals("count(jvm-metrics.cpu{appName like \"a%\", instanceName like \"192.%\"})[5m] > 1",
-                                expression.serializeToText(null));
+                                expression.serializeToText());
         }
     }
 }
