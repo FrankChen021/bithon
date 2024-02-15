@@ -44,8 +44,10 @@ import org.bithon.server.alerting.common.evaluator.metric.absolute.LessThanOrEqu
 import org.bithon.server.alerting.common.evaluator.metric.absolute.LessThanPredicate;
 import org.bithon.server.alerting.common.evaluator.metric.absolute.NotEqualPredicate;
 import org.bithon.server.alerting.common.evaluator.metric.absolute.NullValuePredicate;
-import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeGreaterThanPredicate;
-import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLessThanPredicate;
+import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeGTEPredicate;
+import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeGTPredicate;
+import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTEPredicate;
+import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTPredicate;
 import org.bithon.server.alerting.common.model.AggregatorEnum;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.web.service.datasource.api.QueryField;
@@ -190,14 +192,25 @@ public class AlertExpressionASTParser {
                     if (expectedWindow == null) {
                         metricEvaluator = new LessThanPredicate(expected.getValue());
                     } else {
-                        checkIfTrue(expected.getValue() instanceof Number, "The expected value must be type of Number.");
-                        metricEvaluator = new RelativeLessThanPredicate((Number) expected.getValue(), expectedWindow);
+                        if (expected.getValue() instanceof HumanReadablePercentage) {
+                            metricEvaluator = new RelativeLTPredicate((Number) expected.getValue(), expectedWindow);
+                        } else {
+                            metricEvaluator = new LessThanPredicate((Number) expected.getValue());
+                        }
                     }
                     break;
 
                 case AlertExpressionParser.LTE:
                     checkNotNull(expected, "null is not allowed after predicate '<='.");
-                    metricEvaluator = new LessThanOrEqualPredicate(expected.getValue());
+                    if (expectedWindow == null) {
+                        metricEvaluator = new LessThanOrEqualPredicate(expected.getValue());
+                    } else {
+                        if (expected.getValue() instanceof HumanReadablePercentage) {
+                            metricEvaluator = new RelativeLTEPredicate((Number) expected.getValue(), expectedWindow);
+                        } else {
+                            metricEvaluator = new LessThanOrEqualPredicate(expected.getValue());
+                        }
+                    }
                     break;
 
                 case AlertExpressionParser.GT:
@@ -205,23 +218,36 @@ public class AlertExpressionASTParser {
                     if (expectedWindow == null) {
                         metricEvaluator = new GreaterThanPredicate(expected.getValue());
                     } else {
-                        checkIfTrue(expected.getValue() instanceof Number, "The expected value must be type of Number.");
-                        metricEvaluator = new RelativeGreaterThanPredicate((Number) expected.getValue(), expectedWindow);
+                        if (expected.getValue() instanceof HumanReadablePercentage) {
+                            metricEvaluator = new RelativeGTPredicate((Number) expected.getValue(), expectedWindow);
+                        } else {
+                            metricEvaluator = new GreaterThanPredicate(expected.getValue());
+                        }
                     }
                     break;
 
                 case AlertExpressionParser.GTE:
                     checkNotNull(expected, "null is not allowed after predicate '>='.");
-                    metricEvaluator = new GreaterOrEqualPredicate(expected.getValue());
+                    if (expectedWindow == null) {
+                        metricEvaluator = new GreaterOrEqualPredicate(expected.getValue());
+                    } else {
+                        if (expected.getValue() instanceof HumanReadablePercentage) {
+                            metricEvaluator = new RelativeGTEPredicate((Number) expected.getValue(), expectedWindow);
+                        } else {
+                            metricEvaluator = new GreaterThanPredicate(expected.getValue());
+                        }
+                    }
                     break;
 
                 case AlertExpressionParser.NE:
                     checkNotNull(expected, "null is not allowed after predicate '<>'.");
+                    checkIfTrue(expectedWindow == null, "<> is not allowed for relative comparison.");
                     metricEvaluator = new NotEqualPredicate(expected.getValue());
                     break;
 
                 case AlertExpressionParser.EQ:
                     checkNotNull(expected, "null is not allowed after predicate '='.");
+                    checkIfTrue(expectedWindow == null, "= is not allowed for relative comparison.");
                     metricEvaluator = new EqualPredicate(expected.getValue());
                     break;
 

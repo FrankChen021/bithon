@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
  * @author frankchen
  * @date 2020-08-21 17:06:34
  */
-public class AbstractRelativeThresholdPredicate implements IMetricEvaluator {
+public abstract class AbstractRelativeThresholdPredicate implements IMetricEvaluator {
 
     private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
 
@@ -126,7 +126,7 @@ public class AbstractRelativeThresholdPredicate implements IMetricEvaluator {
             if (threshold instanceof HumanReadablePercentage) {
                 delta = ZERO.equals(baseValue)
                     ? currWindowValue.subtract(baseValue).doubleValue()
-                    : currWindowValue.subtract(baseValue).divide(baseValue, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();
+                    : currWindowValue.subtract(baseValue).divide(baseValue, 4, RoundingMode.HALF_UP).doubleValue();
             } else {
                 delta = currWindowValue.subtract(baseValue).doubleValue();
             }
@@ -134,8 +134,7 @@ public class AbstractRelativeThresholdPredicate implements IMetricEvaluator {
             if (threshold instanceof HumanReadablePercentage) {
                 delta = ZERO.equals(baseValue)
                     ? currWindowValue.subtract(baseValue).doubleValue()
-                    : baseValue.subtract(currWindowValue).divide(baseValue, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();
-
+                    : baseValue.subtract(currWindowValue).divide(baseValue, 4, RoundingMode.HALF_UP).doubleValue();
             } else {
                 delta = currWindowValue.subtract(baseValue).doubleValue();
             }
@@ -146,10 +145,12 @@ public class AbstractRelativeThresholdPredicate implements IMetricEvaluator {
         output.setNow(currWindowValue);
         output.setBase(baseValue);
         output.setThreshold(threshold);
-        output.setMatches(delta > threshold.doubleValue());
+        output.setMatches(matches(delta, threshold.doubleValue()));
         output.setMetric(this);
         return output;
     }
+
+    protected abstract boolean matches(double delta, double threshold);
 
     @Override
     public String toString() {

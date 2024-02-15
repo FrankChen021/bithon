@@ -56,6 +56,6 @@ public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
 
     @Override
     public String getDeltaText() {
-        return threshold instanceof HumanReadablePercentage ? delta + "%" : String.valueOf(delta);
+        return threshold instanceof HumanReadablePercentage ? (delta * 100) + "%" : String.valueOf(delta);
     }
 }

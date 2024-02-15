@@ -52,6 +52,14 @@ public class AlertExpressionASTParserTest {
     }
 
     @Test
+    public void testPercentage() {
+        IExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu) > 1%[-1m]");
+        Assert.assertTrue(expression instanceof AlertExpression);
+
+        AlertExpressionASTParser.parse("avg(jvm-metrics.cpu) > 101%[-1m]");
+    }
+
+    @Test
     public void testFilterExpression() {
         IExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <> 'a'}) > 1");
         Assert.assertTrue(expression instanceof AlertExpression);

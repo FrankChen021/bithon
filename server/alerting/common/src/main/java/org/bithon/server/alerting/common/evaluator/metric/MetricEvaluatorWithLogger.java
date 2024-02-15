@@ -62,7 +62,7 @@ public class MetricEvaluatorWithLogger implements IMetricEvaluator {
                                                          context);
 
             context.log(delegate.getClass(),
-                        "Expected: [%s], Current: [%s], Incremental: [%s], Result: [%s]",
+                        "Expected: [%s], Current: [%s], Delta: [%s], Result: [%s]",
                         delegate.toString(),
                         output == null ? "null" : output.getCurrentText(),
                         output == null ? "null" : output.getDeltaText(),
