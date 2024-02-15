@@ -118,11 +118,12 @@ public class AlertExpressionASTParser {
             String from = names[0];
             String metric = names[1];
 
-            String aggregator = selectExpression.aggregatorExpression().getText().toLowerCase(Locale.ENGLISH);
+            String aggregatorText = selectExpression.aggregatorExpression().getText().toLowerCase(Locale.ENGLISH);
+            AggregatorEnum aggregator;
             try {
-                AggregatorEnum.valueOf(aggregator);
+                aggregator = AggregatorEnum.valueOf(aggregatorText);
             } catch (RuntimeException ignored) {
-                throw new InvalidExpressionException(StringUtils.format("The aggregator [%s] in the expression is not supported", aggregator));
+                throw new InvalidExpressionException(StringUtils.format("The aggregator [%s] in the expression is not supported", aggregatorText));
             }
 
             HumanReadableDuration duration = HumanReadableDuration.DURATION_1_MINUTE;
@@ -238,9 +239,11 @@ public class AlertExpressionASTParser {
             expression.setId(String.valueOf(index++));
             expression.setFrom(from);
             expression.setWhereExpression(whereExpression);
-            expression.setSelect(QueryField.of(metric, aggregator));
+
+            // For 'count' aggregator, use the 'count' as output column instead of using the column name as output name
+            expression.setSelect(new QueryField(aggregator.equals(AggregatorEnum.count) ? "count" : metric, metric, aggregator.name()));
             expression.setGroupBy(groupBy);
-            expression.setDuration(duration);
+            expression.setWindow(duration);
             expression.setAlertPredicate(predicateTerminal.getText().toLowerCase(Locale.ENGLISH));
             expression.setAlertExpected(expected == null ? null : expected.getValue());
             expression.setExpectedWindow(expectedWindow);
