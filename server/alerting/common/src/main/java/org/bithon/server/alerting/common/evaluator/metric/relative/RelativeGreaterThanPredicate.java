@@ -16,7 +16,7 @@
 
 package org.bithon.server.alerting.common.evaluator.metric.relative;
 
-import org.bithon.server.alerting.common.model.AlertExpression;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 
 /**
  * Increased by a percentage of an absolute value over a previous window
@@ -27,7 +27,7 @@ import org.bithon.server.alerting.common.model.AlertExpression;
 public class RelativeGreaterThanPredicate extends AbstractRelativeThresholdPredicate {
 
     public RelativeGreaterThanPredicate(Number threshold,
-                                        AlertExpression.WindowExpression offset) {
+                                        HumanReadableDuration offset) {
         super(threshold, offset, true);
     }
 }

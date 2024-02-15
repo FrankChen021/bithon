@@ -19,7 +19,6 @@ package org.bithon.server.alerting.common.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.component.commons.expression.IDataType;
@@ -30,6 +29,7 @@ import org.bithon.component.commons.expression.IExpressionVisitor2;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.AlertExpressionEvaluator;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
@@ -39,7 +39,6 @@ import org.bithon.server.web.service.datasource.api.QueryField;
 import javax.annotation.Nullable;
 import javax.validation.constraints.Size;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 /**
@@ -61,38 +60,6 @@ import java.util.function.Function;
 @AllArgsConstructor
 public class AlertExpression implements IExpression {
 
-    public enum DurationUnit {
-        m {
-            @Override
-            public TimeUnit toTimeUnit() {
-                return TimeUnit.MINUTES;
-            }
-        },
-        h {
-            @Override
-            public TimeUnit toTimeUnit() {
-                return TimeUnit.HOURS;
-            }
-        };
-
-        public abstract TimeUnit toTimeUnit();
-    }
-
-    @Data
-    @Builder
-    public static class WindowExpression {
-        private final int duration;
-        private final DurationUnit unit;
-
-        public static final WindowExpression DEFAULT = new WindowExpression(1, DurationUnit.m);
-
-        public WindowExpression(@JsonProperty("duration") int duration,
-                                @JsonProperty("unit") DurationUnit unit) {
-            this.duration = duration;
-            this.unit = unit;
-        }
-    }
-
     @JsonProperty
     @Size(min = 1, max = 1)
     private String id;
@@ -107,7 +74,7 @@ public class AlertExpression implements IExpression {
     private QueryField select;
 
     @JsonProperty
-    private WindowExpression window = WindowExpression.DEFAULT;
+    private HumanReadableDuration duration = HumanReadableDuration.DURATION_1_MINUTE;
 
     @Nullable
     @JsonProperty
@@ -120,7 +87,7 @@ public class AlertExpression implements IExpression {
     private Object alertExpected;
 
     @JsonProperty
-    private WindowExpression expectedWindow = null;
+    private HumanReadableDuration expectedWindow = null;
 
     /**
      * Runtime properties
@@ -161,12 +128,11 @@ public class AlertExpression implements IExpression {
             sb.append(StringUtils.format(" BY (%s) ", String.join(",", this.groupBy)));
         }
 
-        sb.append(StringUtils.format("(%s.%s%s)[%d%s]",
+        sb.append(StringUtils.format("(%s.%s%s)[%s]",
                                      from,
                                      select.getName(),
                                      this.rawWhere,
-                                     window.getDuration(),
-                                     window.getUnit()));
+                                     duration));
         if (includePredication) {
             sb.append(' ');
             sb.append(alertPredicate);
@@ -174,8 +140,7 @@ public class AlertExpression implements IExpression {
             sb.append(alertExpected);
             if (expectedWindow != null) {
                 sb.append('[');
-                sb.append(expectedWindow.duration);
-                sb.append(expectedWindow.unit);
+                sb.append(expectedWindow);
                 sb.append(']');
             }
         }

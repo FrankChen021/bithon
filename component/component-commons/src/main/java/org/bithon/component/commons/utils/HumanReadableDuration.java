@@ -31,12 +31,20 @@ public class HumanReadableDuration {
     private final Duration duration;
     private final TimeUnit unit;
 
-    public HumanReadableDuration(String durationText,
-                                 Duration duration,
-                                 TimeUnit unit) {
+    private HumanReadableDuration(String durationText,
+                                  Duration duration,
+                                  TimeUnit unit) {
         this.text = durationText;
         this.duration = duration;
         this.unit = unit;
+    }
+
+    public boolean isNegative() {
+        return duration.isNegative();
+    }
+
+    public boolean isZero() {
+        return duration.isZero();
     }
 
     public Duration getDuration() {
@@ -100,8 +108,11 @@ public class HumanReadableDuration {
                 throw new UnsupportedOperationException(unit + " is not supported");
         }
 
+        boolean negative = durationText.charAt(0) == '-';
+        int start = negative ? 1 : 0;
+
         int val = 0;
-        for (int i = 0, len = durationText.length() - 1; i < len; i++) {
+        for (int i = start, len = durationText.length() - 1; i < len; i++) {
             char chr = durationText.charAt(i);
             if (!Character.isDigit(chr)) {
                 throw new RuntimeException("Invalid duration: " + durationText);
@@ -112,6 +123,9 @@ public class HumanReadableDuration {
                 throw new RuntimeException("The number is out of range of Integer");
             }
             val = v;
+        }
+        if (negative) {
+            val = -val;
         }
 
         return new HumanReadableDuration(durationText,

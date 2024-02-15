@@ -33,6 +33,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
@@ -124,12 +125,15 @@ public class AlertExpressionASTParser {
                 throw new InvalidExpressionException(StringUtils.format("The aggregator [%s] in the expression is not supported", aggregator));
             }
 
-            AlertExpression.WindowExpression windowExpression = AlertExpression.WindowExpression.DEFAULT;
-            AlertExpressionParser.WindowExpressionContext windowExpressionCtx = selectExpression.windowExpression();
+            HumanReadableDuration duration = HumanReadableDuration.DURATION_1_MINUTE;
+            AlertExpressionParser.DurationExpressionContext windowExpressionCtx = selectExpression.durationExpression();
             if (windowExpressionCtx != null) {
-                windowExpression = windowExpressionCtx.accept(new WindowExpressionBuilder());
-                if (windowExpression.getDuration() <= 0) {
-                    throw new InvalidExpressionException(StringUtils.format("The integer literal in window expression '%s' must be greater than zero", windowExpressionCtx.getText()));
+                duration = windowExpressionCtx.accept(new DurationExpressionBuilder());
+                if (duration.isNegative()) {
+                    throw new InvalidExpressionException(StringUtils.format("The integer literal in duration expression '%s' must be greater than zero", windowExpressionCtx.getText()));
+                }
+                if (duration.isZero()) {
+                    throw new InvalidExpressionException(StringUtils.format("The integer literal in duration expression '%s' must be greater than zero", windowExpressionCtx.getText()));
                 }
             }
 
@@ -163,12 +167,16 @@ public class AlertExpressionASTParser {
             AlertExpressionParser.AlertExpectedExpressionContext expectedExpression = ctx.alertExpectedExpression();
             LiteralExpression expected = expectedExpression.literalExpression().accept(new LiteralExpressionBuilder());
 
-            AlertExpression.WindowExpression expectedWindow = null;
-            AlertExpressionParser.WindowExpressionContext expectedWindowCtx = expectedExpression.windowExpression();
+            HumanReadableDuration expectedWindow = null;
+            AlertExpressionParser.DurationExpressionContext expectedWindowCtx = expectedExpression.durationExpression();
             if (expectedWindowCtx != null) {
-                expectedWindow = expectedWindowCtx.accept(new WindowExpressionBuilder());
-                if (expectedWindow.getDuration() >= 0) {
+                expectedWindow = expectedWindowCtx.accept(new DurationExpressionBuilder());
+                if (!expectedWindow.isNegative()) {
                     throw new InvalidExpressionException("The value in the expected window expression '%s' must be a negative value.", expectedWindowCtx.getText());
+                }
+
+                if (expectedWindow.isZero()) {
+                    throw new InvalidExpressionException("The value in the expected window expression '%s' can't be zero.", expectedWindowCtx.getText());
                 }
             }
 
@@ -232,7 +240,7 @@ public class AlertExpressionASTParser {
             expression.setWhereExpression(whereExpression);
             expression.setSelect(QueryField.of(metric, aggregator));
             expression.setGroupBy(groupBy);
-            expression.setWindow(windowExpression);
+            expression.setDuration(duration);
             expression.setAlertPredicate(predicateTerminal.getText().toLowerCase(Locale.ENGLISH));
             expression.setAlertExpected(expected == null ? null : expected.getValue());
             expression.setExpectedWindow(expectedWindow);
@@ -259,29 +267,11 @@ public class AlertExpressionASTParser {
         }
     }
 
-    private static class WindowExpressionBuilder extends AlertExpressionBaseVisitor<AlertExpression.WindowExpression> {
+    private static class DurationExpressionBuilder extends AlertExpressionBaseVisitor<HumanReadableDuration> {
         @Override
-        public AlertExpression.WindowExpression visitWindowExpression(AlertExpressionParser.WindowExpressionContext ctx) {
-            AlertExpression.WindowExpression.WindowExpressionBuilder builder = AlertExpression.WindowExpression.builder();
-
-            int duration = Integer.parseInt(ctx.INTEGER_LITERAL().getSymbol().getText());
-            builder.duration(duration);
-
-            TerminalNode interval = ctx.durationExpression().getChild(TerminalNode.class, 0);
-            switch (interval.getSymbol().getType()) {
-                case AlertExpressionParser.MINUTE:
-                    builder.unit(AlertExpression.DurationUnit.m);
-                    break;
-
-                case AlertExpressionParser.HOUR:
-                    builder.unit(AlertExpression.DurationUnit.h);
-                    break;
-
-                default:
-                    throw new RuntimeException("Unsupported interval expression: " + interval.getSymbol().getText());
-            }
-
-            return builder.build();
+        public HumanReadableDuration visitDurationExpression(AlertExpressionParser.DurationExpressionContext ctx) {
+            TerminalNode duration = (TerminalNode) ctx.getChild(1);
+            return HumanReadableDuration.parse(duration.getText());
         }
     }
 

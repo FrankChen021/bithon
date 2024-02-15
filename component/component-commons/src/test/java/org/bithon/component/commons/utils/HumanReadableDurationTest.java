@@ -64,4 +64,11 @@ public class HumanReadableDurationTest {
         Assert.assertThrows(RuntimeException.class, () -> HumanReadableDuration.parse("7a"));
         Assert.assertThrows(RuntimeException.class, () -> HumanReadableDuration.parse("dd"));
     }
+
+
+    @Test
+    public void testNegative() {
+        HumanReadableDuration duration = HumanReadableDuration.parse("-6s");
+        Assert.assertEquals(-6, duration.getDuration().getSeconds());
+    }
 }
