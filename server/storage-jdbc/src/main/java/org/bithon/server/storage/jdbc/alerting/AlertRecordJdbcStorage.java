@@ -77,7 +77,6 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
 
     @Override
     public void addAlertRecord(AlertRecordObject record) {
-
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 
         this.dslContext.transaction((configuration) -> {

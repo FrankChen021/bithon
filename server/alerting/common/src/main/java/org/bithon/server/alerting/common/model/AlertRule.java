@@ -51,7 +51,6 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AlertRule {
-
     /**
      * 32 bytes UUID. Can be null. If it's null, the server generates a new one
      */
@@ -62,6 +61,10 @@ public class AlertRule {
 
     @NotBlank
     private String name;
+
+
+    @JsonProperty
+    private String expr;
 
     /**
      * in minutes
@@ -77,9 +80,6 @@ public class AlertRule {
      */
     @JsonProperty
     private HumanReadableDuration silence = HumanReadableDuration.DURATION_3_MINUTE;
-
-    @JsonProperty
-    private String expr;
 
     @JsonProperty
     private List<String> notifications;

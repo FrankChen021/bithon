@@ -18,9 +18,7 @@ package org.bithon.server.alerting.common.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.component.commons.expression.IExpression;
@@ -43,6 +41,8 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
+ * NOTE: No Change of field names because this object is also serialized to the FE.
+ * <p>
  * Absolute comparison
  * avg by (a) (data-source.metric{dim1 = 'x'}) > 0.5
  * <p>
@@ -57,8 +57,6 @@ import java.util.function.Function;
  * @date 2020-08-21 14:56:50
  */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class AlertExpression implements IExpression {
 
     @JsonProperty
@@ -75,7 +73,7 @@ public class AlertExpression implements IExpression {
     private QueryField select;
 
     @JsonProperty
-    private HumanReadableDuration duration = HumanReadableDuration.DURATION_1_MINUTE;
+    private HumanReadableDuration window = HumanReadableDuration.DURATION_1_MINUTE;
 
     @Nullable
     @JsonProperty
@@ -131,9 +129,12 @@ public class AlertExpression implements IExpression {
 
         sb.append(StringUtils.format("(%s.%s%s)[%s]",
                                      from,
-                                     select.getName(),
+                                     // Use field for serialization because it holds the raw input.
+                                     // In some cases, like the 'count' aggregator, the name property has different values from the field property
+                                     // See AlertExpressionASTParser for more
+                                     select.getField(),
                                      this.rawWhere,
-                                     duration));
+                                     window));
         if (includePredication) {
             sb.append(' ');
             sb.append(alertPredicate);

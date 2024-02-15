@@ -49,8 +49,8 @@ public class MetricEvaluatorWithLogger implements IMetricEvaluator {
             context.log(delegate.getClass(),
                         "Evaluating %s in interval [%s, %s)",
                         context.getEvaluatingExpression().serializeToText(false),
-                        start.format("MM-dd HH:mm"),
-                        end.format("MM-dd HH:mm"));
+                        start.format("HH:mm"),
+                        end.format("HH:mm"));
 
             IEvaluationOutput output = delegate.evaluate(dataSourceApi,
                                                          dataSource,

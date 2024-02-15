@@ -81,12 +81,16 @@ public class AlertStateLocalMemoryStorage implements IAlertStateStorage {
     public boolean tryEnterSilence(String alertId, Duration silenceDuration) {
         long silencedTill = System.currentTimeMillis() + silenceDuration.toMillis();
         if (silenced.putIfAbsent(alertId, silencedTill) == null) {
+            // No records, means that this is the first time to enter
             return false;
         }
-        silencedTill = silenced.get(alertId);
-        if (System.currentTimeMillis() <= silencedTill) {
+
+        long prevTillTimestamp = silenced.get(alertId);
+        if (System.currentTimeMillis() <= prevTillTimestamp) {
+            // Still in the previous silence period
             return true;
         } else {
+            // Previous silence period expires, Set a new one
             silenced.put(alertId, silencedTill);
             return false;
         }

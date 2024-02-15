@@ -40,7 +40,7 @@ public class AlertExpressionASTParserTest {
         Assert.assertEquals("jvm-metrics", ((AlertExpression) expression).getFrom());
         Assert.assertEquals("avg", ((AlertExpression) expression).getSelect().getAggregator());
         Assert.assertEquals("cpu", ((AlertExpression) expression).getSelect().getField());
-        Assert.assertEquals(60, ((AlertExpression) expression).getDuration().getDuration().getSeconds());
+        Assert.assertEquals(60, ((AlertExpression) expression).getWindow().getDuration().getSeconds());
     }
 
     @Test
@@ -58,7 +58,7 @@ public class AlertExpressionASTParserTest {
         Assert.assertEquals("jvm-metrics", ((AlertExpression) expression).getFrom());
         Assert.assertEquals("avg", ((AlertExpression) expression).getSelect().getAggregator());
         Assert.assertEquals("cpu", ((AlertExpression) expression).getSelect().getField());
-        Assert.assertEquals(60, ((AlertExpression) expression).getDuration().getDuration().getSeconds());
+        Assert.assertEquals(60, ((AlertExpression) expression).getWindow().getDuration().getSeconds());
 
         AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName > 'a'}) > 1");
         AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName >= 'a'}) > 1");
@@ -73,13 +73,13 @@ public class AlertExpressionASTParserTest {
     public void testDurationExpression() {
         IExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1");
         Assert.assertTrue(expression instanceof AlertExpression);
-        Assert.assertEquals(5, ((AlertExpression) expression).getDuration().getDuration().toMinutes());
-        Assert.assertEquals(TimeUnit.MINUTES, ((AlertExpression) expression).getDuration().getUnit());
+        Assert.assertEquals(5, ((AlertExpression) expression).getWindow().getDuration().toMinutes());
+        Assert.assertEquals(TimeUnit.MINUTES, ((AlertExpression) expression).getWindow().getUnit());
 
         expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5h] > 1");
         Assert.assertTrue(expression instanceof AlertExpression);
-        Assert.assertEquals(5, ((AlertExpression) expression).getDuration().getDuration().toHours());
-        Assert.assertEquals(TimeUnit.HOURS, ((AlertExpression) expression).getDuration().getUnit());
+        Assert.assertEquals(5, ((AlertExpression) expression).getWindow().getDuration().toHours());
+        Assert.assertEquals(TimeUnit.HOURS, ((AlertExpression) expression).getWindow().getUnit());
 
         // the duration must be a positive value
         Assert.assertThrows(InvalidExpressionException.class, () -> AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName in ('a', 1)})[0m] > 1"));
@@ -201,14 +201,22 @@ public class AlertExpressionASTParserTest {
         // One filter
         {
             AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName = 'a'})[5m] > 1[-5m]");
-            Assert.assertEquals("avg(jvm-metrics.cpu{appName = 'a'})[5m] > 1[-5m]",
+            Assert.assertEquals("avg(jvm-metrics.cpu{appName = \"a\"})[5m] > 1[-5m]",
                                 expression.serializeToText(null));
         }
 
         // Two filters
         {
             AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] > 1[-5m]");
-            Assert.assertEquals("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] > 1[-5m]",
+            Assert.assertEquals("avg(jvm-metrics.cpu{appName like \"a%\", instanceName like \"192.%\"})[5m] > 1[-5m]",
+                                expression.serializeToText(null));
+        }
+
+
+        // count aggregator
+        {
+            AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("count(   jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m]  >  1");
+            Assert.assertEquals("count(jvm-metrics.cpu{appName like \"a%\", instanceName like \"192.%\"})[5m] > 1",
                                 expression.serializeToText(null));
         }
     }

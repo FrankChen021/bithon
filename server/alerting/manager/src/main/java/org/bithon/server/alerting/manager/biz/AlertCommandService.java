@@ -36,7 +36,6 @@ import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.meta.api.IMetadataApi;
 import org.springframework.context.annotation.Conditional;
@@ -86,7 +85,7 @@ public class AlertCommandService {
         }
     }
 
-    private AlertStorageObject toAlertObject(AlertRule alertRule) throws BizException {
+    private AlertStorageObject toAlertStorageObject(AlertRule alertRule) throws BizException {
         try {
             alertRule.initialize();
         } catch (InvalidExpressionException e) {
@@ -113,11 +112,6 @@ public class AlertCommandService {
                                        metric,
                                        alertExpression.serializeToText(),
                                        alertExpression.getFrom());
-            }
-            if (column instanceof AggregateCountColumn) {
-                throw new BizException("Metric [%s] in expression [%s] is not allowed",
-                                       metric,
-                                       alertExpression.serializeToText());
             }
             if (!AggregatorEnum.valueOf(alertExpression.getSelect().getAggregator()).isColumnSupported(column)) {
                 throw new BizException("Aggregator [%s] is not supported8 on column [%s] which has a type of [%s]",
@@ -177,7 +171,7 @@ public class AlertCommandService {
             throw new BizException("Alert object with the same name [%s] already exists.", alertRule.getName());
         }
 
-        AlertStorageObject alertObject = toAlertObject(alertRule);
+        AlertStorageObject alertObject = toAlertStorageObject(alertRule);
         if (!StringUtils.hasText(alertObject.getId())) {
             alertObject.setId(UUID.randomUUID().toString().replace("-", ""));
         }
@@ -202,7 +196,7 @@ public class AlertCommandService {
             throw new BizException("Alert object [%s] not exist.", newAlertRule.getName());
         }
 
-        AlertStorageObject newObject = toAlertObject(newAlertRule);
+        AlertStorageObject newObject = toAlertStorageObject(newAlertRule);
 
         this.alertObjectStorage.executeTransaction(() -> {
             if (!this.alertObjectStorage.updateAlert(oldObject, newObject, userProvider.getCurrentUser().getUserName())) {

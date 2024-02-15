@@ -64,6 +64,10 @@ public class CreateAlertRequest {
     @HumanReadableDurationConstraint(min = "1m", max = "60m")
     private HumanReadableDuration forDuration = HumanReadableDuration.DURATION_3_MINUTE;
 
+    @JsonProperty("silence")
+    @HumanReadableDurationConstraint(min = "1m", max = "60m")
+    private HumanReadableDuration silence = HumanReadableDuration.DURATION_3_MINUTE;
+
     @NotEmpty
     private String expr;
 
@@ -80,6 +84,7 @@ public class CreateAlertRequest {
         alertRule.setNotifications(this.notifications);
         alertRule.setForDuration(this.forDuration);
         alertRule.setEvery(this.every);
+        alertRule.setSilence(silence);
         alertRule.setEnabled(true);
         return alertRule;
     }

@@ -37,4 +37,6 @@ public interface IAlertNotificationChannelStorage {
     void deleteChannel(String name);
 
     boolean exists(String name);
+
+    NotificationChannelObject getChannel(String name);
 }

@@ -72,12 +72,17 @@ public class AlertEvaluator implements SmartLifecycle {
                           IEvaluationLogStorage logStorage,
                           IAlertRecordStorage recordStorage,
                           IDataSourceApi dataSourceApi,
-                          ApplicationContext applicationContext) {
+                          ApplicationContext applicationContext,
+                          ObjectMapper objectMapper) {
         this.stateStorage = stateStorage;
         this.evaluationLogWriter = new EvaluationLogBatchWriter(logStorage.createWriter(), Duration.ofSeconds(5), 10000);
         this.alertRecordStorage = recordStorage;
         this.dataSourceApi = dataSourceApi;
-        this.objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+
+        // Use Indent output for better debugging
+        // It's a copy of existing ObjectMapper
+        // because the injected ObjectMapper has many serialization/deserialization configurations
+        this.objectMapper = objectMapper.copy().enable(SerializationFeature.INDENT_OUTPUT);
         this.notificationApi = createNotificationApi(applicationContext);
     }
 
@@ -179,9 +184,9 @@ public class AlertEvaluator implements SmartLifecycle {
         HumanReadableDuration silenceDuration = context.getAlertRule().getSilence();
         if (stateStorage.tryEnterSilence(alertRule.getId(), silenceDuration.getDuration())) {
             Duration silenceRemainTime = stateStorage.getSilenceRemainTime(alertRule.getId());
-            context.log(AlertEvaluator.class, "Alerting，but is under silence period(%s)。Last alert at:%s",
+            context.log(AlertEvaluator.class, "Alerting，but is under notification silence period(%s). Last alert at: %s",
                         silenceDuration,
-                        TimeSpan.of(now - silenceDuration.getDuration().toMillis() - silenceRemainTime.toMillis()).toISO8601());
+                        TimeSpan.of(now - (silenceDuration.getDuration().toMillis() - silenceRemainTime.toMillis())).format("HH:mm:ss"));
             return;
         }
 

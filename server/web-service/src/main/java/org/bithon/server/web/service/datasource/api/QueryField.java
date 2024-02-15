@@ -58,7 +58,7 @@ public class QueryField {
                       @JsonProperty("expression") String expression) {
         this.name = name;
         this.field = field == null ? name : field;
-        this.aggregator = aggregator == null ? null : aggregator.toLowerCase(Locale.ENGLISH) ;
+        this.aggregator = aggregator == null ? null : aggregator.toLowerCase(Locale.ENGLISH);
         this.expression = expression;
     }
 

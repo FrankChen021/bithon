@@ -53,17 +53,17 @@ public class TimeSpanTest {
         {
             TimeSpan span = TimeSpan.fromString("2022-05-15 12:38:43", "yyyy-MM-dd HH:mm:ss", tz);
 
-            Assert.assertEquals("2022-05-15 12:38:43", span.toString("yyyy-MM-dd HH:mm:ss", tz));
-            Assert.assertEquals("2022-05-15 12:38:00", span.floor(Duration.ofMinutes(1)).toString("yyyy-MM-dd HH:mm:ss", tz));
-            Assert.assertEquals("2022-05-15 12:39:00", span.ceil(Duration.ofMinutes(1)).toString("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-15 12:38:43", span.format("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-15 12:38:00", span.floor(Duration.ofMinutes(1)).format("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-15 12:39:00", span.ceil(Duration.ofMinutes(1)).format("yyyy-MM-dd HH:mm:ss", tz));
         }
 
         // Boundary testing
         {
             TimeSpan span = TimeSpan.fromString("2022-05-15 12:38:00", "yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone("UTC"));
-            Assert.assertEquals("2022-05-15 12:38:00", span.toString("yyyy-MM-dd HH:mm:ss", tz));
-            Assert.assertEquals("2022-05-15 12:38:00", span.floor(Duration.ofMinutes(1)).toString("yyyy-MM-dd HH:mm:ss", tz));
-            Assert.assertEquals("2022-05-15 12:39:00", span.ceil(Duration.ofMinutes(1)).toString("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-15 12:38:00", span.format("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-15 12:38:00", span.floor(Duration.ofMinutes(1)).format("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-15 12:39:00", span.ceil(Duration.ofMinutes(1)).format("yyyy-MM-dd HH:mm:ss", tz));
         }
     }
 
@@ -74,17 +74,17 @@ public class TimeSpanTest {
         {
             TimeSpan span = TimeSpan.fromString("2022-05-15 12:38:43", "yyyy-MM-dd HH:mm:ss", tz);
 
-            Assert.assertEquals("2022-05-15 12:38:43", span.toString("yyyy-MM-dd HH:mm:ss", tz));
-            Assert.assertEquals("2022-05-15 12:00:00", span.floor(Duration.ofHours(1)).toString("yyyy-MM-dd HH:mm:ss", tz));
-            Assert.assertEquals("2022-05-15 13:00:00", span.ceil(Duration.ofHours(1)).toString("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-15 12:38:43", span.format("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-15 12:00:00", span.floor(Duration.ofHours(1)).format("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-15 13:00:00", span.ceil(Duration.ofHours(1)).format("yyyy-MM-dd HH:mm:ss", tz));
         }
 
         // Boundary testing
         {
             TimeSpan span = TimeSpan.fromString("2022-05-15 12:00:00", "yyyy-MM-dd HH:mm:ss", tz);
-            Assert.assertEquals("2022-05-15 12:00:00", span.toString("yyyy-MM-dd HH:mm:ss", tz));
-            Assert.assertEquals("2022-05-15 12:00:00", span.floor(Duration.ofHours(1)).toString("yyyy-MM-dd HH:mm:ss", tz));
-            Assert.assertEquals("2022-05-15 13:00:00", span.ceil(Duration.ofHours(1)).toString("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-15 12:00:00", span.format("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-15 12:00:00", span.floor(Duration.ofHours(1)).format("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-15 13:00:00", span.ceil(Duration.ofHours(1)).format("yyyy-MM-dd HH:mm:ss", tz));
         }
     }
 
@@ -95,17 +95,17 @@ public class TimeSpanTest {
             // from a UTC timezone
             TimeSpan span = TimeSpan.fromString("2022-05-15 12:38:43", "yyyy-MM-dd HH:mm:ss", tz);
 
-            Assert.assertEquals("2022-05-15 12:38:43", span.toString("yyyy-MM-dd HH:mm:ss", tz));
-            Assert.assertEquals("2022-05-15 00:00:00", span.floor(Duration.ofDays(1)).toString("yyyy-MM-dd HH:mm:ss", tz));
-            Assert.assertEquals("2022-05-16 00:00:00", span.ceil(Duration.ofDays(1)).toString("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-15 12:38:43", span.format("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-15 00:00:00", span.floor(Duration.ofDays(1)).format("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-16 00:00:00", span.ceil(Duration.ofDays(1)).format("yyyy-MM-dd HH:mm:ss", tz));
         }
 
         // Boundary testing
         {
             TimeSpan span = TimeSpan.fromString("2022-05-15 00:00:00", "yyyy-MM-dd HH:mm:ss", tz);
-            Assert.assertEquals("2022-05-15 00:00:00", span.toString("yyyy-MM-dd HH:mm:ss", tz));
-            Assert.assertEquals("2022-05-15 00:00:00", span.floor(Duration.ofDays(1)).toString("yyyy-MM-dd HH:mm:ss", tz));
-            Assert.assertEquals("2022-05-16 00:00:00", span.ceil(Duration.ofDays(1)).toString("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-15 00:00:00", span.format("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-15 00:00:00", span.floor(Duration.ofDays(1)).format("yyyy-MM-dd HH:mm:ss", tz));
+            Assert.assertEquals("2022-05-16 00:00:00", span.ceil(Duration.ofDays(1)).format("yyyy-MM-dd HH:mm:ss", tz));
         }
     }
 }

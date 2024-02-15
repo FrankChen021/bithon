@@ -24,6 +24,7 @@ import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
+import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAlertNotificationChannelRecord;
 import org.jooq.DSLContext;
 
 import java.sql.Timestamp;
@@ -76,17 +77,26 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
     }
 
     @Override
+    public NotificationChannelObject getChannel(String name) {
+        return dslContext.selectFrom(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
+                         .where(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name))
+                         .fetchOne(this::toChannelObject);
+    }
+
+    @Override
     public List<NotificationChannelObject> getChannels(long since) {
         return dslContext.selectFrom(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
                          .fetch()
-                         .map((record) -> {
-                             NotificationChannelObject obj = new NotificationChannelObject();
-                             obj.setName(record.getName());
-                             obj.setType(record.getType());
-                             obj.setPayload(record.getPayload());
-                             obj.setCreatedAt(Timestamp.valueOf(record.getCreatedAt()));
-                             return obj;
-                         });
+                         .map(this::toChannelObject);
+    }
+
+    protected NotificationChannelObject toChannelObject(BithonAlertNotificationChannelRecord record) {
+        NotificationChannelObject obj = new NotificationChannelObject();
+        obj.setName(record.getName());
+        obj.setType(record.getType());
+        obj.setPayload(record.getPayload());
+        obj.setCreatedAt(Timestamp.valueOf(record.getCreatedAt()));
+        return obj;
     }
 
     @Override

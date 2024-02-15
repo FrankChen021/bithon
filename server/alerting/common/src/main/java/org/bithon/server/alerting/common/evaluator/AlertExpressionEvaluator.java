@@ -54,7 +54,7 @@ public class AlertExpressionEvaluator {
         context.setEvaluatingExpression(this.expression);
 
         TimeSpan end = context.getIntervalEnd();
-        TimeSpan start = end.before(expression.getDuration());
+        TimeSpan start = end.before(expression.getWindow());
         IEvaluationOutput output = new MetricEvaluatorWithLogger(metricEvaluator).evaluate(context.getDataSourceApi(),
                                                                                            expression.getFrom(),
                                                                                            expression.getSelect(),
