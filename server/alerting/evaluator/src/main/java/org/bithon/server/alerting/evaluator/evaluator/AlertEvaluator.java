@@ -222,6 +222,7 @@ public class AlertEvaluator {
         alertRecord.setAlertName(alertRule.getName());
         alertRecord.setAppName(alertRule.getAppName());
         alertRecord.setNamespace("");
+        alertRecord.setDataSource("{}");
         alertRecord.setPayload(objectMapper.writeValueAsString(AlertRecordPayload.builder()
                                                                                  .start(notification.getStart())
                                                                                  .end(notification.getEnd())
