@@ -72,8 +72,6 @@ public class AlertRecordStorage extends AlertRecordJdbcStorage {
 
     @Override
     public void addAlertRecord(AlertRecordObject record) {
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-
         dslContext.insertInto(Tables.BITHON_ALERT_RECORD)
                   .set(Tables.BITHON_ALERT_RECORD.APP_NAME, record.getAppName())
                   .set(Tables.BITHON_ALERT_RECORD.ALERT_NAME, record.getAlertName())
@@ -83,12 +81,12 @@ public class AlertRecordStorage extends AlertRecordJdbcStorage {
                   .set(Tables.BITHON_ALERT_RECORD.DATA_SOURCE, record.getDataSource())
                   .set(Tables.BITHON_ALERT_RECORD.NOTIFICATION_STATUS, record.getNotificationStatus())
                   .set(Tables.BITHON_ALERT_RECORD.RECORD_ID, record.getRecordId())
-                  .set(Tables.BITHON_ALERT_RECORD.CREATED_AT, timestamp.toLocalDateTime())
+                  .set(Tables.BITHON_ALERT_RECORD.CREATED_AT, record.getCreatedAt().toLocalDateTime())
                   .execute();
 
         dslContext.insertInto(Tables.BITHON_ALERT_STATE)
                   .set(Tables.BITHON_ALERT_STATE.ALERT_ID, record.getAlertId())
-                  .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, timestamp.toLocalDateTime())
+                  .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, record.getCreatedAt().toLocalDateTime())
                   .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, record.getRecordId())
                   .execute();
     }

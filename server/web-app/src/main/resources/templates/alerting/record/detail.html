@@ -134,22 +134,7 @@
             $(expressionRow).attr("id", "expression-" + id);
             $(expressionRow).find(".expression-sn").text(id);
 
-            let whereExpression = '';
-            if(expression.where !== undefined && expression.where !== null) {
-                whereExpression = `{${expression.where}}`
-            }
-
-            let byExpression = '';
-            if (expression.groupBy !== undefined && expression.groupBy !== null) {
-                byExpression += 'by (';
-                $.each(expression.groupBy, (group) => {
-                    byExpression += group;
-                    byExpression += ',';
-                });
-                byExpression += ')'
-            }
-            const text = `<span class="keyword">${expression.select.aggregator}</span> ${byExpression} ( ${expression.from}.${expression.select.field} ${whereExpression} )[${expression.window}] ${expression.alertPredicate} ${expression.alertExpected}`;
-            $(expressionRow).css('display', '').find(".expression-text").html(text);
+            $(expressionRow).css('display', '').find(".expression-text").html(`<span>${expression.expressionText}</span>`);
             $(container).append(expressionRow);
         }
 

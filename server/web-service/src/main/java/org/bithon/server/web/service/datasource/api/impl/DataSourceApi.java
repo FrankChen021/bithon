@@ -21,8 +21,8 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
-import org.bithon.server.storage.datasource.DataSourceException;
 import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.SchemaException;
 import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
@@ -201,7 +201,7 @@ public class DataSourceApi implements IDataSourceApi {
     @Override
     public void createSchema(@RequestBody ISchema schema) {
         if (schemaManager.containsSchema(schema.getName())) {
-            throw new DataSourceException.AlreadyExists(schema.getName());
+            throw new SchemaException.AlreadyExists(schema.getName());
         }
 
         // TODO:

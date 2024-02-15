@@ -23,21 +23,21 @@ import org.bithon.component.commons.utils.StringUtils;
  * @author frank.chen021@outlook.com
  * @date 7/10/21 11:49 am
  */
-public class DataSourceException extends RuntimeException {
+public class SchemaException extends RuntimeException {
 
-    protected DataSourceException(String msg) {
+    protected SchemaException(String msg) {
         super(msg);
     }
 
     @HttpResponseMapping(statusCode = HttpResponseMapping.StatusCode.BAD_REQ)
-    public static class NotFound extends DataSourceException {
+    public static class NotFound extends SchemaException {
         public NotFound(String name) {
             super("Can't find schema: " + name);
         }
     }
 
     @HttpResponseMapping(statusCode = HttpResponseMapping.StatusCode.BAD_REQ)
-    public static class AlreadyExists extends DataSourceException {
+    public static class AlreadyExists extends SchemaException {
         public AlreadyExists(String name) {
             super(StringUtils.format("Schema [%s] already exists.", name));
         }

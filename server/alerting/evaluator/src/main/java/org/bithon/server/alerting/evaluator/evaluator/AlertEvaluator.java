@@ -16,6 +16,7 @@
 
 package org.bithon.server.alerting.evaluator.evaluator;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import feign.Contract;
@@ -81,7 +82,7 @@ public class AlertEvaluator implements SmartLifecycle {
 
         // Use Indent output for better debugging
         // It's a copy of existing ObjectMapper
-        // because the injected ObjectMapper has many serialization/deserialization configurations
+        // because the injected ObjectMapper has extra serialization/deserialization configurations
         this.objectMapper = objectMapper.copy().enable(SerializationFeature.INDENT_OUTPUT);
         this.notificationApi = createNotificationApi(applicationContext);
     }
@@ -178,7 +179,7 @@ public class AlertEvaluator implements SmartLifecycle {
         }
     }
 
-    private void notify(AlertRule alertRule, EvaluationContext context) throws Exception {
+    private void notify(AlertRule alertRule, EvaluationContext context) {
         long now = System.currentTimeMillis();
 
         HumanReadableDuration silenceDuration = context.getAlertRule().getSilence();
@@ -190,8 +191,9 @@ public class AlertEvaluator implements SmartLifecycle {
             return;
         }
 
-        context.log(AlertEvaluator.class, "Sending alert");
-
+        //
+        // Prepare notification
+        //
         NotificationMessage notification = new NotificationMessage();
         notification.setAlertRule(alertRule);
         notification.setStart(context.getIntervalEnd().before(alertRule.getForDuration()).getMilliseconds());
@@ -212,17 +214,37 @@ public class AlertEvaluator implements SmartLifecycle {
                                                                                                  .build()));
         });
 
-        //
-        // save
-        //
-        Timestamp lastAlertAt = alertRecordStorage.getLastAlert(alertRule.getId());
+        Timestamp alertAt = new Timestamp(System.currentTimeMillis());
+        try {
+            // Save alerting records
+            context.log(AlertExpression.class, "Saving alert record");
+            String id = saveAlertRecord(context, alertAt, notification);
+
+            // notification
+            context.log(AlertExpression.class, "Sending notification");
+            notification.setLastAlertAt(alertAt.getTime());
+            notification.setAlertRecordId(id);
+            for (String name : alertRule.getNotifications()) {
+                try {
+                    notificationApi.notify(name, notification);
+                } catch (Exception e) {
+                    log.error("Exception when notifying " + name, e);
+                }
+            }
+        } catch (Exception e) {
+            context.logException(AlertExpression.class, e, "Exception when sending notification.");
+        }
+    }
+
+    private String saveAlertRecord(EvaluationContext context, Timestamp lastAlertAt, NotificationMessage notification) throws JsonProcessingException {
         AlertRecordObject alertRecord = new AlertRecordObject();
         alertRecord.setRecordId(UUID.randomUUID().toString().replace("-", ""));
-        alertRecord.setAlertId(alertRule.getId());
-        alertRecord.setAlertName(alertRule.getName());
-        alertRecord.setAppName(alertRule.getAppName());
+        alertRecord.setAlertId(context.getAlertRule().getId());
+        alertRecord.setAlertName(context.getAlertRule().getName());
+        alertRecord.setAppName(context.getAlertRule().getAppName());
         alertRecord.setNamespace("");
         alertRecord.setDataSource("{}");
+        alertRecord.setCreatedAt(lastAlertAt);
         alertRecord.setPayload(objectMapper.writeValueAsString(AlertRecordPayload.builder()
                                                                                  .start(notification.getStart())
                                                                                  .end(notification.getEnd())
@@ -232,19 +254,7 @@ public class AlertEvaluator implements SmartLifecycle {
                                                                                  .build()));
         alertRecord.setNotificationStatus(IAlertRecordStorage.STATUS_CODE_UNCHECKED);
         alertRecordStorage.addAlertRecord(alertRecord);
-
-        //
-        // notification
-        //
-        notification.setLastAlertAt(lastAlertAt == null ? null : lastAlertAt.getTime());
-        notification.setAlertRecordId(alertRecord.getRecordId());
-        for (String name : alertRule.getNotifications()) {
-            try {
-                notificationApi.notify(name, notification);
-            } catch (Exception e) {
-                log.error("Exception when notifying " + name, e);
-            }
-        }
+        return alertRecord.getRecordId();
     }
 
     @Override
