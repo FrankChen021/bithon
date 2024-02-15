@@ -89,7 +89,7 @@ public class AbstractRelativeThresholdPredicate implements IMetricEvaluator {
 
         //noinspection unchecked
         List<Map<String, Object>> currWindow = (List<Map<String, Object>>) response.getData();
-        if (CollectionUtils.isEmpty(currWindow) || !currWindow.get(0).containsKey(metric.getName())) {
+        if (CollectionUtils.isEmpty(currWindow)) {
             return null;
         }
         Number currValue = (Number) currWindow.get(0).get(metric.getName());
@@ -101,8 +101,6 @@ public class AbstractRelativeThresholdPredicate implements IMetricEvaluator {
         response = dataSourceApi.groupBy(GeneralQueryRequest.builder()
                                                             .dataSource(dataSource)
                                                             .interval(IntervalRequest.builder()
-                                                                                     // The offset is a negative value,
-                                                                                     // turn it into a positive one
                                                                                      .startISO8601(start.before(this.offset, TimeUnit.SECONDS).toISO8601())
                                                                                      .endISO8601(end.before(this.offset, TimeUnit.SECONDS).toISO8601())
                                                                                      .build())
@@ -113,7 +111,7 @@ public class AbstractRelativeThresholdPredicate implements IMetricEvaluator {
 
         //noinspection unchecked
         List<Map<String, Object>> base = (List<Map<String, Object>>) response.getData();
-        if (CollectionUtils.isEmpty(base) || !base.get(0).containsKey(metric.getName())) {
+        if (CollectionUtils.isEmpty(base)) {
             return null;
         }
         Number val = (Number) base.get(0).get(metric.getName());

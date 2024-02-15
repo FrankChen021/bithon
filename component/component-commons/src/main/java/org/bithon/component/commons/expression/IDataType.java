@@ -233,7 +233,7 @@ public enum IDataType {
 
         @Override
         public boolean isGreaterThan(Number left, Number right) {
-            return false;
+            return left.doubleValue() > right.doubleValue();
         }
 
         @Override

@@ -26,6 +26,7 @@ import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IExpressionVisitor2;
+import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.CollectionUtils;
@@ -160,6 +161,20 @@ public class AlertExpression implements IExpression {
                     sb.append(", ");
                 }
                 expression.getOperands().get(i).accept(this);
+            }
+            return false;
+        }
+
+        // Use double quote to serialize the expression by default
+        @Override
+        public boolean visit(LiteralExpression expression) {
+            Object value = expression.getValue();
+            if (expression instanceof LiteralExpression.StringLiteral) {
+                sb.append('"');
+                sb.append(value);
+                sb.append('"');
+            } else {
+                sb.append(value);
             }
             return false;
         }

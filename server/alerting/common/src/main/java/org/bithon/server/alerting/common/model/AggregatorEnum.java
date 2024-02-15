@@ -61,12 +61,6 @@ public enum AggregatorEnum {
             return !(column instanceof StringColumn);
         }
     },
-    rate {
-        @Override
-        public boolean isColumnSupported(IColumn column) {
-            return !(column instanceof StringColumn);
-        }
-    },
     sum {
         @Override
         public boolean isColumnSupported(IColumn column) {
