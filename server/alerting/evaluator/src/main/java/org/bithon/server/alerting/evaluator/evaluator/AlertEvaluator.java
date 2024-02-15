@@ -42,6 +42,7 @@ import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -58,10 +59,10 @@ import java.util.UUID;
 @Slf4j
 @Service
 @Conditional(EvaluatorModuleEnabler.class)
-public class AlertEvaluator {
+public class AlertEvaluator implements SmartLifecycle {
 
     private final IAlertStateStorage stateStorage;
-    private final IEvaluationLogStorage evaluationLoggerFactory;
+    private final EvaluationLogBatchWriter evaluationLogWriter;
     private final IAlertRecordStorage alertRecordStorage;
     private final ObjectMapper objectMapper;
     private final IDataSourceApi dataSourceApi;
@@ -73,7 +74,7 @@ public class AlertEvaluator {
                           IDataSourceApi dataSourceApi,
                           ApplicationContext applicationContext) {
         this.stateStorage = stateStorage;
-        this.evaluationLoggerFactory = logStorage;
+        this.evaluationLogWriter = new EvaluationLogBatchWriter(logStorage.createWriter(), Duration.ofSeconds(5), 10000);
         this.alertRecordStorage = recordStorage;
         this.dataSourceApi = dataSourceApi;
         this.objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
@@ -82,7 +83,7 @@ public class AlertEvaluator {
 
     public void evaluate(TimeSpan now, AlertRule alertRule) {
         EvaluationContext context = new EvaluationContext(now,
-                                                          evaluationLoggerFactory.createWriter(),
+                                                          evaluationLogWriter,
                                                           alertRule,
                                                           dataSourceApi);
 
@@ -106,12 +107,6 @@ public class AlertEvaluator {
             }
         } catch (Exception e) {
             log.error(StringUtils.format("ERROR to evaluate alert %s", alertRule.getName()), e);
-        } finally {
-            try {
-                context.getEvaluatorLogger().flush();
-            } catch (Exception e) {
-                log.error("Flush log for alert {} failed: {}", alertRule.getId(), e.toString());
-            }
         }
 
         this.stateStorage.setEvaluationTime(alertRule.getId(), now.getMilliseconds(), interval);
@@ -245,5 +240,22 @@ public class AlertEvaluator {
                 log.error("Exception when notifying " + name, e);
             }
         }
+    }
+
+    @Override
+    public void start() {
+        log.info("Start alert evaluator");
+        this.evaluationLogWriter.start();
+    }
+
+    @Override
+    public void stop() {
+        log.info("Shutdown alert evaluator");
+        this.evaluationLogWriter.stop();
+    }
+
+    @Override
+    public boolean isRunning() {
+        return this.evaluationLogWriter.isStarted();
     }
 }

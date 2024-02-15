@@ -25,6 +25,7 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
+import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
 import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
@@ -40,6 +41,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Frank Chen
@@ -50,12 +52,17 @@ public class AlertRuleEvaluatorTest {
 
     private static final IEvaluationLogWriter CONSOLE_LOGGER = new IEvaluationLogWriter() {
         @Override
-        public void log(String alertId, String alertName, Class<?> logClass, String message) {
-            log.info("[{}] {}", logClass.getSimpleName(), message);
+        public void close() {
         }
 
         @Override
-        public void flush() {
+        public void write(EvaluationLogEvent logEvent) {
+            log.info("[{}] {}", logEvent.getClazz(), logEvent.getMessage());
+        }
+
+        @Override
+        public void write(List<EvaluationLogEvent> logs) {
+
         }
     };
 

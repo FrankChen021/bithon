@@ -16,11 +16,9 @@
 
 package org.bithon.server.storage.alerting;
 
-import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.util.List;
 
 /**
  * A logger for context logs generated during evaluation of each alert
@@ -31,33 +29,8 @@ import java.io.StringWriter;
  * @author frank.chen021@outlook.com
  * @date 2021/1/26
  */
-public interface IEvaluationLogWriter {
+public interface IEvaluationLogWriter extends AutoCloseable {
+    void write(EvaluationLogEvent logEvent);
 
-    default void log(String alertId,
-                     String alertName,
-                     Class<?> logClass,
-                     String format,
-                     Object... args) {
-        log(alertId, alertName, logClass, StringUtils.format(format, args));
-    }
-
-    void log(String alertId, String alertName, Class<?> logClass, String message);
-
-    default void error(String alertId,
-                       String alertName,
-                       Class<?> logClass,
-                       Throwable exception,
-                       String messageFormat,
-                       Object... args) {
-        StringWriter sw = new StringWriter();
-        try (PrintWriter pw = new PrintWriter(sw)) {
-            exception.printStackTrace(pw);
-        }
-        log(alertId, alertName, logClass, StringUtils.format(messageFormat, args) + "\nException: " + sw);
-    }
-
-    /**
-     * Called at the end of evaluation of an alert
-     */
-    void flush() throws IOException;
+    void write(List<EvaluationLogEvent> logs);
 }

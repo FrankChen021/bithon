@@ -22,7 +22,6 @@ import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.metrics.IMetricWriter;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +51,7 @@ public class MetricBatchWriter implements IMetricWriter {
     }
 
     @Override
-    public void write(List<IInputRow> inputRowList) throws IOException {
+    public void write(List<IInputRow> inputRowList) {
         synchronized (this) {
             this.metricList.addAll(inputRowList);
         }
@@ -65,7 +64,7 @@ public class MetricBatchWriter implements IMetricWriter {
     public void close() throws Exception {
         log.info("Shutting down metric batch writer...");
 
-        // shutdown and wait for current scheduler to close
+        // shutdown and wait for the current scheduler to close
         try {
             this.executor.shutdown(Duration.ofSeconds(20));
         } catch (InterruptedException ignored) {
@@ -79,7 +78,7 @@ public class MetricBatchWriter implements IMetricWriter {
     }
 
     /**
-     * Get the size from config so that the 'size' can be dynamically in effect if it's changed in configuration center such as nacos/apollo
+     * Get the size from config so that the 'size' can be dynamically in effect if it's changed in a configuration center such as nacos/apollo
      */
     private int getBatchSize() {
         return sinkConfig.getBatch() == null ? 2000 : sinkConfig.getBatch().getSize();

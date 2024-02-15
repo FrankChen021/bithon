@@ -18,16 +18,14 @@ package org.bithon.server.storage.jdbc.alerting;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
-import org.bithon.server.storage.alerting.pojo.EvaluationLogDo;
+import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.BatchBindStep;
 import org.jooq.DSLContext;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Frank Chen
@@ -38,29 +36,17 @@ public class JdbcLogWriter implements IEvaluationLogWriter {
 
     private final DSLContext dslContext;
 
-    private final List<EvaluationLogDo> logs = new ArrayList<>();
-
-    private static final AtomicLong SEQUENCE = new AtomicLong(0);
-
     public JdbcLogWriter(DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 
     @Override
-    public void log(String alertId, String alertName, Class<?> logClass, String message) {
-        log.info("[Alert Logger] [{} {}]: {}", alertId, alertName, message);
-
-        EvaluationLogDo log = new EvaluationLogDo();
-        log.setTimestamp(new Timestamp(System.currentTimeMillis()));
-        log.setAlertId(alertId);
-        log.setClazz(logClass.getSimpleName());
-        log.setMessage(message);
-        log.setSequence(SEQUENCE.getAndIncrement());
-        logs.add(log);
+    public void write(EvaluationLogEvent logEvent) {
+        write(Collections.singletonList(logEvent));
     }
 
     @Override
-    public void flush() {
+    public void write(List<EvaluationLogEvent> logs) {
         if (logs.isEmpty()) {
             return;
         }
@@ -76,10 +62,10 @@ public class JdbcLogWriter implements IEvaluationLogWriter {
                                                                 null,
                                                                 null,
                                                                 null
-                                                        ));
+                                                               ));
 
         int fieldLength = Tables.BITHON_ALERT_EVALUATION_LOG.CLAZZ.getDataType().length();
-        for (EvaluationLogDo log : logs) {
+        for (EvaluationLogEvent log : logs) {
             String clazz = log.getClazz();
             if (log.getClazz().length() > fieldLength) {
                 // ensure the text is within the size limit of this field
@@ -93,7 +79,9 @@ public class JdbcLogWriter implements IEvaluationLogWriter {
                       log.getMessage());
         }
         step.execute();
+    }
 
-        logs.clear();
+    @Override
+    public void close() {
     }
 }

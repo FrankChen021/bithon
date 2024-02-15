@@ -16,7 +16,10 @@
 
 package org.bithon.server.storage.alerting.pojo;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
 
@@ -25,7 +28,10 @@ import java.sql.Timestamp;
  * @date 10/4/22 7:15 PM
  */
 @Data
-public class EvaluationLogDo {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class EvaluationLogEvent {
     private Timestamp timestamp;
     private String alertId;
     private String clazz;
