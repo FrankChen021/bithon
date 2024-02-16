@@ -95,7 +95,7 @@ public class AlertQueryApi {
                                                 bo.setEnabled(!alert.isDisabled());
                                                 bo.setCreatedAt(alert.getCreatedAt().getTime());
                                                 bo.setUpdatedAt(alert.getUpdatedAt().getTime());
-                                                bo.setLastAlertAt(alert.getLastAlertAt() == null ? 0 : alert.getLastAlertAt().getTime());
+                                                bo.setLastAlertAt(alert.getLastAlertAt() == null ? 0L : alert.getLastAlertAt().getTime());
                                                 bo.setLastOperator(alert.getLastOperator());
                                                 bo.setLastRecordId(alert.getLastRecordId());
                                                 return bo;
