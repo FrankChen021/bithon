@@ -46,7 +46,7 @@ public class ProbabilisticSamplerTransform implements ITransformer {
      * During calculation, the probability is an integer-based value, starting from 1.
      * So, 0.001% * MAX_PROBABILITY_VALUE = 1
      */
-    public final static long MAX_PROBABILITY_VALUE = 100_000;
+    public static final long MAX_PROBABILITY_VALUE = 100_000;
 
     /**
      * @param percentage The minimum is 0.001%, that is 0.00001.

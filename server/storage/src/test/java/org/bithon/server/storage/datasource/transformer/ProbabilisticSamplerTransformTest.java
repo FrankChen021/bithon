@@ -79,7 +79,7 @@ public class ProbabilisticSamplerTransformTest {
         ITransformer transformer = new ProbabilisticSamplerTransform(HumanReadablePercentage.parse("100%"));
 
         for (int j = 0; j < 3; j++) { // Test for 3 loops
-            for (int i = 0; i < ProbabilisticSamplerTransform.MAX_PROBABILITY_VALUE ; i++) {
+            for (int i = 0; i < ProbabilisticSamplerTransform.MAX_PROBABILITY_VALUE; i++) {
                 Assert.assertTrue(transformer.transform(null));
             }
         }
@@ -90,7 +90,7 @@ public class ProbabilisticSamplerTransformTest {
         ITransformer transformer = new ProbabilisticSamplerTransform(HumanReadablePercentage.parse("101%"));
 
         for (int j = 0; j < 3; j++) { // Test for 3 loops
-            for (int i = 0; i < ProbabilisticSamplerTransform.MAX_PROBABILITY_VALUE ; i++) {
+            for (int i = 0; i < ProbabilisticSamplerTransform.MAX_PROBABILITY_VALUE; i++) {
                 Assert.assertTrue(transformer.transform(null));
             }
         }
