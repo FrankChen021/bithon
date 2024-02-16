@@ -45,15 +45,15 @@ public class DataCleaner {
         this.dsl = dsl;
     }
 
-    public void deleteFromPartition(String table, Timestamp before) {
-        deleteFromPartition(table, before, Collections.emptyList());
+    public void deletePartition(String table, Timestamp before) {
+        deletePartition(table, before, Collections.emptyList());
     }
 
     /**
      * DELETE PARTITION is a very lightweight operation
      */
     @SuppressWarnings("unchecked")
-    public void deleteFromPartition(String table, Timestamp before, List<TimeSpan> skipDateList) {
+    public void deletePartition(String table, Timestamp before, List<TimeSpan> skipDateList) {
         String fromTable;
         if (StringUtils.isEmpty(config.getCluster())) {
             fromTable = "system.parts";
@@ -96,31 +96,38 @@ public class DataCleaner {
     /**
      * Delete data from table is a heavy operation in ClickHouse
      */
-    public void deleteFromTable(Table<?> table,
-                                Timestamp before,
-                                long deleteRowThreshold) {
+    public void deleteBeforeGivenTimestamp(Table<?> table,
+                                           Timestamp before,
+                                           long deleteRowThreshold) {
         String beforeTimeText = DateTime.toYYYYMMDDhhmmss(before.getTime());
-        try {
-            long rowCount = dsl.fetchOne(StringUtils.format("SELECT count(1) FROM %s.%s WHERE timestamp < '%s'",
-                                                            config.getDatabase(),
-                                                            table.getName(),
-                                                            beforeTimeText))
-                               .getValue(0, Long.class);
-            if (rowCount < deleteRowThreshold) {
-                log.info("Expiration on table [{}] is skipped because only [{}] rows matches which is lower than the given threshold [{}].",
-                         table.getName(),
-                         rowCount,
-                         deleteRowThreshold);
-                return;
-            }
-
-            dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
-                                           config.getDatabase(),
-                                           config.getLocalTableName(table.getName()),
-                                           config.getOnClusterExpression(),
-                                           beforeTimeText));
-        } catch (Throwable e) {
-            log.error(StringUtils.format("Exception occurred when clean table[%s]:%s", table.getName(), e.getMessage()), e);
+        long rowCount = dsl.fetchOne(StringUtils.format("SELECT count(1) FROM %s.%s WHERE timestamp < '%s'",
+                                                        config.getDatabase(),
+                                                        table.getName(),
+                                                        beforeTimeText))
+                           .getValue(0, Long.class);
+        if (rowCount < deleteRowThreshold) {
+            log.info("Expiration on table [{}] is skipped because only [{}] rows matches which is lower than the given threshold [{}].",
+                     table.getName(),
+                     rowCount,
+                     deleteRowThreshold);
+            return;
         }
+
+        dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
+                                       config.getDatabase(),
+                                       config.getLocalTableName(table.getName()),
+                                       config.getOnClusterExpression(),
+                                       beforeTimeText));
+    }
+
+    /**
+     * Delete data from table is a heavy operation in ClickHouse
+     */
+    public void deleteByCondition(Table<?> table, String condition) {
+        dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE %s",
+                                       config.getDatabase(),
+                                       config.getLocalTableName(table.getName()),
+                                       config.getOnClusterExpression(),
+                                       condition));
     }
 }

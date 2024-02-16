@@ -109,7 +109,7 @@ public class MetricStorage extends MetricJdbcStorage {
         @Override
         protected void expireImpl(ISchema schema, Timestamp before, List<TimeSpan> skipDateList) {
             String table = schema.getDataStoreSpec().getStore();
-            new DataCleaner(config, dslContext).deleteFromPartition(table, before, skipDateList);
+            new DataCleaner(config, dslContext).deletePartition(table, before, skipDateList);
         }
     }
 

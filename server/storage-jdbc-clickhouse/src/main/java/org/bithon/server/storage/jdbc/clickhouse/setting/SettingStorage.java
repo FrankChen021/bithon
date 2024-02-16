@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
+import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcReader;
@@ -41,13 +42,13 @@ import java.util.List;
 @JsonTypeName("clickhouse")
 public class SettingStorage extends SettingJdbcStorage {
 
-    private final ClickHouseConfig config;
+    private final ClickHouseConfig clickHouseConfig;
 
     @JsonCreator
     public SettingStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration configuration,
                           @JacksonInject(useInput = OptBoolean.FALSE) SettingStorageConfig storageConfig) {
         super(configuration.getDslContext(), storageConfig);
-        this.config = configuration.getClickHouseConfig();
+        this.clickHouseConfig = configuration.getClickHouseConfig();
     }
 
     @Override
@@ -57,9 +58,9 @@ public class SettingStorage extends SettingJdbcStorage {
         }
 
         // Apply ReplacingMergeTree to this table
-        new TableCreator(config, this.dslContext).useReplacingMergeTree(Tables.BITHON_AGENT_SETTING.UPDATEDAT.getName())
-                                                 .partitionByExpression(null)
-                                                 .createIfNotExist(Tables.BITHON_AGENT_SETTING);
+        new TableCreator(clickHouseConfig, this.dslContext).useReplacingMergeTree(Tables.BITHON_AGENT_SETTING.UPDATEDAT.getName())
+                                                           .partitionByExpression(null)
+                                                           .createIfNotExist(Tables.BITHON_AGENT_SETTING);
     }
 
     @Override
@@ -94,6 +95,15 @@ public class SettingStorage extends SettingJdbcStorage {
     @Override
     public ISettingWriter createWriter() {
         return new SettingJdbcWriter(dslContext) {
+            @Override
+            public void deleteSetting(String app, String env, String name) {
+                String condition = dslContext.renderInlined(Tables.BITHON_AGENT_SETTING.APPNAME.eq(app)
+                                                                                               .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env))
+                                                                                               .and(Tables.BITHON_AGENT_SETTING.SETTINGNAME.eq(name)));
+
+                new DataCleaner(clickHouseConfig, dslContext).deleteByCondition(Tables.BITHON_AGENT_SETTING, condition);
+            }
+
             @Override
             public void updateSetting(String appName, String env, String name, String value, String format) {
                 // For ClickHouse, since the ReplacingMergeTree is used,

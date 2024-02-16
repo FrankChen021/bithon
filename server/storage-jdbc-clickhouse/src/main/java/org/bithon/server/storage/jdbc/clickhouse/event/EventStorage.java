@@ -74,7 +74,7 @@ public class EventStorage extends EventJdbcStorage {
 
             @Override
             public void expire(Timestamp before) {
-                new DataCleaner(config, dslContext).deleteFromPartition(Tables.BITHON_EVENT.getName(), before);
+                new DataCleaner(config, dslContext).deletePartition(Tables.BITHON_EVENT.getName(), before);
             }
         };
     }

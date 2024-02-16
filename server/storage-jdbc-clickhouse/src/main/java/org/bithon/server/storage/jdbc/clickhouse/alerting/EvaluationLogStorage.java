@@ -70,7 +70,7 @@ public class EvaluationLogStorage extends EvaluationLogJdbcStorage {
 
             @Override
             public void expire(Timestamp before) {
-                new DataCleaner(clickHouseConfig, dslContext).deleteFromPartition(Tables.BITHON_ALERT_EVALUATION_LOG.getName(), before);
+                new DataCleaner(clickHouseConfig, dslContext).deletePartition(Tables.BITHON_ALERT_EVALUATION_LOG.getName(), before);
             }
         };
     }

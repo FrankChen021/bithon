@@ -130,7 +130,7 @@ public class MetadataStorage extends MetadataJdbcStorage {
             @Override
             public void expire(Timestamp before) {
                 new DataCleaner(config, dslContext)
-                    .deleteFromTable(Tables.BITHON_APPLICATION_INSTANCE, before, 2000);
+                    .deleteBeforeGivenTimestamp(Tables.BITHON_APPLICATION_INSTANCE, before, 2000);
             }
         };
     }
