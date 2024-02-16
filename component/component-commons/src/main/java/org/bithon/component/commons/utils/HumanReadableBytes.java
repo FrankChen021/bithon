@@ -258,7 +258,7 @@ public class HumanReadableBytes {
                 return StringUtils.format(pattern, -8.0, UNITS[UNITS.length - 1], suffix);
             }
 
-            /*
+            /**
              * A number and its binary bits are listed as fellows
              * [0,    1KiB) = [0,    2^10)
              * [1KiB, 1MiB) = [2^10, 2^20),
@@ -286,7 +286,7 @@ public class HumanReadableBytes {
                 return bytes + " " + suffix;
             }
 
-            /*
+            /**
              * because max precision is 3, extra fractions can be ignored by use of integer division which might be a little more efficient
              */
             int unitIndex = 0;
