@@ -44,7 +44,7 @@ public class HumanReadableBytes {
         }
 
         number = number.trim();
-        if (number.length() == 0) {
+        if (number.isEmpty()) {
             throw new IAE("Invalid format of number: number is blank");
         }
 
@@ -83,7 +83,7 @@ public class HumanReadableBytes {
         }
 
         number = number.trim();
-        if (number.length() == 0) {
+        if (number.isEmpty()) {
             return nullValue;
         }
         return parseInner(number);
@@ -99,7 +99,7 @@ public class HumanReadableBytes {
         boolean isBinaryByte = false;
         char unit = number.charAt(lastDigitIndex--);
         if (unit == 'b') {
-            //unit ends with 'b' must be format of KiB/MiB/GiB/TiB/PiB, so at least 3 extra characters are required
+            //unit ends with 'b' must be a format of KiB/MiB/GiB/TiB/PiB, so at least 3 extra characters are required
             if (lastDigitIndex < 2) {
                 throw new IAE("Invalid format of number: %s", rawNumber);
             }
@@ -138,7 +138,7 @@ public class HumanReadableBytes {
                     throw new IAE("Invalid format of number: %s", rawNumber);
                 }
 
-                //lastDigitIndex here holds the index which is prior to current digit
+                //lastDigitIndex here holds the index which is prior to the current digit
                 //move backward so that it's at the right place
                 lastDigitIndex++;
                 break;
@@ -218,19 +218,19 @@ public class HumanReadableBytes {
     public enum UnitSystem {
         /**
          * also known as IEC format
-         * eg: B, KiB, MiB, GiB ...
+         * e.g. B, KiB, MiB, GiB ...
          */
         BINARY_BYTE,
 
         /**
          * also known as SI format
-         * eg: B, KB, MB ...
+         * e.g. B, KB, MB ...
          */
         DECIMAL_BYTE,
 
         /**
          * simplified SI format without 'B' indicator
-         * eg: K, M, G ...
+         * e.g., K, M, G ...
          */
         DECIMAL
     }
@@ -250,7 +250,7 @@ public class HumanReadableBytes {
             }
 
             if (bytes == Long.MIN_VALUE) {
-                /**
+                /*
                  * special path for Long.MIN_VALUE
                  *
                  * Long.MIN_VALUE = 2^63 = (2^60=1EiB) * 2^3
@@ -258,7 +258,7 @@ public class HumanReadableBytes {
                 return StringUtils.format(pattern, -8.0, UNITS[UNITS.length - 1], suffix);
             }
 
-            /**
+            /*
              * A number and its binary bits are listed as fellows
              * [0,    1KiB) = [0,    2^10)
              * [1KiB, 1MiB) = [2^10, 2^20),
@@ -268,7 +268,7 @@ public class HumanReadableBytes {
              *
              * So, expression (63 - Long.numberOfLeadingZeros(absValue))) helps us to get the right number of bits of the given input
              *
-             * Internal implementation of Long.numberOfLeadingZeros uses bit operations to do calculation so the cost is very cheap
+             * Internal implementation of Long.numberOfLeadingZeros uses bit operations to do calculation so the cost is very low
              */
             int unitIndex = (63 - Long.numberOfLeadingZeros(Math.abs(bytes))) / 10;
             return StringUtils.format(pattern, (double) bytes / (1L << (unitIndex * 10)), UNITS[unitIndex], suffix);
@@ -279,15 +279,15 @@ public class HumanReadableBytes {
         private static final String[] UNITS = {"K", "M", "G", "T", "P", "E"};
 
         static String format(long bytes, String pattern, String suffix) {
-            /**
+            /*
              * handle number between (-1000, 1000) first to simply further processing
              */
             if (bytes > -1000 && bytes < 1000) {
                 return bytes + " " + suffix;
             }
 
-            /**
-             * because max precision is 3, extra fraction can be ignored by use of integer division which might be a little more efficient
+            /*
+             * because max precision is 3, extra fractions can be ignored by use of integer division which might be a little more efficient
              */
             int unitIndex = 0;
             while (bytes <= -1000_000 || bytes >= 1000_000) {
