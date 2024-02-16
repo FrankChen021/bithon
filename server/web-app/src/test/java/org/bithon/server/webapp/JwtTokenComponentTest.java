@@ -19,9 +19,11 @@ package org.bithon.server.webapp;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.webapp.security.JwtTokenComponent;
 import org.bithon.server.webapp.security.WebSecurityConfig;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.time.Duration;
@@ -31,24 +33,37 @@ import java.util.Collections;
  * @author Frank Chen
  * @date 25/9/23 2:59 pm
  */
-public class SecurityTest {
+public class JwtTokenComponentTest {
+    private JwtTokenComponent component;
+
+    @Before
+    public void before() {
+        component = new JwtTokenComponent(new WebSecurityConfig());
+    }
 
     @Test
     public void validateToken_UserValidity() {
-        JwtTokenComponent component = new JwtTokenComponent(new WebSecurityConfig());
-        String jwt = component.createToken("frankchen@apache.org", Collections.emptyList(),
+        // Create a token with 2 day validity
+        String jwt = component.createToken("frankchen@apache.org",
+                                           Collections.emptyList(),
                                            "frankchen@apache.org",
-                                           Duration.ofDays(1).toMillis());
+                                           Duration.ofDays(2));
         Jws<Claims> token = component.parseToken(jwt);
         Assert.assertTrue(component.isValidToken(token));
+
+        long expiration = component.getTokenExpiration(token);
+        long diff = TimeSpan.of(expiration).diff(TimeSpan.now());
+        long hours = diff / 1000 / 3600;
+        Assert.assertTrue(hours == 47 || hours == 48);
     }
 
     @Test
     public void validateToken_UserValidity_Expired() throws InterruptedException {
-        JwtTokenComponent component = new JwtTokenComponent(new WebSecurityConfig());
-        String jwt = component.createToken("frankchen@apache.org", Collections.emptyList(),
+        // Create a token with 1 second validity
+        String jwt = component.createToken("frankchen@apache.org",
+                                           Collections.emptyList(),
                                            "frankchen@apache.org",
-                                           Duration.ofSeconds(1).toMillis());
+                                           Duration.ofSeconds(1));
         // Wait for the token expired
         Thread.sleep(1200);
 
@@ -57,12 +72,18 @@ public class SecurityTest {
 
     @Test
     public void validateToken_SystemValidity() {
-        JwtTokenComponent component = new JwtTokenComponent(new WebSecurityConfig());
-        String jwt = component.createToken("frankchen@apache.org", Collections.emptyList(),
+        // Create a token with server side validity which is default to 1 day
+        String jwt = component.createToken("frankchen@apache.org",
+                                           Collections.emptyList(),
                                            "frankchen@apache.org",
-                                           0);
+                                           Duration.ZERO);
         Jws<Claims> token = component.parseToken(jwt);
         Assert.assertTrue(component.isValidToken(token));
+
+        long expiration = component.getTokenExpiration(token);
+        long diff = TimeSpan.of(expiration).diff(TimeSpan.now());
+        long hours = diff / 1000 / 3600;
+        Assert.assertTrue(hours == 23 || hours == 24);
     }
 
 }
