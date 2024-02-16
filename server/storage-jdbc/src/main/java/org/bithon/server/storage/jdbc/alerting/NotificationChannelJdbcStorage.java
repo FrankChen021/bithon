@@ -65,7 +65,6 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
 
     @Override
     public void deleteChannel(String name) {
-        dslContext.render(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name));
         dslContext.deleteFrom(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
                   .where(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name))
                   .execute();
