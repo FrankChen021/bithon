@@ -21,8 +21,10 @@ import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Table;
+import org.jooq.conf.ParamType;
 
 import java.sql.Timestamp;
 import java.util.Collections;
@@ -122,12 +124,21 @@ public class DataCleaner {
 
     /**
      * Delete data from table is a heavy operation in ClickHouse
+     * TODO: Check if DELETE statement is supported, if supported, use it
      */
-    public void deleteByCondition(Table<?> table, String condition) {
+    public void deleteByCondition(Table<?> table, Condition condition) {
+        // Old CK does not support qualified name in the WHERE
+        //noinspection deprecation
+        String conditionText = dsl.renderContext()
+                                  .qualify(false)
+                                  .paramType(ParamType.INLINED)
+                                  .visit(condition)
+                                  .render();
+
         dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE %s",
                                        config.getDatabase(),
                                        config.getLocalTableName(table.getName()),
                                        config.getOnClusterExpression(),
-                                       condition));
+                                       conditionText));
     }
 }

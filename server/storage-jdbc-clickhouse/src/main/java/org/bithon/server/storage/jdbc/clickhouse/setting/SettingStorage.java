@@ -97,11 +97,10 @@ public class SettingStorage extends SettingJdbcStorage {
         return new SettingJdbcWriter(dslContext) {
             @Override
             public void deleteSetting(String app, String env, String name) {
-                String condition = dslContext.renderInlined(Tables.BITHON_AGENT_SETTING.APPNAME.eq(app)
-                                                                                               .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env))
-                                                                                               .and(Tables.BITHON_AGENT_SETTING.SETTINGNAME.eq(name)));
-
-                new DataCleaner(clickHouseConfig, dslContext).deleteByCondition(Tables.BITHON_AGENT_SETTING, condition);
+                new DataCleaner(clickHouseConfig, dslContext).deleteByCondition(Tables.BITHON_AGENT_SETTING,
+                                                                                Tables.BITHON_AGENT_SETTING.APPNAME.eq(app)
+                                                                                                                   .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env))
+                                                                                                                   .and(Tables.BITHON_AGENT_SETTING.SETTINGNAME.eq(name)));
             }
 
             @Override
