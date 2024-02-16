@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.agent.sql.table;
 
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
-import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
+import org.bithon.server.discovery.declaration.controller.IAgentProxyApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;

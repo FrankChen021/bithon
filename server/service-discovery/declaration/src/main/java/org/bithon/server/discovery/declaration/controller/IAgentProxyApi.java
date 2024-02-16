@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.discovery.declaration.cmd;
+package org.bithon.server.discovery.declaration.controller;
 
 import lombok.Data;
 import org.bithon.server.discovery.declaration.DiscoverableService;

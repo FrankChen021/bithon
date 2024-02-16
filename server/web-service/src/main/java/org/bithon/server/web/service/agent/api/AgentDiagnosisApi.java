@@ -35,7 +35,7 @@ import org.apache.calcite.util.NlsString;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
-import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
+import org.bithon.server.discovery.declaration.controller.IAgentProxyApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.agent.sql.AgentSchema;
 import org.bithon.server.web.service.common.output.IOutputFormatter;
