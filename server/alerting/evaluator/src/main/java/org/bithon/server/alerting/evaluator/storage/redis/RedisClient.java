@@ -47,6 +47,15 @@ public class RedisClient {
         return Duration.ofSeconds(remaining);
     }
 
+    public void set(String key, String value, Duration expiration) {
+        jedis.set(key, value);
+        jedis.expire(key, expiration.getSeconds());
+    }
+
+    public String get(String key) {
+        return jedis.get(key);
+    }
+
     public boolean setIfAbsent(String key, String val, Duration duration) {
         if (jedis.setnx(key, val) > 0) {
             jedis.expire(key, duration.getSeconds());

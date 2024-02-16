@@ -21,12 +21,12 @@ The alert in Bithon is defined as the following template in YAML.
 ```yaml
 id: "f7f87ce1e0b444919b123849f4c7939f"
 checkApplication: "false"
-appName: "optional, the name of "
-evaluationInterval: optional, the interval of evaluation in minutes
+appName: "optional, the name of application that the alert belongs to"
 
 name: "the name of the alert"
 expr: "PromQL style expression, for example: avg(jvm-metrics.processCpuLoad)[1m] > 0.1[-1h]"
 for: "The duration before the alert should be fired. In the format of duration. Like 1m, 1h"
+every: "Optional, the interval of evaluation in minutes"
 notifications: [name list of notification channels]
 ```
 

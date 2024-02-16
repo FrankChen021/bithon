@@ -61,7 +61,7 @@
             if (window.parent != null) {
                 const detailFrame = window.parent.document.getElementById('detail');
                 if (detailFrame != null) {
-                    detailFrame.src = 'record-detail?recordId=' + id;
+                    detailFrame.src = '/web/alerting/record/detail?recordId=' + id;
                 }
             }
             return false;

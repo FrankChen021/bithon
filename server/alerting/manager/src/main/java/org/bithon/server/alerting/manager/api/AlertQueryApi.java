@@ -49,6 +49,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -77,29 +78,29 @@ public class AlertQueryApi {
 
     @PostMapping("/api/alerting/alert/list")
     public GetAlertListResponse getAlerts(@Valid @RequestBody GetAlertListRequest request) {
-        if ("updateAt".equals(request.getOrderBy().getName())) {
-            request.getOrderBy().setName("server_update_time");
-        } else if ("lastAlertAt".equals(request.getOrderBy().getName())) {
-            request.getOrderBy().setName("last_alert_at");
-        }
-        ListResult<ListAlertDO> objs = alertStorage.getAlertList(request.getAppName(),
-                                                                 request.getAlertName(),
-                                                                 request.getOrderBy(),
-                                                                 request.getLimit());
+        request.getOrderBy().setName(StringUtils.camelToSnake(request.getOrderBy().getName()));
 
-        return new GetAlertListResponse(objs.getRows(), objs.getData().stream().map(alert -> {
-            ListAlertBo bo = new ListAlertBo();
-            bo.setAlertId(alert.getAlertId());
-            bo.setName(alert.getAlertName());
-            bo.setAppName(alert.getAppName());
-            bo.setEnabled(!alert.getDisabled());
-            bo.setCreatedAt(alert.getCreatedAt().getTime());
-            bo.setUpdatedAt(alert.getUpdatedAt().getTime());
-            bo.setLastAlertAt(alert.getLastAlertAt() == null ? null : alert.getLastAlertAt().getTime());
-            bo.setLastOperator(alert.getLastOperator());
-            bo.setLastRecordId(alert.getLastRecordId());
-            return bo;
-        }).collect(Collectors.toList()));
+        List<ListAlertDO> objs = alertStorage.getAlertList(request.getAppName(),
+                                                           request.getAlertName(),
+                                                           request.getOrderBy(),
+                                                           request.getLimit());
+
+        return new GetAlertListResponse(alertStorage.getAlertListSize(request.getAppName(), request.getAlertName()),
+                                        objs.stream()
+                                            .map(alert -> {
+                                                ListAlertBo bo = new ListAlertBo();
+                                                bo.setAlertId(alert.getAlertId());
+                                                bo.setName(alert.getAlertName());
+                                                bo.setAppName(alert.getAppName());
+                                                bo.setEnabled(!alert.isDisabled());
+                                                bo.setCreatedAt(alert.getCreatedAt().getTime());
+                                                bo.setUpdatedAt(alert.getUpdatedAt().getTime());
+                                                bo.setLastAlertAt(alert.getLastAlertAt() == null ? 0L : alert.getLastAlertAt().getTime());
+                                                bo.setLastOperator(alert.getLastOperator());
+                                                bo.setLastRecordId(alert.getLastRecordId());
+                                                return bo;
+                                            })
+                                            .collect(Collectors.toList()));
     }
 
     @PostMapping("/api/alerting/alert/record/get")

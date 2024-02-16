@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -50,8 +49,6 @@ public class AlertRepository {
 
     public AlertRepository(IAlertObjectStorage alertObjectDao) {
         this.alertObjectStorage = alertObjectDao;
-
-        loadChanges();
     }
 
     public Map<String, AlertRule> getLoadedAlerts() {
@@ -66,31 +63,25 @@ public class AlertRepository {
 
         List<AlertStorageObject> alertObjects = alertObjectStorage.getAlertListByTime(lastTimestamp, now);
 
-        alertObjects.stream()
-                    .filter(AlertStorageObject::getDeleted)
-                    .forEach((alertObject) -> {
-                        AlertRule original = this.loadedAlerts.remove(alertObject.getId());
-                        if (original != null) {
-                            log.info("Remove Alerts [{}]{}", original.getId(), original.getName());
-                            this.onRemoved(original);
-                        }
-                    });
-
-        //
-        // 从Payload获取告警配置
-        //
-        alertObjects.stream()
-                    .filter(alert -> !alert.getDeleted())
-                    .map(this::toAlert)
-                    .filter(Objects::nonNull)
-                    .forEach((alert) -> {
-                        AlertRule oldRule = this.loadedAlerts.put(alert.getId(), alert);
-                        if (oldRule == null) {
-                            this.onCreated(alert);
-                        } else {
-                            this.onUpdated(oldRule, alert);
-                        }
-                    });
+        alertObjects.forEach((alertObject) -> {
+            if (alertObject.isDeleted()) {
+                AlertRule original = this.loadedAlerts.remove(alertObject.getId());
+                if (original != null) {
+                    log.info("Remove Alerts [{}]{}", original.getId(), original.getName());
+                    this.onRemoved(original);
+                }
+            } else {
+                AlertRule newRule = toAlert(alertObject);
+                if (newRule != null) {
+                    AlertRule oldRule = this.loadedAlerts.put(newRule.getId(), newRule);
+                    if (oldRule == null) {
+                        this.onCreated(newRule);
+                    } else {
+                        this.onUpdated(oldRule, newRule);
+                    }
+                }
+            }
+        });
 
         this.lastLoadedAt = now;
     }
@@ -113,21 +104,33 @@ public class AlertRepository {
     private void onCreated(AlertRule alertRule) {
         IAlertChangeListener[] listeners = this.changeListeners.toArray(new IAlertChangeListener[0]);
         for (IAlertChangeListener listener : listeners) {
-            listener.onCreated(alertRule);
+            try {
+                listener.onCreated(alertRule);
+            } catch (Exception e) {
+                log.info("Exception when notify onCreated", e);
+            }
         }
     }
 
     private void onUpdated(AlertRule oldRule, AlertRule newRule) {
         IAlertChangeListener[] listeners = this.changeListeners.toArray(new IAlertChangeListener[0]);
         for (IAlertChangeListener listener : listeners) {
-            listener.onUpdated(oldRule, newRule);
+            try {
+                listener.onUpdated(oldRule, newRule);
+            } catch (Exception e) {
+                log.info("Exception when notify onUpdated", e);
+            }
         }
     }
 
     private void onRemoved(AlertRule alertRule) {
         IAlertChangeListener[] listeners = this.changeListeners.toArray(new IAlertChangeListener[0]);
         for (IAlertChangeListener listener : listeners) {
-            listener.onRemoved(alertRule);
+            try {
+                listener.onRemoved(alertRule);
+            } catch (Exception e) {
+                log.info("Exception when notify onRemoved", e);
+            }
         }
     }
 }

@@ -25,6 +25,7 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
+import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
 import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
@@ -32,7 +33,6 @@ import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLon
 import org.bithon.server.web.service.datasource.api.GeneralQueryResponse;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.easymock.EasyMock;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,6 +40,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Frank Chen
@@ -50,12 +51,17 @@ public class AlertRuleEvaluatorTest {
 
     private static final IEvaluationLogWriter CONSOLE_LOGGER = new IEvaluationLogWriter() {
         @Override
-        public void log(String alertId, String alertName, Class<?> logClass, String message) {
-            log.info("[{}] {}", logClass.getSimpleName(), message);
+        public void close() {
         }
 
         @Override
-        public void flush() {
+        public void write(EvaluationLogEvent logEvent) {
+            log.info("[{}] {}", logEvent.getClazz(), logEvent.getMessage());
+        }
+
+        @Override
+        public void write(List<EvaluationLogEvent> logs) {
+
         }
     };
 
@@ -72,11 +78,6 @@ public class AlertRuleEvaluatorTest {
                                            Collections.singletonList(new AggregateLongSumColumn(metric, metric)));
         dataSourceProvider = EasyMock.createMock(IDataSourceApi.class);
         EasyMock.expect(dataSourceProvider.getSchemaByName(schema.getName())).andReturn(schema);
-    }
-
-    @After
-    public void tearDown() {
-        EasyMock.verify(dataSourceProvider);
     }
 
     @Test
@@ -206,6 +207,120 @@ public class AlertRuleEvaluatorTest {
                                        .build()
                                        .initialize();
 
+        Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                            CONSOLE_LOGGER,
+                                                                            alertRule,
+                                                                            dataSourceProvider)));
+    }
+
+    @Test
+    public void testRelativeComparison_GTE() throws IOException {
+        EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
+                .andReturn(GeneralQueryResponse.builder()
+                                               .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
+                                               .build());
+
+        EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
+                .andReturn(GeneralQueryResponse.builder()
+                                               .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
+                                               .build());
+        EasyMock.replay(dataSourceProvider);
+
+        String expr = StringUtils.format("sum(test-metrics.%s)[1m] >= 100%%[-1m]", metric);
+        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+
+        AlertRule alertRule = AlertRule.builder()
+                                       .expr(expr)
+                                       .build()
+                                       .initialize();
+
+        Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                            CONSOLE_LOGGER,
+                                                                            alertRule,
+                                                                            dataSourceProvider)));
+    }
+
+    @Test
+    public void testRelativeComparison_GT() throws IOException {
+        EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
+                .andReturn(GeneralQueryResponse.builder()
+                                               .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
+                                               .build());
+
+        EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
+                .andReturn(GeneralQueryResponse.builder()
+                                               .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
+                                               .build());
+        EasyMock.replay(dataSourceProvider);
+
+        String expr = StringUtils.format("sum(test-metrics.%s)[1m] > 99%%[-1m]", metric);
+        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+
+        AlertRule alertRule = AlertRule.builder()
+                                       .expr(expr)
+                                       .build()
+                                       .initialize();
+
+        Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                            CONSOLE_LOGGER,
+                                                                            alertRule,
+                                                                            dataSourceProvider)));
+    }
+
+    @Test
+    public void testRelativeComparison_LT() throws IOException {
+        // Current
+        EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
+                .andReturn(GeneralQueryResponse.builder()
+                                               .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
+                                               .build());
+
+        // Previous
+        EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
+                .andReturn(GeneralQueryResponse.builder()
+                                               .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
+                                               .build());
+        EasyMock.replay(dataSourceProvider);
+
+        String expr = StringUtils.format("sum(test-metrics.%s)[1m] < 50%%[-1m]", metric);
+        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+
+        AlertRule alertRule = AlertRule.builder()
+                                       .expr(expr)
+                                       .build()
+                                       .initialize();
+
+        // Decreased by 50%, the threshold is < 50%, Not triggered
+        Assert.assertEquals(false, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                             CONSOLE_LOGGER,
+                                                                             alertRule,
+                                                                             dataSourceProvider)));
+    }
+
+    @Test
+    public void testRelativeComparison_LTE() throws IOException {
+        // Current
+        EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
+                .andReturn(GeneralQueryResponse.builder()
+                                               .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
+                                               .build());
+
+        // Previous
+        EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
+                .andReturn(GeneralQueryResponse.builder()
+                                               .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
+                                               .build());
+        EasyMock.replay(dataSourceProvider);
+
+        String expr = StringUtils.format("sum(test-metrics.%s)[1m] <= 50%%[-1m]", metric);
+        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+
+        AlertRule alertRule = AlertRule.builder()
+                                       .expr(expr)
+                                       .build()
+                                       .initialize();
+
+        // Decreased by 50%, the threshold is <= 50%, triggered
         Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                                             CONSOLE_LOGGER,
                                                                             alertRule,

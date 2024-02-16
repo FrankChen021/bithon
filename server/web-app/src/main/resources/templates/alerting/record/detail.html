@@ -32,7 +32,7 @@
                     <div class="input-group-prepend">
                         <span class="input-group-text">Name</span>
                     </div>
-                    <span class="form-control" id="alertName" type="text"><span>
+                    <span class="form-control" id="alertName"></span>
                 </div>
                 <div class="input-group" style="width: 100%;">
                     <div class="input-group-prepend">
@@ -134,22 +134,7 @@
             $(expressionRow).attr("id", "expression-" + id);
             $(expressionRow).find(".expression-sn").text(id);
 
-            let whereExpression = '';
-            if(expression.where !== undefined && expression.where !== null) {
-                whereExpression = `{${expression.where}}`
-            }
-
-            let byExpression = '';
-            if (expression.groupBy !== undefined && expression.groupBy !== null) {
-                byExpression += 'by (';
-                $.each(expression.groupBy, (group) => {
-                    byExpression += group;
-                    byExpression += ',';
-                });
-                byExpression += ')'
-            }
-            const text = `<span class="keyword">${expression.select.aggregator}</span> ${byExpression} ( ${expression.from}.${expression.select.name} ${whereExpression} )[${expression.window.duration}${expression.window.unit}] ${expression.alertPredicate} ${expression.alertExpected}`;
-            $(expressionRow).css('display', '').find(".expression-text").html(text);
+            $(expressionRow).css('display', '').find(".expression-text").html(`<span>${expression.expressionText}</span>`);
             $(container).append(expressionRow);
         }
 
@@ -175,6 +160,12 @@
 
         function renderEvaluatedExpressionMetrics(expression, start, end, result) {
             const expressionId = expression.id;
+
+            let window = parseInt(expression.window.substring(0, expression.window.length - 1));
+            if (expression.window.endsWith('m')) {
+            } else if (expression.window.endsWith('h')) {
+                window = window * 60;
+            }
             const chartOption = {
                 componentId: 'chart-' + expressionId,
                 class: '',
@@ -182,7 +173,7 @@
                 dataSourceName: expression.from,
                 filterExpression: expression.where,
                 metric: expression.select,
-                window: expression.window.unit === 'h' ? expression.window.duration * 60 : expression.window.duration,
+                window: window,
                 start: start,
                 end: end + 5 * 60 * 1000,
                 hours: 1,

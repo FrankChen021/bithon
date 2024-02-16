@@ -105,7 +105,7 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
                                                                                  .build());
         //noinspection unchecked
         List<Map<String, Object>> now = (List<Map<String, Object>>) response.getData();
-        if (CollectionUtils.isEmpty(now) || !now.get(0).containsKey(metric.getName())) {
+        if (CollectionUtils.isEmpty(now)) {
             return null;
         }
 
@@ -115,7 +115,15 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
             return null;
         }
 
-        IDataType valueType = dataSourceApi.getSchemaByName(dataSource).getColumnByName(metric.getName()).getDataType();
+        IDataType valueType;
+        if ("count".equals(metric.getAggregator())) {
+            valueType = IDataType.LONG;
+        } else {
+            // For other aggregators, use the type of the column
+            valueType = dataSourceApi.getSchemaByName(dataSource)
+                                     .getColumnByName(metric.getName())
+                                     .getDataType();
+        }
         return new AbsoluteComparisonEvaluationOutput(context.getEvaluatingMetric(),
                                                       valueType.format(nowValue),
                                                       expected.toString(),

@@ -25,6 +25,7 @@ import org.bithon.server.alerting.notification.channel.NotificationChannelFactor
 import org.bithon.server.alerting.notification.image.AlertImageRenderService;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
+import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,15 +58,13 @@ public class NotificationApiImpl implements INotificationApi {
 
     @Scheduled(cron = "3 0/1 * 1/1 * ?")
     public void loadChannels() {
+        // TODO: Change to incremental loading
         log.info("Loading notification channels...");
         Map<String, INotificationChannel> newChannels = new HashMap<>();
         channelStorage.getChannels(0)
-                      .forEach((channel) -> {
+                      .forEach((channelStorageObject) -> {
                           try {
-                              newChannels.put(channel.getName(), NotificationChannelFactory.create(channel.getType(),
-                                                                                                   channel.getName(),
-                                                                                                   channel.getPayload(),
-                                                                                                   this.objectMapper));
+                              toChannel(channelStorageObject);
                           } catch (IOException e) {
                               throw new RuntimeException(e);
                           }
@@ -93,8 +92,23 @@ public class NotificationApiImpl implements INotificationApi {
 
         INotificationChannel channel = channels.get(name);
         if (channel == null) {
-            throw new RuntimeException(StringUtils.format("Channel [%s] not found.", name));
+            // Try to load the channel from storage
+            NotificationChannelObject channelStorageObject = this.channelStorage.getChannel(name);
+            if (channelStorageObject != null) {
+                channel = toChannel(channelStorageObject);
+            } else {
+                throw new RuntimeException(StringUtils.format("Channel [%s] not found.", name));
+            }
         }
         channel.send(message);
+    }
+
+    protected INotificationChannel toChannel(NotificationChannelObject storageObject) throws IOException {
+        INotificationChannel channel = NotificationChannelFactory.create(storageObject.getType(),
+                                                                         storageObject.getName(),
+                                                                         storageObject.getPayload(),
+                                                                         this.objectMapper);
+        channels.put(storageObject.getName(), channel);
+        return channel;
     }
 }

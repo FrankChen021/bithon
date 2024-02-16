@@ -35,7 +35,8 @@ class AppSelector {
              name: 'appName',
              alias: 'appName',
              displayText: 'appName',
-             onPreviousFilters: false
+             onPreviousFilters: false,
+             allowClear: true
         });
         this.vAppSelector = $('<li class="nav-item"><select class="form-control" style="width:200px"></select></li>').find('select');
         this.vParent.append(this.vAppSelector);

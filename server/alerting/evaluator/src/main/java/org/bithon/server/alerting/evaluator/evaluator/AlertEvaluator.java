@@ -16,6 +16,7 @@
 
 package org.bithon.server.alerting.evaluator.evaluator;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import feign.Contract;
@@ -42,6 +43,7 @@ import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -50,7 +52,6 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
@@ -59,10 +60,10 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @Conditional(EvaluatorModuleEnabler.class)
-public class AlertEvaluator {
+public class AlertEvaluator implements SmartLifecycle {
 
     private final IAlertStateStorage stateStorage;
-    private final IEvaluationLogStorage evaluationLoggerFactory;
+    private final EvaluationLogBatchWriter evaluationLogWriter;
     private final IAlertRecordStorage alertRecordStorage;
     private final ObjectMapper objectMapper;
     private final IDataSourceApi dataSourceApi;
@@ -72,37 +73,49 @@ public class AlertEvaluator {
                           IEvaluationLogStorage logStorage,
                           IAlertRecordStorage recordStorage,
                           IDataSourceApi dataSourceApi,
-                          ApplicationContext applicationContext) {
+                          ApplicationContext applicationContext,
+                          ObjectMapper objectMapper) {
         this.stateStorage = stateStorage;
-        this.evaluationLoggerFactory = logStorage;
+        this.evaluationLogWriter = new EvaluationLogBatchWriter(logStorage.createWriter(), Duration.ofSeconds(5), 10000);
         this.alertRecordStorage = recordStorage;
         this.dataSourceApi = dataSourceApi;
-        this.objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+
+        // Use Indent output for better debugging
+        // It's a copy of existing ObjectMapper
+        // because the injected ObjectMapper has extra serialization/deserialization configurations
+        this.objectMapper = objectMapper.copy().enable(SerializationFeature.INDENT_OUTPUT);
         this.notificationApi = createNotificationApi(applicationContext);
     }
 
     public void evaluate(TimeSpan now, AlertRule alertRule) {
         EvaluationContext context = new EvaluationContext(now,
-                                                          evaluationLoggerFactory.createWriter(),
+                                                          evaluationLogWriter,
                                                           alertRule,
                                                           dataSourceApi);
+
+        Duration interval = alertRule.getEvery().getDuration();
         try {
             if (!alertRule.isEnabled()) {
                 context.log(AlertEvaluator.class, "Alert is disabled. Evaluation is skipped.");
                 return;
             }
+
+            TimeSpan lastEvaluationAt = TimeSpan.of(this.stateStorage.getEvaluationTimestamp(alertRule.getId()));
+            if (now.diff(lastEvaluationAt) < interval.toMillis()) {
+                context.log(AlertEvaluator.class,
+                            "Evaluation skipped, it's expected to be evaluated at %s",
+                            lastEvaluationAt.after(interval).format("HH:mm"));
+                return;
+            }
+
             if (evaluate(context)) {
                 notify(alertRule, context);
             }
         } catch (Exception e) {
             log.error(StringUtils.format("ERROR to evaluate alert %s", alertRule.getName()), e);
-        } finally {
-            try {
-                context.getEvaluatorLogger().flush();
-            } catch (Exception e) {
-                log.error("Flush log for alert {} failed: {}", alertRule.getId(), e.toString());
-            }
         }
+
+        this.stateStorage.setEvaluationTime(alertRule.getId(), now.getMilliseconds(), interval);
     }
 
     private INotificationApi createNotificationApi(ApplicationContext context) {
@@ -128,14 +141,6 @@ public class AlertEvaluator {
     }
 
     private boolean evaluate(EvaluationContext context) {
-        long waitMinute = context.getIntervalEnd().getMilliseconds() % (context.getAlertRule().getEvaluationInterval() * 60L);
-        if (waitMinute != 0) {
-            context.log(AlertEvaluator.class,
-                        "Alert not evaluated because it's not the right time. Will evaluate this alert at [%s]",
-                        context.getIntervalEnd().after(waitMinute, TimeUnit.MINUTES).format("HH:mm"));
-            return false;
-        }
-
         AlertRule alertRule = context.getAlertRule();
         context.log(AlertEvaluator.class, "Evaluating alert [%s] %s ", alertRule.getName(), alertRule.getExpr());
 
@@ -174,20 +179,21 @@ public class AlertEvaluator {
         }
     }
 
-    private void notify(AlertRule alertRule, EvaluationContext context) throws Exception {
+    private void notify(AlertRule alertRule, EvaluationContext context) {
         long now = System.currentTimeMillis();
 
         HumanReadableDuration silenceDuration = context.getAlertRule().getSilence();
         if (stateStorage.tryEnterSilence(alertRule.getId(), silenceDuration.getDuration())) {
             Duration silenceRemainTime = stateStorage.getSilenceRemainTime(alertRule.getId());
-            context.log(AlertEvaluator.class, "Alerting，but is under silence period(%s)。Last alert at:%s",
+            context.log(AlertEvaluator.class, "Alerting，but is under notification silence period(%s). Last alert at: %s",
                         silenceDuration,
-                        TimeSpan.of(now - silenceDuration.getDuration().toMillis() - silenceRemainTime.toMillis()).toISO8601());
+                        TimeSpan.of(now - (silenceDuration.getDuration().toMillis() - silenceRemainTime.toMillis())).format("HH:mm:ss"));
             return;
         }
 
-        context.log(AlertEvaluator.class, "Sending alert");
-
+        //
+        // Prepare notification
+        //
         NotificationMessage notification = new NotificationMessage();
         notification.setAlertRule(alertRule);
         notification.setStart(context.getIntervalEnd().before(alertRule.getForDuration()).getMilliseconds());
@@ -208,16 +214,37 @@ public class AlertEvaluator {
                                                                                                  .build()));
         });
 
-        //
-        // save
-        //
-        Timestamp lastAlertAt = alertRecordStorage.getLastAlert(alertRule.getId());
+        Timestamp alertAt = new Timestamp(System.currentTimeMillis());
+        try {
+            // Save alerting records
+            context.log(AlertExpression.class, "Saving alert record");
+            String id = saveAlertRecord(context, alertAt, notification);
+
+            // notification
+            context.log(AlertExpression.class, "Sending notification");
+            notification.setLastAlertAt(alertAt.getTime());
+            notification.setAlertRecordId(id);
+            for (String name : alertRule.getNotifications()) {
+                try {
+                    notificationApi.notify(name, notification);
+                } catch (Exception e) {
+                    log.error("Exception when notifying " + name, e);
+                }
+            }
+        } catch (Exception e) {
+            context.logException(AlertExpression.class, e, "Exception when sending notification.");
+        }
+    }
+
+    private String saveAlertRecord(EvaluationContext context, Timestamp lastAlertAt, NotificationMessage notification) throws JsonProcessingException {
         AlertRecordObject alertRecord = new AlertRecordObject();
         alertRecord.setRecordId(UUID.randomUUID().toString().replace("-", ""));
-        alertRecord.setAlertId(alertRule.getId());
-        alertRecord.setAlertName(alertRule.getName());
-        alertRecord.setAppName(alertRule.getAppName());
+        alertRecord.setAlertId(context.getAlertRule().getId());
+        alertRecord.setAlertName(context.getAlertRule().getName());
+        alertRecord.setAppName(context.getAlertRule().getAppName());
         alertRecord.setNamespace("");
+        alertRecord.setDataSource("{}");
+        alertRecord.setCreatedAt(lastAlertAt);
         alertRecord.setPayload(objectMapper.writeValueAsString(AlertRecordPayload.builder()
                                                                                  .start(notification.getStart())
                                                                                  .end(notification.getEnd())
@@ -227,18 +254,23 @@ public class AlertEvaluator {
                                                                                  .build()));
         alertRecord.setNotificationStatus(IAlertRecordStorage.STATUS_CODE_UNCHECKED);
         alertRecordStorage.addAlertRecord(alertRecord);
+        return alertRecord.getRecordId();
+    }
 
-        //
-        // notification
-        //
-        notification.setLastAlertAt(lastAlertAt == null ? null : lastAlertAt.getTime());
-        notification.setAlertRecordId(alertRecord.getRecordId());
-        for (String name : alertRule.getNotifications()) {
-            try {
-                notificationApi.notify(name, notification);
-            } catch (Exception e) {
-                log.error("Exception when notifying " + name, e);
-            }
-        }
+    @Override
+    public void start() {
+        log.info("Start alert evaluator");
+        this.evaluationLogWriter.start();
+    }
+
+    @Override
+    public void stop() {
+        log.info("Shutdown alert evaluator");
+        this.evaluationLogWriter.stop();
+    }
+
+    @Override
+    public boolean isRunning() {
+        return this.evaluationLogWriter.isStarted();
     }
 }

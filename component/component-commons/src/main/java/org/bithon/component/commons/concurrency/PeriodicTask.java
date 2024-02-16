@@ -32,7 +32,7 @@ public abstract class PeriodicTask {
 
     private final String name;
 
-    private volatile boolean running = true;
+    private volatile boolean running = false;
     private final boolean autoShutdown;
 
     public PeriodicTask(String name,
@@ -47,14 +47,22 @@ public abstract class PeriodicTask {
         return name;
     }
 
-    public final void start() {
-        Thread taskThread = new Thread(this::schedule);
-        taskThread.setName(name);
-        taskThread.setDaemon(true);
-        taskThread.start();
+    public boolean isRunning() {
+        return running;
+    }
 
-        if (autoShutdown) {
-            Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
+    public final synchronized void start() {
+        if (!running) {
+            running = true;
+
+            Thread taskThread = new Thread(this::schedule);
+            taskThread.setName(name);
+            taskThread.setDaemon(true);
+            taskThread.start();
+
+            if (autoShutdown) {
+                Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
+            }
         }
     }
 
@@ -88,7 +96,7 @@ public abstract class PeriodicTask {
     }
 
     /**
-     * Run current task immediately.
+     * Run the current task immediately.
      */
     public final void runImmediately() {
         synchronized (locker) {
@@ -100,5 +108,6 @@ public abstract class PeriodicTask {
 
     protected abstract void onException(Exception e);
 
-    protected abstract void onStopped();
+    protected void onStopped() {
+    }
 }

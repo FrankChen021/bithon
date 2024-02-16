@@ -66,12 +66,16 @@ class LogComponent {
                     const thisMinute = Math.trunc(item.timestamp / 1000 / 60);
                     if (minute !== thisMinute) {
                         if (minute !== 0) {
+                            // Insert a line break between two logs where the minute of timestamp are different
+                            // So that the logs with the same minute are shown together as a block
                             logContent += '\n';
                         }
                         minute = thisMinute;
                     }
 
-                    logContent += new Date(item.timestamp).format('yyyy-MM-dd hh:mm:ss.S') + ' [' + item.clazz + '] ' + item.message + '\n';
+                    logContent += new Date(item.timestamp).format('yyyy-MM-dd hh:mm:ss.S')
+                               + ' [' + this.truncateOrPad(item.clazz, 24) + '] '
+                               + item.message + '\n';
                 }
                 const container = $(this._containerId).find('pre');
                 $(container).html(logContent).css('display', '');
@@ -79,10 +83,23 @@ class LogComponent {
                     $(container).height(600);
                 }
             },
-            error: function (data) {
+            error: (data) => {
                 console.log(data);
                 $(this._containerId).find('.alert').addClass('alert-warning').text(data.responseJSON.message);
             }
         });
+    }
+
+    truncateOrPad(inputString, length) {
+        if (inputString.length < length) {
+            // Left pad with spaces
+            return inputString.padStart(length, ' ');
+        } else if (inputString.length > length) {
+            // Truncate extra characters at the left
+            return inputString.slice(-length);
+        } else {
+            // Return the string unchanged
+            return inputString;
+        }
     }
 }

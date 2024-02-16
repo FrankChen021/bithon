@@ -24,8 +24,6 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.manager.biz.CommandArgs;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -54,15 +52,21 @@ public class CreateAlertRequest {
     private String name;
 
     /**
-     * in minute
+     * The interval that the alert is evaluated
      */
-    @Min(1)
-    @Max(60)
-    private int evaluationInterval = 1;
+    @HumanReadableDurationConstraint(min = "1m", max = "60m")
+    private HumanReadableDuration every = HumanReadableDuration.DURATION_1_MINUTE;
 
+    /**
+     * Must be times of {@link #every}
+     */
     @JsonProperty("for")
     @HumanReadableDurationConstraint(min = "1m", max = "60m")
-    private HumanReadableDuration forDuration = AlertRule.DEFAULT_FOR_DURATION;
+    private HumanReadableDuration forDuration = HumanReadableDuration.DURATION_3_MINUTE;
+
+    @JsonProperty("silence")
+    @HumanReadableDurationConstraint(min = "1m", max = "60m")
+    private HumanReadableDuration silence = HumanReadableDuration.DURATION_3_MINUTE;
 
     @NotEmpty
     private String expr;
@@ -79,7 +83,8 @@ public class CreateAlertRequest {
         alertRule.setName(this.name.trim());
         alertRule.setNotifications(this.notifications);
         alertRule.setForDuration(this.forDuration);
-        alertRule.setEvaluationInterval(this.evaluationInterval);
+        alertRule.setEvery(this.every);
+        alertRule.setSilence(silence);
         alertRule.setEnabled(true);
         return alertRule;
     }

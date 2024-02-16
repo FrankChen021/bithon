@@ -14,21 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.alerting.pojo;
+package org.bithon.server.alerting.common.evaluator.metric.relative;
 
-import lombok.Data;
-
-import java.sql.Timestamp;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 10/4/22 7:15 PM
+ * Decreased by a percentage of an absolute value over a previous window
+ *
+ * @author frankchen
+ * @date 2020-08-21 17:06:34
  */
-@Data
-public class EvaluationLogDo {
-    private Timestamp timestamp;
-    private String alertId;
-    private String clazz;
-    private String message;
-    private long sequence;
+public class RelativeLTPredicate extends AbstractRelativeThresholdPredicate {
+
+    public RelativeLTPredicate(Number threshold,
+                               HumanReadableDuration offset) {
+        super(threshold, offset, false);
+    }
+
+    @Override
+    protected boolean matches(double delta, double threshold) {
+        return delta < threshold;
+    }
 }

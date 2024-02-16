@@ -3,6 +3,8 @@ bithon:
   alerting:
     evaluator:
       enabled: true
+      scheduler:
+        cron: 15 0/1 * 1/1 * ?
       state:
         type: local
 

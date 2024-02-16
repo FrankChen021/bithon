@@ -133,4 +133,47 @@ public class StringUtils {
         }
         return bytes;
     }
+
+    /**
+     * Converts a camel style identifier name into snake style.
+     * Examples:
+     * print - print
+     * printIO - print_io
+     * printIOStat - print_io_stat
+     * printName - print_name
+     */
+    public static String camelToSnake(String camelCase) {
+        if (camelCase == null) {
+            return null;
+        }
+
+        // The number of consecutive upper cases right before current character
+        int consecutiveUpperCases = 0;
+
+        StringBuilder snakeCase = new StringBuilder(camelCase.length());
+        for (int i = 0; i < camelCase.length(); i++) {
+            char c = camelCase.charAt(i);
+            if (Character.isUpperCase(c)) {
+                if (i > 0 && consecutiveUpperCases == 0) {
+                    snakeCase.append('_');
+                }
+                snakeCase.append(Character.toLowerCase(c));
+
+                consecutiveUpperCases++;
+            } else {
+                if (consecutiveUpperCases > 1) {
+                    // For example, for given input: printIOAnd
+                    // when comes the 'n' character after the 'A',
+                    // the 'snakeCase' variable holds: print_ioa, and the variable consecutiveUpperCases is 2,
+                    // We need to insert an underscore as a separator to turn it into print_io_a
+                    snakeCase.insert(snakeCase.length() - 1, '_');
+                }
+                snakeCase.append(c);
+
+                consecutiveUpperCases = 0;
+            }
+        }
+
+        return snakeCase.toString();
+    }
 }

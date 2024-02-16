@@ -41,11 +41,11 @@
     </div>
     <script>
         $(document).ready(() => {
-            $("#list").attr('src', 'record-list?alertId=' + window.queryParams['alertId']);
+            $("#list").attr('src', '/web/alerting/record/list?alertId=' + window.queryParams['alertId']);
 
             const recordId = window.queryParams['recordId'];
             if (recordId != null) {
-                $("#detail").attr('src', 'record-detail?recordId=' + recordId);
+                $("#detail").attr('src', '/web/alerting/record/detail?recordId=' + recordId);
             }
         });
     </script>

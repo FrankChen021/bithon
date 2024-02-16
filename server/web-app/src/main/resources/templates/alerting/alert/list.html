@@ -94,13 +94,13 @@
                 columns: [{
                     field: 'appName',
                     title: 'Application',
-                    formatter: function (value) {
-                        return value;
+                    formatter: (value) => {
+                        return `<a href="/web/metrics/application-overview/?appName=${value}">${value}</a>`;
                     }
                 }, {
                     field: 'name',
                     title: 'Name',
-                    formatter: function (value, row) {
+                    formatter: (value, row) => {
                         return `<a href="/web/alerting/alert/detail?id=${row.alertId}&appName=${row.appName}">${value}</a>`;
                     }
                 }, {
@@ -203,10 +203,6 @@
                                 id: id,
                                 row: alert
                             });
-                            bootbox.alert({
-                                backdrop: true,
-                                message: "Update successfully. It will take effect in at most 1 minute.",
-                            })
                         },
                         error: function (data) {
                             console.log(data);
@@ -250,10 +246,6 @@
                                 return;
                             }
                             $('#alertTable').bootstrapTable('removeByUniqueId', id);
-                            bootbox.alert({
-                                backdrop: true,
-                                message: "Alert has been deleted successfully."
-                            });
                         },
                         error: function (data) {
                             console.log(data);

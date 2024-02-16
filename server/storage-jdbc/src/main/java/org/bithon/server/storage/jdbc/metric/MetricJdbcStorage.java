@@ -100,13 +100,13 @@ public class MetricJdbcStorage implements IMetricStorage {
                                            int keepDays = record.get(Tables.BITHON_METRICS_BASELINE.KEEP_DAYS);
                                            if (keepDays > 0) {
                                                if (startTimestamp.after(keepDays, TimeUnit.DAYS).getMilliseconds() > System.currentTimeMillis()) {
-                                                   return startTimestamp.toString("yyyy-MM-dd");
+                                                   return startTimestamp.format("yyyy-MM-dd");
                                                } else {
                                                    // Will be ignored
                                                    return null;
                                                }
                                            } else {
-                                               return startTimestamp.toString("yyyy-MM-dd");
+                                               return startTimestamp.format("yyyy-MM-dd");
                                            }
                                        } catch (ParseException e) {
                                            return null;

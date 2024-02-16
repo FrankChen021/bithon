@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 import javax.annotation.Nullable;
+import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
@@ -30,7 +31,7 @@ import javax.annotation.Nullable;
 public class QueryField {
 
     /**
-     * the output name. Can be seen as the name in 'AS' expression of a SQL.
+     * The output name. Can be seen as the name in 'AS' expression of a SQL.
      */
     private final String name;
 
@@ -57,7 +58,7 @@ public class QueryField {
                       @JsonProperty("expression") String expression) {
         this.name = name;
         this.field = field == null ? name : field;
-        this.aggregator = aggregator;
+        this.aggregator = aggregator == null ? null : aggregator.toLowerCase(Locale.ENGLISH);
         this.expression = expression;
     }
 

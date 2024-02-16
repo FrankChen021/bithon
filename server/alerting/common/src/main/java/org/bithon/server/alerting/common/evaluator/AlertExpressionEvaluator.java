@@ -38,7 +38,7 @@ public class AlertExpressionEvaluator {
     }
 
     public boolean evaluate(EvaluationContext context) {
-        context.log(AlertExpressionEvaluator.class, "Evaluating expression[%s]: %s", expression.getId(), expression.serializeToText());
+        context.log(AlertExpressionEvaluator.class, "Evaluating expression: %s", expression.serializeToText());
 
         EvaluationResult result = context.getConditionEvaluationResult(expression.getId());
         if (EvaluationResult.MATCHED.equals(result)) {
@@ -54,7 +54,7 @@ public class AlertExpressionEvaluator {
         context.setEvaluatingExpression(this.expression);
 
         TimeSpan end = context.getIntervalEnd();
-        TimeSpan start = end.before(expression.getWindow().getDuration(), expression.getWindow().getUnit().toTimeUnit());
+        TimeSpan start = end.before(expression.getWindow());
         IEvaluationOutput output = new MetricEvaluatorWithLogger(metricEvaluator).evaluate(context.getDataSourceApi(),
                                                                                            expression.getFrom(),
                                                                                            expression.getSelect(),

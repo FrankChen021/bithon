@@ -13,7 +13,7 @@ expression
 
 // sum by (a,b,c) (metric {})
 selectExpression
-  : aggregatorExpression groupByExpression? '(' nameExpression whereExpression? ')' windowExpression?
+  : aggregatorExpression groupByExpression? '(' nameExpression whereExpression? ')' durationExpression?
   ;
 
 aggregatorExpression
@@ -33,14 +33,8 @@ whereExpression
   | '{' filterExpression (',' filterExpression)? '}'
   ;
 
-windowExpression
-  : '[' INTEGER_LITERAL durationExpression ']'
-  ;
-
-// ms/s no need to support
 durationExpression
-  : MINUTE
-  | HOUR
+  : '[' DURATION ']'
   ;
 
 filterExpression
@@ -69,18 +63,13 @@ literalListExpression
   ;
 
 alertExpectedExpression
-  : literalExpression windowExpression?
+  : literalExpression durationExpression?
   ;
 
 //
 // Keywords
 //
-
-// Durations
-MILLISECOND: M S;
-SECOND: S;
-MINUTE: M;
-HOUR: H;
+DURATION: INTEGER_LITERAL [sSmMhHdD];
 
 BY: B Y;
 AND : A N D;
@@ -104,16 +93,19 @@ DECR: D E C R;
 INTEGER_LITERAL: '-'?([1-9][0-9]*|[0]);
 DECIMAL_LITERAL: '-'?[0-9]+'.'[0-9]*;
 PERCENTAGE_LITERAL:  [0-9]+('.'[0-9]+)*'%';
-STRING_LITERAL: SQUOTA_STRING;
+
+// Allow using single quote or double quote
+STRING_LITERAL
+    : '\'' (~('\'' | '\\') | '\\' .)* '\''
+    | '"' (~('"' | '\\') | '\\' .)* '"'
+    ;
+
 NULL_LITERAL: N U L L;
 
 // Note that the dash character is allowed in the identifier
 IDENTIFIER
    : [A-Za-z_][A-Za-z_0-9-]*
    ;
-
-fragment SQUOTA_STRING
-  : '\'' ('\\'. | '\'\'' | ~('\'' | '\\'))* '\'';
 
 // case insensitive
 fragment A : [aA];

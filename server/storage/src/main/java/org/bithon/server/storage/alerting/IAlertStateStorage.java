@@ -30,7 +30,6 @@ public interface IAlertStateStorage {
     void resetMatchCount(String alertId);
 
     /**
-     *
      * @param duration The duration of an alert rule
      */
     long incrMatchCount(String alertId, Duration duration);
@@ -41,4 +40,16 @@ public interface IAlertStateStorage {
     boolean tryEnterSilence(String alertId, Duration silenceDuration);
 
     Duration getSilenceRemainTime(String alertId);
+
+    /**
+     * Set the last evaluation time of an alert.
+     * @param timestamp the timestamp when the alert is evaluated
+     * @param interval the interval of two consecutive evaluations
+     */
+    void setEvaluationTime(String alertId, long timestamp, Duration interval);
+
+    /**
+     * Get the timestamp when the alert is evaluated last time in milliseconds
+     */
+    long getEvaluationTimestamp(String alertId);
 }

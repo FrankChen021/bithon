@@ -22,6 +22,7 @@ import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.alerting.common.model.AggregatorEnum;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
@@ -40,9 +41,7 @@ import org.bithon.server.web.service.meta.api.IMetadataApi;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -59,20 +58,20 @@ public class AlertCommandService {
     final ObjectMapper objectMapper;
     final IDataSourceApi dataSourceApi;
     final IUserProvider userProvider;
-    final IAlertNotificationChannelStorage notificationProviderStorage;
+    final IAlertNotificationChannelStorage notificationChannelStorage;
 
     public AlertCommandService(final IAlertObjectStorage dao,
                                final IMetadataApi metadataApi,
                                ObjectMapper objectMapper,
                                IDataSourceApi dataSourceApi,
                                IUserProvider userProvider,
-                               IAlertNotificationChannelStorage notificationProviderStorage) {
+                               IAlertNotificationChannelStorage notificationChannelStorage) {
         this.alertObjectStorage = dao;
         this.metadataApi = metadataApi;
         this.objectMapper = objectMapper;
         this.dataSourceApi = dataSourceApi;
         this.userProvider = userProvider;
-        this.notificationProviderStorage = notificationProviderStorage;
+        this.notificationChannelStorage = notificationChannelStorage;
     }
 
     static class AlertExpressionSerializer extends ExpressionSerializer implements IAlertExpressionVisitor {
@@ -86,7 +85,7 @@ public class AlertCommandService {
         }
     }
 
-    private AlertStorageObject toAlertObject(AlertRule alertRule) throws BizException {
+    private AlertStorageObject toAlertStorageObject(AlertRule alertRule) throws BizException {
         try {
             alertRule.initialize();
         } catch (InvalidExpressionException e) {
@@ -97,18 +96,28 @@ public class AlertCommandService {
 
         Map<String, ISchema> schemas = dataSourceApi.getSchemas();
 
-        Set<String> ids = new HashSet<>();
         for (AlertExpression alertExpression : alertRule.getFlattenExpressions().values()) {
-            if (!ids.add(alertExpression.getId())) {
-                throw new BizException("There are multiple conditions with the same id[%s]", alertExpression.serializeToText());
-            }
-
             if (!StringUtils.hasText(alertExpression.getFrom())) {
                 throw new BizException("data-source is missed for expression [%s]", alertExpression.serializeToText());
             }
             ISchema schema = schemas.get(alertExpression.getFrom());
             if (schema == null) {
                 throw new BizException("data-source [%s] does not exist for expression [%s]", alertExpression.getFrom(), alertExpression.serializeToText());
+            }
+
+            String metric = alertExpression.getSelect().getName();
+            IColumn column = schema.getColumnByName(metric);
+            if (column == null) {
+                throw new BizException("Metric [%s] in expression [%s] does not exist in data-source [%s]",
+                                       metric,
+                                       alertExpression.serializeToText(),
+                                       alertExpression.getFrom());
+            }
+            if (!AggregatorEnum.valueOf(alertExpression.getSelect().getAggregator()).isColumnSupported(column)) {
+                throw new BizException("Aggregator [%s] is not supported8 on column [%s] which has a type of [%s]",
+                                       alertExpression.getSelect().getAggregator(),
+                                       metric,
+                                       column.getDataType().name());
             }
 
             if (alertExpression.getWhereExpression() != null) {
@@ -125,19 +134,11 @@ public class AlertCommandService {
                     }
                 });
             }
-
-            String metric = alertExpression.getSelect().getName();
-            if (schema.getColumnByName(metric) == null) {
-                throw new BizException("Metric [%s] in expression [%s] does not exist in data-source [%s]",
-                                       metric,
-                                       alertExpression.serializeToText(),
-                                       alertExpression.getFrom());
-            }
         }
 
-        for (String id : alertRule.getNotifications()) {
-            if (!this.notificationProviderStorage.exists(id)) {
-                throw new BizException("Notification channel [%s] does not exist", id);
+        for (String channel : alertRule.getNotifications()) {
+            if (!this.notificationChannelStorage.exists(channel)) {
+                throw new BizException("Notification channel [%s] does not exist", channel);
             }
         }
 
@@ -148,7 +149,7 @@ public class AlertCommandService {
         alertObject.setNamespace("");
         alertObject.setDisabled(!alertRule.isEnabled());
         alertObject.setPayload(AlertStorageObjectPayload.builder()
-                                                        .evaluationInterval(alertRule.getEvaluationInterval())
+                                                        .every(alertRule.getEvery())
                                                         .expr(alertRule.getExpr())
                                                         .forDuration(alertRule.getForDuration())
                                                         .notifications(alertRule.getNotifications())
@@ -162,11 +163,15 @@ public class AlertCommandService {
             throw new BizException("Target application [%s] does not exist", alertRule.getAppName());
         }
 
-        if (StringUtils.hasText(alertRule.getId()) && this.alertObjectStorage.existAlert(alertRule.getId())) {
-            throw new BizException("Alert object [%s] already exists.", alertRule.getId());
+        if (StringUtils.hasText(alertRule.getId()) && this.alertObjectStorage.existAlertById(alertRule.getId())) {
+            throw new BizException("Alert object with the same id [%s] already exists.", alertRule.getId());
         }
 
-        AlertStorageObject alertObject = toAlertObject(alertRule);
+        if (this.alertObjectStorage.existAlertByName(alertRule.getName())) {
+            throw new BizException("Alert object with the same name [%s] already exists.", alertRule.getName());
+        }
+
+        AlertStorageObject alertObject = toAlertStorageObject(alertRule);
         if (!StringUtils.hasText(alertObject.getId())) {
             alertObject.setId(UUID.randomUUID().toString().replace("-", ""));
         }
@@ -191,7 +196,7 @@ public class AlertCommandService {
             throw new BizException("Alert object [%s] not exist.", newAlertRule.getName());
         }
 
-        AlertStorageObject newObject = toAlertObject(newAlertRule);
+        AlertStorageObject newObject = toAlertStorageObject(newAlertRule);
 
         this.alertObjectStorage.executeTransaction(() -> {
             if (!this.alertObjectStorage.updateAlert(oldObject, newObject, userProvider.getCurrentUser().getUserName())) {

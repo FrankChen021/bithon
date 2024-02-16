@@ -40,7 +40,7 @@ public class AlertExpressionASTParserTest {
         Assert.assertEquals("jvm-metrics", ((AlertExpression) expression).getFrom());
         Assert.assertEquals("avg", ((AlertExpression) expression).getSelect().getAggregator());
         Assert.assertEquals("cpu", ((AlertExpression) expression).getSelect().getField());
-        Assert.assertEquals(1, ((AlertExpression) expression).getWindow().getDuration());
+        Assert.assertEquals(60, ((AlertExpression) expression).getWindow().getDuration().getSeconds());
     }
 
     @Test
@@ -52,13 +52,21 @@ public class AlertExpressionASTParserTest {
     }
 
     @Test
+    public void testPercentage() {
+        IExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu) > 1%[-1m]");
+        Assert.assertTrue(expression instanceof AlertExpression);
+
+        AlertExpressionASTParser.parse("avg(jvm-metrics.cpu) > 101%[-1m]");
+    }
+
+    @Test
     public void testFilterExpression() {
         IExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <> 'a'}) > 1");
         Assert.assertTrue(expression instanceof AlertExpression);
         Assert.assertEquals("jvm-metrics", ((AlertExpression) expression).getFrom());
         Assert.assertEquals("avg", ((AlertExpression) expression).getSelect().getAggregator());
         Assert.assertEquals("cpu", ((AlertExpression) expression).getSelect().getField());
-        Assert.assertEquals(1, ((AlertExpression) expression).getWindow().getDuration());
+        Assert.assertEquals(60, ((AlertExpression) expression).getWindow().getDuration().getSeconds());
 
         AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName > 'a'}) > 1");
         AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName >= 'a'}) > 1");
@@ -70,16 +78,16 @@ public class AlertExpressionASTParserTest {
     }
 
     @Test
-    public void testWindowExpression() {
+    public void testDurationExpression() {
         IExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1");
         Assert.assertTrue(expression instanceof AlertExpression);
-        Assert.assertEquals(5, ((AlertExpression) expression).getWindow().getDuration());
-        Assert.assertEquals(TimeUnit.MINUTES, ((AlertExpression) expression).getWindow().getUnit().toTimeUnit());
+        Assert.assertEquals(5, ((AlertExpression) expression).getWindow().getDuration().toMinutes());
+        Assert.assertEquals(TimeUnit.MINUTES, ((AlertExpression) expression).getWindow().getUnit());
 
         expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5h] > 1");
         Assert.assertTrue(expression instanceof AlertExpression);
-        Assert.assertEquals(5, ((AlertExpression) expression).getWindow().getDuration());
-        Assert.assertEquals(TimeUnit.HOURS, ((AlertExpression) expression).getWindow().getUnit().toTimeUnit());
+        Assert.assertEquals(5, ((AlertExpression) expression).getWindow().getDuration().toHours());
+        Assert.assertEquals(TimeUnit.HOURS, ((AlertExpression) expression).getWindow().getUnit());
 
         // the duration must be a positive value
         Assert.assertThrows(InvalidExpressionException.class, () -> AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName in ('a', 1)})[0m] > 1"));
@@ -88,17 +96,16 @@ public class AlertExpressionASTParserTest {
 
     @Test
     public void testPredicateExpression() {
-        IExpression expression;
-        expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1");
-        expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] >= 1");
+        AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1");
+        AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] >= 1");
 
-        expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] = 1");
+        AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] = 1");
 
-        expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] < 1");
-        expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] <= 1");
+        AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] < 1");
+        AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] <= 1");
 
-        expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] <> 1");
-        expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] != 1");
+        AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] <> 1");
+        AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] != 1");
     }
 
     @Test
@@ -180,13 +187,45 @@ public class AlertExpressionASTParserTest {
 
     @Test
     public void testExpectedWindow() {
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] > 1[-5m]");
+        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] > 1[-7m]");
         Assert.assertNotNull(expression.getExpectedWindow());
-        Assert.assertEquals(-5, expression.getExpectedWindow().getDuration());
+        Assert.assertEquals(-7, expression.getExpectedWindow().getDuration().toMinutes());
 
         Assert.assertThrows(InvalidExpressionException.class, () -> AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] > 1[0m]"));
         Assert.assertThrows(InvalidExpressionException.class, () -> AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] > 1[1m]"));
 
         Assert.assertThrows(InvalidExpressionException.class, () -> AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] is null[-5m]"));
+    }
+
+    @Test
+    public void testExpressionSerialization() {
+        // No filter
+        {
+            AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu)[5m] > 1[-7m]");
+            Assert.assertEquals("avg(jvm-metrics.cpu)[5m] > 1[-7m]",
+                                expression.serializeToText(null));
+        }
+
+        // One filter
+        {
+            AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName = 'a'})[5m] > 1[-5m]");
+            Assert.assertEquals("avg(jvm-metrics.cpu{appName = \"a\"})[5m] > 1[-5m]",
+                                expression.serializeToText(null));
+        }
+
+        // Two filters
+        {
+            AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] > 1[-5m]");
+            Assert.assertEquals("avg(jvm-metrics.cpu{appName like \"a%\", instanceName like \"192.%\"})[5m] > 1[-5m]",
+                                expression.serializeToText(null));
+        }
+
+
+        // count aggregator
+        {
+            AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("count(   jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m]  >  1");
+            Assert.assertEquals("count(jvm-metrics.cpu{appName like \"a%\", instanceName like \"192.%\"})[5m] > 1",
+                                expression.serializeToText());
+        }
     }
 }

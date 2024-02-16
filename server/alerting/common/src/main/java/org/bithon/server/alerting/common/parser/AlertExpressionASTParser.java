@@ -33,6 +33,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
@@ -43,8 +44,10 @@ import org.bithon.server.alerting.common.evaluator.metric.absolute.LessThanOrEqu
 import org.bithon.server.alerting.common.evaluator.metric.absolute.LessThanPredicate;
 import org.bithon.server.alerting.common.evaluator.metric.absolute.NotEqualPredicate;
 import org.bithon.server.alerting.common.evaluator.metric.absolute.NullValuePredicate;
-import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeGreaterThanPredicate;
-import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLessThanPredicate;
+import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeGTEPredicate;
+import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeGTPredicate;
+import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTEPredicate;
+import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTPredicate;
 import org.bithon.server.alerting.common.model.AggregatorEnum;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.web.service.datasource.api.QueryField;
@@ -117,19 +120,23 @@ public class AlertExpressionASTParser {
             String from = names[0];
             String metric = names[1];
 
-            String aggregator = selectExpression.aggregatorExpression().getText();
+            String aggregatorText = selectExpression.aggregatorExpression().getText().toLowerCase(Locale.ENGLISH);
+            AggregatorEnum aggregator;
             try {
-                AggregatorEnum.valueOf(aggregator);
+                aggregator = AggregatorEnum.valueOf(aggregatorText);
             } catch (RuntimeException ignored) {
-                throw new InvalidExpressionException(StringUtils.format("The aggregator [%s] in the expression is not supported", aggregator));
+                throw new InvalidExpressionException(StringUtils.format("The aggregator [%s] in the expression is not supported", aggregatorText));
             }
 
-            AlertExpression.WindowExpression windowExpression = AlertExpression.WindowExpression.DEFAULT;
-            AlertExpressionParser.WindowExpressionContext windowExpressionCtx = selectExpression.windowExpression();
+            HumanReadableDuration duration = HumanReadableDuration.DURATION_1_MINUTE;
+            AlertExpressionParser.DurationExpressionContext windowExpressionCtx = selectExpression.durationExpression();
             if (windowExpressionCtx != null) {
-                windowExpression = windowExpressionCtx.accept(new WindowExpressionBuilder());
-                if (windowExpression.getDuration() <= 0) {
-                    throw new InvalidExpressionException(StringUtils.format("The integer literal in window expression '%s' must be greater than zero", windowExpressionCtx.getText()));
+                duration = windowExpressionCtx.accept(new DurationExpressionBuilder());
+                if (duration.isNegative()) {
+                    throw new InvalidExpressionException(StringUtils.format("The integer literal in duration expression '%s' must be greater than zero", windowExpressionCtx.getText()));
+                }
+                if (duration.isZero()) {
+                    throw new InvalidExpressionException(StringUtils.format("The integer literal in duration expression '%s' must be greater than zero", windowExpressionCtx.getText()));
                 }
             }
 
@@ -163,12 +170,16 @@ public class AlertExpressionASTParser {
             AlertExpressionParser.AlertExpectedExpressionContext expectedExpression = ctx.alertExpectedExpression();
             LiteralExpression expected = expectedExpression.literalExpression().accept(new LiteralExpressionBuilder());
 
-            AlertExpression.WindowExpression expectedWindow = null;
-            AlertExpressionParser.WindowExpressionContext expectedWindowCtx = expectedExpression.windowExpression();
+            HumanReadableDuration expectedWindow = null;
+            AlertExpressionParser.DurationExpressionContext expectedWindowCtx = expectedExpression.durationExpression();
             if (expectedWindowCtx != null) {
-                expectedWindow = expectedWindowCtx.accept(new WindowExpressionBuilder());
-                if (expectedWindow.getDuration() >= 0) {
+                expectedWindow = expectedWindowCtx.accept(new DurationExpressionBuilder());
+                if (!expectedWindow.isNegative()) {
                     throw new InvalidExpressionException("The value in the expected window expression '%s' must be a negative value.", expectedWindowCtx.getText());
+                }
+
+                if (expectedWindow.isZero()) {
+                    throw new InvalidExpressionException("The value in the expected window expression '%s' can't be zero.", expectedWindowCtx.getText());
                 }
             }
 
@@ -181,14 +192,25 @@ public class AlertExpressionASTParser {
                     if (expectedWindow == null) {
                         metricEvaluator = new LessThanPredicate(expected.getValue());
                     } else {
-                        checkIfTrue(expected.getValue() instanceof Number, "The expected value must be type of Number.");
-                        metricEvaluator = new RelativeLessThanPredicate((Number) expected.getValue(), expectedWindow);
+                        if (expected.getValue() instanceof HumanReadablePercentage) {
+                            metricEvaluator = new RelativeLTPredicate((Number) expected.getValue(), expectedWindow);
+                        } else {
+                            metricEvaluator = new LessThanPredicate((Number) expected.getValue());
+                        }
                     }
                     break;
 
                 case AlertExpressionParser.LTE:
                     checkNotNull(expected, "null is not allowed after predicate '<='.");
-                    metricEvaluator = new LessThanOrEqualPredicate(expected.getValue());
+                    if (expectedWindow == null) {
+                        metricEvaluator = new LessThanOrEqualPredicate(expected.getValue());
+                    } else {
+                        if (expected.getValue() instanceof HumanReadablePercentage) {
+                            metricEvaluator = new RelativeLTEPredicate((Number) expected.getValue(), expectedWindow);
+                        } else {
+                            metricEvaluator = new LessThanOrEqualPredicate(expected.getValue());
+                        }
+                    }
                     break;
 
                 case AlertExpressionParser.GT:
@@ -196,23 +218,36 @@ public class AlertExpressionASTParser {
                     if (expectedWindow == null) {
                         metricEvaluator = new GreaterThanPredicate(expected.getValue());
                     } else {
-                        checkIfTrue(expected.getValue() instanceof Number, "The expected value must be type of Number.");
-                        metricEvaluator = new RelativeGreaterThanPredicate((Number) expected.getValue(), expectedWindow);
+                        if (expected.getValue() instanceof HumanReadablePercentage) {
+                            metricEvaluator = new RelativeGTPredicate((Number) expected.getValue(), expectedWindow);
+                        } else {
+                            metricEvaluator = new GreaterThanPredicate(expected.getValue());
+                        }
                     }
                     break;
 
                 case AlertExpressionParser.GTE:
                     checkNotNull(expected, "null is not allowed after predicate '>='.");
-                    metricEvaluator = new GreaterOrEqualPredicate(expected.getValue());
+                    if (expectedWindow == null) {
+                        metricEvaluator = new GreaterOrEqualPredicate(expected.getValue());
+                    } else {
+                        if (expected.getValue() instanceof HumanReadablePercentage) {
+                            metricEvaluator = new RelativeGTEPredicate((Number) expected.getValue(), expectedWindow);
+                        } else {
+                            metricEvaluator = new GreaterThanPredicate(expected.getValue());
+                        }
+                    }
                     break;
 
                 case AlertExpressionParser.NE:
                     checkNotNull(expected, "null is not allowed after predicate '<>'.");
+                    checkIfTrue(expectedWindow == null, "<> is not allowed for relative comparison.");
                     metricEvaluator = new NotEqualPredicate(expected.getValue());
                     break;
 
                 case AlertExpressionParser.EQ:
                     checkNotNull(expected, "null is not allowed after predicate '='.");
+                    checkIfTrue(expectedWindow == null, "= is not allowed for relative comparison.");
                     metricEvaluator = new EqualPredicate(expected.getValue());
                     break;
 
@@ -229,10 +264,12 @@ public class AlertExpressionASTParser {
             AlertExpression expression = new AlertExpression();
             expression.setId(String.valueOf(index++));
             expression.setFrom(from);
-            expression.setWhereExpression(where == null ? null : where.getText(), whereExpression);
-            expression.setSelect(QueryField.of(metric, aggregator));
+            expression.setWhereExpression(whereExpression);
+
+            // For 'count' aggregator, use the 'count' as output column instead of using the column name as output name
+            expression.setSelect(new QueryField(aggregator.equals(AggregatorEnum.count) ? "count" : metric, metric, aggregator.name()));
             expression.setGroupBy(groupBy);
-            expression.setWindow(windowExpression);
+            expression.setWindow(duration);
             expression.setAlertPredicate(predicateTerminal.getText().toLowerCase(Locale.ENGLISH));
             expression.setAlertExpected(expected == null ? null : expected.getValue());
             expression.setExpectedWindow(expectedWindow);
@@ -259,29 +296,11 @@ public class AlertExpressionASTParser {
         }
     }
 
-    private static class WindowExpressionBuilder extends AlertExpressionBaseVisitor<AlertExpression.WindowExpression> {
+    private static class DurationExpressionBuilder extends AlertExpressionBaseVisitor<HumanReadableDuration> {
         @Override
-        public AlertExpression.WindowExpression visitWindowExpression(AlertExpressionParser.WindowExpressionContext ctx) {
-            AlertExpression.WindowExpression.WindowExpressionBuilder builder = AlertExpression.WindowExpression.builder();
-
-            int duration = Integer.parseInt(ctx.INTEGER_LITERAL().getSymbol().getText());
-            builder.duration(duration);
-
-            TerminalNode interval = ctx.durationExpression().getChild(TerminalNode.class, 0);
-            switch (interval.getSymbol().getType()) {
-                case AlertExpressionParser.MINUTE:
-                    builder.unit(AlertExpression.DurationUnit.m);
-                    break;
-
-                case AlertExpressionParser.HOUR:
-                    builder.unit(AlertExpression.DurationUnit.h);
-                    break;
-
-                default:
-                    throw new RuntimeException("Unsupported interval expression: " + interval.getSymbol().getText());
-            }
-
-            return builder.build();
+        public HumanReadableDuration visitDurationExpression(AlertExpressionParser.DurationExpressionContext ctx) {
+            TerminalNode duration = (TerminalNode) ctx.getChild(1);
+            return HumanReadableDuration.parse(duration.getText());
         }
     }
 

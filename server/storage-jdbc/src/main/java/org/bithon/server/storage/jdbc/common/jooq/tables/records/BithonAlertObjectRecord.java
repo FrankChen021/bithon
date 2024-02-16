@@ -17,9 +17,9 @@ import org.jooq.impl.TableRecordImpl;
  * Alert
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
-public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRecord> implements Record10<String, String, String, String, Boolean, Boolean, String, LocalDateTime, LocalDateTime, String> {
+public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRecord> implements Record10<String, String, String, String, Integer, Integer, String, LocalDateTime, LocalDateTime, String> {
 
-    private static final long serialVersionUID = 2022652633;
+    private static final long serialVersionUID = 2083754289;
 
     /**
      * Setter for <code>bithon_alert_object.alert_id</code>. UUID
@@ -80,29 +80,29 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
     /**
      * Setter for <code>bithon_alert_object.disabled</code>.
      */
-    public void setDisabled(Boolean value) {
+    public void setDisabled(Integer value) {
         set(4, value);
     }
 
     /**
      * Getter for <code>bithon_alert_object.disabled</code>.
      */
-    public Boolean getDisabled() {
-        return (Boolean) get(4);
+    public Integer getDisabled() {
+        return (Integer) get(4);
     }
 
     /**
      * Setter for <code>bithon_alert_object.deleted</code>.
      */
-    public void setDeleted(Boolean value) {
+    public void setDeleted(Integer value) {
         set(5, value);
     }
 
     /**
      * Getter for <code>bithon_alert_object.deleted</code>.
      */
-    public Boolean getDeleted() {
-        return (Boolean) get(5);
+    public Integer getDeleted() {
+        return (Integer) get(5);
     }
 
     /**
@@ -166,12 +166,12 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
     // -------------------------------------------------------------------------
 
     @Override
-    public Row10<String, String, String, String, Boolean, Boolean, String, LocalDateTime, LocalDateTime, String> fieldsRow() {
+    public Row10<String, String, String, String, Integer, Integer, String, LocalDateTime, LocalDateTime, String> fieldsRow() {
         return (Row10) super.fieldsRow();
     }
 
     @Override
-    public Row10<String, String, String, String, Boolean, Boolean, String, LocalDateTime, LocalDateTime, String> valuesRow() {
+    public Row10<String, String, String, String, Integer, Integer, String, LocalDateTime, LocalDateTime, String> valuesRow() {
         return (Row10) super.valuesRow();
     }
 
@@ -196,12 +196,12 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
     }
 
     @Override
-    public Field<Boolean> field5() {
+    public Field<Integer> field5() {
         return BithonAlertObject.BITHON_ALERT_OBJECT.DISABLED;
     }
 
     @Override
-    public Field<Boolean> field6() {
+    public Field<Integer> field6() {
         return BithonAlertObject.BITHON_ALERT_OBJECT.DELETED;
     }
 
@@ -246,12 +246,12 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
     }
 
     @Override
-    public Boolean component5() {
+    public Integer component5() {
         return getDisabled();
     }
 
     @Override
-    public Boolean component6() {
+    public Integer component6() {
         return getDeleted();
     }
 
@@ -296,12 +296,12 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
     }
 
     @Override
-    public Boolean value5() {
+    public Integer value5() {
         return getDisabled();
     }
 
     @Override
-    public Boolean value6() {
+    public Integer value6() {
         return getDeleted();
     }
 
@@ -350,13 +350,13 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
     }
 
     @Override
-    public BithonAlertObjectRecord value5(Boolean value) {
+    public BithonAlertObjectRecord value5(Integer value) {
         setDisabled(value);
         return this;
     }
 
     @Override
-    public BithonAlertObjectRecord value6(Boolean value) {
+    public BithonAlertObjectRecord value6(Integer value) {
         setDeleted(value);
         return this;
     }
@@ -386,7 +386,7 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
     }
 
     @Override
-    public BithonAlertObjectRecord values(String value1, String value2, String value3, String value4, Boolean value5, Boolean value6, String value7, LocalDateTime value8, LocalDateTime value9, String value10) {
+    public BithonAlertObjectRecord values(String value1, String value2, String value3, String value4, Integer value5, Integer value6, String value7, LocalDateTime value8, LocalDateTime value9, String value10) {
         value1(value1);
         value2(value2);
         value3(value3);
@@ -414,7 +414,7 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
     /**
      * Create a detached, initialised BithonAlertObjectRecord
      */
-    public BithonAlertObjectRecord(String alertId, String alertName, String appName, String namespace, Boolean disabled, Boolean deleted, String payload, LocalDateTime createdAt, LocalDateTime updatedAt, String lastOperator) {
+    public BithonAlertObjectRecord(String alertId, String alertName, String appName, String namespace, Integer disabled, Integer deleted, String payload, LocalDateTime createdAt, LocalDateTime updatedAt, String lastOperator) {
         super(BithonAlertObject.BITHON_ALERT_OBJECT);
 
         set(0, alertId);

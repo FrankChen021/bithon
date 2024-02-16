@@ -18,8 +18,9 @@ package org.bithon.server.storage.common.expiration;
 
 /**
  *
- * If implemented, no need to do extract registration to be scheduled.
- * The {@link ExpirationScheduler} will schedule the implementation automatically.
+ * If implemented, no need to do explicitly register to be scheduled.
+ * For each storage object, it's a Spring Bean that can be obtained through {@link org.springframework.context.ApplicationContext}.
+ * The {@link ExpirationScheduler} automatically find all expirable storage to schedule the expiration.
  *
  * @author frank chen
  */

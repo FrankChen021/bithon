@@ -30,8 +30,8 @@ public class AlertStorageObject {
     private String name;
     private String appName;
     private String namespace;
-    private Boolean disabled;
-    private Boolean deleted;
+    private boolean disabled;
+    private boolean deleted;
 
     /**
      * {@link AlertStorageObjectPayload}

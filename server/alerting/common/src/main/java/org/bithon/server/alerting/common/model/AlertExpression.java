@@ -16,18 +16,17 @@
 
 package org.bithon.server.alerting.common.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IExpressionVisitor2;
+import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.AlertExpressionEvaluator;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
@@ -35,12 +34,16 @@ import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
 import javax.annotation.Nullable;
-import javax.validation.constraints.Size;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 /**
+ * NOTE: When changes are made to this class,
+ * do check if the {@link org.bithon.server.alerting.common.serializer.AlertExpressionSerializer} needs to be modified.
+ * <p>
+ * This class is constructed by {@link org.bithon.server.alerting.common.parser.AlertExpressionASTParser}
+ *
+ * <p>
  * Absolute comparison
  * avg by (a) (data-source.metric{dim1 = 'x'}) > 0.5
  * <p>
@@ -55,92 +58,37 @@ import java.util.function.Function;
  * @date 2020-08-21 14:56:50
  */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class AlertExpression implements IExpression {
 
-    public enum DurationUnit {
-        m {
-            @Override
-            public TimeUnit toTimeUnit() {
-                return TimeUnit.MINUTES;
-            }
-        },
-        h {
-            @Override
-            public TimeUnit toTimeUnit() {
-                return TimeUnit.HOURS;
-            }
-        };
-
-        public abstract TimeUnit toTimeUnit();
-    }
-
-    @Data
-    @Builder
-    public static class WindowExpression {
-        private final int duration;
-        private final DurationUnit unit;
-
-        public static final WindowExpression DEFAULT = new WindowExpression(1, DurationUnit.m);
-
-        public WindowExpression(@JsonProperty("duration") int duration,
-                                @JsonProperty("unit") DurationUnit unit) {
-            this.duration = duration;
-            this.unit = unit;
-        }
-    }
-
-    @JsonProperty
-    @Size(min = 1, max = 1)
     private String id;
-
-    @JsonProperty
     private String from;
-
-    @JsonProperty
     private String where;
-
-    @JsonProperty
     private QueryField select;
-
-    @JsonProperty
-    private WindowExpression window = WindowExpression.DEFAULT;
+    private HumanReadableDuration window = HumanReadableDuration.DURATION_1_MINUTE;
 
     @Nullable
-    @JsonProperty
     private List<String> groupBy;
-
-    @JsonProperty
     private String alertPredicate;
-
-    @JsonProperty
     private Object alertExpected;
 
-    @JsonProperty
-    private WindowExpression expectedWindow = null;
+    @Nullable
+    private HumanReadableDuration expectedWindow = null;
 
     /**
      * Runtime properties
      */
-    @JsonIgnore
     private IExpression whereExpression;
-
-    @JsonIgnore
-    private String promQLStyleWhereExpressionText;
-
-    @JsonIgnore
+    private String rawWhere;
     private IMetricEvaluator metricEvaluator;
-
-    public void setWhereExpression(String text, IExpression whereExpression) {
-        this.whereExpression = whereExpression;
-        this.promQLStyleWhereExpressionText = text;
-        this.where = whereExpression == null ? null : whereExpression.serializeToText(null);
-    }
 
     public void setWhereExpression(IExpression whereExpression) {
         this.whereExpression = whereExpression;
+
+        // The where property holds the internal expression that will be passed to the query module
         this.where = whereExpression == null ? null : whereExpression.serializeToText(null);
+
+        // This variable holds the raw text
+        this.rawWhere = whereExpression == null ? "" : "{" + new WhereExpressionSerializer().serialize(whereExpression) + "}";
     }
 
     @Override
@@ -159,13 +107,15 @@ public class AlertExpression implements IExpression {
         if (CollectionUtils.isNotEmpty(this.groupBy)) {
             sb.append(StringUtils.format(" BY (%s) ", String.join(",", this.groupBy)));
         }
-        String filter = promQLStyleWhereExpressionText != null ? "{" + promQLStyleWhereExpressionText + "}" : "";
-        sb.append(StringUtils.format("(%s.%s%s)[%d%s]",
+
+        sb.append(StringUtils.format("(%s.%s%s)[%s]",
                                      from,
-                                     select.getName(),
-                                     filter,
-                                     window.getDuration(),
-                                     window.getUnit()));
+                                     // Use field for serialization because it holds the raw input.
+                                     // In some cases, like the 'count' aggregator, the name property has different values from the field property
+                                     // See AlertExpressionASTParser for more
+                                     select.getField(),
+                                     this.rawWhere,
+                                     window));
         if (includePredication) {
             sb.append(' ');
             sb.append(alertPredicate);
@@ -173,12 +123,43 @@ public class AlertExpression implements IExpression {
             sb.append(alertExpected);
             if (expectedWindow != null) {
                 sb.append('[');
-                sb.append(expectedWindow.duration);
-                sb.append(expectedWindow.unit);
+                sb.append(expectedWindow);
                 sb.append(']');
             }
         }
         return sb.toString();
+    }
+
+    static class WhereExpressionSerializer extends ExpressionSerializer {
+
+        public WhereExpressionSerializer() {
+            super(null);
+        }
+
+        @Override
+        public boolean visit(LogicalExpression expression) {
+            for (int i = 0, size = expression.getOperands().size(); i < size; i++) {
+                if (i > 0) {
+                    sb.append(", ");
+                }
+                expression.getOperands().get(i).accept(this);
+            }
+            return false;
+        }
+
+        // Use double quote to serialize the expression by default
+        @Override
+        public boolean visit(LiteralExpression expression) {
+            Object value = expression.getValue();
+            if (expression instanceof LiteralExpression.StringLiteral) {
+                sb.append('"');
+                sb.append(value);
+                sb.append('"');
+            } else {
+                sb.append(value);
+            }
+            return false;
+        }
     }
 
     @Override
@@ -188,6 +169,7 @@ public class AlertExpression implements IExpression {
 
     @Override
     public String getType() {
+        // No need
         return null;
     }
 

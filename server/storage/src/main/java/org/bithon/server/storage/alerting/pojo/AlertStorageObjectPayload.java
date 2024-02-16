@@ -26,6 +26,9 @@ import org.bithon.component.commons.utils.HumanReadableDuration;
 import java.util.List;
 
 /**
+ * NOTE: The sequence of fields are properly placed so that in the serialization text,
+ * it reflects the nature order that people understand an alert
+ *
  * @author frank.chen021@outlook.com
  * @date 2024/2/11 19:51
  */
@@ -35,19 +38,19 @@ import java.util.List;
 @AllArgsConstructor
 public class AlertStorageObjectPayload {
     @JsonProperty
-    private int evaluationInterval = 1;
+    private String expr;
 
     @JsonProperty("for")
     private HumanReadableDuration forDuration;
+
+    @JsonProperty
+    private HumanReadableDuration every = HumanReadableDuration.DURATION_1_MINUTE;
 
     /**
      * silence period in minute
      */
     @JsonProperty
     private HumanReadableDuration silence;
-
-    @JsonProperty
-    private String expr;
 
     @JsonProperty
     private List<String> notifications;

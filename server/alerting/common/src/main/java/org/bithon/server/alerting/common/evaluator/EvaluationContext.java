@@ -41,7 +41,7 @@ import java.util.Map;
 @Getter
 public class EvaluationContext implements IEvaluationContext {
     private final TimeSpan intervalEnd;
-    private final IEvaluationLogWriter evaluatorLogger;
+    private final EvaluationLogger evaluatorLogger;
     private final AlertRule alertRule;
     private final Map<String, IEvaluationOutput> evaluatedExpressions = new HashMap<>();
 
@@ -67,7 +67,7 @@ public class EvaluationContext implements IEvaluationContext {
                              IDataSourceApi dataSourceApi) {
         this.intervalEnd = intervalEnd;
         this.dataSourceApi = dataSourceApi;
-        this.evaluatorLogger = logger;
+        this.evaluatorLogger = new EvaluationLogger(logger);
         this.alertRule = alertRule;
 
         this.alertRule.getFlattenExpressions().forEach((id, alertExpression) -> {

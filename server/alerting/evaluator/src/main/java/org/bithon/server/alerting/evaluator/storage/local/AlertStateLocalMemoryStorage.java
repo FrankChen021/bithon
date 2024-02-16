@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AlertStateLocalMemoryStorage implements IAlertStateStorage {
     private final Map<String, AtomicInteger> matchCounters = new ConcurrentHashMap<>();
     private final Map<String, Long> silenced = new ConcurrentHashMap<>();
+    private final Map<String, Long> evaluationTime = new ConcurrentHashMap<>();
 
     @JsonCreator
     public AlertStateLocalMemoryStorage(@JacksonInject(useInput = OptBoolean.FALSE) AlertRepository alertRepository) {
@@ -46,18 +47,21 @@ public class AlertStateLocalMemoryStorage implements IAlertStateStorage {
             public void onCreated(AlertRule alert) {
                 matchCounters.remove(alert.getId());
                 silenced.remove(alert.getId());
+                evaluationTime.remove(alert.getId());
             }
 
             @Override
             public void onUpdated(AlertRule original, AlertRule updated) {
                 matchCounters.remove(original.getId());
                 silenced.remove(original.getId());
+                evaluationTime.remove(original.getId());
             }
 
             @Override
             public void onRemoved(AlertRule alert) {
                 matchCounters.remove(alert.getId());
                 silenced.remove(alert.getId());
+                evaluationTime.remove(alert.getId());
             }
         });
     }
@@ -77,12 +81,16 @@ public class AlertStateLocalMemoryStorage implements IAlertStateStorage {
     public boolean tryEnterSilence(String alertId, Duration silenceDuration) {
         long silencedTill = System.currentTimeMillis() + silenceDuration.toMillis();
         if (silenced.putIfAbsent(alertId, silencedTill) == null) {
+            // No records, means that this is the first time to enter
             return false;
         }
-        silencedTill = silenced.get(alertId);
-        if (System.currentTimeMillis() <= silencedTill) {
+
+        long prevTillTimestamp = silenced.get(alertId);
+        if (System.currentTimeMillis() <= prevTillTimestamp) {
+            // Still in the previous silence period
             return true;
         } else {
+            // Previous silence period expires, Set a new one
             silenced.put(alertId, silencedTill);
             return false;
         }
@@ -92,5 +100,15 @@ public class AlertStateLocalMemoryStorage implements IAlertStateStorage {
     public Duration getSilenceRemainTime(String alertId) {
         long silencedTill = silenced.get(alertId);
         return Duration.ofMillis(silencedTill - System.currentTimeMillis());
+    }
+
+    @Override
+    public void setEvaluationTime(String alertId, long timestamp, Duration interval) {
+        this.evaluationTime.put(alertId, timestamp);
+    }
+
+    @Override
+    public long getEvaluationTimestamp(String alertId) {
+        return this.evaluationTime.getOrDefault(alertId, 0L);
     }
 }

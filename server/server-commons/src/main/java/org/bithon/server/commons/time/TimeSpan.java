@@ -59,22 +59,30 @@ public class TimeSpan {
     }
 
     public TimeSpan before(HumanReadableDuration duration) {
-        return new TimeSpan(milliseconds - duration.getDuration().toMillis());
+        return before(duration.getDuration());
+    }
+
+    public TimeSpan before(Duration duration) {
+        return new TimeSpan(milliseconds - duration.toMillis());
     }
 
     public TimeSpan after(long value, TimeUnit timeUnit) {
         return new TimeSpan(milliseconds + timeUnit.toMillis(value));
     }
 
+    public TimeSpan after(Duration duration) {
+        return new TimeSpan(milliseconds + duration.toMillis());
+    }
+
     public Timestamp toTimestamp() {
         return new Timestamp(milliseconds);
     }
 
-    public String toString(String format) {
-        return toString(format, null);
+    public String format(String format) {
+        return format(format, null);
     }
 
-    public String toString(String format, TimeZone tz) {
+    public String format(String format, TimeZone tz) {
         SimpleDateFormat df = new SimpleDateFormat(format, Locale.ENGLISH);
         if (tz != null) {
             df.setTimeZone(tz);
@@ -83,7 +91,7 @@ public class TimeSpan {
     }
 
     public String toISO8601() {
-        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH).format(new Date(this.milliseconds));
+        return format("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
     }
 
     public static TimeSpan fromString(String dateTime, String format, TimeZone timeZone) throws ParseException {
@@ -134,9 +142,5 @@ public class TimeSpan {
 
     public TimeSpan minus(long millis) {
         return new TimeSpan(this.milliseconds - millis);
-    }
-
-    public String format(String format) {
-        return new SimpleDateFormat(format, Locale.ENGLISH).format(new Date(this.milliseconds));
     }
 }

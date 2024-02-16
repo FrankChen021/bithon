@@ -49,26 +49,32 @@ public class AlertEvaluatorScheduler {
     public AlertEvaluatorScheduler(AlertEvaluator alertEvaluator, AlertRepository alertRepository) {
         this.alertEvaluator = alertEvaluator;
         this.alertRepository = alertRepository;
-        this.executor = new ThreadPoolExecutor(10,
+        this.executor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
                                                50,
                                                5,
                                                TimeUnit.MINUTES,
-                                               new LinkedBlockingQueue<>(2048),
+                                               new LinkedBlockingQueue<>(128),
                                                new ThreadFactoryBuilder().setDaemon(true).setNameFormat("alert-evaluator-%d").build(),
                                                new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
-    @Scheduled(cron = "3 0/1 * 1/1 * ?")
+    @Scheduled(cron = "${bithon.alerting.evaluator.scheduler.cron:15 0/1 * 1/1 * ?}")
     public void onSchedule() {
-        // TODO: distributed lock if this server is deployed as multiple instances
-        log.info("Starting alert evaluation...");
+        String name = Thread.currentThread().getName();
+        Thread.currentThread().setName("eval-scheduler");
+        try {
+            // TODO: distributed lock if this server is deployed as multiple instances
+            log.info("Starting alert evaluation...");
 
-        // Load changes first
-        alertRepository.loadChanges();
+            // Load changes first
+            alertRepository.loadChanges();
 
-        TimeSpan now = TimeSpan.now().floor(Duration.ofMinutes(1));
-        for (AlertRule alertRule : alertRepository.getLoadedAlerts().values()) {
-            executor.execute(() -> alertEvaluator.evaluate(now, alertRule));
+            TimeSpan now = TimeSpan.now().floor(Duration.ofMinutes(1));
+            for (AlertRule alertRule : alertRepository.getLoadedAlerts().values()) {
+                executor.execute(() -> alertEvaluator.evaluate(now, alertRule));
+            }
+        } finally {
+            Thread.currentThread().setName(name);
         }
     }
 

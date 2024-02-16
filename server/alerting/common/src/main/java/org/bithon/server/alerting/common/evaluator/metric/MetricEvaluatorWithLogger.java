@@ -46,7 +46,11 @@ public class MetricEvaluatorWithLogger implements IMetricEvaluator {
                                       List<String> groupBy,
                                       EvaluationContext context) {
         try {
-            context.log(delegate.getClass(), "Evaluating metric: %s", context.getEvaluatingExpression().serializeToText(false));
+            context.log(delegate.getClass(),
+                        "Evaluating %s in interval [%s, %s)",
+                        context.getEvaluatingExpression().serializeToText(false),
+                        start.format("HH:mm"),
+                        end.format("HH:mm"));
 
             IEvaluationOutput output = delegate.evaluate(dataSourceApi,
                                                          dataSource,
@@ -58,7 +62,7 @@ public class MetricEvaluatorWithLogger implements IMetricEvaluator {
                                                          context);
 
             context.log(delegate.getClass(),
-                        "Expected: [%s], Current: [%s], Incremental: [%s], Result: [%s]",
+                        "Expected: [%s], Current: [%s], Delta: [%s], Result: [%s]",
                         delegate.toString(),
                         output == null ? "null" : output.getCurrentText(),
                         output == null ? "null" : output.getDeltaText(),

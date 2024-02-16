@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import org.bithon.server.alerting.common.serializer.AlertExpressionSerializer;
 import org.bithon.server.commons.serializer.ExpressionDeserializer;
 import org.bithon.server.commons.serializer.HumanReadableDurationDeserializer;
 import org.bithon.server.commons.serializer.HumanReadableDurationSerializer;
@@ -72,7 +73,8 @@ public class ObjectMapperConfigurer {
                                            return Period.class;
                                        }
                                    },
-                                   new HumanReadableDurationSerializer()
+                                   new HumanReadableDurationSerializer(),
+                                   new AlertExpressionSerializer()
                       )
                 .deserializers(new ExpressionDeserializer(),
                                new HumanReadableDurationDeserializer())

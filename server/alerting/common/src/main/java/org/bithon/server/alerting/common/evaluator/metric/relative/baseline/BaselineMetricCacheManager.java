@@ -29,7 +29,6 @@ import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
 import org.bithon.server.web.service.datasource.api.TimeSeriesMetric;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
-import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -40,8 +39,6 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2020/12/14 5:21 下午
  */
-@Service
-//@ConditionalOnBean(AlertingModule.class)
 public class BaselineMetricCacheManager {
 
     private final LoadingCache<GeneralQueryRequest, List<Number>> baselineCache;

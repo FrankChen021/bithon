@@ -102,6 +102,7 @@ class MetricComponent {
                 },
                 filterExpression: filterExpression,
                 fields: [{
+                    field: metric.field,
                     name: metric.name,
                     aggregator: metric.aggregator
                 }]
@@ -182,7 +183,7 @@ class MetricComponent {
 
         const option = {
             title: {
-                text: metric.aggregator + '(' + metric.name + ')',
+                text: metric.aggregator + '(' + metric.field + ')',
                 left: "center",
                 textStyle: {
                     fontSize: 14

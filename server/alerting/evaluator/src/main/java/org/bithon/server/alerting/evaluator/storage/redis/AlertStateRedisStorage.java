@@ -102,6 +102,24 @@ public class AlertStateRedisStorage implements IAlertStateStorage {
         return redisClient.getExpire(getAlertKey(alertId, "silence"));
     }
 
+    @Override
+    public void setEvaluationTime(String alertId, long timestamp, Duration interval) {
+        redisClient.set(getAlertKey(alertId, "evaluation"), String.valueOf(timestamp), interval);
+    }
+
+    @Override
+    public long getEvaluationTimestamp(String alertId) {
+        String val = redisClient.get(getAlertKey(alertId, "evaluation"));
+        if (val != null) {
+            try {
+                return Long.parseLong(val);
+            } catch (NumberFormatException ignored) {
+                return 0;
+            }
+        }
+        return 0;
+    }
+
     private String getAlertKey(String alertId) {
         return StringUtils.format("bithon-alerting:%s", alertId);
     }

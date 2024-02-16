@@ -14,29 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.common.evaluator.metric.relative;
 
-import lombok.Data;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 
 /**
- * Note: the field name here must be the camel cases of the names in the database,
- * or the frontend sort requests might fail
+ * Increased by a percentage of an absolute value over a previous window
  *
- * @author frank.chen021@outlook.com
- * @date 2021/1/5
+ * @author frankchen
+ * @date 2020-08-21 17:06:34
  */
-@Data
-public class ListAlertBo {
-    private String alertId;
-    private String appName;
-    private String name;
-    private boolean enabled;
+public class RelativeGTPredicate extends AbstractRelativeThresholdPredicate {
 
-    private long createdAt;
-    private long updatedAt;
+    public RelativeGTPredicate(Number threshold,
+                               HumanReadableDuration offset) {
+        super(threshold, offset, true);
+    }
 
-    private Long lastAlertAt;
-    private String lastRecordId;
-
-    private String lastOperator;
+    @Override
+    protected boolean matches(double delta, double threshold) {
+        return delta > threshold;
+    }
 }

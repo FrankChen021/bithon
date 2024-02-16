@@ -16,18 +16,23 @@
 
 package org.bithon.server.alerting.common.evaluator.metric.relative;
 
-import org.bithon.server.alerting.common.model.AlertExpression;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 
 /**
  * Increased by a percentage of an absolute value over a previous window
  *
  * @author frankchen
- * @date 2020-08-21 17:06:34
+ * @date 2024-02-15 19:06:34
  */
-public class RelativeGreaterThanPredicate extends AbstractRelativeThresholdPredicate {
+public class RelativeGTEPredicate extends AbstractRelativeThresholdPredicate {
 
-    public RelativeGreaterThanPredicate(Number threshold,
-                                        AlertExpression.WindowExpression offset) {
+    public RelativeGTEPredicate(Number threshold,
+                                HumanReadableDuration offset) {
         super(threshold, offset, true);
+    }
+
+    @Override
+    protected boolean matches(double delta, double threshold) {
+        return delta >= threshold;
     }
 }

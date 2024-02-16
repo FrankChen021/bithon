@@ -99,7 +99,7 @@ public class SchemaManager implements SmartLifecycle {
             return schema;
         }
 
-        throw new DataSourceException.NotFound(name);
+        throw new SchemaException.NotFound(name);
     }
 
     public Map<String, ISchema> getSchemas() {

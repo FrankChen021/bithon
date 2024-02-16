@@ -14,29 +14,27 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.storage.alerting.pojo;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.sql.Timestamp;
 
 /**
- * Note: the field name here must be the camel cases of the names in the database,
- * or the frontend sort requests might fail
- *
  * @author frank.chen021@outlook.com
- * @date 2021/1/5
+ * @date 10/4/22 7:15 PM
  */
 @Data
-public class ListAlertBo {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class EvaluationLogEvent {
+    private Timestamp timestamp;
     private String alertId;
-    private String appName;
-    private String name;
-    private boolean enabled;
-
-    private long createdAt;
-    private long updatedAt;
-
-    private Long lastAlertAt;
-    private String lastRecordId;
-
-    private String lastOperator;
+    private String clazz;
+    private String message;
+    private long sequence;
 }
