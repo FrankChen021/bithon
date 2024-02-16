@@ -22,6 +22,7 @@ import org.bithon.server.commons.matcher.IMatcher;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author frank.chen021@outlook.com
@@ -30,7 +31,11 @@ import java.util.Map;
 @Data
 public class PermissionRule {
     private Map<String, String> application;
-    private String token;
+
+    /**
+     * Can be token or username
+     */
+    private Set<String> authorizations;
 
     /**
      * Because Spring Configuration doesn't support jackson's polymorphism,
@@ -39,7 +44,7 @@ public class PermissionRule {
      * Also, because the configuration can be changed dynamically,
      * it's a little complex to cache the matcher object.
      * <p>
-     * This matcher is used for interactive query, it's not on a performance critical path,
+     * This matcher is used for an interactive query, it's not on a performance-critical path,
      * it's acceptable that the matcher object is instantiated every time.
      */
     public IMatcher getApplicationMatcher(ObjectMapper objectMapper) {

@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 /**
- * An API that proxies remote services on agents over HTTP.
+ * An API that proxies services running in agents over HTTP.
  *
  * @author Frank Chen
  * @date 2022/8/7 20:46
@@ -66,7 +66,6 @@ public interface IAgentProxyApi {
      * @param instance          the target client instance that the request will be sent to.
      * @param token             For WRITE operations (the method name does not start with 'get' or 'dump'), the token is required.
      * @param timeout           timeout value in milliseconds
-     * @param suppressException suppress the
      */
     @PostMapping("/api/agent/service/proxy")
     byte[] proxy(@RequestHeader(name = "token", required = false) String token,
