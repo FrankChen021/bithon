@@ -36,7 +36,7 @@ import org.bithon.server.discovery.client.ErrorResponseDecoder;
 import org.bithon.server.discovery.client.IDiscoveryClient;
 import org.bithon.server.discovery.client.ServiceInvocationExecutor;
 import org.bithon.server.discovery.declaration.DiscoverableService;
-import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
+import org.bithon.server.discovery.declaration.controller.IAgentProxyApi;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;

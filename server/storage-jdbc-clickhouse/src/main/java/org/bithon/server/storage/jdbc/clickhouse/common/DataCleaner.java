@@ -21,8 +21,10 @@ import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Table;
+import org.jooq.conf.ParamType;
 
 import java.sql.Timestamp;
 import java.util.Collections;
@@ -45,15 +47,15 @@ public class DataCleaner {
         this.dsl = dsl;
     }
 
-    public void deleteFromPartition(String table, Timestamp before) {
-        deleteFromPartition(table, before, Collections.emptyList());
+    public void deletePartition(String table, Timestamp before) {
+        deletePartition(table, before, Collections.emptyList());
     }
 
     /**
      * DELETE PARTITION is a very lightweight operation
      */
     @SuppressWarnings("unchecked")
-    public void deleteFromPartition(String table, Timestamp before, List<TimeSpan> skipDateList) {
+    public void deletePartition(String table, Timestamp before, List<TimeSpan> skipDateList) {
         String fromTable;
         if (StringUtils.isEmpty(config.getCluster())) {
             fromTable = "system.parts";
@@ -95,32 +97,43 @@ public class DataCleaner {
 
     /**
      * Delete data from table is a heavy operation in ClickHouse
+     *
      */
-    public void deleteFromTable(Table<?> table,
-                                Timestamp before,
-                                long deleteRowThreshold) {
-        String beforeTimeText = DateTime.toYYYYMMDDhhmmss(before.getTime());
-        try {
-            long rowCount = dsl.fetchOne(StringUtils.format("SELECT count(1) FROM %s.%s WHERE timestamp < '%s'",
+    public void deleteByCondition(Table<?> table, Condition condition) {
+        // Old CK does not support qualified name in the WHERE
+        //noinspection deprecation
+        String conditionText = dsl.renderContext()
+                                  .qualify(false)
+                                  .paramType(ParamType.INLINED)
+                                  .visit(condition)
+                                  .render();
+
+        deleteByCondition(table, conditionText, -1);
+    }
+
+    /**
+     * TODO: Check if DELETE statement is supported, if supported, use it
+     */
+    public void deleteByCondition(Table<?> table, String condition, int deleteCountThreshold) {
+        if (deleteCountThreshold > 0) {
+            long rowCount = dsl.fetchOne(StringUtils.format("SELECT count(1) FROM %s.%s WHERE %s",
                                                             config.getDatabase(),
                                                             table.getName(),
-                                                            beforeTimeText))
+                                                            condition))
                                .getValue(0, Long.class);
-            if (rowCount < deleteRowThreshold) {
-                log.info("Expiration on table [{}] is skipped because only [{}] rows matches which is lower than the given threshold [{}].",
+            if (rowCount < deleteCountThreshold) {
+                log.info("DELETE on table [{}] is skipped because only [{}] rows matches which is lower than the given threshold [{}].",
                          table.getName(),
                          rowCount,
-                         deleteRowThreshold);
+                         deleteCountThreshold);
                 return;
             }
-
-            dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
-                                           config.getDatabase(),
-                                           config.getLocalTableName(table.getName()),
-                                           config.getOnClusterExpression(),
-                                           beforeTimeText));
-        } catch (Throwable e) {
-            log.error(StringUtils.format("Exception occurred when clean table[%s]:%s", table.getName(), e.getMessage()), e);
         }
+
+        dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE %s",
+                                       config.getDatabase(),
+                                       config.getLocalTableName(table.getName()),
+                                       config.getOnClusterExpression(),
+                                       condition));
     }
 }

@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.component.commons.time.DateTime;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
@@ -123,14 +125,17 @@ public class MetadataStorage extends MetadataJdbcStorage {
 
             /**
              * Now we use ALTER DELETE to delete data, but it's a heavy operation.
-             * To save resources, we check the rows to be deleted first, if the row number is small enough, we skip the expiration.
+             * To save resources, we check the rows to be deleted first.
+             * If the row number is small enough, we skip the expiration.
              * <p>
              * Note, even ClickHouse provides lightweight delete, it's still resource consuming.
              */
             @Override
             public void expire(Timestamp before) {
                 new DataCleaner(config, dslContext)
-                    .deleteFromTable(Tables.BITHON_APPLICATION_INSTANCE, before, 2000);
+                    .deleteByCondition(Tables.BITHON_APPLICATION_INSTANCE,
+                                       StringUtils.format("timestamp < '%s'", DateTime.toYYYYMMDDhhmmss(before.getTime())),
+                                       2000);
             }
         };
     }

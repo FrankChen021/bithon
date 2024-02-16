@@ -29,7 +29,7 @@ import org.bithon.server.agent.controller.config.PermissionConfig;
 import org.bithon.server.agent.controller.service.AgentControllerServer;
 import org.bithon.server.commons.exception.ErrorResponse;
 import org.bithon.server.discovery.declaration.ServiceResponse;
-import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
+import org.bithon.server.discovery.declaration.controller.IAgentProxyApi;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;

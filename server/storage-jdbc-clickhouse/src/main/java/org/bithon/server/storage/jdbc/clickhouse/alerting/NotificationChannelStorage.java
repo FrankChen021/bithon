@@ -20,11 +20,11 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.jdbc.alerting.NotificationChannelJdbcStorage;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
+import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 
@@ -46,11 +46,8 @@ public class NotificationChannelStorage extends NotificationChannelJdbcStorage {
 
     @Override
     public void deleteChannel(String name) {
-        String sql = StringUtils.format("ALTER TABLE %s DELETE WHERE %s = '%s'",
-                                        Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.getName(),
-                                        Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.getName(),
-                                        name);
-        dslContext.execute(sql);
+        new DataCleaner(clickHouseConfig, dslContext).deleteByCondition(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL,
+                                                                        Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name));
     }
 
     @Override

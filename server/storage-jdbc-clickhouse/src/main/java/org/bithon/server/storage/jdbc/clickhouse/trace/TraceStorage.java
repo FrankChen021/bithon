@@ -127,10 +127,10 @@ public class TraceStorage extends TraceJdbcStorage {
             @Override
             public void expire(Timestamp before) {
                 DataCleaner cleaner = new DataCleaner(clickHouseConfig, dslContext);
-                cleaner.deleteFromPartition(Tables.BITHON_TRACE_SPAN.getName(), before);
-                cleaner.deleteFromPartition(Tables.BITHON_TRACE_SPAN_SUMMARY.getName(), before);
-                cleaner.deleteFromPartition(Tables.BITHON_TRACE_MAPPING.getName(), before);
-                cleaner.deleteFromPartition(Tables.BITHON_TRACE_SPAN_TAG_INDEX.getName(), before);
+                cleaner.deletePartition(Tables.BITHON_TRACE_SPAN.getName(), before);
+                cleaner.deletePartition(Tables.BITHON_TRACE_SPAN_SUMMARY.getName(), before);
+                cleaner.deletePartition(Tables.BITHON_TRACE_MAPPING.getName(), before);
+                cleaner.deletePartition(Tables.BITHON_TRACE_SPAN_TAG_INDEX.getName(), before);
             }
         };
     }

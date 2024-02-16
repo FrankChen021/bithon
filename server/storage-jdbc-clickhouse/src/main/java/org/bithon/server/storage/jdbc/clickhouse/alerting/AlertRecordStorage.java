@@ -102,7 +102,7 @@ public class AlertRecordStorage extends AlertRecordJdbcStorage {
             @Override
             public void expire(Timestamp before) {
                 new DataCleaner(clickHouseConfig, dslContext)
-                    .deleteFromPartition(Tables.BITHON_ALERT_RECORD.getName(), before);
+                    .deletePartition(Tables.BITHON_ALERT_RECORD.getName(), before);
             }
         };
     }

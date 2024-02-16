@@ -49,9 +49,11 @@ public class SettingJdbcWriter implements ISettingWriter {
     }
 
     @Override
-    public void deleteSetting(String app, String name) {
+    public void deleteSetting(String app, String env, String name) {
         dslContext.deleteFrom(Tables.BITHON_AGENT_SETTING)
                   .where(Tables.BITHON_AGENT_SETTING.SETTINGNAME.eq(name))
+                  .and(Tables.BITHON_AGENT_SETTING.APPNAME.eq(app))
+                  .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env))
                   .execute();
     }
 

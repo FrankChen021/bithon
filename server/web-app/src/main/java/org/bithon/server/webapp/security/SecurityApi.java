@@ -16,8 +16,17 @@
 
 package org.bithon.server.webapp.security;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jws;
+import lombok.Builder;
 import lombok.Data;
+import org.bithon.component.commons.utils.HumanReadableDuration;
+import org.bithon.component.commons.utils.HumanReadableDurationConstraint;
+import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.time.TimeSpan;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -25,7 +34,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import java.util.Collections;
 
@@ -52,18 +60,57 @@ public class SecurityApi {
         // Currently, it's the email
         private String issueTo;
 
-        @Min(1)
-        // in seconds
-        private long validitySeconds;
+        @HumanReadableDurationConstraint(min = "1m")
+        private HumanReadableDuration validity;
     }
 
-    @PostMapping("/api/security/createToken")
+    @PostMapping("/api/security/token/create")
     public String createToken(@Validated @RequestBody CreateTokenRequest request) {
         String currentUser = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         return new JwtTokenComponent(securityConfig).createToken(request.issueTo,
                                                                  Collections.emptyList(),
                                                                  currentUser,
-                                                                 request.validitySeconds * 1000L);
+                                                                 request.validity.getDuration());
+    }
+
+    @Data
+    public static class GetTokenValidityRequest {
+        private String token;
+    }
+
+    @Data
+    @Builder
+    public static class GetTokenValidityResponse {
+        private String expiredAt;
+        private String error;
+    }
+
+    @PostMapping("/api/security/token/validity")
+    public GetTokenValidityResponse getTokenValidity(@RequestBody GetTokenValidityRequest request) {
+        String token;
+        if (StringUtils.isBlank(request.getToken())) {
+            // check current token
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            token = (String) auth.getCredentials();
+        } else {
+            token = request.getToken();
+        }
+
+        try {
+            JwtTokenComponent tokenComponent = new JwtTokenComponent(securityConfig);
+            Jws<Claims> parsedToken = tokenComponent.parseToken(token);
+            return GetTokenValidityResponse.builder()
+                                           .expiredAt(TimeSpan.of(tokenComponent.getTokenExpiration(parsedToken)).toISO8601())
+                                           .build();
+        } catch (ExpiredJwtException ignored) {
+            return GetTokenValidityResponse.builder()
+                                           .error("Given token expired")
+                                           .build();
+        } catch (Exception e) {
+            return GetTokenValidityResponse.builder()
+                                           .error("Failed to decode token: " + e.getMessage())
+                                           .build();
+        }
     }
 }

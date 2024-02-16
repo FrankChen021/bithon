@@ -27,9 +27,10 @@ import org.bithon.server.storage.setting.ISettingReader;
 import org.bithon.server.storage.setting.ISettingStorage;
 import org.bithon.server.storage.setting.ISettingWriter;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -47,7 +49,6 @@ import java.util.List;
 @CrossOrigin
 @RestController
 @Conditional(WebServiceModuleEnabler.class)
-@ConditionalOnProperty(value = "bithon.agent-controller.enabled", havingValue = "true")
 public class AgentConfigurationApi {
 
     private final ISettingStorage settingStorage;
@@ -85,12 +86,12 @@ public class AgentConfigurationApi {
 
     @Data
     public static class AddRequest {
-        @NotNull
+        @NotEmpty
         private String appName;
 
         private String environment;
 
-        @NotNull
+        @NotEmpty
         private String name;
 
         @NotNull
@@ -104,7 +105,7 @@ public class AgentConfigurationApi {
     }
 
     @PostMapping("/api/agent/configuration/add")
-    public void addConfiguration(@RequestHeader("token") String token,
+    public void addConfiguration(@RequestHeader(value = "token", required = false) String token,
                                  @Validated @RequestBody AddRequest request) {
         String format = request.getFormat() != null ? request.getFormat().trim() : "json";
         Preconditions.checkIfTrue("yaml".equals(format) || "json".equals(format),
@@ -128,9 +129,8 @@ public class AgentConfigurationApi {
         String settingName = request.getName().trim();
         String settingVal = request.getValue().trim();
 
-        this.agentControllerConfig.getPermission().verifyPermission(objectMapper,
-                                                                    application,
-                                                                    token);
+        this.agentControllerConfig.getPermission()
+                                  .verifyPermission(objectMapper, application, getUserOrToken(token));
 
         Object existingSetting = settingStorage.createReader().getSetting(application, environment, settingName);
         Preconditions.checkIfTrue(existingSetting == null, "Setting already exist.");
@@ -140,7 +140,7 @@ public class AgentConfigurationApi {
     }
 
     @PostMapping("/api/agent/configuration/update")
-    public void updateConfiguration(@RequestHeader("token") String token,
+    public void updateConfiguration(@RequestHeader(value = "token", required = false) String token,
                                     @Validated @RequestBody AddRequest request) {
         String format = request.getFormat() != null ? request.getFormat().trim() : "json";
         Preconditions.checkIfTrue("yaml".equals(format) || "json".equals(format),
@@ -164,7 +164,8 @@ public class AgentConfigurationApi {
         String settingName = request.getName().trim();
         String settingVal = request.getValue().trim();
 
-        this.agentControllerConfig.getPermission().verifyPermission(objectMapper, application, token);
+        this.agentControllerConfig.getPermission()
+                                  .verifyPermission(objectMapper, application, getUserOrToken(token));
 
         Object existingSetting = settingStorage.createReader().getSetting(application, environment, settingName);
         Preconditions.checkIfTrue(existingSetting != null, "Setting does not exist.");
@@ -175,21 +176,39 @@ public class AgentConfigurationApi {
 
     @Data
     public static class DeleteRequest {
-        @NotNull
+        @NotEmpty
         private String appName;
 
-        @NotNull
+        @NotEmpty
         private String name;
+
+        private String environment;
     }
 
     @PostMapping("/api/agent/configuration/delete")
-    public void deleteConfiguration(@RequestHeader("token") String token, @Validated @RequestBody DeleteRequest request) {
-        this.agentControllerConfig.getPermission().verifyPermission(objectMapper,
-                                                                    request.getAppName(),
-                                                                    token);
+    public void deleteConfiguration(@RequestHeader(value = "token", required = false) String token,
+                                    @Validated @RequestBody DeleteRequest request) {
+        this.agentControllerConfig.getPermission()
+                                  .verifyPermission(objectMapper, request.getAppName(), getUserOrToken(token));
+        // Used role-based authentication
 
         ISettingWriter writer = settingStorage.createWriter();
-        writer.deleteSetting(request.getAppName(),
-                             request.getName());
+        writer.deleteSetting(request.getAppName(), request.getEnvironment() == null ? "" : request.getEnvironment().trim(), request.getName());
+    }
+
+    private String getUserOrToken(String token) {
+        Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
+        String principal = authentication == null ? null : (String) authentication.getPrincipal();
+        if (principal == null) {
+            if (token == null) {
+                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "No user or token provided.");
+            }
+
+            // Use token-based authorization
+            return token;
+        }
+
+        // Use user-based-authorization
+        return principal;
     }
 }

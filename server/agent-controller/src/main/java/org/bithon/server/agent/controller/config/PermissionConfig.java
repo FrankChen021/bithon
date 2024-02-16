@@ -23,7 +23,7 @@ import org.springframework.http.HttpStatus;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * A simple permission control on SET/WRITE commands to agent to ensure safety.
@@ -36,18 +36,21 @@ public class PermissionConfig {
 
     private List<PermissionRule> rules = Collections.emptyList();
 
-    public void verifyPermission(ObjectMapper objectMapper, String application, String token) {
-        Optional<PermissionRule> applicationRule = this.rules.stream()
-                                                             .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(application))
-                                                             .findFirst();
-        if (!applicationRule.isPresent()) {
+    public void verifyPermission(ObjectMapper objectMapper, String application, String authorization) {
+        List<PermissionRule> applicationRules = this.rules.stream()
+                                                          .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(application))
+                                                          .collect(Collectors.toList());
+        if (applicationRules.isEmpty()) {
             throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
-                                            "No permission rule is defined for application [%s] to allow UPDATE operation.",
+                                            "No permission rule is defined for application [%s].",
                                             application);
         }
 
-        if (!applicationRule.get().getToken().equals(token)) {
-            throw new HttpMappableException(HttpStatus.FORBIDDEN.value(), "Given token does not match.");
+        boolean permitted = applicationRules.stream().anyMatch((rule) -> rule.getAuthorizations().contains(authorization));
+        if (!permitted) {
+            throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
+                                            "Given authorization does not match existing permission rule for WRITE operation on application [%s]",
+                                            authorization);
         }
     }
 }

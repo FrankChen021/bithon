@@ -35,7 +35,7 @@ import org.apache.calcite.util.NlsString;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
-import org.bithon.server.discovery.declaration.cmd.IAgentProxyApi;
+import org.bithon.server.discovery.declaration.controller.IAgentProxyApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.agent.sql.AgentSchema;
 import org.bithon.server.web.service.common.output.IOutputFormatter;
@@ -47,6 +47,8 @@ import org.bithon.server.web.service.common.sql.SqlExecutionResult;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -88,12 +90,15 @@ public class AgentDiagnosisApi {
                                             "Content-Type with application/x-www-form-urlencoded is not accepted. Please use text/plain instead.");
         }
 
+        Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
+        String authorization = authentication == null ? null : (String) authentication.getPrincipal();
+
         SqlExecutionResult result = this.sqlExecutionEngine.executeSql(query, (sqlNode, queryContext) -> {
-            //
-            // appId is an always pushed down filter
-            // We remove it from SQL because this specific field does not exist on all tables
-            //
-            GetAndRemoveAppIdFilter appIdFilter = new GetAndRemoveAppIdFilter(queryContext);
+            if (authentication != null) {
+                // Use user-based authorization first
+                queryContext.set("_token", authorization);
+            }
+
             SqlNode whereNode;
             if (sqlNode.getKind() == SqlKind.ORDER_BY) {
                 whereNode = ((SqlSelect) ((SqlOrderBy) sqlNode).query).getWhere();
@@ -105,7 +110,8 @@ public class AgentDiagnosisApi {
                 throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unsupported SQL Kind: %s", sqlNode.getKind());
             }
             if (whereNode != null) {
-                whereNode.accept(appIdFilter);
+                // Convert related filter at the raw SQL into query context parameters
+                whereNode.accept(new FilterToContextParameterConverter(queryContext));
             }
         });
 
@@ -120,10 +126,10 @@ public class AgentDiagnosisApi {
         formatter.format(httpResponse.getWriter(), result.fields, result.rows);
     }
 
-    private static class GetAndRemoveAppIdFilter extends SqlBasicVisitor<String> {
+    private static class FilterToContextParameterConverter extends SqlBasicVisitor<String> {
         private final SqlExecutionContext queryContext;
 
-        public GetAndRemoveAppIdFilter(SqlExecutionContext queryContext) {
+        public FilterToContextParameterConverter(SqlExecutionContext queryContext) {
             this.queryContext = queryContext;
         }
 
@@ -162,6 +168,7 @@ public class AgentDiagnosisApi {
                                                 StringUtils.format("Operand for [%s] must be type of STRING", identifier));
             }
 
+            // Set the instance/_token in the execution context
             this.queryContext.set(identifier, ((SqlCharStringLiteral) literal).getValueAs(NlsString.class).getValue());
 
             // Replace current filter expression by '1 = 1'

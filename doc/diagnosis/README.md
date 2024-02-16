@@ -1,5 +1,5 @@
 
-Bithon provides a SQL-based command to debug/profile an application in interactive way.
+Bithon provides SQL-based commands to debug/profile an application in interactive way.
 
 All commands are sent to a specific application instance immediately to perform the query or command.
 These commands are not persistent in the backend of Bithon, this means once the application instance restarts,
@@ -18,18 +18,18 @@ Currently, only Alibaba Nacos is supported.
 
 You can check the [Nacos Configuration](../configuration/server/configuration-nacos.md)
 
-Under such mode, each collector register itself on Alibaba Nacos, and when we want to send commands to a specific application instance,
+Under such a mode, each collector registers itself on Alibaba Nacos. When we want to send commands to a specific application instance,
 Bithon will first talk with Alibaba Nacos to get all collector instances, and then broadcast these commands to all collector instances.
-Because the commands contain the information of target application, only one of the collector has connection to the target application, when such collector receives the command,
-it gets the right connection to the target application instance from its connections, and then sends commands on such connection.
+Because the commands contain the information of target application,
+only one of the collectors has connection to the target application.
+When such a collector receives the command, it gets the right connection to the target application instance from its connections, and then sends commands on such connection.
 
-
-But if the collector is deployed without network load balancer, that's to say it's deployed as a single instance, there's no need of deployment of Alibaba Nacos,
+But if the collector is not deployed behind a network load balancer, that's to say it's deployed as a single instance, there's no need of deployment of Alibaba Nacos,
 because this collector has all connections to the target applications.
 
 # Get all tables
 
-Bithon allows users to get insight into the application by using standard SQL grammar. All information that we can access are organized in TABLE.
+Bithon allows users to get insight into the application by using standard SQL grammar. All information that we can access is organized in TABLE.
 You can even use SQL to get all supported tables.
 
 ```sql
@@ -46,22 +46,22 @@ It tells that there's a table `configuration` under `agent` database. So we can 
 
 # Diagnosis User manual
 
-The Following table shows all the built-in tables that Bithon supports now.
+The following table shows all the built-in tables that Bithon supports now.
 
-| Table Name                                            | SELECT  | UPDATE  | Description                                                                     |
-|-------------------------------------------------------|---------|---------|---------------------------------------------------------------------------------|
-| [agent.instance](#agentinstance)                      | &check; |         | The connected target applications to Bithon collector                           |
-| [agent.configuration](#agentconfiguration)            | &check; |         | Effective configurations of agent                                               |
-| [agent.instrumented_method](#agentinstrumentedmethod) | &check; |         | All intercepted methods of target application for observability and diagnosis   |
-| [agent.loaded_class](#agentloadedclass)               | &check; |         | All classes that are loaded into the target application.                        |
-| [agent.logger](#agentlogger)                          | &check; | &check; | Logging levels of all loggers of target application                             |
-| [agent.thread](#agentthread)                          | &check; |         | Snapshot of threads  running in the target application when the SQL is executed |
-| [agent.vm_option](#agentvmoption)                     | &check; |         | Diagnostic VM options of target Java application.                               |
+| Table Name                                             | SELECT  | UPDATE  | Description                                                                     |
+|--------------------------------------------------------|---------|---------|---------------------------------------------------------------------------------|
+| [agent.instance](#agentinstance)                       | &check; |         | The connected target applications to Bithon collector                           |
+| [agent.configuration](#agentconfiguration)             | &check; |         | Effective configurations of agent                                               |
+| [agent.instrumented_method](#agentinstrumented_method) | &check; |         | All intercepted methods of target application for observability and diagnosis   |
+| [agent.loaded_class](#agentloaded_class)               | &check; |         | All classes that are loaded into the target application.                        |
+| [agent.logger](#agentlogger)                           | &check; | &check; | Logging levels of all loggers of target application                             |
+| [agent.thread](#agentthread)                           | &check; |         | Snapshot of threads  running in the target application when the SQL is executed |
+| [agent.vm_option](#agentvm_option)                     | &check; |         | Diagnostic VM options of target Java application.                               |
 
 
 ## agent.instance
 
-This is the most common use SQL that it shows all the application instances that are connecting to Bithon.
+This is the most common used SQL that it shows all the application instances that are connecting to Bithon.
 We will use the `instance` column that it outputs for further operations.
 
 ### SQL
@@ -221,7 +221,10 @@ UPDATE agent.logger SET level = 'DEBUG' where instance = '192.168.50.151:9897' A
 > NOTE:
 > 1. The SQL must provide `instance` and `name` filter in the `WHERE` clause.
 > 2. Only `level` can be UPDATED
-> 3. A token is needed, and it's configured at Bithon server side per-application basis. See [Permission Control](../configuration/server/configuration-collector.md) section for more information.
+> 3. For the `_token'
+>   1. If the server is deployed with the OAuth2 enabled, the token is not needed. The user associated with the login user will be used for authorization internally.
+>   2. If the server is not enabled OAuth2, it's needed. And it's configured on the server side per-application basis.
+>   3. See [Permission Control](../configuration/server/configuration-controller.md) section to know more about authorization configuration.
 
 
 ## agent.thread

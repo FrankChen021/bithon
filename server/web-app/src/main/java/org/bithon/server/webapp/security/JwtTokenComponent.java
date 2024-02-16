@@ -18,7 +18,6 @@ package org.bithon.server.webapp.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -27,6 +26,7 @@ import org.springframework.security.core.GrantedAuthority;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Date;
 
@@ -46,7 +46,7 @@ public class JwtTokenComponent {
     }
 
     /**
-     * @throws {@link io.jsonwebtoken.ExpiredJwtException}
+     * @throws io.jsonwebtoken.ExpiredJwtException
      */
     public Jws<Claims> parseToken(String tokenText) {
         return Jwts.parserBuilder()
@@ -56,13 +56,13 @@ public class JwtTokenComponent {
     }
 
     public String createToken(String name, Collection<? extends GrantedAuthority> authorities) {
-        return createToken(name, authorities, "system", 0);
+        return createToken(name, authorities, "system", Duration.ZERO);
     }
 
     public String createToken(String name,
                               Collection<? extends GrantedAuthority> authorities,
                               String issuer,
-                              long duration) {
+                              Duration duration) {
         Claims claims = Jwts.claims().setSubject(name);
         claims.put("scopes", authorities);
 
@@ -71,28 +71,31 @@ public class JwtTokenComponent {
                                  .setIssuer("https://bithon.org/token/issuer/" + issuer)
                                  .setIssuedAt(new Date(System.currentTimeMillis()))
                                  .signWith(signKey, SignatureAlgorithm.HS256);
-        if (duration > 0) {
+        if (!duration.isZero() && !duration.isNegative()) {
             // Set the expiration in the token.
             // If it's expired, the decodeToken function call above will fail to decode the token
-            builder.setExpiration(new Date(duration + System.currentTimeMillis()));
+            builder.setExpiration(new Date(duration.toMillis() + System.currentTimeMillis()));
         }
 
         return builder.compact();
     }
 
     public boolean isValidToken(Jws<Claims> token) {
+        long expiredAt = getTokenExpiration(token);
+        return System.currentTimeMillis() < expiredAt;
+    }
+
+    public long getTokenExpiration(Jws<Claims> token) {
         Claims claims = token.getBody();
         if (claims == null || claims.getSubject() == null) {
-            return false;
+            return 0;
         }
 
-        //noinspection rawtypes
-        JwsHeader header = token.getHeader();
-        if (header != null && Boolean.TRUE.equals(header.get("useExpirationInToken"))) {
-            return claims.getExpiration().getTime() > System.currentTimeMillis();
+        if (claims.getExpiration() != null) {
+            return claims.getExpiration().getTime();
         } else {
-            // Compare with the latest validity setting for flexibility.
-            return claims.getIssuedAt().getTime() + globalValidityMilliseconds > System.currentTimeMillis();
+            // Use the server side validity
+            return claims.getIssuedAt().getTime() + globalValidityMilliseconds;
         }
     }
 }
