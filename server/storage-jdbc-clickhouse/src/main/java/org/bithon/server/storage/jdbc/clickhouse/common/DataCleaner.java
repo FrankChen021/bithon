@@ -97,34 +97,7 @@ public class DataCleaner {
 
     /**
      * Delete data from table is a heavy operation in ClickHouse
-     */
-    public void deleteBeforeGivenTimestamp(Table<?> table,
-                                           Timestamp before,
-                                           long deleteRowThreshold) {
-        String beforeTimeText = DateTime.toYYYYMMDDhhmmss(before.getTime());
-        long rowCount = dsl.fetchOne(StringUtils.format("SELECT count(1) FROM %s.%s WHERE timestamp < '%s'",
-                                                        config.getDatabase(),
-                                                        table.getName(),
-                                                        beforeTimeText))
-                           .getValue(0, Long.class);
-        if (rowCount < deleteRowThreshold) {
-            log.info("Expiration on table [{}] is skipped because only [{}] rows matches which is lower than the given threshold [{}].",
-                     table.getName(),
-                     rowCount,
-                     deleteRowThreshold);
-            return;
-        }
-
-        dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
-                                       config.getDatabase(),
-                                       config.getLocalTableName(table.getName()),
-                                       config.getOnClusterExpression(),
-                                       beforeTimeText));
-    }
-
-    /**
-     * Delete data from table is a heavy operation in ClickHouse
-     * TODO: Check if DELETE statement is supported, if supported, use it
+     *
      */
     public void deleteByCondition(Table<?> table, Condition condition) {
         // Old CK does not support qualified name in the WHERE
@@ -135,10 +108,32 @@ public class DataCleaner {
                                   .visit(condition)
                                   .render();
 
+        deleteByCondition(table, conditionText, -1);
+    }
+
+    /**
+     * TODO: Check if DELETE statement is supported, if supported, use it
+     */
+    public void deleteByCondition(Table<?> table, String condition, int deleteCountThreshold) {
+        if (deleteCountThreshold > 0) {
+            long rowCount = dsl.fetchOne(StringUtils.format("SELECT count(1) FROM %s.%s WHERE %s",
+                                                            config.getDatabase(),
+                                                            table.getName(),
+                                                            condition))
+                               .getValue(0, Long.class);
+            if (rowCount < deleteCountThreshold) {
+                log.info("DELETE on table [{}] is skipped because only [{}] rows matches which is lower than the given threshold [{}].",
+                         table.getName(),
+                         rowCount,
+                         deleteCountThreshold);
+                return;
+            }
+        }
+
         dsl.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE %s",
                                        config.getDatabase(),
                                        config.getLocalTableName(table.getName()),
                                        config.getOnClusterExpression(),
-                                       conditionText));
+                                       condition));
     }
 }
