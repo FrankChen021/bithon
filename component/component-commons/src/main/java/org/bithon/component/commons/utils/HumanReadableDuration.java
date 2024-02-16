@@ -20,6 +20,10 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * human-readable duration format like: 1s, 2m, 3h, 4d
+ * <p>
+ * The supported units are: s, m, h, d(case-sensitive), representing second, minute, hour, day respectively.
+ *
  * @author frank.chen021@outlook.com
  * @date 2024/2/11 11:38
  */
@@ -85,22 +89,18 @@ public class HumanReadableDuration {
         char unit = durationText.charAt(durationText.length() - 1);
         switch (unit) {
             case 's':
-            case 'S':
                 timeUnit = TimeUnit.SECONDS;
                 break;
 
             case 'm':
-            case 'M':
                 timeUnit = TimeUnit.MINUTES;
                 break;
 
             case 'h':
-            case 'H':
                 timeUnit = TimeUnit.HOURS;
                 break;
 
             case 'd':
-            case 'D':
                 timeUnit = TimeUnit.DAYS;
                 break;
 
