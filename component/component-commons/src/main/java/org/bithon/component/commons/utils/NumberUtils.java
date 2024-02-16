@@ -95,4 +95,29 @@ public class NumberUtils {
                                   int scale) {
         return BigDecimal.valueOf(val).setScale(scale, RoundingMode.HALF_UP).toString();
     }
+
+    /**
+     * A copy of Apache commons-math 3.6.1 FastMath.floorMod(long, long)
+     * Finds q such that dividend = q * divisor + r with 0 &lt;= r &lt; divisor if divisor &gt; 0 and divisor &lt; r &lt;= 0 if divisor &lt; 0.
+     * <p>
+     * This methods returns the same value as integer division when
+     * a and b are same signs, but returns a different value when
+     * they are opposite (i.e. q is negative).
+     * </p>
+     */
+    public static long floorMod(final long dividend, final long divisor) {
+
+        if (divisor == 0L) {
+            throw new IllegalArgumentException("denominator must be different from 0");
+        }
+
+        final long m = dividend % divisor;
+        if ((dividend ^ divisor) >= 0L || m == 0L) {
+            // a and b have the same sign, or division is exact
+            return m;
+        } else {
+            // a and b have opposite signs and division is not exact
+            return divisor + m;
+        }
+    }
 }

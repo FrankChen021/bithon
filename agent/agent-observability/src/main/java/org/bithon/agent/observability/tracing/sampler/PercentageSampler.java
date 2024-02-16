@@ -17,7 +17,7 @@
 package org.bithon.agent.observability.tracing.sampler;
 
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
-import org.bithon.agent.observability.utils.lang.MathUtils;
+import org.bithon.component.commons.utils.NumberUtils;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -33,7 +33,6 @@ public class PercentageSampler implements ISampler {
 
     /**
      * Holding SamplingConfig object so that it supports dynamic configuration
-     *
      */
     public PercentageSampler(TraceSamplingConfig samplingConfig) {
         this.samplingConfig = samplingConfig;
@@ -50,7 +49,7 @@ public class PercentageSampler implements ISampler {
             return SamplingMode.FULL;
         }
 
-        long reminder = MathUtils.floorMod(counter.addAndGet(samplingRate), TraceSamplingConfig.PRECISION_MULTIPLIER);
+        long reminder = NumberUtils.floorMod(counter.addAndGet(samplingRate), TraceSamplingConfig.PRECISION_MULTIPLIER);
         return reminder > 0 && reminder <= samplingRate ? SamplingMode.FULL : SamplingMode.NONE;
     }
 }

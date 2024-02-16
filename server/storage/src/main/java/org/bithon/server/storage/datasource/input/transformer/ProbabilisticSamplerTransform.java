@@ -18,33 +18,56 @@ package org.bithon.server.storage.datasource.input.transformer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
+import org.bithon.component.commons.utils.NumberUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * Use a determinant way instead of a random value-based way for probability calculation.
+ * This way makes sure the UT is not flaky.
+ *
  * @author Frank Chen
  * @date 25/1/24 4:56 pm
  */
 public class ProbabilisticSamplerTransform implements ITransformer {
 
-    private final double fraction;
+    @Getter
+    private final HumanReadablePercentage percentage;
 
+    // Runtime properties
+    private final AtomicLong counter;
+    private final long probability;
+
+    /**
+     * The minimum probability percentage is 0.001%, that is 0.00001.
+     * During calculation, the probability is an integer-based value, starting from 1.
+     * So, 0.001% * MAX_PROBABILITY_VALUE = 1
+     */
+    public final static long MAX_PROBABILITY_VALUE = 100_000;
+
+    /**
+     * @param percentage The minimum is 0.001%, that is 0.00001.
+     *                   There's no special reason that why this minimum is chosen, just a value limitation here.
+     */
     @JsonCreator
-    public ProbabilisticSamplerTransform(@JsonProperty("percentage") String percentage) {
-        this.fraction = HumanReadablePercentage.parse(percentage).getFraction();
+    public ProbabilisticSamplerTransform(@JsonProperty("percentage") HumanReadablePercentage percentage) {
+        this.percentage = percentage;
+        this.probability = (long) (percentage.getFraction() * MAX_PROBABILITY_VALUE);
+        this.counter = new AtomicLong();
     }
 
     @Override
     public boolean transform(IInputRow data) {
-        if (fraction <= 0) {
+        if (probability <= 0) {
             return false;
         }
-        if (fraction >= 1) {
+        if (probability >= MAX_PROBABILITY_VALUE) {
             return true;
         }
-
-        return ThreadLocalRandom.current().nextDouble() <= fraction;
+        long reminder = NumberUtils.floorMod(counter.addAndGet(probability), MAX_PROBABILITY_VALUE);
+        return reminder > 0 && reminder <= probability;
     }
 }
