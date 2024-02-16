@@ -212,7 +212,6 @@
 Apache License version 2.0
 ================================
 
-SOURCE/JAVA-SERVER
   This product contains schema definition related code adapted from Apache Druid
     * component/component-commons/src/main/java/org/bithon/component/commons/utils/HumanReadableBytes.java
     * server/collector/src/main/java/org/bithon/server/metric/TimestampSpec.java
@@ -221,6 +220,9 @@ SOURCE/JAVA-SERVER
     * server/collector/src/main/java/org/bithon/server/metric/parser/TimestampParser.java
     * hooks/pre-push.sh
     * setup-hooks.sh
+
+ This product contains a util method from Apache commons-math
+    * component/component-commons/src/main/java/org/bithon/component/commons/utils/NumberUtils.java
 
 qos.ch
 ================================
