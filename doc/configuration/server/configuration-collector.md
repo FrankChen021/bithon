@@ -154,19 +154,3 @@ collector-kafka:
 ```
 
 Note: Both `pollTimeout` and `ackTime` are in milliseconds.
-
-## Permission Control for UPDATE commands those are sent to agent
-
-Example:
-
-```yaml
-collector-controller:
-  permission:
-    rules:
-      - application:
-          type: startwith
-          pattern: bithon-
-        token: "525"
-```
-
-Each rule matches a target application. For more information of application matcher, see the source code [IMatcher.java](../../../server/server-commons/src/main/java/org/bithon/server/commons/matcher/IMatcher.java).
