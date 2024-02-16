@@ -97,26 +97,31 @@ public class NumberUtils {
     }
 
     /**
-     * A copy of Apache commons-math 3.6.1 FastMath.floorMod(long, long)
+     * A copy of Apache commons-math 3.6.1
+     * <a href="https://github.com/apache/commons-math/blob/3.6.1-release/src/main/java/org/apache/commons/math3/util/FastMath.java">FastMath.floorMod(long, long)</a>
+     * <p>
+     * This helps us calculate probability in a more determinant way
+     * so that the UT tests are not flaky compared to using random-based way.
+     * <p>
      * Finds q such that dividend = q * divisor + r with 0 &lt;= r &lt; divisor if divisor &gt; 0 and divisor &lt; r &lt;= 0 if divisor &lt; 0.
      * <p>
      * This methods returns the same value as integer division when
      * a and b are same signs, but returns a different value when
      * they are opposite (i.e. q is negative).
      * </p>
+     * @throws IllegalArgumentException if the given divisor is zero
      */
     public static long floorMod(final long dividend, final long divisor) {
-
         if (divisor == 0L) {
-            throw new IllegalArgumentException("denominator must be different from 0");
+            throw new IllegalArgumentException("divisor must be not zero");
         }
 
         final long m = dividend % divisor;
         if ((dividend ^ divisor) >= 0L || m == 0L) {
-            // a and b have the same sign, or division is exact
+            // dividend and divisor have the same sign, or division is exact
             return m;
         } else {
-            // a and b have opposite signs and division is not exact
+            // dividend and divisor have opposite signs and division is not exact
             return divisor + m;
         }
     }
