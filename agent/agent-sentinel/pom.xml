@@ -36,11 +36,6 @@
       <artifactId>agent-observability</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>org.bithon.component</groupId>
-      <artifactId>component-brpc</artifactId>
-    </dependency>
-
     <!--Tomcat Webserver, besides javax.servlet definition, it also defines ServletContainerInitializer-->
     <dependency>
       <groupId>org.apache.tomcat.embed</groupId>
