@@ -31,7 +31,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.component</groupId>
       <artifactId>component-brpc</artifactId>
     </dependency>
 
