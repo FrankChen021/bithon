@@ -64,11 +64,23 @@ public class ServerCallInterceptor implements ServerInterceptor {
             return next.startCall(call, headers);
         }
 
+        // Grpc before 1.33.0 does not support call.getMethodDescriptor().getServiceName() and call.getMethodDescriptor().getBareMethodName()
+        String fullMethodName = call.getMethodDescriptor().getFullMethodName();
+        String serviceName = fullMethodName;
+        String methodName = fullMethodName;
+        if (serviceName != null) {
+            int separator = fullMethodName.lastIndexOf('/');
+            if (separator != -1) {
+                serviceName = fullMethodName.substring(0, separator);
+                methodName = fullMethodName.substring(separator + 1);
+            }
+        }
+
         ITraceSpan rootSpan = context.reporter(Tracer.get().reporter())
                                      .currentSpan()
                                      .component("grpc-server")
                                      .kind(SpanKind.SERVER)
-                                     .method(call.getMethodDescriptor().getServiceName(), call.getMethodDescriptor().getBareMethodName())
+                                     .method(serviceName, methodName)
                                      .tag(Tags.Rpc.SYSTEM, "grpc")
                                      .tag("uri", "grpc://" + call.getMethodDescriptor().getFullMethodName())
                                      .configIfTrue(!traceConfig.getHeaders().getRequest().isEmpty(),

@@ -45,7 +45,7 @@ public class SynchronousMethodHandler$Invoke extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceSpan span = TraceSpanFactory.newSpan("feignClient");
+        ITraceSpan span = TraceSpanFactory.newSpan("feign-client");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

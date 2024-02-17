@@ -3,10 +3,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <parent>
-    <groupId>org.bithon</groupId>
-    <artifactId>bithon</artifactId>
+    <groupId>org.bithon.server</groupId>
+    <artifactId>server-all</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <relativePath>../../../pom.xml</relativePath>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -14,27 +14,16 @@
   <name>service-discovery-client</name>
   <description>Bithon Service Discovery Client</description>
 
-  <properties>
-    <java.version>1.8</java.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-  </properties>
-
   <dependencies>
-    <!--- Service Discovery Client by Alibaba Nacos -->
-    <dependency>
-      <groupId>com.alibaba.cloud</groupId>
-      <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-    </dependency>
-
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
     </dependency>
 
+    <!--- Service Discovery Client by Alibaba Nacos -->
     <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>service-discovery-declaration</artifactId>
+      <groupId>com.alibaba.cloud</groupId>
+      <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
     </dependency>
 
     <!-- Feign, use feign to call remote service -->
@@ -44,17 +33,21 @@
     </dependency>
 
     <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>component-commons</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>server-commons</artifactId>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-security</artifactId>
+      <groupId>org.bithon.component</groupId>
+      <artifactId>component-commons</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>server-commons</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>service-discovery-declaration</artifactId>
     </dependency>
   </dependencies>
 

@@ -23,6 +23,18 @@ fi
 
 JAVA_OPTS="-Dbithon.application.name=bithon-server $JAVA_OPTS"
 
+JAVA_MAJOR="$(java -version 2>&1 | sed -n -E 's/.* version "([^."-]*).*/\1/p')"
+echo "Detected JRE version: ${JAVA_MAJOR}"
+if [ "$JAVA_MAJOR" != "" ] && [ "$JAVA_MAJOR" -ge "11" ]
+then
+  # Disable strong encapsulation for certain packages on Java 11+.
+  JAVA_OPTS="$JAVA_OPTS\
+  --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED \
+  --add-opens=java.base/sun.net.www=ALL-UNNAMED \
+  --add-opens=java.base/java.net=ALL-UNNAMED \
+  "
+fi
+
 if [ -f /opt/agent-distribution/agent-main.jar ] ; then
   JAVA_OPTS="-javaagent:/opt/agent-distribution/agent-main.jar $JAVA_OPTS"
   echo "Starting application with agent: $JAVA_OPTS"

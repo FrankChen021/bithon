@@ -159,7 +159,7 @@ If the target application runs under JDK 11 and above, the following arguments s
 | Redis - Lettuce        | 5.1.2       |             | &check;                                        |         |
 | Spring Boot            | 1.5         | 3.0+        |                                                | &check; |
 | Spring Bean            | 4.3.12      |             |                                                | &check; |
-| Spring Open Feign      | 10.12       |             |                                                | &check; |
+| Spring Open Feign      | 10.8        |             |                                                | &check; |
 | Spring Rest Template   | 4.3.12      |             |                                                | &check; |
 | Spring Scheduling      | 4.3.12      |             |                                                | &check; |
 | Spring WebFlux         | 5.0.0       |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; | 

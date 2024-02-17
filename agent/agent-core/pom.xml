@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.bithon.agent</groupId>
-    <artifactId>agent</artifactId>
+    <artifactId>agent-all</artifactId>
     <version>1.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
@@ -24,7 +24,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.component</groupId>
       <artifactId>component-commons</artifactId>
     </dependency>
 
