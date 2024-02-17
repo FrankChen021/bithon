@@ -285,7 +285,6 @@ public class MetricJdbcReader implements IDataSourceReader {
                 ((DruidDataSource) cp.dataSource()).close();
             } catch (Exception ignored) {
             }
-            this.dslContext.close();
         }
     }
 }

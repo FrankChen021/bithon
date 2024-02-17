@@ -17,6 +17,7 @@
 package org.bithon.server.agent.controller.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
@@ -37,7 +38,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.stream.Collectors;

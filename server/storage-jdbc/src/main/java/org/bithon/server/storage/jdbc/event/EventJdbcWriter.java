@@ -41,7 +41,6 @@ public class EventJdbcWriter implements IEventWriter {
 
     @Override
     public void close() {
-        dslContext.close();
     }
 
     @Override

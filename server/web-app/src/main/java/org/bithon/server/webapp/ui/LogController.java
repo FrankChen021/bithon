@@ -16,6 +16,7 @@
 
 package org.bithon.server.webapp.ui;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.bithon.component.commons.Experimental;
 import org.bithon.server.storage.web.Dashboard;
 import org.bithon.server.webapp.WebAppModuleEnabler;
@@ -27,8 +28,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author frank.chen021@outlook.com

@@ -22,16 +22,17 @@ import org.bithon.server.storage.InvalidConfigurationException;
 import org.bithon.server.webapp.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesRegistrationAdapter;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
+import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -41,21 +42,11 @@ import java.util.stream.Stream;
  * @date 6/9/23 8:33 pm
  */
 @Configuration
-@EnableWebSecurity
-public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfigurer {
 
-    private final WebSecurityConfig securityConfig;
-    private final String contextPath;
-
-    public WebSecurityConfigurer(ServerProperties serverProperties,
-                                 WebSecurityConfig securityConfig) {
-        this.securityConfig = securityConfig;
-        String contextPath = serverProperties.getServlet().getContextPath();
-        this.contextPath = StringUtils.hasText(contextPath) ? contextPath : "";
-    }
-
-    @Override
-    public void configure(WebSecurity web) {
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer(ServerProperties serverProperties) {
+        String contextPath = StringUtils.hasText(serverProperties.getServlet().getContextPath()) ? serverProperties.getServlet().getContextPath() : "";
         String[] ignoreList = Stream.of("/images/**",
                                         "/css/**",
                                         "/lib/**",
@@ -63,15 +54,18 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
                                         "/login",
                                         "/actuator/**"
                                        )
-                                    .map((path) -> this.contextPath + path)
+                                    .map((path) -> contextPath + path)
                                     .toArray(String[]::new);
 
-        // Configure to ignore security check on static resources
-        web.ignoring().antMatchers(ignoreList);
+        return (web) -> web.ignoring().requestMatchers(ignoreList);
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                           ServerProperties serverProperties,
+                                           WebSecurityConfig securityConfig) throws Exception {
+        String contextPath = StringUtils.hasText(serverProperties.getServlet().getContextPath()) ? serverProperties.getServlet().getContextPath() : "";
+
         // H2 web UI requires disabling frameOptions.
         // This is not a graceful way. The better way is to check whether the H2 web UI is enabled in this module.
         // For simplicity, we just disable the frame option in global.
@@ -81,9 +75,10 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
             // Permit all
             http.csrf()
                 .disable()
-                .authorizeRequests()
-                .antMatchers("/**").permitAll();
-            return;
+                .authorizeHttpRequests()
+                .anyRequest()
+                .permitAll();
+            return http.build();
         }
 
         JwtTokenComponent jwtTokenComponent = new JwtTokenComponent(securityConfig);
@@ -91,23 +86,24 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .csrf().disable()
-            .authorizeRequests()
-            .antMatchers("/error").permitAll()
+            .authorizeHttpRequests().requestMatchers(HttpMethod.GET, "/error").permitAll()
             .anyRequest().authenticated()
             .and()
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenComponent), OAuth2AuthorizationRequestRedirectFilter.class)
             .oauth2Login()
-            .clientRegistrationRepository(newClientRegistrationRepo()).permitAll()
+            .clientRegistrationRepository(newClientRegistrationRepo(securityConfig)).permitAll()
             .authorizationEndpoint().authorizationRequestRepository(new HttpCookieOAuth2AuthorizationRequestRepository())
             .and()
             .successHandler(new AuthSuccessHandler(jwtTokenComponent, securityConfig))
             .and()
             .logout().logoutSuccessUrl("/")
             .and()
-            .exceptionHandling().authenticationEntryPoint(new LoginAuthenticationEntryPoint(this.contextPath + "/oauth2/authorization/google"));
+            .exceptionHandling().authenticationEntryPoint(new LoginAuthenticationEntryPoint(contextPath + "/oauth2/authorization/google"));
+
+        return http.build();
     }
 
-    private ClientRegistrationRepository newClientRegistrationRepo() {
+    private ClientRegistrationRepository newClientRegistrationRepo(WebSecurityConfig securityConfig) {
         if (securityConfig.getOauth2() == null) {
             throw new InvalidConfigurationException("bithon.web.security.oauth2 is not configured.");
         }

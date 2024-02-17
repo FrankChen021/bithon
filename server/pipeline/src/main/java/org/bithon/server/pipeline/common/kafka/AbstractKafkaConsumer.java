@@ -36,7 +36,6 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerAwareBatchErrorHandler;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.MessageListenerContainer;
-import org.springframework.kafka.listener.RecoveringBatchErrorHandler;
 
 import java.util.HashMap;
 import java.util.List;
@@ -116,7 +115,7 @@ public abstract class AbstractKafkaConsumer implements IKafkaConsumer, BatchMess
                 }
 
                 // Fallback to default handler to handle
-                new RecoveringBatchErrorHandler().handle(thrownException, data, consumer, container);
+                //new RecoveringBatchErrorHandler().handle(thrownException, data, consumer, container);
             }
         });
         consumerContainer.start();
