@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.sentinel;
 
 import lombok.Data;
-import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
+import org.bithon.agent.rpc.brpc.sentinel.DegradingRuleDto;
 
 import javax.validation.constraints.NotNull;
 

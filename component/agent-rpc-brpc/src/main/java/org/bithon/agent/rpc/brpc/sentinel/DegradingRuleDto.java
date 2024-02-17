@@ -14,11 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sentinel.degrade;
+package org.bithon.agent.rpc.brpc.sentinel;
 
-import org.bithon.agent.sentinel.expt.ParamInvalidException;
-import org.bithon.agent.sentinel.expt.ParamNullException;
-import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
+
+import org.bithon.component.commons.utils.Preconditions;
 
 import java.util.Objects;
 
@@ -134,43 +133,26 @@ public class DegradingRuleDto {
         this.statIntervalMs = statIntervalMs;
     }
 
-    public DegradeRule toDegradeRule() {
-        DegradeRule degradeRule = new DegradeRule();
-        degradeRule.setResource(this.getUri());
-        degradeRule.setCount(this.getThreshold());
-        degradeRule.setGrade(this.getGrade());
-        degradeRule.setMinRequestAmount(this.getMinRequestAmount());
-        if (this.getGrade() == 0) {
-            degradeRule.setCount(this.getMaxResponseTime());
-            degradeRule.setSlowRatioThreshold(this.getThreshold());
-        } else {
-            degradeRule.setCount(this.getThreshold());
-        }
-        degradeRule.setTimeWindow(this.getTimeWindow());
-        degradeRule.setStatIntervalMs(this.getStatIntervalMs());
-        return degradeRule;
-    }
-
     public void valid() {
-        ParamNullException.throwIf(ruleId == null, "ruleId");
-        ParamNullException.throwIf(uri == null, "uri");
+        Preconditions.checkNotNull(ruleId, "ruleId");
+        Preconditions.checkNotNull(uri, "uri");
 
-        ParamNullException.throwIf(timeWindow == null, "timeWindow");
-        ParamInvalidException.throwIf(timeWindow < 0, "timeWindow", timeWindow);
+        Preconditions.checkNotNull(timeWindow, "timeWindow");
+        Preconditions.throwIf(timeWindow < 0, "timeWindow", timeWindow);
 
-        ParamNullException.throwIf(grade == null, "grade");
-        ParamInvalidException.throwIf(grade < 0 || grade > 2, "grade", grade);
+        Preconditions.checkNotNull(grade, "grade");
+        Preconditions.throwIf(grade < 0 || grade > 2, "grade", grade);
 
-        ParamNullException.throwIf(threshold == null, "threshold");
-        ParamInvalidException.throwIf(threshold <= 0, "threshold", threshold);
+        Preconditions.checkNotNull(threshold, "threshold");
+        Preconditions.throwIf(threshold <= 0, "threshold", threshold);
 
-        ParamNullException.throwIf(grade == 0 && maxResponseTime == null, "maxResponseTime");
-        ParamInvalidException.throwIf(grade == 0 && maxResponseTime <= 0,
-                                      "maxResponseTime",
-                                      maxResponseTime);
+        Preconditions.throwIf(grade == 0 && maxResponseTime == null, "maxResponseTime");
+        Preconditions.throwIf(grade == 0 && maxResponseTime <= 0,
+                              "maxResponseTime",
+                              maxResponseTime);
 
-        ParamNullException.throwIf(statIntervalMs == null, "statIntervalMs");
-        ParamInvalidException.throwIf(statIntervalMs <= 0, "statIntervalMs", statIntervalMs);
+        Preconditions.checkNotNull(statIntervalMs, "statIntervalMs");
+        Preconditions.throwIf(statIntervalMs <= 0, "statIntervalMs", statIntervalMs);
     }
 
     @Override
@@ -183,15 +165,15 @@ public class DegradingRuleDto {
         }
         DegradingRuleDto that = (DegradingRuleDto) o;
         return minRequestAmount == that.minRequestAmount
-               && Objects.equals(ruleId, that.ruleId)
-               && Objects.equals(uri, that.uri)
-               && Objects.equals(timeWindow, that.timeWindow)
-               && Objects.equals(grade, that.grade)
-               && Objects.equals(threshold, that.threshold)
-               && Objects.equals(maxResponseTime, that.maxResponseTime)
-               && Objects.equals(statIntervalMs, that.statIntervalMs)
-               && Objects.equals(lastOperator, that.lastOperator)
-               && Objects.equals(lastUpdatedAt, that.lastUpdatedAt);
+            && Objects.equals(ruleId, that.ruleId)
+            && Objects.equals(uri, that.uri)
+            && Objects.equals(timeWindow, that.timeWindow)
+            && Objects.equals(grade, that.grade)
+            && Objects.equals(threshold, that.threshold)
+            && Objects.equals(maxResponseTime, that.maxResponseTime)
+            && Objects.equals(statIntervalMs, that.statIntervalMs)
+            && Objects.equals(lastOperator, that.lastOperator)
+            && Objects.equals(lastUpdatedAt, that.lastUpdatedAt);
     }
 
     @Override
@@ -211,16 +193,16 @@ public class DegradingRuleDto {
     @Override
     public String toString() {
         return "DegradeRuleDto{" +
-               "ruleId='" + ruleId + '\'' +
-               ", uri='" + uri + '\'' +
-               ", minRequestAmount=" + minRequestAmount +
-               ", timeWindow=" + timeWindow +
-               ", grade=" + grade +
-               ", threshold=" + threshold +
-               ", maxResponseTime=" + maxResponseTime +
-               ", statIntervalMs=" + statIntervalMs +
-               ", lastOperator='" + lastOperator + '\'' +
-               ", lastUpdatedAt='" + lastUpdatedAt + '\'' +
-               '}';
+            "ruleId='" + ruleId + '\'' +
+            ", uri='" + uri + '\'' +
+            ", minRequestAmount=" + minRequestAmount +
+            ", timeWindow=" + timeWindow +
+            ", grade=" + grade +
+            ", threshold=" + threshold +
+            ", maxResponseTime=" + maxResponseTime +
+            ", statIntervalMs=" + statIntervalMs +
+            ", lastOperator='" + lastOperator + '\'' +
+            ", lastUpdatedAt='" + lastUpdatedAt + '\'' +
+            '}';
     }
 }

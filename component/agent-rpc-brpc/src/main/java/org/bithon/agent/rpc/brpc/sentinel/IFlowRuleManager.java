@@ -14,25 +14,30 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.evaluator.rpc;
+package org.bithon.agent.rpc.brpc.sentinel;
 
-import org.bithon.server.alerting.notification.api.INotificationApi;
-import org.bithon.server.alerting.notification.message.NotificationMessage;
+import org.bithon.component.brpc.BrpcMethod;
+import org.bithon.component.brpc.BrpcService;
+import org.bithon.component.brpc.message.serializer.Serializer;
+
+import java.util.Set;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2024/2/11 19:07
+ * @date 2021/7/5 7:50 下午
  */
-public class NotificationServiceClientApi implements INotificationApi {
+@BrpcService
+public interface IFlowRuleManager {
 
-    private final INotificationApi delegate;
+    @BrpcMethod(serializer = Serializer.JSON_SMILE)
+    void create(FlowRuleDto request);
 
-    public NotificationServiceClientApi(INotificationApi delegate) {
-        this.delegate = delegate;
-    }
+    @BrpcMethod(serializer = Serializer.JSON_SMILE)
+    void update(FlowRuleDto request);
 
-    @Override
-    public void notify(String name, NotificationMessage message) throws Exception {
-        this.delegate.notify(name, message);
-    }
+    void delete(String ruleId);
+
+    void deleteAll();
+
+    Set<String> getRules();
 }

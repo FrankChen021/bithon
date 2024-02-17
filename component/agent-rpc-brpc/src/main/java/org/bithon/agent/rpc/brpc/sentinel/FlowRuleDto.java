@@ -14,11 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sentinel.flow;
+package org.bithon.agent.rpc.brpc.sentinel;
 
-import org.bithon.agent.sentinel.expt.ParamInvalidException;
-import org.bithon.agent.sentinel.expt.ParamNullException;
-import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
+import org.bithon.component.commons.utils.Preconditions;
 
 import java.util.Objects;
 
@@ -99,29 +97,19 @@ public class FlowRuleDto {
         this.maxTimeoutMs = maxTimeoutMs;
     }
 
-    public FlowRule toFlowRule() {
-        FlowRule flowRule = new FlowRule();
-        flowRule.setGrade(grade);
-        flowRule.setCount(threshold);
-        flowRule.setResource(uri);
-        flowRule.setControlBehavior(controlBehavior);
-        flowRule.setMaxQueueingTimeMs(maxTimeoutMs);
-        return flowRule;
-    }
-
     public void valid() {
-        ParamNullException.throwIf(ruleId == null, "ruleId");
-        ParamNullException.throwIf(uri == null, "uri");
-        ParamNullException.throwIf(grade == null, "grade");
+        Preconditions.checkNotNull(ruleId, "ruleId");
+        Preconditions.checkNotNull(uri, "uri");
+        Preconditions.checkNotNull(grade, "grade");
 
-        ParamNullException.throwIf(controlBehavior == null, "controlBehavior");
-        ParamInvalidException.throwIf(controlBehavior < 0 || controlBehavior > 3, "controlBehavior", controlBehavior);
+        Preconditions.checkNotNull(controlBehavior == null, "controlBehavior");
+        Preconditions.throwIf(controlBehavior < 0 || controlBehavior > 3, "controlBehavior", controlBehavior);
 
-        ParamNullException.throwIf(maxTimeoutMs == null, "maxTimeoutMs");
-        ParamInvalidException.throwIf(controlBehavior == 2 && maxTimeoutMs <= 0, "maxTimeoutMs", maxTimeoutMs);
+        Preconditions.checkNotNull(maxTimeoutMs, "maxTimeoutMs");
+        Preconditions.throwIf(controlBehavior == 2 && maxTimeoutMs <= 0, "maxTimeoutMs", maxTimeoutMs);
 
-        ParamNullException.throwIf(threshold == null, "threshold");
-        ParamInvalidException.throwIf(threshold <= 0, "threshold", threshold);
+        Preconditions.checkNotNull(threshold, "threshold");
+        Preconditions.throwIf(threshold <= 0, "threshold", threshold);
     }
 
     @Override
@@ -134,13 +122,13 @@ public class FlowRuleDto {
         }
         FlowRuleDto that = (FlowRuleDto) o;
         return Objects.equals(ruleId, that.ruleId)
-               && Objects.equals(uri, that.uri)
-               && Objects.equals(grade, that.grade)
-               && Objects.equals(controlBehavior, that.controlBehavior)
-               && Objects.equals(maxTimeoutMs, that.maxTimeoutMs)
-               && Objects.equals(threshold, that.threshold)
-               && Objects.equals(lastOperator, that.lastOperator)
-               && Objects.equals(lastUpdatedAt, that.lastUpdatedAt);
+            && Objects.equals(uri, that.uri)
+            && Objects.equals(grade, that.grade)
+            && Objects.equals(controlBehavior, that.controlBehavior)
+            && Objects.equals(maxTimeoutMs, that.maxTimeoutMs)
+            && Objects.equals(threshold, that.threshold)
+            && Objects.equals(lastOperator, that.lastOperator)
+            && Objects.equals(lastUpdatedAt, that.lastUpdatedAt);
     }
 
     @Override
@@ -151,14 +139,14 @@ public class FlowRuleDto {
     @Override
     public String toString() {
         return "FlowRuleDto{" +
-               "ruleId='" + ruleId + '\'' +
-               ", uri='" + uri + '\'' +
-               ", grade=" + grade +
-               ", controlBehavior=" + controlBehavior +
-               ", maxTimeoutMs=" + maxTimeoutMs +
-               ", threshold=" + threshold +
-               ", lastOperator='" + lastOperator + '\'' +
-               ", lastUpdatedAt='" + lastUpdatedAt + '\'' +
-               '}';
+            "ruleId='" + ruleId + '\'' +
+            ", uri='" + uri + '\'' +
+            ", grade=" + grade +
+            ", controlBehavior=" + controlBehavior +
+            ", maxTimeoutMs=" + maxTimeoutMs +
+            ", threshold=" + threshold +
+            ", lastOperator='" + lastOperator + '\'' +
+            ", lastUpdatedAt='" + lastUpdatedAt + '\'' +
+            '}';
     }
 }

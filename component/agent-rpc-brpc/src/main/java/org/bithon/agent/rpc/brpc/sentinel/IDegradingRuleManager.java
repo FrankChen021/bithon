@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sentinel.flow;
+package org.bithon.agent.rpc.brpc.sentinel;
 
 import org.bithon.component.brpc.BrpcMethod;
 import org.bithon.component.brpc.BrpcService;
@@ -24,16 +24,16 @@ import java.util.Set;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/7/5 7:50 下午
+ * @date 2021/7/5 7:22 下午
  */
 @BrpcService
-public interface IFlowRuleManager {
+public interface IDegradingRuleManager {
 
     @BrpcMethod(serializer = Serializer.JSON_SMILE)
-    void create(FlowRuleDto request);
+    void create(DegradingRuleDto request);
 
     @BrpcMethod(serializer = Serializer.JSON_SMILE)
-    void update(FlowRuleDto request);
+    void update(DegradingRuleDto request);
 
     void delete(String ruleId);
 

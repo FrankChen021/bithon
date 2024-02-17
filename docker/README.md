@@ -24,7 +24,13 @@ From the root of the repo, run
 DOCKER_BUILDKIT=1 docker build -t bithon/server:{TAG} -f docker/Dockerfile-server .
 ```
 
-For the second time to build the docker file, build argument `BUILD_FROM_SOURCE` could be added to the command to speed up the build process.
+> NOTE:
+> 
+> The above command compiles all necessary dependencies for the server, including the shaded libraries and jOOQ.
+> In most cases, these two dependencies do not change, and compiling them takes more time.
+> To save building time, we can compile the module out of docker, and then use the following command to speed up.
+> 
+
 ```bash
 DOCKER_BUILDKIT=1 docker build -t bithon/server:{TAG} -f docker/Dockerfile-server --build-arg BUILD_FROM_SOURCE=false .
 ```

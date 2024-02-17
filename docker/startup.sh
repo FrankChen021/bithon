@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # shellcheck disable=SC2039
-if [ "$WITH_AGENT" = true ] ; then
+if [ "$ENABLE_AGENT" = true ] ; then
   echo "Downloading agent from ${AGENT_URI}"
   wget -T 10 -O agent.zip "${AGENT_URI}"
 
