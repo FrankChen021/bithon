@@ -40,7 +40,7 @@
 
     <!-- Bithon Commons -->
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.component</groupId>
       <artifactId>component-commons</artifactId>
     </dependency>
     <dependency>

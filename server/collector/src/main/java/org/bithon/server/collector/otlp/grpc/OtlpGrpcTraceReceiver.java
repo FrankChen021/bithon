@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerCall;
 import io.grpc.stub.StreamObserver;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceResponse;
@@ -63,6 +64,8 @@ public class OtlpGrpcTraceReceiver extends TraceServiceGrpc.TraceServiceImplBase
 
     @Override
     public void start() {
+        ServerCall s;
+        s.getMethodDescriptor().getBareMethodName()
         log.info("Starting GRPC trace receiver at port {}", this.port);
         server = ServerBuilder.forPort(this.port)
                               .addService(this)

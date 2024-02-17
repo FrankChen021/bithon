@@ -16,7 +16,7 @@
   <dependencies>
     <!-- Metric/Trace Collector over BRPC -->
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.component</groupId>
       <artifactId>agent-rpc-brpc</artifactId>
     </dependency>
 
@@ -28,7 +28,7 @@
 
     <!-- Bithon Commons -->
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.component</groupId>
       <artifactId>component-commons</artifactId>
     </dependency>
 
