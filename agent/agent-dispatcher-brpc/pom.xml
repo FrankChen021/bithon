@@ -13,7 +13,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.component</groupId>
       <artifactId>agent-rpc-brpc</artifactId>
       <version>${project.version}</version>
     </dependency>
