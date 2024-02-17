@@ -18,12 +18,17 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-        <java.version>17</java.version>
 
         <!--
         https://stackoverflow.com/questions/43102787/what-is-the-release-flag-in-the-java-9-compiler/43103038#43103038
+        Once upgrade to JDJ 17, use the following
+        <maven.compiler.release>17/maven.compiler.release>
         -->
-        <maven.compiler.release>17</maven.compiler.release>
+
+        <!-- Still using SpringBoot 2.x, Not able to build target as 17-->
+        <java.version>8</java.version>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
 
         <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
         <spring-cloud.version>Hoxton.SR12</spring-cloud.version>
@@ -333,19 +338,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <!-- All server modules are set to JRE17 -->
-                    <source>17</source>
-                    <target>17</target>
-                    <testSource>17</testSource>
-                    <testTarget>17</testTarget>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
-
             <plugin>
                 <groupId>de.thetaphi</groupId>
                 <artifactId>forbiddenapis</artifactId>
