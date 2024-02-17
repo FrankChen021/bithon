@@ -4,7 +4,7 @@
 
   <parent>
     <groupId>org.bithon.server</groupId>
-    <artifactId>server</artifactId>
+    <artifactId>server-all</artifactId>
     <version>1.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
@@ -27,7 +27,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.server</groupId>
       <artifactId>service-discovery-declaration</artifactId>
     </dependency>
   </dependencies>

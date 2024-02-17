@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <groupId>org.bithon.server</groupId>
-    <artifactId>server</artifactId>
+    <artifactId>server-all</artifactId>
     <version>1.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
@@ -22,7 +22,7 @@
 
     <!-- Pipeline for the Collector or Receivers -->
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.server</groupId>
       <artifactId>server-pipeline</artifactId>
     </dependency>
 
@@ -34,7 +34,7 @@
 
     <!-- OTLP Receiver-->
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.server</groupId>
       <artifactId>opentelemetry</artifactId>
     </dependency>
     <dependency>

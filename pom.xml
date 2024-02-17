@@ -13,12 +13,6 @@
   <url>https://bithon.org</url>
 
   <properties>
-    <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
-    <spring-cloud.version>Hoxton.SR12</spring-cloud.version>
-    <grpc.version>1.59.1</grpc.version>
-
-    <!-- The version that is used by the current grpc -->
-    <protobuf.version>3.24.0</protobuf.version>
   </properties>
 
   <!-- Required info for sonatype -->
@@ -47,48 +41,6 @@
 
   <dependencyManagement>
     <dependencies>
-      <!-- Spring Cloud -->
-      <dependency>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-dependencies</artifactId>
-        <version>${spring-cloud.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-
-      <!-- Spring Boot -->
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-dependencies</artifactId>
-        <version>${spring-boot.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-
-      <!--Alibaba Nacos
-        https://github.com/alibaba/spring-cloud-alibaba/wiki/%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E
-      -->
-      <dependency>
-        <groupId>com.alibaba.cloud</groupId>
-        <artifactId>spring-cloud-alibaba-dependencies</artifactId>
-        <version>2.2.6.RELEASE</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-
-      <dependency>
-        <groupId>com.alibaba</groupId>
-        <artifactId>druid-spring-boot-starter</artifactId>
-        <version>1.1.24</version>
-      </dependency>
-
-      <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
-      <dependency>
-        <groupId>commons-io</groupId>
-        <artifactId>commons-io</artifactId>
-        <version>2.11.0</version>
-      </dependency>
-
       <!-- Lombok -->
       <dependency>
         <groupId>org.projectlombok</groupId>
@@ -97,9 +49,9 @@
       </dependency>
 
       <dependency>
-        <groupId>org.antlr</groupId>
-        <artifactId>antlr4-runtime</artifactId>
-        <version>4.9.3</version>
+        <groupId>javax.validation</groupId>
+        <artifactId>validation-api</artifactId>
+        <version>2.0.1.Final</version>
       </dependency>
 
       <dependency>
@@ -122,203 +74,6 @@
       <dependency>
         <groupId>org.bithon</groupId>
         <artifactId>component-commons</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.bithon</groupId>
-        <artifactId>server-commons</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <!-- Trace/Metrics/Events Collector -->
-      <dependency>
-        <groupId>org.bithon</groupId>
-        <artifactId>server-collector</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <!-- Agent Controller Server-->
-      <dependency>
-        <groupId>org.bithon</groupId>
-        <artifactId>server-agent-controller</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <!-- Storage -->
-      <dependency>
-        <groupId>org.bithon</groupId>
-        <artifactId>server-storage</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.bithon</groupId>
-        <artifactId>server-storage-jdbc</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.bithon</groupId>
-        <artifactId>server-storage-jdbc-h2</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.bithon</groupId>
-        <artifactId>server-storage-jdbc-mysql</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.bithon</groupId>
-        <artifactId>server-storage-jdbc-clickhouse</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.bithon</groupId>
-        <artifactId>server-pipeline</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.bithon</groupId>
-        <artifactId>server-web-service</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.bithon</groupId>
-        <artifactId>server-web-app</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.bithon</groupId>
-        <artifactId>service-discovery-declaration</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.bithon</groupId>
-        <artifactId>service-discovery-registration</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.bithon</groupId>
-        <artifactId>service-discovery-client</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <!-- Fuck the Spring Cloud GCP declared in the Spring Cloud
-        It declares the GRPC as 1.34.1 which conflicts with higher versions.
-        We have to override these modules one by one
-      -->
-      <dependency>
-        <groupId>com.google.protobuf</groupId>
-        <artifactId>protobuf-java</artifactId>
-        <version>${protobuf.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.google.protobuf</groupId>
-        <artifactId>protobuf-java-util</artifactId>
-        <version>${protobuf.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-alts</artifactId>
-        <version>${grpc.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-api</artifactId>
-        <version>${grpc.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-auth</artifactId>
-        <version>${grpc.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-context</artifactId>
-        <version>${grpc.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-core</artifactId>
-        <version>${grpc.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-grpclb</artifactId>
-        <version>${grpc.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-netty</artifactId>
-        <version>${grpc.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-netty-shaded</artifactId>
-        <version>${grpc.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-okhttp</artifactId>
-        <version>${grpc.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-protobuf</artifactId>
-        <version>${grpc.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-protobuf-lite</artifactId>
-        <version>${grpc.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-services</artifactId>
-        <version>${grpc.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-stub</artifactId>
-        <version>${grpc.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-testing</artifactId>
-        <version>${grpc.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.bithon</groupId>
-        <artifactId>opentelemetry</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <!-- Override the declared jedis in SpringBoot from 3.3.0 to the latest-->
-      <dependency>
-        <groupId>redis.clients</groupId>
-        <artifactId>jedis</artifactId>
-        <version>4.4.3</version>
-      </dependency>
-      <dependency>
-          <groupId>org.bithon.server</groupId>
-          <artifactId>server-alerting-common</artifactId>
-          <version>${project.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>org.bithon.server</groupId>
-          <artifactId>server-alerting-evaluator</artifactId>
-          <version>${project.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>org.bithon.server</groupId>
-          <artifactId>server-alerting-manager</artifactId>
-          <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.bithon.server</groupId>
-        <artifactId>server-alerting-notification</artifactId>
         <version>${project.version}</version>
       </dependency>
 

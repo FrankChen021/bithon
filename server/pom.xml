@@ -10,7 +10,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>org.bithon.server</groupId>
-    <artifactId>server</artifactId>
+    <artifactId>server-all</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
 
@@ -19,8 +19,18 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         <java.version>17</java.version>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+
+        <!--
+        https://stackoverflow.com/questions/43102787/what-is-the-release-flag-in-the-java-9-compiler/43103038#43103038
+        -->
+        <maven.compiler.release>17</maven.compiler.release>
+
+        <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
+        <spring-cloud.version>Hoxton.SR12</spring-cloud.version>
+        <grpc.version>1.59.1</grpc.version>
+
+        <!-- The version that is used by the current grpc -->
+        <protobuf.version>3.24.0</protobuf.version>
     </properties>
 
     <modules>
@@ -93,13 +103,6 @@
                 <version>2.11.0</version>
             </dependency>
 
-            <!-- Lombok -->
-            <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>1.18.30</version>
-            </dependency>
-
             <dependency>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-runtime</artifactId>
@@ -130,80 +133,80 @@
             </dependency>
 
             <dependency>
-                <groupId>org.bithon</groupId>
+                <groupId>org.bithon.server</groupId>
                 <artifactId>server-commons</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <!-- Trace/Metrics/Events Collector -->
             <dependency>
-                <groupId>org.bithon</groupId>
+                <groupId>org.bithon.server</groupId>
                 <artifactId>server-collector</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <!-- Agent Controller Server-->
             <dependency>
-                <groupId>org.bithon</groupId>
+                <groupId>org.bithon.server</groupId>
                 <artifactId>server-agent-controller</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <!-- Storage -->
             <dependency>
-                <groupId>org.bithon</groupId>
+                <groupId>org.bithon.server</groupId>
                 <artifactId>server-storage</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.bithon</groupId>
+                <groupId>org.bithon.server</groupId>
                 <artifactId>server-storage-jdbc</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.bithon</groupId>
+                <groupId>org.bithon.server</groupId>
                 <artifactId>server-storage-jdbc-h2</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.bithon</groupId>
+                <groupId>org.bithon.server</groupId>
                 <artifactId>server-storage-jdbc-mysql</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.bithon</groupId>
+                <groupId>org.bithon.server</groupId>
                 <artifactId>server-storage-jdbc-clickhouse</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.bithon</groupId>
+                <groupId>org.bithon.server</groupId>
                 <artifactId>server-pipeline</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.bithon</groupId>
+                <groupId>org.bithon.server</groupId>
                 <artifactId>server-web-service</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.bithon</groupId>
+                <groupId>org.bithon.server</groupId>
                 <artifactId>server-web-app</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.bithon</groupId>
+                <groupId>org.bithon.server</groupId>
                 <artifactId>service-discovery-declaration</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.bithon</groupId>
+                <groupId>org.bithon.server</groupId>
                 <artifactId>service-discovery-registration</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.bithon</groupId>
+                <groupId>org.bithon.server</groupId>
                 <artifactId>service-discovery-client</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -293,16 +296,36 @@
                 <version>${grpc.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.bithon</groupId>
+                <groupId>org.bithon.server</groupId>
                 <artifactId>opentelemetry</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
+            <!-- Override the declared jedis in SpringBoot from 3.3.0 to the latest-->
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.13.2</version>
-                <scope>test</scope>
+                <groupId>redis.clients</groupId>
+                <artifactId>jedis</artifactId>
+                <version>4.4.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>server-alerting-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>server-alerting-evaluator</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>server-alerting-manager</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>server-alerting-notification</artifactId>
+                <version>${project.version}</version>
             </dependency>
 
         </dependencies>
@@ -310,14 +333,28 @@
 
     <build>
         <plugins>
-            <!--default to 1.8 target, sub-module change override it-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
+                    <!-- All server modules are set to JRE17 -->
                     <source>17</source>
                     <target>17</target>
+                    <testSource>17</testSource>
+                    <testTarget>17</testTarget>
                     <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>de.thetaphi</groupId>
+                <artifactId>forbiddenapis</artifactId>
+                <configuration>
+                    <ignoreSignaturesOfMissingClasses>true</ignoreSignaturesOfMissingClasses>
+                    <signaturesFiles>
+                        <signaturesFile>${project.parent.basedir}/../dev/forbidden-apis-joda-time.txt</signaturesFile>
+                        <signaturesFile>${project.parent.basedir}/../dev/forbidden-apis-bithon.txt</signaturesFile>
+                    </signaturesFiles>
                 </configuration>
             </plugin>
         </plugins>

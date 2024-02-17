@@ -4,7 +4,7 @@
 
   <parent>
     <groupId>org.bithon.server</groupId>
-    <artifactId>server</artifactId>
+    <artifactId>server-all</artifactId>
     <version>1.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
@@ -33,18 +33,18 @@
     </dependency>
 
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.server</groupId>
       <artifactId>server-collector</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.server</groupId>
       <artifactId>server-agent-controller</artifactId>
     </dependency>
 
     <!-- Storage -->
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.server</groupId>
       <artifactId>server-storage-jdbc</artifactId>
       <exclusions>
         <exclusion>
@@ -69,33 +69,34 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.server</groupId>
       <artifactId>server-storage-jdbc-clickhouse</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.server</groupId>
       <artifactId>server-storage-jdbc-h2</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.server</groupId>
       <artifactId>server-storage-jdbc-mysql</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.server</groupId>
       <artifactId>server-web-service</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.server</groupId>
       <artifactId>server-web-app</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.bithon</groupId>
+      <groupId>org.bithon.server</groupId>
       <artifactId>service-discovery-registration</artifactId>
     </dependency>
 
+    <!-- Alerting -->
     <dependency>
       <groupId>org.bithon.server</groupId>
       <artifactId>server-alerting-common</artifactId>
