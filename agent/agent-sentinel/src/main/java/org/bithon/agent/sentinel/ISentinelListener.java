@@ -16,8 +16,8 @@
 
 package org.bithon.agent.sentinel;
 
-import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
-import org.bithon.agent.sentinel.flow.FlowRuleDto;
+import org.bithon.agent.rpc.brpc.sentinel.DegradingRuleDto;
+import org.bithon.agent.rpc.brpc.sentinel.FlowRuleDto;
 
 import java.util.Collection;
 import java.util.function.Function;

@@ -17,8 +17,8 @@
 package org.bithon.server.web.service.sentinel;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.agent.sentinel.degrade.IDegradingRuleManager;
-import org.bithon.agent.sentinel.flow.IFlowRuleManager;
+import org.bithon.agent.rpc.brpc.sentinel.IDegradingRuleManager;
+import org.bithon.agent.rpc.brpc.sentinel.IFlowRuleManager;
 import org.bithon.component.brpc.IServiceController;
 import org.bithon.server.agent.controller.service.AgentControllerServer;
 import org.bithon.server.web.service.WebServiceModuleEnabler;

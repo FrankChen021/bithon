@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sentinel.flow;
+package org.bithon.agent.rpc.brpc.sentinel;
 
 import org.bithon.component.brpc.BrpcMethod;
 import org.bithon.component.brpc.BrpcService;
