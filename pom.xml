@@ -13,12 +13,6 @@
   <url>https://bithon.org</url>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-    <java.version>8</java.version>
-    <maven.compiler.source>8</maven.compiler.source>
-    <maven.compiler.target>8</maven.compiler.target>
-
     <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
     <spring-cloud.version>Hoxton.SR12</spring-cloud.version>
     <grpc.version>1.59.1</grpc.version>
@@ -641,29 +635,7 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <modules>
-        <module>server/agent-controller</module>
-        <module>server/server-commons</module>
-        <module>server/service-discovery/declaration</module>
-        <module>server/service-discovery/client</module>
-        <module>server/service-discovery/registration</module>
-        <module>server/pipeline</module>
-        <module>server/storage</module>
-        <module>server/storage-jdbc</module>
-        <module>server/storage-jdbc-clickhouse</module>
-        <module>server/storage-jdbc-h2</module>
-        <module>server/storage-jdbc-mysql</module>
-        <module>server/opentelemetry</module>
-        <module>server/collector</module>
-        <module>server/web-service</module>
-        <module>server/web-app</module>
-
-        <!-- Alerting -->
-        <module>server/alerting/common</module>
-        <module>server/alerting/notification</module>
-        <module>server/alerting/manager</module>
-        <module>server/alerting/evaluator</module>
-
-        <module>server/server-starter</module>
+        <module>server</module>
       </modules>
     </profile>
     <profile>
