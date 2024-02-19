@@ -1,6 +1,55 @@
-## Static Configuration
+# Configuration architecture
 
-Configuration in agent.yml file located at 'agent/agent-main/resources' directory
+The agent supports multi-layer configurations.
+1. Default configuration
+2. External configuration
+3. Java command line arguments
+4. Environment variables
+5. Dynamic configurations
+
+The latter one has higher priority than the previous one. 
+That's to say, if two same configuration keys are defined across multiple configuration sources,
+the latter one will take effect.
+
+## Default Configuration (YAML file format)
+
+Configuration in agent.yml file located at 'agent/agent-main/resources' directory.
+This static configuration is shipped with the agent distribution.
+
+You can customize this configuration as the default configuration of your own distribution.
+
+## External Configuration (YAML file format)
+
+Since the default configuration customizes the global configuration of one distribution,
+there are still cases that users of that particular distribution would need a configuration for a group of applications.
+
+In such a case, the external configuration serves such a need.
+Users can use `-Dbithon.configuration.location` JVM command line argument
+to specify an external configuration file for the agents.
+
+## Java command line arguments
+
+Can be specified via the `-D` parameter in the JVM parameters sections.
+Usually we use these arguments to customize two important parameters: the application name and application environment.
+
+When using this format of configuration, all parameters must start with `-Dbithon.`.
+For example:
+
+```text
+java -Dbithon.application.name=bithon-server -Dbithon.application.env=local -jar bithon-server.jar
+```
+
+## Environment variables
+
+Configurations can also be set by environment variables. This is helpful when the agent is loaded in docker environment.
+
+```text
+export bithon_application_name=bithon-server
+export bithon_application_env=local
+java -jar bithon-server.jar
+```
+
+Note that all environment variables are in underscore mode.
 
 ## Dynamic Configuration
 
@@ -13,9 +62,9 @@ Given a static configuration `agent.plugin.http.incoming.filter.uri.suffixes`, i
 -Dbithon.agent.plugin.http.incoming.filter.uri.suffixes=.html
 ```
 
-## Configurations
+# Configuration Instruction
 
-### Dispatcher Configuration
+## Dispatcher Configuration
 
 The default dispatcher configuration locates in the `agent.yml` file under `agent-distribution` module.
 
@@ -50,9 +99,9 @@ dispatchers:
 | batchSize          | The max size of messages that can be sent in one batch.                                                            | 500                           |
 | flushTime          | The interval of sending messages in milliseconds if there are no enough messages that can be put in one batch.     |
 
-### Plugin Configuration
+## Plugin Configuration
 
-#### Agent Plugin Enabler flag
+### Agent Plugin Enabler flag
 
 User can disable a specific plugin by passing a system property to the java application to debug or tailor unnecessary plugins.
 Say we want to disable the `webserver-tomcat` plugin, passing the following property
@@ -61,7 +110,7 @@ Say we want to disable the `webserver-tomcat` plugin, passing the following prop
 -Dbithon.agent.plugin.webserver.tomcat.disabled=true
 ```
 
-#### Agent Plugin Configuration
+### Agent Plugin Configuration
 
 Plugin configuration locates each plugin's resource directory with the name 'plugin.yml'
 
@@ -84,7 +133,7 @@ Plugin configuration locates each plugin's resource directory with the name 'plu
 | tracing.debug                                               | Whether to enable the logging of span events.                                                                                                                                     | false             |                                         |
 | tracing.traceResponseHeader                                 | The header name in a HTTP response that contains the trace-id.                                                                                                                    | 'X-Bithon-Trace-' |                                         |                                  
 
-# Plugin Configurations
+## Plugin Configurations
 
 - [Alibaba Druid](plugin/alibaba-druid.md)
 - [Spring WebFlux](plugin/spring-webflux.md)
