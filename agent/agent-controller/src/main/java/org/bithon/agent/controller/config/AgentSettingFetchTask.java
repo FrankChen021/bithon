@@ -18,6 +18,7 @@ package org.bithon.agent.controller.config;
 
 
 import org.bithon.agent.configuration.Configuration;
+import org.bithon.agent.configuration.ConfigurationFormat;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.controller.IAgentController;
 import org.bithon.component.commons.concurrency.PeriodicTask;
@@ -91,7 +92,7 @@ public class AgentSettingFetchTask extends PeriodicTask {
             configSignatures.put(name, signature);
 
             try (InputStream is = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))) {
-                Configuration cfg = Configuration.from(".json", is);
+                Configuration cfg = Configuration.from(ConfigurationFormat.JSON, is);
 
                 if (config == null) {
                     config = cfg;

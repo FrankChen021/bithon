@@ -23,15 +23,14 @@ import org.bithon.agent.instrumentation.utils.AgentDirectory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.shaded.com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import org.bithon.shaded.com.fasterxml.jackson.databind.node.ObjectNode;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -54,27 +53,63 @@ public class ConfigurationManager {
         return INSTANCE;
     }
 
-    public static ConfigurationManager create() {
-        File staticConfig = AgentDirectory.getSubDirectory(AgentDirectory.CONF_DIR + separator + "agent.yml");
-        try (FileInputStream is = new FileInputStream(staticConfig)) {
-            INSTANCE = new ConfigurationManager(Configuration.create(staticConfig.getAbsolutePath(),
-                                                                     is,
-                                                                     "bithon.",
-                                                                     BITHON_APPLICATION_NAME,
-                                                                     BITHON_APPLICATION_ENV));
-            return INSTANCE;
-        } catch (FileNotFoundException e) {
-            throw new AgentException("Unable to find static config at [%s]", staticConfig.getAbsolutePath());
-        } catch (IOException e) {
-            throw new AgentException("Unexpected IO exception occurred: %s", e.getMessage());
-        }
+    private final Configuration externalConfiguration;
+
+    public Configuration getExternalConfiguration() {
+        return externalConfiguration;
     }
 
     /**
-     * for test only
+     * The configurations take effect by the following order:
+     * 1. The built-in configuration file located at agent-distribution/conf/agent.yml
+     * 2. User specified configuration file through -Dbithon.application.conf parameter
+     * 3. Any command line parameters through -Dbithon.
+     * 4. Any environment variables (Currently only application.name and application.env are supported)
+     */
+    public static synchronized ConfigurationManager create() {
+        if (INSTANCE == null) {
+            Configuration external = fromExternalConfiguration();
+
+            Configuration configuration = fromDefaultConfiguration()
+                // Use external configuration to overwrite the default configuration
+                .merge(external)
+                // Use the dynamic configuration to overwrite static configurations from file
+                .merge(Configuration.fromCommandLineArgs("bithon."))
+                // Use environment variables to overwrite previous ones
+                .merge(Configuration.fromEnvironmentVariables("bithon."));
+
+            INSTANCE = new ConfigurationManager(configuration, external);
+        }
+        return INSTANCE;
+    }
+
+    private static Configuration fromDefaultConfiguration() {
+        return Configuration.from(AgentDirectory.getSubDirectory(AgentDirectory.CONF_DIR + separator + "agent.yml").getAbsolutePath(), true);
+    }
+
+    private static Configuration fromExternalConfiguration() {
+        String locationName = "bithon.configuration.location";
+
+        // Check if it's specified by command line args
+        Properties properties = Configuration.fromCommandlineArgs(locationName);
+        if (properties.isEmpty()) {
+            return new Configuration(new ObjectNode(new JsonNodeFactory(true)));
+        }
+
+        // Check if it's specified by environment variables
+        String configurationLocation = properties.getProperty(locationName);
+        if (configurationLocation == null) {
+            return new Configuration(new ObjectNode(new JsonNodeFactory(true)));
+        }
+
+        return Configuration.from(configurationLocation, true);
+    }
+
+    /**
+     * For test only
      */
     static ConfigurationManager create(Configuration configuration) {
-        INSTANCE = new ConfigurationManager(configuration);
+        INSTANCE = new ConfigurationManager(configuration, new Configuration());
         return INSTANCE;
     }
 
@@ -86,8 +121,9 @@ public class ConfigurationManager {
 
     private final Map<String, IConfigurationChangedListener> listeners = new ConcurrentHashMap<>(13);
 
-    private ConfigurationManager(Configuration configuration) {
+    private ConfigurationManager(Configuration configuration, Configuration external) {
         this.configuration = configuration;
+        this.externalConfiguration = external;
     }
 
     public void addConfigurationChangedListener(String keyPrefix, IConfigurationChangedListener listener) {

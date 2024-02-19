@@ -28,8 +28,9 @@ import org.bithon.shaded.com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.NullNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.bithon.shaded.com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
-import org.bithon.shaded.com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
@@ -39,9 +40,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -51,32 +52,144 @@ import java.util.function.Supplier;
  */
 public class Configuration {
 
-    private final JsonNode configurationNode;
+    public static Configuration fromCommandLineArgs(String commandLineArgPrefix) {
+        Properties userPropertyMap = fromCommandlineArgs(commandLineArgPrefix);
 
-    public static Configuration from(String configFileFormat, InputStream configStream) {
-        return new Configuration(readStaticConfiguration(configFileFormat, configStream));
+        StringBuilder userProperties = new StringBuilder();
+        for (Map.Entry<Object, Object> entry : userPropertyMap.entrySet()) {
+            String name = (String) entry.getKey();
+            String value = (String) entry.getValue();
+
+            userProperties.append(name);
+            userProperties.append('=');
+            userProperties.append(value);
+            userProperties.append('\n');
+        }
+        try {
+            return new Configuration(ObjectMapperConfigurer.configure(new JavaPropsMapper())
+                                                           .readTree(userProperties.toString()));
+        } catch (IOException e) {
+            throw new AgentException("Failed to read property user configuration:%s",
+                                     e.getMessage());
+        }
     }
 
-    public Configuration(JsonNode configurationNode) {
-        this.configurationNode = configurationNode;
+    public static Configuration fromEnvironmentVariables(String envPrefix) {
+        StringBuilder userProperties = new StringBuilder();
+
+        for (Map.Entry<String, String> entry : System.getenv().entrySet()) {
+            String name = entry.getKey();
+            String value = entry.getValue();
+            if (name.startsWith(envPrefix) && !value.isEmpty()) {
+                name = name.substring(envPrefix.length());
+                if (!name.isEmpty()) {
+                    userProperties.append(name);
+                    userProperties.append('=');
+                    userProperties.append(value);
+                    userProperties.append('\n');
+                }
+            }
+        }
+
+        if (userProperties.length() > 0) {
+            try {
+                return new Configuration(ObjectMapperConfigurer.configure(new JavaPropsMapper())
+                                                               .readTree(userProperties.toString()));
+            } catch (IOException e) {
+                throw new AgentException("Failed to read property user configuration:%s",
+                                         e.getMessage());
+            }
+        } else {
+            return new Configuration();
+        }
     }
 
     /**
-     * @return NotNull object
+     * Read properties from java application arguments
      */
-    public static Configuration create(String configFileFormat,
-                                       InputStream staticConfig,
-                                       String dynamicPropertyPrefix,
-                                       String... environmentVariables) {
-        JsonNode staticConfiguration = readStaticConfiguration(configFileFormat, staticConfig);
-        JsonNode dynamicConfiguration = readConfigurationFromArgs(dynamicPropertyPrefix, environmentVariables);
-        return new Configuration(mergeNodes(staticConfiguration, dynamicConfiguration, false));
+    public static Properties fromCommandlineArgs(String commandLineArgPrefix) {
+        Properties args = new Properties();
+
+        final String applicationArg = "-D" + commandLineArgPrefix;
+        for (String arg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
+            if (!arg.startsWith(applicationArg)) {
+                continue;
+            }
+
+            String nameAndValue = arg.substring(applicationArg.length());
+            if (StringUtils.isEmpty(nameAndValue)) {
+                continue;
+            }
+
+            int assignmentIndex = nameAndValue.indexOf('=');
+            if (assignmentIndex == -1) {
+                continue;
+            }
+            args.put(nameAndValue.substring(0, assignmentIndex).trim(),
+                     nameAndValue.substring(assignmentIndex + 1).trim());
+        }
+
+        return args;
+    }
+
+
+    public static Configuration from(String configFilePath, boolean checkFileExists) {
+        ConfigurationFormat fileFormat = ConfigurationFormat.determineFormatFromFile(configFilePath);
+        try (FileInputStream fs = new FileInputStream(configFilePath)) {
+            return from(fileFormat, fs);
+        } catch (FileNotFoundException e) {
+            if (checkFileExists) {
+                throw new AgentException("Unable to find static config at [%s]", configFilePath);
+            } else {
+                return new Configuration();
+            }
+        } catch (IOException e) {
+            throw new AgentException("Unexpected IO exception occurred: %s", e.getMessage());
+        }
+    }
+
+    public static Configuration from(ConfigurationFormat configurationFormat, InputStream configStream) {
+        if (configStream == null) {
+            return new Configuration();
+        }
+
+        try {
+            return new Configuration(ObjectMapperConfigurer.configure(configurationFormat.createMapper())
+                                                           .readTree(configStream));
+        } catch (IOException e) {
+            throw new AgentException("Failed to read configuration from file [%s]: %s",
+                                     configurationFormat,
+                                     e.getMessage());
+        }
+    }
+
+    private final JsonNode configurationNode;
+
+    /**
+     * Create an empty configuration
+     */
+    public Configuration() {
+        this(new ObjectNode(new JsonNodeFactory(true)));
+    }
+
+    protected Configuration(JsonNode configurationNode) {
+        this.configurationNode = configurationNode;
+    }
+
+    public Configuration merge(Configuration configuration) {
+        merge(this.configurationNode, configuration.configurationNode, false);
+        return this;
+    }
+
+    public Configuration replace(Configuration configuration) {
+        merge(this.configurationNode, configuration.configurationNode, true);
+        return this;
     }
 
     /**
      * Merge two configuration nodes into one recursively
      */
-    private static JsonNode mergeNodes(JsonNode to, JsonNode from, boolean isReplace) {
+    private JsonNode merge(JsonNode to, JsonNode from, boolean isReplace) {
         if (from == null) {
             return to;
         }
@@ -95,7 +208,7 @@ public class Configuration {
 
             if (targetNode.isObject()) {
                 // to json node exists, and it's an object, recursively merge
-                mergeNodes(targetNode, sourceNode, isReplace);
+                merge(targetNode, sourceNode, isReplace);
             } else if (targetNode.isArray()) {
                 if (sourceNode.isArray()) {
                     // merge arrays
@@ -122,99 +235,6 @@ public class Configuration {
         }
 
         return to;
-    }
-
-    private static JsonNode readStaticConfiguration(String configFileFormat, InputStream configStream) {
-        if (configStream == null) {
-            return new ObjectNode(new JsonNodeFactory(true));
-        }
-
-        ObjectMapper mapper;
-        if (configFileFormat.endsWith(".yaml") || configFileFormat.endsWith(".yml")) {
-            mapper = new ObjectMapper(new YAMLFactory());
-        } else if (configFileFormat.endsWith(".properties")) {
-            mapper = new JavaPropsMapper();
-        } else if (configFileFormat.endsWith(".json")) {
-            mapper = new ObjectMapper();
-        } else {
-            throw new AgentException("Unknown property file type: %s", configFileFormat);
-        }
-
-        try {
-            return ObjectMapperConfigurer.configure(mapper)
-                                         .readTree(configStream);
-        } catch (IOException e) {
-            throw new AgentException("Failed to read property from static file[%s]:%s",
-                                     configFileFormat,
-                                     e.getMessage());
-        }
-    }
-
-    private static JsonNode readConfigurationFromArgs(String dynamicPropertyPrefix,
-                                                      String[] environmentVariables) {
-        Map<String, String> userPropertyMap = new LinkedHashMap<>();
-
-        //
-        // read properties from environment variables.
-        // environment variables have the lowest priority
-        //
-        if (environmentVariables != null) {
-            for (String envName : environmentVariables) {
-                String envValue = System.getenv(envName);
-                if (!StringUtils.isEmpty(envValue)) {
-                    userPropertyMap.put(envName.substring("bithon.".length()), envValue);
-                }
-            }
-        }
-
-        //
-        // read properties from java application arguments
-        //
-        String applicationArg = "-D" + dynamicPropertyPrefix;
-        for (String arg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
-            if (!arg.startsWith(applicationArg) || !arg.startsWith("-Dbithon.")) {
-                continue;
-            }
-
-            String nameAndValue = arg.substring("-Dbithon.".length());
-            if (StringUtils.isEmpty(nameAndValue)) {
-                continue;
-            }
-
-            int assignmentIndex = nameAndValue.indexOf('=');
-            if (assignmentIndex == -1) {
-                continue;
-            }
-            userPropertyMap.put(nameAndValue.substring(0, assignmentIndex),
-                                nameAndValue.substring(assignmentIndex + 1));
-        }
-
-        StringBuilder userProperties = new StringBuilder();
-        for (Map.Entry<String, String> entry : userPropertyMap.entrySet()) {
-            String name = entry.getKey();
-            String value = entry.getValue();
-            userProperties.append(name);
-            userProperties.append('=');
-            userProperties.append(value);
-            userProperties.append('\n');
-        }
-        JavaPropsMapper mapper = new JavaPropsMapper();
-
-        try {
-            return ObjectMapperConfigurer.configure(mapper)
-                                         .readTree(userProperties.toString());
-        } catch (IOException e) {
-            throw new AgentException("Failed to read property user configuration:%s",
-                                     e.getMessage());
-        }
-    }
-
-    public void merge(Configuration configuration) {
-        mergeNodes(this.configurationNode, configuration.configurationNode, false);
-    }
-
-    public void replace(Configuration configuration) {
-        mergeNodes(this.configurationNode, configuration.configurationNode, true);
     }
 
     public boolean isEmpty() {
@@ -340,23 +360,11 @@ public class Configuration {
     }
 
     public String format(String format, boolean prettyFormat) {
-        ObjectMapper mapper;
-        if ("yaml".equals(format) || "yml".equals(format)) {
-            mapper = new ObjectMapper(new YAMLFactory());
-        } else if ("properties".equals(format)) {
-            mapper = new JavaPropsMapper();
-        } else if ("json".equals(format)) {
-            mapper = new ObjectMapper();
-        } else {
-            throw new AgentException("Unknown format: %s", format);
-        }
-
-        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-        if (prettyFormat) {
-            mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-        }
         try {
-            return mapper.writeValueAsString(this.configurationNode);
+            return ConfigurationFormat.determineFormat(format)
+                                      .createMapper()
+                                      .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+                                      .configure(SerializationFeature.INDENT_OUTPUT, prettyFormat).writeValueAsString(this.configurationNode);
         } catch (JsonProcessingException e) {
             throw new AgentException(e);
         }

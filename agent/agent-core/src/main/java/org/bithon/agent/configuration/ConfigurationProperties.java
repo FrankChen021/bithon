@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 
 /**
  * Annotate a config class.
- *
+ * <p>
  * NOTE: fields in the target class should be annotated with {@link shaded.com.fasterxml.jackson.annotation.JsonProperty}
  *
  * @author frank.chen021@outlook.com
