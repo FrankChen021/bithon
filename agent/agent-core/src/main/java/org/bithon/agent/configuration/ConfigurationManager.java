@@ -68,36 +68,38 @@ public class ConfigurationManager {
      */
     public static synchronized ConfigurationManager create() {
         if (INSTANCE == null) {
-            Configuration external = fromExternalConfiguration();
-
-            Configuration configuration = fromDefaultConfiguration()
-                // Use external configuration to overwrite the default configuration
-                .merge(external)
-                // Use the dynamic configuration to overwrite static configurations from file
-                .merge(Configuration.fromCommandLineArgs("bithon."))
-                // Use environment variables to overwrite previous ones
-                .merge(Configuration.fromEnvironmentVariables("bithon."));
-
-            INSTANCE = new ConfigurationManager(configuration, external);
+            INSTANCE = create(AgentDirectory.getSubDirectory(AgentDirectory.CONF_DIR + separator + "agent.yml")
+                                            .getAbsolutePath());
         }
         return INSTANCE;
     }
 
-    private static Configuration fromDefaultConfiguration() {
-        return Configuration.from(AgentDirectory.getSubDirectory(AgentDirectory.CONF_DIR + separator + "agent.yml").getAbsolutePath(), true);
+    /**
+     * Exposed for testing
+     */
+    static ConfigurationManager create(String defaultConfigLocation) {
+        Configuration external = fromExternalConfiguration();
+
+        Configuration configuration = Configuration.from(defaultConfigLocation, true)
+                                                   // Use external configuration to overwrite the default configuration
+                                                   .merge(external)
+                                                   // Use the dynamic configuration to overwrite default configurations
+                                                   .merge(Configuration.fromCommandLineArgs("bithon."))
+                                                   // Use environment variables to overwrite previous ones
+                                                   .merge(Configuration.fromEnvironmentVariables("bithon."));
+
+        return new ConfigurationManager(configuration, external);
     }
 
     private static Configuration fromExternalConfiguration() {
-        String locationName = "bithon.configuration.location";
-
-        // Check if it's specified by command line args
-        Properties properties = Configuration.fromCommandlineArgs(locationName);
+        // Get All arguments by bithon.configuration prefix
+        Properties properties = Configuration.fromCommandlineArgs("bithon.configuration.");
         if (properties.isEmpty()) {
             return new Configuration(new ObjectNode(new JsonNodeFactory(true)));
         }
 
-        // Check if it's specified by environment variables
-        String configurationLocation = properties.getProperty(locationName);
+        // Get the location property
+        String configurationLocation = properties.getProperty("location");
         if (configurationLocation == null) {
             return new Configuration(new ObjectNode(new JsonNodeFactory(true)));
         }

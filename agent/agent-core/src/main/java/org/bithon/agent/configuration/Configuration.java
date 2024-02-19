@@ -77,7 +77,7 @@ public class Configuration {
     public static Configuration fromEnvironmentVariables(String envPrefix) {
         StringBuilder userProperties = new StringBuilder();
 
-        for (Map.Entry<String, String> entry : System.getenv().entrySet()) {
+        for (Map.Entry<String, String> entry : ConfigurationHelper.getEnvironmentVariables().entrySet()) {
             String name = entry.getKey();
             String value = entry.getValue();
             if (name.startsWith(envPrefix) && !value.isEmpty()) {
@@ -111,7 +111,7 @@ public class Configuration {
         Properties args = new Properties();
 
         final String applicationArg = "-D" + commandLineArgPrefix;
-        for (String arg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
+        for (String arg : ConfigurationHelper.getCommandLineInputArgs()) {
             if (!arg.startsWith(applicationArg)) {
                 continue;
             }
@@ -139,7 +139,7 @@ public class Configuration {
             return from(fileFormat, fs);
         } catch (FileNotFoundException e) {
             if (checkFileExists) {
-                throw new AgentException("Unable to find static config at [%s]", configFilePath);
+                throw new AgentException("Unable to find config file at [%s]", configFilePath);
             } else {
                 return new Configuration();
             }
@@ -160,6 +160,19 @@ public class Configuration {
             throw new AgentException("Failed to read configuration from file [%s]: %s",
                                      configurationFormat,
                                      e.getMessage());
+        }
+    }
+
+    /**
+     * Defined in a separated class for easier mock
+     */
+    public static class ConfigurationHelper {
+        public static List<String> getCommandLineInputArgs() {
+            return ManagementFactory.getRuntimeMXBean().getInputArguments();
+        }
+
+        public static Map<String, String> getEnvironmentVariables() {
+            return System.getenv();
         }
     }
 
