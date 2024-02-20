@@ -18,11 +18,8 @@ package org.bithon.agent.configuration;
 
 import org.bithon.agent.instrumentation.expt.AgentException;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -39,15 +36,16 @@ public class PluginConfiguration {
         String pluginConfigurationPrefix = getConfigurationPrefix(pluginClass.getName());
 
         Configuration pluginConfiguration = loadPluginConfiguration(pluginClass, pluginConfigurationPrefix);
-        if (!pluginConfiguration.isEmpty()) {
-            Boolean isPluginDisabled = pluginConfiguration.getConfig(pluginConfigurationPrefix + ".disabled", Boolean.class);
-            if (isPluginDisabled != null && isPluginDisabled) {
-                return false;
-            }
+        if (pluginConfiguration.contains(pluginConfigurationPrefix)) {
+            // Merge the plugin configuration into agent configuration first so that the plugin initialization can obtain its configuration
+            ConfigurationManager.getInstance().merge(pluginConfiguration);
         }
 
-        // Merge the plugin configuration into agent configuration first so that the plugin initialization can obtain its configuration
-        ConfigurationManager.getInstance().merge(pluginConfiguration);
+        // Check the 'disable' property, it might come from the external configuration
+        Boolean isPluginDisabled = pluginConfiguration.getConfig(pluginConfigurationPrefix + ".disabled", Boolean.class);
+        if (isPluginDisabled != null && isPluginDisabled) {
+            return false;
+        }
 
         return true;
     }
@@ -57,38 +55,21 @@ public class PluginConfiguration {
      */
     private static Configuration loadPluginConfiguration(Class<?> pluginClass, String configurationPrefix) {
         String configFileLocation = pluginClass.getPackage().getName() + ".yml";
-        String dynamicPrefix = "bithon." + configurationPrefix + ".";
+        String dynamicPropertyPrefix = "bithon." + configurationPrefix + ".";
 
-        Configuration pluginConfiguration = Configuration.from(configFileLocation,
-                                                               // Ignore if file does not exist
-                                                               false)
-                                                         .merge(ConfigurationManager.getInstance().getExternalConfiguration())
-                                                         .merge(Configuration.fromCommandLineArgs(dynamicPrefix))
-                                                         .merge(Configuration.fromEnvironmentVariables(dynamicPrefix));
-
-        if (!pluginConfiguration.isEmpty() && !pluginConfiguration.validate(configurationPrefix)) {
-            // Dump file content if it's invalid
-            StringBuilder config = new StringBuilder(128);
-            try {
-                try (InputStream stream = pluginClass.getClassLoader().getResourceAsStream(configFileLocation)) {
-                    if (stream != null) {
-                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-                            String line;
-                            while ((line = reader.readLine()) != null) {
-                                config.append(line);
-                            }
-                        }
-                    }
-                }
-            } catch (IOException ignored) {
-            }
-            throw new AgentException("Plugin [%s] has a configuration that does not comply with the configuration prefix [%s]:\n%s",
-                                     pluginClass.getName(),
-                                     configurationPrefix,
-                                     config.toString()
-            );
+        Configuration defaultPluginConfiguration;
+        try (InputStream fs = pluginClass.getClassLoader().getResourceAsStream(configFileLocation)) {
+            defaultPluginConfiguration = Configuration.from(ConfigurationFormat.YAML, fs);
+        } catch (IOException ignored) {
+            // Ignore this exception thrown from InputStream.close
+            // Try to load from dynamic configuration
+            defaultPluginConfiguration = new Configuration();
         }
-        return pluginConfiguration;
+
+        // No need to load external configuration
+        // because the plugin configuration will finally merge into the main configuration
+        return defaultPluginConfiguration.merge(Configuration.fromCommandLineArgs(dynamicPropertyPrefix))
+                                         .merge(Configuration.fromEnvironmentVariables(dynamicPropertyPrefix));
     }
 
     /**

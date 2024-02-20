@@ -257,8 +257,8 @@ public class Configuration {
     /**
      * check if the configuration contains only the properties specified by given {@param pathPrefix}.
      */
-    public boolean validate(String pathPrefix) {
-        String[] paths = pathPrefix.split("\\.");
+    public boolean contains(String propertyPrefix) {
+        String[] paths = propertyPrefix.split("\\.");
         JsonNode node = this.configurationNode;
         for (String path : paths) {
             if (node.size() > 1) {
