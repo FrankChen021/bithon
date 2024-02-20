@@ -20,6 +20,7 @@ package org.bithon.agent.controller.config;
 import org.bithon.agent.configuration.Configuration;
 import org.bithon.agent.configuration.ConfigurationFormat;
 import org.bithon.agent.configuration.ConfigurationManager;
+import org.bithon.agent.configuration.source.ConfigurationSource;
 import org.bithon.agent.controller.IAgentController;
 import org.bithon.component.commons.concurrency.PeriodicTask;
 import org.bithon.component.commons.logging.ILogAdaptor;
@@ -33,7 +34,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Dynamic Setting Manager for Plugins
@@ -77,7 +77,8 @@ public class AgentSettingFetchTask extends PeriodicTask {
             return;
         }
 
-        Configuration config = null;
+        // TODO: ConfigurationManager.getInstance().getConfigurationSources();
+        // Check if the one has been deleted from the remote
         for (Map.Entry<String, String> entry : configurations.entrySet()) {
             String name = entry.getKey();
             String text = entry.getValue();
@@ -88,32 +89,14 @@ public class AgentSettingFetchTask extends PeriodicTask {
                 continue;
             }
 
-            log.info("Refresh configuration [{}]", name);
-            configSignatures.put(name, signature);
-
+            Configuration cfg;
             try (InputStream is = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))) {
-                Configuration cfg = Configuration.from(ConfigurationFormat.JSON, is);
-
-                if (config == null) {
-                    config = cfg;
-                } else {
-                    config.merge(cfg);
-                }
+                cfg = Configuration.from(ConfigurationSource.DYNAMIC, "dynamic." + name, ConfigurationFormat.JSON, is);
             }
-        }
-        if (config == null) {
-            return;
-        }
 
-        // Update saved configuration
-        // TODO: incremental configuration deletion is not supported because of complexity.
-        // if the incremental configuration overwrites the global configuration, we need to restore or we can't delete the configuration directly
-        // One solution is that the 'refresh' method below return the action on each returned key, ADD/REPLACE,
-        // and then we keep the changed keys and corresponding actions for rollback.
-        // Since it's not a must-have feature at this stage, leave it to future when we really needs it.
-        Set<String> changedKeys = ConfigurationManager.getInstance().refresh(config);
-        if (changedKeys.isEmpty()) {
-            return;
+            log.info("Refresh configuration [{}]", name);
+            ConfigurationManager.getInstance().addConfiguration(cfg);
+            configSignatures.put(name, signature);
         }
 
         lastModifiedAt = System.currentTimeMillis();

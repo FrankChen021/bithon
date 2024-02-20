@@ -17,6 +17,7 @@
 package org.bithon.agent.configuration;
 
 import com.google.common.collect.ImmutableMap;
+import org.bithon.agent.configuration.source.ConfigurationSource;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
@@ -82,7 +83,8 @@ public class TestConfigurationManager {
     @Test
     public void test_DynamicConfiguration() throws IOException {
         JsonNode json = objectMapper.readTree(objectMapper.writeValueAsBytes(Collections.singletonMap("test", new TestConfig(1, 7, "8%"))));
-        ConfigurationManager manager = ConfigurationManager.create(new Configuration(json));
+        ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
+        manager.addConfiguration(new Configuration(ConfigurationSource.INTERNAL, "1", json));
 
         TestConfig testConfig = manager.getConfig(TestConfig.class);
         Assert.assertEquals(1, testConfig.getA());
@@ -93,10 +95,14 @@ public class TestConfigurationManager {
         // Use new value to refresh the old one
         //
         JsonNode json2 = objectMapper.readTree(objectMapper.writeValueAsBytes(Collections.singletonMap("test", new TestConfig(2, 8, "500%"))));
-        manager.refresh(new Configuration(json2));
+        manager.addConfiguration(new Configuration(ConfigurationSource.INTERNAL, "2", json2));
         Assert.assertEquals(2, testConfig.getA());
         Assert.assertEquals(8, testConfig.getB());
         Assert.assertEquals(5, testConfig.getPercentage().intValue());
+
+        // Get properties that do not exist in the configuration, a default value is returned
+        Boolean v = manager.getConfig("do.not.exists", Boolean.class);
+        Assert.assertFalse(v);
     }
 
     @ConfigurationProperties(prefix = "test")
@@ -115,8 +121,8 @@ public class TestConfigurationManager {
         }
     }
 
-    private final String defaultConfigLocation = new File("src/test/resources/conf/agent.yml").getAbsolutePath();
-    private final String externalConfigLocation = new File("src/test/resources/conf/external.yml").getAbsolutePath();
+    private final File defaultConfigLocation = new File("src/test/resources/conf/agent.yml");
+    private final File externalConfigLocation = new File("src/test/resources/conf/external.yml");
 
     @Test
     public void test_ConfigurationFromFile() {
@@ -156,7 +162,7 @@ public class TestConfigurationManager {
 
                                                        // Also set the external configuration
                                                        "-Dbithon.configuration.location=" + externalConfigLocation
-                                                       ));
+                                                      ));
 
             ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
 
@@ -181,7 +187,7 @@ public class TestConfigurationManager {
 
                                                        // Also set the external configuration
                                                        "-Dbithon.configuration.location=" + externalConfigLocation
-                                                       ));
+                                                      ));
 
             configurationMock.when(Configuration.ConfigurationHelper::getEnvironmentVariables)
                              .thenReturn(ImmutableMap.of("bithon.t", "t1",
@@ -191,6 +197,55 @@ public class TestConfigurationManager {
 
             TestProp config = manager.getConfig(TestProp.class);
             Assert.assertEquals("from_env", config.getProp());
+        }
+    }
+
+    static class TwoProps {
+        private String prop1;
+        private String prop2;
+
+        public String getProp2() {
+            return prop2;
+        }
+
+        public void setProp2(String prop2) {
+            this.prop2 = prop2;
+        }
+
+        public String getProp1() {
+            return prop1;
+        }
+
+        public void setProp1(String prop1) {
+            this.prop1 = prop1;
+        }
+    }
+
+    @Test
+    public void test_PropFromDifferentSource() {
+        try (MockedStatic<Configuration.ConfigurationHelper> configurationMock = Mockito.mockStatic(Configuration.ConfigurationHelper.class)) {
+            configurationMock.when(Configuration.ConfigurationHelper::getCommandLineInputArgs)
+                             .thenReturn(Arrays.asList("-Xms512M",
+                                                       // A property without assignment
+                                                       // to verify the processing is correct with such configuration
+                                                       "-Dbithon.test.prop1=from_command_line",
+                                                       // Override the in file configuration
+                                                       "-Dbithon.test.prop2=from_command_line",
+
+                                                       // Also set the external configuration
+                                                       "-Dbithon.configuration.location=" + externalConfigLocation
+                                                      ));
+
+            configurationMock.when(Configuration.ConfigurationHelper::getEnvironmentVariables)
+                             .thenReturn(ImmutableMap.of("bithon.t", "t1",
+                                                         //Overwrite the prop2
+                                                         "bithon.test.prop2", "from_env"));
+
+            ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
+
+            TwoProps config = manager.getConfig("test", TwoProps.class);
+            Assert.assertEquals("from_command_line", config.getProp1());
+            Assert.assertEquals("from_env", config.getProp2());
         }
     }
 }

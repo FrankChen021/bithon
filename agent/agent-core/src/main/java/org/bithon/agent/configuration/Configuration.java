@@ -16,6 +16,7 @@
 
 package org.bithon.agent.configuration;
 
+import org.bithon.agent.configuration.source.ConfigurationSource;
 import org.bithon.agent.configuration.validation.Validator;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.component.commons.utils.StringUtils;
@@ -29,6 +30,7 @@ import org.bithon.shaded.com.fasterxml.jackson.databind.node.NullNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.bithon.shaded.com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -42,7 +44,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -50,116 +51,50 @@ import java.util.function.Supplier;
  * @author frank.chen021@outlook.com
  * @date 2021/8/11 16:13
  */
-public class Configuration {
+public class Configuration implements Comparable<Configuration> {
 
-    public static Configuration fromCommandLineArgs(String commandLineArgPrefix) {
-        Properties userPropertyMap = fromCommandlineArgs(commandLineArgPrefix);
-
-        StringBuilder userProperties = new StringBuilder();
-        for (Map.Entry<Object, Object> entry : userPropertyMap.entrySet()) {
-            String name = (String) entry.getKey();
-            String value = (String) entry.getValue();
-
-            userProperties.append(name);
-            userProperties.append('=');
-            userProperties.append(value);
-            userProperties.append('\n');
-        }
-        try {
-            return new Configuration(ObjectMapperConfigurer.configure(new JavaPropsMapper())
-                                                           .readTree(userProperties.toString()));
-        } catch (IOException e) {
-            throw new AgentException("Failed to read property user configuration:%s",
-                                     e.getMessage());
-        }
-    }
-
-    public static Configuration fromEnvironmentVariables(String envPrefix) {
-        StringBuilder userProperties = new StringBuilder();
-
-        for (Map.Entry<String, String> entry : ConfigurationHelper.getEnvironmentVariables().entrySet()) {
-            String name = entry.getKey();
-            String value = entry.getValue();
-            if (name.startsWith(envPrefix) && !value.isEmpty()) {
-                name = name.substring(envPrefix.length());
-                if (!name.isEmpty()) {
-                    userProperties.append(name);
-                    userProperties.append('=');
-                    userProperties.append(value);
-                    userProperties.append('\n');
-                }
-            }
-        }
-
-        if (userProperties.length() > 0) {
-            try {
-                return new Configuration(ObjectMapperConfigurer.configure(new JavaPropsMapper())
-                                                               .readTree(userProperties.toString()));
-            } catch (IOException e) {
-                throw new AgentException("Failed to read property user configuration:%s",
-                                         e.getMessage());
-            }
-        } else {
-            return new Configuration();
-        }
-    }
-
-    /**
-     * Read properties from java application arguments
-     */
-    public static Properties fromCommandlineArgs(String commandLineArgPrefix) {
-        Properties args = new Properties();
-
-        final String applicationArg = "-D" + commandLineArgPrefix;
-        for (String arg : ConfigurationHelper.getCommandLineInputArgs()) {
-            if (!arg.startsWith(applicationArg)) {
-                continue;
-            }
-
-            String nameAndValue = arg.substring(applicationArg.length());
-            if (StringUtils.isEmpty(nameAndValue)) {
-                continue;
-            }
-
-            int assignmentIndex = nameAndValue.indexOf('=');
-            if (assignmentIndex == -1) {
-                continue;
-            }
-            args.put(nameAndValue.substring(0, assignmentIndex).trim(),
-                     nameAndValue.substring(assignmentIndex + 1).trim());
-        }
-
-        return args;
-    }
-
-
-    public static Configuration from(String configFilePath, boolean checkFileExists) {
-        ConfigurationFormat fileFormat = ConfigurationFormat.determineFormatFromFile(configFilePath);
+    public static Configuration from(ConfigurationSource source, File configFilePath, boolean checkFileExists) {
+        ConfigurationFormat fileFormat = ConfigurationFormat.determineFormatFromFile(configFilePath.getName());
         try (FileInputStream fs = new FileInputStream(configFilePath)) {
-            return from(fileFormat, fs);
+            return from(source, configFilePath.getName(), fileFormat, fs);
         } catch (FileNotFoundException e) {
             if (checkFileExists) {
                 throw new AgentException("Unable to find config file at [%s]", configFilePath);
             } else {
-                return new Configuration();
+                return null;
             }
         } catch (IOException e) {
             throw new AgentException("Unexpected IO exception occurred: %s", e.getMessage());
         }
     }
 
-    public static Configuration from(ConfigurationFormat configurationFormat, InputStream configStream) {
+    public static Configuration from(ConfigurationSource source,
+                                     String name,
+                                     ConfigurationFormat configurationFormat,
+                                     InputStream configStream) {
         if (configStream == null) {
-            return new Configuration();
+            // Returns an empty one
+            return new Configuration(source, name);
         }
 
         try {
-            return new Configuration(ObjectMapperConfigurer.configure(configurationFormat.createMapper())
+            return new Configuration(source,
+                                     name,
+                                     ObjectMapperConfigurer.configure(configurationFormat.createMapper())
                                                            .readTree(configStream));
         } catch (IOException e) {
             throw new AgentException("Failed to read configuration from file [%s]: %s",
                                      configurationFormat,
                                      e.getMessage());
+        }
+    }
+
+    @Override
+    public int compareTo(Configuration o) {
+        if (this.source.priority() == o.source.priority()) {
+            return this.name.compareTo(o.name);
+        } else {
+            return this.source.priority() - o.source.priority();
         }
     }
 
@@ -175,34 +110,45 @@ public class Configuration {
             return System.getenv();
         }
     }
-    
+
+    private final String name;
+    private final ConfigurationSource source;
     private final JsonNode configurationNode;
+
+    public String getName() {
+        return this.name;
+    }
 
     /**
      * Create an empty configuration
      */
-    public Configuration() {
-        this(new ObjectNode(new JsonNodeFactory(true)));
+    public Configuration(ConfigurationSource source, String name) {
+        this(source, name, new ObjectNode(new JsonNodeFactory(true)));
     }
 
-    protected Configuration(JsonNode configurationNode) {
+    public Configuration(ConfigurationSource source, String name, String configurationText) throws IOException {
+        this.source = source;
+        this.name = name;
+        this.configurationNode = ObjectMapperConfigurer.configure(new JavaPropsMapper()).readTree(configurationText);
+    }
+
+    protected Configuration(ConfigurationSource source, String name, JsonNode configurationNode) {
+        this.source = source;
+        this.name = name;
         this.configurationNode = configurationNode;
     }
 
     public Configuration merge(Configuration configuration) {
-        merge(this.configurationNode, configuration.configurationNode, false);
-        return this;
-    }
-
-    public Configuration replace(Configuration configuration) {
-        merge(this.configurationNode, configuration.configurationNode, true);
+        if (configuration != null) {
+            merge(this.configurationNode, configuration.configurationNode, false);
+        }
         return this;
     }
 
     /**
      * Merge two configuration nodes into one recursively
      */
-    private JsonNode merge(JsonNode to, JsonNode from, boolean isReplace) {
+    public static JsonNode merge(JsonNode to, JsonNode from, boolean isReplace) {
         if (from == null) {
             return to;
         }
@@ -254,22 +200,26 @@ public class Configuration {
         return this.configurationNode.isEmpty();
     }
 
+    public JsonNode getConfigurationNode(String[] paths) {
+        JsonNode node = this.configurationNode;
+        for (String path : paths) {
+            if (node.isContainerNode()) {
+                node = node.get(path);
+                if (node == null) {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        }
+        return node;
+    }
+
     /**
      * check if the configuration contains only the properties specified by given {@param pathPrefix}.
      */
-    public boolean contains(String propertyPrefix) {
-        String[] paths = propertyPrefix.split("\\.");
-        JsonNode node = this.configurationNode;
-        for (String path : paths) {
-            if (node.size() > 1) {
-                return false;
-            }
-            node = node.get(path);
-            if (node == null) {
-                return false;
-            }
-        }
-        return true;
+    public boolean contains(String property) {
+        return this.getConfigurationNode(property.split("\\.")) != null;
     }
 
     public Set<String> getKeys() {
@@ -333,24 +283,29 @@ public class Configuration {
                          });
     }
 
-    public <T> T getConfig(String prefixes, Class<T> clazz, Supplier<T> defaultSupplier) {
+    public <T> T getConfig(String propertyPath, Class<T> clazz, Supplier<T> defaultSupplier) {
+        if (this.configurationNode.isEmpty()) {
+            return defaultSupplier.get();
+        }
+
         JsonNode node = configurationNode;
 
-        // Find the correct node by prefixes
-        for (String prefix : prefixes.split("\\.")) {
+        // Find the correct node by prefix
+        for (String part : propertyPath.split("\\.")) {
             if (node == null) {
                 break;
             }
-            node = node.get(prefix);
+            node = node.get(part);
         }
 
         if (node == null || node instanceof NullNode) {
             return defaultSupplier.get();
         }
-        return getConfig(prefixes, node, clazz);
+
+        return getConfig(propertyPath, node, clazz);
     }
 
-    private <T> T getConfig(String prefixes, JsonNode configurationNode, Class<T> clazz) {
+    private <T> T getConfig(String propertyPath, JsonNode configurationNode, Class<T> clazz) {
         T value;
         try {
             value = ObjectMapperConfigurer.configure(new ObjectMapper())
@@ -362,7 +317,7 @@ public class Configuration {
                                      e.getMessage());
         }
 
-        String violation = Validator.validate(prefixes, value);
+        String violation = Validator.validate(propertyPath, value);
         if (violation != null) {
             throw new AgentException("Invalid configuration for type of [%s]: %s",
                                      clazz.getSimpleName(),
@@ -372,12 +327,26 @@ public class Configuration {
         return value;
     }
 
+    /**
+     * deep clone
+     */
+    @Override
+    public Configuration clone() {
+        return new Configuration(source, name, configurationNode.deepCopy());
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
+    }
+
     public String format(String format, boolean prettyFormat) {
         try {
             return ConfigurationFormat.determineFormat(format)
                                       .createMapper()
                                       .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-                                      .configure(SerializationFeature.INDENT_OUTPUT, prettyFormat).writeValueAsString(this.configurationNode);
+                                      .configure(SerializationFeature.INDENT_OUTPUT, prettyFormat)
+                                      .writeValueAsString(this.configurationNode);
         } catch (JsonProcessingException e) {
             throw new AgentException(e);
         }

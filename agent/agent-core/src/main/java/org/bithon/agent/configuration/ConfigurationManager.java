@@ -16,6 +16,10 @@
 
 package org.bithon.agent.configuration;
 
+import org.bithon.agent.configuration.source.CommandLineArgsConfiguration;
+import org.bithon.agent.configuration.source.ConfigurationSource;
+import org.bithon.agent.configuration.source.EnvironmentConfiguration;
+import org.bithon.agent.configuration.source.ExternalConfiguration;
 import org.bithon.agent.instrumentation.bytecode.ClassDelegation;
 import org.bithon.agent.instrumentation.bytecode.IDelegation;
 import org.bithon.agent.instrumentation.expt.AgentException;
@@ -23,14 +27,17 @@ import org.bithon.agent.instrumentation.utils.AgentDirectory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.shaded.com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
+import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.shaded.com.fasterxml.jackson.databind.node.NullNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.ObjectNode;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -61,7 +68,7 @@ import static java.io.File.separator;
  *       grpc: 100%
  *       headers: ["user-agent"]
  * </pre>
- *
+ * <p>
  * And p2 has the following configuration:
  * <pre>
  * -- p2
@@ -70,13 +77,13 @@ import static java.io.File.separator;
  *       http: 100%
  *       headers: ["x-forwarded-for"]
  * </pre>
- *
+ * <p>
  * When getting properties by 'tracing.samplingRate',
  * both grpc and http properties will be collected from the two sources as they don't conflict with each other.
  * However, the for headers property, as it's defined in both sources, only one will be used. Which one will be used is determined by the priority of these two sources
  * as described above.
  * For example, if p1 is placed in the default agent.yml, it has lower priority, that means the value of headers property in p2 will be used.
- *
+ * <p>
  * 2. When a configuration source is deleted,
  * ALL properties(including its prefix) in the deleted configuration will be notified as CHANGED
  * </pre>
@@ -97,7 +104,6 @@ public class ConfigurationManager {
         return INSTANCE;
     }
 
-
     /**
      * The configurations take effect by the following order:
      * 1. The built-in configuration file located at agent-distribution/conf/agent.yml
@@ -107,8 +113,7 @@ public class ConfigurationManager {
      */
     public static synchronized ConfigurationManager create() {
         if (INSTANCE == null) {
-            INSTANCE = create(AgentDirectory.getSubDirectory(AgentDirectory.CONF_DIR + separator + "agent.yml")
-                                            .getAbsolutePath());
+            INSTANCE = create(AgentDirectory.getSubDirectory(AgentDirectory.CONF_DIR + separator + "agent.yml"));
         }
         return INSTANCE;
     }
@@ -116,52 +121,30 @@ public class ConfigurationManager {
     /**
      * Exposed for testing
      */
-    static ConfigurationManager create(String defaultConfigLocation) {
-        Configuration configuration = Configuration.from(defaultConfigLocation, true)
-                                                   // Use external configuration to overwrite the default configuration
-                                                   .merge(fromExternalConfiguration())
-                                                   // Use the dynamic configuration to overwrite default configurations
-                                                   .merge(Configuration.fromCommandLineArgs("bithon."))
-                                                   // Use environment variables to overwrite previous ones
-                                                   .merge(Configuration.fromEnvironmentVariables("bithon."));
-
-        return new ConfigurationManager(configuration);
+    static ConfigurationManager create(File defaultConfigLocation) {
+        return new ConfigurationManager(Configuration.from(ConfigurationSource.INTERNAL, defaultConfigLocation, true),
+                                        ExternalConfiguration.build(),
+                                        CommandLineArgsConfiguration.build("bithon."),
+                                        EnvironmentConfiguration.build("bithon."));
     }
 
-    private static Configuration fromExternalConfiguration() {
-        // Get All arguments by bithon.configuration prefix
-        Properties properties = Configuration.fromCommandlineArgs("bithon.configuration.");
-        if (properties.isEmpty()) {
-            return new Configuration(new ObjectNode(new JsonNodeFactory(true)));
-        }
+    // Sorted in priority
+    private final List<Configuration> configurations = new ArrayList<>();
 
-        // Get the location property
-        String configurationLocation = properties.getProperty("location");
-        if (configurationLocation == null) {
-            return new Configuration(new ObjectNode(new JsonNodeFactory(true)));
-        }
-
-        return Configuration.from(configurationLocation, true);
-    }
-
-    /**
-     * For test only
-     */
-    static ConfigurationManager create(Configuration configuration) {
-        INSTANCE = new ConfigurationManager(configuration);
-        return INSTANCE;
-    }
-
-    private final Configuration configuration;
     /**
      * the value in the map is actually a dynamic type of {@link IDelegation}
      */
-    private final Map<String, Object> delegatedBeans = new ConcurrentHashMap<>(13);
+    private final Map<String, Object> mappedBeans = new ConcurrentHashMap<>(13);
 
     private final Map<String, IConfigurationChangedListener> listeners = new ConcurrentHashMap<>(13);
 
-    private ConfigurationManager(Configuration configuration) {
-        this.configuration = configuration;
+    private ConfigurationManager(Configuration... configurations) {
+        for (Configuration configuration : configurations) {
+            if (configuration != null) {
+                this.configurations.add(configuration);
+            }
+        }
+        Collections.sort(this.configurations);
     }
 
     public void addConfigurationChangedListener(String keyPrefix, IConfigurationChangedListener listener) {
@@ -173,21 +156,33 @@ public class ConfigurationManager {
      *
      * @param newConfiguration incremental new configuration
      */
-    public Set<String> refresh(Configuration newConfiguration) {
-        // Replace the configuration and get the diff
-        this.configuration.replace(newConfiguration);
+    public Set<String> addConfiguration(Configuration newConfiguration) {
+        boolean found = false;
+        synchronized (this.configurations) {
+            for (int i = 0; i < this.configurations.size(); i++) {
+                if (this.configurations.get(i).getName().equals(newConfiguration.getName())) {
+                    // Replace configuration
+                    this.configurations.set(i, newConfiguration);
+                    found = true;
+                }
+            }
+            if (!found) {
+                this.configurations.add(newConfiguration);
+                Collections.sort(this.configurations);
+            }
+        }
 
         Set<String> changedKeys = newConfiguration.getKeys();
 
         // Re-bind the values based on changes
-        List<String> beanPrefixList = new ArrayList<>(delegatedBeans.keySet());
+        List<String> beanPrefixList = new ArrayList<>(mappedBeans.keySet());
         for (String beanPrefix : beanPrefixList) {
 
             // If any changed key matches the bean configuration prefix,
             // we will reload the whole configuration
             for (String changedPrefix : changedKeys) {
                 if (changedPrefix.startsWith(beanPrefix)) {
-                    IDelegation delegatedObject = (IDelegation) delegatedBeans.get(beanPrefix);
+                    IDelegation delegatedObject = (IDelegation) mappedBeans.get(beanPrefix);
 
                     // Create a new configuration object
                     Object newValue = getConfig(beanPrefix,
@@ -209,7 +204,6 @@ public class ConfigurationManager {
         for (Map.Entry<String, IConfigurationChangedListener> entry : listeners.entrySet()) {
             String watchedKey = entry.getKey();
             IConfigurationChangedListener listener = entry.getValue();
-
             if (changedKeys.contains(watchedKey)) {
                 try {
                     listener.onChange();
@@ -242,22 +236,22 @@ public class ConfigurationManager {
     /**
      * Bind configuration to an object. And if the configuration changes, it will reflect on this object
      */
-    public <T> T getConfig(String prefixes, Class<T> clazz) {
-        return getConfig(prefixes, clazz, false);
+    public <T> T getConfig(String prefix, Class<T> clazz) {
+        return getConfig(prefix, clazz, false);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getConfig(String prefixes, Class<T> clazz, boolean isDynamic) {
+    public <T> T getConfig(String prefix, Class<T> clazz, boolean isDynamic) {
         if (clazz.isPrimitive() || !isDynamic) {
-            return configuration.getConfig(prefixes, clazz);
+            return collect(prefix).getConfig(prefix, clazz);
         }
 
         // If this configuration clazz is defined as dynamic (it means configuration changes will dynamically reflect on its corresponding configuration clazz object),
         // a delegation class is created
-        return (T) delegatedBeans.computeIfAbsent(prefixes, (k) -> {
+        return (T) mappedBeans.computeIfAbsent(prefix, (k) -> {
             Class<?> proxyClass = ClassDelegation.create(clazz);
 
-            T val = configuration.getConfig(prefixes, clazz);
+            T val = collect(prefix).getConfig(prefix, clazz);
             try {
                 return proxyClass.getConstructor(clazz).newInstance(val);
             } catch (InstantiationException | IllegalAccessException | NoSuchMethodException e) {
@@ -268,11 +262,60 @@ public class ConfigurationManager {
         });
     }
 
-    public void merge(Configuration configuration) {
-        this.configuration.merge(configuration);
+    /**
+     * Collect properties that have the same given prefix from multiple sources
+     */
+    private Configuration collect(String propertyPath) {
+        String[] propertyPaths = propertyPath.split("\\.");
+
+        boolean isFirst = true;
+        JsonNode node = null;
+        Configuration[] configurationList = this.configurations.toArray(new Configuration[0]);
+        for (Configuration configuration : configurationList) {
+            JsonNode found = configuration.getConfigurationNode(propertyPaths);
+            if (found == null || found instanceof NullNode) {
+                continue;
+            }
+            if (node == null) {
+                node = found;
+            } else {
+                if (isFirst) {
+                    node = node.deepCopy();
+                    isFirst = false;
+                }
+                Configuration.merge(node, found.deepCopy(), true);
+            }
+        }
+
+        if (node == null || node instanceof NullNode) {
+            return new Configuration(ConfigurationSource.DYNAMIC, "for-eval");
+        }
+
+        ObjectMapper om = new ObjectMapper();
+        ObjectNode root = om.createObjectNode();
+        ObjectNode parent = root;
+        int i = 0;
+        for (; i < propertyPaths.length - 1; i++) {
+            ObjectNode next = om.createObjectNode();
+            parent.set(propertyPaths[i], next);
+            parent = next;
+        }
+        parent.set(propertyPaths[i], node);
+
+        return new Configuration(ConfigurationSource.DYNAMIC, "for-eval", root);
     }
 
-    public String format(String format, boolean prettyFormat) {
-        return configuration.format(format, prettyFormat);
+    public String getActiveConfiguration(String format, boolean prettyFormat) {
+        Configuration active = null;
+        Configuration[] configurationList = this.configurations.toArray(new Configuration[0]);
+        for (Configuration configuration : configurationList) {
+            if (active == null) {
+                active = configuration.clone();
+            } else {
+                active.merge(configuration.clone());
+            }
+        }
+
+        return active == null ? "" : active.format(format, prettyFormat);
     }
 }
