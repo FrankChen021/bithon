@@ -16,7 +16,6 @@
 
 package org.bithon.agent.configuration.source;
 
-import org.bithon.agent.configuration.Configuration;
 import org.bithon.agent.instrumentation.expt.AgentException;
 
 import java.io.IOException;
@@ -26,9 +25,9 @@ import java.util.Map;
  * @author Frank Chen
  * @date 20/2/24 3:03 pm
  */
-public class EnvironmentConfiguration {
+public class EnvironmentSource {
 
-    public static Configuration build(String envPrefix) {
+    public static PropertySource build(String envPrefix) {
         StringBuilder userProperties = new StringBuilder();
 
         for (Map.Entry<String, String> entry : Helper.getEnvironmentVariables().entrySet()) {
@@ -47,7 +46,7 @@ public class EnvironmentConfiguration {
 
         if (userProperties.length() > 0) {
             try {
-                return Configuration.from(ConfigurationSource.ENVIRONMENT_VARIABLES, "environment", userProperties.toString());
+                return PropertySource.from(PropertySourceType.ENVIRONMENT_VARIABLES, "environment", userProperties.toString());
             } catch (IOException e) {
                 throw new AgentException("Failed to read property user configuration:%s",
                                          e.getMessage());

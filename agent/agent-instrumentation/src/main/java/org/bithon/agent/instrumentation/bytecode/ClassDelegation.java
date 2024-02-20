@@ -49,7 +49,7 @@ import java.util.Map;
  *         }
  *     }
  * </pre>
- *
+ * <p>
  * The generated class:
  * <pre>
  *     class GeneratedA extends A implements IDelegation {
@@ -85,9 +85,12 @@ public class ClassDelegation {
     public static Class<?> create(Class<?> baseClass) {
         Constructor<?> defaultCtor;
         try {
-            defaultCtor = baseClass.getConstructor();
+            defaultCtor = baseClass.getDeclaredConstructor();
         } catch (NoSuchMethodException e) {
-            throw new AgentException("The lass [%s] does not define a default constructor.", baseClass.getName());
+            throw new AgentException("The class [%s] does not define a default constructor.", baseClass.getName());
+        }
+        if ((defaultCtor.getModifiers() & Modifier.PRIVATE) == Modifier.PRIVATE) {
+            throw new AgentException("The class [%s] defines a private default ctor, but protected/public is required.", baseClass.getName());
         }
 
         ElementMatcher<? super MethodDescription> delegationMethods = ElementMatchers.isMethod()

@@ -16,7 +16,6 @@
 
 package org.bithon.agent.configuration.source;
 
-import org.bithon.agent.configuration.Configuration;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.component.commons.utils.StringUtils;
 
@@ -28,8 +27,8 @@ import java.util.Properties;
  * @author Frank Chen
  * @date 20/2/24 3:01 pm
  */
-public class CommandLineArgsConfiguration {
-    public static Configuration build(String commandLineArgPrefix) {
+public class CommandLineArgsSource {
+    public static PropertySource build(String commandLineArgPrefix) {
         Properties userPropertyMap = parseCommandLineArgs(commandLineArgPrefix);
 
         StringBuilder userProperties = new StringBuilder();
@@ -43,9 +42,9 @@ public class CommandLineArgsConfiguration {
             userProperties.append('\n');
         }
         try {
-            return Configuration.from(ConfigurationSource.COMMAND_LINE_ARGS,
-                                      "command-line",
-                                      userProperties.toString());
+            return PropertySource.from(PropertySourceType.COMMAND_LINE_ARGS,
+                                       "command-line",
+                                       userProperties.toString());
         } catch (IOException e) {
             throw new AgentException("Failed to read property user configuration:%s",
                                      e.getMessage());

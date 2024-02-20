@@ -16,8 +16,6 @@
 
 package org.bithon.agent.configuration.source;
 
-import org.bithon.agent.configuration.Configuration;
-
 import java.io.File;
 import java.util.Properties;
 
@@ -25,10 +23,10 @@ import java.util.Properties;
  * @author Frank Chen
  * @date 20/2/24 3:10 pm
  */
-public class ExternalConfiguration {
-    public static Configuration build() {
+public class ExternalSource {
+    public static PropertySource build() {
         // Get All arguments by bithon.configuration prefix
-        Properties properties = CommandLineArgsConfiguration.parseCommandLineArgs("bithon.configuration.");
+        Properties properties = CommandLineArgsSource.parseCommandLineArgs("bithon.configuration.");
         if (properties.isEmpty()) {
             return null;
         }
@@ -39,6 +37,6 @@ public class ExternalConfiguration {
             return null;
         }
 
-        return Configuration.from(ConfigurationSource.EXTERNAL, new File(configurationLocation), true);
+        return PropertySource.from(PropertySourceType.EXTERNAL, new File(configurationLocation), true);
     }
 }

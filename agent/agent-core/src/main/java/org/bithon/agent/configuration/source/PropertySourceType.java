@@ -16,7 +16,7 @@
 
 package org.bithon.agent.configuration.source;
 
-public enum ConfigurationSource {
+public enum PropertySourceType {
     INTERNAL(0),
 
     EXTERNAL(1),
@@ -27,7 +27,7 @@ public enum ConfigurationSource {
 
     DYNAMIC(4);
 
-    ConfigurationSource(int val) {
+    PropertySourceType(int val) {
         this.priority = val;
     }
 

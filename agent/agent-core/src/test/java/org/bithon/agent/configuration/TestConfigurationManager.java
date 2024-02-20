@@ -17,11 +17,10 @@
 package org.bithon.agent.configuration;
 
 import com.google.common.collect.ImmutableMap;
-import org.bithon.agent.configuration.source.ConfigurationSource;
 import org.bithon.agent.configuration.source.Helper;
+import org.bithon.agent.configuration.source.PropertySource;
+import org.bithon.agent.configuration.source.PropertySourceType;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
-import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
-import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.MockedStatic;
@@ -83,9 +82,9 @@ public class TestConfigurationManager {
     @Test
     public void test_DynamicConfiguration() throws IOException {
         ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
-        manager.addConfiguration(Configuration.from(ConfigurationSource.INTERNAL,
-                                                    "1",
-                                                    "test.a=1\n" +
+        manager.addPropertySource(PropertySource.from(PropertySourceType.INTERNAL,
+                                                      "1",
+                                                      "test.a=1\n" +
                                                         "test.b=7\n" +
                                                         "test.percentage=8%"));
 
@@ -97,10 +96,10 @@ public class TestConfigurationManager {
         //
         // Use new value to refresh the old one
         //
-        manager.addConfiguration(Configuration.from(ConfigurationSource.INTERNAL,
-                                                    "2",
-                                                    "test.a=2\ntest.b=8\ntest.percentage=500%"
-                                                    ));
+        manager.addPropertySource(PropertySource.from(PropertySourceType.INTERNAL,
+                                                      "2",
+                                                      "test.a=2\ntest.b=8\ntest.percentage=500%"
+                                                     ));
         Assert.assertEquals(2, testConfig.getA());
         Assert.assertEquals(8, testConfig.getB());
         Assert.assertEquals(5, testConfig.getPercentage().intValue());
@@ -113,9 +112,6 @@ public class TestConfigurationManager {
     @ConfigurationProperties(path = "test")
     static class TestProp {
         private String prop;
-
-        public TestProp() {
-        }
 
         public String getProp() {
             return prop;
@@ -262,9 +258,6 @@ public class TestConfigurationManager {
         private String prop4;
         private String prop5;
 
-        public ApplyChangeTestConfig() {
-        }
-
         public String getProp() {
             return prop;
         }
@@ -324,8 +317,8 @@ public class TestConfigurationManager {
         // Add two new configurations
         manager.applyChanges(Collections.emptyList(),
                              Collections.emptyMap(),
-                             Arrays.asList(Configuration.from(ConfigurationSource.DYNAMIC, "d1", "test.prop=a"),
-                                           Configuration.from(ConfigurationSource.DYNAMIC, "d2", "test.prop1=from_d2")));
+                             Arrays.asList(PropertySource.from(PropertySourceType.DYNAMIC, "d1", "test.prop=a"),
+                                           PropertySource.from(PropertySourceType.DYNAMIC, "d2", "test.prop1=from_d2")));
         HashMap map = manager.getConfig("test", HashMap.class);
         Assert.assertEquals(2, map.size());
         Assert.assertEquals("a", map.get("prop"));
@@ -354,7 +347,7 @@ public class TestConfigurationManager {
         // Add d3
         manager.applyChanges(Collections.singletonList("d2"),
                              Collections.emptyMap(),
-                             Collections.singletonList(Configuration.from(ConfigurationSource.DYNAMIC, "d3", "test.prop1=from_d3")));
+                             Collections.singletonList(PropertySource.from(PropertySourceType.DYNAMIC, "d3", "test.prop1=from_d3")));
         map = manager.getConfig("test", HashMap.class);
         Assert.assertEquals(2, map.size());
         Assert.assertEquals("from default file", map.get("prop"));
@@ -366,8 +359,8 @@ public class TestConfigurationManager {
 
         // Replace d3, add d4
         manager.applyChanges(Collections.emptyList(),
-                             ImmutableMap.of("d3", Configuration.from(ConfigurationSource.DYNAMIC, "d3", "test.prop3=from_d3")),
-                             Collections.singletonList(Configuration.from(ConfigurationSource.DYNAMIC, "d4", "test.prop4=from_d4")));
+                             ImmutableMap.of("d3", PropertySource.from(PropertySourceType.DYNAMIC, "d3", "test.prop3=from_d3")),
+                             Collections.singletonList(PropertySource.from(PropertySourceType.DYNAMIC, "d4", "test.prop4=from_d4")));
         map = manager.getConfig("test", HashMap.class);
         Assert.assertEquals(3, map.size());
         Assert.assertEquals("from default file", map.get("prop"));

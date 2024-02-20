@@ -14,9 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.configuration;
+package org.bithon.agent.configuration.source;
 
-import org.bithon.agent.configuration.source.ConfigurationSource;
+import org.bithon.agent.configuration.ConfigurationFormat;
+import org.bithon.agent.configuration.ConfigurationProperties;
+import org.bithon.agent.configuration.ObjectMapperConfigurer;
 import org.bithon.agent.configuration.validation.Validator;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.component.commons.utils.StringUtils;
@@ -49,33 +51,33 @@ import java.util.function.Supplier;
  * @author frank.chen021@outlook.com
  * @date 2021/8/11 16:13
  */
-public class Configuration implements Comparable<Configuration> {
+public class PropertySource implements Comparable<PropertySource> {
 
     private Object tag;
     private final String name;
-    private final ConfigurationSource source;
-    private JsonNode configurationNode;
+    private final PropertySourceType type;
+    private JsonNode propertyNode;
 
     /**
      * Create an empty configuration
      */
-    public Configuration(ConfigurationSource source, String name) {
-        this(source, name, new ObjectNode(new JsonNodeFactory(true)));
+    public PropertySource(PropertySourceType type, String name) {
+        this(type, name, new ObjectNode(new JsonNodeFactory(true)));
     }
 
-    protected Configuration(ConfigurationSource source, String name, JsonNode configurationNode) {
-        this.source = source;
+    public PropertySource(PropertySourceType type, String name, JsonNode propertyNode) {
+        this.type = type;
         this.name = name;
-        this.configurationNode = configurationNode;
+        this.propertyNode = propertyNode;
     }
 
-    public static Configuration from(ConfigurationSource source, String name, String propertyText) throws IOException {
-        return new Configuration(source, name,
-                                 ObjectMapperConfigurer.configure(new JavaPropsMapper())
-                                                       .readTree(propertyText));
+    public static PropertySource from(PropertySourceType source, String name, String propertyText) throws IOException {
+        return new PropertySource(source, name,
+                                  ObjectMapperConfigurer.configure(new JavaPropsMapper())
+                                                        .readTree(propertyText));
     }
 
-    public static Configuration from(ConfigurationSource source, File configFilePath, boolean checkFileExists) {
+    public static PropertySource from(PropertySourceType source, File configFilePath, boolean checkFileExists) {
         ConfigurationFormat fileFormat = ConfigurationFormat.determineFormatFromFile(configFilePath.getName());
         try (FileInputStream fs = new FileInputStream(configFilePath)) {
             return from(source, configFilePath.getName(), fileFormat, fs);
@@ -90,19 +92,19 @@ public class Configuration implements Comparable<Configuration> {
         }
     }
 
-    public static Configuration from(ConfigurationSource source,
-                                     String name,
-                                     ConfigurationFormat configurationFormat,
-                                     InputStream configStream) {
+    public static PropertySource from(PropertySourceType source,
+                                      String name,
+                                      ConfigurationFormat configurationFormat,
+                                      InputStream configStream) {
         if (configStream == null) {
             // Returns an empty one
-            return new Configuration(source, name);
+            return new PropertySource(source, name);
         }
 
         try {
-            return new Configuration(source,
-                                     name,
-                                     ObjectMapperConfigurer.configure(configurationFormat.createMapper())
+            return new PropertySource(source,
+                                      name,
+                                      ObjectMapperConfigurer.configure(configurationFormat.createMapper())
                                                            .readTree(configStream));
         } catch (IOException e) {
             throw new AgentException("Failed to read configuration from file [%s]: %s",
@@ -162,40 +164,40 @@ public class Configuration implements Comparable<Configuration> {
         return to;
     }
 
-    public ConfigurationSource getSource() {
-        return source;
+    public PropertySourceType getType() {
+        return type;
     }
 
     public String getName() {
         return this.name;
     }
 
-    public void swap(Configuration configuration) {
+    public void swap(PropertySource propertySource) {
         {
-            JsonNode tmp = this.configurationNode;
-            this.configurationNode = configuration.configurationNode;
-            configuration.configurationNode = tmp;
+            JsonNode tmp = this.propertyNode;
+            this.propertyNode = propertySource.propertyNode;
+            propertySource.propertyNode = tmp;
         }
         {
             Object tmp = this.tag;
-            this.tag = configuration.tag;
-            configuration.tag = tmp;
+            this.tag = propertySource.tag;
+            propertySource.tag = tmp;
         }
     }
 
-    public Configuration merge(Configuration configuration) {
-        if (configuration != null) {
-            merge(this.configurationNode, configuration.configurationNode, false);
+    public PropertySource merge(PropertySource propertySource) {
+        if (propertySource != null) {
+            merge(this.propertyNode, propertySource.propertyNode, false);
         }
         return this;
     }
 
     public boolean isEmpty() {
-        return this.configurationNode.isEmpty();
+        return this.propertyNode.isEmpty();
     }
 
-    public JsonNode getConfigurationNode(String[] paths) {
-        JsonNode node = this.configurationNode;
+    public JsonNode getPropertyNode(String[] paths) {
+        JsonNode node = this.propertyNode;
         for (String path : paths) {
             if (node.isContainerNode()) {
                 node = node.get(path);
@@ -213,12 +215,12 @@ public class Configuration implements Comparable<Configuration> {
      * check if the configuration contains only the properties specified by given {@param pathPrefix}.
      */
     public boolean contains(String property) {
-        return this.getConfigurationNode(property.split("\\.")) != null;
+        return this.getPropertyNode(property.split("\\.")) != null;
     }
 
     public Set<String> getKeys() {
         Set<String> result = new HashSet<>();
-        getKeys(result, new ArrayList<>(), this.configurationNode);
+        getKeys(result, new ArrayList<>(), this.propertyNode);
         return result;
     }
 
@@ -278,11 +280,11 @@ public class Configuration implements Comparable<Configuration> {
     }
 
     public <T> T getConfig(String propertyPath, Class<T> clazz, Supplier<T> defaultSupplier) {
-        if (this.configurationNode.isEmpty()) {
+        if (this.propertyNode.isEmpty()) {
             return defaultSupplier.get();
         }
 
-        JsonNode node = configurationNode;
+        JsonNode node = propertyNode;
 
         // Find the correct node by prefix
         for (String part : propertyPath.split("\\.")) {
@@ -325,8 +327,8 @@ public class Configuration implements Comparable<Configuration> {
      * deep clone
      */
     @Override
-    public Configuration clone() {
-        return new Configuration(source, name, configurationNode.deepCopy());
+    public PropertySource clone() {
+        return new PropertySource(type, name, propertyNode.deepCopy());
     }
 
     @Override
@@ -343,11 +345,11 @@ public class Configuration implements Comparable<Configuration> {
     }
 
     @Override
-    public int compareTo(Configuration o) {
-        if (this.source.priority() == o.source.priority()) {
+    public int compareTo(PropertySource o) {
+        if (this.type.priority() == o.type.priority()) {
             return this.name.compareTo(o.name);
         } else {
-            return this.source.priority() - o.source.priority();
+            return this.type.priority() - o.type.priority();
         }
     }
 
@@ -357,7 +359,7 @@ public class Configuration implements Comparable<Configuration> {
                                       .createMapper()
                                       .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
                                       .configure(SerializationFeature.INDENT_OUTPUT, prettyFormat)
-                                      .writeValueAsString(this.configurationNode);
+                                      .writeValueAsString(this.propertyNode);
         } catch (JsonProcessingException e) {
             throw new AgentException(e);
         }

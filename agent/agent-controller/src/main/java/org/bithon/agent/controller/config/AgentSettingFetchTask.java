@@ -17,10 +17,10 @@
 package org.bithon.agent.controller.config;
 
 
-import org.bithon.agent.configuration.Configuration;
 import org.bithon.agent.configuration.ConfigurationFormat;
 import org.bithon.agent.configuration.ConfigurationManager;
-import org.bithon.agent.configuration.source.ConfigurationSource;
+import org.bithon.agent.configuration.source.PropertySource;
+import org.bithon.agent.configuration.source.PropertySourceType;
 import org.bithon.agent.controller.IAgentController;
 import org.bithon.component.commons.concurrency.PeriodicTask;
 import org.bithon.component.commons.logging.ILogAdaptor;
@@ -77,13 +77,13 @@ public class AgentSettingFetchTask extends PeriodicTask {
         Map<String, String> configurationListFromRemote = controller.getAgentConfiguration(appName, env, 0);
 
         List<String> removed = new ArrayList<>();
-        Map<String, Configuration> replace = new HashMap<>();
-        List<Configuration> add = new ArrayList<>();
+        Map<String, PropertySource> replace = new HashMap<>();
+        List<PropertySource> add = new ArrayList<>();
 
         // Remove the configuration source from the local manager if the remote does not contain it
-        Map<String, Configuration> existingConfigurationNames = ConfigurationManager.getInstance()
-                                                                                    .getConfiguration(ConfigurationSource.DYNAMIC);
-        for (String name : existingConfigurationNames.keySet()) {
+        Map<String, PropertySource> existingSources = ConfigurationManager.getInstance()
+                                                                          .getPropertySource(PropertySourceType.DYNAMIC);
+        for (String name : existingSources.keySet()) {
             if (!configurationListFromRemote.containsKey(name)) {
                 // The local dynamic configuration no longer exists in the remote
                 // We need to remove it
@@ -99,21 +99,21 @@ public class AgentSettingFetchTask extends PeriodicTask {
             // Generate signature for further comparison
             String signature = HashGenerator.sha256Hex(text);
 
-            Configuration existingConfiguration = existingConfigurationNames.get(name);
-            if (existingConfiguration == null
-                || !signature.equals(existingConfiguration.getTag())) {
+            PropertySource existingPropertySource = existingSources.get(name);
+            if (existingPropertySource == null
+                || !signature.equals(existingPropertySource.getTag())) {
 
                 try (InputStream is = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))) {
-                    Configuration newConfiguration = Configuration.from(ConfigurationSource.DYNAMIC,
-                                                                        name,
-                                                                        ConfigurationFormat.JSON,
-                                                                        is);
-                    newConfiguration.setTag(signature);
+                    PropertySource newSource = PropertySource.from(PropertySourceType.DYNAMIC,
+                                                                   name,
+                                                                   ConfigurationFormat.JSON,
+                                                                   is);
+                    newSource.setTag(signature);
 
-                    if (existingConfiguration == null) {
-                        add.add(newConfiguration);
+                    if (existingPropertySource == null) {
+                        add.add(newSource);
                     } else {
-                        replace.put(name, newConfiguration);
+                        replace.put(name, newSource);
                     }
                 } catch (IOException e) {
                     log.error(StringUtils.format("Error to deserialize configuration "));

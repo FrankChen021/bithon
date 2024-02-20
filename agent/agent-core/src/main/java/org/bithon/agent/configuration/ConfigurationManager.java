@@ -16,10 +16,11 @@
 
 package org.bithon.agent.configuration;
 
-import org.bithon.agent.configuration.source.CommandLineArgsConfiguration;
-import org.bithon.agent.configuration.source.ConfigurationSource;
-import org.bithon.agent.configuration.source.EnvironmentConfiguration;
-import org.bithon.agent.configuration.source.ExternalConfiguration;
+import org.bithon.agent.configuration.source.CommandLineArgsSource;
+import org.bithon.agent.configuration.source.EnvironmentSource;
+import org.bithon.agent.configuration.source.ExternalSource;
+import org.bithon.agent.configuration.source.PropertySource;
+import org.bithon.agent.configuration.source.PropertySourceType;
 import org.bithon.agent.instrumentation.bytecode.ClassDelegation;
 import org.bithon.agent.instrumentation.bytecode.IDelegation;
 import org.bithon.agent.instrumentation.expt.AgentException;
@@ -125,61 +126,64 @@ public class ConfigurationManager {
      * Exposed for testing
      */
     static ConfigurationManager create(File defaultConfigLocation) {
-        return new ConfigurationManager(Configuration.from(ConfigurationSource.INTERNAL, defaultConfigLocation, true),
-                                        ExternalConfiguration.build(),
-                                        CommandLineArgsConfiguration.build("bithon."),
-                                        EnvironmentConfiguration.build("bithon."));
+        return new ConfigurationManager(PropertySource.from(PropertySourceType.INTERNAL, defaultConfigLocation, true),
+                                        ExternalSource.build(),
+                                        CommandLineArgsSource.build("bithon."),
+                                        EnvironmentSource.build("bithon."));
     }
 
     // Sorted in priority
-    private final List<Configuration> configurations = new ArrayList<>();
+    private final List<PropertySource> propertySources = new ArrayList<>();
 
     /**
      * the value in the map is actually a dynamic type of {@link IDelegation}
      */
     private final Map<String, IDelegation> mappedBeans = new ConcurrentHashMap<>(13);
 
+    /**
+     * key - the watched property path
+     * val - listener to process change
+     */
     private final Map<String, IConfigurationChangedListener> listeners = new ConcurrentHashMap<>(13);
 
-    private ConfigurationManager(Configuration... configurations) {
-        for (Configuration configuration : configurations) {
-            if (configuration != null) {
-                this.configurations.add(configuration);
+    private ConfigurationManager(PropertySource... propertySources) {
+        for (PropertySource propertySource : propertySources) {
+            if (propertySource != null) {
+                this.propertySources.add(propertySource);
             }
         }
-        Collections.sort(this.configurations);
+        Collections.sort(this.propertySources);
     }
 
-    public void addConfigurationChangedListener(String keyPrefix, IConfigurationChangedListener listener) {
-        listeners.put(keyPrefix, listener);
+    public void addConfigurationChangedListener(String propertyPath, IConfigurationChangedListener listener) {
+        listeners.put(propertyPath, listener);
     }
 
-    public void addConfiguration(Configuration newConfiguration) {
-
+    public void addPropertySource(PropertySource newSource) {
         Set<String> changedKeys = new HashSet<>();
 
         boolean found = false;
-        synchronized (this.configurations) {
-            for (Configuration configuration : this.configurations) {
-                if (configuration.getName().equals(newConfiguration.getName())
-                    && configuration.getSource() == newConfiguration.getSource()
+        synchronized (this.propertySources) {
+            for (PropertySource propertySource : this.propertySources) {
+                if (propertySource.getName().equals(newSource.getName())
+                    && propertySource.getType() == newSource.getType()
                 ) {
                     found = true;
 
                     // Replace configuration
-                    configuration.swap(newConfiguration);
+                    propertySource.swap(newSource);
 
-                    changedKeys.addAll(newConfiguration.getKeys());
-                    changedKeys.addAll(configuration.getKeys());
+                    changedKeys.addAll(newSource.getKeys());
+                    changedKeys.addAll(propertySource.getKeys());
 
                     break;
                 }
             }
             if (!found) {
-                this.configurations.add(newConfiguration);
-                Collections.sort(this.configurations);
+                this.propertySources.add(newSource);
+                Collections.sort(this.propertySources);
 
-                changedKeys.addAll(newConfiguration.getKeys());
+                changedKeys.addAll(newSource.getKeys());
             }
         }
 
@@ -237,14 +241,14 @@ public class ConfigurationManager {
     /**
      * Collect properties that have the same given prefix from multiple sources
      */
-    private Configuration collect(String propertyPath) {
+    private PropertySource collect(String propertyPath) {
         String[] propertyPaths = propertyPath.split("\\.");
 
         boolean isFirst = true;
         JsonNode node = null;
-        Configuration[] configurationList = this.configurations.toArray(new Configuration[0]);
-        for (Configuration configuration : configurationList) {
-            JsonNode found = configuration.getConfigurationNode(propertyPaths);
+        PropertySource[] propertySourceList = this.propertySources.toArray(new PropertySource[0]);
+        for (PropertySource propertySource : propertySourceList) {
+            JsonNode found = propertySource.getPropertyNode(propertyPaths);
             if (found == null || found instanceof NullNode) {
                 continue;
             }
@@ -255,12 +259,12 @@ public class ConfigurationManager {
                     node = node.deepCopy();
                     isFirst = false;
                 }
-                Configuration.merge(node, found.deepCopy(), true);
+                PropertySource.merge(node, found.deepCopy(), true);
             }
         }
 
         if (node == null || node instanceof NullNode) {
-            return new Configuration(ConfigurationSource.DYNAMIC, "for-eval");
+            return new PropertySource(PropertySourceType.DYNAMIC, "for-eval");
         }
 
         ObjectMapper om = new ObjectMapper();
@@ -274,42 +278,42 @@ public class ConfigurationManager {
         }
         parent.set(propertyPaths[i], node);
 
-        return new Configuration(ConfigurationSource.DYNAMIC, "for-eval", root);
+        return new PropertySource(PropertySourceType.DYNAMIC, "for-eval", root);
     }
 
     public String getActiveConfiguration(String format, boolean prettyFormat) {
-        Configuration active = null;
-        Configuration[] configurationList = this.configurations.toArray(new Configuration[0]);
-        for (Configuration configuration : configurationList) {
+        PropertySource active = null;
+        PropertySource[] propertySourceList = this.propertySources.toArray(new PropertySource[0]);
+        for (PropertySource propertySource : propertySourceList) {
             if (active == null) {
-                active = configuration.clone();
+                active = propertySource.clone();
             } else {
-                active.merge(configuration.clone());
+                active.merge(propertySource.clone());
             }
         }
 
         return active == null ? "" : active.format(format, prettyFormat);
     }
 
-    public Map<String, Configuration> getConfiguration(ConfigurationSource source) {
-        synchronized (this.configurations) {
-            return this.configurations.stream()
-                                      .filter((cfg) -> cfg.getSource() == source)
-                                      .collect(Collectors.toMap(Configuration::getName, v -> v));
+    public Map<String, PropertySource> getPropertySource(PropertySourceType type) {
+        synchronized (this.propertySources) {
+            return this.propertySources.stream()
+                                       .filter((cfg) -> cfg.getType() == type)
+                                       .collect(Collectors.toMap(PropertySource::getName, v -> v));
         }
     }
 
     public void applyChanges(List<String> removed,
-                             Map<String, Configuration> replace,
-                             List<Configuration> add) {
+                             Map<String, PropertySource> replace,
+                             List<PropertySource> add) {
         Set<String> changedKeys = new HashSet<>();
 
-        synchronized (this.configurations) {
+        synchronized (this.propertySources) {
             // Processing removing first
             if (!removed.isEmpty()) {
-                for (Iterator<Configuration> i = this.configurations.iterator(); i.hasNext(); ) {
-                    Configuration cfg = i.next();
-                    if (cfg.getSource() == ConfigurationSource.DYNAMIC && removed.contains(cfg.getName())) {
+                for (Iterator<PropertySource> i = this.propertySources.iterator(); i.hasNext(); ) {
+                    PropertySource cfg = i.next();
+                    if (cfg.getType() == PropertySourceType.DYNAMIC && removed.contains(cfg.getName())) {
                         i.remove();
 
                         changedKeys.addAll(cfg.getKeys());
@@ -318,12 +322,12 @@ public class ConfigurationManager {
             }
 
             if (!replace.isEmpty()) {
-                for (Configuration cfg : this.configurations) {
-                    if (cfg.getSource() != ConfigurationSource.DYNAMIC) {
+                for (PropertySource cfg : this.propertySources) {
+                    if (cfg.getType() != PropertySourceType.DYNAMIC) {
                         continue;
                     }
 
-                    Configuration replacement = replace.get(cfg.getName());
+                    PropertySource replacement = replace.get(cfg.getName());
                     if (replacement != null) {
                         cfg.swap(replacement);
 
@@ -334,13 +338,13 @@ public class ConfigurationManager {
             }
 
             if (!add.isEmpty()) {
-                for (Configuration cfg : add) {
-                    this.configurations.add(cfg);
+                for (PropertySource cfg : add) {
+                    this.propertySources.add(cfg);
                     changedKeys.addAll(cfg.getKeys());
                 }
             }
 
-            Collections.sort(this.configurations);
+            Collections.sort(this.propertySources);
         }
 
         // Apply Changes to mapped beans

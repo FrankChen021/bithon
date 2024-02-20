@@ -16,9 +16,10 @@
 
 package org.bithon.agent.configuration;
 
-import org.bithon.agent.configuration.source.CommandLineArgsConfiguration;
-import org.bithon.agent.configuration.source.ConfigurationSource;
-import org.bithon.agent.configuration.source.EnvironmentConfiguration;
+import org.bithon.agent.configuration.source.CommandLineArgsSource;
+import org.bithon.agent.configuration.source.EnvironmentSource;
+import org.bithon.agent.configuration.source.PropertySource;
+import org.bithon.agent.configuration.source.PropertySourceType;
 import org.bithon.agent.instrumentation.expt.AgentException;
 
 import java.io.IOException;
@@ -38,9 +39,9 @@ public class PluginConfiguration {
     public static boolean loadPluginConfiguration(Class<?> pluginClass) {
         String pluginConfigurationPrefix = getConfigurationPrefix(pluginClass.getName());
 
-        Configuration pluginConfiguration = loadPluginConfiguration(pluginClass, pluginConfigurationPrefix);
-        if (!pluginConfiguration.isEmpty()) {
-            ConfigurationManager.getInstance().addConfiguration(pluginConfiguration);
+        PropertySource pluginPropertySource = loadPluginConfiguration(pluginClass, pluginConfigurationPrefix);
+        if (!pluginPropertySource.isEmpty()) {
+            ConfigurationManager.getInstance().addPropertySource(pluginPropertySource);
         }
 
         // Even there's no plugin configuration found above, it can be in the external configuration
@@ -56,22 +57,22 @@ public class PluginConfiguration {
     /**
      * Load plugin configuration from static plugin.yml and dynamic configuration from environment variable and command line arguments
      */
-    private static Configuration loadPluginConfiguration(Class<?> pluginClass, String configurationPrefix) {
+    private static PropertySource loadPluginConfiguration(Class<?> pluginClass, String configurationPrefix) {
         String configFileName = pluginClass.getPackage().getName() + ".yml";
 
-        Configuration defaultPluginConfiguration;
+        PropertySource defaultPluginPropertySource;
         try (InputStream fs = pluginClass.getClassLoader().getResourceAsStream(configFileName)) {
-            defaultPluginConfiguration = Configuration.from(ConfigurationSource.INTERNAL, configFileName, ConfigurationFormat.YAML, fs);
+            defaultPluginPropertySource = PropertySource.from(PropertySourceType.INTERNAL, configFileName, ConfigurationFormat.YAML, fs);
         } catch (IOException ignored) {
             // Ignore this exception thrown from InputStream.close
             // Create an empty one for further processing
-            defaultPluginConfiguration = new Configuration(ConfigurationSource.INTERNAL, configFileName);
+            defaultPluginPropertySource = new PropertySource(PropertySourceType.INTERNAL, configFileName);
         }
 
         // Use the command line args and environment to overwrite the default properties
         String dynamicPropertyPrefix = "bithon." + configurationPrefix + ".";
-        return defaultPluginConfiguration.merge(CommandLineArgsConfiguration.build(dynamicPropertyPrefix))
-                                         .merge(EnvironmentConfiguration.build(dynamicPropertyPrefix));
+        return defaultPluginPropertySource.merge(CommandLineArgsSource.build(dynamicPropertyPrefix))
+                                          .merge(EnvironmentSource.build(dynamicPropertyPrefix));
     }
 
     /**
