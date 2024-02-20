@@ -37,6 +37,50 @@ import java.util.concurrent.ConcurrentHashMap;
 import static java.io.File.separator;
 
 /**
+ * <pre>
+ * The ConfigurationManager manages all configuration from different places, including
+ * 1. The default agent configuration located under the agent-distribution/conf
+ * 2. The external configuration specified via -Dbithon.configuration.location command line argument
+ * 3. All parameters defined by -Dbithon.xxx
+ * 4. All environment variables starting with bithon_
+ * 5. Dynamic configuration from the remote controller
+ *
+ * Different configuration sources may contain the same property keys,
+ * in such a case, the latter one in the above list overwrites the previous one.
+ * For Dynamic configurations, the order is determined by its name in ascending alphabetic order.
+ *
+ * Internal implementation:
+ * 1. When getting configuration properties,
+ * the manager will collect properties with the same key prefixes from all sources and merge them in the above list order.
+ *
+ * Let's us p1 has the following configuration defined(Note it's just example, not reflected real configuration):
+ * <pre>
+ * -- p1
+ *   tracing:
+ *     samplingRate:
+ *       grpc: 100%
+ *       headers: ["user-agent"]
+ * </pre>
+ *
+ * And p2 has the following configuration:
+ * <pre>
+ * -- p2
+ *   tracing:
+ *     samplingRate:
+ *       http: 100%
+ *       headers: ["x-forwarded-for"]
+ * </pre>
+ *
+ * When getting properties by 'tracing.samplingRate',
+ * both grpc and http properties will be collected from the two sources as they don't conflict with each other.
+ * However, the for headers property, as it's defined in both sources, only one will be used. Which one will be used is determined by the priority of these two sources
+ * as described above.
+ * For example, if p1 is placed in the default agent.yml, it has lower priority, that means the value of headers property in p2 will be used.
+ *
+ * 2. When a configuration source is deleted,
+ * ALL properties(including its prefix) in the deleted configuration will be notified as CHANGED
+ * </pre>
+ *
  * @author frank.chen021@outlook.com
  * @date 2023/1/5 22:20
  */
@@ -53,11 +97,6 @@ public class ConfigurationManager {
         return INSTANCE;
     }
 
-    private final Configuration externalConfiguration;
-
-    public Configuration getExternalConfiguration() {
-        return externalConfiguration;
-    }
 
     /**
      * The configurations take effect by the following order:
@@ -78,17 +117,15 @@ public class ConfigurationManager {
      * Exposed for testing
      */
     static ConfigurationManager create(String defaultConfigLocation) {
-        Configuration external = fromExternalConfiguration();
-
         Configuration configuration = Configuration.from(defaultConfigLocation, true)
                                                    // Use external configuration to overwrite the default configuration
-                                                   .merge(external)
+                                                   .merge(fromExternalConfiguration())
                                                    // Use the dynamic configuration to overwrite default configurations
                                                    .merge(Configuration.fromCommandLineArgs("bithon."))
                                                    // Use environment variables to overwrite previous ones
                                                    .merge(Configuration.fromEnvironmentVariables("bithon."));
 
-        return new ConfigurationManager(configuration, external);
+        return new ConfigurationManager(configuration);
     }
 
     private static Configuration fromExternalConfiguration() {
@@ -111,7 +148,7 @@ public class ConfigurationManager {
      * For test only
      */
     static ConfigurationManager create(Configuration configuration) {
-        INSTANCE = new ConfigurationManager(configuration, new Configuration());
+        INSTANCE = new ConfigurationManager(configuration);
         return INSTANCE;
     }
 
@@ -123,9 +160,8 @@ public class ConfigurationManager {
 
     private final Map<String, IConfigurationChangedListener> listeners = new ConcurrentHashMap<>(13);
 
-    private ConfigurationManager(Configuration configuration, Configuration external) {
+    private ConfigurationManager(Configuration configuration) {
         this.configuration = configuration;
-        this.externalConfiguration = external;
     }
 
     public void addConfigurationChangedListener(String keyPrefix, IConfigurationChangedListener listener) {

@@ -175,7 +175,7 @@ public class Configuration {
             return System.getenv();
         }
     }
-
+    
     private final JsonNode configurationNode;
 
     /**
