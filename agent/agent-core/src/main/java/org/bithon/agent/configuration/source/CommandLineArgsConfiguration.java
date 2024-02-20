@@ -21,6 +21,8 @@ import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -59,7 +61,7 @@ public class CommandLineArgsConfiguration {
         Properties args = new Properties();
 
         final String applicationArg = "-D" + commandLineArgPrefix;
-        for (String arg : Configuration.ConfigurationHelper.getCommandLineInputArgs()) {
+        for (String arg : Helper.getCommandLineInputArgs()) {
             if (!arg.startsWith(applicationArg)) {
                 continue;
             }
@@ -79,5 +81,4 @@ public class CommandLineArgsConfiguration {
 
         return args;
     }
-
 }

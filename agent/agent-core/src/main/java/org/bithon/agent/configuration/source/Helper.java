@@ -14,23 +14,24 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sentinel.config;
+package org.bithon.agent.configuration.source;
 
-import org.bithon.agent.configuration.ConfigurationProperties;
+import java.lang.management.ManagementFactory;
+import java.util.List;
+import java.util.Map;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2023/3/6 00:44
+ * Wrap of some JDK methods to support easier mock in test cases
+ *
+ * @author Frank Chen
+ * @date 20/2/24 4:39 pm
  */
-@ConfigurationProperties(path = "agent.sentinel")
-public class SentinelConfig {
-    private boolean enabled = false;
-
-    public boolean isEnabled() {
-        return enabled;
+public class Helper {
+    public static List<String> getCommandLineInputArgs() {
+        return ManagementFactory.getRuntimeMXBean().getInputArguments();
     }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+    public static Map<String, String> getEnvironmentVariables() {
+        return System.getenv();
     }
 }

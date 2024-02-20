@@ -25,7 +25,7 @@ import java.util.List;
  * @author Frank Chen
  * @date 22/11/22 10:31 pm
  */
-@ConfigurationProperties(prefix = "agent.plugin.kafka.producer.tracing")
+@ConfigurationProperties(path = "agent.plugin.kafka.producer.tracing")
 public class KafkaProducerTracingConfig {
 
     /**

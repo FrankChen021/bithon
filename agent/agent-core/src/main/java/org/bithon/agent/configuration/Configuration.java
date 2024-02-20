@@ -35,7 +35,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.management.ManagementFactory;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -43,7 +42,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -89,28 +87,6 @@ public class Configuration implements Comparable<Configuration> {
         }
     }
 
-    @Override
-    public int compareTo(Configuration o) {
-        if (this.source.priority() == o.source.priority()) {
-            return this.name.compareTo(o.name);
-        } else {
-            return this.source.priority() - o.source.priority();
-        }
-    }
-
-    /**
-     * Defined in a separated class for easier mock
-     */
-    public static class ConfigurationHelper {
-        public static List<String> getCommandLineInputArgs() {
-            return ManagementFactory.getRuntimeMXBean().getInputArguments();
-        }
-
-        public static Map<String, String> getEnvironmentVariables() {
-            return System.getenv();
-        }
-    }
-
     private final String name;
     private final ConfigurationSource source;
     private final JsonNode configurationNode;
@@ -126,10 +102,11 @@ public class Configuration implements Comparable<Configuration> {
         this(source, name, new ObjectNode(new JsonNodeFactory(true)));
     }
 
-    public Configuration(ConfigurationSource source, String name, String configurationText) throws IOException {
+    public Configuration(ConfigurationSource source, String name, String propertyText) throws IOException {
         this.source = source;
         this.name = name;
-        this.configurationNode = ObjectMapperConfigurer.configure(new JavaPropsMapper()).readTree(configurationText);
+        this.configurationNode = ObjectMapperConfigurer.configure(new JavaPropsMapper())
+                                                       .readTree(propertyText);
     }
 
     protected Configuration(ConfigurationSource source, String name, JsonNode configurationNode) {
@@ -249,16 +226,16 @@ public class Configuration implements Comparable<Configuration> {
 
     public <T> T getConfig(Class<T> clazz) {
         ConfigurationProperties cfg = clazz.getAnnotation(ConfigurationProperties.class);
-        if (cfg != null && !StringUtils.isEmpty(cfg.prefix())) {
-            return getConfig(cfg.prefix(), clazz);
+        if (cfg != null && !StringUtils.isEmpty(cfg.path())) {
+            return getConfig(cfg.path(), clazz);
         } else {
             return getConfig("[root]", clazz);
         }
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getConfig(String prefixes, Class<T> clazz) {
-        return getConfig(prefixes,
+    public <T> T getConfig(String propertyPath, Class<T> clazz) {
+        return getConfig(propertyPath,
                          clazz,
                          () -> {
                              // default value provider
@@ -305,11 +282,11 @@ public class Configuration implements Comparable<Configuration> {
         return getConfig(propertyPath, node, clazz);
     }
 
-    private <T> T getConfig(String propertyPath, JsonNode configurationNode, Class<T> clazz) {
+    private <T> T getConfig(String propertyPath, JsonNode configuration, Class<T> clazz) {
         T value;
         try {
             value = ObjectMapperConfigurer.configure(new ObjectMapper())
-                                          .convertValue(configurationNode, clazz);
+                                          .convertValue(configuration, clazz);
         } catch (IllegalArgumentException e) {
             throw new AgentException(e,
                                      "Unable to read type of [%s] from configuration: %s",
@@ -338,6 +315,15 @@ public class Configuration implements Comparable<Configuration> {
     @Override
     public String toString() {
         return this.name;
+    }
+
+    @Override
+    public int compareTo(Configuration o) {
+        if (this.source.priority() == o.source.priority()) {
+            return this.name.compareTo(o.name);
+        } else {
+            return this.source.priority() - o.source.priority();
+        }
     }
 
     public String format(String format, boolean prettyFormat) {

@@ -31,7 +31,7 @@ public class EnvironmentConfiguration {
     public static Configuration build(String envPrefix) {
         StringBuilder userProperties = new StringBuilder();
 
-        for (Map.Entry<String, String> entry : Configuration.ConfigurationHelper.getEnvironmentVariables().entrySet()) {
+        for (Map.Entry<String, String> entry : Helper.getEnvironmentVariables().entrySet()) {
             String name = entry.getKey();
             String value = entry.getValue();
             if (name.startsWith(envPrefix) && !value.isEmpty()) {

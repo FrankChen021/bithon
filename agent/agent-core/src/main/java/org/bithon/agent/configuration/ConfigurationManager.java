@@ -222,11 +222,11 @@ public class ConfigurationManager {
      */
     public <T> T getConfig(Class<T> clazz) {
         ConfigurationProperties cfg = clazz.getAnnotation(ConfigurationProperties.class);
-        if (cfg == null || StringUtils.isEmpty(cfg.prefix())) {
+        if (cfg == null || StringUtils.isEmpty(cfg.path())) {
             throw new AgentException("Class [%s] does not have valid ConfigurationProperties.", clazz.getName());
         }
 
-        return getConfig(cfg.prefix(), clazz, cfg.dynamic());
+        return getConfig(cfg.path(), clazz, cfg.dynamic());
     }
 
     public <T> T getDynamicConfig(String prefix, Class<T> clazz) {

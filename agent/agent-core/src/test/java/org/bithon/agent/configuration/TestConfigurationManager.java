@@ -18,6 +18,7 @@ package org.bithon.agent.configuration;
 
 import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.configuration.source.ConfigurationSource;
+import org.bithon.agent.configuration.source.Helper;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,7 +38,7 @@ import java.util.Collections;
  */
 public class TestConfigurationManager {
 
-    @ConfigurationProperties(prefix = "test")
+    @ConfigurationProperties(path = "test")
     static class TestConfig {
         private int a;
         private int b;
@@ -105,7 +106,7 @@ public class TestConfigurationManager {
         Assert.assertFalse(v);
     }
 
-    @ConfigurationProperties(prefix = "test")
+    @ConfigurationProperties(path = "test")
     static class TestProp {
         private String prop;
 
@@ -133,8 +134,8 @@ public class TestConfigurationManager {
 
     @Test
     public void test_FromExternalFile() {
-        try (MockedStatic<Configuration.ConfigurationHelper> configurationMock = Mockito.mockStatic(Configuration.ConfigurationHelper.class)) {
-            configurationMock.when(Configuration.ConfigurationHelper::getCommandLineInputArgs)
+        try (MockedStatic<Helper> configurationMock = Mockito.mockStatic(Helper.class)) {
+            configurationMock.when(Helper::getCommandLineInputArgs)
                              .thenReturn(Arrays.asList("-Xms512M",
                                                        // A property without assignment
                                                        // to verify the processing is correct with such configuration
@@ -151,8 +152,8 @@ public class TestConfigurationManager {
 
     @Test
     public void test_CommandLineArgs() {
-        try (MockedStatic<Configuration.ConfigurationHelper> configurationMock = Mockito.mockStatic(Configuration.ConfigurationHelper.class)) {
-            configurationMock.when(Configuration.ConfigurationHelper::getCommandLineInputArgs)
+        try (MockedStatic<Helper> configurationMock = Mockito.mockStatic(Helper.class)) {
+            configurationMock.when(Helper::getCommandLineInputArgs)
                              .thenReturn(Arrays.asList("-Xms512M",
                                                        // A property without assignment
                                                        // to verify the processing is correct with such configuration
@@ -176,8 +177,8 @@ public class TestConfigurationManager {
      */
     @Test
     public void test_Environment() {
-        try (MockedStatic<Configuration.ConfigurationHelper> configurationMock = Mockito.mockStatic(Configuration.ConfigurationHelper.class)) {
-            configurationMock.when(Configuration.ConfigurationHelper::getCommandLineInputArgs)
+        try (MockedStatic<Helper> configurationMock = Mockito.mockStatic(Helper.class)) {
+            configurationMock.when(Helper::getCommandLineInputArgs)
                              .thenReturn(Arrays.asList("-Xms512M",
                                                        // A property without assignment
                                                        // to verify the processing is correct with such configuration
@@ -189,7 +190,7 @@ public class TestConfigurationManager {
                                                        "-Dbithon.configuration.location=" + externalConfigLocation
                                                       ));
 
-            configurationMock.when(Configuration.ConfigurationHelper::getEnvironmentVariables)
+            configurationMock.when(Helper::getEnvironmentVariables)
                              .thenReturn(ImmutableMap.of("bithon.t", "t1",
                                                          "bithon.test.prop", "from_env"));
 
@@ -223,8 +224,8 @@ public class TestConfigurationManager {
 
     @Test
     public void test_PropFromDifferentSource() {
-        try (MockedStatic<Configuration.ConfigurationHelper> configurationMock = Mockito.mockStatic(Configuration.ConfigurationHelper.class)) {
-            configurationMock.when(Configuration.ConfigurationHelper::getCommandLineInputArgs)
+        try (MockedStatic<Helper> configurationMock = Mockito.mockStatic(Helper.class)) {
+            configurationMock.when(Helper::getCommandLineInputArgs)
                              .thenReturn(Arrays.asList("-Xms512M",
                                                        // A property without assignment
                                                        // to verify the processing is correct with such configuration
@@ -236,7 +237,7 @@ public class TestConfigurationManager {
                                                        "-Dbithon.configuration.location=" + externalConfigLocation
                                                       ));
 
-            configurationMock.when(Configuration.ConfigurationHelper::getEnvironmentVariables)
+            configurationMock.when(Helper::getEnvironmentVariables)
                              .thenReturn(ImmutableMap.of("bithon.t", "t1",
                                                          //Overwrite the prop2
                                                          "bithon.test.prop2", "from_env"));

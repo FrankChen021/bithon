@@ -74,7 +74,7 @@ public class DynamicInstrumentationService implements IAgentService, IConfigurat
         uninstaller = install();
     }
 
-    @ConfigurationProperties(prefix = "tracing.instrumentation.methods", dynamic = false)
+    @ConfigurationProperties(path = "tracing.instrumentation.methods", dynamic = false)
     static class SignatureList extends ArrayList<String> {
     }
 

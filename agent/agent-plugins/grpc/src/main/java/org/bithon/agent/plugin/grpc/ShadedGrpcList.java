@@ -24,6 +24,6 @@ import java.util.ArrayList;
  * a package list that how io.grpc packages are mapped to
  * @author frankchen
  */
-@ConfigurationProperties(prefix = "agent.plugin.grpc.shaded", dynamic = false)
+@ConfigurationProperties(path = "agent.plugin.grpc.shaded", dynamic = false)
 public class ShadedGrpcList extends ArrayList<String> {
 }

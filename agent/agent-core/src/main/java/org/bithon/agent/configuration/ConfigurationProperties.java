@@ -35,7 +35,7 @@ public @interface ConfigurationProperties {
     /**
      * not null
      */
-    String prefix();
+    String path();
 
     /**
      * If this configuration class can receive dynamic configuration changes.

@@ -25,7 +25,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 24/3/22 12:25 PM
  */
-@ConfigurationProperties(prefix = "agent.plugin.spring.webflux.response")
+@ConfigurationProperties(path = "agent.plugin.spring.webflux.response")
 public class ResponseConfigs {
     private Map<String, String> headers = Collections.emptyMap();
 
