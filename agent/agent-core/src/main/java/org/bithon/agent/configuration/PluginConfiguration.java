@@ -41,8 +41,9 @@ public class PluginConfiguration {
             ConfigurationManager.getInstance().merge(pluginConfiguration);
         }
 
-        // Check the 'disable' property, it might come from the external configuration
-        Boolean isPluginDisabled = pluginConfiguration.getConfig(pluginConfigurationPrefix + ".disabled", Boolean.class);
+        // Since the plugin configuration has been merged into the ConfigurationManager,
+        // check the 'disable' property from the manager to see if it's DISABLED
+        Boolean isPluginDisabled = ConfigurationManager.getInstance().getConfig(pluginConfigurationPrefix + ".disabled", Boolean.class);
         if (isPluginDisabled != null && isPluginDisabled) {
             return false;
         }
