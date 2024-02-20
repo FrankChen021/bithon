@@ -36,17 +36,17 @@ public class PluginConfiguration {
     /**
      * @return false is the plugin is disabled by configuration
      */
-    public static boolean loadPluginConfiguration(Class<?> pluginClass) {
-        String pluginConfigurationPrefix = getConfigurationPrefix(pluginClass.getName());
+    public static boolean load(Class<?> pluginClass) {
+        String pluginPropertyPrefix = getConfigurationPrefix(pluginClass.getName());
 
-        PropertySource pluginPropertySource = loadPluginConfiguration(pluginClass, pluginConfigurationPrefix);
+        PropertySource pluginPropertySource = load(pluginClass, pluginPropertyPrefix);
         if (!pluginPropertySource.isEmpty()) {
             ConfigurationManager.getInstance().addPropertySource(pluginPropertySource);
         }
 
         // Even there's no plugin configuration found above, it can be in the external configuration
         // So, check the 'disable' property from the manager to see if it's DISABLED
-        Boolean isPluginDisabled = ConfigurationManager.getInstance().getConfig(pluginConfigurationPrefix + ".disabled", Boolean.class);
+        Boolean isPluginDisabled = ConfigurationManager.getInstance().getConfig(pluginPropertyPrefix + ".disabled", Boolean.class);
         if (isPluginDisabled != null && isPluginDisabled) {
             return false;
         }
@@ -57,7 +57,7 @@ public class PluginConfiguration {
     /**
      * Load plugin configuration from static plugin.yml and dynamic configuration from environment variable and command line arguments
      */
-    private static PropertySource loadPluginConfiguration(Class<?> pluginClass, String configurationPrefix) {
+    private static PropertySource load(Class<?> pluginClass, String propertyPathPrefix) {
         String configFileName = pluginClass.getPackage().getName() + ".yml";
 
         PropertySource defaultPluginPropertySource;
@@ -70,13 +70,15 @@ public class PluginConfiguration {
         }
 
         // Use the command line args and environment to overwrite the default properties
-        String dynamicPropertyPrefix = "bithon." + configurationPrefix + ".";
+        String dynamicPropertyPrefix = "bithon." + propertyPathPrefix + ".";
         return defaultPluginPropertySource.merge(CommandLineArgsSource.build(dynamicPropertyPrefix))
                                           .merge(EnvironmentSource.build(dynamicPropertyPrefix));
     }
 
     /**
-     * Get the configuration prefix for a given plugin
+     * Get the configuration prefix for a given plugin.
+     * The package name for a plugin SHOULD be: org.bithon.agent.plugin.xxx.
+     * The prefix should be: bithon.agent.plugin.xxx.
      */
     private static String getConfigurationPrefix(String pluginClassName) {
         String prefix = "org.bithon.agent.plugin.";
