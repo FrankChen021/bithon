@@ -36,10 +36,13 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static java.io.File.separator;
 
@@ -134,7 +137,7 @@ public class ConfigurationManager {
     /**
      * the value in the map is actually a dynamic type of {@link IDelegation}
      */
-    private final Map<String, Object> mappedBeans = new ConcurrentHashMap<>(13);
+    private final Map<String, IDelegation> mappedBeans = new ConcurrentHashMap<>(13);
 
     private final Map<String, IConfigurationChangedListener> listeners = new ConcurrentHashMap<>(13);
 
@@ -151,69 +154,38 @@ public class ConfigurationManager {
         listeners.put(keyPrefix, listener);
     }
 
-    /**
-     * Refresh configuration and reflect configuration changes to binding beans that support dynamic.
-     *
-     * @param newConfiguration incremental new configuration
-     */
-    public Set<String> addConfiguration(Configuration newConfiguration) {
+    public void addConfiguration(Configuration newConfiguration) {
+
+        Set<String> changedKeys = new HashSet<>();
+
         boolean found = false;
         synchronized (this.configurations) {
-            for (int i = 0; i < this.configurations.size(); i++) {
-                if (this.configurations.get(i).getName().equals(newConfiguration.getName())) {
-                    // Replace configuration
-                    this.configurations.set(i, newConfiguration);
+            for (Configuration configuration : this.configurations) {
+                if (configuration.getName().equals(newConfiguration.getName())
+                    && configuration.getSource() == newConfiguration.getSource()
+                ) {
                     found = true;
+
+                    // Replace configuration
+                    configuration.swap(newConfiguration);
+
+                    changedKeys.addAll(newConfiguration.getKeys());
+                    changedKeys.addAll(configuration.getKeys());
+
+                    break;
                 }
             }
             if (!found) {
                 this.configurations.add(newConfiguration);
                 Collections.sort(this.configurations);
+
+                changedKeys.addAll(newConfiguration.getKeys());
             }
         }
 
-        Set<String> changedKeys = newConfiguration.getKeys();
-
-        // Re-bind the values based on changes
-        List<String> beanPrefixList = new ArrayList<>(mappedBeans.keySet());
-        for (String beanPrefix : beanPrefixList) {
-
-            // If any changed key matches the bean configuration prefix,
-            // we will reload the whole configuration
-            for (String changedPrefix : changedKeys) {
-                if (changedPrefix.startsWith(beanPrefix)) {
-                    IDelegation delegatedObject = (IDelegation) mappedBeans.get(beanPrefix);
-
-                    // Create a new configuration object
-                    Object newValue = getConfig(beanPrefix,
-                                                // the delegated object is a generated class
-                                                // that inherits from real configuration class
-                                                delegatedObject.getDelegationClass(),
-                                                false);
-
-                    // Update delegation
-                    delegatedObject.setDelegation(newValue);
-                    break;
-                }
-            }
+        if (!changedKeys.isEmpty()) {
+            this.applyChanges(changedKeys);
         }
-
-        //
-        // Notify listeners about changes
-        //
-        for (Map.Entry<String, IConfigurationChangedListener> entry : listeners.entrySet()) {
-            String watchedKey = entry.getKey();
-            IConfigurationChangedListener listener = entry.getValue();
-            if (changedKeys.contains(watchedKey)) {
-                try {
-                    listener.onChange();
-                } catch (Exception e) {
-                    log.warn("Exception when notify configuration change", e);
-                }
-            }
-        }
-
-        return changedKeys;
     }
 
     /**
@@ -253,7 +225,7 @@ public class ConfigurationManager {
 
             T val = collect(prefix).getConfig(prefix, clazz);
             try {
-                return proxyClass.getConstructor(clazz).newInstance(val);
+                return (IDelegation) proxyClass.getConstructor(clazz).newInstance(val);
             } catch (InstantiationException | IllegalAccessException | NoSuchMethodException e) {
                 throw new RuntimeException(e);
             } catch (InvocationTargetException e) {
@@ -317,5 +289,108 @@ public class ConfigurationManager {
         }
 
         return active == null ? "" : active.format(format, prettyFormat);
+    }
+
+    public Map<String, Configuration> getConfiguration(ConfigurationSource source) {
+        synchronized (this.configurations) {
+            return this.configurations.stream()
+                                      .filter((cfg) -> cfg.getSource() == source)
+                                      .collect(Collectors.toMap(Configuration::getName, v -> v));
+        }
+    }
+
+    public void applyChanges(List<String> removed,
+                             Map<String, Configuration> replace,
+                             List<Configuration> add) {
+        Set<String> changedKeys = new HashSet<>();
+
+        synchronized (this.configurations) {
+            // Processing removing first
+            if (!removed.isEmpty()) {
+                for (Iterator<Configuration> i = this.configurations.iterator(); i.hasNext(); ) {
+                    Configuration cfg = i.next();
+                    if (cfg.getSource() == ConfigurationSource.DYNAMIC && removed.contains(cfg.getName())) {
+                        i.remove();
+
+                        changedKeys.addAll(cfg.getKeys());
+                    }
+                }
+            }
+
+            if (!replace.isEmpty()) {
+                for (Configuration cfg : this.configurations) {
+                    if (cfg.getSource() != ConfigurationSource.DYNAMIC) {
+                        continue;
+                    }
+
+                    Configuration replacement = replace.get(cfg.getName());
+                    if (replacement != null) {
+                        cfg.swap(replacement);
+
+                        changedKeys.addAll(cfg.getKeys());
+                        changedKeys.addAll(replacement.getKeys());
+                    }
+                }
+            }
+
+            if (!add.isEmpty()) {
+                for (Configuration cfg : add) {
+                    this.configurations.add(cfg);
+                    changedKeys.addAll(cfg.getKeys());
+                }
+            }
+
+            Collections.sort(this.configurations);
+        }
+
+        // Apply Changes to mapped beans
+        if (!changedKeys.isEmpty()) {
+            applyChanges(changedKeys);
+        }
+    }
+
+    private void applyChanges(Set<String> changedKeys) {
+        //
+        // Re-bind the values based on changes
+        //
+        for (Map.Entry<String, IDelegation> mapEntry : mappedBeans.entrySet()) {
+            String beanPropertyPath = mapEntry.getKey();
+            IDelegation bean = mapEntry.getValue();
+
+            // If any changed key matches the bean configuration prefix,
+            // we will reload the whole configuration
+            for (String changedPath : changedKeys) {
+                if (changedPath.startsWith(beanPropertyPath)) {
+                    // Create a new configuration object
+                    Object newValue = getConfig(beanPropertyPath,
+                                                // the delegated object is a generated class
+                                                // that inherits from real configuration class
+                                                bean.getDelegationClass(),
+                                                // No need to create a proxy for the config because the bean here is the proxy
+                                                false);
+
+                    // Update delegation
+                    bean.setDelegation(newValue);
+
+                    // Break to go on next bean
+                    break;
+                }
+            }
+        }
+
+        //
+        // Notify listeners about changes
+        //
+        for (Map.Entry<String, IConfigurationChangedListener> entry : listeners.entrySet()) {
+            String watchedKey = entry.getKey();
+            IConfigurationChangedListener listener = entry.getValue();
+            if (changedKeys.contains(watchedKey)) {
+                try {
+                    listener.onChange();
+                } catch (Exception e) {
+                    log.warn("Exception when notify configuration change", e);
+                }
+            }
+        }
     }
 }

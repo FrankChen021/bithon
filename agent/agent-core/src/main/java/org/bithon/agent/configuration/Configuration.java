@@ -51,9 +51,10 @@ import java.util.function.Supplier;
  */
 public class Configuration implements Comparable<Configuration> {
 
+    private Object tag;
     private final String name;
     private final ConfigurationSource source;
-    private final JsonNode configurationNode;
+    private JsonNode configurationNode;
 
     /**
      * Create an empty configuration
@@ -62,17 +63,16 @@ public class Configuration implements Comparable<Configuration> {
         this(source, name, new ObjectNode(new JsonNodeFactory(true)));
     }
 
-    public Configuration(ConfigurationSource source, String name, String propertyText) throws IOException {
-        this.source = source;
-        this.name = name;
-        this.configurationNode = ObjectMapperConfigurer.configure(new JavaPropsMapper())
-                                                       .readTree(propertyText);
-    }
-
     protected Configuration(ConfigurationSource source, String name, JsonNode configurationNode) {
         this.source = source;
         this.name = name;
         this.configurationNode = configurationNode;
+    }
+
+    public static Configuration from(ConfigurationSource source, String name, String propertyText) throws IOException {
+        return new Configuration(source, name,
+                                 ObjectMapperConfigurer.configure(new JavaPropsMapper())
+                                                       .readTree(propertyText));
     }
 
     public static Configuration from(ConfigurationSource source, File configFilePath, boolean checkFileExists) {
@@ -162,8 +162,25 @@ public class Configuration implements Comparable<Configuration> {
         return to;
     }
 
+    public ConfigurationSource getSource() {
+        return source;
+    }
+
     public String getName() {
         return this.name;
+    }
+
+    public void swap(Configuration configuration) {
+        {
+            JsonNode tmp = this.configurationNode;
+            this.configurationNode = configuration.configurationNode;
+            configuration.configurationNode = tmp;
+        }
+        {
+            Object tmp = this.tag;
+            this.tag = configuration.tag;
+            configuration.tag = tmp;
+        }
     }
 
     public Configuration merge(Configuration configuration) {
@@ -315,6 +332,14 @@ public class Configuration implements Comparable<Configuration> {
     @Override
     public String toString() {
         return this.name;
+    }
+
+    public Object getTag() {
+        return tag;
+    }
+
+    public void setTag(Object tag) {
+        this.tag = tag;
     }
 
     @Override

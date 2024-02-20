@@ -43,9 +43,9 @@ public class CommandLineArgsConfiguration {
             userProperties.append('\n');
         }
         try {
-            return new Configuration(ConfigurationSource.COMMAND_LINE_ARGS,
-                                     "command-line",
-                                     userProperties.toString());
+            return Configuration.from(ConfigurationSource.COMMAND_LINE_ARGS,
+                                      "command-line",
+                                      userProperties.toString());
         } catch (IOException e) {
             throw new AgentException("Failed to read property user configuration:%s",
                                      e.getMessage());

@@ -26,13 +26,16 @@ import org.bithon.component.commons.concurrency.PeriodicTask;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.security.HashGenerator;
-import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,7 +50,6 @@ public class AgentSettingFetchTask extends PeriodicTask {
     private final String appName;
     private final String env;
     private final IAgentController controller;
-    private Long lastModifiedAt = 0L;
 
     /**
      * key: configuration name in configuration storage. Has no meaning at agent side
@@ -72,34 +74,55 @@ public class AgentSettingFetchTask extends PeriodicTask {
         log.info("Fetch configuration for {}-{}", appName, env);
 
         // Get configuration from remote server
-        Map<String, String> configurations = controller.getAgentConfiguration(appName, env, lastModifiedAt);
-        if (CollectionUtils.isEmpty(configurations)) {
-            return;
+        Map<String, String> configurationListFromRemote = controller.getAgentConfiguration(appName, env, 0);
+
+        List<String> removed = new ArrayList<>();
+        Map<String, Configuration> replace = new HashMap<>();
+        List<Configuration> add = new ArrayList<>();
+
+        // Remove the configuration source from the local manager if the remote does not contain it
+        Map<String, Configuration> existingConfigurationNames = ConfigurationManager.getInstance()
+                                                                                    .getConfiguration(ConfigurationSource.DYNAMIC);
+        for (String name : existingConfigurationNames.keySet()) {
+            if (!configurationListFromRemote.containsKey(name)) {
+                // The local dynamic configuration no longer exists in the remote
+                // We need to remove it
+                removed.add(name);
+            }
         }
 
-        // TODO: ConfigurationManager.getInstance().getConfigurationSources();
         // Check if the one has been deleted from the remote
-        for (Map.Entry<String, String> entry : configurations.entrySet()) {
+        for (Map.Entry<String, String> entry : configurationListFromRemote.entrySet()) {
             String name = entry.getKey();
             String text = entry.getValue();
 
-            // Compare signature to determine if the configuration changes
+            // Generate signature for further comparison
             String signature = HashGenerator.sha256Hex(text);
-            if (configSignatures.getOrDefault(name, "").equals(signature)) {
-                continue;
-            }
 
-            Configuration cfg;
-            try (InputStream is = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))) {
-                cfg = Configuration.from(ConfigurationSource.DYNAMIC, "dynamic." + name, ConfigurationFormat.JSON, is);
-            }
+            Configuration existingConfiguration = existingConfigurationNames.get(name);
+            if (existingConfiguration == null
+                || !signature.equals(existingConfiguration.getTag())) {
 
-            log.info("Refresh configuration [{}]", name);
-            ConfigurationManager.getInstance().addConfiguration(cfg);
-            configSignatures.put(name, signature);
+                try (InputStream is = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))) {
+                    Configuration newConfiguration = Configuration.from(ConfigurationSource.DYNAMIC,
+                                                                        name,
+                                                                        ConfigurationFormat.JSON,
+                                                                        is);
+                    newConfiguration.setTag(signature);
+
+                    if (existingConfiguration == null) {
+                        add.add(newConfiguration);
+                    } else {
+                        replace.put(name, newConfiguration);
+                    }
+                } catch (IOException e) {
+                    log.error(StringUtils.format("Error to deserialize configuration "));
+                }
+            }
         }
 
-        lastModifiedAt = System.currentTimeMillis();
+        ConfigurationManager.getInstance()
+                            .applyChanges(removed, replace, add);
     }
 
     @Override

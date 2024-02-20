@@ -47,7 +47,7 @@ public class EnvironmentConfiguration {
 
         if (userProperties.length() > 0) {
             try {
-                return new Configuration(ConfigurationSource.ENVIRONMENT_VARIABLES, "environment", userProperties.toString());
+                return Configuration.from(ConfigurationSource.ENVIRONMENT_VARIABLES, "environment", userProperties.toString());
             } catch (IOException e) {
                 throw new AgentException("Failed to read property user configuration:%s",
                                          e.getMessage());

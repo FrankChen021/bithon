@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 
 /**
  * @author frank.chen021@outlook.com
@@ -79,13 +80,14 @@ public class TestConfigurationManager {
         }
     }
 
-    private final ObjectMapper objectMapper = ObjectMapperConfigurer.configure(new ObjectMapper());
-
     @Test
     public void test_DynamicConfiguration() throws IOException {
-        JsonNode json = objectMapper.readTree(objectMapper.writeValueAsBytes(Collections.singletonMap("test", new TestConfig(1, 7, "8%"))));
         ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
-        manager.addConfiguration(new Configuration(ConfigurationSource.INTERNAL, "1", json));
+        manager.addConfiguration(Configuration.from(ConfigurationSource.INTERNAL,
+                                                    "1",
+                                                    "test.a=1\n" +
+                                                        "test.b=7\n" +
+                                                        "test.percentage=8%"));
 
         TestConfig testConfig = manager.getConfig(TestConfig.class);
         Assert.assertEquals(1, testConfig.getA());
@@ -95,8 +97,10 @@ public class TestConfigurationManager {
         //
         // Use new value to refresh the old one
         //
-        JsonNode json2 = objectMapper.readTree(objectMapper.writeValueAsBytes(Collections.singletonMap("test", new TestConfig(2, 8, "500%"))));
-        manager.addConfiguration(new Configuration(ConfigurationSource.INTERNAL, "2", json2));
+        manager.addConfiguration(Configuration.from(ConfigurationSource.INTERNAL,
+                                                    "2",
+                                                    "test.a=2\ntest.b=8\ntest.percentage=500%"
+                                                    ));
         Assert.assertEquals(2, testConfig.getA());
         Assert.assertEquals(8, testConfig.getB());
         Assert.assertEquals(5, testConfig.getPercentage().intValue());
@@ -248,5 +252,132 @@ public class TestConfigurationManager {
             Assert.assertEquals("from_command_line", config.getProp1());
             Assert.assertEquals("from_env", config.getProp2());
         }
+    }
+
+    static class ApplyChangeTestConfig {
+        private String prop;
+        private String prop1;
+        private String prop2;
+        private String prop3;
+        private String prop4;
+        private String prop5;
+
+        public ApplyChangeTestConfig() {
+        }
+
+        public String getProp() {
+            return prop;
+        }
+
+        public void setProp(String prop) {
+            this.prop = prop;
+        }
+
+        public String getProp1() {
+            return prop1;
+        }
+
+        public void setProp1(String prop1) {
+            this.prop1 = prop1;
+        }
+
+        public String getProp2() {
+            return prop2;
+        }
+
+        public void setProp2(String prop2) {
+            this.prop2 = prop2;
+        }
+
+        public String getProp3() {
+            return prop3;
+        }
+
+        public void setProp3(String prop3) {
+            this.prop3 = prop3;
+        }
+
+        public String getProp4() {
+            return prop4;
+        }
+
+        public void setProp4(String prop4) {
+            this.prop4 = prop4;
+        }
+
+        public String getProp5() {
+            return prop5;
+        }
+
+        public void setProp5(String prop5) {
+            this.prop5 = prop5;
+        }
+    }
+
+    @Test
+    public void test_ApplyChanges() throws IOException {
+        ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
+
+        ApplyChangeTestConfig bean = manager.getConfig("test", ApplyChangeTestConfig.class, true);
+        Assert.assertEquals("from default file", bean.getProp());
+
+        // Add two new configurations
+        manager.applyChanges(Collections.emptyList(),
+                             Collections.emptyMap(),
+                             Arrays.asList(Configuration.from(ConfigurationSource.DYNAMIC, "d1", "test.prop=a"),
+                                           Configuration.from(ConfigurationSource.DYNAMIC, "d2", "test.prop1=from_d2")));
+        HashMap map = manager.getConfig("test", HashMap.class);
+        Assert.assertEquals(2, map.size());
+        Assert.assertEquals("a", map.get("prop"));
+        Assert.assertEquals("from_d2", map.get("prop1"));
+
+        // The bean Should be get updated
+        Assert.assertEquals("a", bean.getProp());
+        Assert.assertEquals("from_d2", bean.getProp1());
+
+        //
+        // Remove 'd1'
+        //
+        manager.applyChanges(Collections.singletonList("d1"),
+                             Collections.emptyMap(),
+                             Collections.emptyList());
+        map = manager.getConfig("test", HashMap.class);
+        Assert.assertEquals(2, map.size());
+        Assert.assertEquals("from default file", map.get("prop"));
+        Assert.assertEquals("from_d2", map.get("prop1"));
+
+        // The bean Should be get updated
+        Assert.assertEquals("from default file", bean.getProp());
+        Assert.assertEquals("from_d2", bean.getProp1());
+
+        // Remove d2,
+        // Add d3
+        manager.applyChanges(Collections.singletonList("d2"),
+                             Collections.emptyMap(),
+                             Collections.singletonList(Configuration.from(ConfigurationSource.DYNAMIC, "d3", "test.prop1=from_d3")));
+        map = manager.getConfig("test", HashMap.class);
+        Assert.assertEquals(2, map.size());
+        Assert.assertEquals("from default file", map.get("prop"));
+        Assert.assertEquals("from_d3", map.get("prop1"));
+
+        Assert.assertEquals("from default file", bean.getProp());
+        Assert.assertEquals("from_d3", bean.getProp1());
+
+
+        // Replace d3, add d4
+        manager.applyChanges(Collections.emptyList(),
+                             ImmutableMap.of("d3", Configuration.from(ConfigurationSource.DYNAMIC, "d3", "test.prop3=from_d3")),
+                             Collections.singletonList(Configuration.from(ConfigurationSource.DYNAMIC, "d4", "test.prop4=from_d4")));
+        map = manager.getConfig("test", HashMap.class);
+        Assert.assertEquals(3, map.size());
+        Assert.assertEquals("from default file", map.get("prop"));
+        Assert.assertEquals("from_d3", map.get("prop3"));
+        Assert.assertEquals("from_d4", map.get("prop4"));
+
+        Assert.assertEquals("from default file", bean.getProp());
+        Assert.assertNull(bean.getProp1());
+        Assert.assertNull(bean.getProp2());
+        Assert.assertEquals("from_d3", bean.getProp3());
+        Assert.assertEquals("from_d4", bean.getProp4());
     }
 }
