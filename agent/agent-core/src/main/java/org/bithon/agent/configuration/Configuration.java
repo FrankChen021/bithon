@@ -51,6 +51,30 @@ import java.util.function.Supplier;
  */
 public class Configuration implements Comparable<Configuration> {
 
+    private final String name;
+    private final ConfigurationSource source;
+    private final JsonNode configurationNode;
+
+    /**
+     * Create an empty configuration
+     */
+    public Configuration(ConfigurationSource source, String name) {
+        this(source, name, new ObjectNode(new JsonNodeFactory(true)));
+    }
+
+    public Configuration(ConfigurationSource source, String name, String propertyText) throws IOException {
+        this.source = source;
+        this.name = name;
+        this.configurationNode = ObjectMapperConfigurer.configure(new JavaPropsMapper())
+                                                       .readTree(propertyText);
+    }
+
+    protected Configuration(ConfigurationSource source, String name, JsonNode configurationNode) {
+        this.source = source;
+        this.name = name;
+        this.configurationNode = configurationNode;
+    }
+
     public static Configuration from(ConfigurationSource source, File configFilePath, boolean checkFileExists) {
         ConfigurationFormat fileFormat = ConfigurationFormat.determineFormatFromFile(configFilePath.getName());
         try (FileInputStream fs = new FileInputStream(configFilePath)) {
@@ -85,41 +109,6 @@ public class Configuration implements Comparable<Configuration> {
                                      configurationFormat,
                                      e.getMessage());
         }
-    }
-
-    private final String name;
-    private final ConfigurationSource source;
-    private final JsonNode configurationNode;
-
-    public String getName() {
-        return this.name;
-    }
-
-    /**
-     * Create an empty configuration
-     */
-    public Configuration(ConfigurationSource source, String name) {
-        this(source, name, new ObjectNode(new JsonNodeFactory(true)));
-    }
-
-    public Configuration(ConfigurationSource source, String name, String propertyText) throws IOException {
-        this.source = source;
-        this.name = name;
-        this.configurationNode = ObjectMapperConfigurer.configure(new JavaPropsMapper())
-                                                       .readTree(propertyText);
-    }
-
-    protected Configuration(ConfigurationSource source, String name, JsonNode configurationNode) {
-        this.source = source;
-        this.name = name;
-        this.configurationNode = configurationNode;
-    }
-
-    public Configuration merge(Configuration configuration) {
-        if (configuration != null) {
-            merge(this.configurationNode, configuration.configurationNode, false);
-        }
-        return this;
     }
 
     /**
@@ -171,6 +160,17 @@ public class Configuration implements Comparable<Configuration> {
         }
 
         return to;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public Configuration merge(Configuration configuration) {
+        if (configuration != null) {
+            merge(this.configurationNode, configuration.configurationNode, false);
+        }
+        return this;
     }
 
     public boolean isEmpty() {

@@ -21,8 +21,6 @@ import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
