@@ -199,9 +199,9 @@ public class AgentConfigurationApi {
     private String getUserOrToken(String token) {
         Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
         String principal = authentication == null ? null : (String) authentication.getPrincipal();
-        if (principal == null) {
+        if (principal == null || "anonymousUser".equals(principal)) {
             if (token == null) {
-                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "No user or token provided.");
+                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "No user or token provided for authorization.");
             }
 
             // Use token-based authorization
