@@ -5,6 +5,7 @@
 spring:
   profiles:
     include:
+      - controller
       - receiver
       - pipeline-to-local
       - storage-h2
