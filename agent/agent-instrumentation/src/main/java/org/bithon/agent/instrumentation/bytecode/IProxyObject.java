@@ -17,14 +17,18 @@
 package org.bithon.agent.instrumentation.bytecode;
 
 /**
+ * The interface on the proxied object.
+ * See {@link ProxyClassGenerator} for more.
+ * NOTE: DON'T CHANGE the method names because they're used as STRING in the {@link ProxyClassGenerator}
+ *
  * @author frank.chen021@outlook.com
  * @date 2023/1/7 16:12
  */
-public interface IDelegation {
-    Class<?> getDelegationClass();
+public interface IProxyObject {
+    Class<?> getProxyClass();
 
     /**
      * Allow dynamically changing the delegated object
      */
-    void setDelegation(Object val);
+    void setProxyObject(Object val);
 }

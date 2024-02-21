@@ -21,8 +21,8 @@ import org.bithon.agent.configuration.source.EnvironmentSource;
 import org.bithon.agent.configuration.source.ExternalSource;
 import org.bithon.agent.configuration.source.PropertySource;
 import org.bithon.agent.configuration.source.PropertySourceType;
-import org.bithon.agent.instrumentation.bytecode.ClassDelegation;
-import org.bithon.agent.instrumentation.bytecode.IDelegation;
+import org.bithon.agent.instrumentation.bytecode.IProxyObject;
+import org.bithon.agent.instrumentation.bytecode.ProxyClassGenerator;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.instrumentation.utils.AgentDirectory;
 import org.bithon.component.commons.logging.ILogAdaptor;
@@ -134,9 +134,9 @@ public class ConfigurationManager {
     private final List<PropertySource> propertySources = new ArrayList<>();
 
     /**
-     * the value in the map is actually a dynamic type of {@link IDelegation}
+     * the value in the map is actually a dynamic type of {@link IProxyObject}
      */
-    private final Map<String, IDelegation> mappedBeans = new ConcurrentHashMap<>(13);
+    private final Map<String, IProxyObject> proxiedBeans = new ConcurrentHashMap<>(13);
 
     /**
      * key - the watched property path
@@ -223,12 +223,14 @@ public class ConfigurationManager {
 
         // If this configuration clazz is defined as dynamic (it means configuration changes will dynamically reflect on its corresponding configuration clazz object),
         // a delegation class is created
-        return (T) mappedBeans.computeIfAbsent(propertyPath, (k) -> {
-            Class<?> proxyClass = ClassDelegation.create(clazz);
+        return (T) proxiedBeans.computeIfAbsent(propertyPath, (k) -> {
+            Class<?> proxyClass = ProxyClassGenerator.create(clazz);
 
             T val = Binder.bind(propertyPath, collect(propertyPath), clazz);
             try {
-                return (IDelegation) proxyClass.getConstructor(clazz).newInstance(val);
+                // For each generated
+                return (IProxyObject) proxyClass.getConstructor(clazz)
+                                                .newInstance(val);
             } catch (InstantiationException | IllegalAccessException | NoSuchMethodException e) {
                 throw new RuntimeException(e);
             } catch (InvocationTargetException e) {
@@ -341,9 +343,9 @@ public class ConfigurationManager {
         //
         // Re-bind the values based on changes
         //
-        for (Map.Entry<String, IDelegation> mapEntry : mappedBeans.entrySet()) {
+        for (Map.Entry<String, IProxyObject> mapEntry : proxiedBeans.entrySet()) {
             String beanPropertyPath = mapEntry.getKey();
-            IDelegation bean = mapEntry.getValue();
+            IProxyObject bean = mapEntry.getValue();
 
             // If any changed key matches the bean configuration prefix,
             // we will reload the whole configuration
@@ -353,12 +355,12 @@ public class ConfigurationManager {
                     Object newValue = getConfig(beanPropertyPath,
                                                 // the delegated object is a generated class
                                                 // that inherits from real configuration class
-                                                bean.getDelegationClass(),
+                                                bean.getProxyClass(),
                                                 // No need to create a proxy for the config because the bean here is the proxy
                                                 false);
 
                     // Update delegation
-                    bean.setDelegation(newValue);
+                    bean.setProxyObject(newValue);
 
                     // Break to go on next bean
                     break;

@@ -16,7 +16,6 @@
 
 package org.bithon.agent.configuration;
 
-import org.bithon.agent.configuration.ObjectMapperConfigurer;
 import org.bithon.agent.configuration.validation.Validator;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;

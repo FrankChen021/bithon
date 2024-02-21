@@ -39,7 +39,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Generate a subclass that satisfies the base class and delegate all its public method to a delegated object.
+ * Generate a subclass that satisfies the base class and delegate all its public method to that delegated object.
+ * The generated class will be injected into the same class loader that loads the base class.
+ *
  * <p>
  * For example,
  * <pre>
@@ -52,10 +54,10 @@ import java.util.Map;
  * <p>
  * The generated class:
  * <pre>
- *     class GeneratedA extends A implements IDelegation {
+ *     class GeneratedA extends A implements IProxyObject {
  *         private A delegation;
  *
- *         public GeneratedA(Object delegation) {
+ *         public GeneratedA(A delegation) {
  *             super();
  *             this.delegation = delegation;
  *         }
@@ -64,11 +66,11 @@ import java.util.Map;
  *            delegation.getA();
  *         }
  *
- *         public void setDelegate(Object val) {
+ *         public void setProxyObject(Object val) {
  *             this.delegation = val;
  *         }
  *
- *         public Class getDelegationClass() {
+ *         public Class getProxyClass() {
  *             return delegation.getClass();
  *         }
  *     }
@@ -80,7 +82,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2023/1/7 15:13
  */
-public class ClassDelegation {
+public class ProxyClassGenerator {
 
     public static Class<?> create(Class<?> baseClass) {
         Constructor<?> defaultCtor;
@@ -98,7 +100,7 @@ public class ClassDelegation {
                                                                                      .and(ElementMatchers.not(ElementMatchers.isNative()));
 
         DynamicType.Unloaded<?> type = new ByteBuddy().subclass(baseClass, ConstructorStrategy.Default.NO_CONSTRUCTORS)
-                                                      .implement(IDelegation.class)
+                                                      .implement(IProxyObject.class)
                                                       // Create delegation field
                                                       .defineField("delegation", baseClass, Modifier.PRIVATE)
                                                       // Override all public and non-native methods to call methods on the delegation object
@@ -107,11 +109,11 @@ public class ClassDelegation {
                                                                                  .withBindingResolver(new MethodSignatureMatchResolver())
                                                                                  .filter(delegationMethods)
                                                                                  .toField("delegation"))
-                                                      // Define IDelegation.getDelegationClass
-                                                      .defineMethod("getDelegationClass", Class.class, Visibility.PUBLIC)
+                                                      // Define IProxyObject.getProxyClass
+                                                      .defineMethod("getProxyClass", Class.class, Visibility.PUBLIC)
                                                       .intercept(MethodCall.invoke(ElementMatchers.named("getClass")).onField("delegation"))
-                                                      // Define IDelegation.setDelegation
-                                                      .defineMethod("setDelegation", void.class, Visibility.PUBLIC).withParameters(Object.class)
+                                                      // Define IProxyObject.setProxyObject
+                                                      .defineMethod("setProxyObject", void.class, Visibility.PUBLIC).withParameters(Object.class)
                                                       .intercept(FieldAccessor.ofField("delegation")
                                                                               .withAssigner(Assigner.GENERICS_AWARE, Assigner.Typing.DYNAMIC)
                                                                               .setsArgumentAt(0))
