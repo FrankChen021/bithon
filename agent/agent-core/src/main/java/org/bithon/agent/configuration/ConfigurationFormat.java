@@ -20,6 +20,7 @@ import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.shaded.com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import org.bithon.shaded.com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.bithon.shaded.com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
 /**
  * @author Frank Chen
@@ -29,15 +30,21 @@ public enum ConfigurationFormat {
     YAML {
         @Override
         public ObjectMapper createMapper() {
-            return new ObjectMapper(new YAMLFactory());
+            return new ObjectMapper(new YAMLFactory()
+                                        // Configure serialization format
+                                        .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
+                                        .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES)
+            );
         }
     },
+
     JSON {
         @Override
         public ObjectMapper createMapper() {
             return new ObjectMapper();
         }
     },
+
     PROPERTIES {
         @Override
         public ObjectMapper createMapper() {
