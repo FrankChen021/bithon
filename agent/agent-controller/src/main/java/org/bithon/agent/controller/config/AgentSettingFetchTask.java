@@ -26,6 +26,7 @@ import org.bithon.component.commons.concurrency.PeriodicTask;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.security.HashGenerator;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.ByteArrayInputStream;
@@ -39,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Dynamic Setting Manager for Plugins
+ * Dynamic Setting Manager for agent
  *
  * @author frank.chen021@outlook.com
  */
@@ -70,11 +71,14 @@ public class AgentSettingFetchTask extends PeriodicTask {
     }
 
     @Override
-    protected void onRun() throws Exception {
+    protected void onRun() {
         log.info("Fetch configuration for {}-{}", appName, env);
 
         // Get configuration from remote server
         Map<String, String> configurationListFromRemote = controller.getAgentConfiguration(appName, env, 0);
+        if (CollectionUtils.isEmpty(configurationListFromRemote)) {
+            return;
+        }
 
         List<String> removed = new ArrayList<>();
         Map<String, PropertySource> replace = new HashMap<>();
