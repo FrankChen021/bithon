@@ -257,6 +257,8 @@ public class ConfigurationManager {
             if (node == null) {
                 node = found;
             } else {
+                // A configuration node is found on a new property source, then we need to merge them.
+                // But before that, we need to make sure the source is a deep copy
                 if (isFirst) {
                     node = node.deepCopy();
                     isFirst = false;

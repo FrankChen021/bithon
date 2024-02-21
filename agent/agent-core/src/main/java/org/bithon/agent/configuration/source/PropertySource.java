@@ -244,7 +244,7 @@ public class PropertySource implements Comparable<PropertySource> {
 
     @Override
     public String toString() {
-        return this.name;
+        return "type=" + this.type + ", name=" + this.name;
     }
 
     public Object getTag() {
