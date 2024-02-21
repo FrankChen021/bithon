@@ -16,13 +16,9 @@
 
 package org.bithon.server.web.service.datasource.api;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 
 import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -37,27 +33,21 @@ public class TimeSeriesMetric {
      * {@link Number} is not used because if an element is not set, the serialized value is null.
      * Since we want to keep the serialized value to be 0, the raw number type is the best
      */
-    private final Object values;
+    private final double[] values;
 
-    @JsonIgnore
-    private BiConsumer<Integer, Object> valueSetter;
-
-    @JsonIgnore
-    private Function<Integer, Number> valueGetter;
-
-    public TimeSeriesMetric(List<String> tags, int size, IAggregatableColumn metricSpec) {
+    public TimeSeriesMetric(List<String> tags, int size) {
         this.tags = tags;
 
-        this.values = new double[size + 1];
-        this.valueSetter = (index, number) -> ((double[]) values)[index] = number == null ? 0 : ((Number) number).doubleValue();
-        this.valueGetter = (index) -> ((double[]) values)[index];
+        this.values = new double[size];
     }
 
     public void set(int index, Object value) {
-        this.valueSetter.accept(index, value);
+        if (value != null) {
+            values[index] = ((Number) value).doubleValue();
+        }
     }
 
     public Number get(int index) {
-        return this.valueGetter.apply(index);
+        return values[index];
     }
 }

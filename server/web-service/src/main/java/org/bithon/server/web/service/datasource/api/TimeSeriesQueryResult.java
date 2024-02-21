@@ -69,8 +69,8 @@ public class TimeSeriesQueryResult {
 
                 map.computeIfAbsent(tags,
                                     v -> new TimeSeriesMetric(tags,
-                                                              bucketCount,
-                                                              null));
+                                                              bucketCount
+                                    ));
             }
         } else {
             for (Map<String, Object> point : dataPoints) {
@@ -88,8 +88,8 @@ public class TimeSeriesQueryResult {
 
                     map.computeIfAbsent(tags,
                                         v -> new TimeSeriesMetric(tags,
-                                                                  bucketCount,
-                                                                  null))
+                                                                  bucketCount
+                                        ))
                        .set(bucketIndex, point.get(metric));
                 }
             }
