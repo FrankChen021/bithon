@@ -28,25 +28,28 @@ import java.util.Map;
 public class EnvironmentSource {
 
     public static PropertySource build(String envPrefix) {
-        StringBuilder userProperties = new StringBuilder();
+        StringBuilder propertyText = new StringBuilder();
 
         for (Map.Entry<String, String> entry : Helper.getEnvironmentVariables().entrySet()) {
             String name = entry.getKey();
             String value = entry.getValue();
             if (name.startsWith(envPrefix) && !value.isEmpty()) {
-                name = name.substring(envPrefix.length());
+                name = name.substring(envPrefix.length())
+                           // For env, the underscore is used as a replacement of '.' character,
+                           // Here we need to convert these characters back
+                           .replace('_', '.');
                 if (!name.isEmpty()) {
-                    userProperties.append(name);
-                    userProperties.append('=');
-                    userProperties.append(value);
-                    userProperties.append('\n');
+                    propertyText.append(name);
+                    propertyText.append('=');
+                    propertyText.append(value);
+                    propertyText.append('\n');
                 }
             }
         }
 
-        if (userProperties.length() > 0) {
+        if (propertyText.length() > 0) {
             try {
-                return PropertySource.from(PropertySourceType.ENVIRONMENT_VARIABLES, "environment", userProperties.toString());
+                return PropertySource.from(PropertySourceType.ENVIRONMENT_VARIABLES, "environment", propertyText.toString());
             } catch (IOException e) {
                 throw new AgentException("Failed to read property user configuration:%s",
                                          e.getMessage());

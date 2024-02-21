@@ -29,22 +29,22 @@ import java.util.Properties;
  */
 public class CommandLineArgsSource {
     public static PropertySource build(String commandLineArgPrefix) {
-        Properties userPropertyMap = parseCommandLineArgs(commandLineArgPrefix);
+        Properties commandLineArgs = parseCommandLineArgs(commandLineArgPrefix);
 
-        StringBuilder userProperties = new StringBuilder();
-        for (Map.Entry<Object, Object> entry : userPropertyMap.entrySet()) {
+        StringBuilder propertyText = new StringBuilder();
+        for (Map.Entry<Object, Object> entry : commandLineArgs.entrySet()) {
             String name = (String) entry.getKey();
             String value = (String) entry.getValue();
 
-            userProperties.append(name);
-            userProperties.append('=');
-            userProperties.append(value);
-            userProperties.append('\n');
+            propertyText.append(name);
+            propertyText.append('=');
+            propertyText.append(value);
+            propertyText.append('\n');
         }
         try {
             return PropertySource.from(PropertySourceType.COMMAND_LINE_ARGS,
                                        "command-line",
-                                       userProperties.toString());
+                                       propertyText.toString());
         } catch (IOException e) {
             throw new AgentException("Failed to read property user configuration:%s",
                                      e.getMessage());

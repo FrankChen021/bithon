@@ -127,7 +127,7 @@ public class ConfigurationManager {
         return new ConfigurationManager(PropertySource.from(PropertySourceType.INTERNAL, defaultConfigLocation, true),
                                         ExternalSource.build(),
                                         CommandLineArgsSource.build("bithon."),
-                                        EnvironmentSource.build("bithon."));
+                                        EnvironmentSource.build("bithon_"));
     }
 
     // Sorted in priority
@@ -241,6 +241,7 @@ public class ConfigurationManager {
 
     /**
      * Collect properties that have the same given prefix from multiple sources
+     * @return A nullable node that contains all properties under the give property path
      */
     private JsonNode collect(String propertyPath) {
         String[] propertyPaths = propertyPath.split("\\.");

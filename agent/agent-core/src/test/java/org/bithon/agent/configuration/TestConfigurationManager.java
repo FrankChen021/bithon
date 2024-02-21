@@ -191,8 +191,8 @@ public class TestConfigurationManager {
                                                       ));
 
             configurationMock.when(Helper::getEnvironmentVariables)
-                             .thenReturn(ImmutableMap.of("bithon.t", "t1",
-                                                         "bithon.test.prop", "from_env"));
+                             .thenReturn(ImmutableMap.of("bithon_t", "t1",
+                                                         "bithon_test_prop", "from_env"));
 
             ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
 
@@ -238,9 +238,9 @@ public class TestConfigurationManager {
                                                       ));
 
             configurationMock.when(Helper::getEnvironmentVariables)
-                             .thenReturn(ImmutableMap.of("bithon.t", "t1",
+                             .thenReturn(ImmutableMap.of("bithon_t", "t1",
                                                          //Overwrite the prop2
-                                                         "bithon.test.prop2", "from_env"));
+                                                         "bithon_test_prop2", "from_env"));
 
             ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
 
