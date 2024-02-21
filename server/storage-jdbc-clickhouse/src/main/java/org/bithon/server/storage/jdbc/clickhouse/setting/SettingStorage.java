@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
@@ -31,6 +32,7 @@ import org.bithon.server.storage.jdbc.setting.SettingJdbcWriter;
 import org.bithon.server.storage.setting.ISettingReader;
 import org.bithon.server.storage.setting.ISettingWriter;
 import org.bithon.server.storage.setting.SettingStorageConfig;
+import org.jooq.Condition;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -71,9 +73,12 @@ public class SettingStorage extends SettingJdbcStorage {
                 String sql = dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
                                        .getSQL() + " FINAL WHERE ";
 
-                sql += dslContext.renderInlined(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName)
-                                                                                   .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env).or(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")))
-                                                                                   .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.ge(new Timestamp(since).toLocalDateTime())));
+                Condition condition = Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName)
+                                                                          .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.ge(new Timestamp(since).toLocalDateTime()));
+                if(!StringUtils.hasText(env)) {
+                    condition = condition.and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env));
+                }
+                sql += dslContext.renderInlined(condition);
 
                 return dslContext.fetch(sql).map(this::toSettingEntry);
             }
