@@ -26,7 +26,6 @@ import org.bithon.component.commons.concurrency.PeriodicTask;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.security.HashGenerator;
-import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.ByteArrayInputStream;
@@ -76,7 +75,10 @@ public class AgentSettingFetchTask extends PeriodicTask {
 
         // Get configuration from remote server
         Map<String, String> configurationListFromRemote = controller.getAgentConfiguration(appName, env, 0);
-        if (CollectionUtils.isEmpty(configurationListFromRemote)) {
+        if (configurationListFromRemote == null) {
+            // Ignore internal error when invoke remote service
+            // NOTE:
+            // we need to process the empty map because the remote might delete all settings while the local still keeps these settings
             return;
         }
 

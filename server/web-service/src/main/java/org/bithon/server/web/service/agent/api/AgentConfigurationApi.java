@@ -190,7 +190,6 @@ public class AgentConfigurationApi {
                                     @Validated @RequestBody DeleteRequest request) {
         this.agentControllerConfig.getPermission()
                                   .verifyPermission(objectMapper, request.getAppName(), getUserOrToken(token));
-        // Used role-based authentication
 
         ISettingWriter writer = settingStorage.createWriter();
         writer.deleteSetting(request.getAppName(), request.getEnvironment() == null ? "" : request.getEnvironment().trim(), request.getName());
