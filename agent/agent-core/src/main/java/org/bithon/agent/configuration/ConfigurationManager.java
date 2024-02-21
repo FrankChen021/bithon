@@ -29,9 +29,7 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
-import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.NullNode;
-import org.bithon.shaded.com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -193,8 +191,9 @@ public class ConfigurationManager {
     }
 
     /**
-     * Bind configuration to an object. And if the configuration changes, it will reflect on this object.
-     * NOTE: The clazz must have a default ctor if it's annotated by {@link ConfigurationProperties}
+     * Bind configuration to an object.
+     * And if the configuration changes, it WILL reflect on this object.
+     * NOTE: The clazz must have a non-private default ctor if it's annotated by {@link ConfigurationProperties}
      */
     public <T> T getConfig(Class<T> clazz) {
         ConfigurationProperties cfg = clazz.getAnnotation(ConfigurationProperties.class);
@@ -205,29 +204,29 @@ public class ConfigurationManager {
         return getConfig(cfg.path(), clazz, cfg.dynamic());
     }
 
-    public <T> T getDynamicConfig(String prefix, Class<T> clazz) {
-        return getConfig(prefix, clazz, true);
+    public <T> T getDynamicConfig(String propertyPath, Class<T> clazz) {
+        return getConfig(propertyPath, clazz, true);
     }
 
     /**
-     * Bind configuration to an object. And if the configuration changes, it will reflect on this object
+     * Bind configuration to an object. And if the configuration changes, it will NOT reflect on this object
      */
-    public <T> T getConfig(String prefix, Class<T> clazz) {
-        return getConfig(prefix, clazz, false);
+    public <T> T getConfig(String propertyPath, Class<T> clazz) {
+        return getConfig(propertyPath, clazz, false);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getConfig(String prefix, Class<T> clazz, boolean isDynamic) {
+    public <T> T getConfig(String propertyPath, Class<T> clazz, boolean isDynamic) {
         if (clazz.isPrimitive() || !isDynamic) {
-            return collect(prefix).getConfig(prefix, clazz);
+            return Binder.bind(propertyPath, collect(propertyPath), clazz);
         }
 
         // If this configuration clazz is defined as dynamic (it means configuration changes will dynamically reflect on its corresponding configuration clazz object),
         // a delegation class is created
-        return (T) mappedBeans.computeIfAbsent(prefix, (k) -> {
+        return (T) mappedBeans.computeIfAbsent(propertyPath, (k) -> {
             Class<?> proxyClass = ClassDelegation.create(clazz);
 
-            T val = collect(prefix).getConfig(prefix, clazz);
+            T val = Binder.bind(propertyPath, collect(propertyPath), clazz);
             try {
                 return (IDelegation) proxyClass.getConstructor(clazz).newInstance(val);
             } catch (InstantiationException | IllegalAccessException | NoSuchMethodException e) {
@@ -241,7 +240,7 @@ public class ConfigurationManager {
     /**
      * Collect properties that have the same given prefix from multiple sources
      */
-    private PropertySource collect(String propertyPath) {
+    private JsonNode collect(String propertyPath) {
         String[] propertyPaths = propertyPath.split("\\.");
 
         boolean isFirst = true;
@@ -263,22 +262,7 @@ public class ConfigurationManager {
             }
         }
 
-        if (node == null || node instanceof NullNode) {
-            return new PropertySource(PropertySourceType.DYNAMIC, "for-eval");
-        }
-
-        ObjectMapper om = new ObjectMapper();
-        ObjectNode root = om.createObjectNode();
-        ObjectNode parent = root;
-        int i = 0;
-        for (; i < propertyPaths.length - 1; i++) {
-            ObjectNode next = om.createObjectNode();
-            parent.set(propertyPaths[i], next);
-            parent = next;
-        }
-        parent.set(propertyPaths[i], node);
-
-        return new PropertySource(PropertySourceType.DYNAMIC, "for-eval", root);
+        return node;
     }
 
     public String getActiveConfiguration(String format, boolean prettyFormat) {

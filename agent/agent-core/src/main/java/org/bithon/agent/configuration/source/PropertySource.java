@@ -17,18 +17,13 @@
 package org.bithon.agent.configuration.source;
 
 import org.bithon.agent.configuration.ConfigurationFormat;
-import org.bithon.agent.configuration.ConfigurationProperties;
 import org.bithon.agent.configuration.ObjectMapperConfigurer;
-import org.bithon.agent.configuration.validation.Validator;
 import org.bithon.agent.instrumentation.expt.AgentException;
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 import org.bithon.shaded.com.fasterxml.jackson.databind.JsonNode;
-import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.shaded.com.fasterxml.jackson.databind.SerializationFeature;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import org.bithon.shaded.com.fasterxml.jackson.databind.node.NullNode;
 import org.bithon.shaded.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.bithon.shaded.com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 
@@ -37,15 +32,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 /**
  * @author frank.chen021@outlook.com
@@ -241,86 +232,6 @@ public class PropertySource implements Comparable<PropertySource> {
             }
             path.remove(addIndex);
         }
-    }
-
-    public <T> T getConfig(Class<T> clazz) {
-        ConfigurationProperties cfg = clazz.getAnnotation(ConfigurationProperties.class);
-        if (cfg != null && !StringUtils.isEmpty(cfg.path())) {
-            return getConfig(cfg.path(), clazz);
-        } else {
-            return getConfig("[root]", clazz);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> T getConfig(String propertyPath, Class<T> clazz) {
-        return getConfig(propertyPath,
-                         clazz,
-                         () -> {
-                             // default value provider
-                             try {
-                                 if (clazz == Boolean.class) {
-                                     //noinspection unchecked
-                                     return (T) Boolean.FALSE;
-                                 }
-                                 if (clazz.isArray()) {
-                                     return (T) Array.newInstance(clazz.getComponentType(), 0);
-                                 }
-                                 Constructor<T> ctor = clazz.getDeclaredConstructor();
-                                 ctor.setAccessible(true);
-                                 return ctor.newInstance();
-                             } catch (IllegalAccessException e) {
-                                 throw new AgentException("Unable create instance for [%s]: %s", clazz.getName(), e.getMessage());
-                             } catch (NoSuchMethodException | InvocationTargetException | InstantiationException e) {
-                                 throw new AgentException("Unable create instance for [%s]: %s",
-                                                          clazz.getName(),
-                                                          e.getCause() == null ? e.getMessage() : e.getCause().getMessage());
-                             }
-                         });
-    }
-
-    public <T> T getConfig(String propertyPath, Class<T> clazz, Supplier<T> defaultSupplier) {
-        if (this.propertyNode.isEmpty()) {
-            return defaultSupplier.get();
-        }
-
-        JsonNode node = propertyNode;
-
-        // Find the correct node by prefix
-        for (String part : propertyPath.split("\\.")) {
-            if (node == null) {
-                break;
-            }
-            node = node.get(part);
-        }
-
-        if (node == null || node instanceof NullNode) {
-            return defaultSupplier.get();
-        }
-
-        return getConfig(propertyPath, node, clazz);
-    }
-
-    private <T> T getConfig(String propertyPath, JsonNode configuration, Class<T> clazz) {
-        T value;
-        try {
-            value = ObjectMapperConfigurer.configure(new ObjectMapper())
-                                          .convertValue(configuration, clazz);
-        } catch (IllegalArgumentException e) {
-            throw new AgentException(e,
-                                     "Unable to read type of [%s] from configuration: %s",
-                                     clazz.getSimpleName(),
-                                     e.getMessage());
-        }
-
-        String violation = Validator.validate(propertyPath, value);
-        if (violation != null) {
-            throw new AgentException("Invalid configuration for type of [%s]: %s",
-                                     clazz.getSimpleName(),
-                                     violation);
-        }
-
-        return value;
     }
 
     /**
