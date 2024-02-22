@@ -16,12 +16,17 @@
 
 package org.bithon.server.storage.jdbc.clickhouse.common.exception;
 
+import java.net.UnknownHostException;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2024/1/14 11:57
  */
 public class RetryableExceptions {
     public static boolean isExceptionRetryable(Exception e) {
+        if (e instanceof UnknownHostException) {
+            return true;
+        }
         String message = e.getMessage();
         return message != null
             && (message.startsWith("Connect timed out")
