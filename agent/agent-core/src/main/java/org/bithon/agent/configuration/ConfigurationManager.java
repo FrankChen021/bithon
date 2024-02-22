@@ -186,7 +186,7 @@ public class ConfigurationManager {
         }
 
         if (!changedKeys.isEmpty()) {
-            this.applyChanges(changedKeys);
+            this.applyChangesToBean(changedKeys);
         }
     }
 
@@ -241,6 +241,7 @@ public class ConfigurationManager {
 
     /**
      * Collect properties that have the same given prefix from multiple sources
+     *
      * @return A nullable node that contains all properties under the give property path
      */
     private JsonNode collect(String propertyPath) {
@@ -292,9 +293,9 @@ public class ConfigurationManager {
         }
     }
 
-    public void applyChanges(List<String> removed,
-                             Map<String, PropertySource> replace,
-                             List<PropertySource> add) {
+    public void applyChangesToBean(List<String> removed,
+                                   Map<String, PropertySource> replace,
+                                   List<PropertySource> add) {
         Set<String> changedKeys = new HashSet<>();
 
         synchronized (this.propertySources) {
@@ -304,6 +305,8 @@ public class ConfigurationManager {
                     PropertySource cfg = i.next();
                     if (cfg.getType() == PropertySourceType.DYNAMIC && removed.contains(cfg.getName())) {
                         i.remove();
+
+                        log.info("Remove configuration [{}]", cfg.getName());
 
                         changedKeys.addAll(cfg.getKeys());
                     }
@@ -320,6 +323,8 @@ public class ConfigurationManager {
                     if (replacement != null) {
                         cfg.swap(replacement);
 
+                        log.info("Replace configuration [{}]", cfg.getName());
+
                         changedKeys.addAll(cfg.getKeys());
                         changedKeys.addAll(replacement.getKeys());
                     }
@@ -328,6 +333,8 @@ public class ConfigurationManager {
 
             if (!add.isEmpty()) {
                 for (PropertySource cfg : add) {
+                    log.info("Add configuration [{}]", cfg.getName());
+
                     this.propertySources.add(cfg);
                     changedKeys.addAll(cfg.getKeys());
                 }
@@ -336,13 +343,12 @@ public class ConfigurationManager {
             Collections.sort(this.propertySources);
         }
 
-        // Apply Changes to mapped beans
         if (!changedKeys.isEmpty()) {
-            applyChanges(changedKeys);
+            applyChangesToBean(changedKeys);
         }
     }
 
-    private void applyChanges(Set<String> changedKeys) {
+    private void applyChangesToBean(Set<String> changedKeys) {
         //
         // Re-bind the values based on changes
         //
@@ -354,6 +360,8 @@ public class ConfigurationManager {
             // we will reload the whole configuration
             for (String changedPath : changedKeys) {
                 if (changedPath.startsWith(beanPropertyPath)) {
+                    log.info("Apply configuration changes to bean binding to '{}'", beanPropertyPath);
+
                     // Create a new configuration object
                     Object newValue = getConfig(beanPropertyPath,
                                                 // the delegated object is a generated class
@@ -375,9 +383,10 @@ public class ConfigurationManager {
         // Notify listeners about changes
         //
         for (Map.Entry<String, IConfigurationChangedListener> entry : listeners.entrySet()) {
-            String watchedKey = entry.getKey();
+            String watchedPropertyPath = entry.getKey();
             IConfigurationChangedListener listener = entry.getValue();
-            if (changedKeys.contains(watchedKey)) {
+            if (changedKeys.contains(watchedPropertyPath)) {
+                log.info("Notify watched configuration property change on '{}'", watchedPropertyPath);
                 try {
                     listener.onChange();
                 } catch (Exception e) {

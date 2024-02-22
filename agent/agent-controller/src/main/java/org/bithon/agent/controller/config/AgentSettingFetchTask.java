@@ -51,12 +51,6 @@ public class AgentSettingFetchTask extends PeriodicTask {
     private final String env;
     private final IAgentController controller;
 
-    /**
-     * key: configuration name in configuration storage. Has no meaning at agent side
-     * val: configuration text
-     */
-    private final Map<String, String> configSignatures = new HashMap<>();
-
 
     public AgentSettingFetchTask(String appName, String env, IAgentController controller, Duration refreshInterval) {
         super("bithon-cfg-updater", refreshInterval, false);
@@ -128,7 +122,7 @@ public class AgentSettingFetchTask extends PeriodicTask {
         }
 
         ConfigurationManager.getInstance()
-                            .applyChanges(removed, replace, add);
+                            .applyChangesToBean(removed, replace, add);
     }
 
     @Override
