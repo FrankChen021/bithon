@@ -315,9 +315,9 @@ public class TestConfigurationManager {
         Assert.assertEquals("from default file", bean.getProp());
 
         // Add two new configurations
-        manager.applyChangesToBean(Collections.emptyList(),
-                                   Collections.emptyMap(),
-                                   Arrays.asList(PropertySource.from(PropertySourceType.DYNAMIC, "d1", "test.prop=a"),
+        manager.applyChanges(Collections.emptyList(),
+                             Collections.emptyMap(),
+                             Arrays.asList(PropertySource.from(PropertySourceType.DYNAMIC, "d1", "test.prop=a"),
                                            PropertySource.from(PropertySourceType.DYNAMIC, "d2", "test.prop1=from_d2")));
         HashMap map = manager.getConfig("test", HashMap.class);
         Assert.assertEquals(2, map.size());
@@ -331,9 +331,9 @@ public class TestConfigurationManager {
         //
         // Remove 'd1'
         //
-        manager.applyChangesToBean(Collections.singletonList("d1"),
-                                   Collections.emptyMap(),
-                                   Collections.emptyList());
+        manager.applyChanges(Collections.singletonList("d1"),
+                             Collections.emptyMap(),
+                             Collections.emptyList());
         map = manager.getConfig("test", HashMap.class);
         Assert.assertEquals(2, map.size());
         Assert.assertEquals("from default file", map.get("prop"));
@@ -345,9 +345,9 @@ public class TestConfigurationManager {
 
         // Remove d2,
         // Add d3
-        manager.applyChangesToBean(Collections.singletonList("d2"),
-                                   Collections.emptyMap(),
-                                   Collections.singletonList(PropertySource.from(PropertySourceType.DYNAMIC, "d3", "test.prop1=from_d3")));
+        manager.applyChanges(Collections.singletonList("d2"),
+                             Collections.emptyMap(),
+                             Collections.singletonList(PropertySource.from(PropertySourceType.DYNAMIC, "d3", "test.prop1=from_d3")));
         map = manager.getConfig("test", HashMap.class);
         Assert.assertEquals(2, map.size());
         Assert.assertEquals("from default file", map.get("prop"));
@@ -358,9 +358,9 @@ public class TestConfigurationManager {
 
 
         // Replace d3, add d4
-        manager.applyChangesToBean(Collections.emptyList(),
-                                   ImmutableMap.of("d3", PropertySource.from(PropertySourceType.DYNAMIC, "d3", "test.prop3=from_d3")),
-                                   Collections.singletonList(PropertySource.from(PropertySourceType.DYNAMIC, "d4", "test.prop4=from_d4")));
+        manager.applyChanges(Collections.emptyList(),
+                             ImmutableMap.of("d3", PropertySource.from(PropertySourceType.DYNAMIC, "d3", "test.prop3=from_d3")),
+                             Collections.singletonList(PropertySource.from(PropertySourceType.DYNAMIC, "d4", "test.prop4=from_d4")));
         map = manager.getConfig("test", HashMap.class);
         Assert.assertEquals(3, map.size());
         Assert.assertEquals("from default file", map.get("prop"));

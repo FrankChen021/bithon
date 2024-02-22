@@ -122,7 +122,7 @@ public class AgentSettingFetchTask extends PeriodicTask {
         }
 
         ConfigurationManager.getInstance()
-                            .applyChangesToBean(removed, replace, add);
+                            .applyChanges(removed, replace, add);
     }
 
     @Override

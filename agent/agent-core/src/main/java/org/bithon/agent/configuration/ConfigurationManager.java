@@ -293,9 +293,9 @@ public class ConfigurationManager {
         }
     }
 
-    public void applyChangesToBean(List<String> removed,
-                                   Map<String, PropertySource> replace,
-                                   List<PropertySource> add) {
+    public void applyChanges(List<String> removed,
+                             Map<String, PropertySource> replace,
+                             List<PropertySource> add) {
         Set<String> changedKeys = new HashSet<>();
 
         synchronized (this.propertySources) {
