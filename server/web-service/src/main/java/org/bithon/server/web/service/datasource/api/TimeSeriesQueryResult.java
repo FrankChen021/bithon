@@ -38,7 +38,15 @@ public class TimeSeriesQueryResult {
      * How many data points for one series
      */
     private final int count;
+
+    /**
+     * The aligned start timestamp that can be seen as: toStartOfTime(start, INTERVAL intervalSecond SECOND)
+     */
     private final long startTimestamp;
+
+    /**
+     * The aligned end timestamp that can be seen as: toStartOfTime(end, INTERVAL intervalSecond SECOND)
+     */
     private final long endTimestamp;
 
     /**
@@ -49,15 +57,14 @@ public class TimeSeriesQueryResult {
 
     public static TimeSeriesQueryResult build(TimeSpan start,
                                               TimeSpan end,
-                                              int interval,
+                                              int intervalSecond,
                                               List<Map<String, Object>> dataPoints,
                                               String tsColumn,
                                               List<String> groups,
                                               List<String> metrics) {
-        int step = interval;
-        long startSecond = start.toSeconds() / step * step;
-        long endSecond = end.toSeconds() / step * step;
-        int bucketCount = (int) (endSecond - startSecond) / step;
+        long startSecond = start.toSeconds() / intervalSecond * intervalSecond;
+        long endSecond = end.toSeconds() / intervalSecond * intervalSecond;
+        int bucketCount = (int) (endSecond - startSecond) / intervalSecond;
 
         // Use LinkedHashMap to retain the order of input metric list
         Map<List<String>, TimeSeriesMetric> map = new LinkedHashMap<>(7);
@@ -75,7 +82,7 @@ public class TimeSeriesQueryResult {
         } else {
             for (Map<String, Object> point : dataPoints) {
                 long timestamp = ((Number) point.get(tsColumn)).longValue();
-                int bucketIndex = (int) (timestamp - startSecond) / step;
+                int bucketIndex = (int) (timestamp - startSecond) / intervalSecond;
 
                 for (String metric : metrics) {
                     // this code is not so efficient
@@ -98,7 +105,7 @@ public class TimeSeriesQueryResult {
         return new TimeSeriesQueryResult(bucketCount,
                                          startSecond * 1000,
                                          endSecond * 1000,
-                                         interval * 1000L,
+                                         intervalSecond * 1000L,
                                          map.values());
     }
 }
