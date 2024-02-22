@@ -14,23 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sentinel.config;
-
-import org.bithon.agent.configuration.ConfigurationProperties;
+package org.bithon.agent.instrumentation.bytecode;
 
 /**
+ * The interface on the proxied object.
+ * See {@link ProxyClassGenerator} for more.
+ * NOTE: DON'T CHANGE the method names because they're used as STRING in the {@link ProxyClassGenerator}
+ *
  * @author frank.chen021@outlook.com
- * @date 2023/3/6 00:44
+ * @date 2023/1/7 16:12
  */
-@ConfigurationProperties(path = "agent.sentinel")
-public class SentinelConfig {
-    private boolean enabled = false;
+public interface IProxyObject {
+    Class<?> getProxyClass();
 
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
+    /**
+     * Allow dynamically changing the delegated object
+     */
+    void setProxyObject(Object val);
 }

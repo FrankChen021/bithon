@@ -17,25 +17,29 @@
 package org.bithon.agent.controller.config;
 
 
-import org.bithon.agent.configuration.Configuration;
+import org.bithon.agent.configuration.ConfigurationFormat;
 import org.bithon.agent.configuration.ConfigurationManager;
+import org.bithon.agent.configuration.source.PropertySource;
+import org.bithon.agent.configuration.source.PropertySourceType;
 import org.bithon.agent.controller.IAgentController;
 import org.bithon.component.commons.concurrency.PeriodicTask;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.security.HashGenerator;
-import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * Dynamic Setting Manager for Plugins
+ * Dynamic Setting Manager for agent
  *
  * @author frank.chen021@outlook.com
  */
@@ -46,13 +50,6 @@ public class AgentSettingFetchTask extends PeriodicTask {
     private final String appName;
     private final String env;
     private final IAgentController controller;
-    private Long lastModifiedAt = 0L;
-
-    /**
-     * key: configuration name in configuration storage. Has no meaning at agent side
-     * val: configuration text
-     */
-    private final Map<String, String> configSignatures = new HashMap<>();
 
 
     public AgentSettingFetchTask(String appName, String env, IAgentController controller, Duration refreshInterval) {
@@ -67,55 +64,65 @@ public class AgentSettingFetchTask extends PeriodicTask {
     }
 
     @Override
-    protected void onRun() throws Exception {
+    protected void onRun() {
         log.info("Fetch configuration for {}-{}", appName, env);
 
         // Get configuration from remote server
-        Map<String, String> configurations = controller.getAgentConfiguration(appName, env, lastModifiedAt);
-        if (CollectionUtils.isEmpty(configurations)) {
+        Map<String, String> configurationListFromRemote = controller.getAgentConfiguration(appName, env, 0);
+        if (configurationListFromRemote == null) {
+            // Ignore internal error when invoke remote service
+            // NOTE:
+            // we need to process the empty map because the remote might delete all settings while the local still keeps these settings
             return;
         }
 
-        Configuration config = null;
-        for (Map.Entry<String, String> entry : configurations.entrySet()) {
+        List<String> removed = new ArrayList<>();
+        Map<String, PropertySource> replace = new HashMap<>();
+        List<PropertySource> add = new ArrayList<>();
+
+        // Remove the configuration source from the local manager if the remote does not contain it
+        Map<String, PropertySource> existingSources = ConfigurationManager.getInstance()
+                                                                          .getPropertySource(PropertySourceType.DYNAMIC);
+        for (String name : existingSources.keySet()) {
+            if (!configurationListFromRemote.containsKey(name)) {
+                // The local dynamic configuration no longer exists in the remote
+                // We need to remove it
+                removed.add(name);
+            }
+        }
+
+        // Check if the one has been deleted from the remote
+        for (Map.Entry<String, String> entry : configurationListFromRemote.entrySet()) {
             String name = entry.getKey();
             String text = entry.getValue();
 
-            // Compare signature to determine if the configuration changes
+            // Generate signature for further comparison
             String signature = HashGenerator.sha256Hex(text);
-            if (configSignatures.getOrDefault(name, "").equals(signature)) {
-                continue;
-            }
 
-            log.info("Refresh configuration [{}]", name);
-            configSignatures.put(name, signature);
+            PropertySource existingPropertySource = existingSources.get(name);
+            if (existingPropertySource == null
+                || !signature.equals(existingPropertySource.getTag())) {
 
-            try (InputStream is = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))) {
-                Configuration cfg = Configuration.from(".json", is);
+                try (InputStream is = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))) {
+                    PropertySource newSource = PropertySource.from(PropertySourceType.DYNAMIC,
+                                                                   name,
+                                                                   ConfigurationFormat.JSON,
+                                                                   is);
+                    newSource.setTag(signature);
 
-                if (config == null) {
-                    config = cfg;
-                } else {
-                    config.merge(cfg);
+                    if (existingPropertySource == null) {
+                        add.add(newSource);
+                    } else {
+                        replace.put(name, newSource);
+                    }
+                } catch (IOException e) {
+                    log.error(StringUtils.format("Error to deserialize configuration "));
                 }
             }
         }
-        if (config == null) {
-            return;
-        }
 
-        // Update saved configuration
-        // TODO: incremental configuration deletion is not supported because of complexity.
-        // if the incremental configuration overwrites the global configuration, we need to restore or we can't delete the configuration directly
-        // One solution is that the 'refresh' method below return the action on each returned key, ADD/REPLACE,
-        // and then we keep the changed keys and corresponding actions for rollback.
-        // Since it's not a must-have feature at this stage, leave it to future when we really needs it.
-        Set<String> changedKeys = ConfigurationManager.getInstance().refresh(config);
-        if (changedKeys.isEmpty()) {
-            return;
-        }
-
-        lastModifiedAt = System.currentTimeMillis();
+        ConfigurationManager.getInstance()
+                            .applyChanges(removed, replace, add);
     }
 
     @Override

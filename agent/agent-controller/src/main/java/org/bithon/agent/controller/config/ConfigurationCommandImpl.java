@@ -32,6 +32,6 @@ public class ConfigurationCommandImpl implements IConfigurationCommand, IAgentCo
     @Override
     public List<String> getConfiguration(String format, boolean prettyFormat) {
         return Collections.singletonList(ConfigurationManager.getInstance()
-                                                             .format(format.toLowerCase(Locale.ENGLISH), prettyFormat));
+                                                             .getActiveConfiguration(format.toLowerCase(Locale.ENGLISH), prettyFormat));
     }
 }

@@ -1,0 +1,11 @@
+bithon:
+  agent-controller:
+    enabled: true
+    port: 9899
+    permission:
+      rules:
+        - application:
+            type: startwith
+            pattern: bithon-
+          authorizations:
+            - "525"

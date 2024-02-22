@@ -46,11 +46,12 @@ public class PermissionConfig {
                                             application);
         }
 
-        boolean permitted = applicationRules.stream().anyMatch((rule) -> rule.getAuthorizations().contains(authorization));
+        boolean permitted = applicationRules.stream().anyMatch((rule) -> rule.getAuthorizations() != null && rule.getAuthorizations().contains(authorization));
         if (!permitted) {
             throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
-                                            "Given authorization does not match existing permission rule for WRITE operation on application [%s]",
-                                            authorization);
+                                            "Given authorization [%s] does not match existing permission rule for WRITE operation on application [%s]",
+                                            authorization,
+                                            application);
         }
     }
 }

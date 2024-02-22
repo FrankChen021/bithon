@@ -36,7 +36,7 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
  */
 public class BithonBrpcPlugin implements IPlugin {
 
-    @ConfigurationProperties(prefix = "agent.plugin.bithon.brpc")
+    @ConfigurationProperties(path = "agent.plugin.bithon.brpc")
     public static class ServiceProviderConfig {
         private Map<String, String> providers = Collections.emptyMap();
 

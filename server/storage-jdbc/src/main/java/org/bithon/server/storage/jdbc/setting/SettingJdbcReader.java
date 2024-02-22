@@ -18,9 +18,11 @@ package org.bithon.server.storage.jdbc.setting;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
+import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAgentSettingRecord;
 import org.bithon.server.storage.setting.ISettingReader;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.SelectConditionStep;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -40,12 +42,17 @@ public class SettingJdbcReader implements ISettingReader {
 
     @Override
     public List<SettingEntry> getSettings(String appName, String env, long since) {
-        return dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
-                         .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName))
-                         .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env).or(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")))
-                         .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.gt(new Timestamp(since).toLocalDateTime()))
-                         .fetch()
-                         .map(this::toSettingEntry);
+        SelectConditionStep<BithonAgentSettingRecord> step = dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
+                                                                       .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName));
+        if (!env.isEmpty()) {
+            step = step.and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env)
+                                                                   // Also returns the application level configuration
+                                                                   .or(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")));
+        }
+
+        return step.and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.gt(new Timestamp(since).toLocalDateTime()))
+                   .fetch()
+                   .map(this::toSettingEntry);
     }
 
     @Override

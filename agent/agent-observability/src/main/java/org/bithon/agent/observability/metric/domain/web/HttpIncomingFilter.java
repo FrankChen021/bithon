@@ -36,7 +36,7 @@ import java.util.Set;
  */
 public class HttpIncomingFilter {
 
-    @ConfigurationProperties(prefix = "agent.plugin.http.incoming.filter.uri")
+    @ConfigurationProperties(path = "agent.plugin.http.incoming.filter.uri")
     public static class UriFilterConfiguration {
         @JsonProperty
         private String suffixes = ".html,.js,.css,.jpg,.gif,.png,.swf,.ttf,.ico,.woff,.woff2,.eot,.svg,.map";
@@ -50,7 +50,7 @@ public class HttpIncomingFilter {
         }
     }
 
-    @ConfigurationProperties(prefix = "agent.plugin.http.incoming.filter.user-agent")
+    @ConfigurationProperties(path = "agent.plugin.http.incoming.filter.user-agent")
     public static class UserAgentFilterConfiguration {
         @JsonProperty
         private List<IMatcher> matchers = Collections.emptyList();

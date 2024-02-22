@@ -14,17 +14,26 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.instrumentation.bytecode;
+package org.bithon.agent.configuration.source;
 
-/**
- * @author frank.chen021@outlook.com
- * @date 2023/1/7 16:12
- */
-public interface IDelegation {
-    Class<?> getDelegationClass();
+public enum PropertySourceType {
+    INTERNAL(0),
 
-    /**
-     * Allow dynamically changing the delegated object
-     */
-    void setDelegation(Object val);
+    EXTERNAL(1),
+
+    COMMAND_LINE_ARGS(2),
+
+    ENVIRONMENT_VARIABLES(3),
+
+    DYNAMIC(4);
+
+    PropertySourceType(int val) {
+        this.priority = val;
+    }
+
+    public int priority() {
+        return priority;
+    }
+
+    private final int priority;
 }

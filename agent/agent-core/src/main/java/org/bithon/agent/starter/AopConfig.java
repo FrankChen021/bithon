@@ -22,7 +22,7 @@ import org.bithon.agent.configuration.ConfigurationProperties;
  * @author frank.chen021@outlook.com
  * @date 2021/8/7 13:53
  */
-@ConfigurationProperties(prefix = "aop", dynamic = false)
+@ConfigurationProperties(path = "aop", dynamic = false)
 public class AopConfig {
     private boolean debug = false;
 

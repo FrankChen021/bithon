@@ -27,6 +27,8 @@ import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.agent.starter.IAgentService;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.ArrayList;
@@ -50,7 +52,11 @@ public class DynamicInstrumentationService implements IAgentService, IConfigurat
 
     @Override
     public void start() throws Exception {
-        ConfigurationManager.getInstance().addConfigurationChangedListener("tracing.instrumentation.methods", this);
+        // Try to install from static configuration in file
+        install();
+
+        ConfigurationManager.getInstance()
+                            .addConfigurationChangedListener("tracing.instrumentation.methods", this);
     }
 
     @Override
@@ -68,14 +74,52 @@ public class DynamicInstrumentationService implements IAgentService, IConfigurat
         uninstaller = install();
     }
 
-    @ConfigurationProperties(prefix = "tracing.instrumentation.methods")
+    @ConfigurationProperties(path = "tracing.instrumentation.methods", dynamic = false)
     static class SignatureList extends ArrayList<String> {
-        public SignatureList() {
-        }
     }
 
     static class InstrumentedMethod {
         private final Set<String> methods = new HashSet<>();
+    }
+
+
+    static class MethodMatcher extends ElementMatcher.Junction.AbstractBase<MethodDescription> {
+        static MethodMatcher INSTANCE = new MethodMatcher();
+
+        private final ElementMatcher<MethodDescription>[] excludeMethods = new ElementMatcher[]{
+            ElementMatchers.isGetter(),
+            ElementMatchers.isSetter(),
+            ElementMatchers.isClone(),
+            ElementMatchers.isToString(),
+            ElementMatchers.isEquals(),
+            ElementMatchers.isHashCode(),
+            ElementMatchers.isFinalizer(),
+            ElementMatchers.isDefaultFinalizer()
+        };
+
+        @Override
+        public boolean matches(MethodDescription target) {
+            if (target.isStatic()) {
+                return true;
+            }
+
+            if (target.isMethod()
+                && !target.isConstructor()
+                && !target.isDefaultMethod()
+                && !target.isNative()
+                && target.isSynthetic()) {
+
+                for (ElementMatcher<MethodDescription> matcher : excludeMethods) {
+                    if (matcher.matches(target)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
     }
 
     public Uninstaller install() {
@@ -115,7 +159,7 @@ public class DynamicInstrumentationService implements IAgentService, IConfigurat
             aop.put(clazz,
                     new DynamicInterceptorInstaller.AopDescriptor(
                         clazz,
-                        instrumentedMethod.methods.isEmpty() ? ElementMatchers.not(ElementMatchers.isConstructor()) : Matchers.withNames(instrumentedMethod.methods),
+                        instrumentedMethod.methods.isEmpty() ? MethodMatcher.INSTANCE : Matchers.withNames(instrumentedMethod.methods),
                         Interceptor.class.getName()
                     ));
         }

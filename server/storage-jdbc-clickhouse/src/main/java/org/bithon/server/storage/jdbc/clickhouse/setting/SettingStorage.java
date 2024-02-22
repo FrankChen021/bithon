@@ -31,6 +31,7 @@ import org.bithon.server.storage.jdbc.setting.SettingJdbcWriter;
 import org.bithon.server.storage.setting.ISettingReader;
 import org.bithon.server.storage.setting.ISettingWriter;
 import org.bithon.server.storage.setting.SettingStorageConfig;
+import org.jooq.Condition;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -71,9 +72,14 @@ public class SettingStorage extends SettingJdbcStorage {
                 String sql = dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
                                        .getSQL() + " FINAL WHERE ";
 
-                sql += dslContext.renderInlined(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName)
-                                                                                   .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env).or(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")))
-                                                                                   .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.ge(new Timestamp(since).toLocalDateTime())));
+                Condition condition = Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName)
+                                                                         .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.ge(new Timestamp(since).toLocalDateTime()));
+                if (!env.isEmpty()) {
+                    condition = condition.and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env)
+                                                                                     // Also returns the application level configuration
+                                                                                     .or(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")));
+                }
+                sql += dslContext.renderInlined(condition);
 
                 return dslContext.fetch(sql).map(this::toSettingEntry);
             }

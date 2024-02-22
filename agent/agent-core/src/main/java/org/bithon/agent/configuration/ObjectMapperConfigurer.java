@@ -35,7 +35,6 @@ import java.io.IOException;
  */
 public class ObjectMapperConfigurer {
 
-
     private static final SimpleModule MODULE = new SimpleModule();
 
     static {

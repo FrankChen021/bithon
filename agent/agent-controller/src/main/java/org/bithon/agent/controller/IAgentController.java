@@ -27,6 +27,8 @@ public interface IAgentController extends AutoCloseable {
     /**
      * An encapsulation of underlying configuration retrieval
      * So that higher level does not care which RPC is used to get the setting.
+     *
+     * @return A nullable map where key is the name of the configuration, val is the JSON format configuration text
      */
     Map<String, String> getAgentConfiguration(String appName,
                                               String env,

@@ -16,13 +16,14 @@
 
 package org.bithon.agent.configuration;
 
+import org.bithon.agent.configuration.source.CommandLineArgsSource;
+import org.bithon.agent.configuration.source.EnvironmentSource;
+import org.bithon.agent.configuration.source.PropertySource;
+import org.bithon.agent.configuration.source.PropertySourceType;
 import org.bithon.agent.instrumentation.expt.AgentException;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -36,19 +37,19 @@ public class PluginConfiguration {
      * @return false is the plugin is disabled by configuration
      */
     public static boolean load(Class<?> pluginClass) {
-        String pluginConfigurationPrefix = getConfigurationPrefix(pluginClass.getName());
+        String pluginPropertyPrefix = getConfigurationPrefix(pluginClass.getName());
 
-        Configuration pluginConfiguration = load(pluginClass, pluginConfigurationPrefix);
-        if (!pluginConfiguration.isEmpty()) {
-
-            Boolean isPluginDisabled = pluginConfiguration.getConfig(pluginConfigurationPrefix + ".disabled", Boolean.class);
-            if (isPluginDisabled != null && isPluginDisabled) {
-                return false;
-            }
+        PropertySource pluginPropertySource = load(pluginClass, pluginPropertyPrefix);
+        if (!pluginPropertySource.isEmpty()) {
+            ConfigurationManager.getInstance().addPropertySource(pluginPropertySource);
         }
 
-        // Merge the plugin configuration into agent configuration first so that the plugin initialization can obtain its configuration
-        ConfigurationManager.getInstance().merge(pluginConfiguration);
+        // Even there's no plugin configuration found above, it can be in the external configuration
+        // So, check the 'disable' property from the manager to see if it's DISABLED
+        Boolean isPluginDisabled = ConfigurationManager.getInstance().getConfig(pluginPropertyPrefix + ".disabled", Boolean.class);
+        if (isPluginDisabled != null && isPluginDisabled) {
+            return false;
+        }
 
         return true;
     }
@@ -56,46 +57,28 @@ public class PluginConfiguration {
     /**
      * Load plugin configuration from static plugin.yml and dynamic configuration from environment variable and command line arguments
      */
-    private static Configuration load(Class<?> pluginClass, String configurationPrefix) {
-        String configFormat = pluginClass.getPackage().getName() + ".yml";
-        String dynamicPrefix = "bithon." + configurationPrefix + ".";
+    private static PropertySource load(Class<?> pluginClass, String propertyPathPrefix) {
+        String configFileName = pluginClass.getPackage().getName() + ".yml";
 
-        Configuration pluginConfiguration;
-        try (InputStream staticConfigurationStream = pluginClass.getClassLoader().getResourceAsStream(configFormat)) {
-            pluginConfiguration = Configuration.create(configFormat, staticConfigurationStream, dynamicPrefix);
+        PropertySource defaultPluginPropertySource;
+        try (InputStream fs = pluginClass.getClassLoader().getResourceAsStream(configFileName)) {
+            defaultPluginPropertySource = PropertySource.from(PropertySourceType.INTERNAL, configFileName, ConfigurationFormat.YAML, fs);
         } catch (IOException ignored) {
             // Ignore this exception thrown from InputStream.close
-            // Try to load from dynamic configuration
-            pluginConfiguration = Configuration.create(configFormat, null, dynamicPrefix);
+            // Create an empty one for further processing
+            defaultPluginPropertySource = new PropertySource(PropertySourceType.INTERNAL, configFileName);
         }
 
-        if (!pluginConfiguration.isEmpty() && !pluginConfiguration.validate(configurationPrefix)) {
-            // Dump file content if it's invalid
-            StringBuilder config = new StringBuilder(128);
-            try {
-                try (InputStream stream = pluginClass.getClassLoader().getResourceAsStream(configFormat)) {
-                    if (stream != null) {
-                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-                            String line;
-                            while ((line = reader.readLine()) != null) {
-                                config.append(line);
-                            }
-                        }
-                    }
-                }
-            } catch (IOException ignored) {
-            }
-            throw new AgentException("Plugin [%s] has a configuration that does not comply with the configuration prefix [%s]:\n%s",
-                                     pluginClass.getName(),
-                                     configurationPrefix,
-                                     config.toString()
-            );
-        }
-        return pluginConfiguration;
+        // Use the command line args and environment to overwrite the default properties
+        String dynamicPropertyPrefix = "bithon." + propertyPathPrefix + ".";
+        return defaultPluginPropertySource.merge(CommandLineArgsSource.build(dynamicPropertyPrefix))
+                                          .merge(EnvironmentSource.build(dynamicPropertyPrefix));
     }
 
     /**
-     * Get the configuration prefix for given plugin
+     * Get the configuration prefix for a given plugin.
+     * The package name for a plugin SHOULD be: org.bithon.agent.plugin.xxx.
+     * The prefix should be: bithon.agent.plugin.xxx.
      */
     private static String getConfigurationPrefix(String pluginClassName) {
         String prefix = "org.bithon.agent.plugin.";
