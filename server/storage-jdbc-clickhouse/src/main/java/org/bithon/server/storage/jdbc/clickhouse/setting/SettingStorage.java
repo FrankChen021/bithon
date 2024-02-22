@@ -74,9 +74,11 @@ public class SettingStorage extends SettingJdbcStorage {
                                        .getSQL() + " FINAL WHERE ";
 
                 Condition condition = Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName)
-                                                                          .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.ge(new Timestamp(since).toLocalDateTime()));
-                if(!StringUtils.hasText(env)) {
-                    condition = condition.and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env));
+                                                                         .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.ge(new Timestamp(since).toLocalDateTime()));
+                if (!env.isEmpty()) {
+                    condition = condition.and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env)
+                                                                                     // Also returns the application level configuration
+                                                                                     .or(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")));
                 }
                 sql += dslContext.renderInlined(condition);
 

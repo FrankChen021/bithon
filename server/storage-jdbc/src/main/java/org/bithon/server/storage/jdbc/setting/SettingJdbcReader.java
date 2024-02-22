@@ -45,7 +45,9 @@ public class SettingJdbcReader implements ISettingReader {
         SelectConditionStep<BithonAgentSettingRecord> step = dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
                                                                        .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName));
         if (!env.isEmpty()) {
-            step = step.and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env).or(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")));
+            step = step.and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env)
+                                                                   // Also returns the application level configuration
+                                                                   .or(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")));
         }
 
         return step.and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.gt(new Timestamp(since).toLocalDateTime()))
