@@ -16,8 +16,6 @@
 
 package org.bithon.agent.configuration;
 
-import org.bithon.agent.configuration.source.CommandLineArgsSource;
-import org.bithon.agent.configuration.source.EnvironmentSource;
 import org.bithon.agent.configuration.source.PropertySource;
 import org.bithon.agent.configuration.source.PropertySourceType;
 import org.bithon.agent.instrumentation.expt.AgentException;
@@ -34,32 +32,17 @@ import java.util.stream.Collectors;
 public class PluginConfiguration {
 
     /**
+     * Load static configuration for the given plugin.
+     * @param pluginClass the class of a plugin, like xxxPlugin
+     *
+     * For a plugin, only its default configuration should be loaded
+     * Other configurations, (the command line or environment variables configurations),
+     * have already been loaded by the ConfigurationManager
+     *
      * @return false is the plugin is disabled by configuration
      */
     public static boolean load(Class<?> pluginClass) {
-        String pluginPropertyPrefix = getConfigurationPrefix(pluginClass.getName());
-
-        PropertySource pluginPropertySource = load(pluginClass, pluginPropertyPrefix);
-        if (!pluginPropertySource.isEmpty()) {
-            ConfigurationManager.getInstance().addPropertySource(pluginPropertySource);
-        }
-
-        // Even there's no plugin configuration found above, it can be in the external configuration
-        // So, check the 'disable' property from the manager to see if it's DISABLED
-        Boolean isPluginDisabled = ConfigurationManager.getInstance().getConfig(pluginPropertyPrefix + ".disabled", Boolean.class);
-        if (isPluginDisabled != null && isPluginDisabled) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Load plugin configuration from static plugin.yml and dynamic configuration from environment variable and command line arguments
-     */
-    private static PropertySource load(Class<?> pluginClass, String propertyPathPrefix) {
         String configFileName = pluginClass.getPackage().getName() + ".yml";
-
         PropertySource defaultPluginPropertySource;
         try (InputStream fs = pluginClass.getClassLoader().getResourceAsStream(configFileName)) {
             defaultPluginPropertySource = PropertySource.from(PropertySourceType.INTERNAL, configFileName, ConfigurationFormat.YAML, fs);
@@ -68,11 +51,19 @@ public class PluginConfiguration {
             // Create an empty one for further processing
             defaultPluginPropertySource = new PropertySource(PropertySourceType.INTERNAL, configFileName);
         }
+        if (!defaultPluginPropertySource.isEmpty()) {
+            ConfigurationManager.getInstance().addPropertySource(defaultPluginPropertySource);
+        }
 
-        // Use the command line args and environment to overwrite the default properties
-        String dynamicPropertyPrefix = "bithon." + propertyPathPrefix + ".";
-        return defaultPluginPropertySource.merge(CommandLineArgsSource.build(dynamicPropertyPrefix))
-                                          .merge(EnvironmentSource.build(dynamicPropertyPrefix));
+        // Even there's no plugin configuration found above, it can be in the external configuration
+        // So, check the 'disable' property from the manager to see if it's DISABLED
+        String pluginPropertyPrefix = getConfigurationPrefix(pluginClass.getName());
+        Boolean isPluginDisabled = ConfigurationManager.getInstance().getConfig(pluginPropertyPrefix + ".disabled", Boolean.class);
+        if (isPluginDisabled != null && isPluginDisabled) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

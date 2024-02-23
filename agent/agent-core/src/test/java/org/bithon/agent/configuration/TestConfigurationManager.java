@@ -85,8 +85,8 @@ public class TestConfigurationManager {
         manager.addPropertySource(PropertySource.from(PropertySourceType.INTERNAL,
                                                       "1",
                                                       "test.a=1\n" +
-                                                        "test.b=7\n" +
-                                                        "test.percentage=8%"));
+                                                          "test.b=7\n" +
+                                                          "test.percentage=8%"));
 
         TestConfig testConfig = manager.getConfig(TestConfig.class);
         Assert.assertEquals(1, testConfig.getA());
@@ -319,12 +319,12 @@ public class TestConfigurationManager {
                              Collections.emptyMap(),
                              Arrays.asList(PropertySource.from(PropertySourceType.DYNAMIC, "d1", "test.prop=a"),
                                            PropertySource.from(PropertySourceType.DYNAMIC, "d2", "test.prop1=from_d2")));
-        HashMap map = manager.getConfig("test", HashMap.class);
+        HashMap<?, ?> map = manager.getConfig("test", HashMap.class);
         Assert.assertEquals(2, map.size());
         Assert.assertEquals("a", map.get("prop"));
         Assert.assertEquals("from_d2", map.get("prop1"));
 
-        // The bean Should be get updated
+        // The bean Should be updated
         Assert.assertEquals("a", bean.getProp());
         Assert.assertEquals("from_d2", bean.getProp1());
 
@@ -339,7 +339,7 @@ public class TestConfigurationManager {
         Assert.assertEquals("from default file", map.get("prop"));
         Assert.assertEquals("from_d2", map.get("prop1"));
 
-        // The bean Should be get updated
+        // The bean Should be updated
         Assert.assertEquals("from default file", bean.getProp());
         Assert.assertEquals("from_d2", bean.getProp1());
 
@@ -372,5 +372,27 @@ public class TestConfigurationManager {
         Assert.assertNull(bean.getProp2());
         Assert.assertEquals("from_d3", bean.getProp3());
         Assert.assertEquals("from_d4", bean.getProp4());
+    }
+
+    @Test
+    public void test_BindToSimpleTypes() {
+        try (MockedStatic<Helper> configurationMock = Mockito.mockStatic(Helper.class)) {
+            configurationMock.when(Helper::getCommandLineInputArgs)
+                             .thenReturn(Arrays.asList("-Xms512M",
+                                                       // A property without assignment
+                                                       // to verify the processing is correct with such configuration
+                                                       "-Dbithon.test.a=1",
+                                                       // Override the in file configuration
+                                                       "-Dbithon.test.b=true",
+                                                       "-Dbithon.test.percentage=8%"
+                                                      ));
+
+            ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
+
+            Assert.assertEquals("8%", manager.getConfig("test.percentage", String.class));
+            Assert.assertEquals("8%", manager.getConfig("test.percentage", HumanReadablePercentage.class).toString());
+            Assert.assertEquals(1, (int) manager.getConfig("test.a", Integer.class));
+            Assert.assertEquals(true, manager.getConfig("test.b", Boolean.class));
+        }
     }
 }
