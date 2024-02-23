@@ -137,5 +137,21 @@ Plugin configuration locates each plugin's resource directory with the name 'plu
 
 ## Plugin Configurations
 
+
+### Disable/Enable plugin
+
+All plugins are enabled by default. They can be disabled separately. Use the following pattern to disable one plugin.
+
+```
+-Dbithon.agent.plugin.<plugin name>.disabled=true
+```
+
+For example, to disable the `spring-bean` plugin, use
+```
+-Dbithon.agent.plugin.spring.bean.disabled=true
+```
+
+### Plugin Configuration
+
 - [Alibaba Druid](plugin/alibaba-druid.md)
 - [Spring WebFlux](plugin/spring-webflux.md)
