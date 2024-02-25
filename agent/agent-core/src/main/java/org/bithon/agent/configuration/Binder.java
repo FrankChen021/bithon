@@ -62,7 +62,9 @@ public class Binder {
     }
 
     public static <T> T bind(String propertyPath, JsonNode configuration, Class<T> clazz, Supplier<T> defaultSupplier) {
-        if (configuration == null || configuration instanceof NullNode || configuration.isEmpty()) {
+        if (configuration == null || configuration instanceof NullNode) {
+            // Don't check if the configuration.isEmpty()
+            // because the node here might be mapped to a primitive or simple data type
             return defaultSupplier.get();
         }
 

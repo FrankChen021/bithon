@@ -18,6 +18,9 @@ agent:
             prefix: javax.
           - type: contains
             pattern: $$EnhancerBySpringCGLIB$$
+          - type: contains
+            # Found in Spring Boot 3.x
+            pattern: $$SpringCGLIB$$
           - type: endwith
             suffix: Properties
           - type: endwith
