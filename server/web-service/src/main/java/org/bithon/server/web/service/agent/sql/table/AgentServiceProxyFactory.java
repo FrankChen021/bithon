@@ -83,8 +83,8 @@ public class AgentServiceProxyFactory {
                         Map<String, Object> context,
                         Class<T> serviceDeclaration) {
         // instance is a mandatory parameter
-        String instance = (String) context.get(IAgentProxyApi.INSTANCE_FIELD);
-        Preconditions.checkNotNull(instance, "'%s' is not given in the context.", IAgentProxyApi.INSTANCE_FIELD);
+        String instance = (String) context.get(IAgentProxyApi.PARAMETER_NAME_INSTANCE);
+        Preconditions.checkNotNull(instance, "'%s' is not given in the context.", IAgentProxyApi.PARAMETER_NAME_INSTANCE);
 
         // Locate the proxy server
         DiscoverableService metadata = proxyServiceDeclaration.getAnnotation(DiscoverableService.class);
@@ -255,7 +255,7 @@ public class AgentServiceProxyFactory {
 
                                               try {
                                                   return proxyApi.proxy((String) context.getOrDefault("_token", ""),
-                                                                        (String) context.getOrDefault(IAgentProxyApi.INSTANCE_FIELD, ""),
+                                                                        (String) context.getOrDefault(IAgentProxyApi.PARAMETER_NAME_INSTANCE, ""),
                                                                         30_000,
                                                                         message);
                                               } catch (IOException e) {

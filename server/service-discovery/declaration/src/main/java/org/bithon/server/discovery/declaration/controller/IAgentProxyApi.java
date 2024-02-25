@@ -36,6 +36,12 @@ import java.time.LocalDateTime;
  */
 @DiscoverableService(name = "agentCommand")
 public interface IAgentProxyApi {
+    /**
+     * The two special parameters that will be extracted from the SQL and push down to the underlying query
+     */
+    String PARAMETER_NAME_INSTANCE = "instance";
+
+    String PARAMETER_NAME_TOKEN = "_token";
 
     /**
      * Declare all fields as public to treat it as a record
@@ -55,10 +61,11 @@ public interface IAgentProxyApi {
         }
     }
 
+    /**
+     * Get the information instances connected to one controller
+     */
     @GetMapping("/api/agent/service/instances")
-    ServiceResponse<AgentInstanceRecord> getAgentInstanceList();
-
-    String INSTANCE_FIELD = "instance";
+    ServiceResponse<AgentInstanceRecord> getAgentInstanceList(@RequestParam(name = PARAMETER_NAME_INSTANCE, required = false) String instance);
 
     /**
      * Proxy Brpc services provided at agent side over HTTP.
@@ -69,7 +76,7 @@ public interface IAgentProxyApi {
      */
     @PostMapping("/api/agent/service/proxy")
     byte[] proxy(@RequestHeader(name = "token", required = false) String token,
-                 @RequestParam(name = INSTANCE_FIELD) String instance,
+                 @RequestParam(name = PARAMETER_NAME_INSTANCE) String instance,
                  @RequestParam(name = "timeout", required = false) Integer timeout,
                  @RequestBody byte[] rawMessage) throws IOException;
 }
