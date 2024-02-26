@@ -21,7 +21,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
@@ -48,7 +48,7 @@ public class Channels$Write extends AroundInterceptor {
 
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
 
-        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpclient");
+        final ITraceSpan span = TraceContextFactory.newAsyncSpan("http-client");
         if (span != null) {
             aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                    .kind(SpanKind.CLIENT)
@@ -88,19 +88,19 @@ public class Channels$Write extends AroundInterceptor {
             //
             if (channelFuture.getCause() != null) {
                 metricRegistry.addExceptionRequest(
-                        uri,
-                        method,
-                        System.nanoTime() - startAt
-                );
+                    uri,
+                    method,
+                    System.nanoTime() - startAt
+                                                  );
             } else {
                 // TODO: it's a little bit complex to get response
                 // see NettyHttpClient in druid to know how to get HttpResponse
                 metricRegistry.addRequest(
-                        uri,
-                        method,
-                        200,
-                        System.nanoTime() - startAt
-                );
+                    uri,
+                    method,
+                    200,
+                    System.nanoTime() - startAt
+                                         );
             }
 
             //

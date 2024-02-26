@@ -21,7 +21,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -38,7 +38,7 @@ public class StatementTraceInterceptor extends AroundInterceptor {
 
         // TODO: filter "select @@session.tx_read_only"
 
-        ITraceSpan span = TraceSpanFactory.newSpan("mysql");
+        ITraceSpan span = TraceContextFactory.newSpan("mysql");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

@@ -32,18 +32,18 @@ import java.util.regex.Pattern;
 public class TraceContextFactory {
     static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-zA-Z]{32}");
 
-    public static ITraceContext create(SamplingMode samplingMode) {
-        return create(samplingMode, Tracer.get().traceIdGenerator().newTraceId(), null);
+    public static ITraceContext newContext(SamplingMode samplingMode) {
+        return newContext(samplingMode, Tracer.get().traceIdGenerator().newTraceId(), null);
     }
 
-    public static ITraceContext create(SamplingMode samplingMode, String traceId, String parentSpanId) {
-        return create(samplingMode,
-                      traceId,
-                      parentSpanId,
-                      Tracer.get().spanIdGenerator().newSpanId());
+    public static ITraceContext newContext(SamplingMode samplingMode, String traceId, String parentSpanId) {
+        return newContext(samplingMode,
+                          traceId,
+                          parentSpanId,
+                          Tracer.get().spanIdGenerator().newSpanId());
     }
 
-    public static ITraceContext create(SamplingMode samplingMode, String traceId, String parentSpanId, String spanId) {
+    public static ITraceContext newContext(SamplingMode samplingMode, String traceId, String parentSpanId, String spanId) {
         //
         // check compatibility of trace id
         //
@@ -76,5 +76,46 @@ public class TraceContextFactory {
                       .tag(Tags.Thread.ID, currentThread.getId())
                       .tag("upstreamTraceId", upstreamTraceId)
                       .context();
+    }
+
+    /**
+     * Create a span based on current span on current thread
+     */
+    public static ITraceSpan newSpan(String name) {
+        ITraceContext traceContext = TraceContextHolder.current();
+        if (traceContext == null || traceContext.traceMode().equals(TraceMode.LOGGING)) {
+            return null;
+        }
+
+        ITraceSpan parentSpan = traceContext.currentSpan();
+        if (parentSpan == null) {
+            return null;
+        }
+
+        // create a span and save it in user-context
+        return parentSpan.newChildSpan(name);
+    }
+
+    /**
+     * This method copies the current trace context so that it can be used in another thread.
+     * Even current trace mode is {@link TraceMode#LOGGING}, it's still copied.
+     *
+     */
+    public static ITraceSpan newAsyncSpan(String name) {
+        ITraceContext traceContext = TraceContextHolder.current();
+        if (traceContext == null) {
+            return null;
+        }
+
+        ITraceSpan parentSpan = traceContext.currentSpan();
+        if (parentSpan == null) {
+            return null;
+        }
+
+        return traceContext.copy()
+                           .reporter(traceContext.reporter())
+                           .newSpan(parentSpan.spanId(), traceContext.spanIdGenerator().newSpanId())
+                           .component(name);
+
     }
 }

@@ -21,7 +21,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -35,7 +35,7 @@ public class PreparedStatementTraceInterceptor extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan("mysql");
+        ITraceSpan span = TraceContextFactory.newSpan("mysql");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

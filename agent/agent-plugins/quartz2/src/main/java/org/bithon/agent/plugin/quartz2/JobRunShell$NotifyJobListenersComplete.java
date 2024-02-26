@@ -35,7 +35,7 @@ import java.util.Map;
  */
 public class JobRunShell$NotifyJobListenersComplete extends BeforeInterceptor {
 
-    private Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
+    private final Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
 
     @Override
     public void before(AopContext aopContext) {
@@ -59,7 +59,7 @@ public class JobRunShell$NotifyJobListenersComplete extends BeforeInterceptor {
             dispatcher.send(dispatcher.getMessageConverter().from(new EventMessage("quartz", quartzLog)));
         }
 
-        // save the object on current target,
+        // save the object on the current target,
         // so that JobRunShell$Run can get the exception
         IBithonObject bithonObject = aopContext.getTargetAs();
         bithonObject.setInjectedObject(exception);

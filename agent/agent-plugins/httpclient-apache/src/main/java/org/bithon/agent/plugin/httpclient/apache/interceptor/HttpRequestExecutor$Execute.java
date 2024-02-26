@@ -30,7 +30,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
@@ -52,7 +52,7 @@ public class HttpRequestExecutor$Execute extends AroundInterceptor {
         //
         // Trace
         //
-        ITraceSpan span = TraceSpanFactory.newSpan("httpclient");
+        ITraceSpan span = TraceContextFactory.newSpan("http-client");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

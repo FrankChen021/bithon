@@ -24,7 +24,7 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.agent.plugin.apache.kafka.producer.KafkaProducerTracingConfig;
 import org.bithon.component.commons.tracing.Components;
@@ -47,7 +47,7 @@ public class KafkaProducer$DoSend extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan(Components.KAFKA);
+        ITraceSpan span = TraceContextFactory.newSpan(Components.KAFKA);
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

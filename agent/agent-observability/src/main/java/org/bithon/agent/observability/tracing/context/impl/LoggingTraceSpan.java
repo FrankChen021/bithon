@@ -156,6 +156,6 @@ class LoggingTraceSpan implements ITraceSpan {
     public ITraceSpan newChildSpan(String name) {
         throw new AgentException("Can't create span under LOGGING mode.\n" +
                                          "This MUST be a bug of agent, pls contact the maintainer to resolve it.\n" +
-                                         "In most of cases, TraceSpanFactory.newSpan SHOULD be called instead of call this method to avoid such exception.");
+                                         "In most of cases, TraceContextFactory.newSpan SHOULD be called instead of call this method to avoid such exception.");
     }
 }

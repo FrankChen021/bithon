@@ -64,9 +64,9 @@ public class B3Extractor implements ITraceContextExtractor {
             return null;
         }
 
-        return TraceContextFactory.create(SamplingMode.FULL,
-                                          b3TraceId,
-                                          parentSpanId,
-                                          spanId);
+        return TraceContextFactory.newContext(SamplingMode.FULL,
+                                              b3TraceId,
+                                              parentSpanId,
+                                              spanId);
     }
 }

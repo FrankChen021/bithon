@@ -32,7 +32,7 @@ import org.bithon.agent.observability.metric.domain.http.HttpOutgoingUriFilter;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
@@ -77,7 +77,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceSpan span = TraceSpanFactory.newSpan("httpclient");
+        ITraceSpan span = TraceContextFactory.newSpan("http-client");
         if (span != null) {
             aopContext.setSpan(span.kind(SpanKind.CLIENT)
                                    .tag(Tags.Http.CLIENT, "okhttp3")

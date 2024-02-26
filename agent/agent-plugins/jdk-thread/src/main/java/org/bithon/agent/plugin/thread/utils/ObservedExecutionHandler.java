@@ -17,7 +17,7 @@
 package org.bithon.agent.plugin.thread.utils;
 
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
 
 import java.util.concurrent.RejectedExecutionHandler;
@@ -56,7 +56,7 @@ public class ObservedExecutionHandler implements RejectedExecutionHandler {
     }
 
     private ITraceSpan before() {
-        ITraceSpan span = TraceSpanFactory.newSpan("threadPool");
+        ITraceSpan span = TraceContextFactory.newSpan("threadPool");
         if (span != null) {
             span.method(delegate.getClass().getName(), "rejectedExecution")
                 .start();

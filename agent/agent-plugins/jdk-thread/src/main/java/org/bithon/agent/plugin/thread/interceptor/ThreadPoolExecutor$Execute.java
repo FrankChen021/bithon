@@ -20,7 +20,7 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.plugin.thread.utils.ObservedTask;
 
 import java.util.concurrent.ThreadPoolExecutor;
@@ -40,14 +40,14 @@ public class ThreadPoolExecutor$Execute extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceSpan span = TraceSpanFactory.newSpan("threadPool");
+        ITraceSpan span = TraceContextFactory.newSpan("thread-pool");
         if (span != null) {
             aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                    .start());
         }
 
         // Wrap the users' runnable
-        ITraceSpan taskRootSpan = TraceSpanFactory.newAsyncSpan("asyncTask");
+        ITraceSpan taskRootSpan = TraceContextFactory.newAsyncSpan("async-task");
         aopContext.getArgs()[0] = new ObservedTask(aopContext.getTargetAs(),
                                                    runnable,
                                                    taskRootSpan == null ? null : taskRootSpan.method(runnable.getClass().getName(), "run"));

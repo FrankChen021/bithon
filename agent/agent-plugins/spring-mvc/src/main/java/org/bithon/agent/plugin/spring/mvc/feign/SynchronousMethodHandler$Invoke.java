@@ -22,7 +22,7 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 
 /**
@@ -45,7 +45,7 @@ public class SynchronousMethodHandler$Invoke extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceSpan span = TraceSpanFactory.newSpan("feign-client");
+        ITraceSpan span = TraceContextFactory.newSpan("feign-client");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

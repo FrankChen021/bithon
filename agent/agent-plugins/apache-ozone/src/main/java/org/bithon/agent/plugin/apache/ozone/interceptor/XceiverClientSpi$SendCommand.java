@@ -21,7 +21,7 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 
 import java.util.List;
 
@@ -39,7 +39,7 @@ public class XceiverClientSpi$SendCommand extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan("ozone-hdds");
+        ITraceSpan span = TraceContextFactory.newSpan("ozone-hdds");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

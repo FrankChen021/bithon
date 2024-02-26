@@ -21,7 +21,7 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.Tags;
 
@@ -37,13 +37,12 @@ public class KafkaConsumer$Poll extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan(Components.KAFKA);
+        ITraceSpan span = TraceContextFactory.newSpan(Components.KAFKA);
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setSpan(span.method(aopContext.getTargetClass(),
-                                       aopContext.getMethod())
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                .start());
         return InterceptionDecision.CONTINUE;
     }

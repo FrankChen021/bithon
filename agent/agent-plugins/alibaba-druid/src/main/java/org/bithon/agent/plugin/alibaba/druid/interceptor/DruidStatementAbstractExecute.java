@@ -22,7 +22,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.utils.MiscUtils;
 import org.bithon.agent.plugin.alibaba.druid.DruidPlugin;
 import org.bithon.agent.plugin.alibaba.druid.config.DruidPluginConfig;
@@ -77,7 +77,7 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
         DatabaseMetaData meta = statement.getConnection().getMetaData();
         String connectionString = MiscUtils.cleanupConnectionString(meta.getURL());
 
-        ITraceSpan span = TraceSpanFactory.newSpan("alibaba-druid");
+        ITraceSpan span = TraceContextFactory.newSpan("alibaba-druid");
         if (span != null) {
             span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)

@@ -41,7 +41,7 @@ public class MethodJobHandler$Execute extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceContext traceContext = TraceContextFactory.create(SamplingMode.FULL, ctx.getTraceId(), ctx.getParentSpanId());
+        ITraceContext traceContext = TraceContextFactory.newContext(SamplingMode.FULL, ctx.getTraceId(), ctx.getParentSpanId());
         TraceContextHolder.set(traceContext);
         ITraceSpan span = traceContext.currentSpan()
                                       .component("method-job");

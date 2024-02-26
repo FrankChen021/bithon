@@ -20,7 +20,7 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
@@ -36,7 +36,7 @@ public class BeanMethod$Invoke extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan("");
+        ITraceSpan span = TraceContextFactory.newSpan("");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

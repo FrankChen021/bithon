@@ -22,7 +22,7 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
@@ -34,7 +34,7 @@ public class RealConnection$Connect extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan("httpclient");
+        ITraceSpan span = TraceContextFactory.newSpan("http-client");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
