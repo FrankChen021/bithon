@@ -59,7 +59,7 @@ public class BrpcMethodInterceptor extends AroundInterceptor {
                                   .tag("uri", "brpc://" + aopContext.getTarget().getClass().getSimpleName() + "/" + aopContext.getMethod())
                                   .start());
 
-        TraceContextHolder.set(context);
+        TraceContextHolder.attach(context);
         return InterceptionDecision.CONTINUE;
     }
 
@@ -71,6 +71,6 @@ public class BrpcMethodInterceptor extends AroundInterceptor {
             .finish();
         span.context().finish();
 
-        TraceContextHolder.remove();
+        TraceContextHolder.detach();
     }
 }

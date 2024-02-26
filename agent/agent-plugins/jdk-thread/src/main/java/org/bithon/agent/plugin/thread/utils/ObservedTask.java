@@ -64,7 +64,7 @@ public class ObservedTask implements Runnable, Comparable<Object> {
         Throwable exception = null;
 
         // Setup context on current thread
-        TraceContextHolder.set(taskSpan.context());
+        TraceContextHolder.attach(taskSpan.context());
 
         taskSpan.start();
 
@@ -83,7 +83,7 @@ public class ObservedTask implements Runnable, Comparable<Object> {
             taskSpan.context().finish();
 
             // Clear context on current thread
-            TraceContextHolder.remove();
+            TraceContextHolder.detach();
 
             ThreadPoolMetricRegistry.getInstance().addRunCount(executor,
                                                                taskSpan.endTime() - taskSpan.startTime(),

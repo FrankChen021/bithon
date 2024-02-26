@@ -81,7 +81,7 @@ public class HttpChannel$OnCompleted extends AroundInterceptor {
     public void after(AopContext aopContext) {
         InterceptorContext.remove(InterceptorContext.KEY_URI);
         InterceptorContext.remove(InterceptorContext.KEY_TRACEID);
-        TraceContextHolder.remove();
+        TraceContextHolder.detach();
     }
 
     private void update(Request request, HttpServletRequest httpServletRequest, HttpServletResponse response, long costTime) {

@@ -43,7 +43,7 @@ public class ScriptJobHandler$Execute extends AroundInterceptor {
         }
 
         ITraceContext traceContext = TraceContextFactory.newContext(SamplingMode.FULL, ctx.getTraceId(), ctx.getParentSpanId());
-        TraceContextHolder.set(traceContext);
+        TraceContextHolder.attach(traceContext);
         ITraceSpan span = traceContext.currentSpan()
                                       .component("script-job");
 
@@ -68,6 +68,6 @@ public class ScriptJobHandler$Execute extends AroundInterceptor {
 
         span.context().finish();
 
-        TraceContextHolder.remove();
+        TraceContextHolder.detach();
     }
 }

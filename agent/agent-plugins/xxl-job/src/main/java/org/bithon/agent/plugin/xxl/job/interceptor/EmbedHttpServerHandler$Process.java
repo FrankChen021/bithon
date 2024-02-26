@@ -43,7 +43,7 @@ public class EmbedHttpServerHandler$Process extends AroundInterceptor {
         String uri = aopContext.getArgAs(1);
 
         // Currently no samplingPercentage is designed for simplicity
-        TraceContextHolder.set(TraceContextFactory.newContext(SamplingMode.FULL))
+        TraceContextHolder.attach(TraceContextFactory.newContext(SamplingMode.FULL))
                           .currentSpan()
                           .component("xxl-job")
                           .kind(SpanKind.SERVER)
@@ -63,7 +63,7 @@ public class EmbedHttpServerHandler$Process extends AroundInterceptor {
         }
 
         // TODO: We can merge the remove and get above together as one for simplicity
-        TraceContextHolder.remove();
+        TraceContextHolder.detach();
 
         ITraceSpan span = context.currentSpan();
         Object returning = aopContext.getReturning();

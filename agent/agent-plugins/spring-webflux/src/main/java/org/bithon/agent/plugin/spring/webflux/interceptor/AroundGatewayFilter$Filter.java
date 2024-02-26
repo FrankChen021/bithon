@@ -81,7 +81,7 @@ public class AroundGatewayFilter$Filter extends AroundInterceptor {
         // Once upon time we did it in the ChannelOperations#onInboundComplete which is called by HttpServerOperations
         // that's the entry point for the incoming HTTP requests which is schedule on the HTTP nio threads
         // But for a repeated/retried request, it's scheduled on parallel scheduler threads, so any code that retrieves the context fails
-        TraceContextHolder.set(traceContext);
+        TraceContextHolder.attach(traceContext);
 
         aopContext.setSpan(traceContext.currentSpan()
                                        .newChildSpan("filter")
@@ -94,7 +94,7 @@ public class AroundGatewayFilter$Filter extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        TraceContextHolder.remove();
+        TraceContextHolder.detach();
 
         ITraceSpan span = aopContext.getSpan();
         if (span == null) {

@@ -66,7 +66,7 @@ public class JobRunShell$Run extends AroundInterceptor {
                                   .method(aopContext.getTargetClass(), aopContext.getMethod())
                                   .start());
 
-        TraceContextHolder.set(context);
+        TraceContextHolder.attach(context);
 
         return InterceptionDecision.CONTINUE;
     }
@@ -96,6 +96,6 @@ public class JobRunShell$Run extends AroundInterceptor {
             .tag("uri", jobExecutionContext == null ? null : "quartz://" + jobExecutionContext.getJobDetail().getJobClass().getName())
             .finish();
         span.context().finish();
-        TraceContextHolder.remove();
+        TraceContextHolder.detach();
     }
 }

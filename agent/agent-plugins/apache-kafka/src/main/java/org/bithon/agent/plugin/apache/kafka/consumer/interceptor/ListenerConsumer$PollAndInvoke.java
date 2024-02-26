@@ -73,7 +73,7 @@ public class ListenerConsumer$PollAndInvoke extends AroundInterceptor {
                                       .start());
         }
 
-        TraceContextHolder.set(context);
+        TraceContextHolder.attach(context);
         return InterceptionDecision.CONTINUE;
     }
 
@@ -97,6 +97,6 @@ public class ListenerConsumer$PollAndInvoke extends AroundInterceptor {
             span.context().finish();
         }
 
-        TraceContextHolder.remove();
+        TraceContextHolder.detach();
     }
 }

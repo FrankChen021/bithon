@@ -49,7 +49,7 @@ public class HttpChannel$Handle extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        TraceContextHolder.remove();
+        TraceContextHolder.detach();
         InterceptorContext.remove(InterceptorContext.KEY_TRACEID);
 
         HttpChannel httpChannel = aopContext.getTargetAs();
@@ -64,7 +64,7 @@ public class HttpChannel$Handle extends AroundInterceptor {
 
             ITraceContext traceContext = Tracer.get().propagator().extract(request, Request::getHeader);
             if (traceContext != null) {
-                TraceContextHolder.set(traceContext);
+                TraceContextHolder.attach(traceContext);
                 InterceptorContext.set(InterceptorContext.KEY_TRACEID, traceContext.traceId());
 
                 traceContext.currentSpan()
@@ -104,7 +104,7 @@ public class HttpChannel$Handle extends AroundInterceptor {
         if (requestContext != null) {
             ITraceContext traceContext = requestContext.getTraceContext();
             if (traceContext != null) {
-                TraceContextHolder.set(traceContext);
+                TraceContextHolder.attach(traceContext);
                 InterceptorContext.set(InterceptorContext.KEY_TRACEID, traceContext.traceId());
             }
         }
@@ -116,6 +116,6 @@ public class HttpChannel$Handle extends AroundInterceptor {
     public void after(AopContext aopContext) {
         InterceptorContext.remove(InterceptorContext.KEY_URI);
         InterceptorContext.remove(InterceptorContext.KEY_TRACEID);
-        TraceContextHolder.remove();
+        TraceContextHolder.detach();
     }
 }

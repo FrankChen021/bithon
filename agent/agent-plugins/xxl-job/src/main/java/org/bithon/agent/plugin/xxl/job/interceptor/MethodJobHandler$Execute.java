@@ -42,7 +42,7 @@ public class MethodJobHandler$Execute extends AroundInterceptor {
         }
 
         ITraceContext traceContext = TraceContextFactory.newContext(SamplingMode.FULL, ctx.getTraceId(), ctx.getParentSpanId());
-        TraceContextHolder.set(traceContext);
+        TraceContextHolder.attach(traceContext);
         ITraceSpan span = traceContext.currentSpan()
                                       .component("method-job");
 
@@ -61,6 +61,6 @@ public class MethodJobHandler$Execute extends AroundInterceptor {
 
         span.context().finish();
 
-        TraceContextHolder.remove();
+        TraceContextHolder.detach();
     }
 }

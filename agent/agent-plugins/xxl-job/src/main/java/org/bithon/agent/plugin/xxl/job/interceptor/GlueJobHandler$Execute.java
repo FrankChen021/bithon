@@ -44,7 +44,7 @@ public class GlueJobHandler$Execute extends AroundInterceptor {
         }
 
         ITraceContext traceContext = TraceContextFactory.newContext(SamplingMode.FULL, ctx.getTraceId(), ctx.getParentSpanId());
-        TraceContextHolder.set(traceContext);
+        TraceContextHolder.attach(traceContext);
         ITraceSpan span = traceContext.currentSpan()
                                       .component("glue-job");
 
@@ -64,6 +64,6 @@ public class GlueJobHandler$Execute extends AroundInterceptor {
             .finish();
 
         span.context().finish();
-        TraceContextHolder.remove();
+        TraceContextHolder.detach();
     }
 }

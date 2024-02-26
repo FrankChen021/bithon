@@ -87,7 +87,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        TraceContextHolder.remove();
+        TraceContextHolder.detach();
 
         //
         // HttpServerRequest has an implementation of HttpServerOperation,

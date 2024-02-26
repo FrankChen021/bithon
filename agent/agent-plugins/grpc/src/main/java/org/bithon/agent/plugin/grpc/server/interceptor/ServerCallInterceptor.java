@@ -144,7 +144,7 @@ public class ServerCallInterceptor implements ServerInterceptor {
 
         @Override
         public void onHalfClose() {
-            TraceContextHolder.set(rootSpan.context());
+            TraceContextHolder.attach(rootSpan.context());
 
             // Overwrite the default thread name initialized in TraceContextFactory when its context is set up
             rootSpan.tag(Tags.Thread.NAME, Thread.currentThread().getName());
@@ -155,7 +155,7 @@ public class ServerCallInterceptor implements ServerInterceptor {
                 // If exception occurs, the onComplete will be called at last
                 throw t;
             } finally {
-                TraceContextHolder.remove();
+                TraceContextHolder.detach();
             }
         }
 
