@@ -19,6 +19,16 @@
       <artifactId>druid-server</artifactId>
       <version>0.16.0-incubating</version>
       <scope>provided</scope>
+
+      <!-- Sigar is indirectly used, however sometimes it can't be pulled from the maven repository located in https://repository.jboss.org/nexus/content/repositories/thirdparty-uploads/
+      -->
+      <exclusions>
+        <exclusion>
+          <artifactId>druid-core</artifactId>
+          <groupId>org.apache.druid</groupId>
+        </exclusion>
+      </exclusions>
+
     </dependency>
     <dependency>
       <groupId>org.apache.druid</groupId>
