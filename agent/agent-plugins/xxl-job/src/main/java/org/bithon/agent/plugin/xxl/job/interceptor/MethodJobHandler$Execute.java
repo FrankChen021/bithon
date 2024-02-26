@@ -19,8 +19,11 @@ package org.bithon.agent.plugin.xxl.job.interceptor;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -33,10 +36,15 @@ import java.lang.reflect.Method;
 public class MethodJobHandler$Execute extends AroundInterceptor {
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan("method-job");
-        if (span == null) {
+        UserDefinedContext ctx = UserDefinedContext.getAndRemove();
+        if (ctx == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
+
+        ITraceContext traceContext = TraceContextFactory.create(SamplingMode.FULL, ctx.getTraceId(), ctx.getParentSpanId());
+        TraceContextHolder.set(traceContext);
+        ITraceSpan span = traceContext.currentSpan()
+                                      .component("method-job");
 
         Method targetMethod = (Method) ReflectionUtils.getFieldValue(aopContext.getTarget(), "method");
         aopContext.setUserContext(span.method(targetMethod)
@@ -50,5 +58,9 @@ public class MethodJobHandler$Execute extends AroundInterceptor {
         ITraceSpan span = aopContext.getUserContextAs();
         span.tag(aopContext.getException())
             .finish();
+
+        span.context().finish();
+
+        TraceContextHolder.remove();
     }
 }

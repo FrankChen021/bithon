@@ -16,6 +16,7 @@
 
 package org.bithon.agent.plugin.xxl.job;
 
+import org.bithon.agent.instrumentation.aop.interceptor.descriptor.BithonClassDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
@@ -32,14 +33,28 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
 public class XxlJobPlugin implements IPlugin {
 
     @Override
+    public BithonClassDescriptor getBithonClassDescriptor() {
+        // Enhance the TriggerParam to hold context so that the job scheduling can restore the tracing context
+        return BithonClassDescriptor.of("com.xxl.job.core.biz.model.TriggerParam");
+    }
+
+    @Override
     public List<InterceptorDescriptor> getInterceptors() {
 
         return Arrays.asList(
-            forClass("com.xxl.job.core.server.EmbedServer")
+            forClass("com.xxl.job.core.server.EmbedServer$EmbedHttpServerHandler")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethod(Matchers.withName("process").and(Matchers.takesArguments(4)))
-                                                   .to("org.bithon.agent.plugin.xxl.job.interceptor.EmbedServer$Process")
+                                                   .to("org.bithon.agent.plugin.xxl.job.interceptor.EmbedHttpServerHandler$Process")
+                        ),
+
+            // Inject the tracing context to the internal queue for tracing context restoring
+            forClass("com.xxl.job.core.thread.JobThread")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onConstructor("int", "com.xxl.job.core.handler.IJobHandler")
+                                                   .to("org.bithon.agent.plugin.xxl.job.interceptor.JobThread$Ctor")
                         ),
 
             forClass("com.xxl.job.core.handler.impl.GlueJobHandler")

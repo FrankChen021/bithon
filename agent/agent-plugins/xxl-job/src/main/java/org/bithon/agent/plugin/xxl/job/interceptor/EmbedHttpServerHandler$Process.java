@@ -30,12 +30,12 @@ import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
 /**
- * {@link com.xxl.job.core.server.EmbedServer#process(HttpMethod httpMethod, String uri, String requestData, String accessTokenReq)}
+ * {@link com.xxl.job.core.server.EmbedServer.EmbedHttpServerHandler#process(HttpMethod httpMethod, String uri, String requestData, String accessTokenReq)}
  *
  * @author Frank Chen
  * @date 23/2/24 1:39 pm
  */
-public class EmbedServer$Process extends AroundInterceptor {
+public class EmbedHttpServerHandler$Process extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
@@ -62,7 +62,7 @@ public class EmbedServer$Process extends AroundInterceptor {
             return;
         }
 
-        // We can merge the remove and get above together as one for simplicity
+        // TODO: We can merge the remove and get above together as one for simplicity
         TraceContextHolder.remove();
 
         ITraceSpan span = context.currentSpan();

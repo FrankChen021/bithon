@@ -20,8 +20,12 @@ import com.xxl.job.core.glue.GlueTypeEnum;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+import org.bithon.agent.observability.tracing.sampler.SamplingMode;
+import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 /**
@@ -33,16 +37,24 @@ import org.bithon.component.commons.utils.ReflectionUtils;
 public class ScriptJobHandler$Execute extends AroundInterceptor {
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan("script-job");
-        if (span == null) {
+        UserDefinedContext ctx = UserDefinedContext.getAndRemove();
+        if (ctx == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
+
+        ITraceContext traceContext = TraceContextFactory.create(SamplingMode.FULL, ctx.getTraceId(), ctx.getParentSpanId());
+        TraceContextHolder.set(traceContext);
+        ITraceSpan span = traceContext.currentSpan()
+                                      .component("script-job");
 
         int jobId = (int) ReflectionUtils.getFieldValue(aopContext.getTarget(), "jobId");
         GlueTypeEnum type = (GlueTypeEnum) ReflectionUtils.getFieldValue(aopContext.getTarget(), "glueType");
 
         aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .tag("uri", "xxl-job://script-job/" + type.getDesc() + "/" + jobId)
+                                      .tag("job.id", jobId)
+                                      .tag("job.type", type.getDesc())
+                                      .tag(Tags.Thread.ID, Thread.currentThread().getId())
+                                      .tag(Tags.Thread.NAME, Thread.currentThread().getName())
                                       .start());
 
         return InterceptionDecision.CONTINUE;
@@ -53,5 +65,9 @@ public class ScriptJobHandler$Execute extends AroundInterceptor {
         ITraceSpan span = aopContext.getUserContextAs();
         span.tag(aopContext.getException())
             .finish();
+
+        span.context().finish();
+
+        TraceContextHolder.remove();
     }
 }
