@@ -67,25 +67,26 @@ public class AgentProxyApi implements IAgentProxyApi {
     }
 
     @Override
-    public ServiceResponse<AgentInstanceRecord> getAgentInstanceList() {
+    public ServiceResponse<AgentInstanceRecord> getAgentInstanceList(String instance) {
         return ServiceResponse.success(agentControllerServer.getBrpcServer()
                                                             .getSessions()
                                                             .stream()
                                                             .map((session) -> {
-                                                                AgentInstanceRecord instance = new AgentInstanceRecord();
-                                                                instance.setAppName(session.getRemoteApplicationName());
-                                                                instance.setInstance(session.getRemoteAttribute(Headers.HEADER_APP_ID, session.getRemoteEndpoint()));
-                                                                instance.setEndpoint(session.getRemoteEndpoint());
-                                                                instance.setController(session.getLocalEndpoint());
-                                                                instance.setAgentVersion(session.getRemoteAttribute(Headers.HEADER_VERSION));
+                                                                AgentInstanceRecord record = new AgentInstanceRecord();
+                                                                record.setAppName(session.getRemoteApplicationName());
+                                                                record.setInstance(session.getRemoteAttribute(Headers.HEADER_APP_ID, session.getRemoteEndpoint()));
+                                                                record.setEndpoint(session.getRemoteEndpoint());
+                                                                record.setController(session.getLocalEndpoint());
+                                                                record.setAgentVersion(session.getRemoteAttribute(Headers.HEADER_VERSION));
                                                                 long start = 0;
                                                                 try {
                                                                     start = Long.parseLong(session.getRemoteAttribute(Headers.HEADER_START_TIME, "0"));
                                                                 } catch (NumberFormatException ignored) {
                                                                 }
-                                                                instance.setStartAt(new Timestamp(start).toLocalDateTime());
-                                                                return instance;
+                                                                record.setStartAt(new Timestamp(start).toLocalDateTime());
+                                                                return record;
                                                             })
+                                                            .filter((record) -> instance == null || instance.equals(record.getInstance()))
                                                             .collect(Collectors.toList()));
     }
 

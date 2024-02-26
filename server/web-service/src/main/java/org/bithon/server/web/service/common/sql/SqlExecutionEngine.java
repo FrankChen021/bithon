@@ -103,7 +103,7 @@ public class SqlExecutionEngine {
         SqlExecutionContext queryContext = new SqlExecutionContext(catalogReader.getRootSchema(),
                                                                    (JavaTypeFactory) catalogReader.getTypeFactory());
 
-        // Create a SQL parser to parse the query into AST
+        // Create an SQL parser to parse the query into AST
         SqlNode sqlNode = SqlParser.create(sql,
                                            SqlParser.config().withQuotedCasing(Casing.UNCHANGED).withUnquotedCasing(Casing.UNCHANGED))
                                    .parseQuery();

@@ -37,10 +37,14 @@ public class InstanceTable extends AbstractBaseTable {
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        ServiceResponse<IAgentProxyApi.AgentInstanceRecord> clients = impl.getAgentInstanceList();
+        // The 'instance' can be NULL, if it's NULL, all records will be retrieved
+        String instance = (String) executionContext.getParameters().get(IAgentProxyApi.PARAMETER_NAME_INSTANCE);
+
+        ServiceResponse<IAgentProxyApi.AgentInstanceRecord> clients = impl.getAgentInstanceList(instance);
         if (clients.getError() != null) {
             throw new RuntimeException(clients.getError().toString());
         }
+
         return clients.getRows()
                       .stream()
                       .map(IAgentProxyApi.AgentInstanceRecord::toObjectArray)

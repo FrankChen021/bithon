@@ -158,8 +158,11 @@ public class AgentDiagnosisApi {
             }
 
             String identifier = ((SqlIdentifier) identifierNode).getSimple();
-            if (!IAgentProxyApi.INSTANCE_FIELD.equalsIgnoreCase(identifier)
-                && !"_token".equalsIgnoreCase(identifier)) {
+            //
+            // Only the two parameters will be extracted and pushed down
+            //
+            if (!IAgentProxyApi.PARAMETER_NAME_INSTANCE.equalsIgnoreCase(identifier)
+                && !IAgentProxyApi.PARAMETER_NAME_TOKEN.equalsIgnoreCase(identifier)) {
                 return super.visit(call);
             }
 
