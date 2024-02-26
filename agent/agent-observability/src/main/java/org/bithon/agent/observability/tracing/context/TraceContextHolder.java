@@ -23,8 +23,9 @@ package org.bithon.agent.observability.tracing.context;
 public class TraceContextHolder {
     private static final ThreadLocal<ITraceContext> HOLDER = new ThreadLocal<>();
 
-    public static void set(ITraceContext tracer) {
-        HOLDER.set(tracer);
+    public static ITraceContext set(ITraceContext context) {
+        HOLDER.set(context);
+        return context;
     }
 
     public static void remove() {

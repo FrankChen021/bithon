@@ -50,6 +50,7 @@
     <module>webserver-undertow</module>
     <module>webserver-jetty</module>
     <module>webserver-netty</module>
+    <module>xxl-job</module>
   </modules>
 
   <dependencies>
@@ -256,6 +257,13 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-mongodb-3.8</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- XXL-Job -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-xxl-job</artifactId>
       <version>${project.version}</version>
     </dependency>
 

@@ -167,6 +167,7 @@ If the target application runs under JDK 11 and above, the following arguments s
 | HTTP Server - Netty    | 2.0.0       |             |                                                | &check; |
 | HTTP Server - Tomcat   | 8.5.20      |             | &check;                                        | &check; |
 | HTTP Server - Undertow | 1.4.12      |             | &check;                                        | &check; |
+| xxl-job                | 2.3.0       |             |                                                | &check; |
 
 
 # User Doc
