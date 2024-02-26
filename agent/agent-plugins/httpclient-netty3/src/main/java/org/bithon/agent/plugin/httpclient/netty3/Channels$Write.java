@@ -50,12 +50,12 @@ public class Channels$Write extends AroundInterceptor {
 
         final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpclient");
         if (span != null) {
-            aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                          .kind(SpanKind.CLIENT)
-                                          .tag(Tags.Http.CLIENT, "netty3")
-                                          .tag(Tags.Http.METHOD, httpRequest.getMethod().getName())
-                                          .propagate(httpRequest.headers(), HttpHeaders::set)
-                                          .start());
+            aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                                   .kind(SpanKind.CLIENT)
+                                   .tag(Tags.Http.CLIENT, "netty3")
+                                   .tag(Tags.Http.METHOD, httpRequest.getMethod().getName())
+                                   .propagate(httpRequest.headers(), HttpHeaders::set)
+                                   .start());
         }
 
         return super.before(aopContext);
@@ -70,11 +70,11 @@ public class Channels$Write extends AroundInterceptor {
         final HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
         final String method = httpRequest.getMethod().getName();
         final long startAt = aopContext.getStartNanoTime();
-        final ITraceSpan span = (ITraceSpan) aopContext.getUserContext();
+        final ITraceSpan span = aopContext.getSpan();
         final String uri = getUri(httpRequest);
 
         // unlink reference
-        aopContext.setUserContext(null);
+        aopContext.setSpan(null);
 
         Object ret = aopContext.getReturning();
         if (!(ret instanceof ChannelFuture)) {

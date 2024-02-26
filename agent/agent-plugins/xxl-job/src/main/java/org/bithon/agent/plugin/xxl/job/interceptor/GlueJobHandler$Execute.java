@@ -49,17 +49,17 @@ public class GlueJobHandler$Execute extends AroundInterceptor {
                                       .component("glue-job");
 
         IJobHandler job = (IJobHandler) ReflectionUtils.getFieldValue(aopContext.getTarget(), "jobHandler");
-        aopContext.setUserContext(span.method(job.getClass(), "execute")
-                                      .tag(Tags.Thread.ID, Thread.currentThread().getId())
-                                      .tag(Tags.Thread.NAME, Thread.currentThread().getName())
-                                      .start());
+        aopContext.setSpan(span.method(job.getClass(), "execute")
+                               .tag(Tags.Thread.ID, Thread.currentThread().getId())
+                               .tag(Tags.Thread.NAME, Thread.currentThread().getName())
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException())
             .finish();
 

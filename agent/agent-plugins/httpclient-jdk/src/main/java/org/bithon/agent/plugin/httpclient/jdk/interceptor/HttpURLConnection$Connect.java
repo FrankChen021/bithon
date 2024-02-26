@@ -46,22 +46,22 @@ public class HttpURLConnection$Connect extends AroundInterceptor {
         /*
          * starts a span which will be finished after HttpClient.parseHttp
          */
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      // Since this span does not propagate the tracing context to next hop,
-                                      // it's not marked as SpanKind.CLIENT
-                                      .tag(Tags.Http.CLIENT, "jdk")
-                                      .tag(Tags.Net.PEER, url.getPort() == -1 ? url.getHost() : (url.getHost() + ":" + url.getPort()))
-                                      // No need to write URL and method to avoid repetition
-                                      //.tag(Tags.Http.URL, connection.getURL().toString())
-                                      //.tag(Tags.Http.METHOD, connection.getRequestMethod())
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               // Since this span does not propagate the tracing context to next hop,
+                               // it's not marked as SpanKind.CLIENT
+                               .tag(Tags.Http.CLIENT, "jdk")
+                               .tag(Tags.Net.PEER, url.getPort() == -1 ? url.getHost() : (url.getHost() + ":" + url.getPort()))
+                               // No need to write URL and method to avoid repetition
+                               //.tag(Tags.Http.URL, connection.getURL().toString())
+                               //.tag(Tags.Http.METHOD, connection.getRequestMethod())
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException()).finish();
     }
 }

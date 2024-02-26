@@ -83,10 +83,10 @@ public class AroundGatewayFilter$Filter extends AroundInterceptor {
         // But for a repeated/retried request, it's scheduled on parallel scheduler threads, so any code that retrieves the context fails
         TraceContextHolder.set(traceContext);
 
-        aopContext.setUserContext(traceContext.currentSpan()
-                                              .newChildSpan("filter")
-                                              .method(aopContext.getTargetClass(), aopContext.getMethod())
-                                              .start());
+        aopContext.setSpan(traceContext.currentSpan()
+                                       .newChildSpan("filter")
+                                       .method(aopContext.getTargetClass(), aopContext.getMethod())
+                                       .start());
 
 
         return InterceptionDecision.CONTINUE;
@@ -96,7 +96,7 @@ public class AroundGatewayFilter$Filter extends AroundInterceptor {
     public void after(AopContext aopContext) {
         TraceContextHolder.remove();
 
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         if (span == null) {
             // in case of exception in the Enter interceptor
             return;

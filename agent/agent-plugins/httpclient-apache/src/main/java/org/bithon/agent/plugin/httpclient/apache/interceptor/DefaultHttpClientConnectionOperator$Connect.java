@@ -45,19 +45,19 @@ public class DefaultHttpClientConnectionOperator$Connect extends AroundIntercept
         }
 
         HttpHost httpHost = aopContext.getArgAs(1);
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      // Since this span does not propagate the tracing context to next hop,
-                                      // it's not marked as SpanKind.CLIENT
-                                      .tag(Tags.Http.CLIENT, "apache")
-                                      .tag(Tags.Net.PEER, httpHost.getPort() == -1 ? httpHost.getHostName() : httpHost.getHostName() + ":" + httpHost.getPort())
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               // Since this span does not propagate the tracing context to next hop,
+                               // it's not marked as SpanKind.CLIENT
+                               .tag(Tags.Http.CLIENT, "apache")
+                               .tag(Tags.Net.PEER, httpHost.getPort() == -1 ? httpHost.getHostName() : httpHost.getHostName() + ":" + httpHost.getPort())
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException()).finish();
     }
 }

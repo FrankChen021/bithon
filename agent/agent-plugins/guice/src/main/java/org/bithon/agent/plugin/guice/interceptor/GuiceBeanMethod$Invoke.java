@@ -37,15 +37,15 @@ public class GuiceBeanMethod$Invoke extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException()).finish();
     }
 }

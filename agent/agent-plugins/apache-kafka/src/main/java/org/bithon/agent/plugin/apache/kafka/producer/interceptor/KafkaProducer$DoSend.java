@@ -75,22 +75,22 @@ public class KafkaProducer$DoSend extends AroundInterceptor {
         IBithonObject bithonObject = aopContext.getTargetAs();
         KafkaPluginContext pluginContext = (KafkaPluginContext) bithonObject.getInjectedObject();
 
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .kind(SpanKind.PRODUCER)
-                                      .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
-                                      .tag(Tags.Messaging.SYSTEM, "kafka")
-                                      .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
-                                      .tag(Tags.Messaging.KAFKA_TOPIC, record.topic())
-                                      .tag(Tags.Messaging.KAFKA_SOURCE_PARTITION, record.partition())
-                                      .tag(Tags.Messaging.BYTES, size)
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .kind(SpanKind.PRODUCER)
+                               .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
+                               .tag(Tags.Messaging.SYSTEM, "kafka")
+                               .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
+                               .tag(Tags.Messaging.KAFKA_TOPIC, record.topic())
+                               .tag(Tags.Messaging.KAFKA_SOURCE_PARTITION, record.partition())
+                               .tag(Tags.Messaging.BYTES, size)
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         if (aopContext.hasException()) {
             span.tag(aopContext.getException());
         } else {

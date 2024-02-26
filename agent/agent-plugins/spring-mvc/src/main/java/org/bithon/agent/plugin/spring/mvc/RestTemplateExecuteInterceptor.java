@@ -45,9 +45,9 @@ public class RestTemplateExecuteInterceptor extends AroundInterceptor {
             uri = obj.toString();
         }
 
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .tag(Tags.Http.URL, uri)
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .tag(Tags.Http.URL, uri)
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
@@ -55,7 +55,7 @@ public class RestTemplateExecuteInterceptor extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.finish();
     }
 }

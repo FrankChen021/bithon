@@ -39,16 +39,16 @@ public class XceiverClientGrpc$SendCommandOnAllNodes extends AroundInterceptor {
 
         ContainerProtos.ContainerCommandRequestProto request = aopContext.getArgAs(0);
 
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .tag("request", request.getCmdType().name())
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .tag("request", request.getCmdType().name())
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException()).finish();
     }
 }

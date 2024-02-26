@@ -33,6 +33,7 @@ public abstract class AopContext {
     protected final String method;
     protected Object target;
     private final Object[] args;
+    private Object span;
     private Object userContext;
     private Object returning;
     protected Throwable exception;
@@ -50,6 +51,7 @@ public abstract class AopContext {
         this.target = target;
         this.method = method;
         this.args = args;
+        this.span = null;
         this.userContext = null;
         this.returning = null;
         this.exception = null;
@@ -91,16 +93,21 @@ public abstract class AopContext {
         return (T) args[i];
     }
 
-    public Object getUserContext() {
-        return userContext;
+    public void setSpan(Object span) {
+        this.span = span;
+    }
+
+    public <T> T getSpan() {
+        //noinspection unchecked
+        return (T) span;
     }
 
     public void setUserContext(Object userContext) {
         this.userContext = userContext;
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> T getUserContextAs() {
+    public <T> T getUserContext() {
+        //noinspection unchecked
         return (T) userContext;
     }
 

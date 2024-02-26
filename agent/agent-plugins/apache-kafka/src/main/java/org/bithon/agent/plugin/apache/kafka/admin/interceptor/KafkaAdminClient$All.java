@@ -42,19 +42,19 @@ public class KafkaAdminClient$All extends AroundInterceptor {
         IBithonObject bithonObject = aopContext.getTargetAs();
         KafkaPluginContext pluginContext = (KafkaPluginContext) bithonObject.getInjectedObject();
 
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .kind(SpanKind.CLIENT)
-                                      .tag(Tags.Messaging.SYSTEM, "kafka")
-                                      .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
-                                      .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .kind(SpanKind.CLIENT)
+                               .tag(Tags.Messaging.SYSTEM, "kafka")
+                               .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
+                               .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException()).finish();
     }
 }

@@ -67,20 +67,20 @@ public class HttpRequestExecutor$Execute extends AroundInterceptor {
         }
 
         // create a span and save it in user-context
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .kind(SpanKind.CLIENT)
-                                      .tag(Tags.Http.CLIENT, "apache")
-                                      .tag(Tags.Http.URL, uri)
-                                      .tag(Tags.Http.METHOD, httpRequest.getRequestLine().getMethod())
-                                      .propagate(httpRequest, HttpMessage::setHeader)
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .kind(SpanKind.CLIENT)
+                               .tag(Tags.Http.CLIENT, "apache")
+                               .tag(Tags.Http.URL, uri)
+                               .tag(Tags.Http.METHOD, httpRequest.getRequestLine().getMethod())
+                               .propagate(httpRequest, HttpMessage::setHeader)
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext context) {
-        ITraceSpan thisSpan = context.getUserContextAs();
+        ITraceSpan thisSpan = context.getSpan();
         if (thisSpan == null) {
             // in case of exception in the above
             return;

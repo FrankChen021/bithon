@@ -50,19 +50,19 @@ public class ScriptJobHandler$Execute extends AroundInterceptor {
         int jobId = (int) ReflectionUtils.getFieldValue(aopContext.getTarget(), "jobId");
         GlueTypeEnum type = (GlueTypeEnum) ReflectionUtils.getFieldValue(aopContext.getTarget(), "glueType");
 
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .tag("job.id", jobId)
-                                      .tag("job.type", type.getDesc())
-                                      .tag(Tags.Thread.ID, Thread.currentThread().getId())
-                                      .tag(Tags.Thread.NAME, Thread.currentThread().getName())
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .tag("job.id", jobId)
+                               .tag("job.type", type.getDesc())
+                               .tag(Tags.Thread.ID, Thread.currentThread().getId())
+                               .tag(Tags.Thread.NAME, Thread.currentThread().getName())
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException())
             .finish();
 

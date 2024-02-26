@@ -45,18 +45,18 @@ public class RealConnection$Connect extends AroundInterceptor {
             HttpUrl httpUrl = route.address().url();
             peer = httpUrl.port() == -1 ? httpUrl.host() : (httpUrl.host() + ":" + httpUrl.port());
         }
-        aopContext.setUserContext(span.tag(Tags.Http.CLIENT, "okhttp3")
-                                      // Since this span does not propagate the tracing context to next hop,
-                                      // it's not marked as SpanKind.CLIENT
-                                      .method(aopContext.getTargetClass().getName(), "connect")
-                                      .tag(Tags.Net.PEER, peer)
-                                      .start());
+        aopContext.setSpan(span.tag(Tags.Http.CLIENT, "okhttp3")
+                               // Since this span does not propagate the tracing context to next hop,
+                               // it's not marked as SpanKind.CLIENT
+                               .method(aopContext.getTargetClass().getName(), "connect")
+                               .tag(Tags.Net.PEER, peer)
+                               .start());
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException()).finish();
     }
 }

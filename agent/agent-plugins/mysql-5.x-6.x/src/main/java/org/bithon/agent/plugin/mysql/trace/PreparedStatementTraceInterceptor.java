@@ -41,28 +41,23 @@ public class PreparedStatementTraceInterceptor extends AroundInterceptor {
         }
 
         // create a span and save it in user-context
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .kind(SpanKind.CLIENT)
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .kind(SpanKind.CLIENT)
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan mysqlSpan = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         try {
             String sql;
             if ((sql = (String) InterceptorContext.get(ConnectionTraceInterceptor.KEY)) != null) {
-                mysqlSpan.tag(Tags.Database.STATEMENT, sql);
+                span.tag(Tags.Database.STATEMENT, sql);
             }
+            span.finish();
         } finally {
-            try {
-                mysqlSpan.finish();
-            } catch (Exception e) {
-                log.warn(e.getMessage(), e);
-            }
-
             InterceptorContext.remove(ConnectionTraceInterceptor.KEY);
         }
     }

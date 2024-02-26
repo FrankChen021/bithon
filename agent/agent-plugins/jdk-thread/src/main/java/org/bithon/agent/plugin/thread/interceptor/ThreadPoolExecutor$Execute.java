@@ -42,8 +42,8 @@ public class ThreadPoolExecutor$Execute extends AroundInterceptor {
 
         ITraceSpan span = TraceSpanFactory.newSpan("threadPool");
         if (span != null) {
-            aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                          .start());
+            aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                                   .start());
         }
 
         // Wrap the users' runnable
@@ -57,7 +57,7 @@ public class ThreadPoolExecutor$Execute extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         if (span != null) {
             span.finish();
         }

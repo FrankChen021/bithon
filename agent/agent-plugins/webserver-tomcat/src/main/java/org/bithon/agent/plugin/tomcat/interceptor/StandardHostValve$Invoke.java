@@ -103,8 +103,6 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
             }
         }
 
-        aopContext.setUserContext(traceContext);
-
         InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
 
         return InterceptionDecision.CONTINUE;
@@ -114,7 +112,7 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
     public void after(AopContext aopContext) {
         InterceptorContext.remove(InterceptorContext.KEY_URI);
 
-        ITraceContext traceContext = aopContext.getUserContextAs();
+        ITraceContext traceContext = TraceContextHolder.remove();
         try {
             Response response = (Response) aopContext.getArgs()[1];
             traceContext.currentSpan()
@@ -123,10 +121,6 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
                         .finish();
         } finally {
             traceContext.finish();
-            try {
-                TraceContextHolder.remove();
-            } catch (Exception ignored) {
-            }
         }
     }
 }

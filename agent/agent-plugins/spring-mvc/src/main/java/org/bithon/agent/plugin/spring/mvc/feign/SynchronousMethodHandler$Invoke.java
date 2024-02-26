@@ -50,19 +50,19 @@ public class SynchronousMethodHandler$Invoke extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setUserContext(span.kind(SpanKind.CLIENT)
-                                      .method(invocationContext.methodMeta.method())
-                                      // DO NOT USE standard HTTP tag name,
-                                      // Because feign does not emit metrics which can't be associated with tracing log
-                                      .tag("target", invocationContext.target.url())
-                                      .start());
+        aopContext.setSpan(span.kind(SpanKind.CLIENT)
+                               .method(invocationContext.methodMeta.method())
+                               // DO NOT USE standard HTTP tag name,
+                               // Because feign does not emit metrics which can't be associated with tracing log
+                               .tag("target", invocationContext.target.url())
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
 
         span.tag(aopContext.getException())
             .finish();

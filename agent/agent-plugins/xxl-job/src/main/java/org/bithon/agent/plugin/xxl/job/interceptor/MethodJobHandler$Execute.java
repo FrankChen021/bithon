@@ -47,15 +47,15 @@ public class MethodJobHandler$Execute extends AroundInterceptor {
                                       .component("method-job");
 
         Method targetMethod = (Method) ReflectionUtils.getFieldValue(aopContext.getTarget(), "method");
-        aopContext.setUserContext(span.method(targetMethod)
-                                      .start());
+        aopContext.setSpan(span.method(targetMethod)
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException())
             .finish();
 

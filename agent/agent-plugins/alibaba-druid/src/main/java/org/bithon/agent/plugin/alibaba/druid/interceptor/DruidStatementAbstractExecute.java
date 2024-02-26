@@ -94,7 +94,7 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        UserContext context = aopContext.getUserContextAs();
+        UserContext context = aopContext.getUserContext();
         if (context.span != null) {
             try {
                 context.span.tag(Tags.Database.STATEMENT, getExecutingSql(aopContext))

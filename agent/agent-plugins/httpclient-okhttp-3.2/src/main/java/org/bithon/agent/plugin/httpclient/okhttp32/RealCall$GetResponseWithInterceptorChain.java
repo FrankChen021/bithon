@@ -79,12 +79,12 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
 
         ITraceSpan span = TraceSpanFactory.newSpan("httpclient");
         if (span != null) {
-            aopContext.setUserContext(span.kind(SpanKind.CLIENT)
-                                          .tag(Tags.Http.CLIENT, "okhttp3")
-                                          .method(aopContext.getTargetClass().getName(), "execute")
-                                          .tag(Tags.Http.METHOD, request.method())
-                                          .tag(Tags.Http.URL, request.url().toString())
-                                          .start());
+            aopContext.setSpan(span.kind(SpanKind.CLIENT)
+                                   .tag(Tags.Http.CLIENT, "okhttp3")
+                                   .method(aopContext.getTargetClass().getName(), "execute")
+                                   .tag(Tags.Http.METHOD, request.method())
+                                   .tag(Tags.Http.URL, request.url().toString())
+                                   .start());
 
             // Propagate the tracing context if we can modify the header
             if (headerField != null) {
@@ -107,7 +107,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
         //
         // Tracing Processing
         //
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         if (span != null) {
             //
             // Record configured response headers in tracing logs.

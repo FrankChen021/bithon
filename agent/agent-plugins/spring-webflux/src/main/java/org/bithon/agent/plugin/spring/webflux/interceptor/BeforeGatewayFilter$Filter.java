@@ -83,14 +83,14 @@ public class BeforeGatewayFilter$Filter extends AroundInterceptor {
             return delegate.filter(exchange1);
         };
 
-        aopContext.setUserContext(span);
+        aopContext.setSpan(span);
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
         final ServerWebExchange exchange = aopContext.getArgAs(0);
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         if (span == null) {
             return;
         }

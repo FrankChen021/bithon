@@ -42,16 +42,16 @@ public class AbstractGrpcStubInterceptor extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .kind(SpanKind.CLIENT)
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .kind(SpanKind.CLIENT)
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException()).finish();
     }
 

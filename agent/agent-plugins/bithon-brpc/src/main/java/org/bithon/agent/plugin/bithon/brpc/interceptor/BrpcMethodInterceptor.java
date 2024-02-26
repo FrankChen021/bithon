@@ -52,12 +52,12 @@ public class BrpcMethodInterceptor extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setUserContext(context.currentSpan()
-                                         .component("brpc")
-                                         .kind(SpanKind.SERVER)
-                                         .method(aopContext.getTargetClass(), aopContext.getMethod())
-                                         .tag("uri", "brpc://" + aopContext.getTarget().getClass().getSimpleName() + "/" + aopContext.getMethod())
-                                         .start());
+        aopContext.setSpan(context.currentSpan()
+                                  .component("brpc")
+                                  .kind(SpanKind.SERVER)
+                                  .method(aopContext.getTargetClass(), aopContext.getMethod())
+                                  .tag("uri", "brpc://" + aopContext.getTarget().getClass().getSimpleName() + "/" + aopContext.getMethod())
+                                  .start());
 
         TraceContextHolder.set(context);
         return InterceptionDecision.CONTINUE;
@@ -65,7 +65,7 @@ public class BrpcMethodInterceptor extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException())
             .tag("status", aopContext.hasException() ? "500" : "200")
             .finish();

@@ -60,11 +60,11 @@ public class JobRunShell$Run extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setUserContext(context.currentSpan()
-                                         .component("quartz")
-                                         .kind(SpanKind.TIMER)
-                                         .method(aopContext.getTargetClass(), aopContext.getMethod())
-                                         .start());
+        aopContext.setSpan(context.currentSpan()
+                                  .component("quartz")
+                                  .kind(SpanKind.TIMER)
+                                  .method(aopContext.getTargetClass(), aopContext.getMethod())
+                                  .start());
 
         TraceContextHolder.set(context);
 
@@ -90,7 +90,7 @@ public class JobRunShell$Run extends AroundInterceptor {
         JobExecutionException exception = (JobExecutionException) bithonObject.getInjectedObject();
 
         // tracing
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(exception == null ? null : exception.getUnderlyingException())
             .tag("status", exception != null ? "500" : "200")
             .tag("uri", jobExecutionContext == null ? null : "quartz://" + jobExecutionContext.getJobDetail().getJobClass().getName())

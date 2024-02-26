@@ -28,8 +28,10 @@ public class TraceContextHolder {
         return context;
     }
 
-    public static void remove() {
+    public static ITraceContext remove() {
+        ITraceContext context = current();
         HOLDER.remove();
+        return context;
     }
 
     public static ITraceContext current() {

@@ -43,17 +43,17 @@ public class StatementTraceInterceptor extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .kind(SpanKind.CLIENT)
-                                      //TODO: connection uri
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .kind(SpanKind.CLIENT)
+                               //TODO: connection uri
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         try {
             /*
             if (context.getArgs() != null && context.getArgs().length > 0 && needIgnore(context.getArgs()[0].toString())) {

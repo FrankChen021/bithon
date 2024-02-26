@@ -42,18 +42,18 @@ public class XceiverClientGrpc$SendCommandAsync extends AroundInterceptor {
         ContainerProtos.ContainerCommandRequestProto request = aopContext.getArgAs(0);
         DatanodeDetails dataNode = aopContext.getArgAs(1);
 
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .tag("request", request.getCmdType().name())
-                                      .tag("datanode.host", dataNode.getHostName())
-                                      .tag("datanode.ip", dataNode.getIpAddress())
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .tag("request", request.getCmdType().name())
+                               .tag("datanode.host", dataNode.getHostName())
+                               .tag("datanode.ip", dataNode.getIpAddress())
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException()).finish();
     }
 }

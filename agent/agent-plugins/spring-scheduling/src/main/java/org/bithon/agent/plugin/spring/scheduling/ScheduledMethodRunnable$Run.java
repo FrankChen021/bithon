@@ -50,19 +50,19 @@ public class ScheduledMethodRunnable$Run extends AroundInterceptor {
         ScheduledMethodRunnable runnable = aopContext.getTargetAs();
         String targetClass = runnable.getMethod().getDeclaringClass().getName();
 
-        aopContext.setUserContext(context.currentSpan()
-                                         .component("spring-scheduler")
-                                         .kind(SpanKind.TIMER)
-                                         .method(runnable.getMethod())
-                                         .tag("uri", "spring-scheduler://" + targetClass)
-                                         .start());
+        aopContext.setSpan(context.currentSpan()
+                                  .component("spring-scheduler")
+                                  .kind(SpanKind.TIMER)
+                                  .method(runnable.getMethod())
+                                  .tag("uri", "spring-scheduler://" + targetClass)
+                                  .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
 
         span.tag(aopContext.getException())
             .tag("status", aopContext.hasException() ? "500" : "200")
