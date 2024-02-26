@@ -35,6 +35,12 @@
       <artifactId>druid-sql</artifactId>
       <version>0.16.0-incubating</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>druid-core</artifactId>
+          <groupId>org.apache.druid</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 
