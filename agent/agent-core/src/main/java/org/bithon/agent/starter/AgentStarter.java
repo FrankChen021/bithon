@@ -49,13 +49,13 @@ public class AgentStarter {
      */
     private static void showBanner() {
         LOG.info("\n ________  ___  _________  ___  ___  ________  ________      \n"
-                     + "|\\   __  \\|\\  \\|\\___   ___\\\\  \\|\\  \\|\\   __  \\|\\   ___  \\    \n"
-                     + "\\ \\  \\|\\ /\\ \\  \\|___ \\  \\_\\ \\  \\\\\\  \\ \\  \\|\\  \\ \\  \\\\ \\  \\   \n"
-                     + " \\ \\   __  \\ \\  \\   \\ \\  \\ \\ \\   __  \\ \\  \\\\\\  \\ \\  \\\\ \\  \\  \n"
-                     + "  \\ \\  \\|\\  \\ \\  \\   \\ \\  \\ \\ \\  \\ \\  \\ \\  \\\\\\  \\ \\  \\\\ \\  \\ \n"
-                     + "   \\ \\_______\\ \\__\\   \\ \\__\\ \\ \\__\\ \\__\\ \\_______\\ \\__\\\\ \\__\\\n"
-                     + "    \\|_______|\\|__|    \\|__|  \\|__|\\|__|\\|_______|\\|__| \\|__|\n"
-                     + "Version: {}, {}, Build time:{}\n",
+                 + "|\\   __  \\|\\  \\|\\___   ___\\\\  \\|\\  \\|\\   __  \\|\\   ___  \\    \n"
+                 + "\\ \\  \\|\\ /\\ \\  \\|___ \\  \\_\\ \\  \\\\\\  \\ \\  \\|\\  \\ \\  \\\\ \\  \\   \n"
+                 + " \\ \\   __  \\ \\  \\   \\ \\  \\ \\ \\   __  \\ \\  \\\\\\  \\ \\  \\\\ \\  \\  \n"
+                 + "  \\ \\  \\|\\  \\ \\  \\   \\ \\  \\ \\ \\  \\ \\  \\ \\  \\\\\\  \\ \\  \\\\ \\  \\ \n"
+                 + "   \\ \\_______\\ \\__\\   \\ \\__\\ \\ \\__\\ \\__\\ \\_______\\ \\__\\\\ \\__\\\n"
+                 + "    \\|_______|\\|__|    \\|__|  \\|__|\\|__|\\|_______|\\|__| \\|__|\n"
+                 + "Version: {}, {}, Build time:{}\n",
                  AgentBuildVersion.VERSION,
                  AgentBuildVersion.SCM_REVISION,
                  AgentBuildVersion.TIMESTAMP);
@@ -122,10 +122,10 @@ public class AgentStarter {
         AppConfig appConfig = ConfigurationManager.getInstance().getConfig(AppConfig.class);
 
         File targetDirectory = AgentDirectory.getSubDirectory(AgentDirectory.TMP_DIR
-                                                                  + separator
-                                                                  + appConfig.getName() + "-" + appConfig.getEnv()
-                                                                  + separator
-                                                                  + "classes");
+                                                              + separator
+                                                              + appConfig.getName() + "-" + appConfig.getEnv()
+                                                              + separator
+                                                              + "classes");
 
         return new AopDebugger(isDebug, targetDirectory);
     }
