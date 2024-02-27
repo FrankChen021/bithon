@@ -125,7 +125,7 @@ public abstract class PluginResolver {
             }
 
             if (!resolve(pluginClass)) {
-                LOG.info("Found plugin [{}], but it's not DISABLED by configuration", pluginName);
+                LOG.info("Found plugin [{}], but it's DISABLED by configuration", pluginName);
                 return null;
             }
 
