@@ -38,10 +38,28 @@ public class TraceContextListener {
         return INSTANCE;
     }
 
+    private final IListener spanDebugListener = new SpanEventDebugLogger();
+
     public TraceContextListener() {
-        TraceConfig config = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
-        if (config != null && config.isDebug()) {
-            listeners.add(new SpanEventDebugLogger());
+        ConfigurationManager.getInstance()
+                            .addConfigurationChangedListener("tracing.debug", this::addOrRemoveDebugListener);
+        addOrRemoveDebugListener();
+    }
+
+    private void addOrRemoveDebugListener() {
+        TraceConfig traceConfig = ConfigurationManager.getInstance()
+                                                      .getConfig(TraceConfig.class);
+        boolean existed = listeners.contains(spanDebugListener);
+        if (traceConfig.isDebug()) {
+            if (!existed) {
+                // flag changes from false to true, add the listener
+                listeners.add(spanDebugListener);
+            }
+        } else {
+            if (existed) {
+                // flag changes from true to false, remove the listener
+                listeners.remove(spanDebugListener);
+            }
         }
     }
 
