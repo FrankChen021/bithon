@@ -395,4 +395,28 @@ public class TestConfigurationManager {
             Assert.assertEquals(true, manager.getConfig("test.b", Boolean.class));
         }
     }
+
+    @Test
+    public void test_BindToArray() {
+        try (MockedStatic<Helper> configurationMock = Mockito.mockStatic(Helper.class)) {
+            configurationMock.when(Helper::getCommandLineInputArgs)
+                             .thenReturn(Arrays.asList("-Xms512M",
+                                                       // Array configuration
+                                                       "-Dbithon.test.b[0]=1",
+                                                       "-Dbithon.test.b[1]=2",
+                                                       "-Dbithon.test.b[3]=3",
+                                                       "-Dbithon.test.p[0]=8%",
+                                                       "-Dbithon.test.p[2]=9%",
+                                                       "-Dbithon.test.p[3]=10%"
+                                                      ));
+
+            ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
+
+            Assert.assertArrayEquals(new int[]{1, 2, 3}, manager.getConfig("test.b", int[].class, true));
+            Assert.assertArrayEquals(new HumanReadablePercentage[]{HumanReadablePercentage.parse("8%"),
+                                         HumanReadablePercentage.parse("9%"),
+                                         HumanReadablePercentage.parse("10%")},
+                                     manager.getConfig("test.p", HumanReadablePercentage[].class, true));
+        }
+    }
 }
