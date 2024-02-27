@@ -20,7 +20,6 @@ import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.component.commons.tracing.SpanKind;
-import org.bithon.component.commons.tracing.Tags;
 
 import java.util.Collections;
 import java.util.Map;
@@ -156,16 +155,16 @@ class LoggingTraceSpan implements ITraceSpan {
     @Override
     public ITraceSpan newChildSpan(String name) {
         throw new AgentException("Can't create span under LOGGING mode.\n" +
-                                         "This MUST be a bug of agent, pls contact the maintainer to resolve it.\n" +
-                                         "In most of cases, TraceContextFactory.newSpan SHOULD be called instead of call this method to avoid such exception.");
+                                 "This MUST be a bug of agent, pls contact the maintainer to resolve it.\n" +
+                                 "In most of cases, TraceContextFactory.newSpan SHOULD be called instead of call this method to avoid such exception.");
     }
 
     @Override
     public String toString() {
         return "LoggingTraceSpan[" +
-            ", traceId=" + this.traceId() +
-            ", spanId=" + this.spanId +
-            ", parentId=" + this.parentSpanId +
-            "]";
+               ", traceId=" + this.traceId() +
+               ", spanId=" + this.spanId +
+               ", parentId=" + this.parentSpanId +
+               "]";
     }
 }
