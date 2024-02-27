@@ -17,6 +17,8 @@
 package org.bithon.agent.starter;
 
 import org.bithon.agent.AgentBuildVersion;
+import org.bithon.agent.config.AopConfig;
+import org.bithon.agent.config.AppConfig;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.PluginConfiguration;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
@@ -47,13 +49,13 @@ public class AgentStarter {
      */
     private static void showBanner() {
         LOG.info("\n ________  ___  _________  ___  ___  ________  ________      \n"
-                 + "|\\   __  \\|\\  \\|\\___   ___\\\\  \\|\\  \\|\\   __  \\|\\   ___  \\    \n"
-                 + "\\ \\  \\|\\ /\\ \\  \\|___ \\  \\_\\ \\  \\\\\\  \\ \\  \\|\\  \\ \\  \\\\ \\  \\   \n"
-                 + " \\ \\   __  \\ \\  \\   \\ \\  \\ \\ \\   __  \\ \\  \\\\\\  \\ \\  \\\\ \\  \\  \n"
-                 + "  \\ \\  \\|\\  \\ \\  \\   \\ \\  \\ \\ \\  \\ \\  \\ \\  \\\\\\  \\ \\  \\\\ \\  \\ \n"
-                 + "   \\ \\_______\\ \\__\\   \\ \\__\\ \\ \\__\\ \\__\\ \\_______\\ \\__\\\\ \\__\\\n"
-                 + "    \\|_______|\\|__|    \\|__|  \\|__|\\|__|\\|_______|\\|__| \\|__|\n"
-                 + "Version: {}, {}, Build time:{}\n",
+                     + "|\\   __  \\|\\  \\|\\___   ___\\\\  \\|\\  \\|\\   __  \\|\\   ___  \\    \n"
+                     + "\\ \\  \\|\\ /\\ \\  \\|___ \\  \\_\\ \\  \\\\\\  \\ \\  \\|\\  \\ \\  \\\\ \\  \\   \n"
+                     + " \\ \\   __  \\ \\  \\   \\ \\  \\ \\ \\   __  \\ \\  \\\\\\  \\ \\  \\\\ \\  \\  \n"
+                     + "  \\ \\  \\|\\  \\ \\  \\   \\ \\  \\ \\ \\  \\ \\  \\ \\  \\\\\\  \\ \\  \\\\ \\  \\ \n"
+                     + "   \\ \\_______\\ \\__\\   \\ \\__\\ \\ \\__\\ \\__\\ \\_______\\ \\__\\\\ \\__\\\n"
+                     + "    \\|_______|\\|__|    \\|__|  \\|__|\\|__|\\|_______|\\|__| \\|__|\n"
+                     + "Version: {}, {}, Build time:{}\n",
                  AgentBuildVersion.VERSION,
                  AgentBuildVersion.SCM_REVISION,
                  AgentBuildVersion.TIMESTAMP);
@@ -117,13 +119,13 @@ public class AgentStarter {
     private AopDebugger createAopDebugger() {
         boolean isDebug = ConfigurationManager.getInstance().getConfig(AopConfig.class).isDebug();
 
-        String appName = ConfigurationManager.getInstance().getConfig(ConfigurationManager.BITHON_APPLICATION_NAME, String.class);
-        String env = ConfigurationManager.getInstance().getConfig(ConfigurationManager.BITHON_APPLICATION_ENV, String.class);
+        AppConfig appConfig = ConfigurationManager.getInstance().getConfig(AppConfig.class);
+
         File targetDirectory = AgentDirectory.getSubDirectory(AgentDirectory.TMP_DIR
-                                                              + separator
-                                                              + appName + "-" + env
-                                                              + separator
-                                                              + "classes");
+                                                                  + separator
+                                                                  + appConfig.getName() + "-" + appConfig.getEnv()
+                                                                  + separator
+                                                                  + "classes");
 
         return new AopDebugger(isDebug, targetDirectory);
     }

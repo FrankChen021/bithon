@@ -97,9 +97,6 @@ public class ConfigurationManager {
 
     private static final ILogAdaptor log = LoggerFactory.getLogger(ConfigurationManager.class);
 
-    public static final String BITHON_APPLICATION_ENV = "application.env";
-    public static final String BITHON_APPLICATION_NAME = "application.name";
-
     private static ConfigurationManager INSTANCE;
 
     public static ConfigurationManager getInstance() {
