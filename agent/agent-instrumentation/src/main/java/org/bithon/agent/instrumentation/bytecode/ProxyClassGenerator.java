@@ -84,7 +84,23 @@ import java.util.Map;
  */
 public class ProxyClassGenerator {
 
+    /**
+     * Create a proxy class for given class
+     * @param baseClass should NOT be declared as final.
+     *                  CANNOT be primitive class
+     *                  CANNOT be type of array
+     */
+
     public static Class<?> create(Class<?> baseClass) {
+        if ((baseClass.getModifiers() & Modifier.FINAL) != 0) {
+            throw new AgentException("The base class should NOT be declared as final");
+        }
+        if (baseClass.isPrimitive()) {
+            throw new AgentException("The base class can not be a primitive class");
+        }
+        if (baseClass.isArray()) {
+            throw new AgentException("The base class can not be type of array");
+        }
         Constructor<?> defaultCtor;
         try {
             defaultCtor = baseClass.getDeclaredConstructor();

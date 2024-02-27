@@ -16,6 +16,8 @@
 
 package org.bithon.component.commons.utils;
 
+import java.util.Objects;
+
 /**
  * @author Frank Chen
  * @date 22/1/24 9:53 am
@@ -79,5 +81,22 @@ public class HumanReadablePercentage extends Number {
     @Override
     public double doubleValue() {
         return this.fraction;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        HumanReadablePercentage that = (HumanReadablePercentage) o;
+        return Objects.equals(readableText, that.readableText);
+    }
+
+    @Override
+    public int hashCode() {
+        return readableText.hashCode();
     }
 }

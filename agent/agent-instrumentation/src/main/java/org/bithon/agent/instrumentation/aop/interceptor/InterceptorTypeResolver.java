@@ -51,17 +51,21 @@ public class InterceptorTypeResolver {
         this.classLoader = classLoader;
     }
 
-    public InterceptorType resolve(String name) {
-        SuperNameExtractor visitor = new SuperNameExtractor();
+    /**
+     * Resolve the interceptor type by finding its superclass declaration from the class bytecode.
+     * The ASM is used to read & process bytecode.
+     */
+    public InterceptorType resolve(String interceptorClassName) {
+        SuperNameExtractor extractor = new SuperNameExtractor();
 
-        try (InputStream is = classLoader.getClassStream(name)) {
+        try (InputStream is = classLoader.getClassStream(interceptorClassName)) {
             ClassReader cr = new ClassReader(is);
-            cr.accept(visitor, ClassReader.SKIP_FRAMES);
+            cr.accept(extractor, ClassReader.SKIP_FRAMES);
         } catch (IOException ignored) {
-            throw new AgentException("Can't resolve class [%s]", name);
+            throw new AgentException("Can't resolve class [%s]", interceptorClassName);
         }
 
-        String superName = visitor.getSuperName();
+        String superName = extractor.getSuperName();
         if (AROUND.equals(superName)) {
             return InterceptorType.AROUND;
         } else if (BEFORE.equals(superName)) {
@@ -71,6 +75,11 @@ public class InterceptorTypeResolver {
         } else if (REPLACE.equals(superName)) {
             return InterceptorType.REPLACEMENT;
         } else {
+            // The direct superclass is not the default one,
+            // this means that the superclass might be derived from the default one,
+            // we need to recursively resolve the superclass.
+            //
+            // And the superType here is just a cache for any resolved type for a given superclass.
             InterceptorType type = superType.get(superName);
             if (type != null) {
                 return type;
@@ -81,6 +90,9 @@ public class InterceptorTypeResolver {
         }
     }
 
+    /**
+     * Find the direct superclass
+     */
     static class SuperNameExtractor extends ClassVisitor {
         private String superName;
 

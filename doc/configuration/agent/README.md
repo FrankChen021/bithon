@@ -18,6 +18,15 @@ This static configuration is shipped with the agent distribution.
 
 You can customize this configuration as the default configuration of your own distribution.
 
+> NOTE: Variable replacement in the configuration is not supported. For example:
+> 
+> ```
+> application:
+>   name: ${ENV:name}
+> ```
+> 
+> The value of the `application.name` property will not be replaced but the right `{ENV:name}`. 
+
 ## External Configuration (YAML file format)
 
 Since the default configuration customizes the global configuration of one distribution,
@@ -26,6 +35,8 @@ there are still cases that users of that particular distribution would need a co
 In such a case, the external configuration serves such a need.
 Users can use `-Dbithon.configuration.location` JVM command line argument
 to specify an external configuration file for the agents.
+
+> NOTE: Variable replacement in the configuration is not supported.
 
 ## Java command line arguments
 
@@ -53,13 +64,15 @@ Note that all environment variables are in underscore mode.
 
 ## Dynamic Configuration
 
-Configurations via command line arguments or environment variables.
-Each static configuration item has a corresponding dynamic configuration item.
+The Bithon server can store configurations for agents. We can use the API to manage(create/update/delete) configurations of an application or a group of applications.
+And the agent itself will fetch configurations from the server periodically.
 
-Given a static configuration `agent.plugin.http.incoming.filter.uri.suffixes`, it could be set by dynamic configuration as
-
-```bash
--Dbithon.agent.plugin.http.incoming.filter.uri.suffixes=.html
+You can take a look at the API in the code for reference:
+```
+/api/agent/configuration/add
+/api/agent/configuration/update
+/api/agent/configuration/delete
+/api/agent/configuration/get
 ```
 
 # Configuration Instruction
@@ -104,10 +117,60 @@ dispatchers:
 ### Agent Plugin Enabler flag
 
 User can disable a specific plugin by passing a system property to the java application to debug or tailor unnecessary plugins.
-Say we want to disable the `webserver-tomcat` plugin, passing the following property
+We can use the following property format to disable it:
+
+```bash
+-Dbithon.agent.plugin.[plugin-name].disabled=true
+```
+The `plugin-name` can be found from the following list:
+
+* alibaba.druid
+* apache.druid
+* apache.kafka
+* apache.ozone
+* bithon.brpc
+* bithon.sdk
+* glassfish
+* grpc
+* guice
+* httpclient.apache
+* httpclient.jdk
+* httpclient.jetty
+* httpclient.netty3
+* httpclient.okhttp32
+* jedis
+* jersey
+* jetty
+* lettuce
+* log4j2
+* logback
+* mongodb
+* mongodb38
+* mysql
+* mysql8
+* netty
+* netty4
+* quartz2
+* spring.bean
+* spring.boot
+* spring.mvc
+* spring.scheduling
+* spring.webflux
+* thread
+* tomcat
+* undertow
+* xxl.job
+
+For example, if we want to disable the `tomcat` HTTP server plugin, passing the following property
 
 ```bash
 -Dbithon.agent.plugin.webserver.tomcat.disabled=true
+```
+
+Once the application starts, a log will be printed to show the status of this plugin:
+
+```text
+15:38:01.155 [main] INFO org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginResolver - Found plugin [tomcat], but it's DISABLED by configuration
 ```
 
 ### Agent Plugin Configuration
@@ -134,6 +197,22 @@ Plugin configuration locates each plugin's resource directory with the name 'plu
 | tracing.traceResponseHeader                                 | The header name in a HTTP response that contains the trace-id.                                                                                                                    | 'X-Bithon-Trace-' |                                         |                                  
 
 ## Plugin Configurations
+
+
+### Disable/Enable plugin
+
+All plugins are enabled by default. They can be disabled separately. Use the following pattern to disable one plugin.
+
+```
+-Dbithon.agent.plugin.<plugin name>.disabled=true
+```
+
+For example, to disable the `spring-bean` plugin, use
+```
+-Dbithon.agent.plugin.spring.bean.disabled=true
+```
+
+### Plugin Configuration
 
 - [Alibaba Druid](plugin/alibaba-druid.md)
 - [Spring WebFlux](plugin/spring-webflux.md)

@@ -97,9 +97,6 @@ public class ConfigurationManager {
 
     private static final ILogAdaptor log = LoggerFactory.getLogger(ConfigurationManager.class);
 
-    public static final String BITHON_APPLICATION_ENV = "application.env";
-    public static final String BITHON_APPLICATION_NAME = "application.name";
-
     private static ConfigurationManager INSTANCE;
 
     public static ConfigurationManager getInstance() {
@@ -217,7 +214,7 @@ public class ConfigurationManager {
 
     @SuppressWarnings("unchecked")
     public <T> T getConfig(String propertyPath, Class<T> clazz, boolean isDynamic) {
-        if (clazz.isPrimitive() || !isDynamic) {
+        if (clazz.isPrimitive() || clazz.equals(String.class) || clazz.isArray() || !isDynamic) {
             return Binder.bind(propertyPath, collect(propertyPath), clazz);
         }
 

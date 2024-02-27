@@ -14,23 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.starter;
+package org.bithon.agent.configuration.validation;
 
-import org.bithon.agent.configuration.ConfigurationProperties;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * @author frank.chen021@outlook.com
- * @date 2021/8/7 13:53
- */
-@ConfigurationProperties(path = "aop", dynamic = false)
-public class AopConfig {
-    private boolean debug = false;
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface RegExpr {
+    String expr();
 
-    public boolean isDebug() {
-        return debug;
-    }
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
-    }
+    /**
+     * Message or message format.
+     * The message format only supports one replacement, that it %s to represent the value under validation
+     */
+    String message();
 }
