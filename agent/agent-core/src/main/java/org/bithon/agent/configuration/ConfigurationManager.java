@@ -214,7 +214,7 @@ public class ConfigurationManager {
 
     @SuppressWarnings("unchecked")
     public <T> T getConfig(String propertyPath, Class<T> clazz, boolean isDynamic) {
-        if (clazz.isPrimitive() || !isDynamic) {
+        if (clazz.isPrimitive() || clazz.equals(String.class) || !isDynamic) {
             return Binder.bind(propertyPath, collect(propertyPath), clazz);
         }
 

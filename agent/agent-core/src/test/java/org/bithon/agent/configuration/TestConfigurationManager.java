@@ -389,7 +389,7 @@ public class TestConfigurationManager {
 
             ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
 
-            Assert.assertEquals("8%", manager.getConfig("test.percentage", String.class));
+            Assert.assertEquals("8%", manager.getConfig("test.percentage", String.class, true));
             Assert.assertEquals("8%", manager.getConfig("test.percentage", HumanReadablePercentage.class).toString());
             Assert.assertEquals(1, (int) manager.getConfig("test.a", Integer.class));
             Assert.assertEquals(true, manager.getConfig("test.b", Boolean.class));
