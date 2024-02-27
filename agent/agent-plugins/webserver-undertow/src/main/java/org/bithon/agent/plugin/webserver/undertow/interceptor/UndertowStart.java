@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.undertow.interceptor;
+package org.bithon.agent.plugin.webserver.undertow.interceptor;
 
 import io.undertow.Undertow;
 import org.bithon.agent.instrumentation.aop.context.AopContext;

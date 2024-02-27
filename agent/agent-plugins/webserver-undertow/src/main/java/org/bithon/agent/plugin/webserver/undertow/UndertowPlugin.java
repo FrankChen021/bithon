@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.undertow;
+package org.bithon.agent.plugin.webserver.undertow;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
@@ -39,7 +39,7 @@ public class UndertowPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("start")
                                                    .noArgs()
-                                                   .to("org.bithon.agent.plugin.undertow.interceptor.UndertowStart")
+                                                   .to("org.bithon.agent.plugin.webserver.undertow.interceptor.UndertowStart")
                 ),
 
             forClass("io.undertow.server.protocol.http.HttpOpenListener")
@@ -47,7 +47,7 @@ public class UndertowPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("setRootHandler")
                                                    .onArgs("io.undertow.server.HttpHandler")
-                                                   .to("org.bithon.agent.plugin.undertow.interceptor.HttpOpenListenerSetRootHandler")
+                                                   .to("org.bithon.agent.plugin.webserver.undertow.interceptor.HttpOpenListenerSetRootHandler")
                 ),
 
             forClass("io.undertow.server.HttpServerExchange")
@@ -56,7 +56,7 @@ public class UndertowPlugin implements IPlugin {
                                                    .onAllMethods("dispatch")
                                                    .onArgs("java.util.concurrent.Executor",
                                                            "io.undertow.server.HttpHandler")
-                                                   .to("org.bithon.agent.plugin.undertow.interceptor.HttpServerExchangeDispatch")
+                                                   .to("org.bithon.agent.plugin.webserver.undertow.interceptor.HttpServerExchangeDispatch")
                 ),
 
             forClass("io.undertow.servlet.api.LoggingExceptionHandler")

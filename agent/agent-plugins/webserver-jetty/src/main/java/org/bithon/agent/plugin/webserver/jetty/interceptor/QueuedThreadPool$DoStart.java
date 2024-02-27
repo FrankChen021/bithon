@@ -14,38 +14,34 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jetty.interceptor;
+package org.bithon.agent.plugin.webserver.jetty.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.observability.metric.domain.web.WebServerMetricRegistry;
 import org.bithon.agent.observability.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.observability.metric.domain.web.WebServerType;
-import org.eclipse.jetty.server.AbstractNetworkConnector;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import java.util.Collections;
 
 /**
- * {@link org.eclipse.jetty.server.AbstractConnector#doStart()}
- *
  * @author frankchen
  */
-public class AbstractConnector$DoStart extends AfterInterceptor {
+public class QueuedThreadPool$DoStart extends AfterInterceptor {
 
     @Override
     public void after(AopContext context) {
-        AbstractNetworkConnector connector = (AbstractNetworkConnector) context.getTarget();
-
-        // notify to start emit the metrics
-        AppInstance.getInstance().setPort(connector.getPort());
+        QueuedThreadPool threadPool = context.getTargetAs();
 
         WebServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(WebServerMetricRegistry.NAME, WebServerMetricRegistry::new)
                                                         .getOrCreateMetrics(Collections.singletonList(WebServerType.JETTY.type()),
                                                                             WebServerMetrics::new);
 
-        metrics.connectionCount.setProvider(() -> connector.getConnectedEndPoints().size());
-        metrics.maxConnections.setProvider(connector::getAcceptors);
+        metrics.queueSize.setProvider(threadPool::getQueueSize);
+        metrics.pooledThreads.setProvider(threadPool::getThreads);
+        metrics.activeThreads.setProvider(threadPool::getBusyThreads);
+        metrics.maxThreads.setProvider(threadPool::getMaxThreads);
     }
 }

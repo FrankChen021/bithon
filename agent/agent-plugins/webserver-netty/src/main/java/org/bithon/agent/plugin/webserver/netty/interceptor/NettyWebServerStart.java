@@ -14,24 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.undertow.interceptor;
+package org.bithon.agent.plugin.webserver.netty.interceptor;
 
-import io.undertow.server.HttpServerExchange;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
-import org.bithon.agent.observability.event.ExceptionCollector;
-
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.observability.context.AppInstance;
+import org.springframework.boot.web.embedded.netty.NettyWebServer;
 
 /**
- * {@link io.undertow.servlet.api.LoggingExceptionHandler#handleThrowable(HttpServerExchange, ServletRequest, ServletResponse, Throwable)}
- *
  * @author frankchen
+ * @date 2021-09-22 23:36
  */
-public class LoggingExceptionHandler$HandleThrowable extends BeforeInterceptor {
+public class NettyWebServerStart extends AfterInterceptor {
+
     @Override
-    public void before(AopContext aopContext) {
-        ExceptionCollector.collect((Throwable) aopContext.getArgs()[3]);
+    public void after(AopContext aopContext) {
+        NettyWebServer webServer = (NettyWebServer) aopContext.getTarget();
+
+        AppInstance.getInstance().setPort(webServer.getPort());
     }
 }

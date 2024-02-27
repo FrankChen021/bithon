@@ -14,23 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.netty.interceptor;
+package org.bithon.agent.plugin.webserver.jetty.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import org.bithon.agent.observability.context.AppInstance;
-import org.springframework.boot.web.embedded.netty.NettyWebServer;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
+import org.bithon.agent.observability.event.ExceptionCollector;
 
 /**
- * @author frankchen
- * @date 2021-09-22 23:36
+ * @author Frank Chen
+ * @date 27/12/22 2:11 pm
  */
-public class NettyWebServerStart extends AfterInterceptor {
+public class HttpChannel$HandleException extends BeforeInterceptor {
 
     @Override
-    public void after(AopContext aopContext) {
-        NettyWebServer webServer = (NettyWebServer) aopContext.getTarget();
+    public void before(AopContext context) {
+        Throwable exception = context.getArgAs(0);
+        if (exception == null) {
+            return;
+        }
 
-        AppInstance.getInstance().setPort(webServer.getPort());
+        ExceptionCollector.collect(exception);
     }
 }

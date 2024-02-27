@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.tomcat;
+package org.bithon.agent.plugin.webserver.tomcat;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
@@ -39,7 +39,7 @@ public class TomcatPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("start")
-                                                   .to("org.bithon.agent.plugin.tomcat.interceptor.AbstractEndpoint$Start")
+                                                   .to("org.bithon.agent.plugin.webserver.tomcat.interceptor.AbstractEndpoint$Start")
                 ),
 
             // statistics
@@ -49,7 +49,7 @@ public class TomcatPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("service")
                                                    .onArgs("org.apache.coyote.Request", "org.apache.coyote.Response")
-                                                   .to("org.bithon.agent.plugin.tomcat.interceptor.CoyoteAdapter$Service")
+                                                   .to("org.bithon.agent.plugin.webserver.tomcat.interceptor.CoyoteAdapter$Service")
                 ),
 
             //exception
@@ -60,7 +60,7 @@ public class TomcatPlugin implements IPlugin {
                                                    .onArgs("org.apache.catalina.connector.Request",
                                                            "org.apache.catalina.connector.Response",
                                                            "java.lang.Throwable")
-                                                   .to("org.bithon.agent.plugin.tomcat.interceptor.StandardWrapperValve$Exception")
+                                                   .to("org.bithon.agent.plugin.webserver.tomcat.interceptor.StandardWrapperValve$Exception")
                 ),
 
             //trace
@@ -70,14 +70,14 @@ public class TomcatPlugin implements IPlugin {
                                                    .onAllMethods("invoke")
                                                    .onArgs("org.apache.catalina.connector.Request",
                                                            "org.apache.catalina.connector.Response")
-                                                   .to("org.bithon.agent.plugin.tomcat.interceptor.StandardHostValve$Invoke")
+                                                   .to("org.bithon.agent.plugin.webserver.tomcat.interceptor.StandardHostValve$Invoke")
                 ),
 
             forClass("org.apache.catalina.core.StandardContext")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onDefaultConstructor()
-                                                   .to("org.bithon.agent.plugin.tomcat.interceptor.StandardContext$Ctor")
+                                                   .to("org.bithon.agent.plugin.webserver.tomcat.interceptor.StandardContext$Ctor")
                 )
         );
     }

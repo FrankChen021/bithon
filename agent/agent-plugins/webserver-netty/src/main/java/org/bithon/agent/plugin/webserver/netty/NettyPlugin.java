@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.netty;
+package org.bithon.agent.plugin.webserver.netty;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
@@ -38,7 +38,7 @@ public class NettyPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("start")
-                                                   .to("org.bithon.agent.plugin.netty.interceptor.NettyWebServerStart")
+                                                   .to("org.bithon.agent.plugin.webserver.netty.interceptor.NettyWebServerStart")
                 )
         );
     }

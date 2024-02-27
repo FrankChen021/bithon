@@ -14,39 +14,38 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.undertow.interceptor;
+package org.bithon.agent.plugin.webserver.jetty.interceptor;
 
-import io.undertow.UndertowOptions;
-import io.undertow.server.ConnectorStatistics;
-import io.undertow.server.protocol.http.HttpOpenListener;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.observability.metric.domain.web.WebServerMetricRegistry;
 import org.bithon.agent.observability.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.observability.metric.domain.web.WebServerType;
-import org.xnio.OptionMap;
+import org.eclipse.jetty.server.AbstractNetworkConnector;
 
 import java.util.Collections;
 
 /**
+ * {@link org.eclipse.jetty.server.AbstractConnector#doStart()}
+ *
  * @author frankchen
  */
-public class HttpOpenListenerSetRootHandler extends AfterInterceptor {
+public class AbstractConnector$DoStart extends AfterInterceptor {
 
     @Override
-    public void after(AopContext aopContext) {
-        HttpOpenListener openListener = aopContext.getTargetAs();
-        openListener.setUndertowOptions(OptionMap.builder().addAll(openListener.getUndertowOptions())
-                                                 .set(UndertowOptions.ENABLE_CONNECTOR_STATISTICS, true)
-                                                 .getMap());
+    public void after(AopContext context) {
+        AbstractNetworkConnector connector = (AbstractNetworkConnector) context.getTarget();
+
+        // notify to start emit the metrics
+        AppInstance.getInstance().setPort(connector.getPort());
 
         WebServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(WebServerMetricRegistry.NAME, WebServerMetricRegistry::new)
-                                                        .getOrCreateMetrics(Collections.singletonList(WebServerType.UNDERTOW.type()),
+                                                        .getOrCreateMetrics(Collections.singletonList(WebServerType.JETTY.type()),
                                                                             WebServerMetrics::new);
 
-        ConnectorStatistics connectorStatistics = openListener.getConnectorStatistics();
-        metrics.connectionCount.setProvider(connectorStatistics::getActiveConnections);
-        metrics.maxConnections.setProvider(connectorStatistics::getMaxActiveConnections);
+        metrics.connectionCount.setProvider(() -> connector.getConnectedEndPoints().size());
+        metrics.maxConnections.setProvider(connector::getAcceptors);
     }
 }

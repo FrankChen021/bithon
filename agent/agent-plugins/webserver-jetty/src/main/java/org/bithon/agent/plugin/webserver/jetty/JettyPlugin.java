@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jetty;
+package org.bithon.agent.plugin.webserver.jetty;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.BithonClassDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
@@ -43,29 +43,29 @@ public class JettyPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("doStart")
-                                                   .to("org.bithon.agent.plugin.jetty.interceptor.AbstractConnector$DoStart")
+                                                   .to("org.bithon.agent.plugin.webserver.jetty.interceptor.AbstractConnector$DoStart")
                 ),
 
             forClass("org.eclipse.jetty.util.thread.QueuedThreadPool")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("doStart")
-                                                   .to("org.bithon.agent.plugin.jetty.interceptor.QueuedThreadPool$DoStart")
+                                                   .to("org.bithon.agent.plugin.webserver.jetty.interceptor.QueuedThreadPool$DoStart")
                 ),
 
             forClass("org.eclipse.jetty.server.HttpChannel")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("handle")
-                                                   .to("org.bithon.agent.plugin.jetty.interceptor.HttpChannel$Handle"),
+                                                   .to("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$Handle"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("onCompleted")
-                                                   .to("org.bithon.agent.plugin.jetty.interceptor.HttpChannel$OnCompleted"),
+                                                   .to("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$OnCompleted"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("handleException", "java.lang.Throwable")
-                                                   .to("org.bithon.agent.plugin.jetty.interceptor.HttpChannel$HandleException")
+                                                   .to("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$HandleException")
 
                 )
         );

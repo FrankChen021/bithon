@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.tomcat.interceptor;
+package org.bithon.agent.plugin.webserver.tomcat.interceptor;
 
 import org.apache.catalina.core.StandardContext;
 import org.bithon.agent.instrumentation.aop.context.AopContext;

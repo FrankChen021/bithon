@@ -14,30 +14,24 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.tomcat.interceptor;
+package org.bithon.agent.plugin.webserver.undertow.interceptor;
 
+import io.undertow.server.HttpServerExchange;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
-import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.event.ExceptionCollector;
 
-import java.util.Collections;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 
 /**
- * handle exception thrown by tomcat service, not by the tomcat itself
+ * {@link io.undertow.servlet.api.LoggingExceptionHandler#handleThrowable(HttpServerExchange, ServletRequest, ServletResponse, Throwable)}
  *
  * @author frankchen
  */
-public class StandardWrapperValve$Exception extends BeforeInterceptor {
-
+public class LoggingExceptionHandler$HandleThrowable extends BeforeInterceptor {
     @Override
-    public void before(AopContext context) {
-        String uri = (String) InterceptorContext.get(InterceptorContext.KEY_URI);
-        if (uri == null) {
-            ExceptionCollector.collect((Throwable) context.getArgs()[2]);
-        } else {
-            ExceptionCollector.collect((Throwable) context.getArgs()[2],
-                                       Collections.singletonMap("uri", uri));
-        }
+    public void before(AopContext aopContext) {
+        ExceptionCollector.collect((Throwable) aopContext.getArgs()[3]);
     }
 }

@@ -14,34 +14,39 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jetty.interceptor;
+package org.bithon.agent.plugin.webserver.undertow.interceptor;
 
+import io.undertow.UndertowOptions;
+import io.undertow.server.ConnectorStatistics;
+import io.undertow.server.protocol.http.HttpOpenListener;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.observability.metric.domain.web.WebServerMetricRegistry;
 import org.bithon.agent.observability.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.observability.metric.domain.web.WebServerType;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.xnio.OptionMap;
 
 import java.util.Collections;
 
 /**
  * @author frankchen
  */
-public class QueuedThreadPool$DoStart extends AfterInterceptor {
+public class HttpOpenListenerSetRootHandler extends AfterInterceptor {
 
     @Override
-    public void after(AopContext context) {
-        QueuedThreadPool threadPool = context.getTargetAs();
+    public void after(AopContext aopContext) {
+        HttpOpenListener openListener = aopContext.getTargetAs();
+        openListener.setUndertowOptions(OptionMap.builder().addAll(openListener.getUndertowOptions())
+                                                 .set(UndertowOptions.ENABLE_CONNECTOR_STATISTICS, true)
+                                                 .getMap());
 
         WebServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(WebServerMetricRegistry.NAME, WebServerMetricRegistry::new)
-                                                        .getOrCreateMetrics(Collections.singletonList(WebServerType.JETTY.type()),
+                                                        .getOrCreateMetrics(Collections.singletonList(WebServerType.UNDERTOW.type()),
                                                                             WebServerMetrics::new);
 
-        metrics.queueSize.setProvider(threadPool::getQueueSize);
-        metrics.pooledThreads.setProvider(threadPool::getThreads);
-        metrics.activeThreads.setProvider(threadPool::getBusyThreads);
-        metrics.maxThreads.setProvider(threadPool::getMaxThreads);
+        ConnectorStatistics connectorStatistics = openListener.getConnectorStatistics();
+        metrics.connectionCount.setProvider(connectorStatistics::getActiveConnections);
+        metrics.maxConnections.setProvider(connectorStatistics::getMaxActiveConnections);
     }
 }

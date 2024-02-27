@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.tomcat.interceptor;
+package org.bithon.agent.plugin.webserver.tomcat.interceptor;
 
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;

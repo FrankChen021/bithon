@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jetty.interceptor;
+package org.bithon.agent.plugin.webserver.jetty.interceptor;
 
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
@@ -27,7 +27,7 @@ import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.plugin.jetty.context.RequestContext;
+import org.bithon.agent.plugin.webserver.jetty.context.RequestContext;
 import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;

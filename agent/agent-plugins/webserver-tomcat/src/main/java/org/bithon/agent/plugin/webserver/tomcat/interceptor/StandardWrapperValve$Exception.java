@@ -14,25 +14,30 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jetty.interceptor;
+package org.bithon.agent.plugin.webserver.tomcat.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
+import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.event.ExceptionCollector;
 
+import java.util.Collections;
+
 /**
- * @author Frank Chen
- * @date 27/12/22 2:11 pm
+ * handle exception thrown by tomcat service, not by the tomcat itself
+ *
+ * @author frankchen
  */
-public class HttpChannel$HandleException extends BeforeInterceptor {
+public class StandardWrapperValve$Exception extends BeforeInterceptor {
 
     @Override
     public void before(AopContext context) {
-        Throwable exception = context.getArgAs(0);
-        if (exception == null) {
-            return;
+        String uri = (String) InterceptorContext.get(InterceptorContext.KEY_URI);
+        if (uri == null) {
+            ExceptionCollector.collect((Throwable) context.getArgs()[2]);
+        } else {
+            ExceptionCollector.collect((Throwable) context.getArgs()[2],
+                                       Collections.singletonMap("uri", uri));
         }
-
-        ExceptionCollector.collect(exception);
     }
 }

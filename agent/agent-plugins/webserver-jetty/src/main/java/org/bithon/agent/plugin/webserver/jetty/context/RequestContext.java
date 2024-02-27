@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jetty.context;
+package org.bithon.agent.plugin.webserver.jetty.context;
 
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 
