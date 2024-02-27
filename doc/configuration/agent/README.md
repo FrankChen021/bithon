@@ -18,6 +18,15 @@ This static configuration is shipped with the agent distribution.
 
 You can customize this configuration as the default configuration of your own distribution.
 
+> NOTE: Variable replacement in the configuration is not supported. For example:
+> 
+> ```
+> application:
+>   name: ${ENV:name}
+> ```
+> 
+> The value of the `application.name` property will not be replaced but the right `{ENV:name}`. 
+
 ## External Configuration (YAML file format)
 
 Since the default configuration customizes the global configuration of one distribution,
@@ -26,6 +35,8 @@ there are still cases that users of that particular distribution would need a co
 In such a case, the external configuration serves such a need.
 Users can use `-Dbithon.configuration.location` JVM command line argument
 to specify an external configuration file for the agents.
+
+> NOTE: Variable replacement in the configuration is not supported.
 
 ## Java command line arguments
 
@@ -106,10 +117,60 @@ dispatchers:
 ### Agent Plugin Enabler flag
 
 User can disable a specific plugin by passing a system property to the java application to debug or tailor unnecessary plugins.
-Say we want to disable the `webserver-tomcat` plugin, passing the following property
+We can use the following property format to disable it:
+
+```bash
+-Dbithon.agent.plugin.[plugin-name].disabled=true
+```
+The `plugin-name` can be found from the following list:
+
+* alibaba.druid
+* apache.druid
+* apache.kafka
+* apache.ozone
+* bithon.brpc
+* bithon.sdk
+* glassfish
+* grpc
+* guice
+* httpclient.apache
+* httpclient.jdk
+* httpclient.jetty
+* httpclient.netty3
+* httpclient.okhttp32
+* jedis
+* jersey
+* jetty
+* lettuce
+* log4j2
+* logback
+* mongodb
+* mongodb38
+* mysql
+* mysql8
+* netty
+* netty4
+* quartz2
+* spring.bean
+* spring.boot
+* spring.mvc
+* spring.scheduling
+* spring.webflux
+* thread
+* tomcat
+* undertow
+* xxl.job
+
+For example, if we want to disable the `tomcat` HTTP server plugin, passing the following property
 
 ```bash
 -Dbithon.agent.plugin.webserver.tomcat.disabled=true
+```
+
+Once the application starts, a log will be printed to show the status of this plugin:
+
+```text
+15:38:01.155 [main] INFO org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginResolver - Found plugin [tomcat], but it's DISABLED by configuration
 ```
 
 ### Agent Plugin Configuration
