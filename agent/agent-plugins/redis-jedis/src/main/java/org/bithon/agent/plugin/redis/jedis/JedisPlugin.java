@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jedis;
+package org.bithon.agent.plugin.redis.jedis;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
@@ -86,7 +86,7 @@ public class JedisPlugin implements IPlugin {
                                                        "redis.clients.jedis.commands.ScriptingControlCommands",
                                                        "redis.clients.jedis.commands.SlowlogCommands",
                                                        "redis.clients.jedis.commands.ScriptingKeyCommands"))
-                                                   .to("org.bithon.agent.plugin.jedis.interceptor.OnCommand")
+                                                   .to("org.bithon.agent.plugin.redis.jedis.interceptor.OnCommand")
                         ),
 
             forClass("redis.clients.jedis.BinaryJedis")
@@ -105,21 +105,21 @@ public class JedisPlugin implements IPlugin {
                                                                                 "redis.clients.jedis.commands.MultiKeyBinaryCommands",
                                                                                 "redis.clients.jedis.commands.AdvancedBinaryJedisCommands",
                                                                                 "redis.clients.jedis.commands.BinaryScriptingCommands"))
-                                                   .to("org.bithon.agent.plugin.jedis.interceptor.OnCommand")
+                                                   .to("org.bithon.agent.plugin.redis.jedis.interceptor.OnCommand")
                         ),
 
             forClass("redis.clients.util.RedisOutputStream")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.OutputStream")))
-                                                   .to("org.bithon.agent.plugin.jedis.interceptor.RedisOutputStream$Ctor")
+                                                   .to("org.bithon.agent.plugin.redis.jedis.interceptor.RedisOutputStream$Ctor")
                         ),
 
             forClass("redis.clients.jedis.util.RedisOutputStream")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.OutputStream")))
-                                                   .to("org.bithon.agent.plugin.jedis.interceptor.RedisOutputStream$Ctor")
+                                                   .to("org.bithon.agent.plugin.redis.jedis.interceptor.RedisOutputStream$Ctor")
                         ),
 
             //2.9.x
@@ -127,7 +127,7 @@ public class JedisPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.InputStream")))
-                                                   .to("org.bithon.agent.plugin.jedis.interceptor.RedisInputStream$Ctor")
+                                                   .to("org.bithon.agent.plugin.redis.jedis.interceptor.RedisInputStream$Ctor")
                         ),
 
             //3.x
@@ -135,7 +135,7 @@ public class JedisPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.InputStream")))
-                                                   .to("org.bithon.agent.plugin.jedis.interceptor.RedisInputStream$Ctor")
+                                                   .to("org.bithon.agent.plugin.redis.jedis.interceptor.RedisInputStream$Ctor")
                         )
                             );
     }

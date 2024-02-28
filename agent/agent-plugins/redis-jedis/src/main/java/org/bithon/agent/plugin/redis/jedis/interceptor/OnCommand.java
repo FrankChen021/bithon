@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jedis.interceptor;
+package org.bithon.agent.plugin.redis.jedis.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
