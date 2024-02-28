@@ -40,12 +40,14 @@ public class TimeSeriesQueryResult {
     private final int count;
 
     /**
-     * The aligned start timestamp that can be seen as: toStartOfTime(start, INTERVAL intervalSecond SECOND)
+     * The aligned start timestamp that can be seen as: toStartOfTime(start, INTERVAL intervalSecond SECOND).
+     * Inclusive
      */
     private final long startTimestamp;
 
     /**
-     * The aligned end timestamp that can be seen as: toStartOfTime(end, INTERVAL intervalSecond SECOND)
+     * The aligned end timestamp that can be seen as: toStartOfTime(end, INTERVAL intervalSecond SECOND).
+     * Inclusive
      */
     private final long endTimestamp;
 
@@ -62,9 +64,17 @@ public class TimeSeriesQueryResult {
                                               String tsColumn,
                                               List<String> groups,
                                               List<String> metrics) {
+
+        // For example, if the end timestamp is 02:00 (which falls at exactly the end of an interval),
+        // it's NOT inclusive because we use the '<' comparison for the end timestamp.
+        //
+        // However, if the end timestamp is 02:03,
+        // it will be floored down to 02:00, and this 02:00 is included in the result
+        boolean isEndInclusive = end.toSeconds() % intervalSecond != 0;
+
         long startSecond = start.toSeconds() / intervalSecond * intervalSecond;
         long endSecond = end.toSeconds() / intervalSecond * intervalSecond;
-        int bucketCount = (int) (endSecond - startSecond) / intervalSecond;
+        int bucketCount = (int) (endSecond - startSecond) / intervalSecond + (isEndInclusive ? 1 : 0);
 
         // Use LinkedHashMap to retain the order of input metric list
         Map<List<String>, TimeSeriesMetric> map = new LinkedHashMap<>(7);
@@ -74,10 +84,7 @@ public class TimeSeriesQueryResult {
             for (String metric : metrics) {
                 List<String> tags = Collections.singletonList(metric);
 
-                map.computeIfAbsent(tags,
-                                    v -> new TimeSeriesMetric(tags,
-                                                              bucketCount
-                                    ));
+                map.computeIfAbsent(tags, v -> new TimeSeriesMetric(tags, bucketCount));
             }
         } else {
             for (Map<String, Object> point : dataPoints) {
@@ -93,10 +100,7 @@ public class TimeSeriesQueryResult {
                     }
                     tags.add(metric);
 
-                    map.computeIfAbsent(tags,
-                                        v -> new TimeSeriesMetric(tags,
-                                                                  bucketCount
-                                        ))
+                    map.computeIfAbsent(tags, v -> new TimeSeriesMetric(tags, bucketCount))
                        .set(bucketIndex, point.get(metric));
                 }
             }
@@ -104,7 +108,10 @@ public class TimeSeriesQueryResult {
 
         return new TimeSeriesQueryResult(bucketCount,
                                          startSecond * 1000,
-                                         endSecond * 1000,
+                                         // Since the returned end timestamp is always inclusive,
+                                         // we need to check if the current got end timestamp is inclusive.
+                                         // If not, we need to shift an interval to make it inclusive.
+                                         isEndInclusive ? endSecond * 1000 : (endSecond - intervalSecond) * 1000,
                                          intervalSecond * 1000L,
                                          map.values());
     }
