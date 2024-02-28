@@ -37,8 +37,7 @@ public class TimeSeriesMetric {
 
     public TimeSeriesMetric(List<String> tags, int size) {
         this.tags = tags;
-
-        this.values = new double[size];
+        this.values = new double[size + 1];
     }
 
     public void set(int index, Object value) {

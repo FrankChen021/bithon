@@ -974,7 +974,7 @@ class Dashboard {
             ajaxData: JSON.stringify(thisQuery),
             processResult: (data) => {
                 const timeLabels = [];
-                for (let t = data.startTimestamp; t < data.endTimestamp; t += data.interval) {
+                for (let t = data.startTimestamp; t <= data.endTimestamp; t += data.interval) {
                     timeLabels.push(moment(t).local().format('HH:mm:ss'));
                 }
 
