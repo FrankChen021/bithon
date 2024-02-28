@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -68,11 +69,17 @@ public class DataSourceService {
                                     .map((ResultColumn::getResultColumnName))
                                     .collect(Collectors.toList());
 
-        try (IDataSourceReader reader = query.getSchema().getDataStoreSpec().createReader()) {
+        try (IDataSourceReader reader = query.getSchema()
+                                             .getDataStoreSpec()
+                                             .createReader()) {
+
+            List<Map<String, Object>> result = reader.timeseries(query);
+
+            // Convert to the result format and fills in missed data points
             return TimeSeriesQueryResult.build(query.getInterval().getStartTime(),
                                                query.getInterval().getEndTime(),
                                                query.getInterval().getStep(),
-                                               reader.timeseries(query),
+                                               result,
                                                TIMESTAMP_COLUMN_NAME_IN_RESULT_SET,
                                                query.getGroupBy(),
                                                metrics);
