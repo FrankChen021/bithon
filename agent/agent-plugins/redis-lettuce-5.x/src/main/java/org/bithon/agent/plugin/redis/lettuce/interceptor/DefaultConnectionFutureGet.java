@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.lettuce.interceptor;
+package org.bithon.agent.plugin.redis.lettuce.interceptor;
 
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;

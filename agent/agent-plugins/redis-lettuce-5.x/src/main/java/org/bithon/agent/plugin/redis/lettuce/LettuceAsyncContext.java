@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.lettuce;
+package org.bithon.agent.plugin.redis.lettuce;
 
 /**
  * @author frank.chen021@outlook.com

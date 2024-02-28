@@ -14,13 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.lettuce;
+package org.bithon.agent.plugin.redis.lettuce;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.BithonClassDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.plugin.lettuce.interceptor.RedisClientConnect;
+import org.bithon.agent.plugin.redis.lettuce.interceptor.RedisClientConnect;
 
 import java.util.Arrays;
 import java.util.List;
@@ -60,38 +60,38 @@ public class LettucePlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("connect")
-                                                   .to("org.bithon.agent.plugin.lettuce.interceptor.RedisClientConnect"),
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisClientConnect"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("connectAsync")
-                                                   .to("org.bithon.agent.plugin.lettuce.interceptor.RedisClientConnect"),
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisClientConnect"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("connectPubSub")
-                                                   .to("org.bithon.agent.plugin.lettuce.interceptor.RedisClientConnect"),
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisClientConnect"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("connectPubSubAsync")
-                                                   .to("org.bithon.agent.plugin.lettuce.interceptor.RedisClientConnect"),
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisClientConnect"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("connectSentinel")
-                                                   .to("org.bithon.agent.plugin.lettuce.interceptor.RedisClientConnect"),
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisClientConnect"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("connectSentinelAsync")
-                                                   .to("org.bithon.agent.plugin.lettuce.interceptor.RedisClientConnect")
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisClientConnect")
                 ),
 
             forClass("io.lettuce.core.DefaultConnectionFuture")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("get")
-                                                   .to("org.bithon.agent.plugin.lettuce.interceptor.DefaultConnectionFutureGet"),
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.DefaultConnectionFutureGet"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("join")
-                                                   .to("org.bithon.agent.plugin.lettuce.interceptor.DefaultConnectionFutureGet")
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.DefaultConnectionFutureGet")
                 ),
 
             //
@@ -103,7 +103,7 @@ public class LettucePlugin implements IPlugin {
                                                    //.onMethod(exclusiveMatcher.and(ElementMatchers.returns(ElementMatchers.nameStartsWith("io.lettuce.core.protocol.RedisFuture"))))
                                                    .onMethodAndArgs("dispatch",
                                                                     "io.lettuce.core.protocol.RedisCommand<K, V, T>")
-                                                   .to("org.bithon.agent.plugin.lettuce.interceptor.RedisAsyncCommandDispatch")
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisAsyncCommandDispatch")
                 ),
 
             forClass("io.lettuce.core.RedisAsyncCommandsImpl")
@@ -112,7 +112,7 @@ public class LettucePlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("dispatch",
                                                                     "io.lettuce.core.protocol.RedisCommand<K, V, T>")
-                                                   .to("org.bithon.agent.plugin.lettuce.interceptor.RedisAsyncCommandDispatch")
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisAsyncCommandDispatch")
                 ),
 
             forClass("io.lettuce.core.cluster.RedisClusterPubSubAsyncCommandsImpl")
@@ -120,7 +120,7 @@ public class LettucePlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("dispatch",
                                                                     "io.lettuce.core.protocol.RedisCommand<K, V, T>")
-                                                   .to("org.bithon.agent.plugin.lettuce.interceptor.RedisAsyncCommandDispatch")
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisAsyncCommandDispatch")
                 ),
 
             forClass("io.lettuce.core.pubsub.RedisPubSubAsyncCommandsImpl")
@@ -128,7 +128,7 @@ public class LettucePlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("dispatch",
                                                                     "io.lettuce.core.protocol.RedisCommand<K, V, T>")
-                                                   .to("org.bithon.agent.plugin.lettuce.interceptor.RedisAsyncCommandDispatch")
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisAsyncCommandDispatch")
                 ),
 
             //
@@ -138,11 +138,11 @@ public class LettucePlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("completeResult")
-                                                   .to("org.bithon.agent.plugin.lettuce.interceptor.RedisAsyncCommandComplete"),
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisAsyncCommandComplete"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("cancel", "java.lang.boolean")
-                                                   .to("org.bithon.agent.plugin.lettuce.interceptor.RedisAsyncCommandComplete")
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisAsyncCommandComplete")
                 )
         );
     }
