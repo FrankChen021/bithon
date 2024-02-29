@@ -67,7 +67,7 @@ public class UndertowPlugin implements IPlugin {
                                                            "javax.servlet.ServletRequest",
                                                            "javax.servlet.ServletResponse",
                                                            "java.lang.Throwable")
-                                                   .to("org.bithon.agent.plugin.undertow.interceptor.LoggingExceptionHandler$HandleThrowable")
+                                                   .to("org.bithon.agent.plugin.webserver.undertow.interceptor.LoggingExceptionHandler$HandleThrowable")
                 )
         );
     }

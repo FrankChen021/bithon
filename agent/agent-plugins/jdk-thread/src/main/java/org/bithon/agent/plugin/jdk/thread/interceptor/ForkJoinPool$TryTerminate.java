@@ -14,25 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.interceptor;
+package org.bithon.agent.plugin.jdk.thread.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
-
-import java.util.concurrent.ForkJoinPool;
+import org.bithon.agent.plugin.jdk.thread.metrics.ThreadPoolMetricRegistry;
 
 /**
+ * {@link java.util.concurrent.ForkJoinPool#tryTerminate(boolean, boolean)}
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 11:15 下午
  */
-public class ForkJoinPool$ExternalPush extends AfterInterceptor {
+public class ForkJoinPool$TryTerminate extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        ForkJoinPool pool = aopContext.getTargetAs();
-
-        //TODO: record task exception of ForkJoinPool
-        ThreadPoolMetricRegistry.getInstance().addTotal(pool);
+        ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
+        if (registry != null) {
+            registry.deleteThreadPool(aopContext.getTargetAs());
+        }
     }
 }

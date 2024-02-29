@@ -14,14 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.interceptor;
+package org.bithon.agent.plugin.jdk.thread.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
-import org.bithon.agent.plugin.thread.utils.ObservedTask;
+import org.bithon.agent.plugin.jdk.thread.utils.ObservedTask;
 
 import java.util.concurrent.ThreadPoolExecutor;
 

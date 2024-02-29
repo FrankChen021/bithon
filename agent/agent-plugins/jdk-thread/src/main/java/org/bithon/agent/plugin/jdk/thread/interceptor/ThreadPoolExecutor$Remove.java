@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.interceptor;
+package org.bithon.agent.plugin.jdk.thread.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
-import org.bithon.agent.plugin.thread.utils.ObservedTask;
+import org.bithon.agent.plugin.jdk.thread.utils.ObservedTask;
 
 /**
  * {@link java.util.concurrent.ThreadPoolExecutor#remove(Runnable)}
@@ -35,7 +35,7 @@ public class ThreadPoolExecutor$Remove extends BeforeInterceptor {
      * userRunnableObject.equals(objectFromQueue)
      * <p>
      * So, we need to turn the userRunnableObject as an object wrapped by {@link ObservedTask},
-     * In such case, the above statement would be:
+     * In such a case, the above statement would be:
      * <p>
      * wrappedRunnableObject.equals(objectFromQueue).
      * <p>

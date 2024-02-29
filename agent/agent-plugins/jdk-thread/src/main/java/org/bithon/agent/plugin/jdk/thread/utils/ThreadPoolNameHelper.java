@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.utils;
+package org.bithon.agent.plugin.jdk.thread.utils;
 
 import org.bithon.agent.instrumentation.expt.AgentException;
 
@@ -38,10 +38,14 @@ public class ThreadPoolNameHelper {
 
     /**
      * Since defaultThreadFactory returns a new object for each call,
-     * in order to reduce unnecessary object creation, we cache its class name
+     * we cache its class name to reduce unnecessary object creation
      */
     private static final String DEFAULT_THREAD_FACTORY = Executors.defaultThreadFactory().getClass().getName();
 
+    /**
+     * key - class name of a thread factory
+     * val - field name in the thread factory that holds the name format of thread
+     */
     private final Map<String, String> threadFactoryNames = new ConcurrentHashMap<>();
 
     /**
@@ -52,6 +56,8 @@ public class ThreadPoolNameHelper {
         threadFactoryNames.put("org.springframework.util.CustomizableThreadCreator", "threadNamePrefix");
         threadFactoryNames.put("com.zaxxer.hikari.util.UtilityElf$DefaultThreadFactory", "threadName");
         threadFactoryNames.put("com.alibaba.druid.util", "nameStart");
+
+        // Special cases to search name on a list of formats
         threadFactoryNames.put("1", "name");
         threadFactoryNames.put("2", "nameFormat");
 
@@ -63,7 +69,7 @@ public class ThreadPoolNameHelper {
     public String getThreadPoolName(ThreadPoolExecutor executor) {
         String name;
         //
-        // For the default thread factory, it's pool name is meaningless
+        // For the default thread factory, it's pool name is meaningless,
         // So, we find the caller name as the thread pool name,
         //
         ThreadFactory threadFactory = executor.getThreadFactory();
@@ -88,13 +94,18 @@ public class ThreadPoolNameHelper {
     private static String getCallerName() {
         StackTraceElement[] stackTraceElements = new RuntimeException().getStackTrace();
 
-        // index 0 is current method, skip it
+        // index 0 is the current method, skip it
         for (int i = 1; i < stackTraceElements.length; i++) {
             StackTraceElement stack = stackTraceElements[i];
-            if (!stack.getClassName().startsWith("java.util.concurrent")
-                && !stack.getClassName().startsWith("org.bithon.agent.plugin.thread")) {
-                return stack.getClassName() + "#L" + stack.getLineNumber();
+
+            // Skip the method call from the JDK/bithon to find the user's method
+            String className = stack.getClassName();
+            if (className.startsWith("java.util.concurrent")
+                || className.startsWith("org.bithon.agent.plugin.jdk.thread")) {
+                continue;
             }
+
+            return className + "#L" + stack.getLineNumber();
         }
 
         // Should not go here
@@ -103,7 +114,7 @@ public class ThreadPoolNameHelper {
 
     private String tryGetNameOnField(ThreadFactory threadFactory) {
         //
-        // Search the class hierarchy to see if this ThreadFactory is a subclass of above defined classes
+        // Search the class hierarchy to see if this ThreadFactory is a subclass of above-defined classes
         //
         String fieldName = null;
         Class<?> factoryClass = threadFactory.getClass();
@@ -122,7 +133,7 @@ public class ThreadPoolNameHelper {
             // Try to get the name on known fields
             return getNameOnGivenFields(threadFactory,
                                         threadFactory.getClass(),
-                                        // Use hash set to deduplicate
+                                        // Use a hash set to deduplicate
                                         new HashSet<>(threadFactoryNames.values()));
         }
     }

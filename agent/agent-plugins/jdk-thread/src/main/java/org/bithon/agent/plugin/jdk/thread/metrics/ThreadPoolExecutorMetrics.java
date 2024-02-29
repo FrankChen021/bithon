@@ -14,25 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.interceptor;
+package org.bithon.agent.plugin.jdk.thread.metrics;
 
-import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
+import org.bithon.agent.observability.metric.domain.thread.ThreadPoolMetrics;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/25 9:12 下午
+ * @date 2021/2/25 10:48 下午
  */
-public class ThreadPoolExecutor$Shutdown extends AfterInterceptor {
+public class ThreadPoolExecutorMetrics extends ThreadPoolMetrics<ThreadPoolExecutor> {
 
-    @Override
-    public void after(AopContext aopContext) {
-        ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
-        if (registry != null) {
-            registry.deleteThreadPool((ThreadPoolExecutor) aopContext.getTarget());
-        }
+    public ThreadPoolExecutorMetrics() {
+        super(ThreadPoolExecutor::getActiveCount,
+              ThreadPoolExecutor::getPoolSize,
+              ThreadPoolExecutor::getMaximumPoolSize,
+              ThreadPoolExecutor::getLargestPoolSize,
+              (e) -> e.getQueue().size());
     }
 }

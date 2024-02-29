@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread;
+package org.bithon.agent.plugin.jdk.thread;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
@@ -44,19 +44,19 @@ public class ThreadPlugin implements IPlugin {
                                                        "java.util.concurrent.BlockingQueue<java.lang.Runnable>",
                                                        "java.util.concurrent.ThreadFactory",
                                                        "java.util.concurrent.RejectedExecutionHandler")
-                                                   .to("org.bithon.agent.plugin.thread.interceptor.ThreadPoolExecutor$Ctor"),
+                                                   .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Ctor"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("execute", "java.lang.Runnable")
-                                                   .to("org.bithon.agent.plugin.thread.interceptor.ThreadPoolExecutor$Execute"),
+                                                   .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("remove", "java.lang.Runnable")
-                                                   .to("org.bithon.agent.plugin.thread.interceptor.ThreadPoolExecutor$Remove"),
+                                                   .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Remove"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("shutdown")
-                                                   .to("org.bithon.agent.plugin.thread.interceptor.ThreadPoolExecutor$Shutdown")
+                                                   .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Shutdown")
                         ),
 
             forClass("java.util.concurrent.ForkJoinPool")
@@ -67,15 +67,15 @@ public class ThreadPlugin implements IPlugin {
                                                                   "java.lang.Thread$UncaughtExceptionHandler",
                                                                   "int",
                                                                   "java.lang.String")
-                                                   .to("org.bithon.agent.plugin.thread.interceptor.ForkJoinPool$Ctor"),
+                                                   .to("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$Ctor"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("tryTerminate")
-                                                   .to("org.bithon.agent.plugin.thread.interceptor.ForkJoinPool$TryTerminate"),
+                                                   .to("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$TryTerminate"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("externalPush")
-                                                   .to("org.bithon.agent.plugin.thread.interceptor.ForkJoinPool$ExternalPush")
+                                                   .to("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$ExternalPush")
                         )
                             );
     }

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.metrics;
+package org.bithon.agent.plugin.jdk.thread.metrics;
 
 import org.bithon.agent.observability.metric.domain.thread.ThreadPoolMetrics;
 

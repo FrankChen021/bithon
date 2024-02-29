@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.thread.utils;
+package org.bithon.agent.plugin.jdk.thread.utils;
 
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
-import org.bithon.agent.plugin.thread.metrics.ThreadPoolMetricRegistry;
+import org.bithon.agent.plugin.jdk.thread.metrics.ThreadPoolMetricRegistry;
 
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
