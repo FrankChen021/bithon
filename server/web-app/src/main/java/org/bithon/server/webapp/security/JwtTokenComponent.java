@@ -81,11 +81,14 @@ public class JwtTokenComponent {
     }
 
     public boolean isValidToken(Jws<Claims> token) {
-        long expiredAt = getTokenExpiration(token);
+        long expiredAt = getExpirationTimestamp(token);
         return System.currentTimeMillis() < expiredAt;
     }
 
-    public long getTokenExpiration(Jws<Claims> token) {
+    /**
+     * Get the timestamp of expiration of a given token
+     */
+    public long getExpirationTimestamp(Jws<Claims> token) {
         Claims claims = token.getBody();
         if (claims == null || claims.getSubject() == null) {
             return 0;

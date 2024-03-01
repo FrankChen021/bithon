@@ -101,7 +101,7 @@ public class SecurityApi {
             JwtTokenComponent tokenComponent = new JwtTokenComponent(securityConfig);
             Jws<Claims> parsedToken = tokenComponent.parseToken(token);
             return GetTokenValidityResponse.builder()
-                                           .expiredAt(TimeSpan.of(tokenComponent.getTokenExpiration(parsedToken)).toISO8601())
+                                           .expiredAt(TimeSpan.of(tokenComponent.getExpirationTimestamp(parsedToken)).toISO8601())
                                            .build();
         } catch (ExpiredJwtException ignored) {
             return GetTokenValidityResponse.builder()
