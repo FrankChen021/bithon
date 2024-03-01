@@ -56,6 +56,11 @@ public class HumanReadableDurationTest {
         Assert.assertEquals(7, duration.getDuration().toDays());
         Assert.assertEquals(TimeUnit.DAYS, duration.getUnit());
         Assert.assertEquals("7d", duration.toString());
+
+        duration = HumanReadableDuration.parse("173d");
+        Assert.assertEquals(173, duration.getDuration().toDays());
+        Assert.assertEquals(TimeUnit.DAYS, duration.getUnit());
+        Assert.assertEquals("173d", duration.toString());
     }
 
     @Test
