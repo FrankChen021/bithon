@@ -35,6 +35,11 @@ public class AlertingStorageConfiguration {
     @Bean
     IAlertNotificationChannelStorage notificationProviderStorage(AlertStorageConfig config,
                                                                  StorageProviderManager storageProviderManager) throws IOException {
+        InvalidConfigurationException.throwIf(StringUtils.isEmpty(config.getProvider()),
+                                              "[%s] can't be blank",
+                                              config.getClass(),
+                                              "provider");
+
         IAlertNotificationChannelStorage storage = storageProviderManager.createStorage(config.getProvider(), IAlertNotificationChannelStorage.class);
         storage.initialize();
         return storage;
