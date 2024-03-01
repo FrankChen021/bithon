@@ -234,7 +234,7 @@ public class TraceService {
 
         private final ISchema indexDataSource;
         private final ISchema summaryDataSource;
-        private boolean isFilterOnTag = false;
+        private boolean isFilterOnIndexedTag = false;
 
         private final List<IExpression> indexedTagFilter;
         private final List<IExpression> nonIndexedTagFilter;
@@ -277,11 +277,11 @@ public class TraceService {
         public Boolean visit(ConditionalExpression expression) {
             IExpression left = expression.getLeft();
             if (left instanceof IdentifierExpression) {
-                return isFilterOnIndexedTag((IdentifierExpression) left);
+                return isFilterOnTagField((IdentifierExpression) left);
             }
             IExpression right = expression.getRight();
             if (right instanceof IdentifierExpression) {
-                return isFilterOnIndexedTag((IdentifierExpression) right);
+                return isFilterOnTagField((IdentifierExpression) right);
             }
             return false;
         }
@@ -295,7 +295,7 @@ public class TraceService {
             List<IExpression> nonTagsFilters = new ArrayList<>();
             for (IExpression subExpression : expression.getOperands()) {
                 if (subExpression.accept(this)) {
-                    if (isFilterOnTag) {
+                    if (isFilterOnIndexedTag) {
                         indexedTagFilter.add(subExpression);
                     } else {
                         nonIndexedTagFilter.add(subExpression);
@@ -313,24 +313,32 @@ public class TraceService {
             return false;
         }
 
-        private boolean isFilterOnIndexedTag(IdentifierExpression expression) {
+        private boolean isFilterOnTagField(IdentifierExpression expression) {
             String identifier = expression.getIdentifier();
 
             IColumn column;
             if (identifier.startsWith("tags.")) {
                 column = this.indexDataSource.getColumnByName(identifier);
-                isFilterOnTag = true;
+                if (column != null) {
+                    // Given identifier in the expression might be alias, replace it with the actual name
+                    expression.setIdentifier(column.getName());
+                    isFilterOnIndexedTag = true;
+                } else {
+                    isFilterOnIndexedTag = false;
+                }
+
+                return true;
             } else {
                 column = this.summaryDataSource.getColumnByName(identifier);
-                isFilterOnTag = false;
-            }
+                if (column == null) {
+                    throw new ExpressionValidationException("Identifier [%s] is not defined in the data source [%s]", identifier, this.indexDataSource.getName());
+                }
 
-            if (column == null) {
-                throw new ExpressionValidationException("Identifier [%s] is not defined in the data source [%s]", identifier, this.indexDataSource.getName());
-            }
-            expression.setIdentifier(column.getName());
+                // Given identifier in the expression might be alias, replace it with the actual name
+                expression.setIdentifier(column.getName());
 
-            return isFilterOnTag;
+                return false;
+            }
         }
     }
 }
