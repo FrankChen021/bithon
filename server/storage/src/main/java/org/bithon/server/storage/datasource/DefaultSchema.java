@@ -176,6 +176,7 @@ public class DefaultSchema implements ISchema {
         return column;
     }
 
+    @JsonIgnore
     @Override
     public Collection<IColumn> getColumns() {
         return this.columnMap.values();

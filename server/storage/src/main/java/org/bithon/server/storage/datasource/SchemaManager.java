@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactor;
 import org.bithon.component.commons.time.DateTime;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.meta.ISchemaStorage;
 import org.springframework.context.SmartLifecycle;
 
@@ -56,7 +57,7 @@ public class SchemaManager implements SmartLifecycle {
     public boolean addSchema(ISchema schema, boolean saveSchema) {
         if (schema != null &&
             schemas.putIfAbsent(schema.getName(), schema) == null) {
-            if (saveSchema && schema.getDataStoreSpec().isInternal()) {
+            if (saveSchema && !schema.isVirtual()) {
                 try {
                     schemaStorage.putIfNotExist(schema.getName(), schema);
                 } catch (IOException e) {
@@ -113,15 +114,16 @@ public class SchemaManager implements SmartLifecycle {
     }
 
     private void incrementalLoadSchemas() {
-        List<ISchema> changedSchemaList = schemaStorage.getSchemas(this.lastLoadAt);
+        long now = TimeSpan.now().toSeconds() * 1000;
 
+        List<ISchema> changedSchemaList = schemaStorage.getSchemas(this.lastLoadAt);
         log.info("{} schema(s) have been changed since {}.", changedSchemaList.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
 
         for (ISchema changedSchema : changedSchemaList) {
             this.onChange(this.put(changedSchema.getName(), changedSchema), changedSchema);
         }
 
-        this.lastLoadAt = System.currentTimeMillis();
+        this.lastLoadAt = now;
     }
 
     /**

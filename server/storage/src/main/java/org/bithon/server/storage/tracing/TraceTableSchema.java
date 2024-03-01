@@ -117,6 +117,11 @@ public class TraceTableSchema implements ISchema {
         return null;
     }
 
+    @Override
+    public boolean isVirtual() {
+        return true;
+    }
+
     public static TraceTableSchema createSummaryTableSchema(ITraceStorage traceStorage) {
         return new TraceTableSchema("trace_span_summary",
                                     traceStorage,
