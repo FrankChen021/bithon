@@ -41,26 +41,26 @@ public class MethodJobHandler$Execute extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceContext traceContext = TraceContextFactory.create(SamplingMode.FULL, ctx.getTraceId(), ctx.getParentSpanId());
-        TraceContextHolder.set(traceContext);
+        ITraceContext traceContext = TraceContextFactory.newContext(SamplingMode.FULL, ctx.getTraceId(), ctx.getParentSpanId());
+        TraceContextHolder.attach(traceContext);
         ITraceSpan span = traceContext.currentSpan()
                                       .component("method-job");
 
         Method targetMethod = (Method) ReflectionUtils.getFieldValue(aopContext.getTarget(), "method");
-        aopContext.setUserContext(span.method(targetMethod)
-                                      .start());
+        aopContext.setSpan(span.method(targetMethod)
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException())
             .finish();
 
         span.context().finish();
 
-        TraceContextHolder.remove();
+        TraceContextHolder.detach();
     }
 }

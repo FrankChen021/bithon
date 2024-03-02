@@ -42,32 +42,32 @@ public class ScriptJobHandler$Execute extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceContext traceContext = TraceContextFactory.create(SamplingMode.FULL, ctx.getTraceId(), ctx.getParentSpanId());
-        TraceContextHolder.set(traceContext);
+        ITraceContext traceContext = TraceContextFactory.newContext(SamplingMode.FULL, ctx.getTraceId(), ctx.getParentSpanId());
+        TraceContextHolder.attach(traceContext);
         ITraceSpan span = traceContext.currentSpan()
                                       .component("script-job");
 
         int jobId = (int) ReflectionUtils.getFieldValue(aopContext.getTarget(), "jobId");
         GlueTypeEnum type = (GlueTypeEnum) ReflectionUtils.getFieldValue(aopContext.getTarget(), "glueType");
 
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .tag("job.id", jobId)
-                                      .tag("job.type", type.getDesc())
-                                      .tag(Tags.Thread.ID, Thread.currentThread().getId())
-                                      .tag(Tags.Thread.NAME, Thread.currentThread().getName())
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .tag("job.id", jobId)
+                               .tag("job.type", type.getDesc())
+                               .tag(Tags.Thread.ID, Thread.currentThread().getId())
+                               .tag(Tags.Thread.NAME, Thread.currentThread().getName())
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException())
             .finish();
 
         span.context().finish();
 
-        TraceContextHolder.remove();
+        TraceContextHolder.detach();
     }
 }

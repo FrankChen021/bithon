@@ -20,7 +20,7 @@ import com.sun.jersey.spi.container.JavaMethodInvoker;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
@@ -45,7 +45,7 @@ public class ResourceJavaMethodDispatcher$Ctor extends AfterInterceptor {
         JavaMethodInvoker enhancedInvoker = (m, o, parameters) -> {
             ITraceSpan span = null;
             try {
-                span = TraceSpanFactory.newSpan("jersey");
+                span = TraceContextFactory.newSpan("jersey");
             } catch (Exception ignored) {
             }
             try {

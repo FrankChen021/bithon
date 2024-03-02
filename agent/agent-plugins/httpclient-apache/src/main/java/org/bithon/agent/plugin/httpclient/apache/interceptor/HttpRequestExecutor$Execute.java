@@ -30,7 +30,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
@@ -52,7 +52,7 @@ public class HttpRequestExecutor$Execute extends AroundInterceptor {
         //
         // Trace
         //
-        ITraceSpan span = TraceSpanFactory.newSpan("httpclient");
+        ITraceSpan span = TraceContextFactory.newSpan("http-client");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -67,20 +67,20 @@ public class HttpRequestExecutor$Execute extends AroundInterceptor {
         }
 
         // create a span and save it in user-context
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .kind(SpanKind.CLIENT)
-                                      .tag(Tags.Http.CLIENT, "apache")
-                                      .tag(Tags.Http.URL, uri)
-                                      .tag(Tags.Http.METHOD, httpRequest.getRequestLine().getMethod())
-                                      .propagate(httpRequest, HttpMessage::setHeader)
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .kind(SpanKind.CLIENT)
+                               .tag(Tags.Http.CLIENT, "apache")
+                               .tag(Tags.Http.URL, uri)
+                               .tag(Tags.Http.METHOD, httpRequest.getRequestLine().getMethod())
+                               .propagate(httpRequest, HttpMessage::setHeader)
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext context) {
-        ITraceSpan thisSpan = context.getUserContextAs();
+        ITraceSpan thisSpan = context.getSpan();
         if (thisSpan == null) {
             // in case of exception in the above
             return;

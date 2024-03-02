@@ -45,7 +45,7 @@ public class StatementInterceptor extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        String connectionString = aopContext.getUserContextAs();
+        String connectionString = aopContext.getUserContext();
 
         SQLMetrics metric = metricRegistry.getOrCreateMetrics(connectionString);
         boolean isQuery = true;

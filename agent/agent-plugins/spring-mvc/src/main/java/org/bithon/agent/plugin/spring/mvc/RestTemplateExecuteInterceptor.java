@@ -20,7 +20,7 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.Tags;
 
 import java.net.URI;
@@ -32,7 +32,7 @@ import java.net.URI;
 public class RestTemplateExecuteInterceptor extends AroundInterceptor {
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan("restTemplate");
+        ITraceSpan span = TraceContextFactory.newSpan("rest-template");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -45,9 +45,9 @@ public class RestTemplateExecuteInterceptor extends AroundInterceptor {
             uri = obj.toString();
         }
 
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .tag(Tags.Http.URL, uri)
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .tag(Tags.Http.URL, uri)
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
@@ -55,7 +55,7 @@ public class RestTemplateExecuteInterceptor extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.finish();
     }
 }

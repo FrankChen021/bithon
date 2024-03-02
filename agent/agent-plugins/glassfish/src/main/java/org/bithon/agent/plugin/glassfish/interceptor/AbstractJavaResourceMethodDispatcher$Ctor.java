@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.glassfish.interceptor;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
@@ -44,7 +44,7 @@ public class AbstractJavaResourceMethodDispatcher$Ctor extends AfterInterceptor 
         InvocationHandler delegate = aopContext.getArgAs(1);
 
         InvocationHandler enhancedInvoker = (proxy, method, args) -> {
-            ITraceSpan span = TraceSpanFactory.newSpan("endpoint");
+            ITraceSpan span = TraceContextFactory.newSpan("endpoint");
             try {
                 if (span != null) {
                     span.method(method.getDeclaringClass(), method.getName()).start();

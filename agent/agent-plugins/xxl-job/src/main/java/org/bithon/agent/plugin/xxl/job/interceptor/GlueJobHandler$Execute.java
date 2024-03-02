@@ -43,27 +43,27 @@ public class GlueJobHandler$Execute extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceContext traceContext = TraceContextFactory.create(SamplingMode.FULL, ctx.getTraceId(), ctx.getParentSpanId());
-        TraceContextHolder.set(traceContext);
+        ITraceContext traceContext = TraceContextFactory.newContext(SamplingMode.FULL, ctx.getTraceId(), ctx.getParentSpanId());
+        TraceContextHolder.attach(traceContext);
         ITraceSpan span = traceContext.currentSpan()
                                       .component("glue-job");
 
         IJobHandler job = (IJobHandler) ReflectionUtils.getFieldValue(aopContext.getTarget(), "jobHandler");
-        aopContext.setUserContext(span.method(job.getClass(), "execute")
-                                      .tag(Tags.Thread.ID, Thread.currentThread().getId())
-                                      .tag(Tags.Thread.NAME, Thread.currentThread().getName())
-                                      .start());
+        aopContext.setSpan(span.method(job.getClass(), "execute")
+                               .tag(Tags.Thread.ID, Thread.currentThread().getId())
+                               .tag(Tags.Thread.NAME, Thread.currentThread().getName())
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException())
             .finish();
 
         span.context().finish();
-        TraceContextHolder.remove();
+        TraceContextHolder.detach();
     }
 }

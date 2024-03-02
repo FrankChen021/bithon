@@ -20,7 +20,7 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import sun.net.www.MessageHeader;
@@ -40,7 +40,7 @@ public class HttpClient$WriteRequests extends BeforeInterceptor {
 
         clientContext.setWriteAt(System.nanoTime());
 
-        ITraceSpan span = TraceSpanFactory.newSpan("httpclient");
+        ITraceSpan span = TraceContextFactory.newSpan("http-client");
         if (span == null) {
             return;
         }

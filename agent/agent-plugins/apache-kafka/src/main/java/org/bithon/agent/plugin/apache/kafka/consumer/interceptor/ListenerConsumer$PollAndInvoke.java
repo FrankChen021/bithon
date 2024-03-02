@@ -66,20 +66,20 @@ public class ListenerConsumer$PollAndInvoke extends AroundInterceptor {
         }
 
         if (TraceMode.TRACING.equals(context.traceMode())) {
-            aopContext.setUserContext(context.currentSpan()
-                                             .component(Components.KAFKA)
-                                             .kind(SpanKind.CONSUMER)
-                                             .method(aopContext.getTargetClass(), aopContext.getMethod())
-                                             .start());
+            aopContext.setSpan(context.currentSpan()
+                                      .component(Components.KAFKA)
+                                      .kind(SpanKind.CONSUMER)
+                                      .method(aopContext.getTargetClass(), aopContext.getMethod())
+                                      .start());
         }
 
-        TraceContextHolder.set(context);
+        TraceContextHolder.attach(context);
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
 
         if (span != null) {
             IBithonObject bithonObject = aopContext.getTargetAs();
@@ -97,6 +97,6 @@ public class ListenerConsumer$PollAndInvoke extends AroundInterceptor {
             span.context().finish();
         }
 
-        TraceContextHolder.remove();
+        TraceContextHolder.detach();
     }
 }

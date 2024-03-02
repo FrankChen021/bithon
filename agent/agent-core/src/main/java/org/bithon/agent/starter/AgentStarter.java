@@ -81,7 +81,7 @@ public class AgentStarter {
         // Install interceptors for plugins
         new InterceptorInstaller(new PluginResolver() {
             @Override
-            protected boolean resolve(Class<?> pluginClazz) {
+            protected boolean onResolved(Class<?> pluginClazz) {
                 return PluginConfiguration.load(pluginClazz);
             }
         }.resolveInterceptors())

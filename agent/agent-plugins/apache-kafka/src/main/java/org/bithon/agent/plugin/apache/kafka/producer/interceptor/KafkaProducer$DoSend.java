@@ -24,7 +24,7 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.agent.plugin.apache.kafka.producer.KafkaProducerTracingConfig;
 import org.bithon.component.commons.tracing.Components;
@@ -47,7 +47,7 @@ public class KafkaProducer$DoSend extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan(Components.KAFKA);
+        ITraceSpan span = TraceContextFactory.newSpan(Components.KAFKA);
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -75,22 +75,22 @@ public class KafkaProducer$DoSend extends AroundInterceptor {
         IBithonObject bithonObject = aopContext.getTargetAs();
         KafkaPluginContext pluginContext = (KafkaPluginContext) bithonObject.getInjectedObject();
 
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .kind(SpanKind.PRODUCER)
-                                      .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
-                                      .tag(Tags.Messaging.SYSTEM, "kafka")
-                                      .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
-                                      .tag(Tags.Messaging.KAFKA_TOPIC, record.topic())
-                                      .tag(Tags.Messaging.KAFKA_SOURCE_PARTITION, record.partition())
-                                      .tag(Tags.Messaging.BYTES, size)
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .kind(SpanKind.PRODUCER)
+                               .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
+                               .tag(Tags.Messaging.SYSTEM, "kafka")
+                               .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
+                               .tag(Tags.Messaging.KAFKA_TOPIC, record.topic())
+                               .tag(Tags.Messaging.KAFKA_SOURCE_PARTITION, record.partition())
+                               .tag(Tags.Messaging.BYTES, size)
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         if (aopContext.hasException()) {
             span.tag(aopContext.getException());
         } else {

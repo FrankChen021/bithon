@@ -56,12 +56,12 @@ public class DelegatingErrorHandlingRunnable$Run extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        TraceContextHolder.set(context);
+        TraceContextHolder.attach(context);
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        TraceContextHolder.remove();
+        TraceContextHolder.detach();
     }
 }
