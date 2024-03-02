@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactor;
 import org.bithon.component.commons.time.DateTime;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.web.Dashboard;
 import org.bithon.server.storage.web.IDashboardStorage;
 import org.bithon.server.webapp.WebAppModuleEnabler;
@@ -105,6 +106,8 @@ public class DashboardManager implements SmartLifecycle {
     }
 
     private void incrementalLoad() {
+        long now = TimeSpan.now().toSeconds() * 1000;
+
         List<Dashboard> changedDashboards = storage.getDashboard(this.lastLoadAt);
         log.info("{} dashboards have been changed since {}.", changedDashboards.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
 
@@ -122,7 +125,7 @@ public class DashboardManager implements SmartLifecycle {
             onChanged();
         }
 
-        this.lastLoadAt = System.currentTimeMillis();
+        this.lastLoadAt = now;
     }
 
     private Dashboard.Metadata getMetadata(Dashboard dashboard) {

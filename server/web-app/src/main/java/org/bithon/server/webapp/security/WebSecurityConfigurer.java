@@ -47,27 +47,33 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
     private final WebSecurityConfig securityConfig;
     private final String contextPath;
 
-    public WebSecurityConfigurer(ServerProperties serverProperties,
-                                 WebSecurityConfig securityConfig) {
-        this.securityConfig = securityConfig;
+    public WebSecurityConfigurer(ServerProperties serverProperties, WebSecurityConfig securityConfig) {
         String contextPath = serverProperties.getServlet().getContextPath();
         this.contextPath = StringUtils.hasText(contextPath) ? contextPath : "";
+        this.securityConfig = securityConfig;
     }
 
     @Override
     public void configure(WebSecurity web) {
-        String[] ignoreList = Stream.of("/images/**",
-                                        "/css/**",
-                                        "/lib/**",
-                                        "/js/**",
-                                        "/login",
-                                        "/actuator/**"
-                                       )
-                                    .map((path) -> this.contextPath + path)
-                                    .toArray(String[]::new);
+        Stream<String> ignoreList = Stream.of(
+            // Web application static resources
+            "/images/**",
+            "/css/**",
+            "/lib/**",
+            "/js/**",
+            "/login",
+            // Actuator for health check
+            "/actuator/**",
+            // Other APIs that do not require authentication
+            "/api/security/token/validity");
+
+        if (StringUtils.hasText(this.contextPath)) {
+            ignoreList = ignoreList.map((path) -> this.contextPath + path);
+        }
 
         // Configure to ignore security check on static resources
-        web.ignoring().antMatchers(ignoreList);
+        web.ignoring()
+           .antMatchers(ignoreList.toArray(String[]::new));
     }
 
     @Override
@@ -75,14 +81,17 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
         // H2 web UI requires disabling frameOptions.
         // This is not a graceful way. The better way is to check whether the H2 web UI is enabled in this module.
         // For simplicity, we just disable the frame option in global.
-        http.headers().frameOptions().disable();
+        http.headers()
+            .frameOptions()
+            .disable();
 
         if (!securityConfig.isEnabled()) {
             // Permit all
             http.csrf()
                 .disable()
                 .authorizeRequests()
-                .antMatchers("/**").permitAll();
+                .antMatchers("/**")
+                .permitAll();
             return;
         }
 

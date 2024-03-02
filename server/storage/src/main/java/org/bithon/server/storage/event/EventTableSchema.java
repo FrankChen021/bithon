@@ -123,6 +123,11 @@ public class EventTableSchema implements ISchema {
         return null;
     }
 
+    @Override
+    public boolean isVirtual() {
+        return true;
+    }
+
     static class EventDataStoreSpec implements IDataStoreSpec {
 
         private final String store;

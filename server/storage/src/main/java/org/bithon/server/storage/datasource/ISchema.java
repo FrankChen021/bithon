@@ -54,6 +54,15 @@ public interface ISchema {
     @JsonIgnore
     String getSignature();
 
+    /**
+     * Whether this schema is created by bithon internally by APIs.
+     * In most cases, it should be 'false'
+     */
+    @JsonIgnore
+    default boolean isVirtual() {
+        return false;
+    }
+
     Period getTtl();
 
 

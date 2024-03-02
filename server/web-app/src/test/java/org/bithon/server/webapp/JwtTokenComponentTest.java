@@ -51,7 +51,7 @@ public class JwtTokenComponentTest {
         Jws<Claims> token = component.parseToken(jwt);
         Assert.assertTrue(component.isValidToken(token));
 
-        long expiration = component.getTokenExpiration(token);
+        long expiration = component.getExpirationTimestamp(token);
         long diff = TimeSpan.of(expiration).diff(TimeSpan.now());
         long hours = diff / 1000 / 3600;
         Assert.assertTrue(hours == 47 || hours == 48);
@@ -80,7 +80,7 @@ public class JwtTokenComponentTest {
         Jws<Claims> token = component.parseToken(jwt);
         Assert.assertTrue(component.isValidToken(token));
 
-        long expiration = component.getTokenExpiration(token);
+        long expiration = component.getExpirationTimestamp(token);
         long diff = TimeSpan.of(expiration).diff(TimeSpan.now());
         long hours = diff / 1000 / 3600;
         Assert.assertTrue(hours == 23 || hours == 24);
