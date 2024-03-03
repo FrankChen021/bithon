@@ -83,6 +83,7 @@ public class HumanReadableDuration {
     public static HumanReadableDuration parse(String durationText) {
         Preconditions.checkNotNull(durationText, "durationText can not be null.");
         durationText = durationText.trim();
+        Preconditions.checkIfTrue(!durationText.isEmpty(), "duration can't be empty");
         Preconditions.checkIfTrue(durationText.length() >= 2, "[%s] is not a valid format of duration", durationText);
 
         TimeUnit timeUnit;
