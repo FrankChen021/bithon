@@ -69,7 +69,7 @@ alertExpectedExpression
 //
 // Keywords
 //
-DURATION: INTEGER_LITERAL [sSmMhHdD];
+DURATION: INTEGER_LITERAL [smhd];
 
 BY: B Y;
 AND : A N D;
