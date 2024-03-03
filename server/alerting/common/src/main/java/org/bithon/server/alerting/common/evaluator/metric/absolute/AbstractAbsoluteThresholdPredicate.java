@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.component.commons.utils.HumanReadableBytes;
+import org.bithon.component.commons.utils.HumanReadableSize;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
@@ -66,8 +66,8 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
             tmp = (Number) expected;
         } else if (expected instanceof String) {
             try {
-                tmp = HumanReadableBytes.parse((String) expected);
-            } catch (HumanReadableBytes.IAE e) {
+                tmp = HumanReadableSize.parse((String) expected);
+            } catch (HumanReadableSize.IAE e) {
                 tmp = Double.parseDouble((String) expected);
             }
         } else {

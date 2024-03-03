@@ -16,28 +16,50 @@
 
 package org.bithon.component.commons.utils;
 
-import java.util.Locale;
+public class HumanReadableSize extends Number {
+    public static final HumanReadableSize ZERO = new HumanReadableSize(0L);
+    private final long value;
+    private final String text;
 
-public class HumanReadableBytes {
-    public static final HumanReadableBytes ZERO = new HumanReadableBytes(0L);
-    private final long bytes;
-
-    public HumanReadableBytes(String bytes) {
-        this.bytes = HumanReadableBytes.parse(bytes);
+    private HumanReadableSize(String value) {
+        this.value = HumanReadableSize.parse(value);
+        this.text = value.trim();
     }
 
-    public HumanReadableBytes(long bytes) {
-        this.bytes = bytes;
+    private HumanReadableSize(long value) {
+        this.value = value;
+        this.text = String.valueOf(value);
     }
 
-    public static HumanReadableBytes valueOf(int bytes) {
-        return new HumanReadableBytes(bytes);
+    public static HumanReadableSize of(String value) {
+        return new HumanReadableSize(value);
     }
 
-    public static HumanReadableBytes valueOf(long bytes) {
-        return new HumanReadableBytes(bytes);
-    }
-
+    /**
+     * parse the CASE-SENSITIVE string number, which is either:
+     * <p>
+     * a number string
+     * <p>
+     * or
+     * <p>
+     * a number string with a suffix which indicates the unit the of number
+     * the unit must be one of following
+     * K - kilobyte = 1000
+     * M - megabyte = 1,000,000
+     * G - gigabyte = 1,000,000,000
+     * T - terabyte = 1,000,000,000,000
+     * P - petabyte = 1,000,000,000,000,000
+     * KiB - kilo binary byte = 1024
+     * MiB - mega binary byte = 1024*1204
+     * GiB - giga binary byte = 1024*1024*1024
+     * TiB - tera binary byte = 1024*1024*1024*1024
+     * PiB - peta binary byte = 1024*1024*1024*1024*1024
+     * <p>
+     *
+     * @return nullValue if input is null or empty
+     * value of number
+     * @throws IAE if the input is invalid
+     */
     public static long parse(String number) {
         if (number == null) {
             throw new IAE("Invalid format of number: number is null");
@@ -51,91 +73,56 @@ public class HumanReadableBytes {
         return parseInner(number);
     }
 
-    /**
-     * parse the case-insensitive string number, which is either:
-     * <p>
-     * a number string
-     * <p>
-     * or
-     * <p>
-     * a number string with a suffix which indicates the unit the of number
-     * the unit must be one of following
-     * k - kilobyte = 1000
-     * m - megabyte = 1,000,000
-     * g - gigabyte = 1,000,000,000
-     * t - terabyte = 1,000,000,000,000
-     * p - petabyte = 1,000,000,000,000,000
-     * KiB - kilo binary byte = 1024
-     * MiB - mega binary byte = 1024*1204
-     * GiB - giga binary byte = 1024*1024*1024
-     * TiB - tera binary byte = 1024*1024*1024*1024
-     * PiB - peta binary byte = 1024*1024*1024*1024*1024
-     * <p>
-     *
-     * @param nullValue to be returned when given number is null or empty
-     * @return nullValue if input is null or empty
-     * value of number
-     * @throws IAE if the input is invalid
-     */
-    public static long parse(String number, long nullValue) {
-        if (number == null) {
-            return nullValue;
-        }
-
-        number = number.trim();
-        if (number.isEmpty()) {
-            return nullValue;
-        }
-        return parseInner(number);
-    }
-
-    private static long parseInner(String rawNumber) {
-        String number = rawNumber.toLowerCase(Locale.ROOT);
+    private static long parseInner(String number) {
         if (number.charAt(0) == '-') {
-            throw new IAE("Invalid format of number: %s. Negative value is not allowed.", rawNumber);
+            throw new IAE("Invalid format of number: %s. Negative value is not allowed.", number);
         }
 
         int lastDigitIndex = number.length() - 1;
         boolean isBinaryByte = false;
         char unit = number.charAt(lastDigitIndex--);
-        if (unit == 'b') {
-            //unit ends with 'b' must be a format of KiB/MiB/GiB/TiB/PiB, so at least 3 extra characters are required
+        if (unit == 'B') {
+            // unit ends with 'b' must be a format of KiB/MiB/GiB/TiB/PiB, so at least 3 extra characters are required
             if (lastDigitIndex < 2) {
-                throw new IAE("Invalid format of number: %s", rawNumber);
+                throw new IAE("Invalid format of number: %s", number);
             }
             if (number.charAt(lastDigitIndex--) != 'i') {
-                throw new IAE("Invalid format of number: %s", rawNumber);
+                throw new IAE("Invalid format of number: %s", number);
             }
 
+            unit = number.charAt(lastDigitIndex--);
+            isBinaryByte = true;
+        } else if (unit == 'i') {
+            // in the format of 5Gi
             unit = number.charAt(lastDigitIndex--);
             isBinaryByte = true;
         }
 
         long base = 1;
         switch (unit) {
-            case 'k':
+            case 'K':
                 base = isBinaryByte ? 1024 : 1_000;
                 break;
 
-            case 'm':
+            case 'M':
                 base = isBinaryByte ? 1024 * 1024 : 1_000_000;
                 break;
 
-            case 'g':
+            case 'G':
                 base = isBinaryByte ? 1024 * 1024 * 1024 : 1_000_000_000;
                 break;
 
-            case 't':
+            case 'T':
                 base = isBinaryByte ? 1024L * 1024 * 1024 * 1024 : 1_000_000_000_000L;
                 break;
 
-            case 'p':
+            case 'P':
                 base = isBinaryByte ? 1024L * 1024 * 1024 * 1024 * 1024 : 1_000_000_000_000_000L;
                 break;
 
             default:
                 if (!Character.isDigit(unit)) {
-                    throw new IAE("Invalid format of number: %s", rawNumber);
+                    throw new IAE("Unrecognizable unit [%c] in the number: %s", unit, number);
                 }
 
                 //lastDigitIndex here holds the index which is prior to the current digit
@@ -148,11 +135,11 @@ public class HumanReadableBytes {
             long value = Long.parseLong(number.substring(0, lastDigitIndex + 1)) * base;
             if (base > 1 && value < base) {
                 //for base == 1, overflow has been checked in parseLong
-                throw new IAE("Number overflow: %s", rawNumber);
+                throw new IAE("Number overflow: %s", number);
             }
             return value;
         } catch (NumberFormatException e) {
-            throw new IAE("Invalid format or out of range of long: %s", rawNumber);
+            throw new IAE("Invalid format or out of range of long: %s", number);
         }
     }
 
@@ -181,16 +168,8 @@ public class HumanReadableBytes {
         }
     }
 
-    public long getBytes() {
-        return bytes;
-    }
-
-    public int getBytesInInt() {
-        if (bytes > Integer.MAX_VALUE) {
-            throw new IllegalStateException(StringUtils.format("Number [%d] exceeds range of Integer.MAX_VALUE", bytes));
-        }
-
-        return (int) bytes;
+    public long getValue() {
+        return value;
     }
 
     @Override
@@ -198,21 +177,44 @@ public class HumanReadableBytes {
         if (thatObj == null) {
             return false;
         }
-        if (thatObj instanceof HumanReadableBytes) {
-            return bytes == ((HumanReadableBytes) thatObj).bytes;
+        if (thatObj instanceof HumanReadableSize) {
+            return value == ((HumanReadableSize) thatObj).value;
         } else {
+            if (thatObj instanceof Number) {
+                return ((Number) thatObj).longValue() == value;
+            }
             return false;
         }
     }
 
     @Override
     public int hashCode() {
-        return Long.hashCode(bytes);
+        return Long.hashCode(value);
     }
 
     @Override
     public String toString() {
-        return String.valueOf(bytes);
+        return this.text;
+    }
+
+    @Override
+    public int intValue() {
+        return (int) value;
+    }
+
+    @Override
+    public long longValue() {
+        return value;
+    }
+
+    @Override
+    public float floatValue() {
+        return value;
+    }
+
+    @Override
+    public double doubleValue() {
+        return value;
     }
 
     public enum UnitSystem {
@@ -223,6 +225,7 @@ public class HumanReadableBytes {
         BINARY_BYTE,
 
         /**
+         * number
          * also known as SI format
          * e.g. B, KB, MB ...
          */

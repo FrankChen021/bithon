@@ -18,6 +18,7 @@ package org.bithon.server.alerting.common.parser;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.utils.HumanReadableSize;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.junit.Assert;
 import org.junit.Test;
@@ -92,6 +93,34 @@ public class AlertExpressionASTParserTest {
         // the duration must be a positive value
         Assert.assertThrows(InvalidExpressionException.class, () -> AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName in ('a', 1)})[0m] > 1"));
         Assert.assertThrows(InvalidExpressionException.class, () -> AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName in ('a', 1)})[-5m] > 1"));
+    }
+
+    @Test
+    public void testHumanReadableSizeExpression() {
+        // binary format
+        IExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1MiB");
+        Assert.assertTrue(expression instanceof AlertExpression);
+        Assert.assertEquals(5, ((AlertExpression) expression).getWindow().getDuration().toMinutes());
+        Assert.assertEquals(TimeUnit.MINUTES, ((AlertExpression) expression).getWindow().getUnit());
+        Assert.assertEquals(HumanReadableSize.of("1MiB"), ((AlertExpression) expression).getAlertExpected());
+        Assert.assertEquals("avg(jvm-metrics.cpu{appName <= \"a\"})[5m] > 1MiB", expression.serializeToText());
+
+        // decimal format
+        expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5h] > 7K");
+        Assert.assertTrue(expression instanceof AlertExpression);
+        Assert.assertEquals(5, ((AlertExpression) expression).getWindow().getDuration().toHours());
+        Assert.assertEquals(HumanReadableSize.of("7K"), ((AlertExpression) expression).getAlertExpected());
+        Assert.assertEquals("avg(jvm-metrics.cpu{appName <= \"a\"})[5h] > 7K", expression.serializeToText());
+
+        // simplified binary format
+        expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5h] > 100Gi");
+        Assert.assertTrue(expression instanceof AlertExpression);
+        Assert.assertEquals(5, ((AlertExpression) expression).getWindow().getDuration().toHours());
+        Assert.assertEquals(HumanReadableSize.of("100Gi"), ((AlertExpression) expression).getAlertExpected());
+        Assert.assertEquals("avg(jvm-metrics.cpu{appName <= \"a\"})[5h] > 100Gi", expression.serializeToText());
+
+        // Invalid human readable size
+        Assert.assertThrows(InvalidExpressionException.class, () -> AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName in ('a', 1)})[0m] > 1MB"));
     }
 
     @Test

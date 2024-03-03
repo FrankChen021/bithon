@@ -34,7 +34,7 @@ whereExpression
   ;
 
 durationExpression
-  : '[' DURATION ']'
+  : '[' DURATION_LITERAL ']'
   ;
 
 filterExpression
@@ -55,7 +55,7 @@ valueExpression
   ;
 
 literalExpression
-  : STRING_LITERAL | INTEGER_LITERAL | DECIMAL_LITERAL | PERCENTAGE_LITERAL | NULL_LITERAL
+  : STRING_LITERAL | INTEGER_LITERAL | DECIMAL_LITERAL | PERCENTAGE_LITERAL | NULL_LITERAL | SIZE_LITERAL
   ;
 
 literalListExpression
@@ -69,8 +69,6 @@ alertExpectedExpression
 //
 // Keywords
 //
-DURATION: INTEGER_LITERAL [smhd];
-
 BY: B Y;
 AND : A N D;
 OR: O R;
@@ -90,6 +88,13 @@ LIKE: L I K E;
 INCR: I N C R;
 DECR: D E C R;
 
+DURATION_LITERAL: INTEGER_LITERAL [smhd];
+
+// Suppported forms:
+// 5K  -- decimal format,          = 5 * 1000
+// 5Ki -- simplifed binary format, = 5 * 1024
+// 5KiB -- binary format,          = 5 * 1024
+SIZE_LITERAL: INTEGER_LITERAL ('K' ('i' | 'iB')? | 'M' ('i' | 'iB')? | 'G' ('i' | 'iB')? | 'T' ('i' | 'iB')? | 'P' ('i' | 'iB')?);
 INTEGER_LITERAL: '-'?([1-9][0-9]*|[0]);
 DECIMAL_LITERAL: '-'?[0-9]+'.'[0-9]*;
 PERCENTAGE_LITERAL:  [0-9]+('.'[0-9]+)*'%';
