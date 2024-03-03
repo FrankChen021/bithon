@@ -112,23 +112,6 @@
             $("#payload").text(JSON.stringify(alert.payload, null, 4));
         }
 
-        function addRule(rule) {
-            const container = $(".trigger-container");
-
-            const ruleItem = $(
-                '<div class="input-group trigger-item" style="width: 500px;margin-bottom: 5px">            ' +
-                '    <span class="input-group-addon" style="border-left: 1px solid #ccc;">Rule</span>      ' +
-                '    <input type="text" class="form-control trigger-expression"                            ' +
-                '           maxlength="200" style="width: 260px"/>                                         ' +
-                '    <span class="input-group-addon" style="border-left: 1px solid #ccc;">Severity</span>      ' +
-                '    <input class="form-control trigger-severity" style="width: 100px;"/>                  ' +
-                '</div>                                                                                    '
-            );
-            $(ruleItem).find(".trigger-expression").val(rule.expression);
-            $(ruleItem).find(".trigger-severity").val(rule.severity);
-            $(container).append($(ruleItem));
-        }
-
         function loadRecords() {
             $('#alertTable').bootstrapTable({
                 url: '/api/alerting/alert/record/list',
@@ -228,7 +211,7 @@
                     field: 'id',
                     title: 'Diff',
                     formatter: (value, row, index) => {
-                        return `<button class="btn btn-sm btn-outline-info" onclick="javascript:toggleChanges(${index})">View Changes</button>`;
+                        return `<button class="btn btn-sm btn-outline-info" onclick="toggleChanges(${index})">View Changes</button>`;
                     }
                 }],
 
@@ -248,10 +231,6 @@
             })
         }
 
-        function onLoad(alert) {
-            showAlert(alert);
-        }
-
         function toggleChanges(index) {
             $('#changelogsTable').bootstrapTable('toggleDetailView', index);
         }
@@ -259,8 +238,8 @@
         let logComponent;
         let gAlert;
 
-        $(document).ready(function () {
-            $('.btn-return').click(function (e) {
+        $(document).ready(() => {
+            $('.btn-return').click(() => {
                 if (returnUrl != null) {
                     window.location.href = decodeURIComponent(returnUrl);
                 } else {
@@ -275,7 +254,7 @@
             loadRecords();
             loadChangeLogs();
 
-            $('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+            $('a[data-toggle="pill"]').on('shown.bs.tab', (e) => {
                 if ($(e.target).attr('href') !== '#runLogs') {
                     return;
                 }
