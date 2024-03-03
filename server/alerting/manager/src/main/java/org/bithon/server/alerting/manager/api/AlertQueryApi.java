@@ -16,7 +16,13 @@
 
 package org.bithon.server.alerting.manager.api;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.alerting.common.model.AlertExpression;
+import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
+import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
+import org.bithon.server.alerting.common.parser.InvalidExpressionException;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
 import org.bithon.server.alerting.manager.api.parameter.ChangeLogBo;
@@ -49,6 +55,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -69,6 +78,30 @@ public class AlertQueryApi {
         this.alertRecordStorage = alertRecordStorage;
         this.alertStorage = alertStorage;
         this.evaluationLogService = evaluationLogService;
+    }
+
+    @Data
+    public static class ParseAlertExpressionRequest {
+        @NotBlank
+        private String expression;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class ParseAlertExpressionResponse {
+        private Collection<AlertExpression> expressions;
+    }
+
+    @PostMapping("/api/alerting/alert/parse")
+    public ApiResponse<ParseAlertExpressionResponse> parseAlertExpression(@Valid @RequestBody ParseAlertExpressionRequest request) {
+        try {
+            List<AlertExpression> alertExpressions = new ArrayList<>();
+            AlertExpressionASTParser.parse(request.getExpression())
+                                    .accept((IAlertExpressionVisitor) alertExpressions::add);
+            return ApiResponse.success(new ParseAlertExpressionResponse(alertExpressions));
+        } catch (InvalidExpressionException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
     }
 
     @PostMapping("/api/alerting/alert/get")
