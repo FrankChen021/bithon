@@ -20,8 +20,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertExpression;
+import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
-import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.alerting.common.parser.InvalidExpressionException;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
@@ -84,6 +84,11 @@ public class AlertQueryApi {
     public static class ParseAlertExpressionRequest {
         @NotBlank
         private String expression;
+
+        /**
+         * Nullable
+         */
+        private String appName;
     }
 
     @Data
@@ -96,8 +101,8 @@ public class AlertQueryApi {
     public ApiResponse<ParseAlertExpressionResponse> parseAlertExpression(@Valid @RequestBody ParseAlertExpressionRequest request) {
         try {
             List<AlertExpression> alertExpressions = new ArrayList<>();
-            AlertExpressionASTParser.parse(request.getExpression())
-                                    .accept((IAlertExpressionVisitor) alertExpressions::add);
+            AlertRule.build(request.getAppName(), request.getExpression())
+                     .accept((IAlertExpressionVisitor) alertExpressions::add);
             return ApiResponse.success(new ParseAlertExpressionResponse(alertExpressions));
         } catch (InvalidExpressionException e) {
             return ApiResponse.fail(e.getMessage());
