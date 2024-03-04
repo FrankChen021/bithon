@@ -105,7 +105,7 @@ public class AlertRule {
 
         Preconditions.checkIfTrue(!StringUtils.isEmpty(expr), "There must be at least one expression in the alert [%s]", this.name);
 
-        this.evaluationExpression = build(this.expr, this.appName);
+        this.evaluationExpression = build(this.appName, this.expr);
 
         // Use LinkedHashMap to keep order
         this.flattenExpressions = new LinkedHashMap<>();
