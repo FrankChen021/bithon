@@ -25,7 +25,6 @@ import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.propagation.ChainedTraceContextExtractor;
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
@@ -60,42 +59,37 @@ public class ListenerConsumer$PollAndInvoke extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceContext context = this.extractor.extract(null, null);
+        ITraceContext context = TraceContextHolder.attach(this.extractor.extract(null, null));
         if (context == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        if (TraceMode.TRACING.equals(context.traceMode())) {
-            aopContext.setSpan(context.currentSpan()
-                                      .component(Components.KAFKA)
-                                      .kind(SpanKind.CONSUMER)
-                                      .method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .start());
-        }
+        // Start the span even if this span is the type of TraceMode.LOGGING
+        // so that the trace id can be injected into MDC for logging only
+        aopContext.setSpan(context.currentSpan()
+                                  .component(Components.KAFKA)
+                                  .kind(SpanKind.CONSUMER)
+                                  .method(aopContext.getTargetClass(), aopContext.getMethod())
+                                  .start());
 
-        TraceContextHolder.attach(context);
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
+        IBithonObject bithonObject = aopContext.getTargetAs();
+        KafkaPluginContext pluginContext = (KafkaPluginContext) bithonObject.getInjectedObject();
+
         ITraceSpan span = aopContext.getSpan();
-
-        if (span != null) {
-            IBithonObject bithonObject = aopContext.getTargetAs();
-            KafkaPluginContext pluginContext = (KafkaPluginContext) bithonObject.getInjectedObject();
-
-            span.tag(aopContext.getException())
-                .tag("status", aopContext.hasException() ? "500" : "200")
-                .tag("uri", pluginContext.uri)
-                .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
-                .tag(Tags.Messaging.KAFKA_TOPIC, pluginContext.topic)
-                .tag(Tags.Messaging.KAFKA_CONSUMER_GROUP, pluginContext.groupId)
-                .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
-                .finish();
-
-            span.context().finish();
-        }
+        span.tag(aopContext.getException())
+            .tag("status", aopContext.hasException() ? "500" : "200")
+            .tag("uri", pluginContext.uri)
+            .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
+            .tag(Tags.Messaging.KAFKA_TOPIC, pluginContext.topic)
+            .tag(Tags.Messaging.KAFKA_CONSUMER_GROUP, pluginContext.groupId)
+            .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
+            .finish();
+        span.context().finish();
 
         TraceContextHolder.detach();
     }
