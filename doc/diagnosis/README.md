@@ -57,6 +57,7 @@ The following table shows all the built-in tables that Bithon supports now.
 | [agent.logger](#agentlogger)                           | &check; | &check; | Logging levels of all loggers of target application                             |
 | [agent.thread](#agentthread)                           | &check; |         | Snapshot of threads  running in the target application when the SQL is executed |
 | [agent.vm_option](#agentvm_option)                     | &check; |         | Diagnostic VM options of target Java application.                               |
+| [agent.assembly](#agentassembly)                       | &check; |         | Disassembly a given class                                                       |
 
 
 ## agent.instance
@@ -277,3 +278,14 @@ SELECT * FROM agent.vm_option WHERE instance = '<THE TARGET INSTANCE>'
 ### Example
 
 ![img.png](vm_option.png)
+
+## agent.assembly
+
+This table reflects the disassembled code of a given class.
+
+```sql
+SELECT * FROM agent.assembly WHERE instance = '<THE TARGET INSTANCE>' AND class = 'org.apache.http.impl.client.CloseableHttpClient'
+```
+
+
+
