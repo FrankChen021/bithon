@@ -42,6 +42,9 @@ import org.bithon.server.storage.datasource.input.IInputRow;
     @JsonSubTypes.Type(name = "regexpr", value = RegExprTransformer.class),
     @JsonSubTypes.Type(name = "filter", value = FilterTransformer.class),
     @JsonSubTypes.Type(name = "probabilistic_sampler", value = ProbabilisticSamplerTransform.class),
+
+    @JsonSubTypes.Type(name = "replace", value = ReplaceTransformer.class),
+    @JsonSubTypes.Type(name = "expression", value = ExpressionTransformer.class),
 })
 public interface ITransformer {
 
