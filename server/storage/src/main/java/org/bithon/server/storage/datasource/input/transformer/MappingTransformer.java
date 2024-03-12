@@ -32,7 +32,10 @@ import java.util.Map;
  *          "b": "c"
  *      }
  *  }
- *  if the value of "a" is b, then its value will be changed to c
+ *  if the value of "a" is b, then its value will be changed to c.
+ *
+ *  Can be seen as the below expression:
+ *      a == 'b' ? 'c' : 'b'
  *
  * @author frank.chen021@outlook.com
  */

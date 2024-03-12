@@ -26,6 +26,9 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
+ * Can be seen as:
+ *  resultField = testField is null ? trueValue : falseValue
+ *
  * @author frank.chen021@outlook.com
  * @date 14/4/22 5:22 PM
  */
