@@ -287,5 +287,7 @@ This table reflects the disassembled code of a given class.
 SELECT * FROM agent.assembly WHERE instance = '<THE TARGET INSTANCE>' AND class = 'org.apache.http.impl.client.CloseableHttpClient'
 ```
 
+### Example
+![img.png](assembly.png)
 
 
