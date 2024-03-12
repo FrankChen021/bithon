@@ -25,26 +25,26 @@ import org.bithon.server.storage.datasource.input.IInputRow;
  * @author frank.chen021@outlook.com
  * @date 2023/6/26 22:13
  */
-public class AsTransformer implements ITransformer {
+public class DuplicateTransformer implements ITransformer {
 
     @Getter
-    private final String name;
+    private final String source;
 
     @Getter
-    private final String as;
+    private final String target;
 
     @JsonCreator
-    public AsTransformer(@JsonProperty("name") String name,
-                         @JsonProperty("as") String as) {
-        this.name = name;
-        this.as = as;
+    public DuplicateTransformer(@JsonProperty("source") String source,
+                                @JsonProperty("target") String target) {
+        this.source = source;
+        this.target = target;
     }
 
     @Override
     public boolean transform(IInputRow inputRow) throws TransformException {
-        Object val = inputRow.getCol(name);
+        Object val = inputRow.getCol(source);
         if (val != null) {
-            inputRow.updateColumn(as, val);
+            inputRow.updateColumn(target, val);
         }
         return true;
     }
