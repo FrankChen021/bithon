@@ -67,8 +67,6 @@ public class ClassDisassembler {
             s.append("native ");
         }
 
-        // Remove the last space
-        s.deleteCharAt(s.length() - 1);
         return s.toString();
     }
 
@@ -83,11 +81,11 @@ public class ClassDisassembler {
     public String disassemble() {
         outputAnnotations("", clazz.getDeclaredAnnotations());
         outputModifier(clazz.getModifiers());
-        body.append(" class ");
+        body.append("class ");
         body.append(clazz.getSimpleName());
         outputSuperClass();
         outputImplements();
-        body.append(" {\n");
+        body.append(" {");
         outputFields();
         outputConstructors();
         outputMethods();
@@ -128,7 +126,7 @@ public class ClassDisassembler {
 
     private void outputSuperClass() {
         Class<?> parent = clazz.getSuperclass();
-        if (!parent.equals(Object.class)) {
+        if (parent != null && !parent.equals(Object.class)) {
             body.append(" extends ");
             formatClassName(parent);
         }
@@ -149,17 +147,12 @@ public class ClassDisassembler {
 
     private void outputFields() {
         Field[] fields = clazz.getDeclaredFields();
-        for (int i = 0; i < fields.length; i++) {
-            if (i != 0) {
-                body.append('\n');
-            }
-
-            Field field = fields[i];
+        for (Field field : fields) {
+            body.append('\n');
             outputAnnotations("\t", field.getDeclaredAnnotations());
 
             body.append('\t');
             outputModifier(field.getModifiers());
-            body.append(' ');
             formatClassName(field.getGenericType());
             body.append(' ');
             body.append(field.getName());
@@ -170,6 +163,7 @@ public class ClassDisassembler {
     private void outputConstructors() {
         Constructor<?>[] ctors = clazz.getDeclaredConstructors();
         if (ctors.length != 0) {
+            // Extra newline acting as block separator
             body.append('\n');
         }
         for (Constructor<?> ctor : ctors) {
@@ -179,8 +173,6 @@ public class ClassDisassembler {
 
             body.append('\t');
             outputModifier(ctor.getModifiers());
-
-            body.append(' ');
             body.append(clazz.getSimpleName());
             formatParameters(ctor.getParameters());
             body.append(';');
@@ -200,7 +192,6 @@ public class ClassDisassembler {
 
             body.append('\t');
             outputModifier(method.getModifiers());
-            body.append(' ');
             formatClassName(method.getReturnType());
 
             body.append(' ');
@@ -224,9 +215,6 @@ public class ClassDisassembler {
     }
 
     private void outputAnnotations(String indent, Annotation[] annotations) {
-        if (annotations.length > 0) {
-            body.append('\n');
-        }
         for (Annotation annotation : annotations) {
             if (!indent.isEmpty()) {
                 body.append(indent);

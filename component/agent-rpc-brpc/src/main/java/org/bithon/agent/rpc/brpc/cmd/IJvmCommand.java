@@ -22,6 +22,12 @@ import org.bithon.component.brpc.message.serializer.Serializer;
 import java.util.List;
 
 /**
+ * NOTE:
+ * 1. the server side will automatically check if the user has permission to call methods defined in this service.
+ * if the method does not start with 'get', then the WRITE permission is required.
+ *
+ * 2. The return type of this interface should be defined as List
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/7/2 3:50 下午
  */
@@ -118,5 +124,5 @@ public interface IJvmCommand {
      *
      * @param clazz the qualified class name
      */
-    String disassemble(String clazz);
+    List<String> getAssemblyCode(String clazz);
 }

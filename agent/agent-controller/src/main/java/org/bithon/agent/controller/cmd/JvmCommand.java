@@ -107,13 +107,14 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
     }
 
     @Override
-    public String disassemble(String className) {
-        return Arrays.stream(InstrumentationHelper.getInstance().getAllLoadedClasses())
-                     // It does not make any sense to return anonymous class or lambda class
-                     .filter(clazz -> !isAnonymousClassOrLambda(clazz) && clazz.getName().equals(className))
-                     .findFirst()
-                     .map((clazz) -> new ClassDisassembler(clazz).disassemble())
-                     .orElse("Class not found");
+    public List<String> getAssemblyCode(String className) {
+        String code = Arrays.stream(InstrumentationHelper.getInstance().getAllLoadedClasses())
+                            // It does not make any sense to return anonymous class or lambda class
+                            .filter(clazz -> !isAnonymousClassOrLambda(clazz) && clazz.getName().equals(className))
+                            .findFirst()
+                            .map((clazz) -> new ClassDisassembler(clazz).disassemble())
+                            .orElse("Class not found");
+        return Collections.singletonList(code);
     }
 
     private static ThreadInfo toThreadInfo(ThreadMXBean threadMxBean,
