@@ -18,11 +18,11 @@ package org.bithon.agent.controller.cmd;
 
 import com.sun.management.HotSpotDiagnosticMXBean;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
+import org.bithon.agent.rpc.brpc.cmd.ClassDisassembler;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -107,91 +107,13 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
     }
 
     @Override
-    public GetClassLayoutResponse getClassLayout(String className) {
+    public String disassemble(String className) {
         return Arrays.stream(InstrumentationHelper.getInstance().getAllLoadedClasses())
                      // It does not make any sense to return anonymous class or lambda class
                      .filter(clazz -> !isAnonymousClassOrLambda(clazz) && clazz.getName().equals(className))
                      .findFirst()
-                     .map((clazz) -> {
-                         GetClassLayoutResponse classInfo = new GetClassLayoutResponse();
-                         classInfo.setPackageName(clazz.getPackage().getName());
-                         classInfo.setName(clazz.getSimpleName());
-                         classInfo.setAnnotationList(toAnnotationList(clazz.getAnnotations()));
-                         classInfo.setSuperClass(clazz.getSuperclass().getName());
-                         classInfo.setImplementsList(Arrays.stream(clazz.getInterfaces())
-                                                           .map(Class::getName)
-                                                           .collect(Collectors.toList()));
-                         classInfo.setFieldList(Arrays.stream(clazz.getDeclaredFields())
-                                                      .map((f) -> {
-                                                          Field fieldInfo = new Field();
-                                                          fieldInfo.setType(f.getType().getName());
-                                                          fieldInfo.setName(f.getName());
-                                                          return fieldInfo;
-                                                      })
-                                                      .collect(Collectors.toList()));
-                         classInfo.setMethodList(Arrays.stream(clazz.getDeclaredMethods())
-                                                       .map((method) -> {
-                                                           Method m = new Method();
-                                                           m.setName(m.getName());
-                                                           m.setModifier(toModifier(method.getModifiers()));
-                                                           m.setReturnType(method.getReturnType().getName());
-                                                           m.setThrowsList(Arrays.stream(method.getExceptionTypes())
-                                                                                 .map(Class::getName)
-                                                                                 .collect(Collectors.toList()));
-                                                           m.setAnnotationList(toAnnotationList(method.getAnnotations()));
-                                                           return m;
-                                                       })
-                                                       .collect(Collectors.toList()));
-
-                         return classInfo;
-                     })
-                     .orElse(null);
-    }
-
-    private static String toModifier(int modifier) {
-        StringBuilder s = new StringBuilder();
-        if (Modifier.isPublic(modifier)) {
-            s.append("public ");
-        }
-        if (Modifier.isProtected(modifier)) {
-            s.append("protected ");
-        }
-        if (Modifier.isPrivate(modifier)) {
-            s.append("private ");
-        }
-        if (Modifier.isFinal(modifier)) {
-            s.append("final ");
-        }
-        if (Modifier.isSynchronized(modifier)) {
-            s.append("synchronized ");
-        }
-        if (Modifier.isAbstract(modifier)) {
-            s.append("abstract ");
-        }
-        if (Modifier.isStatic(modifier)) {
-            s.append("static ");
-        }
-        if (Modifier.isTransient(modifier)) {
-            s.append("transient ");
-        }
-        if (Modifier.isVolatile(modifier)) {
-            s.append("volatile ");
-        }
-        if (Modifier.isNative(modifier)) {
-            s.append("native ");
-        }
-
-        // Remove the last space
-        s.deleteCharAt(s.length() - 1);
-        return s.toString();
-    }
-
-    private static List<Annotation> toAnnotationList(java.lang.annotation.Annotation[] annotations) {
-        return Arrays.stream(annotations).map((annotation -> {
-            Annotation an = new Annotation();
-            an.setType(annotation.getClass().getTypeName());
-            return an;
-        })).collect(Collectors.toList());
+                     .map((clazz) -> new ClassDisassembler(clazz).disassemble())
+                     .orElse("Class not found");
     }
 
     private static ThreadInfo toThreadInfo(ThreadMXBean threadMxBean,
