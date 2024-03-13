@@ -18,6 +18,7 @@ package org.bithon.server.web.service.agent.sql.table;
 
 import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.discovery.declaration.controller.IAgentProxyApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
@@ -26,34 +27,44 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * @author Frank Chen
- * @date 1/3/23 8:18 pm
+ * @author frank.chen021@outlook.com
+ * @date 2024/3/12 21:59
  */
-public class ThreadTable extends AbstractBaseTable implements IPushdownPredicateProvider {
+public class AssemblyTable extends AbstractBaseTable implements IPushdownPredicateProvider {
+
     private final AgentServiceProxyFactory proxyFactory;
 
-    public ThreadTable(AgentServiceProxyFactory proxyFactory) {
+    public AssemblyTable(AgentServiceProxyFactory proxyFactory) {
         this.proxyFactory = proxyFactory;
     }
 
     @Override
-    public Map<String, Boolean> getPredicates() {
-        return ImmutableMap.of(IAgentProxyApi.PARAMETER_NAME_INSTANCE, true);
+    protected Class<?> getRecordClazz() {
+        return Record.class;
     }
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(IAgentProxyApi.class,
-                                   executionContext.getParameters(),
-                                   IJvmCommand.class)
-                           .dumpThreads()
-                           .stream()
-                           .map(IJvmCommand.ThreadInfo::toObjects)
-                           .collect(Collectors.toList());
+        IJvmCommand jvmCommand = proxyFactory.create(IAgentProxyApi.class,
+                                                     executionContext.getParameters(),
+                                                     IJvmCommand.class);
+
+        String className = (String) executionContext.get("class");
+        Preconditions.checkNotNull(className, "'class' filter is not given.");
+
+        return jvmCommand.getAssemblyCode(className)
+                         .stream()
+                         .map((assembly) -> new Object[]{assembly})
+                         .collect(Collectors.toList());
     }
 
     @Override
-    protected Class<?> getRecordClazz() {
-        return IJvmCommand.ThreadInfo.class;
+    public Map<String, Boolean> getPredicates() {
+        return ImmutableMap.of(IAgentProxyApi.PARAMETER_NAME_INSTANCE, true,
+                               "class", true);
+    }
+
+    static class Record {
+        public String code;
     }
 }

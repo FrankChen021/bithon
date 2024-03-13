@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.agent.sql.table;
 
+import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.rpc.brpc.cmd.ILoggingCommand;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.BinaryExpression;
@@ -39,11 +40,16 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2023/4/2 16:20
  */
-public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
+public class LoggerTable extends AbstractBaseTable implements IUpdatableTable, IPushdownPredicateProvider {
     private final AgentServiceProxyFactory proxyFactory;
 
     public LoggerTable(AgentServiceProxyFactory proxyFactory) {
         this.proxyFactory = proxyFactory;
+    }
+
+    @Override
+    public Map<String, Boolean> getPredicates() {
+        return ImmutableMap.of(IAgentProxyApi.PARAMETER_NAME_INSTANCE, true);
     }
 
     @Override

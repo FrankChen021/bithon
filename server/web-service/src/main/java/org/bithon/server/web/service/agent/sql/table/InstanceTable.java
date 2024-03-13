@@ -16,19 +16,21 @@
 
 package org.bithon.server.web.service.agent.sql.table;
 
+import com.google.common.collect.ImmutableMap;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.controller.IAgentProxyApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
  * @date 1/3/23 8:18 pm
  */
-public class InstanceTable extends AbstractBaseTable {
+public class InstanceTable extends AbstractBaseTable implements IPushdownPredicateProvider {
     private final IAgentProxyApi impl;
 
     public InstanceTable(DiscoveredServiceInvoker invoker) {
@@ -54,5 +56,10 @@ public class InstanceTable extends AbstractBaseTable {
     @Override
     protected Class<?> getRecordClazz() {
         return IAgentProxyApi.AgentInstanceRecord.class;
+    }
+
+    @Override
+    public Map<String, Boolean> getPredicates() {
+        return ImmutableMap.of(IAgentProxyApi.PARAMETER_NAME_INSTANCE, false);
     }
 }

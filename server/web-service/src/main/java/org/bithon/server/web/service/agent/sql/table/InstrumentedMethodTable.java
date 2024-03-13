@@ -16,18 +16,20 @@
 
 package org.bithon.server.web.service.agent.sql.table;
 
+import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.rpc.brpc.cmd.IInstrumentationCommand;
 import org.bithon.server.discovery.declaration.controller.IAgentProxyApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
  * @date 4/4/23 10:39 pm
  */
-public class InstrumentedMethodTable extends AbstractBaseTable {
+public class InstrumentedMethodTable extends AbstractBaseTable implements IPushdownPredicateProvider {
     private final AgentServiceProxyFactory proxyFactory;
 
     public InstrumentedMethodTable(AgentServiceProxyFactory proxyFactory) {
@@ -46,7 +48,12 @@ public class InstrumentedMethodTable extends AbstractBaseTable {
     }
 
     @Override
-    protected Class getRecordClazz() {
+    protected Class<?> getRecordClazz() {
         return IInstrumentationCommand.InstrumentedMethod.class;
+    }
+
+    @Override
+    public Map<String, Boolean> getPredicates() {
+        return ImmutableMap.of(IAgentProxyApi.PARAMETER_NAME_INSTANCE, true);
     }
 }

@@ -21,6 +21,7 @@ import org.apache.calcite.schema.Table;
 import org.apache.calcite.schema.impl.AbstractSchema;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.web.service.agent.sql.table.AgentServiceProxyFactory;
+import org.bithon.server.web.service.agent.sql.table.AssemblyTable;
 import org.bithon.server.web.service.agent.sql.table.ClassTable;
 import org.bithon.server.web.service.agent.sql.table.ConfigurationTable;
 import org.bithon.server.web.service.agent.sql.table.InstanceTable;
@@ -49,8 +50,9 @@ public class AgentSchema extends AbstractSchema {
                                         "loaded_class", new ClassTable(agentServiceProxyFactory),
                                         "logger", new LoggerTable(agentServiceProxyFactory),
                                         "thread", new ThreadTable(agentServiceProxyFactory),
-                                        "vm_option", new JVMOptionTable(agentServiceProxyFactory)
-        );
+                                        "vm_option", new JVMOptionTable(agentServiceProxyFactory),
+                                        "assembly", new AssemblyTable(agentServiceProxyFactory)
+                                       );
     }
 
     @Override
