@@ -25,7 +25,7 @@ import org.bithon.server.storage.datasource.input.IInputRow;
  * @author frank.chen021@outlook.com
  * @date 2023/6/26 22:13
  */
-public class DuplicateTransformer implements ITransformer {
+public class FlattenTransformer implements ITransformer {
 
     @Getter
     private final String source;
@@ -34,8 +34,8 @@ public class DuplicateTransformer implements ITransformer {
     private final String target;
 
     @JsonCreator
-    public DuplicateTransformer(@JsonProperty("source") String source,
-                                @JsonProperty("target") String target) {
+    public FlattenTransformer(@JsonProperty("source") String source,
+                              @JsonProperty("target") String target) {
         this.source = source;
         this.target = target;
     }

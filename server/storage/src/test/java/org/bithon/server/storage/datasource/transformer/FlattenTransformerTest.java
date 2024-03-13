@@ -20,7 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.storage.datasource.input.InputRow;
-import org.bithon.server.storage.datasource.input.transformer.DuplicateTransformer;
+import org.bithon.server.storage.datasource.input.transformer.FlattenTransformer;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,10 +31,10 @@ import java.util.HashMap;
  * @author frank.chen021@outlook.com
  * @date 2023/6/26 22:15
  */
-public class DuplicateTransformerTest {
+public class FlattenTransformerTest {
     @Test
     public void test() throws JsonProcessingException {
-        DuplicateTransformer transformer = new DuplicateTransformer("a", "a1");
+        FlattenTransformer transformer = new FlattenTransformer("a", "a1");
 
         // deserialize from json to test deserialization
         ObjectMapper om = new ObjectMapper();

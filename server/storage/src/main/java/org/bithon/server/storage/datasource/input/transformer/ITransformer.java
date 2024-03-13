@@ -34,16 +34,22 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = "mapping", value = MappingTransformer.class),
-    @JsonSubTypes.Type(name = "splitter", value = SplitterTransformer.class),
-    @JsonSubTypes.Type(name = "chain", value = ChainTransformer.class),
     @JsonSubTypes.Type(name = "add", value = AddFieldTransformer.class),
+    @JsonSubTypes.Type(name = "chain", value = ChainTransformer.class),
     @JsonSubTypes.Type(name = "has", value = HasFieldTransformer.class),
-    @JsonSubTypes.Type(name = "duplicate", value = DuplicateTransformer.class),
+
+    @JsonSubTypes.Type(name = "flatten", value = FlattenTransformer.class),
+
+    // For text processing
     @JsonSubTypes.Type(name = "regexpr", value = RegExprTransformer.class),
+    @JsonSubTypes.Type(name = "replace", value = ReplaceTransformer.class),
+    @JsonSubTypes.Type(name = "splitter", value = SplitterTransformer.class),
+
+    // Drop
     @JsonSubTypes.Type(name = "drop", value = DropTransformer.class),
     @JsonSubTypes.Type(name = "probabilistic_sampler", value = ProbabilisticSamplerTransform.class),
 
-    @JsonSubTypes.Type(name = "replace", value = ReplaceTransformer.class),
+    // Generic processing
     @JsonSubTypes.Type(name = "expression", value = ExpressionTransformer.class),
 })
 public interface ITransformer {
