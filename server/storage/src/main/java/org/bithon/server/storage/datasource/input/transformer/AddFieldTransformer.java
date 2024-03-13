@@ -22,9 +22,12 @@ import lombok.Getter;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 /**
+ * Use {@link ExpressionTransformer} instead
+ *
  * @author frank.chen021@outlook.com
  * @date 13/4/22 4:57 PM
  */
+@Deprecated
 public class AddFieldTransformer implements ITransformer {
 
     @Getter

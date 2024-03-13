@@ -19,6 +19,7 @@ package org.bithon.server.storage.datasource.input.transformer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 /**
@@ -28,23 +29,28 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 public class FlattenTransformer implements ITransformer {
 
     @Getter
-    private final String source;
+    private final String[] sources;
 
     @Getter
-    private final String target;
+    private final String[] targets;
 
     @JsonCreator
-    public FlattenTransformer(@JsonProperty("source") String source,
-                              @JsonProperty("target") String target) {
-        this.source = source;
-        this.target = target;
+    public FlattenTransformer(@JsonProperty("sources") String[] sources,
+                              @JsonProperty("targets") String[] targets) {
+        Preconditions.checkNotNull(sources, "sources can't be null");
+        Preconditions.checkNotNull(targets, "sources can't be null");
+        Preconditions.checkIfTrue(sources.length == targets.length, "The length of sources and targets is not the same");
+        this.sources = sources;
+        this.targets = targets;
     }
 
     @Override
     public boolean transform(IInputRow inputRow) throws TransformException {
-        Object val = inputRow.getCol(source);
-        if (val != null) {
-            inputRow.updateColumn(target, val);
+        for (int i = 0; i < sources.length; i++) {
+            Object val = inputRow.getCol(sources[i]);
+            if (val != null) {
+                inputRow.updateColumn(targets[i], val);
+            }
         }
         return true;
     }

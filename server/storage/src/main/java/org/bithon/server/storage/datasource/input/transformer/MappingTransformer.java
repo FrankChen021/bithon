@@ -37,8 +37,11 @@ import java.util.Map;
  *  Can be seen as the below expression:
  *      a == 'b' ? 'c' : 'b'
  *
+ * Use {@link ExpressionTransformer} instead
+ *
  * @author frank.chen021@outlook.com
  */
+@Deprecated
 public class MappingTransformer extends AbstractSimpleTransformer {
 
     @Getter
