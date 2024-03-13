@@ -40,7 +40,7 @@ import org.bithon.server.storage.datasource.input.IInputRow;
     @JsonSubTypes.Type(name = "has", value = HasFieldTransformer.class),
     @JsonSubTypes.Type(name = "duplicate", value = DuplicateTransformer.class),
     @JsonSubTypes.Type(name = "regexpr", value = RegExprTransformer.class),
-    @JsonSubTypes.Type(name = "filter", value = FilterTransformer.class),
+    @JsonSubTypes.Type(name = "drop", value = DropTransformer.class),
     @JsonSubTypes.Type(name = "probabilistic_sampler", value = ProbabilisticSamplerTransform.class),
 
     @JsonSubTypes.Type(name = "replace", value = ReplaceTransformer.class),

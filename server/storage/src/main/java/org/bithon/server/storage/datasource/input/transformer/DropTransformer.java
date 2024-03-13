@@ -32,32 +32,33 @@ import org.bithon.server.storage.datasource.input.IInputRow;
  * @author Frank Chen
  * @date 22/1/24 10:31 pm
  */
-public class FilterTransformer implements ITransformer {
+public class DropTransformer implements ITransformer {
     @Getter
     private final String expression;
 
     @Getter
     private final boolean debug;
 
-    private final IExpression delegation;
+    private final IExpression astExpression;
 
     @VisibleForTesting
-    public FilterTransformer(String expression) {
+    public DropTransformer(String expression) {
         this(expression, false);
     }
 
     @JsonCreator
-    public FilterTransformer(@JsonProperty("expr") String expression,
-                             @JsonProperty("debug") Boolean debug) {
+    public DropTransformer(@JsonProperty("expr") String expression,
+                           @JsonProperty("debug") Boolean debug) {
         this.expression = expression;
         this.debug = debug != null && debug;
-        this.delegation = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build(this.expression);
-        Preconditions.checkIfTrue(this.delegation instanceof LogicalExpression || this.delegation instanceof ConditionalExpression,
-                                  "The expr property must be a logical/conditional expression");
+        this.astExpression = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build(this.expression);
+        Preconditions.checkIfTrue(this.astExpression instanceof LogicalExpression || this.astExpression instanceof ConditionalExpression,
+                                  "The expr property must be a LOGICAL or CONDITIONAL expression");
     }
 
     @Override
     public boolean transform(IInputRow inputRow) throws TransformException {
-        return (boolean) delegation.evaluate(inputRow);
+        // When the expression satisfies, this input should be DROPPED
+        return !((boolean) astExpression.evaluate(inputRow));
     }
 }
