@@ -20,10 +20,10 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.TransformSpec;
-import org.bithon.server.storage.datasource.input.transformer.ITransformer;
+import org.bithon.server.storage.datasource.input.transformer.AbstractTransformer;
 
 /**
- * A special kind of transformer that is executed before a {@link ITransformer}
+ * A special kind of transformer that is executed before a {@link AbstractTransformer}
  *
  * See also {@link TransformSpec#transform(IInputRow)}
  *

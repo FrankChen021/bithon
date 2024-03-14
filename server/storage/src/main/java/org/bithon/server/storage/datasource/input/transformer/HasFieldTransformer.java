@@ -50,7 +50,7 @@ public class HasFieldTransformer implements ITransformer {
     @Getter
     private final Object falseValue;
 
-    private final Function<IInputRow, Object> valueExtractor;
+    private final Function<IInputRow, Object> getValue;
 
     @JsonCreator
     public HasFieldTransformer(@JsonProperty("testField") String testField,
@@ -66,7 +66,7 @@ public class HasFieldTransformer implements ITransformer {
         if (dotSeparatorIndex >= 0) {
             final String container = this.testField.substring(0, dotSeparatorIndex);
             final String nested = this.testField.substring(dotSeparatorIndex + 1);
-            valueExtractor = inputRow -> {
+            getValue = inputRow -> {
                 Object v = inputRow.getCol(container);
                 if (v instanceof Map) {
                     return ((Map<?, ?>) v).get(nested);
@@ -74,14 +74,14 @@ public class HasFieldTransformer implements ITransformer {
                 return null;
             };
         } else {
-            valueExtractor = inputRow -> inputRow.getCol(this.testField);
+            getValue = inputRow -> inputRow.getCol(this.testField);
         }
     }
 
     @Override
-    public boolean transform(IInputRow inputRow) {
-        Object v = valueExtractor.apply(inputRow) != null ? trueValue : falseValue;
+    public TransformResult transform(IInputRow inputRow) {
+        Object v = getValue.apply(inputRow) != null ? trueValue : falseValue;
         inputRow.updateColumn(resultField, v);
-        return true;
+        return TransformResult.CONTINUE;
     }
 }

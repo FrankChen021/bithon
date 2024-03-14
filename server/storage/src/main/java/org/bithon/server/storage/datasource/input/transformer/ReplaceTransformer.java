@@ -19,12 +19,11 @@ package org.bithon.server.storage.datasource.input.transformer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRowAccessorFactory;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -34,119 +33,56 @@ import java.util.regex.Pattern;
  * @author Frank Chen
  * @date 12/3/24 6:35 pm
  */
-public class ReplaceTransformer implements ITransformer {
+public class ReplaceTransformer extends AbstractTransformer {
 
-    @JsonIgnore
-    private final Function<IInputRow, Object> inputRowGetter;
-
-    @JsonIgnore
-    private final BiConsumer<IInputRow, String> inputRowSetter;
-
-    @JsonIgnore
-    private final List<String> namedGroups;
-
+    @Getter
     private final String source;
 
-    /**
-     *
-     */
-    private final String match;
+    @Getter
+    private final String find;
+
+    @Getter
     private final String replacement;
-    private final boolean replaceAll;
 
     @JsonIgnore
-    private Pattern pattern;
+    private final Pattern pattern;
+    @JsonIgnore
+    private final String quotedReplacement;
 
-    public ReplaceTransformer(String source,
-                              String match,
-                              String replacement) {
-        this(source, match, replacement, null, null);
-    }
+    @JsonIgnore
+    private final Function<IInputRow, Object> getValue;
+
+    @JsonIgnore
+    private final BiConsumer<IInputRow, String> setValue;
 
     @JsonCreator
     public ReplaceTransformer(@JsonProperty("source") String source,
-                              @JsonProperty("match") String match,
+                              @JsonProperty("find") String find,
                               @JsonProperty("replacement") String replacement,
-                              @JsonProperty("replaceAll") Boolean replaceAll,
-                              @JsonProperty("when") String when) {
-        super(when);
+                              @JsonProperty("where") String where) {
+        super(where);
 
         this.source = Preconditions.checkArgumentNotNull("source", source);
-        this.match = Preconditions.checkArgumentNotNull("match", match);
+        this.find = Preconditions.checkArgumentNotNull("find", find);
         this.replacement = Preconditions.checkArgumentNotNull("replacement", replacement);
-        this.replaceAll = replaceAll == null || replaceAll;
-        this.inputRowGetter = InputRowAccessorFactory.createGetter(source);
-        this.inputRowSetter = InputRowAccessorFactory.createSetter(source);
 
-        this.pattern = Pattern.compile(match);
+        this.getValue = InputRowAccessorFactory.createGetter(source);
+        this.setValue = InputRowAccessorFactory.createSetter(source);
 
-        // Extract all named groups
-        // the named group has the following format:
-        // unnamed group capture: (\w+)
-        // named group capture: (?<name>\w+)
-        this.namedGroups = new ArrayList<>();
-        Matcher matcher = Pattern.compile("\\(\\?<([a-zA-Z_][a-zA-Z0-9]*)>").matcher(match);
-        while (matcher.find()) {
-            String groupName = matcher.group(1);
-            namedGroups.add(groupName);
-        }
+        // See the String.replace(String, String) to know more
+        this.pattern = Pattern.compile(this.find, Pattern.LITERAL);
+        this.quotedReplacement = Matcher.quoteReplacement(replacement);
     }
 
     @Override
-    public boolean transform(IInputRow data) {
-        Object value = inputRowGetter.get(data);
-        if (value == null) {
-            return TransformResult.NEXT;
+    protected TransformResult transformInternal(IInputRow data) {
+        Object value = getValue.apply(data);
+        if (!(value instanceof String)) {
+            return TransformResult.CONTINUE;
         }
 
-        String input = value.toString();
-        Matcher matcher = this.pattern.matcher(input);
-
-        String replaced = null;
-        if (this.replaceAll) {
-            // The code below is adopted from the replaceAll methods of the Matcher
-            boolean found = matcher.find();
-            if (found) {
-                StringBuilder sb = new StringBuilder();
-                do {
-
-                    if (!namedGroups.isEmpty()) {
-                        for (String namedGroup : namedGroups) {
-                            String groupVal = matcher.group(namedGroup);
-                            if (groupVal != null) {
-                                data.put(namedGroup, groupVal);
-                            }
-                        }
-                    }
-
-                    matcher.appendReplacement(sb, replacement);
-                    found = matcher.find();
-                } while (found);
-                matcher.appendTail(sb);
-                replaced = sb.toString().trim();
-            }
-        } else {
-            if (matcher.find()) {
-                StringBuilder sb = new StringBuilder();
-                matcher.appendReplacement(sb, replacement);
-                matcher.appendTail(sb);
-                replaced = sb.toString().trim();
-
-                if (!namedGroups.isEmpty()) {
-                    for (String namedGroup : namedGroups) {
-                        String groupVal = matcher.group(namedGroup);
-                        if (groupVal != null) {
-                            data.put(namedGroup, groupVal);
-                        }
-                    }
-                }
-            }
-        }
-
-        if (replaced != null) {
-            inputRowSetter.set(data, replaced);
-        }
-
-        return TransformResult.NEXT;
+        String replaced = this.pattern.matcher((String) value).replaceAll(this.quotedReplacement);
+        setValue.accept(data, replaced);
+        return TransformResult.CONTINUE;
     }
 }

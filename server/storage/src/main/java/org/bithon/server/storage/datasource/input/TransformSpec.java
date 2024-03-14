@@ -26,7 +26,7 @@ import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.input.filter.AndFilter;
 import org.bithon.server.storage.datasource.input.filter.IInputRowFilter;
 import org.bithon.server.storage.datasource.input.flatten.IFlattener;
-import org.bithon.server.storage.datasource.input.transformer.ITransformer;
+import org.bithon.server.storage.datasource.input.transformer.AbstractTransformer;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -52,7 +52,7 @@ public class TransformSpec {
     private final List<IFlattener> flatteners;
 
     @Getter
-    private final List<ITransformer> transformers;
+    private final List<AbstractTransformer> transformers;
 
     @Getter
     private final IInputRowFilter postfilter;
@@ -63,7 +63,7 @@ public class TransformSpec {
                          @JsonProperty("prefilters") List<IInputRowFilter> prefilters,
                          @JsonProperty("prefilter") IInputRowFilter prefilter,
                          @JsonProperty("flatteners") List<IFlattener> flatteners,
-                         @JsonProperty("transformers") List<ITransformer> transformers,
+                         @JsonProperty("transformers") List<AbstractTransformer> transformers,
                          @JsonProperty("postfilter") IInputRowFilter postfilter) {
         this.granularity = granularity;
         this.flatteners = flatteners;
@@ -88,10 +88,10 @@ public class TransformSpec {
                 }
             }
             if (transformers != null) {
-                for (ITransformer transformer : transformers) {
+                for (AbstractTransformer transformer : transformers) {
                     try {
                         transformer.transform(inputRow);
-                    } catch (ITransformer.TransformException ignored) {
+                    } catch (AbstractTransformer.TransformException ignored) {
                         return false;
                     }
                 }

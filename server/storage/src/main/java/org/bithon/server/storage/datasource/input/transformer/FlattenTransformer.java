@@ -26,7 +26,7 @@ import org.bithon.server.storage.datasource.input.IInputRow;
  * @author frank.chen021@outlook.com
  * @date 2023/6/26 22:13
  */
-public class FlattenTransformer implements ITransformer {
+public class FlattenTransformer extends AbstractTransformer {
 
     @Getter
     private final String[] sources;
@@ -36,7 +36,10 @@ public class FlattenTransformer implements ITransformer {
 
     @JsonCreator
     public FlattenTransformer(@JsonProperty("sources") String[] sources,
-                              @JsonProperty("targets") String[] targets) {
+                              @JsonProperty("targets") String[] targets,
+                              @JsonProperty("where") String where) {
+        super(where);
+
         Preconditions.checkNotNull(sources, "sources can't be null");
         Preconditions.checkNotNull(targets, "sources can't be null");
         Preconditions.checkIfTrue(sources.length == targets.length, "The length of sources and targets is not the same");
@@ -45,13 +48,14 @@ public class FlattenTransformer implements ITransformer {
     }
 
     @Override
-    public boolean transform(IInputRow inputRow) throws TransformException {
+    protected TransformResult transformInternal(IInputRow inputRow) throws TransformException {
         for (int i = 0; i < sources.length; i++) {
             Object val = inputRow.getCol(sources[i]);
             if (val != null) {
                 inputRow.updateColumn(targets[i], val);
             }
         }
-        return true;
+
+        return TransformResult.CONTINUE;
     }
 }

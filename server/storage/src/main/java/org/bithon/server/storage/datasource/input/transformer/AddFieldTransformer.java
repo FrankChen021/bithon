@@ -28,7 +28,7 @@ import org.bithon.server.storage.datasource.input.IInputRow;
  * @date 13/4/22 4:57 PM
  */
 @Deprecated
-public class AddFieldTransformer implements ITransformer {
+public class AddFieldTransformer extends AbstractTransformer {
 
     @Getter
     private final String field;
@@ -38,16 +38,18 @@ public class AddFieldTransformer implements ITransformer {
 
     @JsonCreator
     public AddFieldTransformer(@JsonProperty("field") String field,
-                               @JsonProperty("value") String value) {
+                               @JsonProperty("value") String value,
+                               @JsonProperty("where") String where) {
+        super(where);
         this.field = field;
         this.value = value;
     }
 
     @Override
-    public boolean transform(IInputRow inputRow) {
+    public TransformResult transformInternal(IInputRow inputRow) {
         if (field != null && value != null) {
             inputRow.updateColumn(field, value);
         }
-        return true;
+        return TransformResult.CONTINUE;
     }
 }

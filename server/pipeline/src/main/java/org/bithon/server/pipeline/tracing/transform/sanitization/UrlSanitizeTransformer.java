@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.utils.UrlUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.storage.datasource.input.transformer.AbstractTransformer;
+import org.bithon.server.storage.datasource.input.transformer.TransformResult;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.util.Collections;
@@ -39,7 +41,7 @@ import java.util.Map;
  * @date 10/1/22 1:38 PM
  */
 @JsonTypeName("url-sanitize-transform")
-public class UrlSanitizeTransformer extends AbstractSanitizer {
+public class UrlSanitizeTransformer extends AbstractTransformer {
     /**
      * key - the attribute name in the 'tags'
      * val - the parameter name
@@ -59,7 +61,7 @@ public class UrlSanitizeTransformer extends AbstractSanitizer {
     }
 
     @Override
-    protected void sanitize(IInputRow inputRow) {
+    protected TransformResult transformInternal(IInputRow inputRow) {
         TraceSpan span = (TraceSpan) inputRow;
         for (Map.Entry<String, String> entry : this.sensitiveParameters.entrySet()) {
             String attribName = entry.getKey();
@@ -70,5 +72,7 @@ public class UrlSanitizeTransformer extends AbstractSanitizer {
                 span.setTag(attribName, UrlUtils.sanitize(attribVal, parameterName, "***HIDDEN***"));
             }
         }
+
+        return TransformResult.CONTINUE;
     }
 }

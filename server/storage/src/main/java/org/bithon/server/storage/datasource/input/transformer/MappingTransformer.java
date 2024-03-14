@@ -26,39 +26,48 @@ import java.util.Map;
 /**
  * A transformer that maps the value of a field to another.
  * For example:
- *  {
- *      "field": "a",
- *      "maps": {
- *          "b": "c"
- *      }
- *  }
- *  if the value of "a" is b, then its value will be changed to c.
- *
- *  Can be seen as the below expression:
- *      a == 'b' ? 'c' : 'b'
- *
+ * {
+ * "field": "a",
+ * "maps": {
+ * "b": "c"
+ * }
+ * }
+ * if the value of "a" is b, then its value will be changed to c.
+ * <p>
+ * Can be seen as the below expression:
+ * a == 'b' ? 'c' : 'b'
+ * <p>
  * Use {@link ExpressionTransformer} instead
  *
  * @author frank.chen021@outlook.com
  */
 @Deprecated
-public class MappingTransformer extends AbstractSimpleTransformer {
+public class MappingTransformer implements ITransformer {
+
+    @Getter
+    private final String field;
 
     @Getter
     private final Map<String, Object> maps;
 
     public MappingTransformer(@JsonProperty("field") String field,
                               @JsonProperty("maps") @NotNull Map<String, Object> maps) {
-        super(field);
+        this.field = field;
         this.maps = maps;
     }
 
     @Override
-    protected Object transformInternal(IInputRow row) {
+    public TransformResult transform(IInputRow row) {
         if (row == null) {
-            return null;
+            return TransformResult.DROP;
         }
+
         String val = row.getColAsString(field);
-        return val == null ? null : maps.getOrDefault(val, val);
+        Object v = val == null ? null : maps.getOrDefault(val, val);
+        if (v != null) {
+            row.updateColumn(field, v);
+        }
+
+        return TransformResult.CONTINUE;
     }
 }

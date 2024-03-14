@@ -27,50 +27,47 @@ import org.bithon.server.storage.datasource.input.InputRowAccessorFactory;
 import java.util.function.Function;
 
 /**
- * Deprecated. Use {@link SplitTransformer} instead
- *
  * @author frank.chen021@outlook.com
  * @date 11/4/22 11:52 PM
  */
-@Deprecated
-public class SplitterTransformer implements ITransformer {
-
-    /**
-     * source field
-     */
-    @Getter
-    private final String field;
+public class SplitTransformer extends AbstractTransformer {
 
     @Getter
-    private final String splitter;
+    private final String source;
 
     @Getter
-    private final String[] names;
+    private final String by;
+
+    @Getter
+    private final String[] targets;
 
     @JsonIgnore
-
     private final Function<IInputRow, Object> getValue;
 
     @JsonCreator
-    public SplitterTransformer(@JsonProperty("field") String field,
-                               @JsonProperty("splitter") String splitter,
-                               @JsonProperty("names") String... names) {
-        this.field = Preconditions.checkArgumentNotNull("field", field);
-        this.splitter = Preconditions.checkArgumentNotNull("splitter", splitter);
-        this.names = names;
-        this.getValue = InputRowAccessorFactory.createGetter(this.field);
+    public SplitTransformer(@JsonProperty("source") String source,
+                            @JsonProperty("splitter") String by,
+                            @JsonProperty("targets") String[] targets,
+                            @JsonProperty("where") String where) {
+        super(where);
+
+        this.source = Preconditions.checkArgumentNotNull("source", source);
+        this.by = Preconditions.checkArgumentNotNull("by", by);
+        this.targets = Preconditions.checkArgumentNotNull("targets", targets);
+
+        this.getValue = InputRowAccessorFactory.createGetter(this.source);
     }
 
     @Override
-    public TransformResult transform(IInputRow row) {
+    protected TransformResult transformInternal(IInputRow row) {
         Object val = getValue.apply(row);
-        if (val == null) {
+        if (!(val instanceof String)) {
             return TransformResult.CONTINUE;
         }
 
-        String[] values = val.toString().split(splitter);
-        for (int i = 0, len = Math.min(names.length, values.length); i < len; i++) {
-            row.updateColumn(names[i], values[i]);
+        String[] values = val.toString().split(by);
+        for (int i = 0, len = Math.min(targets.length, values.length); i < len; i++) {
+            row.updateColumn(targets[i], values[i]);
         }
         return TransformResult.CONTINUE;
     }

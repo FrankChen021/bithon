@@ -27,6 +27,7 @@ import org.bithon.server.pipeline.common.service.UriNormalizer;
 import org.bithon.server.storage.common.ApplicationType;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
+import org.bithon.server.storage.datasource.input.transformer.TransformResult;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.util.CollectionUtils;
 
@@ -53,7 +54,7 @@ public class TraceSpanTransformer implements ITransformer {
      * SHOULD be called AFTER all properties have been set
      */
     @Override
-    public boolean transform(IInputRow inputRow) throws TransformException {
+    public TransformResult transform(IInputRow inputRow) throws TransformException {
         TraceSpan span = (TraceSpan) inputRow;
 
         transformIntoJavaStyleMethod(span);
@@ -68,7 +69,7 @@ public class TraceSpanTransformer implements ITransformer {
 
         Map<String, String> tags = span.getTags();
         if (CollectionUtils.isEmpty(tags)) {
-            return true;
+            return TransformResult.CONTINUE;
         }
 
         //
@@ -122,7 +123,7 @@ public class TraceSpanTransformer implements ITransformer {
             span.setNormalizedUri(normalizer.normalize(span.getAppName(), uri).getUri());
         }
 
-        return true;
+        return TransformResult.CONTINUE;
     }
 
     private void transformIntoJavaStyleMethod(TraceSpan span) {

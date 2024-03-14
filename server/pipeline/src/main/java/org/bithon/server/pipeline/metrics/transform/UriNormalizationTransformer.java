@@ -21,33 +21,39 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import lombok.Getter;
 import org.bithon.server.pipeline.common.service.UriNormalizer;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.transformer.AbstractSimpleTransformer;
+import org.bithon.server.storage.datasource.input.transformer.ITransformer;
+import org.bithon.server.storage.datasource.input.transformer.TransformResult;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2022/8/9 12:36
  */
 @JsonTypeName("normalize")
-public class UriNormalizationTransformer extends AbstractSimpleTransformer {
+public class UriNormalizationTransformer implements ITransformer {
 
+    @Getter
+    private final String field;
     private final UriNormalizer normalizer;
 
     @JsonCreator
     public UriNormalizationTransformer(@JsonProperty("field") String field,
                                        @JacksonInject(useInput = OptBoolean.FALSE) UriNormalizer normalizer) {
-        super(field == null ? "uri" : field);
+        this.field = field == null ? "uri" : field;
         this.normalizer = normalizer;
     }
 
     @Override
-    protected Object transformInternal(IInputRow row) {
+    public TransformResult transform(IInputRow row) {
         UriNormalizer.NormalizedResult result = normalizer.normalize(row.getColAsString("appName"),
                                                                      row.getColAsString(this.field));
         if (result.getUri() == null) {
             throw new TransformException();
         }
-        return result.getUri();
+        row.updateColumn(field, result.getUri());
+
+        return TransformResult.CONTINUE;
     }
 }

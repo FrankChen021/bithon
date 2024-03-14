@@ -23,6 +23,7 @@ import lombok.Getter;
 import org.bithon.server.pipeline.common.utils.NetworkUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
+import org.bithon.server.storage.datasource.input.transformer.TransformResult;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -48,12 +49,13 @@ public class ExtractPath implements ITransformer {
     }
 
     @Override
-    public boolean transform(IInputRow inputRow) throws TransformException {
+    public TransformResult transform(IInputRow inputRow) throws TransformException {
         try {
             URI uri = new URI(inputRow.getColAsString(this.uri));
             inputRow.updateColumn(this.targetField, NetworkUtils.formatUri(uri));
         } catch (URISyntaxException ignored) {
         }
-        return false;
+        
+        return TransformResult.CONTINUE;
     }
 }

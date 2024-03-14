@@ -23,6 +23,7 @@ import lombok.Getter;
 import org.bithon.server.commons.utils.DbUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
+import org.bithon.server.storage.datasource.input.transformer.TransformResult;
 
 /**
  * @author frank.chen021@outlook.com
@@ -40,11 +41,12 @@ public class ConnectionStringTransformer implements ITransformer {
     }
 
     @Override
-    public boolean transform(IInputRow inputRow) throws TransformException {
+    public TransformResult transform(IInputRow inputRow) throws TransformException {
         DbUtils.ConnectionString conn = DbUtils.parseConnectionString(inputRow.getColAsString(field));
         inputRow.updateColumn("server", conn.getHostAndPort());
         inputRow.updateColumn("database", conn.getDatabase());
         inputRow.updateColumn("endpointType", conn.getDbType());
-        return false;
+
+        return TransformResult.CONTINUE;
     }
 }

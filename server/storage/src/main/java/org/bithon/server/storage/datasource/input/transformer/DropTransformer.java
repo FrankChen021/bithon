@@ -17,8 +17,8 @@
 package org.bithon.server.storage.datasource.input.transformer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -32,33 +32,33 @@ import org.bithon.server.storage.datasource.input.IInputRow;
  * @author Frank Chen
  * @date 22/1/24 10:31 pm
  */
-public class DropTransformer implements ITransformer {
+public class DropTransformer extends AbstractTransformer {
     @Getter
-    private final String expression;
+    private final String expr;
 
     @Getter
     private final boolean debug;
 
-    private final IExpression astExpression;
-
-    @VisibleForTesting
-    public DropTransformer(String expression) {
-        this(expression, false);
-    }
+    @JsonIgnore
+    private final IExpression dropCondition;
 
     @JsonCreator
-    public DropTransformer(@JsonProperty("expr") String expression,
-                           @JsonProperty("debug") Boolean debug) {
-        this.expression = expression;
+    public DropTransformer(@JsonProperty("expr") String expr,
+                           @JsonProperty("debug") Boolean debug,
+                           @JsonProperty("where") String where) {
+        super(where);
+
+        this.expr = expr;
         this.debug = debug != null && debug;
-        this.astExpression = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build(this.expression);
-        Preconditions.checkIfTrue(this.astExpression instanceof LogicalExpression || this.astExpression instanceof ConditionalExpression,
-                                  "The expr property must be a LOGICAL or CONDITIONAL expression");
+
+        this.dropCondition = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build(this.expr);
+        Preconditions.checkIfTrue(this.dropCondition instanceof LogicalExpression || this.dropCondition instanceof ConditionalExpression,
+                                  "The 'expr' property must be a LOGICAL or CONDITIONAL expression");
     }
 
     @Override
-    public boolean transform(IInputRow inputRow) throws TransformException {
+    protected TransformResult transformInternal(IInputRow inputRow) throws TransformException {
         // When the expression satisfies, this input should be DROPPED
-        return !((boolean) astExpression.evaluate(inputRow));
+        return ((boolean) dropCondition.evaluate(inputRow)) ? TransformResult.DROP : TransformResult.CONTINUE;
     }
 }

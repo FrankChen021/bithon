@@ -39,13 +39,13 @@ public class ExceptionSafeTransformer implements ITransformer {
     }
 
     @Override
-    public boolean transform(IInputRow inputRow) throws TransformException {
+    public TransformResult transform(IInputRow inputRow) throws TransformException {
         try {
             return delegate.transform(inputRow);
         } catch (Exception e) {
             long now = System.currentTimeMillis();
             if (now - lastLogTimestamp < 5_000) {
-                return false;
+                return TransformResult.CONTINUE;
             }
 
             log.error(StringUtils.format("Fail to transform, message [%s], Span [%s]", e.getMessage(), inputRow),
@@ -53,7 +53,7 @@ public class ExceptionSafeTransformer implements ITransformer {
 
             this.lastLogTimestamp = now;
             this.lastException = e.getClass().getName();
-            return true;
+            return TransformResult.CONTINUE;
         }
     }
 }

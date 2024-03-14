@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.datasource.input.transformer.FlattenTransformer;
-import org.bithon.server.storage.datasource.input.transformer.ITransformer;
+import org.bithon.server.storage.datasource.input.transformer.AbstractTransformer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -34,12 +34,12 @@ import java.util.HashMap;
 public class FlattenTransformerTest {
     @Test
     public void test() throws JsonProcessingException {
-        FlattenTransformer transformer = new FlattenTransformer("a", "a1");
+        FlattenTransformer transformer = new FlattenTransformer(new String[]{"a"}, new String[]{"a1"}, null);
 
         // deserialize from json to test deserialization
         ObjectMapper om = new ObjectMapper();
         String transformerText = om.writeValueAsString(transformer);
-        ITransformer newTransformer = om.readValue(transformerText, ITransformer.class);
+        AbstractTransformer newTransformer = om.readValue(transformerText, AbstractTransformer.class);
 
         InputRow row1 = new InputRow(new HashMap<>(ImmutableMap.of("a", "default")));
         newTransformer.transform(row1);

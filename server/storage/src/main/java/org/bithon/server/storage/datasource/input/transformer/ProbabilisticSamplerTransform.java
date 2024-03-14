@@ -18,6 +18,7 @@ package org.bithon.server.storage.datasource.input.transformer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.NumberUtils;
@@ -32,7 +33,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Frank Chen
  * @date 25/1/24 4:56 pm
  */
-public class ProbabilisticSamplerTransform implements ITransformer {
+public class ProbabilisticSamplerTransform extends AbstractTransformer {
 
     @Getter
     private final HumanReadablePercentage percentage;
@@ -48,26 +49,34 @@ public class ProbabilisticSamplerTransform implements ITransformer {
      */
     public static final long MAX_PROBABILITY_VALUE = 100_000;
 
+    @VisibleForTesting
+    public ProbabilisticSamplerTransform(HumanReadablePercentage percentage) {
+        this(percentage, null);
+    }
+
     /**
      * @param percentage The minimum is 0.001%, that is 0.00001.
      *                   There's no special reason that why this minimum is chosen, just a value limitation here.
      */
     @JsonCreator
-    public ProbabilisticSamplerTransform(@JsonProperty("percentage") HumanReadablePercentage percentage) {
+    public ProbabilisticSamplerTransform(@JsonProperty("percentage") HumanReadablePercentage percentage,
+                                         @JsonProperty("where") String where) {
+        super(where);
+
         this.percentage = percentage;
         this.probability = (long) (percentage.getFraction() * MAX_PROBABILITY_VALUE);
         this.counter = new AtomicLong();
     }
 
     @Override
-    public boolean transform(IInputRow data) {
+    protected TransformResult transformInternal(IInputRow data) {
         if (probability <= 0) {
-            return false;
+            return TransformResult.DROP;
         }
         if (probability >= MAX_PROBABILITY_VALUE) {
-            return true;
+            return TransformResult.CONTINUE;
         }
         long reminder = NumberUtils.floorMod(counter.addAndGet(probability), MAX_PROBABILITY_VALUE);
-        return reminder > 0 && reminder <= probability;
+        return reminder > 0 && reminder <= probability ? TransformResult.CONTINUE : TransformResult.DROP;
     }
 }

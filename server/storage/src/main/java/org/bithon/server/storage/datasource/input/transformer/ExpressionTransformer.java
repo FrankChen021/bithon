@@ -16,15 +16,52 @@
 
 package org.bithon.server.storage.datasource.input.transformer;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
+import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 /**
  * @author Frank Chen
  * @date 12/3/24 6:36 pm
  */
-public class ExpressionTransformer implements ITransformer {
+public class ExpressionTransformer extends AbstractTransformer {
+
+    @Getter
+    private final String expr;
+
+    @Getter
+    private final String target;
+
+
+    // Runtime property
+    @JsonIgnore
+    private final IExpression astExpression;
+
+    @JsonCreator
+    public ExpressionTransformer(@JsonProperty("expr") String expr,
+                                 @JsonProperty("target") String target,
+                                 @JsonProperty("where") String where) {
+        super(where);
+
+        this.expr = Preconditions.checkNotNull(expr, "'expr' property can not be NULL");
+        this.target = Preconditions.checkNotNull(target, "'target' property can not be NULL");
+
+        this.astExpression = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build(this.expr);
+    }
+
     @Override
-    public boolean transform(IInputRow inputRow) throws TransformException {
-        return false;
+    protected TransformResult transformInternal(IInputRow inputRow) throws TransformException {
+        Object ret = astExpression.evaluate(inputRow);
+        if (ret != null) {
+            inputRow.updateColumn(this.target, ret);
+        }
+
+        return TransformResult.CONTINUE;
     }
 }

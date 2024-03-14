@@ -25,21 +25,23 @@ import org.bithon.server.storage.datasource.input.IInputRow;
  * @author frank.chen021@outlook.com
  * @date 12/4/22 10:59 AM
  */
-public class ChainTransformer implements ITransformer {
+public class ChainTransformer extends AbstractTransformer {
 
     @Getter
     private final ITransformer[] transformers;
 
     @JsonCreator
-    public ChainTransformer(@JsonProperty("transformers") ITransformer... transformers) {
+    public ChainTransformer(@JsonProperty("transformers") ITransformer[] transformers,
+                            @JsonProperty("where") String where) {
+        super(where);
         this.transformers = transformers;
     }
 
     @Override
-    public boolean transform(IInputRow inputRow) {
+    public TransformResult transformInternal(IInputRow inputRow) {
         for (ITransformer transformer : transformers) {
             transformer.transform(inputRow);
         }
-        return true;
+        return TransformResult.CONTINUE;
     }
 }
