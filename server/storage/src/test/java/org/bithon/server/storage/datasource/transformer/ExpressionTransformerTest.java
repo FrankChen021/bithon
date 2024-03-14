@@ -20,7 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.storage.datasource.input.InputRow;
-import org.bithon.server.storage.datasource.input.transformer.FlattenTransformer;
+import org.bithon.server.storage.datasource.input.transformer.ExpressionTransformer;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,21 +29,36 @@ import java.util.HashMap;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/6/26 22:15
+ * @date 2024/3/14 21:30
  */
-public class FlattenTransformerTest {
+public class ExpressionTransformerTest {
+
     @Test
-    public void test() throws JsonProcessingException {
-        FlattenTransformer transformer = new FlattenTransformer(new String[]{"a"}, new String[]{"a1"}, null);
+    public void testArithmeticExpression() throws JsonProcessingException {
+        ITransformer transformer = new ExpressionTransformer("1+2", "bison", null);
 
         // deserialize from json to test deserialization
         ObjectMapper om = new ObjectMapper();
         String transformerText = om.writeValueAsString(transformer);
         ITransformer newTransformer = om.readValue(transformerText, ITransformer.class);
 
-        InputRow row1 = new InputRow(new HashMap<>(ImmutableMap.of("a", "default")));
-        newTransformer.transform(row1);
-        Assert.assertEquals("default", row1.getCol("a"));
-        Assert.assertEquals("default", row1.getCol("a1"));
+        InputRow row = new InputRow(new HashMap<>());
+        newTransformer.transform(row);
+        Assert.assertEquals(3L, row.getCol("bison"));
+    }
+
+
+    @Test
+    public void testLikeExpression() throws JsonProcessingException {
+        ITransformer transformer = new ExpressionTransformer("a LIKE '%bison%'", "bison", null);
+
+        // deserialize from json to test deserialization
+        ObjectMapper om = new ObjectMapper();
+        String transformerText = om.writeValueAsString(transformer);
+        ITransformer newTransformer = om.readValue(transformerText, ITransformer.class);
+
+        InputRow row = new InputRow(new HashMap<>(ImmutableMap.of("a", "bison is a kind of animal")));
+        newTransformer.transform(row);
+        Assert.assertEquals(true, row.getCol("bison"));
     }
 }

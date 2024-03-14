@@ -20,7 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.storage.datasource.input.InputRow;
-import org.bithon.server.storage.datasource.input.transformer.AbstractTransformer;
+import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 import org.bithon.server.storage.datasource.input.transformer.RegExprTransformer;
 import org.junit.Assert;
 import org.junit.Test;
@@ -40,7 +40,7 @@ public class RegExprTransformerTest {
         // deserialize from json to test deserialization
         ObjectMapper om = new ObjectMapper();
         String transformerText = om.writeValueAsString(transformer);
-        AbstractTransformer newTransformer = om.readValue(transformerText, AbstractTransformer.class);
+        ITransformer newTransformer = om.readValue(transformerText, ITransformer.class);
 
         InputRow row1 = new InputRow(new HashMap<>(ImmutableMap.of("exception", "Code: 60, e.displayText()")));
         newTransformer.transform(row1);
@@ -54,7 +54,7 @@ public class RegExprTransformerTest {
         // deserialize from json to test deserialization
         ObjectMapper om = new ObjectMapper();
         String transformerText = om.writeValueAsString(transformer);
-        AbstractTransformer newTransformer = om.readValue(transformerText, AbstractTransformer.class);
+        ITransformer newTransformer = om.readValue(transformerText, ITransformer.class);
 
         InputRow row1 = new InputRow(new HashMap<>());
         row1.updateColumn("tags", ImmutableMap.of("exception", "Code: 60, e.displayText()"));

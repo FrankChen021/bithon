@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.storage.datasource.input.InputRow;
-import org.bithon.server.storage.datasource.input.transformer.AbstractTransformer;
 import org.bithon.server.storage.datasource.input.transformer.ChainTransformer;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 import org.bithon.server.storage.datasource.input.transformer.SplitterTransformer;
@@ -43,7 +42,7 @@ public class ChainTransformerTest {
         // serialization and deserialization
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(transformer);
-        AbstractTransformer newTransformer = om.readValue(json, AbstractTransformer.class);
+        ITransformer newTransformer = om.readValue(json, ITransformer.class);
 
         InputRow row1 = new InputRow(new HashMap<>(ImmutableMap.of("f1", "default.user")));
         newTransformer.transform(row1);
@@ -73,7 +72,7 @@ public class ChainTransformerTest {
         // serialization and deserialization
         ObjectMapper om = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
         String json = om.writeValueAsString(transformer);
-        AbstractTransformer newTransformer = om.readValue(json, AbstractTransformer.class);
+        ITransformer newTransformer = om.readValue(json, ITransformer.class);
 
         InputRow row1 = new InputRow(new HashMap<>(ImmutableMap.of("f1", "default.tmp (d50f2e66-6283-4883-950f-2e6662833883)")));
         newTransformer.transform(row1);

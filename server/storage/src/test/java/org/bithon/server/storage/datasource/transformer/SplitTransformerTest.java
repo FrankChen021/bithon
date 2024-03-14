@@ -20,8 +20,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.storage.datasource.input.InputRow;
-import org.bithon.server.storage.datasource.input.transformer.FlattenTransformer;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
+import org.bithon.server.storage.datasource.input.transformer.SplitTransformer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,21 +29,42 @@ import java.util.HashMap;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/6/26 22:15
+ * @date 12/4/22 12:06 AM
  */
-public class FlattenTransformerTest {
+public class SplitTransformerTest {
+
     @Test
     public void test() throws JsonProcessingException {
-        FlattenTransformer transformer = new FlattenTransformer(new String[]{"a"}, new String[]{"a1"}, null);
+        ITransformer transformer = new SplitTransformer("o1",
+                                                        ".",
+                                                        new String[]{"database", "table"},
+                                                        null);
 
         // deserialize from json to test deserialization
         ObjectMapper om = new ObjectMapper();
         String transformerText = om.writeValueAsString(transformer);
         ITransformer newTransformer = om.readValue(transformerText, ITransformer.class);
 
-        InputRow row1 = new InputRow(new HashMap<>(ImmutableMap.of("a", "default")));
+        InputRow row1 = new InputRow(new HashMap<>(ImmutableMap.of("o1", "default.user")));
         newTransformer.transform(row1);
-        Assert.assertEquals("default", row1.getCol("a"));
-        Assert.assertEquals("default", row1.getCol("a1"));
+        Assert.assertEquals("default", row1.getCol("database"));
+        Assert.assertEquals("user", row1.getCol("table"));
+
+        // field does not match
+        InputRow row2 = new InputRow(new HashMap<>(ImmutableMap.of("o2", "default.user")));
+        newTransformer.transform(row2);
+        Assert.assertNull(row2.getCol("database"));
+        Assert.assertNull(row2.getCol("table"));
+    }
+
+    @Test
+    public void splitOnNestedObject() {
+        SplitTransformer transformer = new SplitTransformer("tags.iterator", "/", new String[]{"current", "max"}, null);
+
+        InputRow row1 = new InputRow(new HashMap<>());
+        row1.updateColumn("tags", ImmutableMap.of("iterator", "1/5"));
+        transformer.transform(row1);
+        Assert.assertEquals("1", row1.getCol("current"));
+        Assert.assertEquals("5", row1.getCol("max"));
     }
 }

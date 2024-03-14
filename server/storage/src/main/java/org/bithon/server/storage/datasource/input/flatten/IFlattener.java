@@ -19,10 +19,9 @@ package org.bithon.server.storage.datasource.input.flatten;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.transformer.AbstractTransformer;
 
 /**
- * A special kind of transformer that is executed before a {@link AbstractTransformer}
+ * A special kind of transformer that is executed before a {@link org.bithon.server.storage.datasource.input.transformer.ITransformer}
  *
  * Deprecated, use {@link org.bithon.server.storage.datasource.input.transformer.FlattenTransformer} instead
  *

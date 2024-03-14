@@ -46,7 +46,7 @@ public class SplitTransformer extends AbstractTransformer {
 
     @JsonCreator
     public SplitTransformer(@JsonProperty("source") String source,
-                            @JsonProperty("splitter") String by,
+                            @JsonProperty("by") String by,
                             @JsonProperty("targets") String[] targets,
                             @JsonProperty("where") String where) {
         super(where);
@@ -65,10 +65,20 @@ public class SplitTransformer extends AbstractTransformer {
             return TransformResult.CONTINUE;
         }
 
-        String[] values = val.toString().split(by);
-        for (int i = 0, len = Math.min(targets.length, values.length); i < len; i++) {
-            row.updateColumn(targets[i], values[i]);
+        String input = val.toString();
+
+        int targetIndex = 0;
+        int matchStart = 0;
+        int matchIndex = input.indexOf(by);
+        while (matchIndex != -1 && targetIndex < targets.length) {
+            row.updateColumn(targets[targetIndex++], input.substring(matchStart, matchIndex));
+            matchStart = matchIndex + by.length();
+            matchIndex = input.indexOf(by, matchStart);
         }
+        if (matchStart != 0 && targetIndex < targets.length) {
+            row.updateColumn(targets[targetIndex], input.substring(matchStart));
+        }
+
         return TransformResult.CONTINUE;
     }
 }

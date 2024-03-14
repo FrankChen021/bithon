@@ -63,7 +63,7 @@ import org.bithon.server.storage.datasource.input.IInputRow;
     // Text processing
     @JsonSubTypes.Type(name = "regexpr", value = RegExprTransformer.class),
     @JsonSubTypes.Type(name = "replace", value = ReplaceTransformer.class),
-    @JsonSubTypes.Type(name = "split", value = ReplaceTransformer.class),
+    @JsonSubTypes.Type(name = "split", value = SplitTransformer.class),
 
     // Drop
     @JsonSubTypes.Type(name = "drop", value = DropTransformer.class),
