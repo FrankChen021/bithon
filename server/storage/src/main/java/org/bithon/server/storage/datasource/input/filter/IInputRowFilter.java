@@ -21,8 +21,11 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 /**
+ * Deprecated, use {@link org.bithon.server.storage.datasource.input.transformer.DropTransformer}
+ * 
  * @author frankchen
  */
+@Deprecated
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = "endsWith", value = EndsWithFilter.class),

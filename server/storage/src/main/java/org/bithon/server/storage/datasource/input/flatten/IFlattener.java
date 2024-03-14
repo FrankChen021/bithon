@@ -19,13 +19,12 @@ package org.bithon.server.storage.datasource.input.flatten;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.TransformSpec;
 import org.bithon.server.storage.datasource.input.transformer.AbstractTransformer;
 
 /**
  * A special kind of transformer that is executed before a {@link AbstractTransformer}
  *
- * See also {@link TransformSpec#transform(IInputRow)}
+ * Deprecated, use {@link org.bithon.server.storage.datasource.input.transformer.FlattenTransformer} instead
  *
  * @author frank.chen021@outlook.com
  * @date 2020/12/28
@@ -34,6 +33,7 @@ import org.bithon.server.storage.datasource.input.transformer.AbstractTransforme
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = "tree", value = TreePathFlattener.class),
 })
+@Deprecated
 public interface IFlattener {
 
     /**
