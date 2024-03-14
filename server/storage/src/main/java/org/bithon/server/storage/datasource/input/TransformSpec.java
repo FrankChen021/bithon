@@ -26,7 +26,8 @@ import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.input.filter.AndFilter;
 import org.bithon.server.storage.datasource.input.filter.IInputRowFilter;
 import org.bithon.server.storage.datasource.input.flatten.IFlattener;
-import org.bithon.server.storage.datasource.input.transformer.AbstractTransformer;
+import org.bithon.server.storage.datasource.input.transformer.ITransformer;
+import org.bithon.server.storage.datasource.input.transformer.TransformResult;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -52,7 +53,7 @@ public class TransformSpec {
     private final List<IFlattener> flatteners;
 
     @Getter
-    private final List<AbstractTransformer> transformers;
+    private final List<ITransformer> transformers;
 
     @Getter
     private final IInputRowFilter postfilter;
@@ -63,7 +64,7 @@ public class TransformSpec {
                          @JsonProperty("prefilters") List<IInputRowFilter> prefilters,
                          @JsonProperty("prefilter") IInputRowFilter prefilter,
                          @JsonProperty("flatteners") List<IFlattener> flatteners,
-                         @JsonProperty("transformers") List<AbstractTransformer> transformers,
+                         @JsonProperty("transformers") List<ITransformer> transformers,
                          @JsonProperty("postfilter") IInputRowFilter postfilter) {
         this.granularity = granularity;
         this.flatteners = flatteners;
@@ -73,7 +74,8 @@ public class TransformSpec {
     }
 
     /**
-     * @return a boolean value, whether to include this row in result set
+     * @return a boolean value, whether to include this row in result set.
+     * If true, the row will be included
      */
     public boolean transform(IInputRow inputRow) {
         try {
@@ -88,10 +90,12 @@ public class TransformSpec {
                 }
             }
             if (transformers != null) {
-                for (AbstractTransformer transformer : transformers) {
+                for (ITransformer transformer : transformers) {
                     try {
-                        transformer.transform(inputRow);
-                    } catch (AbstractTransformer.TransformException ignored) {
+                        if (transformer.transform(inputRow) == TransformResult.DROP) {
+                            return false;
+                        }
+                    } catch (ITransformer.TransformException ignored) {
                         return false;
                     }
                 }

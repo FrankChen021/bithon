@@ -26,7 +26,7 @@ import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
-public abstract class AbstractTransformer implements ITransformer {
+abstract class AbstractTransformer implements ITransformer {
 
     @JsonIgnore
     private final IExpression whereCondition;
@@ -38,7 +38,7 @@ public abstract class AbstractTransformer implements ITransformer {
         this.where = where;
 
         this.whereCondition = this.where == null ? null : ExpressionASTBuilder.builder().functions(Functions.getInstance()).build(this.where);
-        Preconditions.checkIfTrue( this.whereCondition == null || this.whereCondition instanceof LogicalExpression || this.whereCondition instanceof ConditionalExpression,
+        Preconditions.checkIfTrue(this.whereCondition == null || this.whereCondition instanceof LogicalExpression || this.whereCondition instanceof ConditionalExpression,
                                   "The 'where' property must be a LOGICAL or CONDITIONAL expression");
     }
 

@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.datasource.input.transformer.HasFieldTransformer;
-import org.bithon.server.storage.datasource.input.transformer.AbstractTransformer;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 import org.junit.Assert;
 import org.junit.Test;
