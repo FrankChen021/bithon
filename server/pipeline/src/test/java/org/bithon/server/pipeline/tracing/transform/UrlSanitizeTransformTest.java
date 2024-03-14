@@ -17,8 +17,8 @@
 package org.bithon.server.pipeline.tracing.transform;
 
 import com.google.common.collect.ImmutableMap;
+import org.bithon.server.pipeline.common.transform.transformer.AbstractTransformer;
 import org.bithon.server.pipeline.tracing.transform.sanitization.UrlSanitizeTransformer;
-import org.bithon.server.storage.datasource.input.transformer.AbstractTransformer;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.junit.Assert;
 import org.junit.Test;

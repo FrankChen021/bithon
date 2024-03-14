@@ -20,10 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.pipeline.common.pipeline.AbstractPipeline;
+import org.bithon.server.pipeline.common.transform.transformer.ITransformer;
+import org.bithon.server.pipeline.common.transform.transformer.TransformResult;
 import org.bithon.server.pipeline.tracing.exporter.ITraceExporter;
 import org.bithon.server.pipeline.tracing.receiver.ITraceReceiver;
-import org.bithon.server.storage.datasource.input.transformer.ITransformer;
-import org.bithon.server.storage.datasource.input.transformer.TransformResult;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.slf4j.Logger;
 

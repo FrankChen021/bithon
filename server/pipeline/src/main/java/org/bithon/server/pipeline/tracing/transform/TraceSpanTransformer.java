@@ -24,10 +24,10 @@ import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.pipeline.common.service.UriNormalizer;
+import org.bithon.server.pipeline.common.transform.transformer.ITransformer;
+import org.bithon.server.pipeline.common.transform.transformer.TransformResult;
 import org.bithon.server.storage.common.ApplicationType;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.transformer.ITransformer;
-import org.bithon.server.storage.datasource.input.transformer.TransformResult;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.util.CollectionUtils;
 

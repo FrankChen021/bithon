@@ -23,9 +23,9 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.Getter;
 import org.bithon.server.pipeline.common.service.UriNormalizer;
+import org.bithon.server.pipeline.common.transform.transformer.ITransformer;
+import org.bithon.server.pipeline.common.transform.transformer.TransformResult;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.transformer.ITransformer;
-import org.bithon.server.storage.datasource.input.transformer.TransformResult;
 
 /**
  * @author frank.chen021@outlook.com

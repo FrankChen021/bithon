@@ -20,9 +20,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Getter;
+import org.bithon.server.pipeline.common.transform.transformer.ITransformer;
+import org.bithon.server.pipeline.common.transform.transformer.TransformResult;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.transformer.ITransformer;
-import org.bithon.server.storage.datasource.input.transformer.TransformResult;
 import org.springframework.util.StringUtils;
 
 import java.net.URI;
