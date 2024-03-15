@@ -116,16 +116,23 @@ public abstract class ConditionalExpression extends BinaryExpression {
 
         @Override
         public Object evaluate(IEvaluationContext context) {
-            String r = (String) right.evaluate(context);
+            String input = (String) left.evaluate(context);
+            if (input == null) {
+                return false;
+            }
 
-            // Escape any special characters in the pattern
-            String pattern = r.replaceAll("%", "\\\\%").replaceAll("_", "\\\\_");
+            String pattern = (String) right.evaluate(context);
 
-            // Replace SQL wildcard characters with Java regex wildcard characters
-            pattern = pattern.replaceAll("%", ".*").replaceAll("_", ".");
+            if (pattern.contains("%")) {
+                // Replace % with .* to convert SQL LIKE pattern to regex pattern
+                String regexPattern = pattern.replace("%", ".*");
 
-            String l = (String) left.evaluate(context);
-            return l != null && l.contains(pattern);
+                // Use regex matching to check if the inputString matches the pattern
+                return input.matches(regexPattern);
+            } else {
+                // If the given pattern does not contain '%', check for exact match
+                return input.equals(pattern);
+            }
         }
     }
 

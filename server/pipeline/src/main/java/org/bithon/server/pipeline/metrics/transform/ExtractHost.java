@@ -20,8 +20,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Getter;
+import org.bithon.server.pipeline.common.transform.transformer.ITransformer;
+import org.bithon.server.pipeline.common.transform.transformer.TransformResult;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 import org.springframework.util.StringUtils;
 
 import java.net.URI;
@@ -48,7 +49,7 @@ public class ExtractHost implements ITransformer {
     }
 
     @Override
-    public boolean transform(IInputRow inputRow) throws TransformException {
+    public TransformResult transform(IInputRow inputRow) throws TransformException {
         try {
             URI uri = new URI(inputRow.getColAsString(this.uri));
             String hostAndPort = toHostPort(uri.getHost(), uri.getPort());
@@ -60,7 +61,8 @@ public class ExtractHost implements ITransformer {
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
-        return false;
+
+        return TransformResult.CONTINUE;
     }
 
     private String toHostPort(String targetHost, int targetPort) {

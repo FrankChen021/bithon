@@ -14,39 +14,42 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.metrics.transform;
+package org.bithon.server.pipeline.common.transform.transformer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Getter;
-import org.bithon.server.commons.utils.DbUtils;
-import org.bithon.server.pipeline.common.transform.transformer.ITransformer;
-import org.bithon.server.pipeline.common.transform.transformer.TransformResult;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 /**
+ * Use {@link ExpressionTransformer} instead
+ *
  * @author frank.chen021@outlook.com
- * @date 2022/8/9 20:49
+ * @date 13/4/22 4:57 PM
  */
-@JsonTypeName("connectionString")
-public class ConnectionStringTransformer implements ITransformer {
+@Deprecated
+public class AddFieldTransformer extends AbstractTransformer {
 
     @Getter
     private final String field;
 
+    @Getter
+    private final String value;
+
     @JsonCreator
-    public ConnectionStringTransformer(@JsonProperty("field") String field) {
-        this.field = field == null ? "connectionString" : field;
+    public AddFieldTransformer(@JsonProperty("field") String field,
+                               @JsonProperty("value") String value,
+                               @JsonProperty("where") String where) {
+        super(where);
+        this.field = field;
+        this.value = value;
     }
 
     @Override
-    public TransformResult transform(IInputRow inputRow) throws TransformException {
-        DbUtils.ConnectionString conn = DbUtils.parseConnectionString(inputRow.getColAsString(field));
-        inputRow.updateColumn("server", conn.getHostAndPort());
-        inputRow.updateColumn("database", conn.getDatabase());
-        inputRow.updateColumn("endpointType", conn.getDbType());
-
+    public TransformResult transformInternal(IInputRow inputRow) {
+        if (field != null && value != null) {
+            inputRow.updateColumn(field, value);
+        }
         return TransformResult.CONTINUE;
     }
 }

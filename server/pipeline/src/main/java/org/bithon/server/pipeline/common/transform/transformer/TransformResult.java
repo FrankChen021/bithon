@@ -14,21 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.common.input;
-
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.pipeline.common.transform.TransformSpec;
-import org.bithon.server.storage.datasource.ISchema;
+package org.bithon.server.pipeline.common.transform.transformer;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 12/4/22 11:20 AM
+ * @date 14/3/24 13:52 PM
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IInputSource {
+public enum TransformResult {
+    /**
+     * Continue the transformation pipeline
+     */
+    CONTINUE,
 
-    TransformSpec getTransformSpec();
-
-    void start(ISchema schema);
-    void stop();
+    /**
+     * Drop current data being processed
+     */
+    DROP
 }

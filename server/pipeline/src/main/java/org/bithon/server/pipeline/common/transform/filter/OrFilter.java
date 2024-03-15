@@ -14,20 +14,34 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.metrics.topo;
+package org.bithon.server.pipeline.common.transform.filter;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
+import java.util.List;
+
 /**
- * A temp interface to generalize metrics processing of previous http-incoming-metrics/http-outcoming-metrics/...
- * Eventually it will be replaced by some kind of {@link TransformSpec}
- *
  * @author frank.chen021@outlook.com
- * @date 2022/8/9 19:30
+ * @date 2021/1/19
  */
-public interface ITopoTransformer {
+public class OrFilter implements IInputRowFilter {
 
-    String getSourceType();
+    @Getter
+    private final List<IInputRowFilter> filters;
 
-    Measurement transform(IInputRow message);
+    public OrFilter(@JsonProperty("filters") List<IInputRowFilter> filters) {
+        this.filters = filters;
+    }
+
+    @Override
+    public boolean shouldInclude(IInputRow inputRow) {
+        for (IInputRowFilter filter : this.filters) {
+            if (filter.shouldInclude(inputRow)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
