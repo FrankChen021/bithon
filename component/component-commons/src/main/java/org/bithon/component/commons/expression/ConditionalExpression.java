@@ -115,8 +115,12 @@ public abstract class ConditionalExpression extends BinaryExpression {
         }
 
         @Override
-        public Boolean evaluate(IEvaluationContext context) {
+        public Object evaluate(IEvaluationContext context) {
             String input = (String) left.evaluate(context);
+            if (input == null) {
+                return false;
+            }
+
             String pattern = (String) right.evaluate(context);
 
             if (pattern.contains("%")) {
@@ -139,7 +143,7 @@ public abstract class ConditionalExpression extends BinaryExpression {
         }
 
         @Override
-        public Boolean evaluate(IEvaluationContext context) {
+        public Object evaluate(IEvaluationContext context) {
             return !((boolean) super.evaluate(context));
         }
     }

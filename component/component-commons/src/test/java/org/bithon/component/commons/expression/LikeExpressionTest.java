@@ -30,7 +30,7 @@ public class LikeExpressionTest {
         // a LIKE '%bison%'
         ConditionalExpression.Like expr = new ConditionalExpression.Like(new IdentifierExpression("a"),
                                                                          new LiteralExpression.StringLiteral("%an%"));
-        Assert.assertTrue(expr.evaluate(name -> "bison is an animal"));
+        Assert.assertTrue((boolean) expr.evaluate(name -> "bison is an animal"));
     }
 
     @Test
@@ -38,8 +38,8 @@ public class LikeExpressionTest {
         // a LIKE 'bison%'
         ConditionalExpression.Like expr = new ConditionalExpression.Like(new IdentifierExpression("a"),
                                                                          new LiteralExpression.StringLiteral("bison%"));
-        Assert.assertTrue(expr.evaluate(name -> "bison is an animal"));
-        Assert.assertTrue(expr.evaluate(name -> "bison"));
+        Assert.assertTrue((boolean) expr.evaluate(name -> "bison is an animal"));
+        Assert.assertTrue((boolean) expr.evaluate(name -> "bison"));
     }
 
     @Test
@@ -47,8 +47,8 @@ public class LikeExpressionTest {
         // a LIKE 'bison'
         ConditionalExpression.Like expr = new ConditionalExpression.Like(new IdentifierExpression("a"),
                                                                          new LiteralExpression.StringLiteral("bison"));
-        Assert.assertTrue(expr.evaluate(name -> "bison"));
-        Assert.assertFalse(expr.evaluate(name -> "bisonn"));
+        Assert.assertTrue((boolean) expr.evaluate(name -> "bison"));
+        Assert.assertFalse((boolean) expr.evaluate(name -> "bisonn"));
     }
 
     @Test
@@ -56,7 +56,7 @@ public class LikeExpressionTest {
         // a LIKE 'bison'
         ConditionalExpression.Like expr = new ConditionalExpression.Like(new IdentifierExpression("a"),
                                                                          new LiteralExpression.StringLiteral("%bison"));
-        Assert.assertTrue(expr.evaluate(name -> "american bison"));
-        Assert.assertTrue(expr.evaluate(name -> "bison"));
+        Assert.assertTrue((boolean) expr.evaluate(name -> "american bison"));
+        Assert.assertTrue((boolean) expr.evaluate(name -> "bison"));
     }
 }
