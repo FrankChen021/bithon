@@ -23,12 +23,15 @@ import com.google.common.collect.ImmutableMap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
+import org.apache.commons.io.IOUtils;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
+import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
+import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
@@ -48,9 +51,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotEmpty;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -126,6 +133,7 @@ public class AlertChannelApi {
                                             .start(System.currentTimeMillis())
                                             .end(System.currentTimeMillis())
                                             .duration(HumanReadableDuration.of(1, TimeUnit.MINUTES))
+                                            .expressions(Collections.singletonList((AlertExpression) AlertExpressionASTParser.parse("count(jvm-metrics.processCpuLoad)[1m] > 1")))
                                             .conditionEvaluation(ImmutableMap.of("1", new ConditionEvaluationResult(
                                                 EvaluationResult.MATCHED,
                                                 new OutputMessage("1", "2", "1")
@@ -204,5 +212,15 @@ public class AlertChannelApi {
                                                                 .map(NotificationChannelObject::getName)
                                                                 .collect(Collectors.toList());
         return new GetChannelNamesResponse(channels);
+    }
+
+    /**
+     * An API that can be used for the notification test
+     */
+    @PostMapping("/api/alerting/channel/blackhole")
+    public void blackHole(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String body = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
+        response.getWriter().write(body);
+        response.setStatus(HttpStatus.OK.value());
     }
 }
