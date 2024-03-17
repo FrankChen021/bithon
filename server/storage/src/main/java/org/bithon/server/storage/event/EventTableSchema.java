@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
+import org.bithon.server.storage.datasource.column.DateTimeColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
@@ -42,12 +43,11 @@ public class EventTableSchema implements ISchema {
     public static ISchema createEventTableSchema(IEventStorage eventStorage) {
         return new EventTableSchema("event",
                                     eventStorage,
-                                    Arrays.asList(new StringColumn("appName",
-                                                                   "appName"),
-                                                  new StringColumn("instanceName",
-                                                                   "instanceName"),
-                                                  new StringColumn("type",
-                                                                   "type"),
+                                    Arrays.asList(new DateTimeColumn("timestamp", "timestamp"),
+                                                  new StringColumn("appName", "appName"),
+                                                  new StringColumn("instanceName", "instanceName"),
+                                                  new StringColumn("type", "type"),
+                                                  new StringColumn("arguments", "arguments"),
                                                   AggregateCountColumn.INSTANCE));
     }
 

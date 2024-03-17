@@ -20,9 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.bithon.server.storage.datasource.builtin.Functions;
@@ -40,7 +38,7 @@ public class DropTransformer extends AbstractTransformer {
     private final boolean debug;
 
     @JsonIgnore
-    private final IExpression dropCondition;
+    private final IExpression dropExpression;
 
     @JsonCreator
     public DropTransformer(@JsonProperty("expr") String expr,
@@ -48,17 +46,17 @@ public class DropTransformer extends AbstractTransformer {
                            @JsonProperty("where") String where) {
         super(where);
 
-        this.expr = expr;
+        this.expr = Preconditions.checkArgumentNotNull("expr", expr);
         this.debug = debug != null && debug;
 
-        this.dropCondition = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build(this.expr);
-        Preconditions.checkIfTrue(this.dropCondition instanceof LogicalExpression || this.dropCondition instanceof ConditionalExpression,
-                                  "The 'expr' property must be a LOGICAL or CONDITIONAL expression");
+        this.dropExpression = ExpressionASTBuilder.builder()
+                                                  .functions(Functions.getInstance()).build(this.expr);
+        AbstractTransformer.validateConditionExpression(this.dropExpression);
     }
 
     @Override
     protected TransformResult transformInternal(IInputRow inputRow) throws TransformException {
         // When the expression satisfies, this input should be DROPPED
-        return ((boolean) dropCondition.evaluate(inputRow)) ? TransformResult.DROP : TransformResult.CONTINUE;
+        return ((boolean) dropExpression.evaluate(inputRow)) ? TransformResult.DROP : TransformResult.CONTINUE;
     }
 }

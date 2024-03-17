@@ -19,6 +19,8 @@ package org.bithon.server.pipeline.common.transform.transformer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import org.bithon.component.commons.expression.ConditionalExpression;
+import org.bithon.component.commons.expression.FunctionExpression;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.utils.Preconditions;
@@ -38,8 +40,9 @@ public abstract class AbstractTransformer implements ITransformer {
         this.where = where;
 
         this.whereCondition = this.where == null ? null : ExpressionASTBuilder.builder().functions(Functions.getInstance()).build(this.where);
-        Preconditions.checkIfTrue(this.whereCondition == null || this.whereCondition instanceof LogicalExpression || this.whereCondition instanceof ConditionalExpression,
-                                  "The 'where' property must be a LOGICAL or CONDITIONAL expression");
+        if (this.whereCondition != null) {
+            validateConditionExpression(whereCondition);
+        }
     }
 
     public TransformResult transform(IInputRow inputRow) throws TransformException {
@@ -53,4 +56,12 @@ public abstract class AbstractTransformer implements ITransformer {
     }
 
     protected abstract TransformResult transformInternal(IInputRow inputRow) throws TransformException;
+
+    static void validateConditionExpression(IExpression expression) {
+        Preconditions.checkIfTrue(expression instanceof LogicalExpression
+                                  || expression instanceof ConditionalExpression
+                                  || (expression instanceof FunctionExpression && expression.getDataType().equals(IDataType.BOOLEAN)),
+                                  "The expression [%s] must be a LOGICAL/CONDITIONAL or a function expression that returns boolean",
+                                  expression.serializeToText());
+    }
 }

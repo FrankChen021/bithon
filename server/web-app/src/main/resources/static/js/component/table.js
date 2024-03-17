@@ -68,6 +68,7 @@ class TableComponent {
 
         this.mFormatters = {};
         this.mFormatters['shortDateTime'] = (v) => new Date(v).format('MM-dd hh:mm:ss');
+        this.mFormatters['json_string'] = (val, row, index) => `<button class="btn btn-sm btn-outline-info" onclick="toggleTableDetailView('${option.tableId}', ${index})">Toggle</button>`;
         this.mFormatters['detail'] = (val, row, index) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="toggleTableDetailView('${option.tableId}', ${index})">Toggle</button>` : '';
         this.mFormatters['dialog'] = (val, row, index, field) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="showTableDetailViewInDlg('${option.tableId}', ${index}, '${field}')">Show</button>` : '';
         this.mFormatters['block'] = (val) => `<pre>${val.htmlEncode()}</pre>`;
@@ -129,7 +130,7 @@ class TableComponent {
             if (column.format !== undefined && column.formatter == null) {
                 // formatter is an option provided by bootstrap-table
                 column.formatter = this.mFormatters[column.format];
-                if (column.format === 'detail') {
+                if (column.format === 'detail' || column.format === 'json_string') {
                     this.mDetailViewField = column.field;
                 }
             }
@@ -414,7 +415,12 @@ class TableComponent {
     }
 
     #showDetail(index, row) {
-        return '<pre>' + row[this.mDetailViewField] + '</pre>';
+        let cell = row[this.mDetailViewField];
+        const column = this.mColumnMap[this.mDetailViewField];
+        if (column.format === 'json_string') {
+            cell = JSON.stringify(JSON.parse(cell), null, 2);
+        }
+        return '<pre>' + cell + '</pre>';
     }
 
     #getQueryParams(params) {
