@@ -22,8 +22,8 @@ bithon:
         - type: otlp-trace-grpc
         - type: otlp-trace-http
       processors:
-        - type: filter
-          expr: not endsWith(clazz,  'UriNormalizer')
+        - type: drop
+          expr: endsWith(clazz,  'UriNormalizer')
         - type: url-sanitize-transform
           sensitiveParameters:
             "[http.uri]": password
