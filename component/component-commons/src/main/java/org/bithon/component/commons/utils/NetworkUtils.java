@@ -29,29 +29,34 @@ import java.util.List;
  */
 public class NetworkUtils {
 
-    public static NetworkUtils.IpAddress getIpAddress() {
+    public static InetAddress getIpAddress() {
         List<InetAddress> localIPs = new ArrayList<>();
         List<InetAddress> netIPs = new ArrayList<>();
         try {
-            Enumeration<NetworkInterface> netInterfaces = NetworkInterface.getNetworkInterfaces();
-            while (netInterfaces.hasMoreElements()) {
-                NetworkInterface ni = netInterfaces.nextElement();
-                Enumeration<InetAddress> addresses = ni.getInetAddresses();
-                while (addresses.hasMoreElements()) {
-                    InetAddress ip = addresses.nextElement();
-                    boolean has = !ni.isVirtual()
-                                  // virtual network interfaces on a host machine that is running virtualization software such as VMware
-                                  && !ni.getName().startsWith("vmnet")
-                                  // virtual network interfaces on macOS.
-                                  && !ni.getName().contains("utun")
-                                  // virtual network interfaces on a host machine that is running Oracle VM VirtualBox,
-                                  && !ni.getName().contains("vboxnet")
-                                  && !ni.getName().startsWith("docker")
-                                  && !ni.isLoopback()
-                                  && !ni.isPointToPoint()
-                                  && ni.isUp();
-                    if (has
-                        && !ip.isLoopbackAddress()
+            Enumeration<NetworkInterface> networkInterfaceList = NetworkInterface.getNetworkInterfaces();
+
+            while (networkInterfaceList.hasMoreElements()) {
+                NetworkInterface networkInterface = networkInterfaceList.nextElement();
+                boolean valid = !networkInterface.isVirtual()
+                                // virtual network interfaces on a host machine that is running virtualization software such as VMware
+                                && !networkInterface.getName().startsWith("vmnet")
+                                // virtual network interfaces on macOS.
+                                && !networkInterface.getName().contains("utun")
+                                // virtual network interfaces on a host machine that is running Oracle VM VirtualBox,
+                                && !networkInterface.getName().contains("vboxnet")
+                                && !networkInterface.getName().startsWith("docker")
+                                && !networkInterface.isLoopback()
+                                && !networkInterface.isPointToPoint()
+                                && networkInterface.isUp();
+
+                if (!valid) {
+                    continue;
+                }
+
+                Enumeration<InetAddress> addressList = networkInterface.getInetAddresses();
+                while (addressList.hasMoreElements()) {
+                    InetAddress ip = addressList.nextElement();
+                    if (!ip.isLoopbackAddress()
                         && !ip.getHostAddress().contains(":")) {
                         if (ip.isSiteLocalAddress()) {
                             localIPs.add(ip);
@@ -63,40 +68,38 @@ public class NetworkUtils {
             }
         } catch (SocketException ignored) {
         }
-        return new NetworkUtils.IpAddress(localIPs, netIPs);
+
+        return new NetworkUtils.IpAddress(localIPs, netIPs).getAddress();
     }
 
-    public static class IpAddress {
+    static class IpAddress {
 
         final List<InetAddress> localIPs;
         final List<InetAddress> netIPs;
 
-        IpAddress(List<InetAddress> localIPs, List<InetAddress> netIPs) {
+        private IpAddress(List<InetAddress> localIPs, List<InetAddress> netIPs) {
             this.localIPs = localIPs;
             this.netIPs = netIPs;
         }
 
+        public InetAddress getAddress() {
+            InetAddress addr = getInetAddress();
+            return addr != null ? addr : getLocalInetAddress();
+        }
+
         public InetAddress getInetAddress() {
-            return null != netIPs &&
-                   !netIPs.isEmpty() ? netIPs.get(0)
-                                     : (null != localIPs && !localIPs.isEmpty() ? localIPs.get(0)
-                                                                                : getDefaultInetAddress());
+            return !netIPs.isEmpty() ? netIPs.get(0) : (!localIPs.isEmpty() ? localIPs.get(0) : getDefaultInetAddress());
         }
 
         public InetAddress getLocalInetAddress() {
-            return null != localIPs &&
-                   !localIPs.isEmpty() ? localIPs.get(0)
-                                       : (null != netIPs && !netIPs.isEmpty() ? netIPs.get(0)
-                                                                              : getDefaultInetAddress());
+            return !localIPs.isEmpty() ? localIPs.get(0) : (!netIPs.isEmpty() ? netIPs.get(0) : getDefaultInetAddress());
         }
 
         private InetAddress getDefaultInetAddress() {
             InetAddress inetAddress = null;
             try {
                 inetAddress = InetAddress.getLocalHost();
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-                // Ignore
+            } catch (UnknownHostException ignored) {
             }
             return inetAddress;
         }

@@ -18,11 +18,10 @@ package org.bithon.agent.observability.context;
 
 import org.bithon.agent.config.AppConfig;
 import org.bithon.agent.configuration.ConfigurationManager;
-import org.bithon.component.commons.utils.NetworkUtils;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.NetworkUtils;
 import org.bithon.component.commons.utils.StringUtils;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -50,11 +49,7 @@ public class AppInstance {
         this.port = appConfig.getPort();
 
         if (StringUtils.isEmpty(appConfig.getInstance())) {
-            NetworkUtils.IpAddress ipAddress = NetworkUtils.getIpAddress();
-            InetAddress address = null != ipAddress.getInetAddress()
-                                  ? ipAddress.getInetAddress()
-                                  : ipAddress.getLocalInetAddress();
-            this.hostIp = address.getHostAddress();
+            this.hostIp = NetworkUtils.getIpAddress().getHostAddress();
         } else {
             this.hostIp = appConfig.getInstance();
         }

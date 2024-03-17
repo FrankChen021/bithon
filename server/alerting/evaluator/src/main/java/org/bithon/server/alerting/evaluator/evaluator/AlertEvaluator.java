@@ -50,7 +50,6 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import java.net.InetAddress;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.HashMap;
@@ -83,12 +82,7 @@ public class AlertEvaluator implements SmartLifecycle {
         this.alertRecordStorage = recordStorage;
         this.dataSourceApi = dataSourceApi;
         this.evaluationLogWriter = new EvaluationLogBatchWriter(logStorage.createWriter(), Duration.ofSeconds(5), 10000);
-
-        NetworkUtils.IpAddress ipAddress = NetworkUtils.getIpAddress();
-        InetAddress address = null != ipAddress.getInetAddress()
-            ? ipAddress.getInetAddress()
-            : ipAddress.getLocalInetAddress();
-        this.evaluationLogWriter.setInstance(address.getHostAddress() + ":" + serverProperties.getPort());
+        this.evaluationLogWriter.setInstance(NetworkUtils.getIpAddress().getHostAddress() + ":" + serverProperties.getPort());
 
         // Use Indent output for better debugging
         // It's a copy of existing ObjectMapper
