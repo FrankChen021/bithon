@@ -74,6 +74,7 @@ class LogComponent {
                     }
 
                     logContent += new Date(item.timestamp).format('yyyy-MM-dd hh:mm:ss.S')
+                               + ' [' + item.instance + ']'
                                + ' [' + this.truncateOrPad(item.clazz, 24) + '] '
                                + item.message + '\n';
                 }

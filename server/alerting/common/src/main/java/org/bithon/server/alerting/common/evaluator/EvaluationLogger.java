@@ -66,10 +66,11 @@ public class EvaluationLogger {
 
         EvaluationLogEvent log = new EvaluationLogEvent();
         log.setTimestamp(new Timestamp(System.currentTimeMillis()));
+        log.setSequence(SEQUENCE.getAndIncrement());
         log.setAlertId(alertId);
         log.setClazz(logClass.getSimpleName());
         log.setMessage(message);
-        log.setSequence(SEQUENCE.getAndIncrement());
+
 
         this.logWriter.write(log);
     }

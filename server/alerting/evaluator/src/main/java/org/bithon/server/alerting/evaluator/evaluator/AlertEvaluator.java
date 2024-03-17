@@ -25,6 +25,7 @@ import feign.codec.Decoder;
 import feign.codec.Encoder;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.HumanReadableDuration;
+import org.bithon.component.commons.utils.NetworkUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
@@ -42,12 +43,14 @@ import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.net.InetAddress;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.HashMap;
@@ -73,12 +76,19 @@ public class AlertEvaluator implements SmartLifecycle {
                           IEvaluationLogStorage logStorage,
                           IAlertRecordStorage recordStorage,
                           IDataSourceApi dataSourceApi,
+                          ServerProperties serverProperties,
                           ApplicationContext applicationContext,
                           ObjectMapper objectMapper) {
         this.stateStorage = stateStorage;
-        this.evaluationLogWriter = new EvaluationLogBatchWriter(logStorage.createWriter(), Duration.ofSeconds(5), 10000);
         this.alertRecordStorage = recordStorage;
         this.dataSourceApi = dataSourceApi;
+        this.evaluationLogWriter = new EvaluationLogBatchWriter(logStorage.createWriter(), Duration.ofSeconds(5), 10000);
+
+        NetworkUtils.IpAddress ipAddress = NetworkUtils.getIpAddress();
+        InetAddress address = null != ipAddress.getInetAddress()
+            ? ipAddress.getInetAddress()
+            : ipAddress.getLocalInetAddress();
+        this.evaluationLogWriter.setInstance(address.getHostAddress() + ":" + serverProperties.getPort());
 
         // Use Indent output for better debugging
         // It's a copy of existing ObjectMapper

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.utils;
+package org.bithon.component.commons.utils;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;

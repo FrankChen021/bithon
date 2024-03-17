@@ -21,7 +21,7 @@ import org.bithon.server.alerting.manager.api.parameter.GetEvaluationLogsRespons
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogReader;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
-import org.bithon.server.storage.alerting.pojo.LogItem;
+import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
@@ -44,9 +44,9 @@ public class EvaluationLogService {
     public GetEvaluationLogsResponse getEvaluationLogs(String alertId,
                                                        TimeSpan startTimestamp,
                                                        TimeSpan endTimestamp) {
-        List<LogItem> logs = logReader.getLogs(alertId,
-                                               startTimestamp,
-                                               endTimestamp);
+        List<EvaluationLogEvent> logs = logReader.getLogs(alertId,
+                                                          startTimestamp,
+                                                          endTimestamp);
 
         return new GetEvaluationLogsResponse(logs.size(), logs);
     }

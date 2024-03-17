@@ -18,7 +18,7 @@ package org.bithon.agent.observability.context;
 
 import org.bithon.agent.config.AppConfig;
 import org.bithon.agent.configuration.ConfigurationManager;
-import org.bithon.agent.observability.utils.NetworkUtils;
+import org.bithon.component.commons.utils.NetworkUtils;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.StringUtils;
 
