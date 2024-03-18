@@ -111,7 +111,7 @@
             $.each(alert.payload.expressions, (index, expression) => {
                 renderExpression(expression);
 
-                renderEvaluatedExpressionMetrics(expression,
+                renderExpressionChart(expression,
                     alert.payload.start,
                     alert.payload.end,
                     alert.payload.conditionEvaluation[expression.id].result
@@ -158,7 +158,7 @@
             $(container).append($(ruleItem));
         }
 
-        function renderEvaluatedExpressionMetrics(expression, start, end, result) {
+        function renderExpressionChart(expression, start, end, result) {
             const expressionId = expression.id;
 
             let window = parseInt(expression.window.substring(0, expression.window.length - 1));

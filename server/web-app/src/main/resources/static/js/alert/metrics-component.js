@@ -1,13 +1,17 @@
 class MetricComponent {
 
-    createElement(id, clazz) {
+    constructor() {
+        this._ctrl = null;
+    }
+
+    #createElement(id, clazz) {
         return "<div style='width: 100%' class='" + clazz + "'><div class='btn-group btn-group-sm' role='group' aria-label='...'>" +
-            "<button class='btn btn-default select-time-length' id='select-hour-1' data-value='1'>1H</button>" +
-            "<button class='btn btn-default select-time-length' id='select-hour-3' data-value='3'>3H</button>" +
-            "<button class='btn btn-default select-time-length' id='select-hour-6' data-value='6'>6H</button>" +
-            "<button class='btn btn-default select-time-length' id='select-hour-12' data-value='12'>12H</button>" +
-            "<button class='btn btn-default select-time-length' id='select-hour-24' data-value='24'>24H</button></div></div>" +
-            "<div id='" + id + "' style='height:400px;width:100%'></div></div>";
+        "<button class='btn btn-default select-time-length' id='select-hour-1' data-value='1'>1H</button>" +
+        "<button class='btn btn-default select-time-length' id='select-hour-3' data-value='3'>3H</button>" +
+        "<button class='btn btn-default select-time-length' id='select-hour-6' data-value='6'>6H</button>" +
+        "<button class='btn btn-default select-time-length' id='select-hour-12' data-value='12'>12H</button>" +
+        "<button class='btn btn-default select-time-length' id='select-hour-24' data-value='24'>24H</button></div></div>" +
+        "<div id='" + id + "' style='height:400px;width:100%'></div></div>";
     }
 
     bindChangeHourEvents() {
@@ -32,15 +36,28 @@ class MetricComponent {
             class: ''
         }, option)
 
-        const ctrl = $(this.createElement(this.option.componentId, this.option.class));
-        $(element).after(ctrl);
-        $("#select-hour-" + this.option.hours).addClass('btn-primary');
-        this.bindChangeHourEvents();
-        this.chart = echarts.init(document.getElementById(this.option.componentId));
-        window.addEventListener("resize", () => {
-            this.chart.resize();
-        });
+        if (this._ctrl === null) {
+            this._ctrl = $(this.#createElement(this.option.componentId, this.option.class));
+            $(element).append(this._ctrl);
+            $("#select-hour-" + this.option.hours).addClass('btn-primary');
+            this.bindChangeHourEvents();
+            this.chart = echarts.init(document.getElementById(this.option.componentId));
+            window.addEventListener("resize", () => {
+                this.chart.resize();
+            });
+        }
+
         this.loadData(this.chart);
+    }
+
+    dispose() {
+        if (this._ctrl !== null) {
+            this._ctrl.remove();
+        }
+        if (this.chart != null) {
+            this.chart.dispose();
+            this.chart = null;
+        }
     }
 
     showDialog(option) {
@@ -57,7 +74,7 @@ class MetricComponent {
             size: 'xl',
             onEscape: true,
             backdrop: true,
-            message: this.createElement('popup_charts'),
+            message: this.#createElement('popup_charts'),
             onShown: (e) => {
                 $("#select-hour-" + this.option.hours).addClass('btn-primary');
                 this.chart = echarts.init(document.getElementById("popup_charts"));
@@ -141,13 +158,17 @@ class MetricComponent {
 
         const markLines = []
         if (this.option.range != null) {
-            for(let s = this.option.range.start, e = this.option.range.end; s <= e; s += 60000) {
-                markLines.push({
-                    xAxis: new Date(s).format("hh:mm"),
-                    lineStyle: {color: 'red'}
-                });
-            }
+            markLines.push({
+                // The format text must be in lower case
+                xAxis: new Date(this.option.range.start).format("hh:mm"),
+                lineStyle: {color: 'red'}
+            });
+            markLines.push({
+                xAxis: new Date(this.option.range.end).format("hh:mm"),
+                lineStyle: {color: 'red'}
+            });
         }
+
         if (this.option.threshold != null) {
             markLines.push({
                 silent: false,
@@ -178,12 +199,11 @@ class MetricComponent {
         }
 
         const startTimestamp = data.startTimestamp;
-        const endTimestamp = data.endTimestamp;
         const interval = data.interval;
 
         const option = {
             title: {
-                text: metric.aggregator + '(' + metric.field + ')',
+                text: this.option.title === undefined ? metric.aggregator + '(' + metric.field + ')' : this.option.title,
                 left: "center",
                 textStyle: {
                     fontSize: 14
@@ -194,9 +214,12 @@ class MetricComponent {
                 trigger: 'axis',
                 formatter: (s) => {
                     const dataIndex = s[0].dataIndex;
-                    const timeText = moment(startTimestamp + dataIndex * interval).local().format('yy-MM-DD HH:mm');
 
-                    return `${timeText}<br/>${s[0].seriesName}: ${s[0].value.toFixed(2)}`;
+                    const start = startTimestamp + dataIndex * interval;
+                    const end = start + interval;
+                    const startTimeText = moment(start).local().format('yy-MM-DD HH:mm');
+                    const endTimeText = moment(end).local().format('yy-MM-DD HH:mm');
+                    return `${startTimeText}<br/>${endTimeText}<br/>${s[0].seriesName}: ${s[0].value.toFixed(2)}`;
                 }
             },
             grid: [{

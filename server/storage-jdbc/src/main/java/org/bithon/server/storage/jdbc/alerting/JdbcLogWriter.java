@@ -35,9 +35,15 @@ import java.util.List;
 public class JdbcLogWriter implements IEvaluationLogWriter {
 
     private final DSLContext dslContext;
+    private String instance;
 
     public JdbcLogWriter(DSLContext dslContext) {
         this.dslContext = dslContext;
+    }
+
+    @Override
+    public void setInstance(String instance) {
+        this.instance = instance;
     }
 
     @Override
@@ -56,8 +62,10 @@ public class JdbcLogWriter implements IEvaluationLogWriter {
                                                                     Tables.BITHON_ALERT_EVALUATION_LOG.ALERT_ID,
                                                                     Tables.BITHON_ALERT_EVALUATION_LOG.SEQUENCE,
                                                                     Tables.BITHON_ALERT_EVALUATION_LOG.CLAZZ,
+                                                                    Tables.BITHON_ALERT_EVALUATION_LOG.INSTANCE,
                                                                     Tables.BITHON_ALERT_EVALUATION_LOG.MESSAGE)
                                                         .values((LocalDateTime) null,
+                                                                null,
                                                                 null,
                                                                 null,
                                                                 null,
@@ -76,6 +84,7 @@ public class JdbcLogWriter implements IEvaluationLogWriter {
                       log.getAlertId(),
                       log.getSequence(),
                       clazz,
+                      this.instance,
                       log.getMessage());
         }
         step.execute();

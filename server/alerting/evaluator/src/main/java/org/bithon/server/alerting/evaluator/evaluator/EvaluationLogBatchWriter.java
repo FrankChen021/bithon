@@ -63,6 +63,11 @@ public class EvaluationLogBatchWriter implements IEvaluationLogWriter {
     }
 
     @Override
+    public void setInstance(String instance) {
+        this.delegate.setInstance(instance);
+    }
+
+    @Override
     public void write(EvaluationLogEvent logEvent) {
         synchronized (this) {
             this.logs.add(logEvent);

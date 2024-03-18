@@ -83,6 +83,7 @@ CREATE TABLE `bithon_alert_evaluation_log`
     `timestamp` timestamp(3) NOT NULL COMMENT '',
     `alert_id`  varchar(32)  NOT NULL DEFAULT '' COMMENT 'Alert ID',
     `sequence`  bigint(20)   NOT NULL DEFAULT 0 COMMENT 'Used for ordering',
+    `instance`  varchar(32)  NOT NULL COMMENT 'The instance that runs the evaluation',
     `clazz`     varchar(128) NOT NULL DEFAULT '' COMMENT 'Logger Class',
     `message`   text COMMENT '',
     KEY         `bithon_alert_evaluation_log_timestamp` (`timestamp`),

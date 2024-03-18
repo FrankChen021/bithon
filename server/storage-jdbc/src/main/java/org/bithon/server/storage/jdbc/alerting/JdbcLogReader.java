@@ -18,7 +18,7 @@ package org.bithon.server.storage.jdbc.alerting;
 
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogReader;
-import org.bithon.server.storage.alerting.pojo.LogItem;
+import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.DSLContext;
 
@@ -37,12 +37,12 @@ public class JdbcLogReader implements IEvaluationLogReader {
     }
 
     @Override
-    public List<LogItem> getLogs(String alertId, TimeSpan start, TimeSpan end) {
+    public List<EvaluationLogEvent> getLogs(String alertId, TimeSpan start, TimeSpan end) {
         return dslContext.selectFrom(Tables.BITHON_ALERT_EVALUATION_LOG)
                          .where(Tables.BITHON_ALERT_EVALUATION_LOG.TIMESTAMP.ge(start.toTimestamp().toLocalDateTime()))
                          .and(Tables.BITHON_ALERT_EVALUATION_LOG.TIMESTAMP.le(end.toTimestamp().toLocalDateTime()))
                          .and(Tables.BITHON_ALERT_EVALUATION_LOG.ALERT_ID.eq(alertId))
                          .orderBy(Tables.BITHON_ALERT_EVALUATION_LOG.TIMESTAMP, Tables.BITHON_ALERT_EVALUATION_LOG.SEQUENCE)
-                         .fetchInto(LogItem.class);
+                         .fetchInto(EvaluationLogEvent.class);
     }
 }

@@ -17,7 +17,7 @@
 package org.bithon.server.storage.alerting;
 
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.alerting.pojo.LogItem;
+import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
 
 import java.util.List;
 
@@ -26,5 +26,5 @@ import java.util.List;
  * @date 20/3/22 6:44 PM
  */
 public interface IEvaluationLogReader {
-    List<LogItem> getLogs(String alertId, TimeSpan start, TimeSpan end);
+    List<EvaluationLogEvent> getLogs(String alertId, TimeSpan start, TimeSpan end);
 }

@@ -39,6 +39,7 @@ import org.bithon.server.alerting.notification.message.OutputMessage;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
+import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -189,5 +190,19 @@ public class AlertChannelApi {
                                                                 })
                                                                 .collect(Collectors.toList());
         return new GetChannelResponse(channels.size(), channels);
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class GetChannelNamesResponse {
+        private List<String> channels;
+    }
+    @PostMapping("/api/alerting/channel/names")
+    public GetChannelNamesResponse getChannelNames() {
+        List<String> channels = this.channelStorage.getChannels(0)
+                                                                .stream()
+                                                                .map(NotificationChannelObject::getName)
+                                                                .collect(Collectors.toList());
+        return new GetChannelNamesResponse(channels);
     }
 }
