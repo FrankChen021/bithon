@@ -16,6 +16,9 @@
 
 package org.bithon.agent.observability.logging;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/7/23 5:25 下午
@@ -23,9 +26,17 @@ package org.bithon.agent.observability.logging;
 public class LogPatternInjector {
 
     public static String injectTracePattern(String userPattern) {
-
-        if (userPattern.contains("%X{bTxId}") || userPattern.contains("%X{bSpanId}")) {
-            return userPattern;
+        //
+        // Check if the user pattern has already defined the bTxId/bSpanId.
+        // If defined, there's no need to inject the trace id automatically.
+        //
+        Matcher mdcVariable = Pattern.compile("%X\\{([^}]+)}").matcher(userPattern);
+        while (mdcVariable.find()) {
+            String variable = mdcVariable.group(1);
+            variable = variable.split(":")[0].trim();
+            if ("bTxId".equals(variable) || "bSpanId".equals(variable)) {
+                return userPattern;
+            }
         }
 
         int messageIndex = -1;
