@@ -21,11 +21,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.bithon.server.commons.logging.RateLimitLogger;
 import org.bithon.server.pipeline.common.kafka.AbstractKafkaConsumer;
 import org.bithon.server.pipeline.tracing.ITraceProcessor;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.slf4j.event.Level;
 import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
@@ -39,12 +42,15 @@ import java.util.Map;
  */
 @Slf4j
 public class KafkaTraceReceiver extends AbstractKafkaConsumer implements ITraceReceiver {
+    private static final RateLimitLogger LOG = new RateLimitLogger(log).config(Level.ERROR, 1);
+
     private final Map<String, Object> props;
     private ITraceProcessor processor;
 
     public KafkaTraceReceiver(@JsonProperty("props") Map<String, Object> props,
+                              @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                               @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        super(applicationContext);
+        super(objectMapper, applicationContext);
         this.props = props;
     }
 
@@ -87,7 +93,7 @@ public class KafkaTraceReceiver extends AbstractKafkaConsumer implements ITraceR
                     spans.add(span);
                 }
             } catch (IOException e) {
-                log.error("Failed to process message [event] failed", e);
+                LOG.error("Failed to process tracing message", e);
             }
         }
 
