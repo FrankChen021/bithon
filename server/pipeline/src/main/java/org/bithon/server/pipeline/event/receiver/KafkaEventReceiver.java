@@ -21,11 +21,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.bithon.server.commons.logging.RateLimitLogger;
 import org.bithon.server.pipeline.common.kafka.AbstractKafkaConsumer;
 import org.bithon.server.pipeline.event.IEventProcessor;
 import org.bithon.server.storage.event.EventMessage;
+import org.slf4j.event.Level;
 import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
@@ -39,14 +42,17 @@ import java.util.Map;
  */
 @Slf4j
 public class KafkaEventReceiver extends AbstractKafkaConsumer implements IEventReceiver {
+    private static final RateLimitLogger LOG = new RateLimitLogger(log).config(Level.ERROR, 1);
+
     private IEventProcessor processor;
     private final TypeReference<List<EventMessage>> typeReference;
     private final Map<String, Object> props;
 
     @JsonCreator
     public KafkaEventReceiver(@JsonProperty("props") Map<String, Object> props,
+                              @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                               @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        super(applicationContext);
+        super(objectMapper, applicationContext);
 
         this.props = props;
         this.typeReference = new TypeReference<List<EventMessage>>() {
@@ -86,7 +92,7 @@ public class KafkaEventReceiver extends AbstractKafkaConsumer implements IEventR
                 List<EventMessage> msg = objectMapper.readValue(record.value(), typeReference);
                 events.addAll(msg);
             } catch (IOException e) {
-                log.error("Failed to process message [event] failed", e);
+                LOG.error("Failed to process event message", e);
             }
         }
 
