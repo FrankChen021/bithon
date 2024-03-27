@@ -5,12 +5,12 @@ parse
    ;
 
 expression
-  : expression (MUL|DIV) expression                                     #arithmeticExpression
+  : expression '[' INTEGER_LITERAL ']'                                  #arrayAccessExpression
+  | expression '[' STRING_LITERAL ']'                                   #mapAccessExpression
+  | expression (MUL|DIV) expression                                     #arithmeticExpression
   | expression (ADD|SUB) expression                                     #arithmeticExpression
   | expression (LT|LTE|GT|GTE|NE|EQ|LIKE|NOT LIKE) expression           #comparisonExpression
   | expression (IN|NOT IN) expressionList                               #comparisonExpression
-  | expression '[' INTEGER_LITERAL ']'                                  #arrayAccessExpression
-  | expression '[' STRING_LITERAL ']'                                   #mapAccessExpression
   | IDENTIFIER expressionList                                           #functionExpression
   | NOT expression                                                      #notExpression
   | expression AND expression                                           #logicalExpression

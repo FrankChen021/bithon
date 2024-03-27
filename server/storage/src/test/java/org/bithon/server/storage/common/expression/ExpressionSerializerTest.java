@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.common.expression;
 
+import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
@@ -62,5 +63,9 @@ public class ExpressionSerializerTest {
         IExpression right = ((LogicalExpression.AND) expr).getOperands().get(1);
         Assert.assertTrue(right instanceof ComparisonExpression.EQ);
         Assert.assertTrue(((ComparisonExpression.EQ) right).getLeft() instanceof MapAccessExpression);
+
+        expr = ExpressionASTBuilder.builder().build("5 * colors['today']");
+        Assert.assertTrue(expr instanceof ArithmeticExpression);
+        Assert.assertTrue(((ArithmeticExpression) expr).getRight() instanceof MapAccessExpression);
     }
 }
