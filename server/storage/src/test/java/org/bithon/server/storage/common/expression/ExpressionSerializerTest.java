@@ -16,7 +16,10 @@
 
 package org.bithon.server.storage.common.expression;
 
+import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.junit.Assert;
 import org.junit.Test;
@@ -52,7 +55,12 @@ public class ExpressionSerializerTest {
     @Test
     public void testMapAccessExpression() {
         IExpression expr = ExpressionASTBuilder.builder().build("a ['b']");
-
         Assert.assertEquals("a['b']", expr.serializeToText(null));
+
+        expr = ExpressionASTBuilder.builder().build("i > 5 AND colors['today'] = 'red'");
+        Assert.assertTrue(expr instanceof LogicalExpression.AND);
+        IExpression right = ((LogicalExpression.AND) expr).getOperands().get(1);
+        Assert.assertTrue(right instanceof ComparisonExpression.EQ);
+        Assert.assertTrue(((ComparisonExpression.EQ) right).getLeft() instanceof MapAccessExpression);
     }
 }
