@@ -39,7 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2022/11/16 21:35
  */
 @Slf4j
-public class MetricInputSourceManager implements SchemaManager.ISchemaChangedListener {
+public class MetricInputSourceManager implements SchemaManager.ISchemaChangedListener, IMetricInputSourceManager {
 
     private final Map<String, IMetricInputSource> inputSources = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper;
@@ -60,6 +60,7 @@ public class MetricInputSourceManager implements SchemaManager.ISchemaChangedLis
         this.suppressListener = false;
     }
 
+    @Override
     public void start(Class<? extends IMetricInputSource> inputSourceClazz) {
         if (!enabled) {
             log.warn("Metric log storage is NOT configured to be enabled by property 'bithon.storage.metric.enabled', the input source [{}] does not take effect.", inputSourceClazz.getSimpleName());

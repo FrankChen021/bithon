@@ -22,7 +22,7 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.pipeline.common.pipeline.AbstractPipeline;
 import org.bithon.server.pipeline.common.transform.transformer.ITransformer;
 import org.bithon.server.pipeline.common.transform.transformer.TransformResult;
-import org.bithon.server.pipeline.metrics.input.MetricInputSourceManager;
+import org.bithon.server.pipeline.metrics.input.IMetricInputSourceManager;
 import org.bithon.server.pipeline.tracing.exporter.ITraceExporter;
 import org.bithon.server.pipeline.tracing.metrics.MetricOverTraceInputSource;
 import org.bithon.server.pipeline.tracing.receiver.ITraceReceiver;
@@ -39,10 +39,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TracePipeline extends AbstractPipeline<ITraceReceiver, ITraceExporter> {
 
-    private final MetricInputSourceManager metricInputSourceManager;
+    private final IMetricInputSourceManager metricInputSourceManager;
 
     public TracePipeline(TracePipelineConfig pipelineConfig,
-                         MetricInputSourceManager metricInputSourceManager,
+                         IMetricInputSourceManager metricInputSourceManager,
                          ObjectMapper objectMapper) {
         super(ITraceReceiver.class,
               ITraceExporter.class,

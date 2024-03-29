@@ -24,6 +24,7 @@ import org.bithon.server.pipeline.event.EventPipelineConfig;
 import org.bithon.server.pipeline.event.metrics.MetricOverEventInputSource;
 import org.bithon.server.pipeline.metrics.MetricPipeline;
 import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
+import org.bithon.server.pipeline.metrics.input.IMetricInputSourceManager;
 import org.bithon.server.pipeline.metrics.input.MetricDefaultInputSource;
 import org.bithon.server.pipeline.metrics.input.MetricInputSourceManager;
 import org.bithon.server.pipeline.metrics.transform.ConnectionStringTransformer;
@@ -84,9 +85,9 @@ public class PipelineAutoConfiguration {
     }
 
     @Bean
-    MetricInputSourceManager inputSourceManager(MetricStorageConfig metricStorageConfig,
-                                                SchemaManager schemaManager,
-                                                ObjectMapper objectMapper) {
+    IMetricInputSourceManager inputSourceManager(MetricStorageConfig metricStorageConfig,
+                                                 SchemaManager schemaManager,
+                                                 ObjectMapper objectMapper) {
         return new MetricInputSourceManager(metricStorageConfig.isEnabled(), schemaManager, objectMapper);
     }
 

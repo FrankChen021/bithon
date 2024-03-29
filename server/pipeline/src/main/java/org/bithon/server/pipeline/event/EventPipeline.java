@@ -23,7 +23,7 @@ import org.bithon.server.pipeline.event.exporter.IEventExporter;
 import org.bithon.server.pipeline.event.exporter.MetricOverEventExporter;
 import org.bithon.server.pipeline.event.metrics.MetricOverEventInputSource;
 import org.bithon.server.pipeline.event.receiver.IEventReceiver;
-import org.bithon.server.pipeline.metrics.input.MetricInputSourceManager;
+import org.bithon.server.pipeline.metrics.input.IMetricInputSourceManager;
 import org.bithon.server.storage.event.EventMessage;
 import org.slf4j.Logger;
 
@@ -39,11 +39,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EventPipeline extends AbstractPipeline<IEventReceiver, IEventExporter> {
 
-    private final MetricInputSourceManager metricInputSourceManager;
+    private final IMetricInputSourceManager metricInputSourceManager;
     private final Set<String> metricEvents = new ConcurrentSkipListSet<>();
 
     public EventPipeline(EventPipelineConfig pipelineConfig,
-                         MetricInputSourceManager metricInputSourceManager,
+                         IMetricInputSourceManager metricInputSourceManager,
                          ObjectMapper objectMapper) {
         super(IEventReceiver.class, IEventExporter.class, pipelineConfig, objectMapper);
         this.metricInputSourceManager = metricInputSourceManager;
