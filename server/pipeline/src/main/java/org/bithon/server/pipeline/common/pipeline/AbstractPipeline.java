@@ -113,7 +113,6 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
                                   "The pipeline processing is enabled, but no exporter defined.");
 
         // No use of stream API because we need to return a modifiable list
-        List<EXPORTER> exporters = new ArrayList<>();
         for (Object exporterConfig : pipelineConfig.getExporters()) {
             try {
                 link(createObject(exporterClass, objectMapper, exporterConfig));
