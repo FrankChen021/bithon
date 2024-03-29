@@ -95,4 +95,9 @@ public class KafkaEventExporter implements IEventExporter {
     public void close() {
         producer.destroy();
     }
+
+    @Override
+    public String toString() {
+        return "to-kafka";
+    }
 }

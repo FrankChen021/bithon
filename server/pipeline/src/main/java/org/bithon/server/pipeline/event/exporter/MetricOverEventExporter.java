@@ -18,6 +18,7 @@ package org.bithon.server.pipeline.event.exporter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
 import org.bithon.server.pipeline.metrics.exporter.MetricMessageHandler;
@@ -38,8 +39,9 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class MetricOverEventExporter implements IEventExporter {
-
+    @Getter
     private final String eventType;
+
     private final ObjectMapper objectMapper;
     private final MetricMessageHandler metricHandler;
 
@@ -93,6 +95,6 @@ public class MetricOverEventExporter implements IEventExporter {
 
     @Override
     public String toString() {
-        return "MetricOverEventHandler[eventType=" + this.eventType + "]";
+        return "MetricOverEventExporter[eventType=" + this.eventType + "]";
     }
 }

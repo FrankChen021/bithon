@@ -41,17 +41,17 @@ import java.util.stream.Collectors;
  * @author Frank Chen
  * @date 28/3/24 12:00 pm
  */
-public class MetricOverSpanExporter implements ITraceExporter {
+public class MetricOverTraceExporter implements ITraceExporter {
     private final TransformSpec transformSpec;
 
     @Getter
     private final DefaultSchema schema;
     private final MetricMessageHandler metricHandler;
 
-    public MetricOverSpanExporter(TransformSpec transformSpec,
-                                  DefaultSchema schema,
-                                  IMetricStorage metricStorage,
-                                  ApplicationContext applicationContext) throws IOException {
+    public MetricOverTraceExporter(TransformSpec transformSpec,
+                                   DefaultSchema schema,
+                                   IMetricStorage metricStorage,
+                                   ApplicationContext applicationContext) throws IOException {
         this.transformSpec = transformSpec;
         this.schema = schema;
         this.metricHandler = new MetricMessageHandler(schema.getName(),
@@ -121,6 +121,6 @@ public class MetricOverSpanExporter implements ITraceExporter {
 
     @Override
     public String toString() {
-        return "MetricOverSpanInputSource[" + this.schema.getName() + "]";
+        return "MetricOverTraceExporter[" + this.schema.getName() + "]";
     }
 }

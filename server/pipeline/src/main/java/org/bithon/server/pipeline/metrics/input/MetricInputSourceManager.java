@@ -39,13 +39,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2022/11/16 21:35
  */
 @Slf4j
-public class MetricInputSourceManager implements SchemaManager.ISchemaChangeListener {
+public class MetricInputSourceManager implements SchemaManager.ISchemaChangedListener {
 
     private final Map<String, IMetricInputSource> inputSources = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper;
     private final SchemaManager schemaManager;
     private final boolean enabled;
     private final Map<String, Class<? extends IMetricInputSource>> subTypes = new HashMap<>();
+    private boolean suppressListener;
 
     public MetricInputSourceManager(boolean enabled,
                                     SchemaManager schemaManager,
@@ -56,6 +57,7 @@ public class MetricInputSourceManager implements SchemaManager.ISchemaChangeList
         if (this.enabled) {
             this.schemaManager.addListener(this);
         }
+        this.suppressListener = false;
     }
 
     public void start(Class<? extends IMetricInputSource> inputSourceClazz) {
@@ -77,14 +79,22 @@ public class MetricInputSourceManager implements SchemaManager.ISchemaChangeList
         // register the type
         subTypes.putIfAbsent(type.getName(), inputSourceClazz);
 
-        // start all input sources by given type
-        schemaManager.getSchemas()
-                     .values()
-                     .forEach((schema) -> startInputSource(schema, type.getName()));
+        this.suppressListener = true;
+        try {
+            schemaManager.getSchemas()
+                         .values()
+                         .forEach((schema) -> startInputSource(schema, type.getName()));
+        } finally {
+            this.suppressListener = false;
+        }
     }
 
     @Override
-    public void onChange(ISchema oldSchema, ISchema newSchema) {
+    public void onSchemaChanged(ISchema oldSchema, ISchema newSchema) {
+        if (suppressListener) {
+            return;
+        }
+
         if (oldSchema != null
             && Objects.equals(oldSchema.getSignature(), newSchema.getSignature())) {
             // same signature, do nothing

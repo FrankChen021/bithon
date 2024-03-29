@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class SchemaManager implements SmartLifecycle {
-    private final List<ISchemaChangeListener> listeners = Collections.synchronizedList(new ArrayList<>());
+    private final List<ISchemaChangedListener> listeners = Collections.synchronizedList(new ArrayList<>());
     private final ISchemaStorage schemaStorage;
     private ScheduledExecutorService loaderScheduler;
     private final Map<String, ISchema> schemas = new ConcurrentHashMap<>();
@@ -115,10 +115,10 @@ public class SchemaManager implements SmartLifecycle {
         return new TreeMap<>(schemas);
     }
 
-    public void addListener(ISchemaChangeListener listener) {
+    public void addListener(ISchemaChangedListener listener) {
         listeners.add(listener);
 
-        this.schemas.forEach((name, schema) -> listener.onChange(null, schema));
+        this.schemas.forEach((name, schema) -> listener.onSchemaChanged(null, schema));
     }
 
     private void incrementalLoadSchemas() {
@@ -128,7 +128,8 @@ public class SchemaManager implements SmartLifecycle {
         log.info("{} schema(s) have been changed since {}.", changedSchemaList.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
 
         for (ISchema changedSchema : changedSchemaList) {
-            this.onChange(this.put(changedSchema.getName(), changedSchema), changedSchema);
+            ISchema oldSchema = this.put(changedSchema.getName(), changedSchema);
+            this.onChange(oldSchema, changedSchema);
         }
 
         this.lastLoadAt = now;
@@ -143,11 +144,11 @@ public class SchemaManager implements SmartLifecycle {
 
     private void onChange(ISchema oldSchema, ISchema newSchema) {
         // Copy to list first to avoid a concurrency problem
-        ISchemaChangeListener[] listenerList = this.listeners.toArray(new ISchemaChangeListener[0]);
+        ISchemaChangedListener[] listenerList = this.listeners.toArray(new ISchemaChangedListener[0]);
 
-        for (ISchemaChangeListener listener : listenerList) {
+        for (ISchemaChangedListener listener : listenerList) {
             try {
-                listener.onChange(oldSchema, newSchema);
+                listener.onSchemaChanged(oldSchema, newSchema);
             } catch (Exception e) {
                 log.error("notify onAdd exception", e);
             }
@@ -158,7 +159,7 @@ public class SchemaManager implements SmartLifecycle {
     public void start() {
         log.info("Starting schema incremental loader...");
 
-        // Load schemas first
+        // Load schemas first.
         incrementalLoadSchemas();
 
         // start periodic loader
@@ -190,7 +191,7 @@ public class SchemaManager implements SmartLifecycle {
         return loaderScheduler != null && !loaderScheduler.isShutdown();
     }
 
-    public interface ISchemaChangeListener {
-        void onChange(ISchema oldSchema, ISchema newSchema);
+    public interface ISchemaChangedListener {
+        void onSchemaChanged(ISchema oldSchema, ISchema newSchema);
     }
 }

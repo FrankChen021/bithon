@@ -28,7 +28,7 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.pipeline.common.transform.TransformSpec;
 import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
 import org.bithon.server.pipeline.tracing.TracePipeline;
-import org.bithon.server.pipeline.tracing.exporter.MetricOverSpanExporter;
+import org.bithon.server.pipeline.tracing.exporter.MetricOverTraceExporter;
 import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.metrics.IMetricStorage;
@@ -57,7 +57,7 @@ public class MetricOverTraceInputSource implements IMetricInputSource {
     private final ApplicationContext applicationContext;
 
     @JsonIgnore
-    private MetricOverSpanExporter metricExporter;
+    private MetricOverTraceExporter metricExporter;
 
     @JsonCreator
     public MetricOverTraceInputSource(@JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
@@ -92,10 +92,10 @@ public class MetricOverTraceInputSource implements IMetricInputSource {
         }
 
         log.info("Adding metric-exporter for [{}({})] to tracing logs processors...", schema.getName(), schema.getSignature());
-        MetricOverSpanExporter exporter = null;
+        MetricOverTraceExporter exporter = null;
         try {
-            exporter = new MetricOverSpanExporter(transformSpec, (DefaultSchema) schema, metricStorage, applicationContext);
-            metricExporter = (MetricOverSpanExporter) this.pipeline.link(exporter);
+            exporter = new MetricOverTraceExporter(transformSpec, (DefaultSchema) schema, metricStorage, applicationContext);
+            metricExporter = (MetricOverTraceExporter) this.pipeline.link(exporter);
         } catch (Exception e) {
             if (exporter != null) {
                 this.pipeline.unlink(exporter);
