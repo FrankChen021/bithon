@@ -22,6 +22,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.logging.RateLimitLogger;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.pipeline.common.transform.filter.AndFilter;
 import org.bithon.server.pipeline.common.transform.filter.IInputRowFilter;
@@ -29,6 +31,8 @@ import org.bithon.server.pipeline.common.transform.flatten.IFlattener;
 import org.bithon.server.pipeline.common.transform.transformer.ITransformer;
 import org.bithon.server.pipeline.common.transform.transformer.TransformResult;
 import org.bithon.server.storage.datasource.input.IInputRow;
+import org.slf4j.Logger;
+import org.slf4j.event.Level;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -41,6 +45,8 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 public class TransformSpec {
+    private static final Logger LOG = new RateLimitLogger(log).config(Level.ERROR, 1);
+
     /**
      * the granularity that the data should be aggregated at
      */
@@ -106,7 +112,7 @@ public class TransformSpec {
             }
             return true;
         } catch (Exception e) {
-            log.error("Failed to transform input data", e);
+            LOG.error(StringUtils.format("Failed to transform input data: {}", inputRow), e);
             return false;
         }
     }
