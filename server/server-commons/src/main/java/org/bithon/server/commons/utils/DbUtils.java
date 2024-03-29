@@ -72,7 +72,7 @@ public class DbUtils {
                 case "clickhouse":
                     if (uri.getPath() == null) {
                         //
-                        // ClickHouse JDBC Driver sometimes turn jdbc:clickhouse:// into jdbc:clickhouse:http://
+                        // ClickHouse JDBC Driver sometimes turns jdbc:clickhouse:// into jdbc:clickhouse:http://
                         // So we need to drop the jdbc:clickhouse: if necessary
                         //
                         uri = new URI(connectionString.substring(uri.getScheme().length() + 1));
