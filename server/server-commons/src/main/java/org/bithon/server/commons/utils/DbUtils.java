@@ -64,10 +64,13 @@ public class DbUtils {
                                                 uri.getSchemeSpecificPart(),
                                                 "h2");
 
-                case "mysql":
+                case "mysql": {
+                    String path = uri.getPath();
                     return new ConnectionString(uri.getHost() + ":" + uri.getPort(),
-                                                uri.getPath().substring(1),
+                                                path.isEmpty() ? "" : path.substring(1),
                                                 "mysql");
+                }
+
                 case "ch":
                 case "clickhouse":
                     if (uri.getPath() == null) {
