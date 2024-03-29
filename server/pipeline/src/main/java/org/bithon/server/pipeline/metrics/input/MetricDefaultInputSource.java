@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.metrics;
+package org.bithon.server.pipeline.metrics.input;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -22,8 +22,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.pipeline.common.input.IInputSource;
 import org.bithon.server.pipeline.common.transform.TransformSpec;
+import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
 import org.bithon.server.pipeline.metrics.exporter.MetricMessageHandler;
 import org.bithon.server.pipeline.metrics.exporter.MetricMessageHandlers;
 import org.bithon.server.storage.datasource.ISchema;
@@ -41,15 +41,15 @@ import java.io.IOException;
  */
 @Slf4j
 @JsonTypeName("metric")
-public class MetricInputSource implements IInputSource {
+public class MetricDefaultInputSource implements IMetricInputSource {
 
     private final TransformSpec transformSpec;
     private final ApplicationContext applicationContext;
     private String name;
 
     @JsonCreator
-    public MetricInputSource(@JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
-                             @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+    public MetricDefaultInputSource(@JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
+                                    @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.transformSpec = transformSpec;
         this.applicationContext = applicationContext;
     }

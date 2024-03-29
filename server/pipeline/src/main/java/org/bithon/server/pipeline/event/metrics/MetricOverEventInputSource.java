@@ -23,11 +23,12 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.pipeline.common.input.IInputSource;
 import org.bithon.server.pipeline.common.transform.TransformSpec;
 import org.bithon.server.pipeline.event.EventPipeline;
 import org.bithon.server.pipeline.event.exporter.IEventExporter;
+import org.bithon.server.pipeline.event.exporter.MetricOverEventExporter;
 import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
+import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.meta.IMetaStorage;
@@ -43,7 +44,7 @@ import java.io.IOException;
  */
 @Slf4j
 @JsonTypeName("event")
-public class EventInputSource implements IInputSource {
+public class MetricOverEventInputSource implements IMetricInputSource {
 
     private final TransformSpec transformSpec;
     private final ApplicationContext applicationContext;
@@ -53,10 +54,10 @@ public class EventInputSource implements IInputSource {
     private IEventExporter exporter;
 
     @JsonCreator
-    public EventInputSource(@JsonProperty("eventType") String eventType,
-                            @JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
-                            @JacksonInject(useInput = OptBoolean.FALSE) EventPipeline pipeline,
-                            @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+    public MetricOverEventInputSource(@JsonProperty("eventType") String eventType,
+                                      @JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
+                                      @JacksonInject(useInput = OptBoolean.FALSE) EventPipeline pipeline,
+                                      @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.transformSpec = transformSpec;
         this.pipeline = pipeline;
         this.applicationContext = applicationContext;
@@ -83,13 +84,13 @@ public class EventInputSource implements IInputSource {
         }
 
         try {
-            this.exporter = new MetricOverEventHandler(eventType,
-                                                       schemaName,
-                                                       applicationContext.getBean(ObjectMapper.class),
-                                                       applicationContext.getBean(IMetaStorage.class),
-                                                       applicationContext.getBean(IMetricStorage.class),
-                                                       applicationContext.getBean(SchemaManager.class),
-                                                       applicationContext.getBean(MetricPipelineConfig.class));
+            this.exporter = new MetricOverEventExporter(eventType,
+                                                        schemaName,
+                                                        applicationContext.getBean(ObjectMapper.class),
+                                                        applicationContext.getBean(IMetaStorage.class),
+                                                        applicationContext.getBean(IMetricStorage.class),
+                                                        applicationContext.getBean(SchemaManager.class),
+                                                        applicationContext.getBean(MetricPipelineConfig.class));
 
             pipeline.link(this.exporter);
         } catch (IOException e) {

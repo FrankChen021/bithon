@@ -35,4 +35,5 @@ public class StorageConfig {
     private boolean createTable = true;
 
     private ExpirationConfig ttl;
+    private boolean enabled = true;
 }

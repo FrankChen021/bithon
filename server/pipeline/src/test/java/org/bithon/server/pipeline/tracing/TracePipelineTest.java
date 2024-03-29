@@ -83,7 +83,7 @@ public class TracePipelineTest {
         config.setEnabled(true);
         config.setReceivers(Collections.singletonList(ImmutableMap.of("type", "fake-receiver")));
         config.setExporters(Collections.singletonList(ImmutableMap.of("type", "fake-exporter")));
-        TracePipeline pipeline = new TracePipeline(config, objectMapper);
+        TracePipeline pipeline = new TracePipeline(config, null, objectMapper);
         pipeline.start();
         Assert.assertNotNull(registeredProcessor);
         Assert.assertNull(receivedTraceSpanList);

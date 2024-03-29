@@ -20,7 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.pipeline.common.pipeline.AbstractPipeline;
 import org.bithon.server.pipeline.event.exporter.IEventExporter;
+import org.bithon.server.pipeline.event.metrics.MetricOverEventInputSource;
 import org.bithon.server.pipeline.event.receiver.IEventReceiver;
+import org.bithon.server.pipeline.metrics.input.MetricInputSourceManager;
 import org.bithon.server.storage.event.EventMessage;
 import org.slf4j.Logger;
 
@@ -33,8 +35,13 @@ import java.util.List;
 @Slf4j
 public class EventPipeline extends AbstractPipeline<IEventReceiver, IEventExporter> {
 
-    public EventPipeline(EventPipelineConfig pipelineConfig, ObjectMapper objectMapper) {
+    private final MetricInputSourceManager metricInputSourceManager;
+
+    public EventPipeline(EventPipelineConfig pipelineConfig,
+                         MetricInputSourceManager metricInputSourceManager,
+                         ObjectMapper objectMapper) {
         super(IEventReceiver.class, IEventExporter.class, pipelineConfig, objectMapper);
+        this.metricInputSourceManager = metricInputSourceManager;
     }
 
     public EventPipelineConfig getPipelineConfig() {
@@ -43,6 +50,9 @@ public class EventPipeline extends AbstractPipeline<IEventReceiver, IEventExport
 
     @Override
     protected void registerProcessor() {
+        // Load schemas and register processor for each schema
+        this.metricInputSourceManager.start(MetricOverEventInputSource.class);
+
         IEventProcessor processor = new IEventProcessor() {
             @Override
             public void process(String messageType, List<EventMessage> messages) {

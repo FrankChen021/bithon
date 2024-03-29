@@ -103,7 +103,15 @@ public class SchemaManager implements SmartLifecycle {
         throw new SchemaException.NotFound(name);
     }
 
-    public Map<String, ISchema> getSchemas() {
+    public synchronized Map<String, ISchema> getSchemas() {
+        if (!this.isRunning()) {
+            // Make sure when this method is called, it's initialized, and schemas have been loaded,
+            // We don't change the Phase of this object because change of Phase still has implicit dependency,
+            // Dependencies have to carefully define the order of phase.
+            // So, manually starting this object is much reasonable
+            this.start();
+        }
+
         return new TreeMap<>(schemas);
     }
 
@@ -149,26 +157,17 @@ public class SchemaManager implements SmartLifecycle {
     @Override
     public void start() {
         log.info("Starting schema incremental loader...");
+
+        // Load schemas first
+        incrementalLoadSchemas();
+
+        // start periodic loader
         loaderScheduler = ScheduledExecutorServiceFactor.newSingleThreadScheduledExecutor(NamedThreadFactory.of("schema-loader"));
         loaderScheduler.scheduleWithFixedDelay(this::incrementalLoadSchemas,
                                                // no delay to execute the first task
-                                               0,
+                                               1,
                                                1,
                                                TimeUnit.MINUTES);
-
-        // Wait until the load complete
-        // Not able to use the Future object returned by the scheduleWithFixedDelay above because the 'get'
-        // works abnormally as its javadoc says
-        int count = 0;
-        while (this.lastLoadAt == 0 && count++ < 30) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ignored) {
-            }
-        }
-        if (this.lastLoadAt == 0) {
-            log.error("!!!!!!Timeout to wait for the first loading of schemas!!!");
-        }
     }
 
     @Override
@@ -177,6 +176,7 @@ public class SchemaManager implements SmartLifecycle {
             log.info("Shutting down Schema Manager...");
             loaderScheduler.shutdownNow();
             try {
+                //noinspection ResultOfMethodCallIgnored
                 loaderScheduler.awaitTermination(5, TimeUnit.SECONDS);
             } catch (InterruptedException ignored) {
             } finally {

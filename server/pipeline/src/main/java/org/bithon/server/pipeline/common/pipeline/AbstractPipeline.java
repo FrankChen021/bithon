@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER extends IExporter> implements SmartLifecycle {
 
+    protected final ObjectMapper objectMapper;
     protected PipelineConfig pipelineConfig;
 
     protected final List<RECEIVER> receivers;
@@ -51,6 +52,7 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
         this.receivers = createReceivers(pipelineConfig, objectMapper, receiverClass);
         this.processors = createProcessors(pipelineConfig, objectMapper);
         this.exporters = createExporters(pipelineConfig, objectMapper, exporterClass);
+        this.objectMapper = objectMapper;
     }
 
     private <T> T createObject(Class<T> clazz, ObjectMapper objectMapper, Object configuration) throws IOException {

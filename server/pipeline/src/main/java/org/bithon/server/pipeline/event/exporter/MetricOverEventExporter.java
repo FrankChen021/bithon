@@ -14,12 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.event.metrics;
+package org.bithon.server.pipeline.event.exporter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.pipeline.event.exporter.IEventExporter;
 import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
 import org.bithon.server.pipeline.metrics.exporter.MetricMessageHandler;
 import org.bithon.server.storage.datasource.SchemaManager;
@@ -38,19 +37,19 @@ import java.util.stream.Collectors;
  * @date 2022/8/2 22:30
  */
 @Slf4j
-public class MetricOverEventHandler implements IEventExporter {
+public class MetricOverEventExporter implements IEventExporter {
 
     private final String eventType;
     private final ObjectMapper objectMapper;
     private final MetricMessageHandler metricHandler;
 
-    public MetricOverEventHandler(String eventType,
-                                  String dataSourceName,
-                                  ObjectMapper objectMapper,
-                                  IMetaStorage metaStorage,
-                                  IMetricStorage metricStorage,
-                                  SchemaManager schemaManager,
-                                  MetricPipelineConfig metricPipelineConfig) throws IOException {
+    public MetricOverEventExporter(String eventType,
+                                   String dataSourceName,
+                                   ObjectMapper objectMapper,
+                                   IMetaStorage metaStorage,
+                                   IMetricStorage metricStorage,
+                                   SchemaManager schemaManager,
+                                   MetricPipelineConfig metricPipelineConfig) throws IOException {
         metricHandler = new MetricMessageHandler(dataSourceName,
                                                  metaStorage,
                                                  metricStorage,

@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.pipeline.common.pipeline.AbstractPipeline;
 import org.bithon.server.pipeline.metrics.exporter.IMetricExporter;
+import org.bithon.server.pipeline.metrics.input.MetricDefaultInputSource;
+import org.bithon.server.pipeline.metrics.input.MetricInputSourceManager;
 import org.bithon.server.pipeline.metrics.receiver.IMetricReceiver;
 import org.slf4j.Logger;
 
@@ -30,13 +32,21 @@ import org.slf4j.Logger;
 @Slf4j
 public class MetricPipeline extends AbstractPipeline<IMetricReceiver, IMetricExporter> {
 
+    private final MetricInputSourceManager metricInputSourceManager;
+
     public MetricPipeline(MetricPipelineConfig pipelineConfig,
+                          MetricInputSourceManager metricInputSourceManager,
                           ObjectMapper objectMapper) {
         super(IMetricReceiver.class, IMetricExporter.class, pipelineConfig, objectMapper);
+
+        this.metricInputSourceManager = metricInputSourceManager;
     }
 
     @Override
     protected void registerProcessor() {
+        // Load schemas and register processors for each schema
+        this.metricInputSourceManager.start(MetricDefaultInputSource.class);
+
         IMetricProcessor processor = new IMetricProcessor() {
             @Override
             public void close() {

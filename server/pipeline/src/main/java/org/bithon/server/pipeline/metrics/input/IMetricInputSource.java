@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.common.input;
+package org.bithon.server.pipeline.metrics.input;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.pipeline.common.transform.TransformSpec;
@@ -25,7 +25,7 @@ import org.bithon.server.storage.datasource.ISchema;
  * @date 12/4/22 11:20 AM
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IInputSource {
+public interface IMetricInputSource {
 
     TransformSpec getTransformSpec();
 
