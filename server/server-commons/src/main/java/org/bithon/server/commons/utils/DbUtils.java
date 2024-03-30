@@ -66,7 +66,16 @@ public class DbUtils {
 
                 case "mysql": {
                     String path = uri.getPath();
-                    return new ConnectionString(uri.getHost() + ":" + uri.getPort(),
+                    if (path == null) {
+                        uri = new URI(connectionString.substring(uri.getScheme().length() + 1));
+                        path = uri.getPath();
+                    }
+                    String hostAndPort = uri.getAuthority();
+                    int separator = uri.getAuthority().indexOf(',');
+                    if (separator > 0) {
+                        hostAndPort = hostAndPort.substring(0, separator);
+                    }
+                    return new ConnectionString(hostAndPort,
                                                 path.isEmpty() ? "" : path.substring(1),
                                                 "mysql");
                 }

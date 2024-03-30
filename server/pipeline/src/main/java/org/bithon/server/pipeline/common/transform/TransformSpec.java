@@ -112,7 +112,7 @@ public class TransformSpec {
             }
             return true;
         } catch (Exception e) {
-            LOG.error(StringUtils.format("Failed to transform input data: {}", inputRow), e);
+            LOG.error(StringUtils.format("Failed to transform input data: %s", inputRow), e);
             return false;
         }
     }

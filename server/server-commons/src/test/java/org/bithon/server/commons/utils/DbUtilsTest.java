@@ -48,4 +48,12 @@ public class DbUtilsTest {
         Assert.assertEquals("", conn.getDatabase());
         Assert.assertEquals("mysql", conn.getDbType());
     }
+
+    @Test
+    public void testMySQLReplica() {
+        DbUtils.ConnectionString conn = DbUtils.parseConnectionString("jdbc:mysql:replication://db-master1.mobile.com:6606,db-slave.mobile.com:6606/db");
+        Assert.assertEquals("db-master1.mobile.com:6606", conn.getHostAndPort());
+        Assert.assertEquals("db", conn.getDatabase());
+        Assert.assertEquals("mysql", conn.getDbType());
+    }
 }
