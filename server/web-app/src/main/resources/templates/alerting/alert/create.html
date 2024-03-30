@@ -184,10 +184,21 @@
 
         const g_ExpressionDashboard = new ExpressionDashboardComponent('metricSection');
 
-        function renderExpression() {
+        function renderExpression(checkApp) {
+            const expr = $('#expression').val();
+            const appName = $('#appName').val();
+            if (checkApp && expr === '') {
+                bootbox.alert({
+                    backdrop: true,
+                    title: "Error",
+                    message: '<pre>expression is not provided</pre>'
+                });
+                return;
+            }
+
             g_ExpressionDashboard.renderExpression(
-                $('#expression').val(),
-                $('#appName').val(),
+                expr,
+                appName,
             );
         }
 
@@ -195,11 +206,11 @@
 
             $('#expression').keydown((e)=>{
                 if (e.keyCode === 13) {
-                    renderExpression();
+                    renderExpression(true);
                 }
             });
             $('#parse').click(() => {
-                renderExpression();
+                renderExpression(true);
             });
 
             $('#appName').select2({
@@ -229,7 +240,7 @@
                         };
                     }
                 }
-            }).on('change', () => renderExpression());
+            }).on('change', () => renderExpression(false));
 
             $('#notifications').select2({
                 theme: 'bootstrap4',
