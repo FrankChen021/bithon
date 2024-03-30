@@ -35,6 +35,7 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
+import org.bithon.component.commons.utils.HumanReadableSize;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.metric.absolute.EqualPredicate;
@@ -195,7 +196,7 @@ public class AlertExpressionASTParser {
                         if (expected.getValue() instanceof HumanReadablePercentage) {
                             metricEvaluator = new RelativeLTPredicate((Number) expected.getValue(), expectedWindow);
                         } else {
-                            metricEvaluator = new LessThanPredicate((Number) expected.getValue());
+                            metricEvaluator = new LessThanPredicate(expected.getValue());
                         }
                     }
                     break;
@@ -398,6 +399,9 @@ public class AlertExpressionASTParser {
 
                 case AlertExpressionParser.NULL_LITERAL:
                     return null;
+
+                case AlertExpressionParser.SIZE_LITERAL:
+                    return LiteralExpression.create(HumanReadableSize.of(symbol.getText()));
 
                 default:
                     throw new RuntimeException("Unsupported terminal type");

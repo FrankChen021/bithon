@@ -14,21 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.alerting.pojo;
+package org.bithon.server.alerting.notification.config;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/1/26
+ * @author Frank Chen
+ * @date 16/3/24 9:02 pm
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class LogItem {
-    private Long timestamp;
-    private String clazz;
-    private String message;
+@Configuration
+@ConfigurationProperties("bithon.alerting.notification")
+public class NotificationProperties {
+    private String managerURL;
 }

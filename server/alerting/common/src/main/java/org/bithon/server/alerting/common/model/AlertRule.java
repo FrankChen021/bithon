@@ -105,7 +105,7 @@ public class AlertRule {
 
         Preconditions.checkIfTrue(!StringUtils.isEmpty(expr), "There must be at least one expression in the alert [%s]", this.name);
 
-        this.evaluationExpression = AlertExpressionASTParser.parse(this.expr);
+        this.evaluationExpression = build(this.appName, this.expr);
 
         // Use LinkedHashMap to keep order
         this.flattenExpressions = new LinkedHashMap<>();
@@ -113,13 +113,35 @@ public class AlertRule {
         this.evaluationExpression.accept((IAlertExpressionVisitor) expression -> {
             // Save to the flattened list
             flattenExpressions.put(expression.getId(), expression);
+        });
 
-            if (StringUtils.isBlank(this.appName)) {
-                return;
-            }
+        return this;
+    }
 
+    public static AlertRule from(AlertStorageObject alertObject) {
+        AlertRule rule = new AlertRule();
+        rule.setId(alertObject.getId());
+        rule.setEnabled(!alertObject.isDisabled());
+        rule.setAppName(alertObject.getAppName());
+        rule.setName(alertObject.getName());
+        rule.setEvery(alertObject.getPayload().getEvery());
+        rule.setExpr(alertObject.getPayload().getExpr());
+        rule.setSilence(alertObject.getPayload().getSilence());
+        rule.setForDuration(alertObject.getPayload().getForDuration());
+        rule.setNotifications(alertObject.getPayload().getNotifications());
+        return rule;
+    }
+
+    public static IExpression build(String appName, String expressionText) {
+        IExpression astExpression = AlertExpressionASTParser.parse(expressionText);
+
+        if (StringUtils.isBlank(appName)) {
+            return astExpression;
+        }
+
+        astExpression.accept((IAlertExpressionVisitor) expression -> {
             // Add appName filter to the AST
-            IExpression appNameFilter = new ComparisonExpression.EQ(new IdentifierExpression("appName"), LiteralExpression.create(this.getAppName()));
+            IExpression appNameFilter = new ComparisonExpression.EQ(new IdentifierExpression("appName"), LiteralExpression.create(appName));
             IExpression whereExpression = expression.getWhereExpression();
             if (whereExpression == null) {
                 expression.setWhereExpression(appNameFilter);
@@ -143,20 +165,6 @@ public class AlertRule {
             }
         });
 
-        return this;
-    }
-
-    public static AlertRule from(AlertStorageObject alertObject) {
-        AlertRule rule = new AlertRule();
-        rule.setId(alertObject.getId());
-        rule.setEnabled(!alertObject.isDisabled());
-        rule.setAppName(alertObject.getAppName());
-        rule.setName(alertObject.getName());
-        rule.setEvery(alertObject.getPayload().getEvery());
-        rule.setExpr(alertObject.getPayload().getExpr());
-        rule.setSilence(alertObject.getPayload().getSilence());
-        rule.setForDuration(alertObject.getPayload().getForDuration());
-        rule.setNotifications(alertObject.getPayload().getNotifications());
-        return rule;
+        return astExpression;
     }
 }

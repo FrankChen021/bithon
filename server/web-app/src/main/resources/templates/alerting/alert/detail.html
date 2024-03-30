@@ -18,6 +18,8 @@
 
     <script th:src="@{/js/alert/schema-manager.js}" type="text/javascript"></script>
     <script th:src="@{/js/alert/log-component.js}" type="text/javascript"></script>
+    <script th:src="@{/js/alert/metrics-component.js}" type="text/javascript"></script>
+    <script th:src="@{/js/alert/expression-dashboard-component.js}" type="text/javascript"></script>
     <script th:src="@{/js/api-client/alert-api.js}" type="text/javascript"></script>
 
     <style>
@@ -61,22 +63,47 @@
     <!-- Tab Contents -->
     <div class="tab-content">
         <div class="tab-pane active" id="home" role="tabpanel" style="padding:10px 0 10px 0">
-            <div class="input-group mb-3">
+            <div class="input-group">
                 <div class="input-group-prepend">
-                    <span class="input-group-text" style="width: 160px"><b>Application</b></span>
-                </div>
-                <input class="form-control" id="appName"/>
-            </div>
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" style="width: 160px"><b>Name</b></span>
+                    <span class="input-group-text" style="width: 160px"><b>name</b></span>
                 </div>
                 <input class="form-control" id="name"/>
             </div>
-            <div>
-                <pre id="payload"></pre>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" style="width: 160px"><b>application</b></span>
+                </div>
+                <input class="form-control" id="appName"/>
             </div>
+
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" style="width: 160px"><b>expression</b></span>
+                </div>
+                <input class="form-control" id="expression"/>
+            </div>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" style="width: 160px"><b>for</b></span>
+                </div>
+                <input class="form-control" id="for"/>
+            </div>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" style="width: 160px"><b>every</b></span>
+                </div>
+                <input class="form-control" id="every"/>
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" style="width: 160px"><b>notification</b></span>
+                </div>
+                <input class="form-control" id="notifications"/>
+            </div>
+
+            <div id="metricSection"></div>
         </div>
+
         <div class="tab-pane" id="records" role="tabpanel">
             <table class="table" id="alertTable">
             </table>
@@ -105,28 +132,17 @@
     <script type="text/javascript">
 
         g_SelectedApp = window.queryParams['appName'];
+        const g_ExpressionDashboard = new ExpressionDashboardComponent('metricSection');
 
-        function showAlert(alert) {
-            $('#appName').val(alert.appName);
+        function renderAlert(alert) {
             $('#name').val(alert.name);
-            $("#payload").text(JSON.stringify(alert.payload, null, 4));
-        }
+            $('#appName').val(alert.appName);
+            $('#expression').val(alert.payload.expr);
+            $('#for').val(alert.payload.for);
+            $('#every').val(alert.payload.every);
+            $('#notifications').val(alert.payload.notifications.join(','));
 
-        function addRule(rule) {
-            const container = $(".trigger-container");
-
-            const ruleItem = $(
-                '<div class="input-group trigger-item" style="width: 500px;margin-bottom: 5px">            ' +
-                '    <span class="input-group-addon" style="border-left: 1px solid #ccc;">Rule</span>      ' +
-                '    <input type="text" class="form-control trigger-expression"                            ' +
-                '           maxlength="200" style="width: 260px"/>                                         ' +
-                '    <span class="input-group-addon" style="border-left: 1px solid #ccc;">Severity</span>      ' +
-                '    <input class="form-control trigger-severity" style="width: 100px;"/>                  ' +
-                '</div>                                                                                    '
-            );
-            $(ruleItem).find(".trigger-expression").val(rule.expression);
-            $(ruleItem).find(".trigger-severity").val(rule.severity);
-            $(container).append($(ruleItem));
+            g_ExpressionDashboard.renderExpression(alert.payload.expr);
         }
 
         function loadRecords() {
@@ -228,7 +244,7 @@
                     field: 'id',
                     title: 'Diff',
                     formatter: (value, row, index) => {
-                        return `<button class="btn btn-sm btn-outline-info" onclick="javascript:toggleChanges(${index})">View Changes</button>`;
+                        return `<button class="btn btn-sm btn-outline-info" onclick="toggleChanges(${index})">View Changes</button>`;
                     }
                 }],
 
@@ -248,10 +264,6 @@
             })
         }
 
-        function onLoad(alert) {
-            showAlert(alert);
-        }
-
         function toggleChanges(index) {
             $('#changelogsTable').bootstrapTable('toggleDetailView', index);
         }
@@ -259,8 +271,8 @@
         let logComponent;
         let gAlert;
 
-        $(document).ready(function () {
-            $('.btn-return').click(function (e) {
+        $(document).ready(() => {
+            $('.btn-return').click(() => {
                 if (returnUrl != null) {
                     window.location.href = decodeURIComponent(returnUrl);
                 } else {
@@ -270,12 +282,12 @@
 
             new AlertApi().getAlertById(alertId, (alert) => {
                 gAlert = alert;
-                showAlert(alert);
+                renderAlert(alert);
             })
             loadRecords();
             loadChangeLogs();
 
-            $('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+            $('a[data-toggle="pill"]').on('shown.bs.tab', (e) => {
                 if ($(e.target).attr('href') !== '#runLogs') {
                     return;
                 }

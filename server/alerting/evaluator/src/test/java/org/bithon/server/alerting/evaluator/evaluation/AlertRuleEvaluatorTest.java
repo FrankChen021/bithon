@@ -55,6 +55,11 @@ public class AlertRuleEvaluatorTest {
         }
 
         @Override
+        public void setInstance(String instance) {
+
+        }
+
+        @Override
         public void write(EvaluationLogEvent logEvent) {
             log.info("[{}] {}", logEvent.getClazz(), logEvent.getMessage());
         }

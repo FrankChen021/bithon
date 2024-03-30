@@ -30,6 +30,9 @@ import java.util.List;
  * @date 2021/1/26
  */
 public interface IEvaluationLogWriter extends AutoCloseable {
+
+    void setInstance(String instance);
+
     void write(EvaluationLogEvent logEvent);
 
     void write(List<EvaluationLogEvent> logs);
