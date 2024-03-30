@@ -101,4 +101,9 @@ public class ToMetricStorageExporter implements IMetricExporter {
             handler.close();
         }
     }
+
+    @Override
+    public String toString() {
+        return "to-metric-storage";
+    }
 }

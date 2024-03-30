@@ -120,8 +120,7 @@ bithon:
             "[http.url]": ["query_id"]
             "uri": ["query_id"]
         - type: name
-          tags:
-            names: ["clickhouse.query_id"]
+          tags: ["clickhouse.query_id"]
       exporters:
         - type: store
 

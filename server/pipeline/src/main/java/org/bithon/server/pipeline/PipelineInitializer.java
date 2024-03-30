@@ -24,6 +24,7 @@ import org.bithon.server.pipeline.event.EventPipeline;
 import org.bithon.server.pipeline.event.EventPipelineConfig;
 import org.bithon.server.pipeline.metrics.MetricPipeline;
 import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
+import org.bithon.server.pipeline.metrics.input.IMetricInputSourceManager;
 import org.bithon.server.pipeline.tracing.TracePipeline;
 import org.bithon.server.pipeline.tracing.TracePipelineConfig;
 import org.bithon.server.storage.InvalidConfigurationException;
@@ -39,7 +40,7 @@ import java.util.Map;
 
 /**
  * Extra pipeline support.
- * Allows to add more than 1 pipelines.
+ * Allows adding more than one pipeline.
  * It's mainly designed for test that runs two pipelines in one deployment.
  * See the application-pipeline-to-kafka-to-local.yml configuration for more.
  *
@@ -54,7 +55,7 @@ public class PipelineInitializer implements SmartLifecycle {
 
     private final List<AbstractPipeline<?, ?>> pipelines = new ArrayList<>();
 
-    public PipelineInitializer(ObjectMapper objectMapper, Environment env) {
+    public PipelineInitializer(IMetricInputSourceManager metricInputSourceManager, ObjectMapper objectMapper, Environment env) {
         Binder binder = Binder.get(env);
         AllPipelineConfig allPipelineConfig = binder.bind("bithon.pipelines", AllPipelineConfig.class).orElse(new AllPipelineConfig());
 
@@ -72,11 +73,11 @@ public class PipelineInitializer implements SmartLifecycle {
                     String realType = (String) props.get("type");
                     Preconditions.checkNotNull(type, "The 'type' property is missed under the pipeline property [%s]", prefix);
                     if ("metrics".equals(realType)) {
-                        pipelines.add(new MetricPipeline(binder.bind(prefix, MetricPipelineConfig.class).get(), objectMapper));
+                        pipelines.add(new MetricPipeline(binder.bind(prefix, MetricPipelineConfig.class).get(), metricInputSourceManager, objectMapper));
                     } else if ("traces".equals(realType)) {
-                        pipelines.add(new TracePipeline(binder.bind(prefix, TracePipelineConfig.class).get(), objectMapper));
+                        pipelines.add(new TracePipeline(binder.bind(prefix, TracePipelineConfig.class).get(), metricInputSourceManager, objectMapper));
                     } else if ("events".equals(realType)) {
-                        pipelines.add(new EventPipeline(binder.bind(prefix, EventPipelineConfig.class).get(), objectMapper));
+                        pipelines.add(new EventPipeline(binder.bind(prefix, EventPipelineConfig.class).get(), metricInputSourceManager, objectMapper));
                     } else {
                         throw new InvalidConfigurationException(StringUtils.format("Unknown value [%s] of property [%s]", realType, prefix));
                     }

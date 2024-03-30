@@ -14,26 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.common;
-
-import lombok.Getter;
-import lombok.Setter;
-import org.bithon.server.storage.common.expiration.ExpirationConfig;
+package org.bithon.server.pipeline.metrics.input;
 
 /**
- * @author Frank Chen
- * @date 4/1/24 11:06 am
+ * @author frank.chen021@outlook.com
+ * @date 2024/3/29 18:27
  */
-@Getter
-@Setter
-public class StorageConfig {
-    // Use provider instead
-    @Deprecated
-    private String type;
-    private String provider;
-
-    private boolean createTable = true;
-
-    private ExpirationConfig ttl;
-    private boolean enabled = true;
+public interface IMetricInputSourceManager {
+    void start(Class<? extends IMetricInputSource> inputSourceClazz);
 }

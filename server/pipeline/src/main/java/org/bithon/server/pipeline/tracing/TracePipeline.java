@@ -22,7 +22,9 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.pipeline.common.pipeline.AbstractPipeline;
 import org.bithon.server.pipeline.common.transform.transformer.ITransformer;
 import org.bithon.server.pipeline.common.transform.transformer.TransformResult;
+import org.bithon.server.pipeline.metrics.input.IMetricInputSourceManager;
 import org.bithon.server.pipeline.tracing.exporter.ITraceExporter;
+import org.bithon.server.pipeline.tracing.metrics.MetricOverTraceInputSource;
 import org.bithon.server.pipeline.tracing.receiver.ITraceReceiver;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.slf4j.Logger;
@@ -37,15 +39,24 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TracePipeline extends AbstractPipeline<ITraceReceiver, ITraceExporter> {
 
-    public TracePipeline(TracePipelineConfig pipelineConfig, ObjectMapper objectMapper) {
+    private final IMetricInputSourceManager metricInputSourceManager;
+
+    public TracePipeline(TracePipelineConfig pipelineConfig,
+                         IMetricInputSourceManager metricInputSourceManager,
+                         ObjectMapper objectMapper) {
         super(ITraceReceiver.class,
               ITraceExporter.class,
               pipelineConfig,
               objectMapper);
+
+        this.metricInputSourceManager = metricInputSourceManager;
     }
 
     @Override
     protected void registerProcessor() {
+        // Load all schemas and input sources
+        this.metricInputSourceManager.start(MetricOverTraceInputSource.class);
+
         ITraceProcessor processor = new PipelineProcessor();
         for (ITraceReceiver receiver : this.receivers) {
             receiver.registerProcessor(processor);

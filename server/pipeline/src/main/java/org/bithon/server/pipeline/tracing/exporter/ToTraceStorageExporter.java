@@ -109,4 +109,9 @@ public class ToTraceStorageExporter implements ITraceExporter {
             this.traceWriter.close();
         }
     }
+
+    @Override
+    public String toString() {
+        return "to-trace-storage";
+    }
 }

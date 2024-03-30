@@ -154,4 +154,9 @@ public class ToKafkaExporter implements ITraceExporter {
         producer.destroy();
         bufferThreadLocal.remove();
     }
+
+    @Override
+    public String toString() {
+        return "to-kafka";
+    }
 }
