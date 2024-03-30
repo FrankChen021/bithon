@@ -24,7 +24,7 @@ import org.bithon.server.pipeline.event.EventPipeline;
 import org.bithon.server.pipeline.event.EventPipelineConfig;
 import org.bithon.server.pipeline.metrics.MetricPipeline;
 import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
-import org.bithon.server.pipeline.metrics.input.MetricInputSourceManager;
+import org.bithon.server.pipeline.metrics.input.IMetricInputSourceManager;
 import org.bithon.server.pipeline.tracing.TracePipeline;
 import org.bithon.server.pipeline.tracing.TracePipelineConfig;
 import org.bithon.server.storage.InvalidConfigurationException;
@@ -55,7 +55,7 @@ public class PipelineInitializer implements SmartLifecycle {
 
     private final List<AbstractPipeline<?, ?>> pipelines = new ArrayList<>();
 
-    public PipelineInitializer(MetricInputSourceManager metricInputSourceManager, ObjectMapper objectMapper, Environment env) {
+    public PipelineInitializer(IMetricInputSourceManager metricInputSourceManager, ObjectMapper objectMapper, Environment env) {
         Binder binder = Binder.get(env);
         AllPipelineConfig allPipelineConfig = binder.bind("bithon.pipelines", AllPipelineConfig.class).orElse(new AllPipelineConfig());
 

@@ -18,7 +18,6 @@ package org.bithon.server.pipeline.tracing.mapping;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.utils.UrlUtils;
@@ -50,15 +49,10 @@ public class URIParameterExtractor implements ITraceIdMappingExtractor {
      * However, it treats the List/Set in the configuration as the type of Map.
      */
     @JsonCreator
-    public URIParameterExtractor(@JsonProperty("tags") HashMap<String, Map<String, String>> tags) {
+    public URIParameterExtractor(@JsonProperty("tags") Map<String, Map<String, String>> tags) {
         this.args = new HashMap<>();
 
         tags.forEach((key, val) -> this.args.put(key, new HashSet<>(val.values())));
-    }
-
-    @VisibleForTesting
-    URIParameterExtractor(Map<String, Set<String>> args) {
-        this.args = args;
     }
 
     @Override
