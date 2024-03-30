@@ -21,8 +21,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
@@ -58,7 +61,10 @@ public class HttpNotificationChannel implements INotificationChannel {
     private final NotificationProperties notificationProperties;
 
     @Data
-    public static class Props {
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class HttpChannelProps {
         @NotBlank
         private String url;
 
@@ -75,23 +81,22 @@ public class HttpNotificationChannel implements INotificationChannel {
         private String contentType;
 
         /**
-         * The body template.
-         * Supported variables (must be braced in brackets)
-         * alert.appName: The application name of the alert belonged to
-         * alert.name: The name of the alert
-         * alert.expr: The expression that the alert runs on
-         * alert.url: The url that users can view the detail of this alert record
-         * alert.message: The default alert message
+         * The body template. Supported variables:
+         * {alert.appName}: The application name of the alert belonged to
+         * {alert.name}: The name of the alert.
+         * {alert.expr}: The expression that the alert runs on
+         * {alert.url}: The url that users can view the detail of this alert record
+         * {alert.message}: The default alert message
          */
         @NotBlank
         private String body;
     }
 
     @Getter
-    private final Props props;
+    private final HttpChannelProps props;
 
     @JsonCreator
-    public HttpNotificationChannel(@JsonProperty("props") Props props,
+    public HttpNotificationChannel(@JsonProperty("props") HttpChannelProps props,
                                    @JacksonInject(useInput = OptBoolean.FALSE) NotificationProperties notificationProperties) {
         this.props = Preconditions.checkNotNull(props, "props property can not be null.");
         Preconditions.checkIfTrue(!StringUtils.isBlank(this.props.url), "The url property can not be empty");
@@ -107,14 +112,14 @@ public class HttpNotificationChannel implements INotificationChannel {
         StringBuilder defaultMessage = new StringBuilder(512);
         message.getConditionEvaluation()
                .forEach((id, result) -> {
-                   AlertExpression evalutatedExpression = message.getExpressions()
-                                                                 .stream()
-                                                                 .filter((expr) -> expr.getId().equals(id))
-                                                                 .findFirst()
-                                                                 .orElse(null);
+                   AlertExpression evaluatedExpression = message.getExpressions()
+                                                                .stream()
+                                                                .filter((expr) -> expr.getId().equals(id))
+                                                                .findFirst()
+                                                                .orElse(null);
 
                    defaultMessage.append(StringUtils.format("expr: %s, expected: %s, current: %s\n",
-                                                            evalutatedExpression.serializeToText(),
+                                                            evaluatedExpression.serializeToText(),
                                                             result.getOutputs().getThreshold(),
                                                             result.getOutputs().getCurrent()));
                });
