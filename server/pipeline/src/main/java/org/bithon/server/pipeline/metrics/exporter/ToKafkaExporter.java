@@ -98,7 +98,7 @@ public class ToKafkaExporter implements IMetricExporter {
         RecordHeader header = new RecordHeader("type", messageType.getBytes(StandardCharsets.UTF_8));
 
         FixedSizeBuffer messageBuffer = this.bufferThreadLocal.get();
-        messageBuffer.reset();
+        messageBuffer.clear();
         messageBuffer.writeAsciiChar('{');
         if (message.getSchema() != null) {
             try {
@@ -127,7 +127,7 @@ public class ToKafkaExporter implements IMetricExporter {
                                                                             new Header[]{header});
 
             // plus 3 to leave 3 bytes as margin
-            if (currentSize + metricBytes.length + 3 > messageBuffer.limit()) {
+            if (currentSize + metricBytes.length + 3 > messageBuffer.capacity()) {
                 send(header, messageKey, messageBuffer);
 
                 messageBuffer.reset(metricStartOffset);
@@ -165,6 +165,11 @@ public class ToKafkaExporter implements IMetricExporter {
     public void close() {
         this.producer.destroy();
         this.bufferThreadLocal.remove();
+    }
+
+    @Override
+    public String toString() {
+        return "export-metric-to-kafka";
     }
 }
 

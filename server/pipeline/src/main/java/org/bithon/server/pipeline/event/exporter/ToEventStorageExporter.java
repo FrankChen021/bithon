@@ -58,6 +58,6 @@ public class ToEventStorageExporter implements IEventExporter {
 
     @Override
     public String toString() {
-        return "to-event-storage";
+        return "export-event-to-storage";
     }
 }

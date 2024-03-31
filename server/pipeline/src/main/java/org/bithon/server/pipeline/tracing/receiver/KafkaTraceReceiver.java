@@ -32,6 +32,7 @@ import org.slf4j.event.Level;
 import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,7 @@ import java.util.Map;
 public class KafkaTraceReceiver extends AbstractKafkaConsumer implements ITraceReceiver {
     private static final RateLimitLogger LOG = new RateLimitLogger(log).config(Level.ERROR, 1);
 
+    private static final byte[] JSON_EACH_ROW_FORMAT = "JSONEachRow".getBytes(StandardCharsets.UTF_8);
     private final Map<String, Object> props;
     private ITraceProcessor processor;
 
@@ -84,13 +86,17 @@ public class KafkaTraceReceiver extends AbstractKafkaConsumer implements ITraceR
 
         for (ConsumerRecord<String, byte[]> record : records) {
             try (JsonParser jsonParser = this.objectMapper.createParser(record.value())) {
-                if (jsonParser.nextToken() != JsonToken.START_ARRAY) {
-                    continue;
-                }
-
-                while (jsonParser.nextToken() == JsonToken.START_OBJECT) {
-                    TraceSpan span = objectMapper.readValue(jsonParser, TraceSpan.class);
-                    spans.add(span);
+                JsonToken token = jsonParser.nextToken();
+                if (token == JsonToken.START_ARRAY) {
+                    // JSONArray format
+                    while (jsonParser.nextToken() == JsonToken.START_OBJECT) {
+                        TraceSpan span = objectMapper.readValue(jsonParser, TraceSpan.class);
+                        spans.add(span);
+                    }
+                } else if (token == JsonToken.START_OBJECT) {
+                    // JSONEachRow format
+                    objectMapper.readValues(jsonParser, TraceSpan.class)
+                                .forEachRemaining(spans::add);
                 }
             } catch (IOException e) {
                 LOG.error("Failed to process tracing message", e);

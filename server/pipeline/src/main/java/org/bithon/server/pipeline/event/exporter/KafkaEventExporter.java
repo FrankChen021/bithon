@@ -98,6 +98,6 @@ public class KafkaEventExporter implements IEventExporter {
 
     @Override
     public String toString() {
-        return "to-kafka";
+        return "export-event-to-kafka";
     }
 }

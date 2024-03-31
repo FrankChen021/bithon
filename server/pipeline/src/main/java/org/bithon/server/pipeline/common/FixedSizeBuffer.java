@@ -18,7 +18,6 @@ package org.bithon.server.pipeline.common;
 
 import org.bithon.component.commons.utils.StringUtils;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -29,23 +28,22 @@ import java.nio.charset.StandardCharsets;
  */
 public class FixedSizeBuffer extends OutputStream {
 
-
-    public static class OverflowException extends IOException {
-        public OverflowException(String message) {
-            super(message);
+    public static class OverflowException extends RuntimeException {
+        public OverflowException(int requiredSize, int capacity) {
+            super(StringUtils.format("Buffer is limited to size of %d, but requires %d.", capacity, requiredSize));
         }
     }
 
     private final byte[] buf;
     private int position;
-    private int mark = -1;
+    private int marker = -1;
 
     public FixedSizeBuffer(int limit) {
         this.buf = new byte[limit];
         this.position = 0;
     }
 
-    public int limit() {
+    public int capacity() {
         return buf.length;
     }
 
@@ -99,7 +97,7 @@ public class FixedSizeBuffer extends OutputStream {
 
     public void clear() {
         this.position = 0;
-        this.mark = -1;
+        this.marker = -1;
     }
 
     public void reset(int position) {
@@ -111,8 +109,9 @@ public class FixedSizeBuffer extends OutputStream {
     }
 
     private void ensureCapacity(int extraSize) throws OverflowException {
-        if (this.position + extraSize > this.buf.length) {
-            throw new OverflowException(StringUtils.format("Buffer is limited to size of %d, but requires %d.", buf.length, this.position + extraSize));
+        int requiredSize = this.position + extraSize;
+        if (requiredSize > this.buf.length) {
+            throw new OverflowException(requiredSize, this.buf.length);
         }
     }
 
@@ -126,13 +125,23 @@ public class FixedSizeBuffer extends OutputStream {
         this.writeBytes(b, off, len);
     }
 
+    /**
+     * Mark the current position so that it can be reset to this position later
+     */
     public void mark() {
-        this.mark = this.position;
+        this.marker = this.position;
     }
 
+    /**
+     * Reset the position to the last marked position.
+     * If the position is not marked, the position will be reset to 0.
+     */
     public void reset() {
-        if (this.mark != -1) {
-            this.position = this.mark;
+        if (this.marker != -1) {
+            this.marker = -1;
+            this.position = this.marker;
+        } else {
+            this.position = 0;
         }
     }
 }
