@@ -20,8 +20,9 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableMap;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -29,15 +30,12 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.internals.RecordHeader;
-import org.apache.kafka.common.record.AbstractRecords;
 import org.apache.kafka.common.record.CompressionType;
-import org.apache.kafka.common.record.RecordBatch;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.pipeline.common.FixedSizeBuffer;
 import org.bithon.server.storage.tracing.TraceSpan;
-import org.springframework.context.ApplicationContext;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
@@ -63,12 +61,12 @@ public class ToKafkaExporter implements ITraceExporter {
 
     @JsonCreator
     public ToKafkaExporter(@JsonProperty("props") Map<String, Object> props,
-                           @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
-                           @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+                           @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         this.topic = (String) props.remove("topic");
         Preconditions.checkNotNull(topic, "topic is not configured for tracing sink");
 
-        int maxSizePerMessage = (int) props.getOrDefault(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, 1024 * 1024);
+        int min = 1024 * 1024;
+        int maxSizePerMessage = Math.max(min, (int) props.getOrDefault(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, min));
         this.compressionType = CompressionType.forName((String) props.getOrDefault(ProducerConfig.COMPRESSION_TYPE_CONFIG, "none"));
         this.bufferThreadLocal = ThreadLocal.withInitial(() -> new FixedSizeBuffer(maxSizePerMessage));
 
@@ -76,7 +74,9 @@ public class ToKafkaExporter implements ITraceExporter {
 
         this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props, new ByteArraySerializer(), new ByteArraySerializer()),
                                             ImmutableMap.of(ProducerConfig.CLIENT_ID_CONFIG, "trace"));
-        this.objectMapper = objectMapper;
+
+        this.objectMapper = objectMapper.copy()
+                                        .configure(SerializationFeature.FLUSH_AFTER_WRITE_VALUE, true);
     }
 
     @SneakyThrows
@@ -89,45 +89,58 @@ public class ToKafkaExporter implements ITraceExporter {
         ByteBuffer messageKey = null;
 
         //
-        // A batch message in written into a single kafka message in which each text line is a single metric message.
+        // A batch message in written into a single kafka message in which each text line is a single trace span object.
         //
         // Of course, we could also send messages in this batch one by one to Kafka,
         // but I don't think it has advantages over the way below.
         //
-        // But since Producer/Broker has size limitation on each message, we also limit the size in case of failure on send.
+        // Since Producer/Broker has size limitation on each message, we also limit the size in case of failure on send.
         //
+        // To reduce memory copy, objects are directly serialized into the underlying buffer.
+        // There might be a waste of serialization once current span serialization causes overflown.
         FixedSizeBuffer messageBuffer = this.bufferThreadLocal.get();
-        messageBuffer.reset();
-        messageBuffer.writeChar('[');
+        messageBuffer.clear();
+
+        // Start the JSON array
+        messageBuffer.writeAsciiChar('[');
+
+        // Create a generator for this batch of message
+        JsonGenerator generator = objectMapper.createGenerator(messageBuffer);
+
         for (TraceSpan span : spans) {
             if (messageKey == null) {
                 messageKey = ByteBuffer.wrap((span.getAppName() + "/" + span.getInstanceName()).getBytes(StandardCharsets.UTF_8));
             }
 
-            byte[] serializedSpan;
-            try {
-                serializedSpan = objectMapper.writeValueAsBytes(span);
-            } catch (JsonProcessingException ignored) {
-                continue;
-            }
+            // Save the position in case of overflow
+            messageBuffer.mark();
 
-            int currentSize = AbstractRecords.estimateSizeInBytesUpperBound(RecordBatch.CURRENT_MAGIC_VALUE,
-                                                                            this.compressionType,
-                                                                            messageKey,
-                                                                            messageBuffer.toByteBuffer(),
-                                                                            new Header[]{header});
+            boolean overflown;
+            do {
+                try {
+                    objectMapper.writeValue(generator, span);
+                    overflown = false;
+                } catch (FixedSizeBuffer.OverflowException ignored) {
+                    // Reset to previous position
+                    messageBuffer.reset();
 
-            // plus 2 to leave 2 bytes as margin
-            if (currentSize + serializedSpan.length + 2 > messageBuffer.limit()) {
-                send(messageKey, messageBuffer);
+                    overflown = true;
+                }
 
-                messageBuffer.reset();
-                messageBuffer.writeChar('[');
-            }
+                if (overflown) {
+                    send(messageKey, messageBuffer);
 
-            messageBuffer.writeBytes(serializedSpan);
-            messageBuffer.writeChar(',');
+                    messageBuffer.clear();
+                    messageBuffer.writeAsciiChar('[');
+                }
+
+                // TODO: what if the serialization on the first trace span causes overflown?
+            } while (overflown);
+
+            // There is still a chance that at this point, the buffer is full
+            messageBuffer.writeAsciiChar(',');
         }
+
         send(messageKey, messageBuffer);
     }
 
@@ -138,7 +151,9 @@ public class ToKafkaExporter implements ITraceExporter {
 
         // Remove last separator
         messageBuffer.deleteFromEnd(1);
-        messageBuffer.writeChar(']');
+
+        // Enclose the JSON array
+        messageBuffer.writeAsciiChar(']');
 
         ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, messageKey.array(), messageBuffer.toBytes());
         record.headers().add(header);

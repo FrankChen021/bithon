@@ -99,18 +99,18 @@ public class ToKafkaExporter implements IMetricExporter {
 
         FixedSizeBuffer messageBuffer = this.bufferThreadLocal.get();
         messageBuffer.reset();
-        messageBuffer.writeChar('{');
+        messageBuffer.writeAsciiChar('{');
         if (message.getSchema() != null) {
             try {
                 messageBuffer.writeString("\"schema\":");
                 messageBuffer.writeBytes(this.objectMapper.writeValueAsBytes(message.getSchema()));
-                messageBuffer.writeChar(',');
+                messageBuffer.writeAsciiChar(',');
             } catch (JsonProcessingException ignored) {
             }
         }
         messageBuffer.writeString("\"metrics\": [");
 
-        int metricStartOffset = messageBuffer.getOffset();
+        int metricStartOffset = messageBuffer.getPosition();
 
         for (IInputRow metric : message.getMetrics()) {
             byte[] metricBytes;
@@ -134,7 +134,7 @@ public class ToKafkaExporter implements IMetricExporter {
             }
 
             messageBuffer.writeBytes(metricBytes);
-            messageBuffer.writeChar(',');
+            messageBuffer.writeAsciiChar(',');
         }
 
         send(header, messageKey, messageBuffer);
@@ -149,8 +149,8 @@ public class ToKafkaExporter implements IMetricExporter {
         messageBuffer.deleteFromEnd(1);
 
         // Close JSON objects
-        messageBuffer.writeChar(']');
-        messageBuffer.writeChar('}');
+        messageBuffer.writeAsciiChar(']');
+        messageBuffer.writeAsciiChar('}');
 
         ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, messageKey.array(), messageBuffer.toBytes());
         record.headers().add(header);

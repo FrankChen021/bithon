@@ -18,6 +18,8 @@ package org.bithon.server.pipeline.common;
 
 import org.bithon.component.commons.utils.StringUtils;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
@@ -25,13 +27,22 @@ import java.nio.charset.StandardCharsets;
  * @author Frank Chen
  * @date 3/1/23 11:41 am
  */
-public class FixedSizeBuffer {
+public class FixedSizeBuffer extends OutputStream {
+
+
+    public static class OverflowException extends IOException {
+        public OverflowException(String message) {
+            super(message);
+        }
+    }
+
     private final byte[] buf;
-    private int size;
+    private int position;
+    private int mark = -1;
 
     public FixedSizeBuffer(int limit) {
         this.buf = new byte[limit];
-        this.size = 0;
+        this.position = 0;
     }
 
     public int limit() {
@@ -39,18 +50,29 @@ public class FixedSizeBuffer {
     }
 
     public int size() {
-        return size;
+        return position;
     }
 
     public void writeBytes(byte[] value) {
         ensureCapacity(value.length);
-        System.arraycopy(value, 0, this.buf, this.size, value.length);
-        this.size += value.length;
+        System.arraycopy(value, 0, this.buf, this.position, value.length);
+        this.position += value.length;
     }
 
-    public void writeChar(char value) {
+    public void writeBytes(byte[] value, int offset, int len) {
+        ensureCapacity(len);
+        System.arraycopy(value, offset, this.buf, this.position, len);
+        this.position += len;
+    }
+
+    public void writeAsciiChar(char value) {
         ensureCapacity(1);
-        this.buf[this.size++] = (byte) value;
+        this.buf[this.position++] = (byte) value;
+    }
+
+    public void writeByte(byte value) {
+        ensureCapacity(1);
+        this.buf[this.position++] = value;
     }
 
     public void writeString(String value) {
@@ -60,36 +82,57 @@ public class FixedSizeBuffer {
     }
 
     public void deleteFromEnd(int length) {
-        if (size >= length) {
-            size -= length;
+        if (position >= length) {
+            position -= length;
         }
     }
 
     public byte[] toBytes() {
-        byte[] d = new byte[this.size];
-        System.arraycopy(this.buf, 0, d, 0, this.size);
+        byte[] d = new byte[this.position];
+        System.arraycopy(this.buf, 0, d, 0, this.position);
         return d;
     }
 
     public ByteBuffer toByteBuffer() {
-        return ByteBuffer.wrap(this.buf, 0, this.size);
+        return ByteBuffer.wrap(this.buf, 0, this.position);
+    }
+
+    public void clear() {
+        this.position = 0;
+        this.mark = -1;
+    }
+
+    public void reset(int position) {
+        this.position = position;
+    }
+
+    public int getPosition() {
+        return this.position;
+    }
+
+    private void ensureCapacity(int extraSize) throws OverflowException {
+        if (this.position + extraSize > this.buf.length) {
+            throw new OverflowException(StringUtils.format("Buffer is limited to size of %d, but requires %d.", buf.length, this.position + extraSize));
+        }
+    }
+
+    @Override
+    public void write(int b) {
+        this.writeByte((byte) b);
+    }
+
+    @Override
+    public void write(byte[] b, int off, int len) {
+        this.writeBytes(b, off, len);
+    }
+
+    public void mark() {
+        this.mark = this.position;
     }
 
     public void reset() {
-        this.size = 0;
-    }
-
-    public void reset(int offset) {
-        this.size = offset;
-    }
-
-    public int getOffset() {
-        return this.size;
-    }
-
-    private void ensureCapacity(int extraSize) {
-        if (this.size + extraSize > this.buf.length) {
-            throw new RuntimeException(StringUtils.format("Buffer is limited to size of %d, but requires %d.", buf.length, this.size + extraSize));
+        if (this.mark != -1) {
+            this.position = this.mark;
         }
     }
 }
