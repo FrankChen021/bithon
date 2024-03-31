@@ -27,6 +27,7 @@ import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
 import org.bithon.server.pipeline.metrics.input.IMetricInputSourceManager;
 import org.bithon.server.pipeline.metrics.input.MetricDefaultInputSource;
 import org.bithon.server.pipeline.metrics.input.MetricInputSourceManager;
+import org.bithon.server.pipeline.metrics.input.MetricInputSourceManagerStub;
 import org.bithon.server.pipeline.metrics.transform.ConnectionStringTransformer;
 import org.bithon.server.pipeline.metrics.transform.ExtractHost;
 import org.bithon.server.pipeline.metrics.transform.ExtractPath;
@@ -40,6 +41,7 @@ import org.bithon.server.storage.StorageModuleAutoConfiguration;
 import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -86,21 +88,24 @@ public class PipelineAutoConfiguration {
 
     @Bean
     IMetricInputSourceManager inputSourceManager(MetricStorageConfig metricStorageConfig,
-                                                 SchemaManager schemaManager,
-                                                 ObjectMapper objectMapper) {
-        return new MetricInputSourceManager(metricStorageConfig.isEnabled(), schemaManager, objectMapper);
+                                                 ApplicationContext applicationContext) {
+        if (metricStorageConfig.isEnabled()) {
+            return new MetricInputSourceManager(applicationContext.getBean(SchemaManager.class), applicationContext.getBean(ObjectMapper.class));
+        } else {
+            return new MetricInputSourceManagerStub();
+        }
     }
 
     @Bean
     public EventPipeline eventPipeline(EventPipelineConfig pipelineConfig,
-                                       MetricInputSourceManager metricInputSourceManager,
+                                       IMetricInputSourceManager metricInputSourceManager,
                                        ObjectMapper om) {
         return new EventPipeline(pipelineConfig, metricInputSourceManager, om);
     }
 
     @Bean
     public MetricPipeline metricPipeline(MetricPipelineConfig pipelineConfig,
-                                         MetricInputSourceManager metricInputSourceManager,
+                                         IMetricInputSourceManager metricInputSourceManager,
                                          ObjectMapper om) {
         return new MetricPipeline(pipelineConfig, metricInputSourceManager, om);
     }
@@ -110,7 +115,7 @@ public class PipelineAutoConfiguration {
      */
     @Bean
     public TracePipeline tracePipeline(TracePipelineConfig pipelineConfig,
-                                       MetricInputSourceManager metricInputSourceManager,
+                                       IMetricInputSourceManager metricInputSourceManager,
                                        ObjectMapper om) {
         return new TracePipeline(pipelineConfig, metricInputSourceManager, om);
     }
