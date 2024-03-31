@@ -28,8 +28,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.header.Header;
-import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
@@ -38,7 +36,7 @@ import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -52,8 +50,7 @@ public class ToKafkaExporter implements ITraceExporter {
     private final KafkaTemplate<byte[], byte[]> producer;
     private final ObjectMapper objectMapper;
     private final String topic;
-    private final Header typeHeader;
-    private final int maxRows;
+    private final int maxRowsPerMessage;
 
     private final ThreadLocal<FixedSizeBuffer> bufferThreadLocal;
 
@@ -63,14 +60,15 @@ public class ToKafkaExporter implements ITraceExporter {
         this.topic = (String) props.remove("topic");
         Preconditions.checkNotNull(topic, "topic is not configured for tracing sink");
 
-        this.maxRows = Integer.parseInt((String) props.getOrDefault("maxRows", "5000"));
+        this.maxRowsPerMessage = Integer.parseInt((String) props.getOrDefault("maxRows", "5000"));
         props.remove("maxRows");
 
         int min = 1024 * 1024;
         int maxSizePerMessage = Math.max(min, (int) props.getOrDefault(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, min));
-        this.bufferThreadLocal = ThreadLocal.withInitial(() -> new FixedSizeBuffer(maxSizePerMessage));
 
-        this.typeHeader = new RecordHeader("type", "tracing".getBytes(StandardCharsets.UTF_8));
+        // Kafka Producer requires some extra size for management fields of one batch, so we keep aside 128 bytes
+        // See: DefaultRecordBatch.RECORD_BATCH_OVERHEAD
+        this.bufferThreadLocal = ThreadLocal.withInitial(() -> new FixedSizeBuffer(maxSizePerMessage - 128));
 
         this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props, new ByteArraySerializer(), new ByteArraySerializer()),
                                             ImmutableMap.of(ProducerConfig.CLIENT_ID_CONFIG, "trace"));
@@ -79,13 +77,17 @@ public class ToKafkaExporter implements ITraceExporter {
                                         .configure(SerializationFeature.FLUSH_AFTER_WRITE_VALUE, true);
     }
 
-    @SneakyThrows
     @Override
     public void process(String messageType, List<TraceSpan> spans) {
         if (CollectionUtils.isEmpty(spans)) {
             return;
         }
 
+        send(spans);
+    }
+
+    @SneakyThrows
+    public void send(List<TraceSpan> spans) {
         //
         // A batch message in written into a single kafka message in which each text line is a single trace span object.
         //
@@ -118,11 +120,16 @@ public class ToKafkaExporter implements ITraceExporter {
                     messageBuffer.writeAsciiChar('\n');
 
                     overflow = false;
-                } catch (FixedSizeBuffer.OverflowException ignored) {
-                    // Reset to previous marked position
-                    messageBuffer.reset();
+                } catch (IOException e) {
+                    if (e instanceof FixedSizeBuffer.OverflowException
+                        || e.getCause() instanceof FixedSizeBuffer.OverflowException) {
+                        // Reset to previous marked position
+                        messageBuffer.reset();
 
-                    overflow = true;
+                        overflow = true;
+                    } else {
+                        throw e;
+                    }
                 }
 
                 if (overflow) {
@@ -135,13 +142,17 @@ public class ToKafkaExporter implements ITraceExporter {
                     // Send the message in buffer first
                     send(messageBuffer);
                     rows = 0;
+
+                    // Create a new generator
+                    // because the generator holds some internal states that can't be restored
+                    generator = objectMapper.createGenerator(messageBuffer);
                 }
             } while (overflow);
 
             // Impose a max rows limit to avoid a single message too large.
             // If the messages are from Clickhouse, the single message might be too large to be sent to Kafka.
             // This avoids the consumer side to handle a single message too large and memory exhausted.
-            if (++rows >= this.maxRows) {
+            if (++rows >= this.maxRowsPerMessage) {
                 send(messageBuffer);
                 rows = 0;
             }
@@ -156,7 +167,6 @@ public class ToKafkaExporter implements ITraceExporter {
         }
 
         ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, null, messageBuffer.toBytes());
-        record.headers().add(this.typeHeader);
         try {
             producer.send(record);
         } catch (Exception e) {

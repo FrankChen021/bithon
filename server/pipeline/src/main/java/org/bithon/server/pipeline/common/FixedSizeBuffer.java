@@ -18,6 +18,7 @@ package org.bithon.server.pipeline.common;
 
 import org.bithon.component.commons.utils.StringUtils;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -28,7 +29,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class FixedSizeBuffer extends OutputStream {
 
-    public static class OverflowException extends RuntimeException {
+    public static class OverflowException extends IOException {
         public OverflowException(int requiredSize, int capacity) {
             super(StringUtils.format("Buffer is limited to size of %d, but requires %d.", capacity, requiredSize));
         }
@@ -51,29 +52,29 @@ public class FixedSizeBuffer extends OutputStream {
         return position;
     }
 
-    public void writeBytes(byte[] value) {
+    public void writeBytes(byte[] value) throws OverflowException {
         ensureCapacity(value.length);
         System.arraycopy(value, 0, this.buf, this.position, value.length);
         this.position += value.length;
     }
 
-    public void writeBytes(byte[] value, int offset, int len) {
+    public void writeBytes(byte[] value, int offset, int len) throws OverflowException {
         ensureCapacity(len);
         System.arraycopy(value, offset, this.buf, this.position, len);
         this.position += len;
     }
 
-    public void writeAsciiChar(char value) {
+    public void writeAsciiChar(char value) throws OverflowException {
         ensureCapacity(1);
         this.buf[this.position++] = (byte) value;
     }
 
-    public void writeByte(byte value) {
+    public void writeByte(byte value) throws OverflowException {
         ensureCapacity(1);
         this.buf[this.position++] = value;
     }
 
-    public void writeString(String value) {
+    public void writeString(String value) throws OverflowException {
         byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
         ensureCapacity(bytes.length);
         writeBytes(bytes);
@@ -116,12 +117,12 @@ public class FixedSizeBuffer extends OutputStream {
     }
 
     @Override
-    public void write(int b) {
+    public void write(int b) throws IOException {
         this.writeByte((byte) b);
     }
 
     @Override
-    public void write(byte[] b, int off, int len) {
+    public void write(byte[] b, int off, int len) throws IOException {
         this.writeBytes(b, off, len);
     }
 
@@ -138,8 +139,11 @@ public class FixedSizeBuffer extends OutputStream {
      */
     public void reset() {
         if (this.marker != -1) {
-            this.marker = -1;
+            // Reset to previous marker
             this.position = this.marker;
+
+            // Clear the marker
+            this.marker = -1;
         } else {
             this.position = 0;
         }
