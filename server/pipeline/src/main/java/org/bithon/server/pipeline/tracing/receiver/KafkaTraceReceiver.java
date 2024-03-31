@@ -32,7 +32,6 @@ import org.slf4j.event.Level;
 import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +44,6 @@ import java.util.Map;
 public class KafkaTraceReceiver extends AbstractKafkaConsumer implements ITraceReceiver {
     private static final RateLimitLogger LOG = new RateLimitLogger(log).config(Level.ERROR, 1);
 
-    private static final byte[] JSON_EACH_ROW_FORMAT = "JSONEachRow".getBytes(StandardCharsets.UTF_8);
     private final Map<String, Object> props;
     private ITraceProcessor processor;
 
