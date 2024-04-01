@@ -44,29 +44,19 @@ public class MetricInputSourceManager implements SchemaManager.ISchemaChangedLis
     private final Map<String, IMetricInputSource> inputSources = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper;
     private final SchemaManager schemaManager;
-    private final boolean enabled;
     private final Map<String, Class<? extends IMetricInputSource>> subTypes = new HashMap<>();
     private boolean suppressListener;
 
-    public MetricInputSourceManager(boolean enabled,
-                                    SchemaManager schemaManager,
+    public MetricInputSourceManager(SchemaManager schemaManager,
                                     ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
         this.schemaManager = schemaManager;
-        this.enabled = enabled;
-        if (this.enabled) {
-            this.schemaManager.addListener(this);
-        }
+        this.schemaManager.addListener(this);
         this.suppressListener = false;
     }
 
     @Override
     public void start(Class<? extends IMetricInputSource> inputSourceClazz) {
-        if (!enabled) {
-            log.warn("Metric log storage is NOT configured to be enabled by property 'bithon.storage.metric.enabled', the input source [{}] does not take effect.", inputSourceClazz.getSimpleName());
-            return;
-        }
-
         // Find the registered 'type' property
         AnnotatedClass superType = AnnotatedClassResolver.resolveWithoutSuperTypes(this.objectMapper.getSerializationConfig(), IMetricInputSource.class);
         Collection<NamedType> registeredSubtypes = this.objectMapper.getSubtypeResolver()

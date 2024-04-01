@@ -104,6 +104,6 @@ public class ToMetricStorageExporter implements IMetricExporter {
 
     @Override
     public String toString() {
-        return "to-metric-storage";
+        return "export-metric-to-storage";
     }
 }

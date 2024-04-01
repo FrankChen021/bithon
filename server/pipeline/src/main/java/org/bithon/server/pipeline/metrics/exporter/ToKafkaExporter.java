@@ -40,6 +40,7 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -98,49 +99,54 @@ public class ToKafkaExporter implements IMetricExporter {
         RecordHeader header = new RecordHeader("type", messageType.getBytes(StandardCharsets.UTF_8));
 
         FixedSizeBuffer messageBuffer = this.bufferThreadLocal.get();
-        messageBuffer.reset();
-        messageBuffer.writeChar('{');
-        if (message.getSchema() != null) {
-            try {
-                messageBuffer.writeString("\"schema\":");
-                messageBuffer.writeBytes(this.objectMapper.writeValueAsBytes(message.getSchema()));
-                messageBuffer.writeChar(',');
-            } catch (JsonProcessingException ignored) {
+        messageBuffer.clear();
+
+        try {
+            messageBuffer.writeAsciiChar('{');
+            if (message.getSchema() != null) {
+                try {
+                    messageBuffer.writeString("\"schema\":");
+                    messageBuffer.writeBytes(this.objectMapper.writeValueAsBytes(message.getSchema()));
+                    messageBuffer.writeAsciiChar(',');
+                } catch (JsonProcessingException ignored) {
+                }
             }
+            messageBuffer.writeString("\"metrics\": [");
+
+            int metricStartOffset = messageBuffer.getPosition();
+
+            for (IInputRow metric : message.getMetrics()) {
+                byte[] metricBytes;
+                try {
+                    metricBytes = objectMapper.writeValueAsBytes(metric);
+                } catch (JsonProcessingException ignored) {
+                    continue;
+                }
+
+                int currentSize = AbstractRecords.estimateSizeInBytesUpperBound(RecordBatch.CURRENT_MAGIC_VALUE,
+                                                                                this.compressionType,
+                                                                                messageKey,
+                                                                                messageBuffer.toByteBuffer(),
+                                                                                new Header[]{header});
+
+                // plus 3 to leave 3 bytes as margin
+                if (currentSize + metricBytes.length + 3 > messageBuffer.capacity()) {
+                    send(header, messageKey, messageBuffer);
+
+                    messageBuffer.reset(metricStartOffset);
+                }
+
+                messageBuffer.writeBytes(metricBytes);
+                messageBuffer.writeAsciiChar(',');
+            }
+
+            send(header, messageKey, messageBuffer);
+        } catch (IOException e) {
+            log.error("unhandled exception", e);
         }
-        messageBuffer.writeString("\"metrics\": [");
-
-        int metricStartOffset = messageBuffer.getOffset();
-
-        for (IInputRow metric : message.getMetrics()) {
-            byte[] metricBytes;
-            try {
-                metricBytes = objectMapper.writeValueAsBytes(metric);
-            } catch (JsonProcessingException ignored) {
-                continue;
-            }
-
-            int currentSize = AbstractRecords.estimateSizeInBytesUpperBound(RecordBatch.CURRENT_MAGIC_VALUE,
-                                                                            this.compressionType,
-                                                                            messageKey,
-                                                                            messageBuffer.toByteBuffer(),
-                                                                            new Header[]{header});
-
-            // plus 3 to leave 3 bytes as margin
-            if (currentSize + metricBytes.length + 3 > messageBuffer.limit()) {
-                send(header, messageKey, messageBuffer);
-
-                messageBuffer.reset(metricStartOffset);
-            }
-
-            messageBuffer.writeBytes(metricBytes);
-            messageBuffer.writeChar(',');
-        }
-
-        send(header, messageKey, messageBuffer);
     }
 
-    private void send(RecordHeader header, ByteBuffer messageKey, FixedSizeBuffer messageBuffer) {
+    private void send(RecordHeader header, ByteBuffer messageKey, FixedSizeBuffer messageBuffer) throws IOException {
         if (messageBuffer.size() <= 1) {
             return;
         }
@@ -149,8 +155,8 @@ public class ToKafkaExporter implements IMetricExporter {
         messageBuffer.deleteFromEnd(1);
 
         // Close JSON objects
-        messageBuffer.writeChar(']');
-        messageBuffer.writeChar('}');
+        messageBuffer.writeAsciiChar(']');
+        messageBuffer.writeAsciiChar('}');
 
         ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(topic, messageKey.array(), messageBuffer.toBytes());
         record.headers().add(header);
@@ -165,6 +171,11 @@ public class ToKafkaExporter implements IMetricExporter {
     public void close() {
         this.producer.destroy();
         this.bufferThreadLocal.remove();
+    }
+
+    @Override
+    public String toString() {
+        return "export-metric-to-kafka";
     }
 }
 

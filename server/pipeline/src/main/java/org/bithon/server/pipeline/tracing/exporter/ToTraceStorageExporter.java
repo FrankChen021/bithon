@@ -112,6 +112,6 @@ public class ToTraceStorageExporter implements ITraceExporter {
 
     @Override
     public String toString() {
-        return "to-trace-storage";
+        return "export-trace-to-storage";
     }
 }

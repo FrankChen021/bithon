@@ -1,6 +1,6 @@
 # This configuration demonstrates the pipeline that consumes messages from brpc to Kafka.
-# In large data scale environment, this is the optimal deployment that separates the receivers and data processing.
-# In such deployment, another application that uses the 'pipeline-from-kafka'
+# In a large data scale environment, this is the optimal deployment that separates the receivers and data processing.
+# In such a deployment, another application that uses the 'pipeline-from-kafka'
 # is deployed to consume messages from Kafka and do data processing.
 bithon:
   pipelines:
