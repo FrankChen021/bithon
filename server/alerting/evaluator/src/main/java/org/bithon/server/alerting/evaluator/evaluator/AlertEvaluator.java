@@ -16,7 +16,6 @@
 
 package org.bithon.server.alerting.evaluator.evaluator;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import feign.Contract;
@@ -50,6 +49,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.HashMap;
@@ -123,12 +123,14 @@ public class AlertEvaluator implements SmartLifecycle {
     }
 
     private INotificationApi createNotificationApi(ApplicationContext context) {
-        // Even the notification module is deployed with the evaluator module together,
-        // we still call the notification module via HTTP instead of direct API method calls in process
-        // So that it simulates the 'remote call' via discovered service
+        // The notification service is configured by auto-discovery
         String service = context.getBean(Environment.class).getProperty("bithon.alerting.evaluator.notification-service", "discovery");
         if ("discovery".equalsIgnoreCase(service)) {
-            return context.getBean(DiscoveredServiceInvoker.class).createUnicastApi(INotificationApi.class);
+            // Even the notification module is deployed with the evaluator module together,
+            // we still call the notification module via HTTP instead of direct API method calls in process
+            // So that it simulates the 'remote call' via discovered service
+            return context.getBean(DiscoveredServiceInvoker.class)
+                          .createUnicastApi(INotificationApi.class);
         }
 
         // The service is configured as a remote service at fixed address
@@ -200,6 +202,7 @@ public class AlertEvaluator implements SmartLifecycle {
         //
         NotificationMessage notification = new NotificationMessage();
         notification.setAlertRule(alertRule);
+        notification.setExpressions(alertRule.getFlattenExpressions().values());
         notification.setStart(context.getIntervalEnd().before(alertRule.getForDuration()).getMilliseconds());
         notification.setEnd(context.getIntervalEnd().getMilliseconds());
         notification.setDuration(alertRule.getForDuration());
@@ -240,7 +243,7 @@ public class AlertEvaluator implements SmartLifecycle {
         }
     }
 
-    private String saveAlertRecord(EvaluationContext context, Timestamp lastAlertAt, NotificationMessage notification) throws JsonProcessingException {
+    private String saveAlertRecord(EvaluationContext context, Timestamp lastAlertAt, NotificationMessage notification) throws IOException {
         AlertRecordObject alertRecord = new AlertRecordObject();
         alertRecord.setRecordId(UUID.randomUUID().toString().replace("-", ""));
         alertRecord.setAlertId(context.getAlertRule().getId());
