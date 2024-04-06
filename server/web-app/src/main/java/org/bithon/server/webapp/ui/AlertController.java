@@ -22,7 +22,6 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -78,6 +77,9 @@ public class AlertController {
         return "alerting/alert/update";
     }
 
+    /**
+     * The alerting record frame page that consists of the list and the detail below
+     */
     @GetMapping("/web/alerting/records")
     public String alertRecordsPage(Model m) {
         m.addAttribute("model", "alert");
@@ -93,17 +95,6 @@ public class AlertController {
 
     @GetMapping("/web/alerting/record/detail")
     public String showRecordDetail(Model m) {
-        m.addAttribute("apiHost", serviceDiscovery.getApiHost());
-        m.addAttribute("model", "alert");
-        return "alerting/record/detail";
-    }
-
-    /**
-     * provide an external link
-     */
-    @GetMapping("/web/alerting/record/{id}")
-    public String viewRecord(@PathVariable(value = "id") String recordId, Model m) {
-        m.addAttribute("recordId", recordId);
         m.addAttribute("apiHost", serviceDiscovery.getApiHost());
         m.addAttribute("model", "alert");
         return "alerting/record/detail";

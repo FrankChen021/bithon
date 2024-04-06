@@ -63,7 +63,7 @@
         if (window.parent != null) {
             window.queryParams = toQueryParameters(window.location.href);
         }
-        const recordId = window.queryParams['recordId'];
+        const recordId = window.queryParams['id'];
 
         function loadRecord(recordId, callback) {
             $.ajax({

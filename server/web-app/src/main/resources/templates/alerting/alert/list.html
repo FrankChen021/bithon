@@ -118,7 +118,7 @@
                             return '-';
                         }
                         const text = new Date().diff(value);
-                        return `<a target="_blank" href="/web/alerting/record/records?alertId=${row.alertId}&recordId=${row.lastRecordId}">${text}</a>`;
+                        return `<a target="_blank" href="/web/alerting/records?alertId=${row.alertId}&recordId=${row.lastRecordId}">${text}</a>`;
                     }
                 }, {
                     field: 'createdAt',
