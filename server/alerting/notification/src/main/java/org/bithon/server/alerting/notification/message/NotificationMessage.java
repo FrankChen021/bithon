@@ -24,7 +24,7 @@ import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -40,7 +40,7 @@ public class NotificationMessage {
     private long start;
     private long end;
     private HumanReadableDuration duration;
-    private List<AlertExpression> expressions;
+    private Collection<AlertExpression> expressions;
     private Map<String, ConditionEvaluationResult> conditionEvaluation;
     private AlertRule alertRule;
     private Long lastAlertAt;

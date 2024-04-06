@@ -140,7 +140,7 @@ public class AlertChannelApi {
                                             )))
                                             .alertRule(AlertRule.builder()
                                                                 .id("fake")
-                                                                .name("test")
+                                                                .name("Notification Channel Test")
                                                                 .expr("avg(processCpuLoad) > 1")
                                                                 .build())
                                             .build());
