@@ -370,9 +370,17 @@ public class AlertExpressionASTParser {
                     return new ConditionalExpression.Like(identifier, expected);
 
                 case AlertExpressionParser.NOT:
-                    // Only NOT IN is supported now
-                    checkIfTrue(expected instanceof ExpressionList, "The expected value of 'NOT IN' operator must be type of literal list.");
-                    return new ConditionalExpression.NotIn(identifier, (ExpressionList) expected);
+                    TerminalNode notPredicate = ctx.predicateExpression().getChild(TerminalNode.class, 1);
+                    if (notPredicate.getSymbol().getType() == AlertExpressionParser.IN) {
+                        checkIfTrue(expected instanceof ExpressionList, "The expected value of 'NOT IN' operator must be type of literal list.");
+                        return new ConditionalExpression.NotIn(identifier, (ExpressionList) expected);
+                    }
+                    if (notPredicate.getSymbol().getType() == AlertExpressionParser.LIKE) {
+                        checkIfTrue(expected instanceof LiteralExpression, "The expected value of 'LIKE' operator must be type of literal.");
+                        checkIfTrue(IDataType.STRING.equals(expected.getDataType()), "The literal of LIKE operator must be type of String.");
+                        return new ConditionalExpression.NotLike(identifier, expected);
+                    }
+                    // Unsupported
 
                 default:
                     throw new RuntimeException("Unsupported predicate type: " + predicate.getSymbol().getText());

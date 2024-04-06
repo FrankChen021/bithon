@@ -42,7 +42,7 @@ filterExpression
   ;
 
 predicateExpression
-  : LT|LTE|GT|GTE|NE|EQ|IN|NOT IN|LIKE
+  : LT|LTE|GT|GTE|NE|EQ|IN|NOT IN|LIKE|NOT LIKE
   ;
 
 alertPredicateExpression
