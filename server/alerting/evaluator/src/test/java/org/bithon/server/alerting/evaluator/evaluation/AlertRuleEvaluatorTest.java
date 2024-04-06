@@ -29,6 +29,7 @@ import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
 import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
+import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.web.service.datasource.api.GeneralQueryResponse;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -39,6 +40,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -79,7 +81,7 @@ public class AlertRuleEvaluatorTest {
         ISchema schema = new DefaultSchema("test-metrics",
                                            "test-metrics",
                                            new TimestampSpec("timestamp", null, null),
-                                           Collections.emptyList(),
+                                           Arrays.asList(new StringColumn("appName", "appName"), new StringColumn("type", "type")),
                                            Collections.singletonList(new AggregateLongSumColumn(metric, metric)));
         dataSourceProvider = EasyMock.createMock(IDataSourceApi.class);
         EasyMock.expect(dataSourceProvider.getSchemaByName(schema.getName())).andReturn(schema);
@@ -321,6 +323,68 @@ public class AlertRuleEvaluatorTest {
         AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()
+                                       .expr(expr)
+                                       .build()
+                                       .initialize();
+
+        // Decreased by 50%, the threshold is <= 50%, triggered
+        Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                            CONSOLE_LOGGER,
+                                                                            alertRule,
+                                                                            dataSourceProvider)));
+    }
+
+    @Test
+    public void testLike() throws IOException {
+        // Current
+        EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
+                .andReturn(GeneralQueryResponse.builder()
+                                               .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
+                                               .build());
+
+        // Previous
+        EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
+                .andReturn(GeneralQueryResponse.builder()
+                                               .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
+                                               .build());
+        EasyMock.replay(dataSourceProvider);
+
+        String expr = StringUtils.format("sum(test-metrics.%s{type like 'a'})[1m] <= 50%%[-1m]", metric);
+        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+
+        AlertRule alertRule = AlertRule.builder()
+                                       .appName("bithon")
+                                       .expr(expr)
+                                       .build()
+                                       .initialize();
+
+        // Decreased by 50%, the threshold is <= 50%, triggered
+        Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                            CONSOLE_LOGGER,
+                                                                            alertRule,
+                                                                            dataSourceProvider)));
+    }
+
+    @Test
+    public void testNotLike() throws IOException {
+        // Current
+        EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
+                .andReturn(GeneralQueryResponse.builder()
+                                               .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
+                                               .build());
+
+        // Previous
+        EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
+                .andReturn(GeneralQueryResponse.builder()
+                                               .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
+                                               .build());
+        EasyMock.replay(dataSourceProvider);
+
+        String expr = StringUtils.format("sum(test-metrics.%s{type not like 'a'})[1m] <= 50%%[-1m]", metric);
+        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+
+        AlertRule alertRule = AlertRule.builder()
+                                       .appName("bithon")
                                        .expr(expr)
                                        .build()
                                        .initialize();

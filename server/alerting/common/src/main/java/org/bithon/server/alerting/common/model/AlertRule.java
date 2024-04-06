@@ -23,6 +23,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
@@ -146,8 +147,8 @@ public class AlertRule {
             if (whereExpression == null) {
                 expression.setWhereExpression(appNameFilter);
             } else {
-                if (whereExpression instanceof ComparisonExpression) {
-                    IdentifierExpression identifierExpression = (IdentifierExpression) ((ComparisonExpression) whereExpression).getLeft();
+                if (whereExpression instanceof ConditionalExpression) {
+                    IdentifierExpression identifierExpression = (IdentifierExpression) ((ConditionalExpression) whereExpression).getLeft();
                     if (!identifierExpression.getIdentifier().equals("appName")) {
                         expression.setWhereExpression(new LogicalExpression.AND(appNameFilter, whereExpression));
                     }
