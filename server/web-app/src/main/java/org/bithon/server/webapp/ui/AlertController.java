@@ -69,14 +69,6 @@ public class AlertController {
         return "alerting/alert/detail";
     }
 
-    @GetMapping("/web/alerting/alert/update")
-    public String updateAlert(@RequestParam(value = "id") String alertId, Model m) {
-        m.addAttribute("alertId", alertId);
-        m.addAttribute("apiHost", serviceDiscovery.getApiHost());
-        m.addAttribute("model", "alert");
-        return "alerting/alert/update";
-    }
-
     /**
      * The alerting record frame page that consists of the list and the detail below
      */

@@ -1,6 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="zh_CN"
-      xmlns:th="http://www.thymeleaf.org"
+<html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{app/app-layout}"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -17,6 +16,7 @@
     <script th:src="@{/js/utils.js}" type="text/javascript"></script>
 
     <script th:src="@{/js/alert/schema-manager.js}" type="text/javascript"></script>
+    <script th:src="@{/js/alert/alert-edit-component.js}" type="text/javascript"></script>
     <script th:src="@{/js/alert/log-component.js}" type="text/javascript"></script>
     <script th:src="@{/js/alert/metrics-component.js}" type="text/javascript"></script>
     <script th:src="@{/js/alert/expression-dashboard-component.js}" type="text/javascript"></script>
@@ -63,45 +63,7 @@
     <!-- Tab Contents -->
     <div class="tab-content">
         <div class="tab-pane active" id="home" role="tabpanel" style="padding:10px 0 10px 0">
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" style="width: 160px"><b>name</b></span>
-                </div>
-                <input class="form-control" id="name"/>
-            </div>
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" style="width: 160px"><b>application</b></span>
-                </div>
-                <input class="form-control" id="appName"/>
-            </div>
 
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" style="width: 160px"><b>expression</b></span>
-                </div>
-                <input class="form-control" id="expression"/>
-            </div>
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" style="width: 160px"><b>for</b></span>
-                </div>
-                <input class="form-control" id="for"/>
-            </div>
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" style="width: 160px"><b>every</b></span>
-                </div>
-                <input class="form-control" id="every"/>
-            </div>
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" style="width: 160px"><b>notification</b></span>
-                </div>
-                <input class="form-control" id="notifications"/>
-            </div>
-
-            <div id="metricSection"></div>
         </div>
 
         <div class="tab-pane" id="records" role="tabpanel">
@@ -123,27 +85,9 @@
         </div>
     </div>
 
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        let alertId = /*[[${alertId}]]*/;
-        let returnUrl = /*[[${returnUrl}]]*/;
-        /*]]>*/
-    </script>
     <script type="text/javascript">
-
         g_SelectedApp = window.queryParams['appName'];
-        const g_ExpressionDashboard = new ExpressionDashboardComponent('metricSection');
-
-        function renderAlert(alert) {
-            $('#name').val(alert.name);
-            $('#appName').val(alert.appName);
-            $('#expression').val(alert.payload.expr);
-            $('#for').val(alert.payload.for);
-            $('#every').val(alert.payload.every);
-            $('#notifications').val(alert.payload.notifications.join(','));
-
-            g_ExpressionDashboard.renderExpression(alert.payload.expr);
-        }
+        const alertId = window.queryParams['id'];
 
         function loadRecords() {
             $('#alertTable').bootstrapTable({
@@ -159,7 +103,7 @@
                 pageSize: 10,
 
                 queryParamsType: '',
-                queryParams: function (params) {
+                queryParams: (params) => {
                     return {
                         pageSize: params.pageSize,
                         pageNumber: params.pageNumber - 1,
@@ -190,7 +134,7 @@
                     }
                 }],
 
-                onLoadSuccess: function (data, status, jqXHR) {
+                onLoadSuccess: (data, status, jqXHR) => {
                     $("#recordCount").text(data.total);
                 }
             })
@@ -258,7 +202,7 @@
                     return row.changes;
                 },
 
-                onLoadSuccess: function (data) {
+                onLoadSuccess: (data) => {
                     $("#changelogCount").text(data.total);
                 }
             })
@@ -269,10 +213,10 @@
         }
 
         let logComponent;
-        let gAlert;
 
         $(document).ready(() => {
             $('.btn-return').click(() => {
+                const returnUrl = window.queryParams['returnUrl'];
                 if (returnUrl != null) {
                     window.location.href = decodeURIComponent(returnUrl);
                 } else {
@@ -280,18 +224,18 @@
                 }
             });
 
+            const alertComponent = new AlertEditComponent({containerSelector: '#home'});
+
+            // Load alert
             new AlertApi().getAlertById(alertId, (alert) => {
-                gAlert = alert;
-                renderAlert(alert);
+                alertComponent.setAlertObject(alert);
             })
+
             loadRecords();
             loadChangeLogs();
 
             $('a[data-toggle="pill"]').on('shown.bs.tab', (e) => {
                 if ($(e.target).attr('href') !== '#runLogs') {
-                    return;
-                }
-                if (gAlert == null) {
                     return;
                 }
                 if (logComponent == null) {

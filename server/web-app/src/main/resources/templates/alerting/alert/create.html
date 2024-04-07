@@ -10,6 +10,7 @@
 
     <script th:src="@{/js/dialog.js}" type="text/javascript"></script>
     <script th:src="@{/js/utils.js}" type="text/javascript"></script>
+    <script th:src="@{/js/alert/alert-edit-component.js}" type="text/javascript"></script>
     <script th:src="@{/js/alert/metrics-component.js}" type="text/javascript"></script>
     <script th:src="@{/js/alert/expression-dashboard-component.js}" type="text/javascript"></script>
 </head>
@@ -17,62 +18,7 @@
 <div layout:fragment="content">
 
     <div class="tab-pane active" id="home" role="tabpanel" style="padding:10px 0 10px 0">
-        <div class="input-group">
-            <div class="input-group-prepend">
-                <span class="input-group-text" style="width: 160px"><b>name</b></span>
-            </div>
-            <input class="form-control" id="name" placeholder="alert name. Must be unique."/>
-        </div>
-        <div class="input-group">
-            <div class="input-group-prepend">
-                <span class="input-group-text" style="width: 160px"><b>application</b></span>
-            </div>
-            <select class="form-control" id="appName">
-            </select>
-        </div>
-        <div class="input-group">
-            <div class="input-group-prepend">
-                <span class="input-group-text" style="width: 160px"><b>expression</b></span>
-            </div>
-            <input class="form-control" id="expression"/>
-            <div class="input-group-append">
-                <button class="btn btn-outline-secondary" id="parse" type="button">Parse</button>
-            </div>
-        </div>
-        <div class="input-group">
-            <div class="input-group-prepend">
-                <span class="input-group-text" style="width: 160px"><b>for</b></span>
-            </div>
-            <input class="form-control" id="for" value="3"/>
-            <div class="input-group-append">
-                <select id="forUnit" class="form-control">
-                    <option selected value="m">Minute</option>
-                    <option value="h">Hour</option>
-                </select>
-            </div>
-        </div>
-        <div class="input-group">
-            <div class="input-group-prepend">
-                <span class="input-group-text" style="width: 160px"><b>every</b></span>
-            </div>
-            <input class="form-control" id="every" value="1"/>
-            <div class="input-group-append">
-                <select id="everyUnit" class="form-control">
-                    <option selected value="m">Minute</option>
-                    <option value="h">Hour</option>
-                </select>
-            </div>
-        </div>
-        <div class="input-group">
-            <div class="input-group-prepend">
-                <span class="input-group-text" style="width: 160px"><b>notification</b></span>
-            </div>
-            <select class="form-control" id="notifications"></select>
-        </div>
-        <div>
-            <pre id="payload"></pre>
-        </div>
-        <div id="metricSection"></div>
+
         <div class="sub-btn-panel text-center">
             <hr>
             <button class="btn btn-primary" onclick="create()" type="submit">Create</button>
@@ -81,52 +27,11 @@
     </div>
 
     <script type="text/javascript">
-        function create() {
-            const name = $("#name").val().trim();
-            const appName = $("#appName").val().trim();
-            const expression = $("#expression").val().trim();
-            const every = $("#every").val().trim();
-            const forValue = $("#for").val().trim();
-            const notification = $("#notifications").select2('data');
+        let m_AlertEditComponent;
 
-            if (name === '') {
-                bootbox.alert({
-                    backdrop: true,
-                    title: "Error",
-                    message: 'Name cannot be empty'
-                });
-                return;
-            }
-            if (expression === '') {
-                bootbox.alert({
-                    backdrop: true,
-                    title: "Error",
-                    message: 'expression cannot be empty'
-                });
-                return;
-            }
-            if (every === '') {
-                bootbox.alert({
-                    backdrop: true,
-                    title: "Error",
-                    message: '\'every\' cannot be empty'
-                });
-                return;
-            }
-            if (forValue === '') {
-                bootbox.alert({
-                    backdrop: true,
-                    title: "Error",
-                    message: '\'for\' cannot be empty'
-                });
-                return;
-            }
-            if (notification === undefined || notification.length === 0) {
-                bootbox.alert({
-                    backdrop: true,
-                    title: "Error",
-                    message: '\'notification\' cannot be empty'
-                });
+        function create() {
+            const alert = m_AlertEditComponent.getAlertObject();
+            if (alert === undefined) {
                 return;
             }
 
@@ -134,14 +39,7 @@
                 type: "POST",
                 url: "/api/alerting/alert/create",
                 async: false,
-                data: JSON.stringify({
-                    name: name,
-                    appName: appName,
-                    expr: expression,
-                    every: every + $('#everyUnit').val(),
-                    for: forValue+ $('#forUnit').val(),
-                    notifications: notification.map((n) => n.text)
-                }),
+                data: JSON.stringify(alert),
                 dataType: "json",
                 contentType: "application/yaml",
                 success: (data) => {
@@ -155,7 +53,10 @@
                     }
                     bootbox.alert({
                         backdrop: true,
-                        message: "Alert successfully created."
+                        message: "Alert successfully created.",
+                        callback: () => {
+                            window.location.href = "/web/alerting/alert/detail?id=" + data.data;
+                        }
                     });
                 },
                 error: (data) => {
@@ -182,117 +83,9 @@
             });
         }
 
-        const g_ExpressionDashboard = new ExpressionDashboardComponent('metricSection');
-
-        function renderExpression(checkApp) {
-            const expr = $('#expression').val();
-            const appName = $('#appName').val();
-            if (checkApp && expr === '') {
-                bootbox.alert({
-                    backdrop: true,
-                    title: "Error",
-                    message: '<pre>expression is not provided</pre>'
-                });
-                return;
-            }
-
-            g_ExpressionDashboard.renderExpression(
-                expr,
-                appName,
-            );
-        }
-
         $(document).ready(() => {
-
-            // Bind event handlers
-            $('#expression').keydown((e)=>{
-                if (e.keyCode === 13) {
-                    renderExpression(true);
-                }
-            });
-            $('#parse').click(() => {
-                renderExpression(true);
-            });
-
-            $('#appName').select2({
-                theme: 'bootstrap4',
-                allowClear: true,
-                dropdownAutoWidth: true,
-                placeholder: '(optional) select application',
-            }).on('change', () => {
-                const expr = $('#expression').val();
-                if (expr === '') {
-                    return;
-                }
-                renderExpression(false);
-            });
-
-            $('#notifications').select2({
-                theme: 'bootstrap4',
-                allowClear: true,
-                multiple: true,
-                dropdownAutoWidth: true,
-                placeholder: 'select notification channel'
-            });
-
-            // Load application names
-            $.ajax({
-                url: '/api/meta/getMetadataList',
-                method: 'POST',
-                dataType: 'json',
-                data: JSON.stringify({type: 'APPLICATION'}),
-                async: true,
-                contentType: "application/json",
-                success: (data) => {
-                    const applicationList = data.map(app => {
-                        return {
-                            "id": app.applicationName,
-                            "text": app.applicationName,
-                            "search": app.applicationName.toLowerCase()
-                        };
-                    });
-                    $('#appName').select2({
-                        data: applicationList
-                    });
-                },
-
-                error: (data) => {
-                    bootbox.alert({
-                        backdrop: true,
-                        title: "Error",
-                        message: data.responseText
-                    });
-                }
-            });
-
-            // Load notification channels
-            $.ajax({
-                url: apiHost + "/api/alerting/channel/names",
-                method: 'POST',
-                dataType: 'json',
-                async: true,
-                contentType: "application/json",
-                success: (data) => {
-                    const channelList = data.channels.map((channel) => {
-                        return {
-                            id: channel,
-                            text: channel,
-                            search: channel
-                        }
-                    })
-
-                    $('#notifications').select2({
-                        data: channelList
-                    });
-                },
-
-                error: (data) => {
-                    bootbox.alert({
-                        backdrop: true,
-                        title: "Error",
-                        message: data.responseText
-                    });
-                }
+            m_AlertEditComponent = new AlertEditComponent({
+                containerSelector: '#home'
             });
         });
     </script>
