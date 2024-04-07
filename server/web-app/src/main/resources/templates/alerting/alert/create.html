@@ -121,7 +121,7 @@
                 });
                 return;
             }
-            if (notification === undefined || notification.length == 0) {
+            if (notification === undefined || notification.length === 0) {
                 bootbox.alert({
                     backdrop: true,
                     title: "Error",
@@ -204,6 +204,7 @@
 
         $(document).ready(() => {
 
+            // Bind event handlers
             $('#expression').keydown((e)=>{
                 if (e.keyCode === 13) {
                     renderExpression(true);
@@ -218,58 +219,79 @@
                 allowClear: true,
                 dropdownAutoWidth: true,
                 placeholder: '(optional) select application',
-                ajax: {
-                    cache: true,
-                    url: apiHost + "/api/meta/getMetadataList",
-                    data: (params) => {
-                        return JSON.stringify({type: 'APPLICATION', search: params.term});
-                    },
-                    type: "POST",
-                    async: true,
-                    dataType: "json",
-                    contentType: "application/json",
-                    processResults: (data) => {
-                        return {
-                            results: data.map(app => {
-                                return {
-                                    "id": app.applicationName,
-                                    "text": app.applicationName,
-                                    "search": app.applicationName.toLowerCase()
-                                };
-                            })
-                        };
-                    }
+            }).on('change', () => {
+                const expr = $('#expression').val();
+                if (expr === '') {
+                    return;
                 }
-            }).on('change', () => renderExpression(false));
+                renderExpression(false);
+            });
 
             $('#notifications').select2({
                 theme: 'bootstrap4',
                 allowClear: true,
                 multiple: true,
                 dropdownAutoWidth: true,
-                placeholder: 'select notification channel',
-                ajax: {
-                    cache: true,
-                    url: apiHost + "/api/alerting/channel/names",
-                    type: "POST",
-                    async: true,
-                    dataType: "json",
-                    contentType: "application/json",
-                    data: (params) => {
-                        return JSON.stringify({name: params.term});
-                    },
-                    processResults: (data) => {
-                        // Transforms the top-level key of the response object from 'items' to 'results'
+                placeholder: 'select notification channel'
+            });
+
+            // Load application names
+            $.ajax({
+                url: '/api/meta/getMetadataList',
+                method: 'POST',
+                dataType: 'json',
+                data: JSON.stringify({type: 'APPLICATION'}),
+                async: true,
+                contentType: "application/json",
+                success: (data) => {
+                    const applicationList = data.map(app => {
                         return {
-                            results: data.channels.map((channel) => {
-                                return {
-                                    id: channel,
-                                    text: channel,
-                                    search: channel
-                                }
-                            })
+                            "id": app.applicationName,
+                            "text": app.applicationName,
+                            "search": app.applicationName.toLowerCase()
                         };
-                    }
+                    });
+                    $('#appName').select2({
+                        data: applicationList
+                    });
+                },
+
+                error: (data) => {
+                    bootbox.alert({
+                        backdrop: true,
+                        title: "Error",
+                        message: data.responseText
+                    });
+                }
+            });
+
+            // Load notification channels
+            $.ajax({
+                url: apiHost + "/api/alerting/channel/names",
+                method: 'POST',
+                dataType: 'json',
+                async: true,
+                contentType: "application/json",
+                success: (data) => {
+                    const channelList = data.channels.map((channel) => {
+                        return {
+                            id: channel,
+                            text: channel,
+                            search: channel
+                        }
+                    })
+
+                    $('#notifications').select2({
+                        data: channelList
+                    });
+                },
+
+                error: (data) => {
+                    bootbox.alert({
+                        backdrop: true,
+                        title: "Error",
+                        message: data.responseText
+                    });
                 }
             });
         });
