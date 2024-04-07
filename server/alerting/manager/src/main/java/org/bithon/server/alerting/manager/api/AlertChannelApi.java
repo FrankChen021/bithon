@@ -19,6 +19,8 @@ package org.bithon.server.alerting.manager.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.google.common.collect.ImmutableMap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -53,6 +55,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -63,6 +66,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -169,6 +173,16 @@ public class AlertChannelApi {
         return ApiResponse.success();
     }
 
+    @Data
+    public static class GetChannelRequest {
+        /**
+         * The format of the returned props
+         * Can be either one of yaml/json
+         */
+        @NotBlank
+        private String format = "json";
+    }
+
     @Getter
     @AllArgsConstructor
     public static class GetChannelResponse {
@@ -177,19 +191,39 @@ public class AlertChannelApi {
     }
 
     @PostMapping("/api/alerting/channel/get")
-    public GetChannelResponse getChannels() {
+    public GetChannelResponse getChannels(@Validated @RequestBody GetChannelRequest request) {
+        final Function<Map, Object> propSerializer;
+        switch(request.getFormat()) {
+            case "yaml":
+                ObjectMapper om = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
+                                                                    .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
+                propSerializer = (prop) -> {
+                    try {
+                        return prop instanceof Map && prop.isEmpty() ? "" : om.writeValueAsString(prop);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                };
+                break;
+            case "json":
+                propSerializer = (prop) -> prop;
+                break;
+            default:
+                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unsupported format [%s]", request.getFormat());
+        }
+
         List<Map<String, Object>> channels = this.channelStorage.getChannels(0)
                                                                 .stream()
                                                                 .map((obj) -> {
                                                                     try {
-                                                                        Map<String, Object> props = objectMapper.readValue(obj.getPayload(), new TypeReference<TreeMap<String, Object>>() {
+                                                                        Map<String, Object> props = this.objectMapper.readValue(obj.getPayload(), new TypeReference<TreeMap<String, Object>>() {
                                                                         });
 
                                                                         // Use LinkedHashMap to keep order
                                                                         Map<String, Object> map = new LinkedHashMap<>();
                                                                         map.put("name", obj.getName());
                                                                         map.put("type", obj.getType());
-                                                                        map.put("props", props);
+                                                                        map.put("props", propSerializer.apply(props));
                                                                         map.put("createdAt", obj.getCreatedAt());
                                                                         return map;
                                                                     } catch (JsonProcessingException e) {
