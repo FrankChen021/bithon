@@ -192,14 +192,14 @@ public class AlertChannelApi {
 
     @PostMapping("/api/alerting/channel/get")
     public GetChannelResponse getChannels(@Validated @RequestBody GetChannelRequest request) {
-        final Function<Map, Object> propSerializer;
-        switch(request.getFormat()) {
+        final Function<Map<?, ?>, Object> propSerializer;
+        switch (request.getFormat()) {
             case "yaml":
                 ObjectMapper om = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
                                                                     .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
                 propSerializer = (prop) -> {
                     try {
-                        return prop instanceof Map && prop.isEmpty() ? "" : om.writeValueAsString(prop);
+                        return prop.isEmpty() ? "" : om.writeValueAsString(prop);
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
                     }
@@ -239,12 +239,13 @@ public class AlertChannelApi {
     public static class GetChannelNamesResponse {
         private List<String> channels;
     }
+
     @PostMapping("/api/alerting/channel/names")
     public GetChannelNamesResponse getChannelNames() {
         List<String> channels = this.channelStorage.getChannels(0)
-                                                                .stream()
-                                                                .map(NotificationChannelObject::getName)
-                                                                .collect(Collectors.toList());
+                                                   .stream()
+                                                   .map(NotificationChannelObject::getName)
+                                                   .collect(Collectors.toList());
         return new GetChannelNamesResponse(channels);
     }
 
