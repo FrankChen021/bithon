@@ -188,8 +188,7 @@
                         // Initialize dashboard
                         const dashboard = new Dashboard('logContainer',
                             g_logStore,
-                            window.queryParams['interval'],
-                            false);
+                            window.queryParams['interval']);
                         dashboard.load(boardConfig);
 
                         $(window).bind('resize', () => {

@@ -85,9 +85,8 @@
             // Initialize dashboard
             const dashboard = new Dashboard('dashboard',
                 'Event',
-                window.queryParams['interval'],
-                false);
-
+                'all');
+            dashboard.allowTimeSelectAll(true);
             dashboard.load(eventPage);
 
             $(window).bind('resize', () => {
