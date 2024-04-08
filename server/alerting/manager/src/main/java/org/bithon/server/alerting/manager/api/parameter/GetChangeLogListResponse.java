@@ -29,6 +29,6 @@ import java.util.List;
 @AllArgsConstructor
 public class GetChangeLogListResponse {
     private Integer total;
-    private List<ChangeLogBo> rows;
+    private List<ChangeLogVO> rows;
 
 }

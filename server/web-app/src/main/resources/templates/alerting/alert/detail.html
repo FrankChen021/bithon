@@ -158,7 +158,8 @@
                     return {
                         pageSize: params.pageSize,
                         pageNumber: params.pageNumber - 1,
-                        alertId: alertId
+                        alertId: alertId,
+                        format: 'yaml'
                     };
                 },
 
@@ -195,8 +196,8 @@
                 detailView: true,
                 detailFormatter: (index, row) => {
                     if (row.changes === undefined) {
-                        const before = JSON.stringify(JSON.parse(row.payloadBefore), null, 2);
-                        const after = JSON.stringify(JSON.parse(row.payloadAfter), null, 2);
+                        const before = row.payloadBefore;
+                        const after = row.payloadAfter;
                         row.changes = `<table class="table-borderless" style="width: 100%"><thead><tr><th style="text-align: center; width: 50%;">Before</th><th style="text-align: center; ">After</th></tr></thead><tbody><tr><td style="vertical-align: top"><pre>${before}</pre></td><td style="vertical-align: top"><pre>${after}</pre></td></tr></tbody></table>`;
                     }
                     return row.changes;

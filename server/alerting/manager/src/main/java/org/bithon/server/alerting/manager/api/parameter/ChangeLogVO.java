@@ -23,7 +23,7 @@ import lombok.Data;
  * @date 2021/1/25
  */
 @Data
-public class ChangeLogBo {
+public class ChangeLogVO {
     private String alertId;
     private String action;
     private String payloadBefore;

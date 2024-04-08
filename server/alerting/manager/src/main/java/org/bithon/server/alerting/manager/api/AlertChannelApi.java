@@ -16,11 +16,7 @@
 
 package org.bithon.server.alerting.manager.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.google.common.collect.ImmutableMap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,6 +31,7 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
+import org.bithon.server.alerting.manager.biz.JsonPayloadFormatter;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.channel.NotificationChannelFactory;
 import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
@@ -63,9 +60,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -188,43 +182,18 @@ public class AlertChannelApi {
 
     @PostMapping("/api/alerting/channel/get")
     public GetChannelResponse getChannels(@Validated @RequestBody GetChannelRequest request) {
-        final Function<Map<?, ?>, Object> propSerializer;
-        switch (request.getFormat()) {
-            case "yaml":
-                ObjectMapper om = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-                                                                    .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
-                propSerializer = (prop) -> {
-                    try {
-                        return prop.isEmpty() ? "" : om.writeValueAsString(prop);
-                    } catch (JsonProcessingException e) {
-                        throw new RuntimeException(e);
-                    }
-                };
-                break;
-            case "json":
-                propSerializer = (prop) -> prop;
-                break;
-            default:
-                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unsupported format [%s]", request.getFormat());
-        }
+        JsonPayloadFormatter formatter = JsonPayloadFormatter.get(request.getFormat());
 
         List<Map<String, Object>> channels = this.channelStorage.getChannels(0)
                                                                 .stream()
                                                                 .map((obj) -> {
-                                                                    try {
-                                                                        Map<String, Object> props = this.objectMapper.readValue(obj.getPayload(), new TypeReference<TreeMap<String, Object>>() {
-                                                                        });
-
-                                                                        // Use LinkedHashMap to keep order
-                                                                        Map<String, Object> map = new LinkedHashMap<>();
-                                                                        map.put("name", obj.getName());
-                                                                        map.put("type", obj.getType());
-                                                                        map.put("props", propSerializer.apply(props));
-                                                                        map.put("createdAt", obj.getCreatedAt());
-                                                                        return map;
-                                                                    } catch (JsonProcessingException e) {
-                                                                        throw new RuntimeException(e);
-                                                                    }
+                                                                    // Use LinkedHashMap to keep order
+                                                                    Map<String, Object> map = new LinkedHashMap<>();
+                                                                    map.put("name", obj.getName());
+                                                                    map.put("type", obj.getType());
+                                                                    map.put("props", formatter.format(obj.getPayload(), this.objectMapper));
+                                                                    map.put("createdAt", obj.getCreatedAt());
+                                                                    return map;
                                                                 })
                                                                 .collect(Collectors.toList());
         return new GetChannelResponse(channels.size(), channels);

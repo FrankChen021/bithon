@@ -16,6 +16,7 @@
 
 package org.bithon.server.alerting.manager.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.bithon.component.commons.expression.IExpression;
@@ -26,7 +27,7 @@ import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
 import org.bithon.server.alerting.common.parser.InvalidExpressionException;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
-import org.bithon.server.alerting.manager.api.parameter.ChangeLogBo;
+import org.bithon.server.alerting.manager.api.parameter.ChangeLogVO;
 import org.bithon.server.alerting.manager.api.parameter.GenericAlertByIdRequest;
 import org.bithon.server.alerting.manager.api.parameter.GetAlertChangeLogListRequest;
 import org.bithon.server.alerting.manager.api.parameter.GetAlertListRequest;
@@ -40,6 +41,7 @@ import org.bithon.server.alerting.manager.api.parameter.GetEvaluationLogsRespons
 import org.bithon.server.alerting.manager.api.parameter.ListAlertBo;
 import org.bithon.server.alerting.manager.api.parameter.ListRecordBo;
 import org.bithon.server.alerting.manager.biz.EvaluationLogService;
+import org.bithon.server.alerting.manager.biz.JsonPayloadFormatter;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
@@ -78,15 +80,17 @@ public class AlertQueryApi {
     final IAlertObjectStorage alertStorage;
     final EvaluationLogService evaluationLogService;
     final IDataSourceApi dataSourceApi;
+    final ObjectMapper objectMapper;
 
     public AlertQueryApi(IAlertRecordStorage alertRecordStorage,
                          IAlertObjectStorage alertStorage,
                          EvaluationLogService evaluationLogService,
-                         IDataSourceApi dataSourceApi) {
+                         IDataSourceApi dataSourceApi, ObjectMapper objectMapper) {
         this.alertRecordStorage = alertRecordStorage;
         this.alertStorage = alertStorage;
         this.evaluationLogService = evaluationLogService;
         this.dataSourceApi = dataSourceApi;
+        this.objectMapper = objectMapper;
     }
 
     @Data
@@ -184,15 +188,21 @@ public class AlertQueryApi {
 
     @PostMapping("/api/alerting/alert/change-log/get")
     public GetChangeLogListResponse getChangeLogs(@Valid @RequestBody GetAlertChangeLogListRequest request) {
-        ListResult<AlertChangeLogObject> results = alertStorage.getChangeLogs(request.getAlertId(), request.getPageNumber(), request.getPageSize());
+        ListResult<AlertChangeLogObject> results = alertStorage.getChangeLogs(request.getAlertId(),
+                                                                              request.getPageNumber(),
+                                                                              request.getPageSize());
+
+        JsonPayloadFormatter formatter = JsonPayloadFormatter.get(request.getFormat());
         return new GetChangeLogListResponse(results.getRows(),
                                             results.getData()
                                                    .stream()
                                                    .map(log -> {
-                                                       ChangeLogBo bo = new ChangeLogBo();
-                                                       BeanUtils.copyProperties(log, bo);
-                                                       bo.setTimestamp(log.getCreatedAt().getTime());
-                                                       return bo;
+                                                       ChangeLogVO vo = new ChangeLogVO();
+                                                       BeanUtils.copyProperties(log, vo);
+                                                       vo.setPayloadBefore(formatter.format(log.getPayloadBefore(), this.objectMapper));
+                                                       vo.setPayloadAfter(formatter.format(log.getPayloadAfter(), this.objectMapper));
+                                                       vo.setTimestamp(log.getCreatedAt().getTime());
+                                                       return vo;
                                                    }).collect(Collectors.toList()));
     }
 

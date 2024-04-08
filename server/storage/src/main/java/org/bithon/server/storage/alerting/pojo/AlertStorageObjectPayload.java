@@ -17,6 +17,7 @@
 package org.bithon.server.storage.alerting.pojo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,8 +27,7 @@ import org.bithon.component.commons.utils.HumanReadableDuration;
 import java.util.List;
 
 /**
- * NOTE: The sequence of fields is properly placed so that in the serialization text,
- * it reflects the nature order that people understand an alert
+ * NOTE: The serialization order is manually controlled so that people understand an alert in a natural way
  *
  * @author frank.chen021@outlook.com
  * @date 2024/2/11 19:51
@@ -36,6 +36,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonPropertyOrder({"expr", "for", "every", "silence", "notifications"})
 public class AlertStorageObjectPayload {
     @JsonProperty
     private String expr;
