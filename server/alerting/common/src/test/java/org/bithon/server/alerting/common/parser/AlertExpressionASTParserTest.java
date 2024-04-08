@@ -262,4 +262,10 @@ public class AlertExpressionASTParserTest {
     public void testInvalidMetricName() {
         Assert.assertThrows(InvalidExpressionException.class, ()-> AlertExpressionASTParser.parse("avg(jvm)[5m] > 1[-7m]"));
     }
+
+
+    @Test
+    public void testMultipleFilters() {
+        Assert.assertThrows(InvalidExpressionException.class, ()-> AlertExpressionASTParser.parse("avg(http-metrics{appName='a', instance='localhost', url='http://localhost/test'})[5m] > 1[-7m]"));
+    }
 }

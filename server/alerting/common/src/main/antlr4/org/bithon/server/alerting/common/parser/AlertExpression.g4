@@ -24,7 +24,7 @@ groupByExpression
   : BY '(' IDENTIFIER (',' IDENTIFIER)? ')'
   ;
 
-// At the syntax level, the qualifier is optional
+// At the syntax level, the qualifier is optional, but in actual, it's mandatory.
 // We check if the name is valid at the parser phase so that we provide more readable error message for users
 nameExpression
   : IDENTIFIER ('.' IDENTIFIER)?
@@ -32,7 +32,7 @@ nameExpression
 
 whereExpression
   : '{' '}'
-  | '{' filterExpression (',' filterExpression)? '}'
+  | '{' filterExpression (',' filterExpression)* '}'
   ;
 
 durationExpression
