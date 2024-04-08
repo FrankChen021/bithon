@@ -32,7 +32,7 @@ import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
 import org.bithon.server.alerting.notification.api.INotificationApi;
-import org.bithon.server.alerting.notification.message.ConditionEvaluationResult;
+import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.alerting.notification.message.OutputMessage;
 import org.bithon.server.commons.time.TimeSpan;
@@ -155,7 +155,11 @@ public class AlertEvaluator implements SmartLifecycle {
                 context.log(AlertEvaluator.class, "alert [%s] tested successfully.", alertRule.getName());
 
                 long expectedMatchCount = alertRule.getExpectedMatchCount();
-                long successiveCount = stateStorage.incrMatchCount(alertRule.getId(), alertRule.getForDuration().getDuration());
+                long successiveCount = stateStorage.incrMatchCount(alertRule.getId(),
+                                                                   alertRule.getEvery()
+                                                                            .getDuration()
+                                                                            // Add 30 seconds for margin
+                                                                            .plus(Duration.ofSeconds(30)));
                 if (successiveCount >= expectedMatchCount) {
                     stateStorage.resetMatchCount(alertRule.getId());
 
@@ -203,17 +207,14 @@ public class AlertEvaluator implements SmartLifecycle {
         NotificationMessage notification = new NotificationMessage();
         notification.setAlertRule(alertRule);
         notification.setExpressions(alertRule.getFlattenExpressions().values());
-        notification.setStart(context.getIntervalEnd().before(alertRule.getForDuration()).getMilliseconds());
-        notification.setEnd(context.getIntervalEnd().getMilliseconds());
-        notification.setDuration(alertRule.getForDuration());
         notification.setConditionEvaluation(new HashMap<>());
         context.getEvaluationResults().forEach((expressionId, result) -> {
-            AlertExpression condition = context.getAlertExpressions().get(expressionId);
+            AlertExpression expression = context.getAlertExpressions().get(expressionId);
 
             IEvaluationOutput outputs = context.getRuleEvaluationOutput(expressionId);
             notification.getConditionEvaluation()
-                        .put(condition.getId(),
-                             new ConditionEvaluationResult(result,
+                        .put(expression.getId(),
+                             new ExpressionEvaluationResult(result,
                                                            outputs == null ? null : OutputMessage.builder()
                                                                                                  .current(outputs.getCurrentText())
                                                                                                  .delta(outputs.getDeltaText())
@@ -253,11 +254,8 @@ public class AlertEvaluator implements SmartLifecycle {
         alertRecord.setDataSource("{}");
         alertRecord.setCreatedAt(lastAlertAt);
         alertRecord.setPayload(objectMapper.writeValueAsString(AlertRecordPayload.builder()
-                                                                                 .start(notification.getStart())
-                                                                                 .end(notification.getEnd())
                                                                                  .expressions(context.getAlertExpressions().values())
                                                                                  .conditionEvaluation(notification.getConditionEvaluation())
-                                                                                 .duration(notification.getDuration())
                                                                                  .build()));
         alertRecord.setNotificationStatus(IAlertRecordStorage.STATUS_CODE_UNCHECKED);
         alertRecordStorage.addAlertRecord(alertRecord);

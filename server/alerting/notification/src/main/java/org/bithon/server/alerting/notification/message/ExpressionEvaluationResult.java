@@ -26,13 +26,13 @@ import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
  * @date 19/3/22 8:00 PM
  */
 @Data
-public class ConditionEvaluationResult {
+public class ExpressionEvaluationResult {
     private EvaluationResult result;
     private OutputMessage outputs;
 
     @JsonCreator
-    public ConditionEvaluationResult(@JsonProperty("result") EvaluationResult result,
-                                     @JsonProperty("outputs") OutputMessage outputs) {
+    public ExpressionEvaluationResult(@JsonProperty("result") EvaluationResult result,
+                                      @JsonProperty("outputs") OutputMessage outputs) {
         this.result = result;
         this.outputs = outputs;
     }

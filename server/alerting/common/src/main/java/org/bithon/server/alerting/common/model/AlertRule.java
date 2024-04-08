@@ -73,8 +73,11 @@ public class AlertRule {
     @JsonProperty
     private HumanReadableDuration every = HumanReadableDuration.DURATION_1_MINUTE;
 
+    /**
+     * How many consecutive times the evaluation should be true before notifying the alert
+     */
     @JsonProperty("for")
-    private HumanReadableDuration forDuration = HumanReadableDuration.DURATION_3_MINUTE;
+    private int forTimes = 3;
 
     /**
      * silence period in minute
@@ -96,7 +99,7 @@ public class AlertRule {
 
     @JsonIgnore
     public int getExpectedMatchCount() {
-        return (int) (this.forDuration.getDuration().toMinutes() / this.every.getDuration().toMinutes());
+        return this.forTimes;
     }
 
     public AlertRule initialize() throws InvalidExpressionException {
@@ -128,7 +131,7 @@ public class AlertRule {
         rule.setEvery(alertObject.getPayload().getEvery());
         rule.setExpr(alertObject.getPayload().getExpr());
         rule.setSilence(alertObject.getPayload().getSilence());
-        rule.setForDuration(alertObject.getPayload().getForDuration());
+        rule.setForTimes(alertObject.getPayload().getForTimes());
         rule.setNotifications(alertObject.getPayload().getNotifications());
         return rule;
     }

@@ -70,7 +70,6 @@ public class AbstractBaselinePredicate implements IMetricEvaluator {
         this.dayBefore = Preconditions.checkArgumentNotNull("dayOffset", dayBefore);
         this.percentage = Preconditions.checkArgumentNotNull("percentage", percentage);
         this.isPositive = isUp;
-        //this.readableExpression = StringUtils.format("DoD(%s, -%dD) >= %s%d%%", name, dayBefore, this.isPositive ? "+" : "-", percentage);
         this.baseLineCacheManager = baseLineCacheManager;
 
         Preconditions.checkIfTrue(percentage > 0 && percentage <= 100, "percentage must be in the range of (0,100].");
@@ -150,6 +149,8 @@ public class AbstractBaselinePredicate implements IMetricEvaluator {
         output.setThreshold(this.percentage);
         output.setMatches(delta > this.percentage);
         output.setMetric(this);
+        output.setStart(start);
+        output.setEnd(end);
         return output;
     }
 }

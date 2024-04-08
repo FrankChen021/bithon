@@ -33,13 +33,7 @@ class AlertEditComponent {
             '            <div class="input-group-prepend">\n' +
             '                <span class="input-group-text" style="width: 160px"><b>for</b></span>\n' +
             '            </div>\n' +
-            '            <input class="form-control" id="for" value="3"/>\n' +
-            '            <div class="input-group-append">\n' +
-            '                <select id="forUnit" class="form-control">\n' +
-            '                    <option selected value="m">Minute</option>\n' +
-            '                    <option value="h">Hour</option>\n' +
-            '                </select>\n' +
-            '            </div>\n' +
+            '            <input class="form-control" id="for" value="3" placeholder="Consecutive times the alert expression is evaluated to be true before firing the alert" />\n' +
             '        </div>\n' +
             '        <div class="input-group">\n' +
             '            <div class="input-group-prepend">\n' +
@@ -152,7 +146,7 @@ class AlertEditComponent {
             appName: appName,
             expr: expression,
             every: every + $('#everyUnit').val(),
-            for: forValue+ $('#forUnit').val(),
+            for: forValue,
             notifications: notification.map((n) => n.text)
         };
     }

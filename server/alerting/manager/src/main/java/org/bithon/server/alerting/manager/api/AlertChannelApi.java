@@ -28,7 +28,6 @@ import lombok.Getter;
 import org.apache.commons.io.IOUtils;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
 import org.bithon.server.alerting.common.model.AlertExpression;
@@ -38,7 +37,7 @@ import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.channel.NotificationChannelFactory;
-import org.bithon.server.alerting.notification.message.ConditionEvaluationResult;
+import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.alerting.notification.message.OutputMessage;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
@@ -134,11 +133,8 @@ public class AlertChannelApi {
                                                                               this.objectMapper)) {
             channel.send(NotificationMessage.builder()
                                             .alertRecordId("fake")
-                                            .start(System.currentTimeMillis())
-                                            .end(System.currentTimeMillis())
-                                            .duration(HumanReadableDuration.of(1, TimeUnit.MINUTES))
                                             .expressions(Collections.singletonList((AlertExpression) AlertExpressionASTParser.parse("count(jvm-metrics.processCpuLoad)[1m] > 1")))
-                                            .conditionEvaluation(ImmutableMap.of("1", new ConditionEvaluationResult(
+                                            .conditionEvaluation(ImmutableMap.of("1", new ExpressionEvaluationResult(
                                                 EvaluationResult.MATCHED,
                                                 new OutputMessage("1", "2", "1")
                                             )))

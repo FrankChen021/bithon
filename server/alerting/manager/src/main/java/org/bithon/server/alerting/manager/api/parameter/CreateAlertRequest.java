@@ -24,6 +24,8 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.manager.biz.CommandArgs;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -58,11 +60,13 @@ public class CreateAlertRequest {
     private HumanReadableDuration every = HumanReadableDuration.DURATION_1_MINUTE;
 
     /**
-     * Must be times of {@link #every}
+     * How many consecutive times the alert expression is evaluated to be true before firing the alert.
+     * The max is set to 60 temporarily.
      */
     @JsonProperty("for")
-    @HumanReadableDurationConstraint(min = "1m", max = "60m")
-    private HumanReadableDuration forDuration = HumanReadableDuration.DURATION_3_MINUTE;
+    @Min(1)
+    @Max(60)
+    private int forTimes = 3;
 
     @JsonProperty("silence")
     @HumanReadableDurationConstraint(min = "1m", max = "60m")
@@ -82,7 +86,7 @@ public class CreateAlertRequest {
         alertRule.setExpr(this.expr.trim());
         alertRule.setName(this.name.trim());
         alertRule.setNotifications(this.notifications);
-        alertRule.setForDuration(this.forDuration);
+        alertRule.setForTimes(this.forTimes);
         alertRule.setEvery(this.every);
         alertRule.setSilence(silence);
         alertRule.setEnabled(true);

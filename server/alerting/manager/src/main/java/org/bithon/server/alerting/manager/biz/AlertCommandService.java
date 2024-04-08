@@ -151,7 +151,7 @@ public class AlertCommandService {
         alertObject.setPayload(AlertStorageObjectPayload.builder()
                                                         .every(alertRule.getEvery())
                                                         .expr(alertRule.getExpr())
-                                                        .forDuration(alertRule.getForDuration())
+                                                        .forTimes(alertRule.getForTimes())
                                                         .notifications(alertRule.getNotifications())
                                                         .silence(alertRule.getSilence())
                                                         .build());

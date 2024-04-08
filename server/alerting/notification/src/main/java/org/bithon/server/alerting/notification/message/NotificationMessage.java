@@ -20,7 +20,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 
@@ -37,11 +36,8 @@ import java.util.Map;
 @AllArgsConstructor
 public class NotificationMessage {
     private String alertRecordId;
-    private long start;
-    private long end;
-    private HumanReadableDuration duration;
     private Collection<AlertExpression> expressions;
-    private Map<String, ConditionEvaluationResult> conditionEvaluation;
+    private Map<String, ExpressionEvaluationResult> conditionEvaluation;
     private AlertRule alertRule;
     private Long lastAlertAt;
 }

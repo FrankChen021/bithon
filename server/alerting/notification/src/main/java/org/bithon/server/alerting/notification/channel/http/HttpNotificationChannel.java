@@ -41,7 +41,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.config.NotificationProperties;
-import org.bithon.server.alerting.notification.message.ConditionEvaluationResult;
+import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 
 import javax.validation.constraints.NotBlank;
@@ -114,7 +114,7 @@ public class HttpNotificationChannel implements INotificationChannel {
     public void send(NotificationMessage message) throws IOException {
         String defaultMessage;
         if (message.getExpressions().size() == 1) {
-            ConditionEvaluationResult result = message.getConditionEvaluation().entrySet().iterator().next().getValue();
+            ExpressionEvaluationResult result = message.getConditionEvaluation().entrySet().iterator().next().getValue();
             defaultMessage = StringUtils.format("expected: %s, current: %s",
                                                 result.getOutputs().getThreshold(),
                                                 result.getOutputs().getCurrent());
@@ -129,7 +129,7 @@ public class HttpNotificationChannel implements INotificationChannel {
                                                                                      .findFirst()
                                                                                      .orElse(null);
 
-                                        ConditionEvaluationResult result = entry.getValue();
+                                        ExpressionEvaluationResult result = entry.getValue();
                                         return StringUtils.format("expr: %s, expected: %s, current: %s",
                                                                   evaluatedExpression.serializeToText(),
                                                                   result.getOutputs().getThreshold(),
