@@ -140,24 +140,24 @@ public class AlertExpressionASTParserTest {
     @Test
     public void testCompoundExpression() {
         IExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] <> 1 " +
-                                                                    "AND " +
-                                                                    "avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2 ");
+                                                                "AND " +
+                                                                "avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2 ");
         Assert.assertTrue(expression instanceof LogicalExpression.AND);
         Assert.assertEquals("1", ((AlertExpression) ((LogicalExpression.AND) expression).getOperands().get(0)).getId());
         Assert.assertEquals("2", ((AlertExpression) ((LogicalExpression.AND) expression).getOperands().get(1)).getId());
 
         expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1 " +
-                                                        "AND avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2 " +
-                                                        "OR avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 3");
+                                                    "AND avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2 " +
+                                                    "OR avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 3");
 
         expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1 " +
-                                                        "AND (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2)" +
-                                                        "OR (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 3)");
+                                                    "AND (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2)" +
+                                                    "OR (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 3)");
 
         expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 3 " +
-                                                        "AND (" +
-                                                        "(avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1) OR (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2) " +
-                                                        ")");
+                                                    "AND (" +
+                                                    "(avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1) OR (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2) " +
+                                                    ")");
 
     }
 
@@ -256,5 +256,10 @@ public class AlertExpressionASTParserTest {
             Assert.assertEquals("count(jvm-metrics.cpu{appName like \"a%\", instanceName like \"192.%\"})[5m] > 1",
                                 expression.serializeToText());
         }
+    }
+
+    @Test
+    public void testInvalidMetricName() {
+        Assert.assertThrows(InvalidExpressionException.class, ()-> AlertExpressionASTParser.parse("avg(jvm)[5m] > 1[-7m]"));
     }
 }

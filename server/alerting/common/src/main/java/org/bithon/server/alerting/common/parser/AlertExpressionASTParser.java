@@ -117,8 +117,13 @@ public class AlertExpressionASTParser {
         @Override
         public IExpression visitAlertExpression(AlertExpressionParser.AlertExpressionContext ctx) {
             AlertExpressionParser.SelectExpressionContext selectExpression = ctx.selectExpression();
-            String[] names = selectExpression.nameExpression().getText().split("\\.");
-            String from = names[0];
+
+            String nameExpressionText = selectExpression.nameExpression().getText();
+            String[] names = nameExpressionText.split("\\.");
+            if (names.length != 2) {
+                throw new InvalidExpressionException(StringUtils.format("The metric name [%s] is invalid. It must follow the SCHEMA.METRIC format.", nameExpressionText));
+            }
+            String dataSource = names[0];
             String metric = names[1];
 
             String aggregatorText = selectExpression.aggregatorExpression().getText().toLowerCase(Locale.ENGLISH);
@@ -264,7 +269,7 @@ public class AlertExpressionASTParser {
 
             AlertExpression expression = new AlertExpression();
             expression.setId(String.valueOf(index++));
-            expression.setFrom(from);
+            expression.setFrom(dataSource);
             expression.setWhereExpression(whereExpression);
 
             // For 'count' aggregator, use the 'count' as output column instead of using the column name as output name

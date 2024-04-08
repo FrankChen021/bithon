@@ -24,8 +24,10 @@ groupByExpression
   : BY '(' IDENTIFIER (',' IDENTIFIER)? ')'
   ;
 
+// At the syntax level, the qualifier is optional
+// We check if the name is valid at the parser phase so that we provide more readable error message for users
 nameExpression
-  : IDENTIFIER '.' IDENTIFIER
+  : IDENTIFIER ('.' IDENTIFIER)?
   ;
 
 whereExpression
