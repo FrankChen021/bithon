@@ -18,6 +18,7 @@ package org.bithon.server.alerting.manager.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
@@ -47,6 +48,8 @@ import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.ListAlertDO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -59,6 +62,7 @@ import javax.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -73,11 +77,16 @@ public class AlertQueryApi {
     final IAlertRecordStorage alertRecordStorage;
     final IAlertObjectStorage alertStorage;
     final EvaluationLogService evaluationLogService;
+    final IDataSourceApi dataSourceApi;
 
-    public AlertQueryApi(IAlertRecordStorage alertRecordStorage, IAlertObjectStorage alertStorage, EvaluationLogService evaluationLogService) {
+    public AlertQueryApi(IAlertRecordStorage alertRecordStorage,
+                         IAlertObjectStorage alertStorage,
+                         EvaluationLogService evaluationLogService,
+                         IDataSourceApi dataSourceApi) {
         this.alertRecordStorage = alertRecordStorage;
         this.alertStorage = alertStorage;
         this.evaluationLogService = evaluationLogService;
+        this.dataSourceApi = dataSourceApi;
     }
 
     @Data
@@ -100,9 +109,17 @@ public class AlertQueryApi {
     @PostMapping("/api/alerting/alert/parse")
     public ApiResponse<ParseAlertExpressionResponse> parseAlertExpression(@Valid @RequestBody ParseAlertExpressionRequest request) {
         try {
+            // Parse expression first
+            IExpression alertExpression = AlertRule.build(request.getAppName(), request.getExpression());
+
+            // Get Schema for validation
+            Map<String, ISchema> schemas = dataSourceApi.getSchemas();
+
             List<AlertExpression> alertExpressions = new ArrayList<>();
-            AlertRule.build(request.getAppName(), request.getExpression())
-                     .accept((IAlertExpressionVisitor) alertExpressions::add);
+            alertExpression.accept((IAlertExpressionVisitor) expression -> {
+                expression.validate(schemas);
+                alertExpressions.add(expression);
+            });
             return ApiResponse.success(new ParseAlertExpressionResponse(alertExpressions));
         } catch (InvalidExpressionException e) {
             return ApiResponse.fail(e.getMessage());
@@ -118,27 +135,27 @@ public class AlertQueryApi {
     public GetAlertListResponse getAlerts(@Valid @RequestBody GetAlertListRequest request) {
         request.getOrderBy().setName(StringUtils.camelToSnake(request.getOrderBy().getName()));
 
-        List<ListAlertDO> objs = alertStorage.getAlertList(request.getAppName(),
-                                                           request.getAlertName(),
-                                                           request.getOrderBy(),
-                                                           request.getLimit());
+        List<ListAlertDO> alertList = alertStorage.getAlertList(request.getAppName(),
+                                                                request.getAlertName(),
+                                                                request.getOrderBy(),
+                                                                request.getLimit());
 
         return new GetAlertListResponse(alertStorage.getAlertListSize(request.getAppName(), request.getAlertName()),
-                                        objs.stream()
-                                            .map(alert -> {
-                                                ListAlertBo bo = new ListAlertBo();
-                                                bo.setAlertId(alert.getAlertId());
-                                                bo.setName(alert.getAlertName());
-                                                bo.setAppName(alert.getAppName());
-                                                bo.setEnabled(!alert.isDisabled());
-                                                bo.setCreatedAt(alert.getCreatedAt().getTime());
-                                                bo.setUpdatedAt(alert.getUpdatedAt().getTime());
-                                                bo.setLastAlertAt(alert.getLastAlertAt() == null ? 0L : alert.getLastAlertAt().getTime());
-                                                bo.setLastOperator(alert.getLastOperator());
-                                                bo.setLastRecordId(alert.getLastRecordId());
-                                                return bo;
-                                            })
-                                            .collect(Collectors.toList()));
+                                        alertList.stream()
+                                                 .map(alert -> {
+                                                     ListAlertBo bo = new ListAlertBo();
+                                                     bo.setAlertId(alert.getAlertId());
+                                                     bo.setName(alert.getAlertName());
+                                                     bo.setAppName(alert.getAppName());
+                                                     bo.setEnabled(!alert.isDisabled());
+                                                     bo.setCreatedAt(alert.getCreatedAt().getTime());
+                                                     bo.setUpdatedAt(alert.getUpdatedAt().getTime());
+                                                     bo.setLastAlertAt(alert.getLastAlertAt() == null ? 0L : alert.getLastAlertAt().getTime());
+                                                     bo.setLastOperator(alert.getLastOperator());
+                                                     bo.setLastRecordId(alert.getLastRecordId());
+                                                     return bo;
+                                                 })
+                                                 .collect(Collectors.toList()));
     }
 
     @PostMapping("/api/alerting/alert/record/get")

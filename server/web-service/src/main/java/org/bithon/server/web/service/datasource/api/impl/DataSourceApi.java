@@ -182,7 +182,7 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public ISchema getSchemaByName(String schemaName) {
-        ISchema schema = schemaManager.getSchema(schemaName);
+        ISchema schema = schemaManager.getSchema(schemaName, false);
 
         // Mask the sensitive information
         // This is experimental

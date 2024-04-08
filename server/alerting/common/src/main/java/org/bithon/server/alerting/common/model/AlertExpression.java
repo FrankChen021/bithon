@@ -22,6 +22,7 @@ import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IExpressionVisitor2;
+import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
@@ -31,10 +32,14 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.AlertExpressionEvaluator;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
+import org.bithon.server.alerting.common.parser.InvalidExpressionException;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -191,5 +196,48 @@ public class AlertExpression implements IExpression {
             return ((IAlertExpressionVisitor2<T>) visitor).visit(this);
         }
         return null;
+    }
+
+    public void validate(Map<String, ISchema> schemas) {
+        if (!StringUtils.hasText(this.getFrom())) {
+            throw new InvalidExpressionException("data-source is missed in expression [%s]", this.serializeToText());
+        }
+
+        ISchema schema = schemas.get(this.getFrom());
+        if (schema == null) {
+            throw new InvalidExpressionException("data-source [%s] does not exist for expression [%s]",
+                                                 this.getFrom(),
+                                                 this.serializeToText());
+        }
+
+        String metric = this.getSelect().getField();
+        IColumn column = schema.getColumnByName(metric);
+        if (column == null) {
+            throw new InvalidExpressionException("Metric [%s] in expression [%s] does not exist in data-source [%s]",
+                                                 metric,
+                                                 this.serializeToText(),
+                                                 this.getFrom());
+        }
+        if (!AggregatorEnum.valueOf(this.getSelect().getAggregator()).isColumnSupported(column)) {
+            throw new InvalidExpressionException("Aggregator [%s] is not supported8 on column [%s] which has a type of [%s]",
+                                                 this.getSelect().getAggregator(),
+                                                 metric,
+                                                 column.getDataType().name());
+        }
+
+        if (this.getWhereExpression() != null) {
+            this.getWhereExpression().accept(new IExpressionVisitor() {
+                @Override
+                public boolean visit(IdentifierExpression expression) {
+                    IColumn dimensionSpec = schema.getColumnByName(expression.getIdentifier());
+                    if (dimensionSpec == null) {
+                        throw new InvalidExpressionException("Dimension [%s] specified in expression [%s] does not exist",
+                                                             expression.getIdentifier(),
+                                                             serializeToText());
+                    }
+                    return false;
+                }
+            });
+        }
     }
 }

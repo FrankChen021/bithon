@@ -87,6 +87,10 @@ public class SchemaManager implements SmartLifecycle {
     }
 
     public ISchema getSchema(String name) {
+        return getSchema(name, true);
+    }
+
+    public ISchema getSchema(String name, boolean throwIfNotFound) {
         // load from cache first
         ISchema schema = schemas.get(name);
         if (schema != null) {
@@ -100,7 +104,11 @@ public class SchemaManager implements SmartLifecycle {
             return schema;
         }
 
-        throw new SchemaException.NotFound(name);
+        if (throwIfNotFound) {
+            throw new SchemaException.NotFound(name);
+        } else {
+            return null;
+        }
     }
 
     public synchronized Map<String, ISchema> getSchemas() {
