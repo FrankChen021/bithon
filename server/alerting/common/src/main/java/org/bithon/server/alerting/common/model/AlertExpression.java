@@ -200,12 +200,12 @@ public class AlertExpression implements IExpression {
 
     public void validate(Map<String, ISchema> schemas) {
         if (!StringUtils.hasText(this.getFrom())) {
-            throw new InvalidExpressionException("data-source is missed in expression [%s]", this.serializeToText());
+            throw new InvalidExpressionException("data-source expression is missed in expression [%s]", this.serializeToText());
         }
 
         ISchema schema = schemas.get(this.getFrom());
         if (schema == null) {
-            throw new InvalidExpressionException("data-source [%s] does not exist for expression [%s]",
+            throw new InvalidExpressionException("data-source expression [%s] does not exist for expression [%s]",
                                                  this.getFrom(),
                                                  this.serializeToText());
         }
@@ -231,13 +231,23 @@ public class AlertExpression implements IExpression {
                 public boolean visit(IdentifierExpression expression) {
                     IColumn dimensionSpec = schema.getColumnByName(expression.getIdentifier());
                     if (dimensionSpec == null) {
-                        throw new InvalidExpressionException("Dimension [%s] specified in expression [%s] does not exist",
+                        throw new InvalidExpressionException("WHERE expression [%s] specified in expression [%s] does not exist",
                                                              expression.getIdentifier(),
                                                              serializeToText());
                     }
                     return false;
                 }
             });
+        }
+
+        if (CollectionUtils.isNotEmpty(this.getGroupBy())) {
+            for (String groupBy : this.getGroupBy()) {
+                IColumn dimensionSpec = schema.getColumnByName(groupBy);
+                if (dimensionSpec == null) {
+                    throw new InvalidExpressionException("BY expression [%s] specified in expression does not exist",
+                                                         groupBy);
+                }
+            }
         }
     }
 }

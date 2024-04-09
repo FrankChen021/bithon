@@ -23,6 +23,8 @@ import org.bithon.server.alerting.common.model.AlertExpression;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -267,5 +269,20 @@ public class AlertExpressionASTParserTest {
     @Test
     public void testMultipleFilters() {
         Assert.assertThrows(InvalidExpressionException.class, () -> AlertExpressionASTParser.parse("avg(http-metrics{appName='a', instance='localhost', url='http://localhost/test'})[5m] > 1[-7m]"));
+    }
+
+    @Test
+    public void testByExpression() {
+        AlertExpression expr = (AlertExpression) AlertExpressionASTParser.parse("avg by (instance) (http-metrics.responseTime{appName='a'})[5m] > 1");
+        Assert.assertEquals(Collections.singletonList("instance"), expr.getGroupBy());
+
+        expr = (AlertExpression) AlertExpressionASTParser.parse("avg by (instance, url)(http-metrics.responseTime{appName='a'})[5m] > 1");
+        Assert.assertEquals(Arrays.asList("instance", "url"), expr.getGroupBy());
+
+        expr = (AlertExpression) AlertExpressionASTParser.parse("avg by (instance, url, method) (http-metrics.responseTime{appName='a'})[5m] > 1");
+        Assert.assertEquals(Arrays.asList("instance", "url", "method"), expr.getGroupBy());
+
+        expr = (AlertExpression) AlertExpressionASTParser.parse("avg by instance, url, method (http-metrics.responseTime{appName='a'})[5m] > 1");
+        Assert.assertEquals(Arrays.asList("instance", "url", "method"), expr.getGroupBy());
     }
 }

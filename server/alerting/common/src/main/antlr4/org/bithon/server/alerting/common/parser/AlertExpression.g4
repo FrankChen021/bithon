@@ -21,7 +21,8 @@ aggregatorExpression
   ;
 
 groupByExpression
-  : BY '(' IDENTIFIER (',' IDENTIFIER)? ')'
+  : BY '(' IDENTIFIER (',' IDENTIFIER)* ')'
+  | BY IDENTIFIER (',' IDENTIFIER)*
   ;
 
 // At the syntax level, the qualifier is optional, but in actual, it's mandatory.
