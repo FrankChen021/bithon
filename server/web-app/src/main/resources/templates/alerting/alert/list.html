@@ -106,9 +106,12 @@
                 }, {
                     field: 'enabled',
                     title: 'Status',
-                    formatter: function (value, row) {
+                    formatter: (value, row) => {
                         return (row.enabled ? "Enabled" : "Disabled");
                     }
+                }, {
+                    field: 'alertStatus',
+                    title: 'Alert Status'
                 }, {
                     field: 'lastAlertAt',
                     title: 'Last Alert At',
@@ -140,7 +143,7 @@
                 }, {
                     field: 'alertId',
                     title: 'Operations',
-                    formatter: function (value, row) {
+                    formatter: (value, row) => {
                         return '<div class="btn-group btn-group-sm" role="group" aria-label="...">' +
                             '<button class="btn btn-outline-primary" onclick="enableAlert(\'' + row.alertId + '\')"><span class="' + (row.enabled ? "glyphicon glyphicon-pause" : "glyphicon glyphicon-play") + '"></span>&nbsp;' + (row.enabled ? "Disable" : "Enable") + '</button>' +
                             //'<button class="btn btn-outline-primary" onclick="updateAlert(\'' + row.alertId + '\')"><span class="glyphicon glyphicon-cog"></span>&nbsp;Modify</button>' +

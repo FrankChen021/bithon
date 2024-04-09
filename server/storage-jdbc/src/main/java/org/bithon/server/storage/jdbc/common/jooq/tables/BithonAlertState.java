@@ -17,7 +17,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row3;
+import org.jooq.Row4;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -32,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
 
-    private static final long serialVersionUID = -289036001;
+    private static final long serialVersionUID = 193559712;
 
     /**
      * The reference instance of <code>bithon_alert_state</code>
@@ -51,6 +51,11 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
      * The column <code>bithon_alert_state.alert_id</code>.
      */
     public final TableField<BithonAlertStateRecord, String> ALERT_ID = createField(DSL.name("alert_id"), org.jooq.impl.SQLDataType.VARCHAR(32).nullable(false), this, "");
+
+    /**
+     * The column <code>bithon_alert_state.alert_status</code>. See the AlertStatus enum
+     */
+    public final TableField<BithonAlertStateRecord, Integer> ALERT_STATUS = createField(DSL.name("alert_status"), org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "See the AlertStatus enum");
 
     /**
      * The column <code>bithon_alert_state.last_alert_at</code>.
@@ -137,11 +142,11 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row3 type methods
+    // Row4 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row3<String, LocalDateTime, String> fieldsRow() {
-        return (Row3) super.fieldsRow();
+    public Row4<String, Integer, LocalDateTime, String> fieldsRow() {
+        return (Row4) super.fieldsRow();
     }
 }

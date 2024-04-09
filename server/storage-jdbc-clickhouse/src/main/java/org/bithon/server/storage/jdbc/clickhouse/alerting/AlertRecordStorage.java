@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
+import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.jdbc.alerting.AlertRecordJdbcStorage;
@@ -71,6 +72,17 @@ public class AlertRecordStorage extends AlertRecordJdbcStorage {
     }
 
     @Override
+    public void updateAlertStatus(String id, AlertStatus alertStatus) {
+        // TODO: Get the last alert time and last record id
+        dslContext.insertInto(Tables.BITHON_ALERT_STATE)
+                  .set(Tables.BITHON_ALERT_STATE.ALERT_ID, id)
+                  //.set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, record.getCreatedAt().toLocalDateTime())
+                  //.set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, record.getRecordId())
+                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.RESOLVED.statusCode())
+                  .execute();
+    }
+
+    @Override
     public void addAlertRecord(AlertRecordObject record) {
         dslContext.insertInto(Tables.BITHON_ALERT_RECORD)
                   .set(Tables.BITHON_ALERT_RECORD.APP_NAME, record.getAppName())
@@ -88,6 +100,7 @@ public class AlertRecordStorage extends AlertRecordJdbcStorage {
                   .set(Tables.BITHON_ALERT_STATE.ALERT_ID, record.getAlertId())
                   .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, record.getCreatedAt().toLocalDateTime())
                   .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, record.getRecordId())
+                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.FIRING.statusCode())
                   .execute();
     }
 

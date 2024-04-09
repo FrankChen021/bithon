@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertState;
 import org.jooq.Field;
-import org.jooq.Record3;
-import org.jooq.Row3;
+import org.jooq.Record4;
+import org.jooq.Row4;
 import org.jooq.impl.TableRecordImpl;
 
 
@@ -17,9 +17,9 @@ import org.jooq.impl.TableRecordImpl;
  * Alerting State
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
-public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateRecord> implements Record3<String, LocalDateTime, String> {
+public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateRecord> implements Record4<String, Integer, LocalDateTime, String> {
 
-    private static final long serialVersionUID = 721367876;
+    private static final long serialVersionUID = 581042835;
 
     /**
      * Setter for <code>bithon_alert_state.alert_id</code>.
@@ -36,45 +36,59 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
     }
 
     /**
+     * Setter for <code>bithon_alert_state.alert_status</code>. See the AlertStatus enum
+     */
+    public void setAlertStatus(Integer value) {
+        set(1, value);
+    }
+
+    /**
+     * Getter for <code>bithon_alert_state.alert_status</code>. See the AlertStatus enum
+     */
+    public Integer getAlertStatus() {
+        return (Integer) get(1);
+    }
+
+    /**
      * Setter for <code>bithon_alert_state.last_alert_at</code>.
      */
     public void setLastAlertAt(LocalDateTime value) {
-        set(1, value);
+        set(2, value);
     }
 
     /**
      * Getter for <code>bithon_alert_state.last_alert_at</code>.
      */
     public LocalDateTime getLastAlertAt() {
-        return (LocalDateTime) get(1);
+        return (LocalDateTime) get(2);
     }
 
     /**
      * Setter for <code>bithon_alert_state.last_record_id</code>. The PK ID in bithon_alert_record table
      */
     public void setLastRecordId(String value) {
-        set(2, value);
+        set(3, value);
     }
 
     /**
      * Getter for <code>bithon_alert_state.last_record_id</code>. The PK ID in bithon_alert_record table
      */
     public String getLastRecordId() {
-        return (String) get(2);
+        return (String) get(3);
     }
 
     // -------------------------------------------------------------------------
-    // Record3 type implementation
+    // Record4 type implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public Row3<String, LocalDateTime, String> fieldsRow() {
-        return (Row3) super.fieldsRow();
+    public Row4<String, Integer, LocalDateTime, String> fieldsRow() {
+        return (Row4) super.fieldsRow();
     }
 
     @Override
-    public Row3<String, LocalDateTime, String> valuesRow() {
-        return (Row3) super.valuesRow();
+    public Row4<String, Integer, LocalDateTime, String> valuesRow() {
+        return (Row4) super.valuesRow();
     }
 
     @Override
@@ -83,12 +97,17 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
     }
 
     @Override
-    public Field<LocalDateTime> field2() {
+    public Field<Integer> field2() {
+        return BithonAlertState.BITHON_ALERT_STATE.ALERT_STATUS;
+    }
+
+    @Override
+    public Field<LocalDateTime> field3() {
         return BithonAlertState.BITHON_ALERT_STATE.LAST_ALERT_AT;
     }
 
     @Override
-    public Field<String> field3() {
+    public Field<String> field4() {
         return BithonAlertState.BITHON_ALERT_STATE.LAST_RECORD_ID;
     }
 
@@ -98,12 +117,17 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
     }
 
     @Override
-    public LocalDateTime component2() {
+    public Integer component2() {
+        return getAlertStatus();
+    }
+
+    @Override
+    public LocalDateTime component3() {
         return getLastAlertAt();
     }
 
     @Override
-    public String component3() {
+    public String component4() {
         return getLastRecordId();
     }
 
@@ -113,12 +137,17 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
     }
 
     @Override
-    public LocalDateTime value2() {
+    public Integer value2() {
+        return getAlertStatus();
+    }
+
+    @Override
+    public LocalDateTime value3() {
         return getLastAlertAt();
     }
 
     @Override
-    public String value3() {
+    public String value4() {
         return getLastRecordId();
     }
 
@@ -129,22 +158,29 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
     }
 
     @Override
-    public BithonAlertStateRecord value2(LocalDateTime value) {
+    public BithonAlertStateRecord value2(Integer value) {
+        setAlertStatus(value);
+        return this;
+    }
+
+    @Override
+    public BithonAlertStateRecord value3(LocalDateTime value) {
         setLastAlertAt(value);
         return this;
     }
 
     @Override
-    public BithonAlertStateRecord value3(String value) {
+    public BithonAlertStateRecord value4(String value) {
         setLastRecordId(value);
         return this;
     }
 
     @Override
-    public BithonAlertStateRecord values(String value1, LocalDateTime value2, String value3) {
+    public BithonAlertStateRecord values(String value1, Integer value2, LocalDateTime value3, String value4) {
         value1(value1);
         value2(value2);
         value3(value3);
+        value4(value4);
         return this;
     }
 
@@ -162,11 +198,12 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
     /**
      * Create a detached, initialised BithonAlertStateRecord
      */
-    public BithonAlertStateRecord(String alertId, LocalDateTime lastAlertAt, String lastRecordId) {
+    public BithonAlertStateRecord(String alertId, Integer alertStatus, LocalDateTime lastAlertAt, String lastRecordId) {
         super(BithonAlertState.BITHON_ALERT_STATE);
 
         set(0, alertId);
-        set(1, lastAlertAt);
-        set(2, lastRecordId);
+        set(1, alertStatus);
+        set(2, lastAlertAt);
+        set(3, lastRecordId);
     }
 }

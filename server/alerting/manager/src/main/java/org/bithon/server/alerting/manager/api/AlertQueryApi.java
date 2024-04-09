@@ -38,7 +38,7 @@ import org.bithon.server.alerting.manager.api.parameter.GetAlertRecordListRespon
 import org.bithon.server.alerting.manager.api.parameter.GetChangeLogListResponse;
 import org.bithon.server.alerting.manager.api.parameter.GetEvaluationLogsRequest;
 import org.bithon.server.alerting.manager.api.parameter.GetEvaluationLogsResponse;
-import org.bithon.server.alerting.manager.api.parameter.ListAlertBo;
+import org.bithon.server.alerting.manager.api.parameter.ListAlertVO;
 import org.bithon.server.alerting.manager.api.parameter.ListRecordBo;
 import org.bithon.server.alerting.manager.biz.EvaluationLogService;
 import org.bithon.server.alerting.manager.biz.JsonPayloadFormatter;
@@ -48,7 +48,7 @@ import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.pojo.AlertChangeLogObject;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
-import org.bithon.server.storage.alerting.pojo.ListAlertDO;
+import org.bithon.server.storage.alerting.pojo.ListAlertDTO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -140,25 +140,26 @@ public class AlertQueryApi {
     public GetAlertListResponse getAlerts(@Valid @RequestBody GetAlertListRequest request) {
         request.getOrderBy().setName(StringUtils.camelToSnake(request.getOrderBy().getName()));
 
-        List<ListAlertDO> alertList = alertStorage.getAlertList(request.getAppName(),
-                                                                request.getAlertName(),
-                                                                request.getOrderBy(),
-                                                                request.getLimit());
+        List<ListAlertDTO> alertList = alertStorage.getAlertList(request.getAppName(),
+                                                                 request.getAlertName(),
+                                                                 request.getOrderBy(),
+                                                                 request.getLimit());
 
         return new GetAlertListResponse(alertStorage.getAlertListSize(request.getAppName(), request.getAlertName()),
                                         alertList.stream()
                                                  .map(alert -> {
-                                                     ListAlertBo bo = new ListAlertBo();
-                                                     bo.setAlertId(alert.getAlertId());
-                                                     bo.setName(alert.getAlertName());
-                                                     bo.setAppName(alert.getAppName());
-                                                     bo.setEnabled(!alert.isDisabled());
-                                                     bo.setCreatedAt(alert.getCreatedAt().getTime());
-                                                     bo.setUpdatedAt(alert.getUpdatedAt().getTime());
-                                                     bo.setLastAlertAt(alert.getLastAlertAt() == null ? 0L : alert.getLastAlertAt().getTime());
-                                                     bo.setLastOperator(alert.getLastOperator());
-                                                     bo.setLastRecordId(alert.getLastRecordId());
-                                                     return bo;
+                                                     ListAlertVO vo = new ListAlertVO();
+                                                     vo.setAlertId(alert.getAlertId());
+                                                     vo.setName(alert.getAlertName());
+                                                     vo.setAppName(alert.getAppName());
+                                                     vo.setEnabled(!alert.isDisabled());
+                                                     vo.setCreatedAt(alert.getCreatedAt().getTime());
+                                                     vo.setUpdatedAt(alert.getUpdatedAt().getTime());
+                                                     vo.setLastAlertAt(alert.getLastAlertAt() == null ? 0L : alert.getLastAlertAt().getTime());
+                                                     vo.setLastOperator(alert.getLastOperator());
+                                                     vo.setLastRecordId(alert.getLastRecordId());
+                                                     vo.setAlertStatus(alert.getAlertStatus());
+                                                     return vo;
                                                  })
                                                  .collect(Collectors.toList()));
     }

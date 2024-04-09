@@ -22,12 +22,14 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -69,9 +71,15 @@ public class AlertEvaluatorScheduler {
             // Load changes first
             alertRepository.loadChanges();
 
+            // Update all alert status
+            Map<String, AlertStatus> alertStatus = alertRepository.loadStatus();
+
             TimeSpan now = TimeSpan.now().floor(Duration.ofMinutes(1));
             for (AlertRule alertRule : alertRepository.getLoadedAlerts().values()) {
-                executor.execute(() -> alertEvaluator.evaluate(now, alertRule));
+                executor.execute(() -> alertEvaluator.evaluate(now,
+                                                               alertRule,
+                                                               alertStatus.getOrDefault(alertRule.getId(), AlertStatus.PENDING)
+                                                               ));
             }
         } finally {
             Thread.currentThread().setName(name);
@@ -84,7 +92,7 @@ public class AlertEvaluatorScheduler {
     private void evaluate(String alertId) {
         AlertRule alertRule = alertRepository.getLoadedAlerts().get(alertId);
         if (alertRule != null) {
-            alertEvaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)), alertRule);
+            alertEvaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)), alertRule, AlertStatus.PENDING);
         }
     }
 }

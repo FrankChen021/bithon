@@ -41,6 +41,7 @@ import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
+import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.ApplicationContext;
@@ -91,7 +92,7 @@ public class AlertEvaluator implements SmartLifecycle {
         this.notificationApi = createNotificationApi(applicationContext);
     }
 
-    public void evaluate(TimeSpan now, AlertRule alertRule) {
+    public void evaluate(TimeSpan now, AlertRule alertRule, AlertStatus prevStatus) {
         EvaluationContext context = new EvaluationContext(now,
                                                           evaluationLogWriter,
                                                           alertRule,
@@ -113,7 +114,11 @@ public class AlertEvaluator implements SmartLifecycle {
             }
 
             if (evaluate(context)) {
-                notify(alertRule, context);
+                fireAlert(alertRule, context);
+            } else {
+                if (prevStatus == AlertStatus.FIRING) {
+                    resolveAlert(alertRule, context);
+                }
             }
         } catch (Exception e) {
             log.error(StringUtils.format("ERROR to evaluate alert %s", alertRule.getName()), e);
@@ -189,7 +194,13 @@ public class AlertEvaluator implements SmartLifecycle {
         }
     }
 
-    private void notify(AlertRule alertRule, EvaluationContext context) {
+    private void resolveAlert(AlertRule alertRule, EvaluationContext context) {
+        context.log(AlertEvaluator.class, "Alert is resolved.");
+
+        this.alertRecordStorage.updateAlertStatus(alertRule.getId(), AlertStatus.RESOLVED);
+    }
+
+    private void fireAlert(AlertRule alertRule, EvaluationContext context) {
         long now = System.currentTimeMillis();
 
         HumanReadableDuration silenceDuration = context.getAlertRule().getSilence();
@@ -215,11 +226,11 @@ public class AlertEvaluator implements SmartLifecycle {
             notification.getConditionEvaluation()
                         .put(expression.getId(),
                              new ExpressionEvaluationResult(result,
-                                                           outputs == null ? null : OutputMessage.builder()
-                                                                                                 .current(outputs.getCurrentText())
-                                                                                                 .delta(outputs.getDeltaText())
-                                                                                                 .threshold(outputs.getThresholdText())
-                                                                                                 .build()));
+                                                            outputs == null ? null : OutputMessage.builder()
+                                                                                                  .current(outputs.getCurrentText())
+                                                                                                  .delta(outputs.getDeltaText())
+                                                                                                  .threshold(outputs.getThresholdText())
+                                                                                                  .build()));
         });
 
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
