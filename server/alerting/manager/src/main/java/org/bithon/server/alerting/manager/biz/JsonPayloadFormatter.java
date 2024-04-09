@@ -23,6 +23,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
 import java.util.LinkedHashMap;
+import java.util.function.Function;
 
 /**
  * @author Frank Chen
@@ -32,17 +33,21 @@ public enum JsonPayloadFormatter {
 
     YAML {
         @Override
-        public String format(String jsonString, ObjectMapper jsonDeserializer) {
+        public String format(String jsonString, ObjectMapper jsonDeserializer, Function<Object, Object> transformer) {
             ObjectMapper om = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-                                                                .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE)
                                                                 .enable(YAMLGenerator.Feature.INDENT_ARRAYS)
-                                                                .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
+                                                                .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE));
             try {
-                return om.writeValueAsString(jsonDeserializer.readValue(jsonString,
-                                                                        // Use LinkedHashMap
-                                                                        // to keep the order of fields in the original payload
-                                                                        new TypeReference<LinkedHashMap<String, Object>>() {
-                                                                        }));
+                Object deserialized = jsonDeserializer.readValue(jsonString,
+                                                                 // Use LinkedHashMap
+                                                                 // to keep the order of fields in the original payload
+                                                                 new TypeReference<LinkedHashMap<String, Object>>() {
+                                                                 });
+                if (transformer != null) {
+                    deserialized = transformer.apply(deserialized);
+                }
+                return om.writeValueAsString(deserialized);
+
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
@@ -51,12 +56,12 @@ public enum JsonPayloadFormatter {
 
     JSON {
         @Override
-        public String format(String jsonString, ObjectMapper jsonDeserializer) {
+        public String format(String jsonString, ObjectMapper jsonDeserializer, Function<Object, Object> transformer) {
             return jsonString;
         }
     };
 
-    public abstract String format(String jsonString, ObjectMapper jsonDeserializer);
+    public abstract String format(String jsonString, ObjectMapper jsonDeserializer, Function<Object, Object> transformer);
 
     public static JsonPayloadFormatter get(String format) {
         if ("json".equalsIgnoreCase(format)) {

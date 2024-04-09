@@ -65,6 +65,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -192,6 +193,17 @@ public class AlertQueryApi {
                                                                               request.getPageNumber(),
                                                                               request.getPageSize());
 
+        // Add a newline to the expr so that the YAML will render it in block style
+        Function<Object, Object> expressionTransformer = (obj) -> {
+            if (obj instanceof Map) {
+                String expr = (String) ((Map) obj).get("expr");
+                if (expr != null) {
+                    ((Map) obj).put("expr", expr + "\n");
+                }
+            }
+            return obj;
+        };
+
         JsonPayloadFormatter formatter = JsonPayloadFormatter.get(request.getFormat());
         return new GetChangeLogListResponse(results.getRows(),
                                             results.getData()
@@ -199,8 +211,8 @@ public class AlertQueryApi {
                                                    .map(log -> {
                                                        ChangeLogVO vo = new ChangeLogVO();
                                                        BeanUtils.copyProperties(log, vo);
-                                                       vo.setPayloadBefore(formatter.format(log.getPayloadBefore(), this.objectMapper));
-                                                       vo.setPayloadAfter(formatter.format(log.getPayloadAfter(), this.objectMapper));
+                                                       vo.setPayloadBefore(formatter.format(log.getPayloadBefore(), this.objectMapper, expressionTransformer));
+                                                       vo.setPayloadAfter(formatter.format(log.getPayloadAfter(), this.objectMapper, expressionTransformer));
                                                        vo.setTimestamp(log.getCreatedAt().getTime());
                                                        return vo;
                                                    }).collect(Collectors.toList()));

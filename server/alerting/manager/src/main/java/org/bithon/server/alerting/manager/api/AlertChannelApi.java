@@ -191,7 +191,7 @@ public class AlertChannelApi {
                                                                     Map<String, Object> map = new LinkedHashMap<>();
                                                                     map.put("name", obj.getName());
                                                                     map.put("type", obj.getType());
-                                                                    map.put("props", formatter.format(obj.getPayload(), this.objectMapper));
+                                                                    map.put("props", formatter.format(obj.getPayload(), this.objectMapper, null));
                                                                     map.put("createdAt", obj.getCreatedAt());
                                                                     return map;
                                                                 })
