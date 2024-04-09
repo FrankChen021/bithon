@@ -31,20 +31,23 @@ class AlertEditComponent {
             '        </div>\n' +
             '        <div class="input-group">\n' +
             '            <div class="input-group-prepend">\n' +
-            '                <span class="input-group-text" style="width: 160px"><b>for</b></span>\n' +
-            '            </div>\n' +
-            '            <input class="form-control" id="for" value="3" placeholder="Consecutive times the alert expression is evaluated to be true before firing the alert" />\n' +
-            '        </div>\n' +
-            '        <div class="input-group">\n' +
-            '            <div class="input-group-prepend">\n' +
             '                <span class="input-group-text" style="width: 160px"><b>every</b></span>\n' +
             '            </div>\n' +
-            '            <input class="form-control" id="every" value="1"/>\n' +
+            '            <input class="form-control" id="every" value="1" placeholder="The interval between two evaluations. Maximum is 24 hour"/>\n' +
             '            <div class="input-group-append">\n' +
             '                <select id="everyUnit" class="form-control">\n' +
             '                    <option selected value="m">Minute</option>\n' +
             '                    <option value="h">Hour</option>\n' +
             '                </select>\n' +
+            '            </div>\n' +
+            '        </div>\n' +
+            '        <div class="input-group">\n' +
+            '            <div class="input-group-prepend">\n' +
+            '                <span class="input-group-text" style="width: 160px"><b>for</b></span>\n' +
+            '            </div>\n' +
+            '            <input class="form-control" id="for" value="3" placeholder="Consecutive times the alert expression is evaluated to be true before firing the alert" />\n' +
+            '            <div class="input-group-append">\n' +
+            '                <span class="input-group-text">Times</span>\n' +
             '            </div>\n' +
             '        </div>\n' +
             '        <div class="input-group">\n' +
@@ -156,7 +159,10 @@ class AlertEditComponent {
         $('#appName').val(alert.appName);
         $('#expression').val(alert.payload.expr);
         $('#for').val(alert.payload.for);
-        $('#every').val(alert.payload.every);
+
+        $('#every').val(alert.payload.every.substring(0, alert.payload.every.length - 1));
+        $('#everyUnit').val(alert.payload.every.substring(alert.payload.every.length - 1));
+
         $('#notifications').val(alert.payload.notifications).trigger('change');
 
         this.expressionDashboard.renderExpression(alert.payload.expr);

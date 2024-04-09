@@ -10,6 +10,7 @@
 
     <script th:src="@{/js/dialog.js}" type="text/javascript"></script>
     <script th:src="@{/js/utils.js}" type="text/javascript"></script>
+    <script th:src="@{/js/alert/alert-api.js}" type="text/javascript"></script>
     <script th:src="@{/js/alert/alert-edit-component.js}" type="text/javascript"></script>
     <script th:src="@{/js/alert/metrics-component.js}" type="text/javascript"></script>
     <script th:src="@{/js/alert/expression-dashboard-component.js}" type="text/javascript"></script>
@@ -29,65 +30,28 @@
     <script type="text/javascript">
         let m_AlertEditComponent;
 
+        $(document).ready(() => {
+            m_AlertEditComponent = new AlertEditComponent({
+                containerSelector: '#home'
+            });
+        });
+
         function create() {
             const alert = m_AlertEditComponent.getAlertObject();
             if (alert === undefined) {
                 return;
             }
 
-            $.ajax({
-                type: "POST",
-                url: "/api/alerting/alert/create",
-                async: false,
-                data: JSON.stringify(alert),
-                dataType: "json",
-                contentType: "application/yaml",
-                success: (data) => {
-                    if (data.code !== 200) {
-                        bootbox.alert({
-                            backdrop: true,
-                            title: "Error",
-                            message: data.message
-                        });
-                        return;
+            new AlertApi().create(alert, (newAlertId)=>{
+                bootbox.alert({
+                    backdrop: true,
+                    message: "Alert successfully created.",
+                    callback: () => {
+                        window.location.href = "/web/alerting/alert/detail?id=" + newAlertId;
                     }
-                    bootbox.alert({
-                        backdrop: true,
-                        message: "Alert successfully created.",
-                        callback: () => {
-                            window.location.href = "/web/alerting/alert/detail?id=" + data.data;
-                        }
-                    });
-                },
-                error: (data) => {
-                    let message = '';
-                    if (data.responseJSON == null) {
-                        message = data.responseText
-                    } else {
-                        $.each(data.responseJSON, (p, v) => {
-                            if (v !== null) {
-                                message += '<b>' + p + '</b>';
-                                message += ': ';
-                                message += v;
-                                message += '\n';
-                            }
-                        });
-                    }
-
-                    bootbox.alert({
-                        backdrop: true,
-                        title: "Error",
-                        message: '<pre>' + message + '</pre>'
-                    });
-                }
+                });
             });
         }
-
-        $(document).ready(() => {
-            m_AlertEditComponent = new AlertEditComponent({
-                containerSelector: '#home'
-            });
-        });
     </script>
 </div>
 </body>

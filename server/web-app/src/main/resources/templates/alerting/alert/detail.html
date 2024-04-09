@@ -20,7 +20,7 @@
     <script th:src="@{/js/alert/log-component.js}" type="text/javascript"></script>
     <script th:src="@{/js/alert/metrics-component.js}" type="text/javascript"></script>
     <script th:src="@{/js/alert/expression-dashboard-component.js}" type="text/javascript"></script>
-    <script th:src="@{/js/api-client/alert-api.js}" type="text/javascript"></script>
+    <script th:src="@{/js/alert/alert-api.js}" type="text/javascript"></script>
 
     <style>
         pre {
@@ -80,7 +80,7 @@
         </div>
 
         <div class="sub-btn-panel text-center">
-            <!--            <button class="btn btn-outline-primary" th:onclick="javascript: window.location='update?id=[[${alertId}]]'">Modify</button>-->
+            <button class="btn btn-outline-primary btn-save">Save</button>
             <button class="btn btn-outline-primary btn-return">Go back</button>
         </div>
     </div>
@@ -216,6 +216,20 @@
         let logComponent;
 
         $(document).ready(() => {
+            const alertComponent = new AlertEditComponent({containerSelector: '#home'});
+
+            $('.btn-save').click(() => {
+                const alert = alertComponent.getAlertObject();
+                alert.id = alertId;
+                new AlertApi().update(alert, () => {
+                    bootbox.alert({
+                        backdrop: true,
+                        message: "Alert successfully updated.",
+                        callback: () => {}
+                    });
+                });
+            });
+
             $('.btn-return').click(() => {
                 const returnUrl = window.queryParams['returnUrl'];
                 if (returnUrl != null) {
@@ -224,8 +238,6 @@
                     window.location.href = 'list';
                 }
             });
-
-            const alertComponent = new AlertEditComponent({containerSelector: '#home'});
 
             // Load alert
             new AlertApi().getAlertById(alertId, (alert) => {

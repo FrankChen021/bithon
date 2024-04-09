@@ -12,7 +12,7 @@ class ExpressionComponent {
         this.mApplication = option.application;
         this.mEditable = option.editable || false;
         this.mConditions = {};
-        this.mSchemaManager = new DataSourceSchemaManager();
+        this.mSchemaManager = new SchemaManager();
 
         //
         // View
