@@ -56,7 +56,7 @@ public class CreateAlertRequest {
     /**
      * The interval that the alert is evaluated
      */
-    @HumanReadableDurationConstraint(min = "1m", max = "60m")
+    @HumanReadableDurationConstraint(min = "1m", max = "24h")
     private HumanReadableDuration every = HumanReadableDuration.DURATION_1_MINUTE;
 
     /**
