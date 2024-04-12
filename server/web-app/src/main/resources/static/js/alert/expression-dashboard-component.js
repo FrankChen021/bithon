@@ -96,6 +96,7 @@ class ExpressionDashboardComponent {
 
             dataSourceName: expression.from,
             filterExpression: expression.where,
+            groupBy: expression.groupBy,
             metric: expression.select,
             window: window,
             start: start,

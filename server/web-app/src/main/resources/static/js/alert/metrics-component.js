@@ -102,6 +102,7 @@ class MetricComponent {
         const start = this.option.start;
         const end = Math.floor(this.option.end / 60000) * 60000;
         const window = this.option.window;
+        const groupBy = this.option.groupBy;
 
         //$(".bootbox").find('.alert').css('display', 'none');
         chart.showLoading({text: 'Loading...'});
@@ -122,7 +123,8 @@ class MetricComponent {
                     field: metric.field,
                     name: metric.name,
                     aggregator: metric.aggregator
-                }]
+                }],
+                groupBy: groupBy
             }),
             dataType: "json",
             contentType: "application/json",
