@@ -8,24 +8,25 @@ import org.antlr.v4.runtime.TokenStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-public class ReflectionLexerAndParserFactory implements LexerAndParserFactory {
+public class DefaultLexerAndParserFactory implements LexerAndParserFactory {
 
-    private final Constructor<? extends Lexer> lexerCtr;
-    private final Constructor<? extends Parser> parserCtr;
+    private final Constructor<? extends Lexer> lexerCtor;
+    private final Constructor<? extends Parser> parserCtor;
 
-    public ReflectionLexerAndParserFactory(Class<? extends Lexer> lexerClass, Class<? extends Parser> parserClass) {
-        lexerCtr = getConstructor(lexerClass, CharStream.class);
-        parserCtr = getConstructor(parserClass, TokenStream.class);
+    public DefaultLexerAndParserFactory(Class<? extends Lexer> lexerClass,
+                                        Class<? extends Parser> parserClass) {
+        this.lexerCtor = getConstructor(lexerClass, CharStream.class);
+        this.parserCtor = getConstructor(parserClass, TokenStream.class);
     }
 
     @Override
     public Lexer createLexer(CharStream input) {
-        return create(lexerCtr, input);
+        return create(lexerCtor, input);
     }
 
     @Override
     public Parser createParser(TokenStream tokenStream) {
-        return create(parserCtr, tokenStream);
+        return create(parserCtor, tokenStream);
     }
 
     private static <T> Constructor<? extends T> getConstructor(Class<? extends T> givenClass, Class<?> argClass) {
@@ -37,12 +38,11 @@ public class ReflectionLexerAndParserFactory implements LexerAndParserFactory {
         }
     }
 
-    private <T> T create(Constructor<? extends T> contructor, Object arg) {
+    private <T> T create(Constructor<? extends T> constructor, Object arg) {
         try {
-            return contructor.newInstance(arg);
+            return constructor.newInstance(arg);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new IllegalArgumentException(e);
         }
     }
-
 }

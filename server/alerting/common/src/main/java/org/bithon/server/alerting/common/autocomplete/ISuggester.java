@@ -18,6 +18,7 @@ package org.bithon.server.alerting.common.autocomplete;
 
 import org.antlr.v4.runtime.Token;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -34,5 +35,5 @@ public interface ISuggester {
      */
     boolean suggest(List<? extends Token> inputs,
                     GrammarRule grammarRule,
-                    List<Suggestion> suggestions);
+                    Collection<Suggestion> suggestions);
 }

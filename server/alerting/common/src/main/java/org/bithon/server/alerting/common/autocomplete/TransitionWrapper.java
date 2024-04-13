@@ -3,7 +3,7 @@ package org.bithon.server.alerting.common.autocomplete;
 import org.antlr.v4.runtime.atn.ATNState;
 import org.antlr.v4.runtime.atn.Transition;
 
-public class TransitionWrapper {
+class TransitionWrapper {
     private final ATNState source;
     private final Transition transition;
 
