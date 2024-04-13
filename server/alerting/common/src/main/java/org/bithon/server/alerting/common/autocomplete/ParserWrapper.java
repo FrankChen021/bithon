@@ -11,26 +11,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 class ParserWrapper {
     private static final Logger logger = LoggerFactory.getLogger(ParserWrapper.class);
     private final Vocabulary lexerVocabulary;
-    
+
     private final ATN parserAtn;
     private final String[] parserRuleNames;
 
     public ParserWrapper(ParserFactory parserFactory, Vocabulary lexerVocabulary) {
         this.lexerVocabulary = lexerVocabulary;
-        
+
         Parser parserForAtnOnly = parserFactory.createParser(null);
         this.parserAtn = parserForAtnOnly.getATN();
         this.parserRuleNames = parserForAtnOnly.getRuleNames();
-        logger.debug("Parser rule names: " + StringUtils.join(parserForAtnOnly.getRuleNames(), ", "));
+        logger.debug("Parser rule names: [{}]", StringUtils.join(parserForAtnOnly.getRuleNames(), ", "));
     }
-    
+
     public String toString(ATNState parserState) {
         String ruleName = this.parserRuleNames[parserState.ruleIndex];
         return "*" + ruleName + "* " + parserState.getClass().getSimpleName() + " " + parserState;
@@ -45,9 +43,9 @@ class ParserWrapper {
     }
 
     public String transitionsStr(ATNState state) {
-        Stream<Transition> transitionsStream = Arrays.asList(state.getTransitions()).stream();
-        List<String> transitionStrings = transitionsStream.map(this::toString).collect(Collectors.toList());
-        return StringUtils.join(transitionStrings, ", ");
+        return Arrays.stream(state.getTransitions())
+                       .map(this::toString)
+                       .collect(Collectors.joining(", "));
     }
 
     public ATNState getAtnState(int stateNumber) {

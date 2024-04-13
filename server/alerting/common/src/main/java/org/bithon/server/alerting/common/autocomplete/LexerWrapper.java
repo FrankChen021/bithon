@@ -33,7 +33,9 @@ public class LexerWrapper {
 
     public TokenizationResult tokenizeNonDefaultChannel(String input) {
         TokenizationResult result = this.tokenize(input);
-        result.tokens = result.tokens.stream().filter(t -> t.getChannel() == 0).collect(Collectors.toList());
+        result.tokens = result.tokens.stream()
+                                     .filter(t -> t.getChannel() == 0)
+                                     .collect(Collectors.toList());
         return result;
     }
 

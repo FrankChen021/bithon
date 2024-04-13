@@ -8,7 +8,6 @@ public class TransitionWrapper {
     private final Transition transition;
 
     public TransitionWrapper(ATNState source, Transition transition) {
-        super();
         this.source = source;
         this.transition = transition;
     }
@@ -24,30 +23,30 @@ public class TransitionWrapper {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         TransitionWrapper other = (TransitionWrapper) obj;
         if (source == null) {
-            if (other.source != null)
+            if (other.source != null) {
                 return false;
-        } else if (!source.equals(other.source))
+            }
+        } else if (!source.equals(other.source)) {
             return false;
+        }
         if (transition == null) {
-            if (other.transition != null)
-                return false;
-        } else if (!transition.equals(other.transition))
-            return false;
-        return true;
+            return other.transition == null;
+        } else return transition.equals(other.transition);
     }
 
     @Override
     public String toString() {
         return transition.getClass().getSimpleName() + " from " + source + " to " + transition.target;
     }
-
-    
 }

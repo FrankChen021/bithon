@@ -9,12 +9,14 @@ import org.antlr.v4.runtime.misc.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Suggests completions for given text, using a given ANTLR4 grammar.
@@ -25,14 +27,16 @@ public class AutoSuggester {
     private final ParserWrapper parserWrapper;
     private final LexerWrapper lexerWrapper;
     private final String input;
-    private final Set<String> collectedSuggestions = new HashSet<>();
+    private final Set<Suggestion> collectedSuggestions = new HashSet<>();
 
     private List<? extends Token> inputTokens;
     private String untokenizedText = "";
     private String indent = "";
     private CasePreference casePreference = CasePreference.BOTH;
 
-    private Map<ATNState, Integer> parserStateToTokenListIndexWhereLastVisited = new HashMap<>();
+    private final Map<ATNState, Integer> parserStateToTokenListIndexWhereLastVisited = new HashMap<>();
+
+    private final List<ISuggester> suggesterList = new ArrayList<>();
 
     public AutoSuggester(LexerAndParserFactory lexerAndParserFactory, String input) {
         this.lexerWrapper = new LexerWrapper(lexerAndParserFactory);
@@ -43,8 +47,13 @@ public class AutoSuggester {
     public void setCasePreference(CasePreference casePreference) {
         this.casePreference = casePreference;
     }
-    
-    public Collection<String> suggestCompletions() {
+
+    public AutoSuggester addSuggester(ISuggester suggester) {
+        suggesterList.add(suggester);
+        return this;
+    }
+
+    public Collection<Suggestion> suggest() {
         tokenizeInput();
         runParserAtnAndCollectSuggestions();
         return collectedSuggestions;
@@ -55,16 +64,15 @@ public class AutoSuggester {
         this.inputTokens = tokenizationResult.tokens;
         this.untokenizedText = tokenizationResult.untokenizedText;
         if (logger.isDebugEnabled()) {
-            logger.debug("TOKENS FOUND IN FIRST PASS:");
-            for (Token token : this.inputTokens) {
-                logger.debug(token.toString());
-            }
+            logger.debug("TOKENS FOUND IN FIRST PASS: [{}]", this.inputTokens.stream()
+                                                                             .map(Token::getText)
+                                                                             .collect(Collectors.joining(" ")));
         }
     }
 
     private void runParserAtnAndCollectSuggestions() {
         ATNState initialState = this.parserWrapper.getAtnState(0);
-        logger.debug("Parser initial state: " + initialState);
+        logger.debug("Parser initial state: {}", initialState);
         parseAndCollectTokenSuggestions(initialState, 0);
     }
 
@@ -75,15 +83,19 @@ public class AutoSuggester {
     private void parseAndCollectTokenSuggestions(ATNState parserState, int tokenListIndex) {
         indent = indent + "  ";
         if (didVisitParserStateOnThisTokenIndex(parserState, tokenListIndex)) {
-            logger.debug(indent + "State " + parserState + " had already been visited while processing token "
-                    + tokenListIndex + ", backtracking to avoid infinite loop.");
+            logger.debug("{}State {} had already been visited while processing token {}, backtracking to avoid infinite loop.",
+                         indent,
+                         parserState,
+                         tokenListIndex);
             return;
         }
         Integer previousTokenListIndexForThisState = setParserStateLastVisitedOnThisTokenIndex(parserState, tokenListIndex);
         try {
-            if(logger.isDebugEnabled()) {
-                logger.debug(indent + "State: " + parserWrapper.toString(parserState) );
-                logger.debug(indent + "State available transitions: " + parserWrapper.transitionsStr(parserState));
+            if (logger.isDebugEnabled()) {
+                logger.debug("{}State {}, transitions: [{}]",
+                             indent,
+                             parserWrapper.toString(parserState),
+                             parserWrapper.transitionsStr(parserState));
             }
 
             if (!haveMoreTokens(tokenListIndex)) { // stop condition for recursion
@@ -96,7 +108,7 @@ public class AutoSuggester {
                 } else if (trans instanceof AtomTransition) {
                     handleAtomicTransition((AtomTransition) trans, tokenListIndex);
                 } else {
-                    handleSetTransition((SetTransition)trans, tokenListIndex);
+                    handleSetTransition((SetTransition) trans, tokenListIndex);
                 }
             }
         } finally {
@@ -131,11 +143,14 @@ public class AutoSuggester {
         Token nextToken = inputTokens.get(tokenListIndex);
         int nextTokenType = inputTokens.get(tokenListIndex).getType();
         boolean nextTokenMatchesTransition = (trans.label == nextTokenType);
+
+        logger.debug("{}Token [{}]{} following atomic transition: [{}]",
+                     indent,
+                     nextToken.getText(),
+                     nextTokenMatchesTransition ? "" : " NOT",
+                     parserWrapper.toString(trans));
         if (nextTokenMatchesTransition) {
-            logger.debug(indent + "Token " + nextToken + " following transition: " + parserWrapper.toString(trans));
             parseAndCollectTokenSuggestions(trans.target, tokenListIndex + 1);
-        } else {
-            logger.debug(indent + "Token " + nextToken + " NOT following transition: " + parserWrapper.toString(trans));
         }
     }
 
@@ -145,28 +160,44 @@ public class AutoSuggester {
         for (int transitionTokenType : trans.label().toList()) {
             boolean nextTokenMatchesTransition = (transitionTokenType == nextTokenType);
             if (nextTokenMatchesTransition) {
-                logger.debug(indent + "Token " + nextToken + " following transition: " + parserWrapper.toString(trans) + " to " + transitionTokenType);
+                logger.debug("{}Token {} following transition: {} to {}", indent, nextToken, parserWrapper.toString(trans), transitionTokenType);
                 parseAndCollectTokenSuggestions(trans.target, tokenListIndex + 1);
             } else {
-                logger.debug(indent + "Token " + nextToken + " NOT following transition: " + parserWrapper.toString(trans) + " to " + transitionTokenType);
+                logger.debug("{}Token {} NOT following transition: {} to {}", indent, nextToken, parserWrapper.toString(trans), transitionTokenType);
             }
         }
     }
 
     private void suggestNextTokensForParserState(ATNState parserState) {
-        Set<Integer> transitionLabels = new HashSet<>();
-        fillParserTransitionLabels(parserState, transitionLabels, new HashSet<>());
-        TokenSuggester tokenSuggester = new TokenSuggester(this.untokenizedText, lexerWrapper, this.casePreference);
-        Collection<String> suggestions = tokenSuggester.suggest(transitionLabels);
-        parseSuggestionsAndAddValidOnes(parserState, suggestions);
-        logger.debug(indent + "WILL SUGGEST TOKENS FOR STATE: " + parserState);
+        Set<GrammarRule> rules = new HashSet<>();
+        fillParserTransitionLabels(parserState, rules, new HashSet<>());
+
+        List<ISuggester> suggesters = new ArrayList<>(this.suggesterList);
+        // Add default suggester
+        suggesters.add(new TokenSuggester(this.untokenizedText, lexerWrapper, this.casePreference));
+
+        List<Suggestion> suggestions = new ArrayList<>();
+
+        for (GrammarRule rule : rules) {
+            for (ISuggester suggester : suggesters) {
+                if (!suggester.suggest(this.inputTokens, rule, suggestions)) {
+                    // Stop processing further suggesters if the current one says so
+                    break;
+                }
+            }
+        }
+
+        validateSuggestions(parserState, suggestions);
+        logger.debug("WILL SUGGEST TOKENS FOR STATE: {}", parserWrapper.toString(parserState));
     }
 
-    private void fillParserTransitionLabels(ATNState parserState, Collection<Integer> result, Set<TransitionWrapper> visitedTransitions) {
+    private void fillParserTransitionLabels(ATNState parserState,
+                                            Collection<GrammarRule> result,
+                                            Set<TransitionWrapper> visitedTransitions) {
         for (Transition trans : parserState.getTransitions()) {
             TransitionWrapper transWrapper = new TransitionWrapper(parserState, trans);
             if (visitedTransitions.contains(transWrapper)) {
-                logger.debug(indent + "Not following visited " + transWrapper);
+                logger.debug("{}Not following visited {}", indent, transWrapper);
                 continue;
             }
             if (trans.isEpsilon()) {
@@ -179,42 +210,46 @@ public class AutoSuggester {
             } else if (trans instanceof AtomTransition) {
                 int label = ((AtomTransition) trans).label;
                 if (label >= 1) { // EOF would be -1
-                    result.add(label);
+                    result.add(new GrammarRule(parserState.ruleIndex, label));
                 }
             } else if (trans instanceof SetTransition) {
-                for (Interval interval : ((SetTransition) trans).label().getIntervals()) {
+                for (Interval interval : trans.label().getIntervals()) {
                     for (int i = interval.a; i <= interval.b; ++i) {
-                        result.add(i);
+                        result.add(new GrammarRule(parserState.ruleIndex, i));
                     }
                 }
             }
         }
     }
 
-    private void parseSuggestionsAndAddValidOnes(ATNState parserState, Collection<String> suggestions) {
-        for (String suggestion : suggestions) {
-            logger.debug("CHECKING suggestion: " + suggestion);
-            Token addedToken = getAddedToken(suggestion);
-            if (isParseableWithAddedToken(parserState, addedToken, new HashSet<TransitionWrapper>())) {
+    private void validateSuggestions(ATNState parserState, Collection<Suggestion> suggestions) {
+        for (Suggestion suggestion : suggestions) {
+            if (isParseable(parserState, getSuggestionToken(suggestion), new HashSet<>())) {
                 collectedSuggestions.add(suggestion);
+                logger.debug("ADDED suggestion: [{}]", suggestion);
             } else {
-                logger.debug("DROPPING non-parseable suggestion: " + suggestion);
+                logger.debug("DROPPED non-parseable suggestion: [{}]", suggestion);
             }
         }
     }
 
-    private Token getAddedToken(String suggestedCompletion) {
-        String completedText = this.input + " " + suggestedCompletion;
+    private Token getSuggestionToken(Suggestion suggestion) {
+        String completedText = this.input + " " + suggestion.getText();
+
         List<? extends Token> completedTextTokens = this.lexerWrapper.tokenizeNonDefaultChannel(completedText).tokens;
         if (completedTextTokens.size() <= inputTokens.size()) {
             return null; // Completion didn't yield whole token, could be just a token fragment
         }
-        logger.debug("TOKENS IN COMPLETED TEXT: " + completedTextTokens);
-        Token newToken = completedTextTokens.get(completedTextTokens.size() - 1);
-        return newToken;
+
+        return completedTextTokens.get(completedTextTokens.size() - 1);
     }
 
-    private boolean isParseableWithAddedToken(ATNState parserState, Token newToken, Set<TransitionWrapper> visitedTransitions) {
+    /**
+     * Checks if the given token can be parsed by the given parser state.
+     */
+    private boolean isParseable(ATNState parserState,
+                                Token newToken,
+                                Set<TransitionWrapper> visitedTransitions) {
         if (newToken == null) {
             return false;
         }
@@ -226,7 +261,7 @@ public class AutoSuggester {
                 }
                 visitedTransitions.add(transWrapper);
                 try {
-                    if (isParseableWithAddedToken(parserTransition.target, newToken, visitedTransitions)) {
+                    if (isParseable(parserTransition.target, newToken, visitedTransitions)) {
                         return true;
                     }
                 } finally {
