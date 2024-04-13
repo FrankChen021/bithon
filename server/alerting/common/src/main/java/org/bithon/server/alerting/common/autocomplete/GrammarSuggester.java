@@ -8,9 +8,10 @@ import org.antlr.v4.runtime.atn.Transition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Stack;
 import java.util.TreeSet;
 
 /**
@@ -21,12 +22,7 @@ class GrammarSuggester implements ISuggester {
 
     private final LexerWrapper lexerWrapper;
     private final CasePreference casePreference;
-
-    private final Set<Suggestion> suggestions = new TreeSet<>();
-    private final List<Integer> visitedLexerStates = new ArrayList<>();
     private final String origPartialToken;
-
-    private int tokenType;
 
     GrammarSuggester(String origPartialToken,
                      LexerWrapper lexerWrapper,
@@ -46,80 +42,92 @@ class GrammarSuggester implements ISuggester {
             logger.debug("Suggesting tokens for lexer rules: [{}]", ruleNames);
         }
 
-        this.tokenType = grammarRule.nextTokenType;
         int nextTokenRuleNumber = grammarRule.nextTokenType - 1; // Count from 0 not from 1
         ATNState lexerState = this.lexerWrapper.findStateByRuleNumber(nextTokenRuleNumber);
-        suggest("", lexerState, origPartialToken);
+        Set<Suggestion> suggestions = suggest(grammarRule.nextTokenType, lexerState);
 
-        suggestionList.addAll(this.suggestions);
+        suggestionList.addAll(suggestions);
 
         return true;
     }
 
-    private void suggest(String tokenSoFar, ATNState lexerState, String remainingText) {
-        logger.debug("SUGGEST: tokenSoFar={} remainingText={} lexerState={}",
-                     tokenSoFar,
-                     remainingText,
-                     toString(lexerState));
+    static class TraverseState {
+        ATNState lexerState;
+        String tokenSoFar;
+        String remainingText;
+        Set<Integer> parents;
 
-        if (visitedLexerStates.contains(lexerState.stateNumber)) {
-            return; // avoid infinite loop and stack overflow
+        public TraverseState(ATNState lexerState, String tokenSoFar, String remainingText, Set<Integer> parents) {
+            this.lexerState = lexerState;
+            this.tokenSoFar = tokenSoFar;
+            this.remainingText = remainingText;
+            this.parents = new HashSet<>(parents);
         }
-        visitedLexerStates.add(lexerState.stateNumber);
-        try {
+    }
+
+    private Set<Suggestion> suggest(int tokenType, ATNState initState) {
+        Set<Suggestion> suggestions = new TreeSet<>();
+
+        Stack<TraverseState> stack = new Stack<>();
+        stack.push(new TraverseState(initState, "", this.origPartialToken, new HashSet<>()));
+
+        while (!stack.isEmpty()) {
+            TraverseState state = stack.pop();
+            ATNState lexerState = state.lexerState;
+            String tokenSoFar = state.tokenSoFar;
+            String remainingText = state.remainingText;
+
+            if (state.parents.contains(lexerState.stateNumber)) {
+                continue;
+            }
+            state.parents.add(lexerState.stateNumber);
+
             Transition[] transitions = lexerState.getTransitions();
-            boolean tokenNotEmpty = !tokenSoFar.isEmpty();
-            boolean noMoreCharactersInToken = (transitions.length == 0);
-            if (tokenNotEmpty && noMoreCharactersInToken) {
-                addSuggestedToken(tokenSoFar);
-                return;
+            if (!tokenSoFar.isEmpty() && transitions.length == 0) {
+                String justTheCompletionPart = chopOffCommonStart(tokenSoFar, this.origPartialToken);
+                suggestions.add(new Suggestion(tokenType, justTheCompletionPart));
+                continue;
             }
-            for (Transition trans : transitions) {
-                suggestViaLexerTransition(tokenSoFar, remainingText, trans);
+
+            for (Transition transition : transitions) {
+                if (transition.isEpsilon()) {
+                    stack.push(new TraverseState(transition.target, tokenSoFar, remainingText, state.parents));
+                    continue;
+                }
+
+                if (transition instanceof AtomTransition) {
+                    String newTokenChar = getAddedTextFor((AtomTransition) transition);
+                    if (remainingText.isEmpty() || remainingText.startsWith(newTokenChar)) {
+                        logger.debug("LEXER TOKEN: {} remaining={}", newTokenChar, remainingText);
+                        String newRemainingText = (!remainingText.isEmpty()) ? remainingText.substring(1) : remainingText;
+
+                        stack.push(new TraverseState(transition.target, tokenSoFar + newTokenChar, newRemainingText, state.parents));
+                    }
+                    continue;
+                }
+
+                if (transition instanceof SetTransition) {
+                    List<Integer> symbols = transition.label().toList();
+                    for (Integer symbol : symbols) {
+                        char[] charArr = Character.toChars(symbol);
+                        String charStr = new String(charArr);
+                        boolean shouldIgnoreCase = shouldIgnoreThisCase(charArr[0], symbols); // TODO: check for non-BMP
+                        if (!shouldIgnoreCase && (remainingText.isEmpty() || remainingText.startsWith(charStr))) {
+                            String newRemainingText = (!remainingText.isEmpty()) ? remainingText.substring(1) : remainingText;
+
+                            stack.push(new TraverseState(transition.target, tokenSoFar + charStr, newRemainingText, state.parents));
+                        }
+                    }
+                }
             }
-        } finally {
-            visitedLexerStates.remove(visitedLexerStates.size() - 1);
         }
+
+        return suggestions;
     }
 
     private String toString(ATNState lexerState) {
         String ruleName = this.lexerWrapper.getRuleNames()[lexerState.ruleIndex];
         return ruleName + " " + lexerState.getClass().getSimpleName() + " " + lexerState;
-    }
-
-    private void suggestViaLexerTransition(String tokenSoFar, String remainingText, Transition trans) {
-        if (trans.isEpsilon()) {
-            suggest(tokenSoFar, trans.target, remainingText);
-        } else if (trans instanceof AtomTransition) {
-            String newTokenChar = getAddedTextFor((AtomTransition) trans);
-            if (remainingText.isEmpty() || remainingText.startsWith(newTokenChar)) {
-                logger.debug("LEXER TOKEN: {} remaining={}", newTokenChar, remainingText);
-                suggestViaNonEpsilonLexerTransition(tokenSoFar, remainingText, newTokenChar, trans.target);
-            } else {
-                logger.debug("NON MATCHING LEXER TOKEN: {} remaining={}", newTokenChar, remainingText);
-            }
-        } else if (trans instanceof SetTransition) {
-            List<Integer> symbols = trans.label().toList();
-            for (Integer symbol : symbols) {
-                char[] charArr = Character.toChars(symbol);
-                String charStr = new String(charArr);
-                boolean shouldIgnoreCase = shouldIgnoreThisCase(charArr[0], symbols); // TODO: check for non-BMP
-                if (!shouldIgnoreCase && (remainingText.isEmpty() || remainingText.startsWith(charStr))) {
-                    suggestViaNonEpsilonLexerTransition(tokenSoFar, remainingText, charStr, trans.target);
-                }
-            }
-        }
-    }
-
-    private void suggestViaNonEpsilonLexerTransition(String tokenSoFar, String remainingText,
-                                                     String newTokenChar, ATNState targetState) {
-        String newRemainingText = (!remainingText.isEmpty()) ? remainingText.substring(1) : remainingText;
-        suggest(tokenSoFar + newTokenChar, targetState, newRemainingText);
-    }
-
-    private void addSuggestedToken(String tokenToAdd) {
-        String justTheCompletionPart = chopOffCommonStart(tokenToAdd, this.origPartialToken);
-        suggestions.add(new Suggestion(this.tokenType, justTheCompletionPart));
     }
 
     private String chopOffCommonStart(String a, String b) {
