@@ -170,15 +170,14 @@ public class AutoSuggester {
     }
 
     private void suggestNextTokensForParserState(ATNState parserState) {
-        Set<GrammarRule> rules = new HashSet<>();
-        fillParserTransitionLabels(parserState, rules);
+        Set<GrammarRule> rules = findAllTransitionRules(parserState);
 
         List<ISuggester> suggesters = new ArrayList<>(this.suggesterList);
-        // Add default suggester
-        suggesters.add(new TokenSuggester(this.untokenizedText, lexerWrapper, this.casePreference));
+        suggesters.add(new GrammarSuggester(this.untokenizedText, lexerWrapper, this.casePreference));
 
         List<Suggestion> suggestions = new ArrayList<>();
 
+        // Run suggesters on all rules
         for (GrammarRule rule : rules) {
             for (ISuggester suggester : suggesters) {
                 if (!suggester.suggest(this.inputTokens, rule, suggestions)) {
@@ -192,7 +191,9 @@ public class AutoSuggester {
         logger.debug("WILL SUGGEST TOKENS FOR STATE: {}", parserWrapper.toString(parserState));
     }
 
-    private void fillParserTransitionLabels(ATNState parserState, Collection<GrammarRule> result) {
+    private Set<GrammarRule> findAllTransitionRules(ATNState parserState) {
+        Set<GrammarRule> rules = new HashSet<>();
+
         Set<TransitionWrapper> visitedTransitions = new HashSet<>();
         Stack<ATNState> stack = new Stack<>();
         stack.push(parserState);
@@ -214,17 +215,19 @@ public class AutoSuggester {
                 } else if (transition instanceof AtomTransition) {
                     int label = ((AtomTransition) transition).label;
                     if (label >= 1) { // EOF would be -1
-                        result.add(new GrammarRule(state.ruleIndex, label));
+                        rules.add(new GrammarRule(state.ruleIndex, label));
                     }
                 } else if (transition instanceof SetTransition) {
                     for (Interval interval : transition.label().getIntervals()) {
                         for (int i = interval.a; i <= interval.b; ++i) {
-                            result.add(new GrammarRule(state.ruleIndex, i));
+                            rules.add(new GrammarRule(state.ruleIndex, i));
                         }
                     }
                 }
             }
         }
+
+        return rules;
     }
 
     private void validateSuggestions(ATNState parserState, Collection<Suggestion> suggestions) {

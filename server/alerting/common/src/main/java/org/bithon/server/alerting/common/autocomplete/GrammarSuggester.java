@@ -14,10 +14,10 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * Given an ATN state and the lexer ATN, suggests auto-completion texts.
+ * Suggests tokens based on ANTLR grammar file.
  */
-class TokenSuggester implements ISuggester {
-    private static final Logger logger = LoggerFactory.getLogger(TokenSuggester.class);
+class GrammarSuggester implements ISuggester {
+    private static final Logger logger = LoggerFactory.getLogger(GrammarSuggester.class);
 
     private final LexerWrapper lexerWrapper;
     private final CasePreference casePreference;
@@ -28,11 +28,9 @@ class TokenSuggester implements ISuggester {
 
     private int tokenType;
 
-    public TokenSuggester(LexerWrapper lexerWrapper, String input) {
-        this(input, lexerWrapper, CasePreference.UPPER);
-    }
-
-    public TokenSuggester(String origPartialToken, LexerWrapper lexerWrapper, CasePreference casePreference) {
+    GrammarSuggester(String origPartialToken,
+                     LexerWrapper lexerWrapper,
+                     CasePreference casePreference) {
         this.origPartialToken = origPartialToken;
         this.lexerWrapper = lexerWrapper;
         this.casePreference = casePreference;
