@@ -42,7 +42,10 @@ public class TransitionWrapper {
         }
         if (transition == null) {
             return other.transition == null;
-        } else return transition.equals(other.transition);
+        }
+        else {
+            return transition.equals(other.transition);
+        }
     }
 
     @Override

@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
 /**
@@ -170,7 +171,7 @@ public class AutoSuggester {
 
     private void suggestNextTokensForParserState(ATNState parserState) {
         Set<GrammarRule> rules = new HashSet<>();
-        fillParserTransitionLabels(parserState, rules, new HashSet<>());
+        fillParserTransitionLabels(parserState, rules);
 
         List<ISuggester> suggesters = new ArrayList<>(this.suggesterList);
         // Add default suggester
@@ -191,31 +192,35 @@ public class AutoSuggester {
         logger.debug("WILL SUGGEST TOKENS FOR STATE: {}", parserWrapper.toString(parserState));
     }
 
-    private void fillParserTransitionLabels(ATNState parserState,
-                                            Collection<GrammarRule> result,
-                                            Set<TransitionWrapper> visitedTransitions) {
-        for (Transition trans : parserState.getTransitions()) {
-            TransitionWrapper transWrapper = new TransitionWrapper(parserState, trans);
-            if (visitedTransitions.contains(transWrapper)) {
-                logger.debug("{}Not following visited {}", indent, transWrapper);
-                continue;
-            }
-            if (trans.isEpsilon()) {
-                try {
-                    visitedTransitions.add(transWrapper);
-                    fillParserTransitionLabels(trans.target, result, visitedTransitions);
-                } finally {
-                    visitedTransitions.remove(transWrapper);
+    private void fillParserTransitionLabels(ATNState parserState, Collection<GrammarRule> result) {
+        Set<TransitionWrapper> visitedTransitions = new HashSet<>();
+        Stack<ATNState> stack = new Stack<>();
+        stack.push(parserState);
+
+        while (!stack.isEmpty()) {
+            ATNState state = stack.pop();
+
+            for (Transition transition : state.getTransitions()) {
+
+                TransitionWrapper wrappedTransition = new TransitionWrapper(state, transition);
+                if (visitedTransitions.contains(wrappedTransition)) {
+                    logger.debug("{}Not following visited {}", indent, wrappedTransition);
+                    continue;
                 }
-            } else if (trans instanceof AtomTransition) {
-                int label = ((AtomTransition) trans).label;
-                if (label >= 1) { // EOF would be -1
-                    result.add(new GrammarRule(parserState.ruleIndex, label));
-                }
-            } else if (trans instanceof SetTransition) {
-                for (Interval interval : trans.label().getIntervals()) {
-                    for (int i = interval.a; i <= interval.b; ++i) {
-                        result.add(new GrammarRule(parserState.ruleIndex, i));
+
+                if (transition.isEpsilon()) {
+                    visitedTransitions.add(wrappedTransition);
+                    stack.push(transition.target);
+                } else if (transition instanceof AtomTransition) {
+                    int label = ((AtomTransition) transition).label;
+                    if (label >= 1) { // EOF would be -1
+                        result.add(new GrammarRule(state.ruleIndex, label));
+                    }
+                } else if (transition instanceof SetTransition) {
+                    for (Interval interval : transition.label().getIntervals()) {
+                        for (int i = interval.a; i <= interval.b; ++i) {
+                            result.add(new GrammarRule(state.ruleIndex, i));
+                        }
                     }
                 }
             }
