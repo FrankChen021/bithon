@@ -1,4 +1,4 @@
-package org.bithon.server.alerting.common.autocomplete;
+package org.bithon.server.commons.autocomplete;
 
 
 public enum CasePreference {

@@ -14,33 +14,43 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.common.autocomplete;
+package org.bithon.server.commons.autocomplete;
 
-import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2024/4/13 17:38
+ * @date 2024/4/13 18:00
  */
-public class GrammarRule {
-    int ruleIndex;
-    int nextTokenType;
+@Getter
+public class Suggestion implements Comparable<Suggestion> {
+    /**
+     * Suggested text
+     */
+    private final String text;
 
-    public GrammarRule(int ruleIndex, int nextTokenType) {
-        this.ruleIndex = ruleIndex;
-        this.nextTokenType = nextTokenType;
+    private final int tokenType;
+
+    @Getter
+    @Setter
+    private Object tag;
+
+    public Suggestion(int tokenType, String text) {
+        this.tokenType = tokenType;
+        this.text = text;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        GrammarRule that = (GrammarRule) o;
-        return ruleIndex == that.ruleIndex && nextTokenType == that.nextTokenType;
+    public String toString() {
+        return text;
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(ruleIndex, nextTokenType);
+    public int compareTo(Suggestion o) {
+        if (this.tokenType == o.tokenType) {
+            return this.text.compareTo(o.text);
+        }
+        return this.tokenType - o.tokenType;
     }
 }

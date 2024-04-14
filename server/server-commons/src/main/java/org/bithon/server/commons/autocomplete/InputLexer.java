@@ -1,4 +1,4 @@
-package org.bithon.server.alerting.common.autocomplete;
+package org.bithon.server.commons.autocomplete;
 
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.BaseErrorListener;

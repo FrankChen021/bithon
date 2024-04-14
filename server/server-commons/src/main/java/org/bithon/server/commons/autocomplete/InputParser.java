@@ -1,4 +1,4 @@
-package org.bithon.server.alerting.common.autocomplete;
+package org.bithon.server.commons.autocomplete;
 
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.Parser;
@@ -7,7 +7,6 @@ import org.antlr.v4.runtime.atn.ATN;
 import org.antlr.v4.runtime.atn.ATNState;
 import org.antlr.v4.runtime.atn.AtomTransition;
 import org.antlr.v4.runtime.atn.Transition;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -27,7 +26,7 @@ class InputParser {
         this.parserRuleNames = parser.getRuleNames();
 
         if (log.isDebugEnabled()) {
-            log.debug("Parser rule names: [{}]", StringUtils.join(parser.getRuleNames(), ", "));
+            log.debug("Parser rule names: [{}]", String.join(", ", parser.getRuleNames()));
         }
     }
 

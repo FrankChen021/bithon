@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.common.autocomplete;
+package org.bithon.server.commons.autocomplete;
 
 import org.antlr.v4.runtime.Token;
 

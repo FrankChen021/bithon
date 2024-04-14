@@ -41,6 +41,12 @@
             <groupId>org.bithon.server</groupId>
             <artifactId>server-alerting-notification</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

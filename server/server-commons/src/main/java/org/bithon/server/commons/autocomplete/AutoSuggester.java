@@ -1,4 +1,4 @@
-package org.bithon.server.alerting.common.autocomplete;
+package org.bithon.server.commons.autocomplete;
 
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.atn.ATNState;
@@ -85,7 +85,7 @@ public class AutoSuggester {
      * suggestions.
      */
     private void parseAndCollectTokenSuggestions(ATNState parserState, int tokenListIndex) {
-        indent = indent + "  ";
+        indent = indent + " ";
         if (didVisitParserStateOnThisTokenIndex(parserState, tokenListIndex)) {
             logger.debug("{}State {} had already been visited while processing token {}, backtracking to avoid infinite loop.",
                          indent,
@@ -128,14 +128,14 @@ public class AutoSuggester {
                     for (int transitionTokenType : trans.label().toList()) {
                         boolean nextTokenMatchesTransition = (transitionTokenType == nextTokenType);
                         if (nextTokenMatchesTransition) {
-                            logger.debug("{}Token {} following transition: {} to {}", indent, nextToken, parser.toTransitionString(trans), transitionTokenType);
+                            logger.debug("{}Token [{}] following transition: {} to {}", indent, nextToken.getText(), parser.toTransitionString(trans), transitionTokenType);
                             parseAndCollectTokenSuggestions(trans.target, tokenListIndex + 1);
                         }
                     }
                 }
             }
         } finally {
-            indent = indent.substring(2);
+            indent = indent.substring(1);
             setParserStateLastVisitedOnThisTokenIndex(parserState, previousTokenListIndexForThisState);
         }
     }
