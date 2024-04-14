@@ -33,8 +33,12 @@ public class GrammarRule {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         GrammarRule that = (GrammarRule) o;
         return ruleIndex == that.ruleIndex && nextTokenType == that.nextTokenType;
     }

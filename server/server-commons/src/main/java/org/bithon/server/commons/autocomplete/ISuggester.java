@@ -28,7 +28,8 @@ import java.util.List;
 public interface ISuggester {
     /**
      * Suggests auto-completion texts for the next token(s) based on the given parser state from the ATN.
-     * @param inputs the input tokens
+     *
+     * @param inputs      the input tokens
      * @param grammarRule the matched grammar rule of current input tokens
      * @param suggestions the list of suggestions to be filled
      * @return true if the next suggester should be called

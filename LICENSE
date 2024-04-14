@@ -235,5 +235,14 @@ qos.ch
     * component/component-logging/src/main/java/org/bithon/component/logging/FormattingTuple.java
     * component/component-logging/src/main/java/org/bithon/component/logging/MessageFormatter.java
 
-
-
+  This product contains logging framework code adapted from https://github.com/oranoran/antlr4-autosuggest
+    * server/server-commons/src/main/java/org/bithon/server/commons/autocomplete/AutoSuggester.java
+    * server/server-commons/src/main/java/org/bithon/server/commons/autocomplete/CasePreference.java
+    * server/server-commons/src/main/java/org/bithon/server/commons/autocomplete/DefaultLexerAndParserFactory.java
+    * server/server-commons/src/main/java/org/bithon/server/commons/autocomplete/GrammarSuggester.java
+    * server/server-commons/src/main/java/org/bithon/server/commons/autocomplete/InputLexer.java
+    * server/server-commons/src/main/java/org/bithon/server/commons/autocomplete/InputParser.java
+    * server/server-commons/src/main/java/org/bithon/server/commons/autocomplete/LexerAndParserFactory.java
+    * server/server-commons/src/main/java/org/bithon/server/commons/autocomplete/LexerFactory.java
+    * server/server-commons/src/main/java/org/bithon/server/commons/autocomplete/ParserFactory.java
+    * server/server-commons/src/main/java/org/bithon/server/commons/autocomplete/TransitionWrapper.java

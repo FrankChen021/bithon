@@ -35,7 +35,7 @@ public class ATNDump {
     }
 
     private static void dump(String indent, Parser parser, ATNState state, Set<Integer> visited) {
-        if(visited.contains(state.stateNumber)) {
+        if (visited.contains(state.stateNumber)) {
             return;
         }
         visited.add(state.stateNumber);
@@ -45,7 +45,7 @@ public class ATNDump {
                                               state.stateNumber,
                                               state.getClass().getSimpleName(),
                                               parser.getRuleNames()[state.ruleIndex]
-                                              ));
+                                             ));
 
         for (Transition transition : state.getTransitions()) {
             if (transition.isEpsilon()) {

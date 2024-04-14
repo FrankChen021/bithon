@@ -53,7 +53,7 @@ public class AlertExpressionSuggester {
                 // No suggestion for literal expressions
                 return false;
             }
-            if(grammarRule.ruleIndex == AlertExpressionParser.RULE_durationExpression) {
+            if (grammarRule.ruleIndex == AlertExpressionParser.RULE_durationExpression) {
                 // No suggestion for duration expression
                 return false;
             }
