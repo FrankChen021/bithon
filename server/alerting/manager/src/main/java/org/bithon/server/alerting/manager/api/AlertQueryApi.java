@@ -38,7 +38,9 @@ import org.bithon.server.alerting.manager.api.parameter.GetEvaluationLogsRequest
 import org.bithon.server.alerting.manager.api.parameter.GetEvaluationLogsResponse;
 import org.bithon.server.alerting.manager.api.parameter.ListAlertBo;
 import org.bithon.server.alerting.manager.api.parameter.ListRecordBo;
+import org.bithon.server.alerting.manager.biz.AlertExpressionSuggester;
 import org.bithon.server.alerting.manager.biz.EvaluationLogService;
+import org.bithon.server.commons.autocomplete.Suggestion;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
@@ -73,11 +75,16 @@ public class AlertQueryApi {
     final IAlertRecordStorage alertRecordStorage;
     final IAlertObjectStorage alertStorage;
     final EvaluationLogService evaluationLogService;
+    final AlertExpressionSuggester expressionSuggester;
 
-    public AlertQueryApi(IAlertRecordStorage alertRecordStorage, IAlertObjectStorage alertStorage, EvaluationLogService evaluationLogService) {
+    public AlertQueryApi(IAlertRecordStorage alertRecordStorage,
+                         IAlertObjectStorage alertStorage,
+                         EvaluationLogService evaluationLogService,
+                         AlertExpressionSuggester expressionSuggester) {
         this.alertRecordStorage = alertRecordStorage;
         this.alertStorage = alertStorage;
         this.evaluationLogService = evaluationLogService;
+        this.expressionSuggester = expressionSuggester;
     }
 
     @Data
@@ -107,6 +114,27 @@ public class AlertQueryApi {
         } catch (InvalidExpressionException e) {
             return ApiResponse.fail(e.getMessage());
         }
+    }
+
+    @Data
+    public static class SuggestAlertExpressionRequest {
+        @NotBlank
+        private String expression;
+    }
+
+    @Data
+    public static class SuggestAlertExpressionResponse {
+        private final Collection<Suggestion> suggestions;
+
+        public SuggestAlertExpressionResponse(Collection<Suggestion> suggestions) {
+            this.suggestions = suggestions;
+        }
+    }
+
+    @PostMapping("/api/alerting/alert/suggest")
+    public SuggestAlertExpressionResponse suggestAlertExpression(@Valid @RequestBody SuggestAlertExpressionRequest request) {
+        Collection<Suggestion> suggestions = this.expressionSuggester.suggest(request.getExpression());
+        return new SuggestAlertExpressionResponse(suggestions);
     }
 
     @PostMapping("/api/alerting/alert/get")
