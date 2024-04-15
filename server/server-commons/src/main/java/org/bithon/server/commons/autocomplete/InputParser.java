@@ -22,7 +22,9 @@ import org.antlr.v4.runtime.Vocabulary;
 import org.antlr.v4.runtime.atn.ATN;
 import org.antlr.v4.runtime.atn.ATNState;
 import org.antlr.v4.runtime.atn.AtomTransition;
+import org.antlr.v4.runtime.atn.RuleTransition;
 import org.antlr.v4.runtime.atn.Transition;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -46,8 +48,12 @@ class InputParser {
         }
     }
 
-    public ATNState getATNState(int stateNumber) {
+    public ATNState getATNByStateNumber(int stateNumber) {
         return parserATN.states.get(stateNumber);
+    }
+
+    public ATNState getATNByRuleNumber(int ruleNumber) {
+        return parserATN.ruleToStartState[ruleNumber];
     }
 
     // Bellow are functions for debugging purposes
@@ -60,6 +66,8 @@ class InputParser {
         String nameOrLabel = t.getClass().getSimpleName();
         if (t instanceof AtomTransition) {
             nameOrLabel += ' ' + this.lexerVocabulary.getDisplayName(((AtomTransition) t).label);
+        } else if (t instanceof RuleTransition) {
+            nameOrLabel += StringUtils.format( "(Follow state %d)", ((RuleTransition) t).followState.stateNumber);
         }
         return nameOrLabel + " -> " + toParseStateString(t.target);
     }
