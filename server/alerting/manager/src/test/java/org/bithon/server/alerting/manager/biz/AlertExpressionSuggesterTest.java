@@ -17,7 +17,7 @@
 package org.bithon.server.alerting.manager.biz;
 
 import org.bithon.server.alerting.common.parser.AlertExpressionParser;
-import org.bithon.server.commons.autocomplete.ATNDump;
+import org.bithon.server.commons.autocomplete.AdaptiveTransitionNetworkFormatter;
 import org.junit.Test;
 
 /**
@@ -29,11 +29,11 @@ public class AlertExpressionSuggesterTest {
     @Test
     public void test() {
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
-        System.out.println(suggester.suggest("sum(jvm-metrics.classLoaded)[1m]>0"));
+        System.out.println(suggester.suggest("sum(jvm-metrics.classLoaded{appName"));
     }
 
     @Test
     public void dump() {
-        ATNDump.dump(new AlertExpressionParser(null));
+        AdaptiveTransitionNetworkFormatter.format(new AlertExpressionParser(null));
     }
 }

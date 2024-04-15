@@ -29,10 +29,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
@@ -284,7 +282,7 @@ public class AutoSuggester {
 
     private void validateSuggestions(ATNState parserState, Collection<Suggestion> suggestions) {
         for (Suggestion suggestion : suggestions) {
-            if (isParseable(parserState, getSuggestionToken(suggestion), new HashSet<>())) {
+            if (isValid(parserState, getSuggestionToken(suggestion))) {
                 collectedSuggestions.add(suggestion);
                 logger.debug("ADDED suggestion: [{}]", suggestion);
             } else {
@@ -307,43 +305,38 @@ public class AutoSuggester {
     /**
      * Checks if the given token can be parsed by the given parser state.
      */
-    private boolean isParseable(ATNState parserState,
-                                Token newToken,
-                                Set<TransitionWrapper> visitedTransitions) {
-        if (newToken == null) {
-            return false;
-        }
-        for (Transition parserTransition : parserState.getTransitions()) {
-            if (parserTransition.isEpsilon()) { // Recurse through any epsilon transitionsStr
-                TransitionWrapper transWrapper = new TransitionWrapper(parserState, parserTransition);
-                if (visitedTransitions.contains(transWrapper)) {
-                    continue;
-                }
-                visitedTransitions.add(transWrapper);
-                try {
-                    if (isParseable(parserTransition.target, newToken, visitedTransitions)) {
+    private boolean isValid(ATNState atnState, Token newToken) {
+        Set<Integer> visited = new HashSet<>();
+
+        Stack<ATNState> stack = new Stack<>();
+        stack.push(atnState);
+
+        while (!stack.isEmpty()) {
+            atnState = stack.pop();
+
+            Transition[] transitions = atnState.getTransitions();
+            for (int i = transitions.length - 1; i >= 0; i--) {
+                Transition transition = transitions[i];
+
+                if (transition.isEpsilon()) {
+                    if (!visited.add(transition.target.stateNumber)) {
+                        continue;
+                    }
+                    stack.push(transition.target);
+                } else if (transition instanceof AtomTransition) {
+                    if (((AtomTransition) transition).label == newToken.getType()) {
                         return true;
                     }
-                } finally {
-                    visitedTransitions.remove(transWrapper);
-                }
-            } else if (parserTransition instanceof AtomTransition) {
-                AtomTransition parserAtomTransition = (AtomTransition) parserTransition;
-                int transitionTokenType = parserAtomTransition.label;
-                if (transitionTokenType == newToken.getType()) {
-                    return true;
-                }
-            } else if (parserTransition instanceof SetTransition) {
-                SetTransition parserSetTransition = (SetTransition) parserTransition;
-                for (int transitionTokenType : parserSetTransition.label().toList()) {
-                    if (transitionTokenType == newToken.getType()) {
+                } else if (transition instanceof SetTransition) {
+                    if (transition.label().contains(newToken.getType())) {
                         return true;
                     }
+                } else {
+                    throw new IllegalStateException("Unexpected: " + parser.toTransitionString(transition));
                 }
-            } else {
-                throw new IllegalStateException("Unexpected: " + parser.toTransitionString(parserTransition));
             }
         }
+
         return false;
     }
 }

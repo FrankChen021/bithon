@@ -32,25 +32,25 @@ import java.util.TreeSet;
 /**
  * Utility class that pretty-prints a textual tree representation of an ATN.
  */
-public class AtnFormatter {
+public class AdaptiveTransitionNetworkFormatter {
 
-    public static String printAtnFor(Lexer lexer) {
-        return new LexerAtnPrinter(lexer).atnToString();
+    public static String format(Lexer lexer) {
+        return new LexFormatter(lexer).atnToString();
     }
 
-    public static String printAtnFor(Parser parser) {
-        return new ParserAtnPrinter(parser).atnToString();
+    public static String format(Parser parser) {
+        return new ParserFormatter(parser).atnToString();
     }
 
     /**
      * Does most of the heavy lifting, leaving how specific transitions are printed to subclasses.
      */
-    private abstract static class BaseAtnPrinter<R extends Recognizer<?, ?>> {
+    private abstract static class AbstractBaseFormatter<R extends Recognizer<?, ?>> {
         private final StringBuilder result = new StringBuilder();
         private final Set<Integer> visitedStates = new TreeSet<>();
         protected R recognizer;
 
-        private BaseAtnPrinter(R recognizer) {
+        private AbstractBaseFormatter(R recognizer) {
             this.recognizer = recognizer;
         }
 
@@ -75,7 +75,10 @@ public class AtnFormatter {
             boolean visitedAlready = visitedStates.contains(state.stateNumber);
             String visitedTag = visitedAlready ? "*" : "";
             String stateStr = stateRuleName + " " + stateClassName + " " + state + visitedTag;
-            result.append(indent + transStr + stateStr).append("\n");
+            result.append(indent)
+                  .append(transStr)
+                  .append(stateStr)
+                  .append("\n");
             if (visitedAlready) {
                 return;
             }
@@ -107,8 +110,8 @@ public class AtnFormatter {
 
     }
 
-    private static class LexerAtnPrinter extends BaseAtnPrinter<Lexer> {
-        private LexerAtnPrinter(Lexer lexer) {
+    private static class LexFormatter extends AbstractBaseFormatter<Lexer> {
+        private LexFormatter(Lexer lexer) {
             super(lexer);
         }
 
@@ -119,8 +122,8 @@ public class AtnFormatter {
 
     }
 
-    private static class ParserAtnPrinter extends BaseAtnPrinter<Parser> {
-        private ParserAtnPrinter(Parser parser) {
+    private static class ParserFormatter extends AbstractBaseFormatter<Parser> {
+        private ParserFormatter(Parser parser) {
             super(parser);
         }
 

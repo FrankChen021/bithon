@@ -94,10 +94,9 @@ class GrammarSuggester implements ISuggester {
             String tokenSoFar = state.tokenSoFar;
             String remainingText = state.remainingText;
 
-            if (state.parents.contains(lexerState.stateNumber)) {
+            if (!state.parents.add(lexerState.stateNumber)) {
                 continue;
             }
-            state.parents.add(lexerState.stateNumber);
 
             Transition[] transitions = lexerState.getTransitions();
             if (!tokenSoFar.isEmpty() && transitions.length == 0) {
