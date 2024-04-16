@@ -66,8 +66,8 @@ public class AlertExpressionSuggester {
         });
 
         this.suggester.addSuggester(AlertExpressionParser.RULE_dataSourceExpression, (inputs, grammarRule, suggestions) -> {
-            dataSourceApi.getSchemas()
-                         .forEach((schemaName, schema) -> suggestions.add(new Suggestion(grammarRule.nextTokenType, schemaName)));
+            dataSourceApi.getSchemaNames()
+                         .forEach((value) -> suggestions.add(new Suggestion(grammarRule.nextTokenType, value.getValue())));
             return false;
         });
 
@@ -82,7 +82,8 @@ public class AlertExpressionSuggester {
             if (schema != null) {
                 schema.getColumns()
                       .stream()
-                      .filter((col) -> !(col instanceof StringColumn))
+                      .filter((col) -> !(col instanceof StringColumn)
+                                       && !col.getName().equals(schema.getTimestampSpec().getColumnName()))
                       .forEach(col -> suggestions.add(new Suggestion(grammarRule.nextTokenType, col.getName())));
             }
 

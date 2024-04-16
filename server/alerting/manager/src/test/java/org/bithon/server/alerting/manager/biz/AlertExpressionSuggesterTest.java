@@ -16,10 +16,12 @@
 
 package org.bithon.server.alerting.manager.biz;
 
+import com.google.common.collect.ImmutableMap;
 import org.bithon.server.commons.autocomplete.Suggestion;
 import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.column.LongColumn;
 import org.bithon.server.storage.datasource.column.StringColumn;
+import org.bithon.server.web.service.datasource.api.DisplayableText;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.junit.Assert;
 import org.junit.Test;
@@ -69,6 +71,43 @@ public class AlertExpressionSuggesterTest {
         // No suggestion because the datasource is not known at this stage
         Assert.assertEquals(Collections.emptyList(),
                             suggest(suggester, "sum BY ("));
+    }
+
+    @Test
+    public void testSuggestDataSource() {
+        IDataSourceApi dataSourceApi = Mockito.mock(IDataSourceApi.class);
+        Mockito.when(dataSourceApi.getSchemaNames())
+               .thenReturn(Arrays.asList("d2", "d1")
+                                 .stream()
+                                 .map((s)-> new DisplayableText(s,s))
+                                 .collect(Collectors.toList()));
+
+        AlertExpressionSuggester suggester = new AlertExpressionSuggester(dataSourceApi);
+
+        Assert.assertEquals(Arrays.asList("d1", "d2"),
+                            suggest(suggester, "sum ("));
+
+        Assert.assertEquals(Arrays.asList("d1", "d2"),
+                            suggest(suggester, "sum by(a,b) ("));
+    }
+
+    @Test
+    public void testSuggestMetric() {
+        IDataSourceApi dataSourceApi = Mockito.mock(IDataSourceApi.class);
+        Mockito.when(dataSourceApi.getSchemaByName("event"))
+               .thenReturn(new DefaultSchema("event",
+                                             "event",
+                                             null,
+                                             Arrays.asList(new StringColumn("appName", "appName"), new StringColumn("instanceName", "instanceName")),
+                                             Collections.singletonList(new LongColumn("eventCount", "eventCount"))));
+
+        AlertExpressionSuggester suggester = new AlertExpressionSuggester(dataSourceApi);
+
+        Assert.assertEquals(Collections.singletonList("eventCount"),
+                            suggest(suggester, "sum (event."));
+
+        Assert.assertEquals(Collections.singletonList("eventCount"),
+                            suggest(suggester, "sum by(a,b) (event."));
     }
 
     @Test

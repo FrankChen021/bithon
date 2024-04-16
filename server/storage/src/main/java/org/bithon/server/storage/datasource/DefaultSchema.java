@@ -29,7 +29,6 @@ import lombok.Setter;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.column.DateTimeColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.column.LongColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 
@@ -131,12 +130,12 @@ public class DefaultSchema implements ISchema {
         this.dataStoreSpec = dataStoreSpec;
         this.ttl = ttl;
 
-        if ("timestamp".equals(this.timestampSpec.getTimestampColumn())) {
+        if ("timestamp".equals(this.timestampSpec.getColumnName())) {
             this.columnMap.put(TIMESTAMP_COLUMN.getName(), TIMESTAMP_COLUMN);
         } else {
-            this.columnMap.put(this.timestampSpec.getTimestampColumn(),
-                               new LongColumn(this.timestampSpec.getTimestampColumn(),
-                                              this.timestampSpec.getTimestampColumn()));
+            this.columnMap.put(this.timestampSpec.getColumnName(),
+                               new DateTimeColumn(this.timestampSpec.getColumnName(),
+                                                  this.timestampSpec.getColumnName()));
         }
 
         this.dimensionsSpec.forEach((dimensionSpec) -> {
