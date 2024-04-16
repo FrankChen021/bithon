@@ -29,8 +29,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
@@ -52,7 +54,7 @@ public class AutoSuggester {
 
     // Configuration
     private CasePreference casePreference = CasePreference.BOTH;
-    private final List<ISuggester> suggesterList = new ArrayList<>();
+    private final Map<Integer, ISuggester> suggesters = new HashMap<>();
 
     public AutoSuggester(LexerAndParserFactory lexerAndParserFactory) {
         this.lexer = new InputLexer(lexerAndParserFactory);
@@ -63,8 +65,8 @@ public class AutoSuggester {
         this.casePreference = casePreference;
     }
 
-    public AutoSuggester addSuggester(ISuggester suggester) {
-        suggesterList.add(suggester);
+    public AutoSuggester addSuggester(int ruleIndex, ISuggester suggester) {
+        suggesters.put(ruleIndex, suggester);
         return this;
     }
 
@@ -192,23 +194,22 @@ public class AutoSuggester {
     private void suggestNextTokensForParserState(ParseState parseState) {
         Set<GrammarRule> rules = findAllTransitionRules(parseState.atnState, parseState.indent, parseState.followingStates);
 
-        List<ISuggester> suggesters = new ArrayList<>(this.suggesterList);
-        suggesters.add(new GrammarSuggester(this.untokenizedText, lexer, this.casePreference));
+        GrammarSuggester defaultSuggester = new GrammarSuggester(this.untokenizedText, lexer, this.casePreference);
 
         Set<Suggestion> suggestions = new HashSet<>();
 
-        // Run suggesters on all rules
         for (GrammarRule rule : rules) {
-            for (ISuggester suggester : suggesters) {
+            ISuggester suggester = this.suggesters.get(rule.ruleIndex);
+            if (suggester != null) {
                 if (!suggester.suggest(this.inputTokens, rule, suggestions)) {
-                    // Stop processing further suggesters if the current one says so
-                    break;
+                    continue;
                 }
             }
+
+            defaultSuggester.suggest(this.inputTokens, rule, suggestions);
         }
 
         validateSuggestions(parseState.atnState, suggestions);
-        logger.debug("WILL SUGGEST TOKENS FOR STATE: {}", parser.toParseStateString(parseState.atnState));
     }
 
     static class FindState {
