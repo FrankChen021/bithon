@@ -39,7 +39,7 @@ metricNameExpression
 
 whereExpression
   : LEFT_CURLY_BRACE RIGHT_CURLY_BRACE
-  | LEFT_CURLY_BRACE filterExpression (COMMA filterExpression)? RIGHT_CURLY_BRACE
+  | LEFT_CURLY_BRACE filterExpression (COMMA filterExpression)* RIGHT_CURLY_BRACE
   ;
 
 durationExpression
