@@ -16,7 +16,6 @@
 
 package org.bithon.server.alerting.manager.biz;
 
-import com.google.common.collect.ImmutableMap;
 import org.bithon.server.commons.autocomplete.Suggestion;
 import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.column.LongColumn;
@@ -31,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author frank.chen021@outlook.com
@@ -42,10 +42,9 @@ public class AlertExpressionSuggesterTest {
     public void testSuggestEmptyInput() {
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
 
-        Assert.assertEquals(Arrays.asList("(", // Start of expression
-                                          // Aggregators
-                                          "sum", "avg", "count", "max", "min")
-                                  .stream()
+        Assert.assertEquals(Stream.of("(", // Start of expression
+                                      // Aggregators
+                                      "sum", "avg", "count", "max", "min")
                                   .sorted()
                                   .collect(Collectors.toList()),
                             suggest(suggester, ""));
@@ -55,10 +54,9 @@ public class AlertExpressionSuggesterTest {
     public void testSuggestAfterAggregator() {
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
 
-        Assert.assertEquals(Arrays.asList("(", // Start of metric
-                                          // GROUP BY
-                                          "BY")
-                                  .stream()
+        Assert.assertEquals(Stream.of("(", // Start of metric
+                                      // GROUP BY
+                                      "BY")
                                   .sorted()
                                   .collect(Collectors.toList()),
                             suggest(suggester, "sum"));
@@ -77,9 +75,8 @@ public class AlertExpressionSuggesterTest {
     public void testSuggestDataSource() {
         IDataSourceApi dataSourceApi = Mockito.mock(IDataSourceApi.class);
         Mockito.when(dataSourceApi.getSchemaNames())
-               .thenReturn(Arrays.asList("d2", "d1")
-                                 .stream()
-                                 .map((s)-> new DisplayableText(s,s))
+               .thenReturn(Stream.of("d2", "d1")
+                                 .map((s) -> new DisplayableText(s, s))
                                  .collect(Collectors.toList()));
 
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(dataSourceApi);
@@ -111,7 +108,7 @@ public class AlertExpressionSuggesterTest {
     }
 
     @Test
-    public void testSuggestFilter() {
+    public void testSuggestEmptyFilter() {
         IDataSourceApi dataSourceApi = Mockito.mock(IDataSourceApi.class);
         Mockito.when(dataSourceApi.getSchemaByName("event"))
                .thenReturn(new DefaultSchema("event",
@@ -121,20 +118,39 @@ public class AlertExpressionSuggesterTest {
                                              Collections.singletonList(new LongColumn("eventCount", "eventCount"))));
 
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(dataSourceApi);
-        {
-            Collection<String> suggestions = suggest(suggester, "sum(event.count{");
-            Assert.assertEquals(Arrays.asList("appName", "instanceName", "}"), suggestions);
-        }
+        Collection<String> suggestions = suggest(suggester, "sum(event.count{");
+        Assert.assertEquals(Arrays.asList("appName", "instanceName", "}"), suggestions);
 
-        {
-            Collection<String> suggestions = suggest(suggester, "sum(event.count{appName='a'");
-            Assert.assertEquals(Arrays.asList(",", "}"), suggestions);
-        }
+    }
 
-        {
-            Collection<String> suggestions = suggest(suggester, "sum(event.count{appName='a',");
-            Assert.assertEquals(Arrays.asList("appName", "instanceName"), suggestions);
-        }
+    @Test
+    public void testSuggestFilterComplete() {
+        IDataSourceApi dataSourceApi = Mockito.mock(IDataSourceApi.class);
+        Mockito.when(dataSourceApi.getSchemaByName("event"))
+               .thenReturn(new DefaultSchema("event",
+                                             "event",
+                                             null,
+                                             Arrays.asList(new StringColumn("appName", "appName"), new StringColumn("instanceName", "instanceName")),
+                                             Collections.singletonList(new LongColumn("eventCount", "eventCount"))));
+
+        AlertExpressionSuggester suggester = new AlertExpressionSuggester(dataSourceApi);
+        Collection<String> suggestions = suggest(suggester, "sum(event.count{appName='a'");
+        Assert.assertEquals(Arrays.asList(",", "}"), suggestions);
+    }
+
+    @Test
+    public void testSuggestMoreFilter() {
+        IDataSourceApi dataSourceApi = Mockito.mock(IDataSourceApi.class);
+        Mockito.when(dataSourceApi.getSchemaByName("event"))
+               .thenReturn(new DefaultSchema("event",
+                                             "event",
+                                             null,
+                                             Arrays.asList(new StringColumn("appName", "appName"), new StringColumn("instanceName", "instanceName")),
+                                             Collections.singletonList(new LongColumn("eventCount", "eventCount"))));
+
+        AlertExpressionSuggester suggester = new AlertExpressionSuggester(dataSourceApi);
+        Collection<String> suggestions = suggest(suggester, "sum(event.count{appName='a',");
+        Assert.assertEquals(Arrays.asList("appName", "instanceName"), suggestions);
     }
 
     private Collection<String> suggest(AlertExpressionSuggester suggester, String input) {
