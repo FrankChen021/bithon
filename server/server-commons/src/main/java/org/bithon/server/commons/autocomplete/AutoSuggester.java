@@ -66,7 +66,7 @@ public class AutoSuggester {
         this.casePreference = casePreference;
     }
 
-    public AutoSuggester addSuggester(int ruleIndex, ISuggester suggester) {
+    public AutoSuggester setRuleBasedSuggester(int ruleIndex, ISuggester suggester) {
         suggesters.put(ruleIndex, suggester);
         return this;
     }
@@ -207,21 +207,25 @@ public class AutoSuggester {
     }
 
     private void suggestNextTokensForParserState(ParseState parseState) {
-        Set<TokenHint> rules = findAllTransitionRules(parseState.atnState, parseState.indent, parseState.followingStates);
+        Set<TokenHint> hints = findAllTransitionRules(parseState.atnState,
+                                                      parseState.indent,
+                                                      parseState.followingStates);
 
         DefaultSuggester defaultSuggester = new DefaultSuggester(this.untokenizedText, lexer, this.casePreference);
 
         Set<Suggestion> suggestions = new HashSet<>();
 
-        for (TokenHint rule : rules) {
-            ISuggester suggester = this.suggesters.get(rule.parserRuleIndex);
+        for (TokenHint hint : hints) {
+            ISuggester suggester = this.suggesters.get(hint.parserRuleIndex);
             if (suggester != null) {
-                if (!suggester.suggest(this.inputTokens, rule, suggestions)) {
+                logger.debug("Use rule-based suggester for hint rule index [{}], token = [{}]", hint.parserRuleIndex, hint.expectedTokenType);
+                if (!suggester.suggest(this.inputTokens, hint, suggestions)) {
                     continue;
                 }
             }
 
-            defaultSuggester.suggest(this.inputTokens, rule, suggestions);
+            logger.debug("Use default suggester for hint rule index [{}], token = [{}]", hint.parserRuleIndex, hint.expectedTokenType);
+            defaultSuggester.suggest(this.inputTokens, hint, suggestions);
         }
 
         validateSuggestions(parseState.atnState, suggestions);

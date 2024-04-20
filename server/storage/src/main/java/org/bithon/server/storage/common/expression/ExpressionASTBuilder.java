@@ -208,7 +208,7 @@ public class ExpressionASTBuilder {
         }
 
         @Override
-        public IExpression visitNotExpression(ExpressionParser.NotExpressionContext ctx) {
+        public IExpression visitNotExpressionDecl(ExpressionParser.NotExpressionDeclContext ctx) {
             return new LogicalExpression.NOT(ctx.expression().accept(this));
         }
 
@@ -370,7 +370,7 @@ public class ExpressionASTBuilder {
         }
 
         @Override
-        public IExpression visitLiteralExpression(ExpressionParser.LiteralExpressionContext ctx) {
+        public IExpression visitLiteralExpressionDecl(ExpressionParser.LiteralExpressionDeclContext ctx) {
             TerminalNode literalExpressionNode = ctx.getChild(TerminalNode.class, 0);
             switch (literalExpressionNode.getSymbol().getType()) {
                 case ExpressionLexer.INTEGER_LITERAL: {
@@ -391,7 +391,7 @@ public class ExpressionASTBuilder {
         }
 
         @Override
-        public IExpression visitExpressionList(ExpressionParser.ExpressionListContext ctx) {
+        public IExpression visitExpressionListDecl(ExpressionParser.ExpressionListDeclContext ctx) {
             List<IExpression> expressions = new ArrayList<>();
             for (ParseTree expr : ctx.children) {
                 if (expr instanceof ExpressionParser.ExpressionContext) {
@@ -408,8 +408,8 @@ public class ExpressionASTBuilder {
         }
 
         @Override
-        public IExpression visitFunctionExpression(ExpressionParser.FunctionExpressionContext ctx) {
-            List<ExpressionParser.ExpressionContext> parameters = ctx.expressionList().expression();
+        public IExpression visitFunctionExpressionDecl(ExpressionParser.FunctionExpressionDeclContext ctx) {
+            List<ExpressionParser.ExpressionContext> parameters = ctx.expressionListDecl().expression();
             List<IExpression> parameterExpressionList = new ArrayList<>(parameters.size());
             for (ExpressionParser.ExpressionContext parameter : parameters) {
                 IExpression parameterExpression = parameter.accept(this);
@@ -431,7 +431,7 @@ public class ExpressionASTBuilder {
         }
 
         @Override
-        public IExpression visitMacroExpression(ExpressionParser.MacroExpressionContext ctx) {
+        public IExpression visitMacroExpressionDecl(ExpressionParser.MacroExpressionDeclContext ctx) {
             return new MacroExpression(ctx.IDENTIFIER().getText());
         }
 
