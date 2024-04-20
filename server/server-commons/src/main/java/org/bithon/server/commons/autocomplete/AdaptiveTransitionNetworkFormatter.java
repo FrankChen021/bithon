@@ -100,7 +100,9 @@ public class AdaptiveTransitionNetworkFormatter {
             for (int i = 0; i < recognizer.getATN().ruleToStartState.length; ++i) {
                 RuleStartState startState = recognizer.getATN().ruleToStartState[i];
                 RuleStopState endState = recognizer.getATN().ruleToStopState[i];
-                result.append(String.format("Rule %2d %-20s start: %d  stop: %d", i, recognizer.getRuleNames()[i], startState.stateNumber,
+                result.append(String.format("Rule %2d %-20s start: %d  stop: %d", i,
+                                            recognizer.getRuleNames()[i],
+                                            startState.stateNumber,
                                             endState.stateNumber));
                 result.append("\n");
             }

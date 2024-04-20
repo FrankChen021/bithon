@@ -16,12 +16,8 @@
 
 package org.bithon.server.commons.autocomplete;
 
-import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.Parser;
-import org.antlr.v4.runtime.TokenStream;
-import org.antlr.v4.tool.Grammar;
-import org.antlr.v4.tool.LexerGrammar;
 import org.bithon.component.commons.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,25 +94,7 @@ public class AutoSuggesterVerificationBuilder {
     private LexerAndParserFactory loadGrammar(String... grammarlines) {
         String firstLine = "grammar test;\n";
         String grammarText = firstLine + String.join(";\n", grammarlines) + ";\n";
-        LexerGrammar lg;
-        try {
-            lg = new LexerGrammar(grammarText);
-            Grammar g = new Grammar(grammarText);
-            return new LexerAndParserFactory() {
-
-                @Override
-                public Parser createParser(TokenStream tokenStream) {
-                    return g.createParserInterpreter(tokenStream);
-                }
-
-                @Override
-                public Lexer createLexer(CharStream input) {
-                    return lg.createLexerInterpreter(input);
-                }
-            };
-        } catch (org.antlr.runtime.RecognitionException e) {
-            throw new RuntimeException(e);
-        }
+        return new TextBasedLexerAndParserFactory(grammarText);
     }
 }
 
