@@ -61,10 +61,6 @@ alertPredicateExpression
   : LT|LTE|GT|GTE|NE|EQ|IS
  ;
 
-valueExpression
-  : literalExpression
-  ;
-
 literalExpression
   : STRING_LITERAL | INTEGER_LITERAL | DECIMAL_LITERAL | PERCENTAGE_LITERAL | NULL_LITERAL | SIZE_LITERAL
   ;

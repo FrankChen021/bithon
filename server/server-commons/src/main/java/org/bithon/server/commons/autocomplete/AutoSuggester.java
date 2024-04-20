@@ -53,22 +53,15 @@ public class AutoSuggester {
     private final Set<Suggestion> collectedSuggestions = new HashSet<>();
 
     // Configuration
-    private CasePreference casePreference = CasePreference.BOTH;
-    private final Map<Integer, ISuggester> suggesters = new HashMap<>();
+    private final CasePreference casePreference;
+    private final Map<Integer, ISuggester> suggesters;
     private Set<Integer>[] ruleVisitedState;
 
-    public AutoSuggester(LexerAndParserFactory lexerAndParserFactory) {
-        this.lexer = new InputLexer(lexerAndParserFactory);
-        this.parser = new InputParser(lexerAndParserFactory, lexer.getVocabulary());
-    }
-
-    public void setCasePreference(CasePreference casePreference) {
+    AutoSuggester(InputParser parser, InputLexer lexer, CasePreference casePreference, Map<Integer, ISuggester> suggesters) {
+        this.parser = parser;
+        this.lexer = lexer;
         this.casePreference = casePreference;
-    }
-
-    public AutoSuggester setRuleBasedSuggester(int ruleIndex, ISuggester suggester) {
-        suggesters.put(ruleIndex, suggester);
-        return this;
+        this.suggesters = new HashMap<>(suggesters);
     }
 
     public Collection<Suggestion> suggest(String input) {

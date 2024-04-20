@@ -18,7 +18,7 @@ package org.bithon.server.alerting.manager.biz;
 
 import org.bithon.server.alerting.common.parser.AlertExpressionLexer;
 import org.bithon.server.alerting.common.parser.AlertExpressionParser;
-import org.bithon.server.commons.autocomplete.AutoSuggester;
+import org.bithon.server.commons.autocomplete.AutoSuggesterBuilder;
 import org.bithon.server.commons.autocomplete.CasePreference;
 import org.bithon.server.commons.autocomplete.DefaultLexerAndParserFactory;
 import org.bithon.server.commons.autocomplete.Suggestion;
@@ -37,7 +37,7 @@ import java.util.Collection;
 public class AlertExpressionSuggester {
 
     private final IDataSourceApi dataSourceApi;
-    private final AutoSuggester suggester;
+    private final AutoSuggesterBuilder suggesterBuilder;
 
     public AlertExpressionSuggester(IDataSourceApi dataSourceApi) {
         this.dataSourceApi = dataSourceApi;
@@ -46,33 +46,34 @@ public class AlertExpressionSuggester {
             AlertExpressionLexer.class,
             AlertExpressionParser.class
         );
-        this.suggester = new AutoSuggester(factory);
-        this.suggester.setCasePreference(CasePreference.UPPER);
+        this.suggesterBuilder = AutoSuggesterBuilder.builder()
+                                                    .factory(factory)
+                                                    .casePreference(CasePreference.UPPER);
 
-        this.suggester.setRuleBasedSuggester(AlertExpressionParser.RULE_aggregatorExpression, (inputs, grammarRule, suggestions) -> {
-            if (grammarRule.expectedTokenType == AlertExpressionParser.IDENTIFIER) {
-                suggestions.add(new Suggestion(grammarRule.expectedTokenType, "sum"));
-                suggestions.add(new Suggestion(grammarRule.expectedTokenType, "count"));
-                suggestions.add(new Suggestion(grammarRule.expectedTokenType, "avg"));
-                suggestions.add(new Suggestion(grammarRule.expectedTokenType, "max"));
-                suggestions.add(new Suggestion(grammarRule.expectedTokenType, "min"));
+        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_aggregatorExpression, (inputs, tokenHint, suggestions) -> {
+            if (tokenHint.expectedTokenType == AlertExpressionParser.IDENTIFIER) {
+                suggestions.add(new Suggestion(tokenHint.expectedTokenType, "sum"));
+                suggestions.add(new Suggestion(tokenHint.expectedTokenType, "count"));
+                suggestions.add(new Suggestion(tokenHint.expectedTokenType, "avg"));
+                suggestions.add(new Suggestion(tokenHint.expectedTokenType, "max"));
+                suggestions.add(new Suggestion(tokenHint.expectedTokenType, "min"));
             }
             return false;
         });
 
-        this.suggester.setRuleBasedSuggester(AlertExpressionParser.RULE_groupByExpression, (inputs, grammarRule, suggestions) -> {
+        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_groupByExpression, (inputs, tokenHint, suggestions) -> {
             // At this stage, the data source is not known, it's not able to suggest for IDENTIFIER
-            return grammarRule.expectedTokenType != AlertExpressionParser.IDENTIFIER;
+            return tokenHint.expectedTokenType != AlertExpressionParser.IDENTIFIER;
         });
 
-        this.suggester.setRuleBasedSuggester(AlertExpressionParser.RULE_dataSourceExpression, (inputs, grammarRule, suggestions) -> {
+        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_dataSourceExpression, (inputs, tokenHint, suggestions) -> {
             dataSourceApi.getSchemaNames()
-                         .forEach((value) -> suggestions.add(new Suggestion(grammarRule.expectedTokenType, value.getValue())));
+                         .forEach((value) -> suggestions.add(new Suggestion(tokenHint.expectedTokenType, value.getValue())));
             return false;
         });
 
-        this.suggester.setRuleBasedSuggester(AlertExpressionParser.RULE_metricNameExpression, (inputs, grammarRule, suggestions) -> {
-            if (grammarRule.expectedTokenType != AlertExpressionParser.IDENTIFIER) {
+        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_metricNameExpression, (inputs, tokenHint, suggestions) -> {
+            if (tokenHint.expectedTokenType != AlertExpressionParser.IDENTIFIER) {
                 return false;
             }
 
@@ -84,14 +85,14 @@ public class AlertExpressionSuggester {
                       .stream()
                       .filter((col) -> !(col instanceof StringColumn)
                                        && !col.getName().equals(schema.getTimestampSpec().getColumnName()))
-                      .forEach(col -> suggestions.add(new Suggestion(grammarRule.expectedTokenType, col.getName())));
+                      .forEach(col -> suggestions.add(new Suggestion(tokenHint.expectedTokenType, col.getName())));
             }
 
             return false;
         });
 
-        this.suggester.setRuleBasedSuggester(AlertExpressionParser.RULE_filterExpression, (inputs, grammarRule, suggestions) -> {
-            if (grammarRule.expectedTokenType != AlertExpressionParser.IDENTIFIER) {
+        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_filterExpression, (inputs, tokenHint, suggestions) -> {
+            if (tokenHint.expectedTokenType != AlertExpressionParser.IDENTIFIER) {
                 return false;
             }
 
@@ -114,28 +115,31 @@ public class AlertExpressionSuggester {
                     schema.getColumns()
                           .stream()
                           .filter((col) -> (col instanceof StringColumn))
-                          .forEach(col -> suggestions.add(new Suggestion(grammarRule.expectedTokenType, col.getName())));
+                          .forEach(col -> suggestions.add(new Suggestion(tokenHint.expectedTokenType, col.getName())));
                 }
             }
 
             return false;
         });
 
-        this.suggester.setRuleBasedSuggester(AlertExpressionParser.RULE_literalExpression, (inputs, grammarRule, suggestions) -> {
+        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_literalExpression, (inputs, tokenHint, suggestions) -> {
             // No suggestion for literal expressions except the NULL
-            if (grammarRule.expectedTokenType == AlertExpressionParser.NULL_LITERAL) {
-                suggestions.add(new Suggestion(grammarRule.expectedTokenType, "NULL"));
+            if (tokenHint.expectedTokenType == AlertExpressionParser.NULL_LITERAL
+                && !inputs.isEmpty()
+                //&& inputs.get(inputs.size() - 1).getText().equalsIgnoreCase("IS")
+            ) {
+                suggestions.add(new Suggestion(tokenHint.expectedTokenType, "NULL"));
             }
             return false;
         });
 
-        this.suggester.setRuleBasedSuggester(AlertExpressionParser.RULE_durationExpression, (inputs, grammarRule, suggestions) -> {
+        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_durationExpression, (inputs, tokenHint, suggestions) -> {
             // No suggestion for duration expression
             return false;
         });
     }
 
     public Collection<Suggestion> suggest(String expression) {
-        return suggester.suggest(expression);
+        return suggesterBuilder.build().suggest(expression);
     }
 }

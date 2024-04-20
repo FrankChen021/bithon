@@ -79,9 +79,11 @@ public class AutoSuggesterVerificationBuilder {
     }
 
     public AutoSuggesterVerificationBuilder whenInput(String input) {
-        AutoSuggester suggester = new AutoSuggester(this.lexerAndParserFactory);
-        suggester.setCasePreference(this.casePreference);
-        this.suggestions = suggester.suggest(input);
+        this.suggestions = AutoSuggesterBuilder.builder()
+                                               .factory(this.lexerAndParserFactory)
+                                               .casePreference(this.casePreference)
+                                               .build()
+                                               .suggest(input);
         return this;
     }
 
