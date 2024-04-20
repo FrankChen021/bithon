@@ -22,13 +22,13 @@ import java.util.Objects;
  * @author frank.chen021@outlook.com
  * @date 2024/4/13 17:38
  */
-public class GrammarRule {
-    public final int ruleIndex;
-    public final int nextTokenType;
+public class TokenHint {
+    public final int parserRuleIndex;
+    public final int expectedTokenType;
 
-    public GrammarRule(int ruleIndex, int nextTokenType) {
-        this.ruleIndex = ruleIndex;
-        this.nextTokenType = nextTokenType;
+    public TokenHint(int parserRuleIndex, int expectedTokenType) {
+        this.parserRuleIndex = parserRuleIndex;
+        this.expectedTokenType = expectedTokenType;
     }
 
     @Override
@@ -39,12 +39,12 @@ public class GrammarRule {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        GrammarRule that = (GrammarRule) o;
-        return ruleIndex == that.ruleIndex && nextTokenType == that.nextTokenType;
+        TokenHint that = (TokenHint) o;
+        return parserRuleIndex == that.parserRuleIndex && expectedTokenType == that.expectedTokenType;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ruleIndex, nextTokenType);
+        return Objects.hash(parserRuleIndex, expectedTokenType);
     }
 }

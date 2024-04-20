@@ -34,14 +34,14 @@ import java.util.TreeSet;
 /**
  * Suggests tokens based on ANTLR grammar file.
  */
-class GrammarSuggester implements ISuggester {
-    private static final Logger logger = LoggerFactory.getLogger(GrammarSuggester.class);
+class DefaultSuggester implements ISuggester {
+    private static final Logger logger = LoggerFactory.getLogger(DefaultSuggester.class);
 
     private final InputLexer inputLexer;
     private final CasePreference casePreference;
     private final String origPartialToken;
 
-    GrammarSuggester(String origPartialToken,
+    DefaultSuggester(String origPartialToken,
                      InputLexer inputLexer,
                      CasePreference casePreference) {
         this.origPartialToken = origPartialToken;
@@ -53,15 +53,15 @@ class GrammarSuggester implements ISuggester {
      * Suggests auto-completion texts for the next token(s) based on the given parser state from the ATN.
      */
     @Override
-    public boolean suggest(List<? extends Token> inputs, GrammarRule grammarRule, Collection<Suggestion> suggestionList) {
+    public boolean suggest(List<? extends Token> inputs, TokenHint tokenHint, Collection<Suggestion> suggestionList) {
         if (logger.isDebugEnabled()) {
-            String ruleNames = inputLexer.getRuleNames()[grammarRule.nextTokenType - 1];
+            String ruleNames = inputLexer.getRuleNames()[tokenHint.expectedTokenType - 1];
             logger.debug("Suggesting tokens for lexer rules: [{}]", ruleNames);
         }
 
-        int nextTokenRuleNumber = grammarRule.nextTokenType - 1; // Count from 0 not from 1
+        int nextTokenRuleNumber = tokenHint.expectedTokenType - 1; // Count from 0 not from 1
         ATNState lexerState = this.inputLexer.findStateByRuleNumber(nextTokenRuleNumber);
-        Set<Suggestion> suggestions = suggest(grammarRule.nextTokenType, lexerState);
+        Set<Suggestion> suggestions = suggest(tokenHint.expectedTokenType, lexerState);
 
         suggestionList.addAll(suggestions);
 
@@ -174,5 +174,4 @@ class GrammarSuggester implements ISuggester {
                 return false;
         }
     }
-
 }

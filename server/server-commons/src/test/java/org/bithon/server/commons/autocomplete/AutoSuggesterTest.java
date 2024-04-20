@@ -37,7 +37,7 @@ public class AutoSuggesterTest {
      * r2: c 'B';
      * c: 'F'
      * <p>
-     * Given input 'F', and starting from rule r1, there should only one suggestion 'A'.
+     * Given input 'F', and starting from rule r1, there should be only one suggestion 'A'.
      */
     @Test
     public void suggest_withSingleTokenComingUp_shouldSuggestSingleToken() {

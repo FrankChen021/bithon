@@ -55,6 +55,10 @@ class InputParser {
     public ATNState getATNByRuleNumber(int ruleNumber) {
         return parserATN.ruleToStartState[ruleNumber];
     }
+    
+    public int getRuleCount() {
+        return parserATN.ruleToStartState.length;
+    }
 
     // Bellow are functions for debugging purposes
     public String toParseStateString(ATNState state) {

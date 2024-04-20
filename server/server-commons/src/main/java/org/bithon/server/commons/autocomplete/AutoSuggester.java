@@ -55,6 +55,7 @@ public class AutoSuggester {
     // Configuration
     private CasePreference casePreference = CasePreference.BOTH;
     private final Map<Integer, ISuggester> suggesters = new HashMap<>();
+    private Set<Integer>[] ruleVisitedState;
 
     public AutoSuggester(LexerAndParserFactory lexerAndParserFactory) {
         this.lexer = new InputLexer(lexerAndParserFactory);
@@ -80,6 +81,10 @@ public class AutoSuggester {
 
         tokenizeInput(input);
 
+        this.ruleVisitedState = new Set[this.inputTokens.size()];
+        for (int i = 0; i < this.ruleVisitedState.length; i++) {
+            this.ruleVisitedState[i] = new HashSet<>();
+        }
         ATNState initialState = this.parser.getATNByRuleNumber(startingRule);
         logger.debug("Parser initial state: {}", initialState);
         parseAndCollectTokenSuggestions(initialState, 0);
@@ -154,7 +159,17 @@ public class AutoSuggester {
             Transition[] transitions = state.atnState.getTransitions();
             for (int i = transitions.length - 1; i >= 0; i--) {
                 Transition transition = transitions[i];
-                if (transition.isEpsilon() && !state.visited.contains(transition.target.stateNumber)) {
+
+                //if(!this.ruleVisitedState[state.tokenListIndex].add(transition.target.stateNumber)) {
+                //    continue;
+                //}
+
+                if (transition.isEpsilon()
+                    && !this.ruleVisitedState[state.tokenListIndex].contains(transition.target.stateNumber)
+                    //&& !state.visited.contains(transition.target.stateNumber)
+                ) {
+                    this.ruleVisitedState[state.tokenListIndex].add(transition.target.stateNumber);
+
                     stack.push(new ParseState(transition.target,
                                               // Epsilon transitions don't consume a token, so don't move the index
                                               state.tokenListIndex,
@@ -192,14 +207,14 @@ public class AutoSuggester {
     }
 
     private void suggestNextTokensForParserState(ParseState parseState) {
-        Set<GrammarRule> rules = findAllTransitionRules(parseState.atnState, parseState.indent, parseState.followingStates);
+        Set<TokenHint> rules = findAllTransitionRules(parseState.atnState, parseState.indent, parseState.followingStates);
 
-        GrammarSuggester defaultSuggester = new GrammarSuggester(this.untokenizedText, lexer, this.casePreference);
+        DefaultSuggester defaultSuggester = new DefaultSuggester(this.untokenizedText, lexer, this.casePreference);
 
         Set<Suggestion> suggestions = new HashSet<>();
 
-        for (GrammarRule rule : rules) {
-            ISuggester suggester = this.suggesters.get(rule.ruleIndex);
+        for (TokenHint rule : rules) {
+            ISuggester suggester = this.suggesters.get(rule.parserRuleIndex);
             if (suggester != null) {
                 if (!suggester.suggest(this.inputTokens, rule, suggestions)) {
                     continue;
@@ -222,8 +237,8 @@ public class AutoSuggester {
         }
     }
 
-    private Set<GrammarRule> findAllTransitionRules(ATNState parserState, String indent, List<ATNState> followingStates) {
-        Set<GrammarRule> rules = new HashSet<>();
+    private Set<TokenHint> findAllTransitionRules(ATNState parserState, String indent, List<ATNState> followingStates) {
+        Set<TokenHint> rules = new HashSet<>();
 
         Set<TransitionWrapper> visitedTransitions = new HashSet<>();
         Stack<FindState> stack = new Stack<>();
@@ -266,12 +281,12 @@ public class AutoSuggester {
                 } else if (transition instanceof AtomTransition) {
                     int label = ((AtomTransition) transition).label;
                     if (label >= 1) { // EOF would be -1
-                        rules.add(new GrammarRule(state.atnState.ruleIndex, label));
+                        rules.add(new TokenHint(state.atnState.ruleIndex, label));
                     }
                 } else if (transition instanceof SetTransition) {
                     for (Interval interval : transition.label().getIntervals()) {
                         for (int label = interval.a; label <= interval.b; ++label) {
-                            rules.add(new GrammarRule(state.atnState.ruleIndex, label));
+                            rules.add(new TokenHint(state.atnState.ruleIndex, label));
                         }
                     }
                 }
