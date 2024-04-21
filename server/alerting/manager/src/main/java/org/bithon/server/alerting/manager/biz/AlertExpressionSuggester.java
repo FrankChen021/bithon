@@ -16,6 +16,8 @@
 
 package org.bithon.server.alerting.manager.biz;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.bithon.server.alerting.common.parser.AlertExpressionLexer;
 import org.bithon.server.alerting.common.parser.AlertExpressionParser;
 import org.bithon.server.commons.autocomplete.AutoSuggesterBuilder;
@@ -36,6 +38,16 @@ import java.util.Collection;
 @Component
 public class AlertExpressionSuggester {
 
+    @Data
+    @AllArgsConstructor
+    public static class SuggestionTag {
+        private String tagText;
+
+        public static SuggestionTag of(String text) {
+            return new SuggestionTag(text);
+        }
+    }
+
     private final IDataSourceApi dataSourceApi;
     private final AutoSuggesterBuilder suggesterBuilder;
 
@@ -50,21 +62,22 @@ public class AlertExpressionSuggester {
                                                     .factory(factory)
                                                     .casePreference(CasePreference.UPPER);
 
-        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_aggregatorExpression, (inputs, tokenHint, suggestions) -> {
-            if (tokenHint.expectedTokenType == AlertExpressionParser.IDENTIFIER) {
-                suggestions.add(new Suggestion(tokenHint.expectedTokenType, "sum"));
-                suggestions.add(new Suggestion(tokenHint.expectedTokenType, "count"));
-                suggestions.add(new Suggestion(tokenHint.expectedTokenType, "avg"));
-                suggestions.add(new Suggestion(tokenHint.expectedTokenType, "max"));
-                suggestions.add(new Suggestion(tokenHint.expectedTokenType, "min"));
+        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_aggregatorExpression, (inputs, expectedToken, suggestions) -> {
+            if (expectedToken.tokenType == AlertExpressionParser.IDENTIFIER) {
+                suggestions.add(Suggestion.of(expectedToken.tokenType, "sum", SuggestionTag.of("Aggregator")));
+                suggestions.add(Suggestion.of(expectedToken.tokenType, "count", SuggestionTag.of("Aggregator")));
+                suggestions.add(Suggestion.of(expectedToken.tokenType, "avg", SuggestionTag.of("Aggregator")));
+                suggestions.add(Suggestion.of(expectedToken.tokenType, "max", SuggestionTag.of("Aggregator")));
+                suggestions.add(Suggestion.of(expectedToken.tokenType, "min", SuggestionTag.of("Aggregator")));
             }
             return false;
         });
 
         // Suggest column names for GROUP BY expression
-        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_groupByExpression, (inputs, tokenHint, suggestions) -> {
-            if (tokenHint.expectedTokenType != AlertExpressionParser.IDENTIFIER) {
-                return false;
+        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_groupByExpression, (inputs, expectedToken, suggestions) -> {
+            if (expectedToken.tokenType != AlertExpressionParser.IDENTIFIER) {
+                // Auto suggestion for keyword
+                return true;
             }
 
             int index = inputs.size() - 1;
@@ -84,23 +97,23 @@ public class AlertExpressionSuggester {
                     schema.getColumns()
                           .stream()
                           .filter((col) -> (col instanceof StringColumn))
-                          .forEach(col -> suggestions.add(new Suggestion(tokenHint.expectedTokenType, col.getName())));
+                          .forEach(col -> suggestions.add(Suggestion.of(expectedToken.tokenType, col.getName(), SuggestionTag.of("Dimension"))));
                 }
             }
-            
+
             return false;
         });
 
         // Suggest data source names
-        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_dataSourceExpression, (inputs, tokenHint, suggestions) -> {
+        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_dataSourceExpression, (inputs, expectedToken, suggestions) -> {
             dataSourceApi.getSchemaNames()
-                         .forEach((value) -> suggestions.add(new Suggestion(tokenHint.expectedTokenType, value.getValue())));
+                         .forEach((value) -> suggestions.add(Suggestion.of(expectedToken.tokenType, value.getValue(), SuggestionTag.of("DataSource"))));
             return false;
         });
 
         // Suggest metric names for the metric name expression
-        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_metricNameExpression, (inputs, tokenHint, suggestions) -> {
-            if (tokenHint.expectedTokenType != AlertExpressionParser.IDENTIFIER) {
+        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_metricNameExpression, (inputs, expectedToken, suggestions) -> {
+            if (expectedToken.tokenType != AlertExpressionParser.IDENTIFIER) {
                 return false;
             }
 
@@ -112,14 +125,14 @@ public class AlertExpressionSuggester {
                       .stream()
                       .filter((col) -> !(col instanceof StringColumn)
                                        && !col.getName().equals(schema.getTimestampSpec().getColumnName()))
-                      .forEach(col -> suggestions.add(new Suggestion(tokenHint.expectedTokenType, col.getName())));
+                      .forEach(col -> suggestions.add(Suggestion.of(expectedToken.tokenType, col.getName(), SuggestionTag.of("Metric"))));
             }
 
             return false;
         });
 
-        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_filterExpression, (inputs, tokenHint, suggestions) -> {
-            if (tokenHint.expectedTokenType != AlertExpressionParser.IDENTIFIER) {
+        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_filterExpression, (inputs, expectedToken, suggestions) -> {
+            if (expectedToken.tokenType != AlertExpressionParser.IDENTIFIER) {
                 return false;
             }
 
@@ -142,25 +155,25 @@ public class AlertExpressionSuggester {
                     schema.getColumns()
                           .stream()
                           .filter((col) -> (col instanceof StringColumn))
-                          .forEach(col -> suggestions.add(new Suggestion(tokenHint.expectedTokenType, col.getName())));
+                          .forEach(col -> suggestions.add(Suggestion.of(expectedToken.tokenType, col.getName(), SuggestionTag.of("Dimension"))));
                 }
             }
 
             return false;
         });
 
-        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_literalExpression, (inputs, tokenHint, suggestions) -> {
+        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_literalExpression, (inputs, expectedToken, suggestions) -> {
             // No suggestion for literal expressions except the NULL
-            //if (tokenHint.expectedTokenType == AlertExpressionParser.NULL_LITERAL
+            //if (expectedToken.expectedTokenType == AlertExpressionParser.NULL_LITERAL
             //    && !inputs.isEmpty()
             //    && inputs.get(inputs.size() - 1).getText().equalsIgnoreCase("IS")
             //) {
-            //    suggestions.add(new Suggestion(tokenHint.expectedTokenType, "NULL"));
+            //    suggestions.add(Suggestion.of(expectedToken.expectedTokenType, "NULL"));
             //}
             return false;
         });
 
-        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_durationExpression, (inputs, tokenHint, suggestions) -> {
+        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_durationExpression, (inputs, expectedToken, suggestions) -> {
             // No suggestion for duration expression
             return false;
         });

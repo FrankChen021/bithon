@@ -36,9 +36,15 @@ public class Suggestion implements Comparable<Suggestion> {
     @Setter
     private Object tag;
 
-    public Suggestion(int tokenType, String text) {
+    private Suggestion(int tokenType, String text) {
         this.tokenType = tokenType;
         this.text = text;
+    }
+
+    private Suggestion(int tokenType, String text, Object tag) {
+        this.tokenType = tokenType;
+        this.text = text;
+        this.tag = tag;
     }
 
     @Override
@@ -53,4 +59,13 @@ public class Suggestion implements Comparable<Suggestion> {
         }
         return this.tokenType - o.tokenType;
     }
+
+    public static Suggestion of(int tokenType, String text) {
+        return new Suggestion(tokenType, text);
+    }
+
+    public static Suggestion of(int tokenType, String text, Object tag) {
+        return new Suggestion(tokenType, text, tag);
+    }
+
 }

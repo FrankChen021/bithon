@@ -22,13 +22,15 @@ import java.util.Objects;
  * @author frank.chen021@outlook.com
  * @date 2024/4/13 17:38
  */
-public class TokenHint {
+public class ExpectedToken {
+    public final String parserRuleName;
     public final int parserRuleIndex;
-    public final int expectedTokenType;
+    public final int tokenType;
 
-    public TokenHint(int parserRuleIndex, int expectedTokenType) {
+    public ExpectedToken(String parserRuleName, int parserRuleIndex, int tokenType) {
+        this.parserRuleName = parserRuleName;
         this.parserRuleIndex = parserRuleIndex;
-        this.expectedTokenType = expectedTokenType;
+        this.tokenType = tokenType;
     }
 
     @Override
@@ -39,12 +41,12 @@ public class TokenHint {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        TokenHint that = (TokenHint) o;
-        return parserRuleIndex == that.parserRuleIndex && expectedTokenType == that.expectedTokenType;
+        ExpectedToken that = (ExpectedToken) o;
+        return parserRuleIndex == that.parserRuleIndex && tokenType == that.tokenType;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(parserRuleIndex, expectedTokenType);
+        return Objects.hash(parserRuleIndex, tokenType);
     }
 }

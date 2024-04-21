@@ -16,7 +16,6 @@
 
 package org.bithon.server.commons.autocomplete;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -24,13 +23,6 @@ import org.junit.Test;
  * @date 15/4/24 2:52 pm
  */
 public class AutoSuggesterTest {
-
-    @BeforeClass
-    public static void initLogging() {
-//        System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, DEFAULT_LOG_LEVEL);
-//        System.setProperty(org.slf4j.impl.SimpleLogger.SHOW_LOG_NAME_KEY, "false");
-//        System.setProperty(org.slf4j.impl.SimpleLogger.SHOW_THREAD_NAME_KEY, "false");
-    }
 
     /**
      * r1: c 'A';

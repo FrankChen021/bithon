@@ -53,15 +53,15 @@ class DefaultSuggester implements ISuggester {
      * Suggests auto-completion texts for the next token(s) based on the given parser state from the ATN.
      */
     @Override
-    public boolean suggest(List<? extends Token> inputs, TokenHint tokenHint, Collection<Suggestion> suggestionList) {
+    public boolean suggest(List<? extends Token> inputs, ExpectedToken token, Collection<Suggestion> suggestionList) {
         if (logger.isDebugEnabled()) {
-            String ruleNames = inputLexer.getRuleNames()[tokenHint.expectedTokenType - 1];
+            String ruleNames = inputLexer.getRuleNames()[token.tokenType - 1];
             logger.debug("Suggesting tokens for lexer rules: [{}]", ruleNames);
         }
 
-        int nextTokenRuleNumber = tokenHint.expectedTokenType - 1; // Count from 0 not from 1
+        int nextTokenRuleNumber = token.tokenType - 1; // Count from 0 not from 1
         ATNState lexerState = this.inputLexer.findStateByRuleNumber(nextTokenRuleNumber);
-        Set<Suggestion> suggestions = suggest(tokenHint.expectedTokenType, lexerState);
+        Set<Suggestion> suggestions = suggest(token.tokenType, lexerState);
 
         suggestionList.addAll(suggestions);
 
@@ -101,7 +101,7 @@ class DefaultSuggester implements ISuggester {
             Transition[] transitions = lexerState.getTransitions();
             if (!tokenSoFar.isEmpty() && transitions.length == 0) {
                 String justTheCompletionPart = chopOffCommonStart(tokenSoFar, this.origPartialToken);
-                suggestions.add(new Suggestion(tokenType, justTheCompletionPart));
+                suggestions.add(Suggestion.of(tokenType, justTheCompletionPart));
                 continue;
             }
 

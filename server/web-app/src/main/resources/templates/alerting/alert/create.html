@@ -254,23 +254,24 @@
         ${data.match}
       </span>
       <span style="display: flex; align-items: center; font-size: 13px; font-weight: 100; text-transform: uppercase; color: rgba(0,0,0,.2);">
-        ${data.key}
+        ${data.value.tag === null ? '' : data.value.tag.tagText}
       </span>`;
                     },
                     highlight: true
                 },
                 searchEngine: (query, record) => {
-                    // Override the default search engine,
+                    // Override the default search engine
+                    // directly return the text so that all record will be displayed
                     return record.text;
                 },
                 events: {
                     input: {
-                        input: () => {
+                        input: (evt) => {
                             // Override the input event to disable the suggestion on key in
+                            console.log(evt);
                         },
                         keydown: (evt) => {
                             if (evt.ctrlKey || evt.altKey || evt.metaKey) {
-                                console.log(evt);
                                 return;
                             }
 
@@ -281,7 +282,7 @@
                                 return;
                             }
 
-                            // Check if the input is part of identifier
+                            // Check if the input is part of the identifier
                             const ascii = evt.key.charCodeAt(0);
                             if (ascii >= 0x30 && ascii <= 0x39
                                 // A-Z
@@ -295,10 +296,10 @@
                                 return;
                             }
 
-
                             if (evt.key.length === 1) {
-                                // Other printable characters, enable the suggestion
+                                // Other printable characters, start the suggestion
                                 autoCompleteJS.start(autoCompleteJS.input.value + evt.key);
+                                return;
                             }
                         }
                     }

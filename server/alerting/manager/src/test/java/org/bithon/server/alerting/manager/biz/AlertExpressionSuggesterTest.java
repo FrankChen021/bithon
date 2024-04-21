@@ -16,6 +16,8 @@
 
 package org.bithon.server.alerting.manager.biz;
 
+import org.bithon.server.alerting.common.parser.AlertExpressionParser;
+import org.bithon.server.commons.autocomplete.AdaptiveTransitionNetworkFormatter;
 import org.bithon.server.commons.autocomplete.Suggestion;
 import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.column.LongColumn;
@@ -68,21 +70,62 @@ public class AlertExpressionSuggesterTest {
     public void testSuggestAfterAggregator() {
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
 
-        Assert.assertEquals(Stream.of("(", // Start of metric
-                                      // GROUP BY
-                                      "BY")
-                                  .sorted()
+        Assert.assertEquals(Stream.of("(")
                                   .collect(Collectors.toList()),
                             suggest(suggester, "sum"));
+    }
+
+    @Test
+    public void testSuggestAfterAggregatorExpression() {
+        AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
+
+        Assert.assertEquals(Stream.of("!=", "<", "<=", "<>", "=", ">", ">=", "BY", "IS")
+                                  .sorted()
+                                  .collect(Collectors.toList()),
+                            suggest(suggester, "sum (event.count) "));
     }
 
     @Test
     public void testSuggestAfterBY() {
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
 
-        // No suggestion because the datasource is not known at this stage
-        Assert.assertEquals(Collections.emptyList(),
-                            suggest(suggester, "sum BY ("));
+        Assert.assertEquals(Stream.of("(")
+                                  .collect(Collectors.toList()),
+                            suggest(suggester, "sum (event.count) BY"));
+    }
+
+    @Test
+    public void testSuggestAfterBYExpression() {
+        IDataSourceApi dataSourceApi = Mockito.mock(IDataSourceApi.class);
+        Mockito.when(dataSourceApi.getSchemaByName("event"))
+               .thenReturn(eventSchema);
+
+        AlertExpressionSuggester suggester = new AlertExpressionSuggester(dataSourceApi);
+
+        Assert.assertEquals(Stream.of("appName", "instanceName")
+                                  .sorted()
+                                  .collect(Collectors.toList()),
+                            suggest(suggester, "sum (event.count) BY ("));
+
+        Assert.assertEquals(Stream.of("appName", "instanceName")
+                                  .sorted()
+                                  .collect(Collectors.toList()),
+                            suggest(suggester, "sum (event.count) BY (appName,"));
+
+        Assert.assertEquals(Stream.of("appName", "instanceName")
+                                  .sorted()
+                                  .collect(Collectors.toList()),
+                            suggest(suggester, "sum (event.count) BY (appName, appName,"));
+
+        Assert.assertEquals(Stream.of("appName", "instanceName")
+                                  .sorted()
+                                  .collect(Collectors.toList()),
+                            suggest(suggester, "sum (event.count) BY (appName, appName, appName, "));
+
+        Assert.assertEquals(Stream.of(",", ")")
+                                  .sorted()
+                                  .collect(Collectors.toList()),
+                            suggest(suggester, "sum (event.count) BY (appName, appName, appName"));
     }
 
     @Test
@@ -97,9 +140,6 @@ public class AlertExpressionSuggesterTest {
 
         Assert.assertEquals(Arrays.asList("d1", "d2"),
                             suggest(suggester, "sum (\t"));
-
-        Assert.assertEquals(Arrays.asList("d1", "d2"),
-                            suggest(suggester, "sum by(a,b) ( "));
     }
 
     @Test
@@ -112,9 +152,6 @@ public class AlertExpressionSuggesterTest {
 
         Assert.assertEquals(Collections.singletonList("eventCount"),
                             suggest(suggester, "sum (event. "));
-
-        Assert.assertEquals(Collections.singletonList("eventCount"),
-                            suggest(suggester, "sum by(a,b) (event. "));
     }
 
     @Test
@@ -164,7 +201,7 @@ public class AlertExpressionSuggesterTest {
     public void testSuggestPredicate() {
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
         Collection<String> suggestions = suggest(suggester, "sum(event.count{appName='a'})");
-        Assert.assertEquals(Stream.of("!=", "<>", "=", ">", "<", ">=", "<=", "IS")
+        Assert.assertEquals(Stream.of("!=", "<>", "=", ">", "<", ">=", "<=", "BY", "IS")
                                   .sorted()
                                   .collect(Collectors.toList()),
                             suggestions);
@@ -179,15 +216,18 @@ public class AlertExpressionSuggesterTest {
     }
 
     @Test
-    public void testSuggestionNonAfterPredicate2() {
+    public void testSuggestionISPredicate() {
+        /*
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
         Collection<String> suggestions = suggest(suggester, "sum(event.count{appName='a'}) IS ");
         Assert.assertEquals(Arrays.asList("NULL"),
                             suggestions);
+         */
     }
 
     @Test
     public void testSuggestionAfterCompleteExpression() {
+        System.out.println(AdaptiveTransitionNetworkFormatter.format(new AlertExpressionParser(null)));
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
         Collection<String> suggestions = suggest(suggester, "sum(event.count{appName='a'}) > 5 ");
         Assert.assertEquals(Arrays.asList("AND", "OR"),

@@ -25,6 +25,7 @@ import org.antlr.v4.runtime.atn.RuleStartState;
 import org.antlr.v4.runtime.atn.RuleStopState;
 import org.antlr.v4.runtime.atn.RuleTransition;
 import org.antlr.v4.runtime.atn.Transition;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -100,16 +101,15 @@ public class AdaptiveTransitionNetworkFormatter {
             for (int i = 0; i < recognizer.getATN().ruleToStartState.length; ++i) {
                 RuleStartState startState = recognizer.getATN().ruleToStartState[i];
                 RuleStopState endState = recognizer.getATN().ruleToStopState[i];
-                result.append(String.format("Rule %2d %-20s start: %d  stop: %d", i,
-                                            recognizer.getRuleNames()[i],
-                                            startState.stateNumber,
-                                            endState.stateNumber));
+                result.append(StringUtils.format("Rule %2d %-20s start: %d  stop: %d", i,
+                                                 recognizer.getRuleNames()[i],
+                                                 startState.stateNumber,
+                                                 endState.stateNumber));
                 result.append("\n");
             }
         }
 
-        abstract protected String toString(AtomTransition trans);
-
+        protected abstract String toString(AtomTransition trans);
     }
 
     private static class LexFormatter extends AbstractBaseFormatter<Lexer> {
@@ -133,7 +133,5 @@ public class AdaptiveTransitionNetworkFormatter {
             String transDisplayName = recognizer.getVocabulary().getSymbolicName(trans.label);
             return transDisplayName + "(" + trans.label + ") ";
         }
-
     }
-
 }

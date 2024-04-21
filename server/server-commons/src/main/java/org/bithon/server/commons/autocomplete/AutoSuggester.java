@@ -145,8 +145,9 @@ public class AutoSuggester {
             }
 
             if (state.atnState instanceof RuleStopState) {
-                if (!state.followingStates.isEmpty())
+                if (!state.followingStates.isEmpty()) {
                     state.followingStates.remove(state.followingStates.size() - 1);
+                }
             }
 
             Transition[] transitions = state.atnState.getTransitions();
@@ -200,25 +201,25 @@ public class AutoSuggester {
     }
 
     private void suggestNextTokensForParserState(ParseState parseState) {
-        Set<TokenHint> hints = findAllTransitionRules(parseState.atnState,
-                                                      parseState.indent,
-                                                      parseState.followingStates);
+        Set<ExpectedToken> tokens = findAllTransitionRules(parseState.atnState,
+                                                           parseState.indent,
+                                                           parseState.followingStates);
 
         DefaultSuggester defaultSuggester = new DefaultSuggester(this.untokenizedText, lexer, this.casePreference);
 
         Set<Suggestion> suggestions = new HashSet<>();
 
-        for (TokenHint hint : hints) {
-            ISuggester suggester = this.suggesters.get(hint.parserRuleIndex);
+        for (ExpectedToken token : tokens) {
+            ISuggester suggester = this.suggesters.get(token.parserRuleIndex);
             if (suggester != null) {
-                logger.debug("Use rule-based suggester for hint rule index [{}], token = [{}]", hint.parserRuleIndex, hint.expectedTokenType);
-                if (!suggester.suggest(this.inputTokens, hint, suggestions)) {
+                logger.debug("Use rule-based suggester for hint rule index [{}], token = [{}]", token.parserRuleIndex, token.tokenType);
+                if (!suggester.suggest(this.inputTokens, token, suggestions)) {
                     continue;
                 }
             }
 
-            logger.debug("Use default suggester for hint rule index [{}], token = [{}]", hint.parserRuleIndex, hint.expectedTokenType);
-            defaultSuggester.suggest(this.inputTokens, hint, suggestions);
+            logger.debug("Use default suggester for hint rule index [{}], token = [{}]", token.parserRuleIndex, token.tokenType);
+            defaultSuggester.suggest(this.inputTokens, token, suggestions);
         }
 
         validateSuggestions(parseState.atnState, suggestions);
@@ -234,8 +235,8 @@ public class AutoSuggester {
         }
     }
 
-    private Set<TokenHint> findAllTransitionRules(ATNState parserState, String indent, List<ATNState> followingStates) {
-        Set<TokenHint> rules = new HashSet<>();
+    private Set<ExpectedToken> findAllTransitionRules(ATNState parserState, String indent, List<ATNState> followingStates) {
+        Set<ExpectedToken> tokens = new HashSet<>();
 
         Set<TransitionWrapper> visitedTransitions = new HashSet<>();
         Stack<FindState> stack = new Stack<>();
@@ -263,8 +264,9 @@ public class AutoSuggester {
             for (int i = transitions.length - 1; i >= 0; i--) {
                 Transition transition = transitions[i];
 
-                if (followingState != null && !transition.target.equals(followingState))
+                if (followingState != null && !transition.target.equals(followingState)) {
                     continue;
+                }
 
                 TransitionWrapper wrappedTransition = new TransitionWrapper(state.atnState, transition);
                 if (visitedTransitions.contains(wrappedTransition)) {
@@ -278,19 +280,19 @@ public class AutoSuggester {
                 } else if (transition instanceof AtomTransition) {
                     int label = ((AtomTransition) transition).label;
                     if (label >= 1) { // EOF would be -1
-                        rules.add(new TokenHint(state.atnState.ruleIndex, label));
+                        tokens.add(new ExpectedToken(parser.getRuleName(state.atnState.ruleIndex), state.atnState.ruleIndex, label));
                     }
                 } else if (transition instanceof SetTransition) {
                     for (Interval interval : transition.label().getIntervals()) {
                         for (int label = interval.a; label <= interval.b; ++label) {
-                            rules.add(new TokenHint(state.atnState.ruleIndex, label));
+                            tokens.add(new ExpectedToken(parser.getRuleName(state.atnState.ruleIndex), state.atnState.ruleIndex, label));
                         }
                     }
                 }
             }
         }
 
-        return rules;
+        return tokens;
     }
 
     private void validateSuggestions(ATNState parserState, Collection<Suggestion> suggestions) {

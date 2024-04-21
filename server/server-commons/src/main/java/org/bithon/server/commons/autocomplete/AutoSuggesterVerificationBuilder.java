@@ -16,11 +16,10 @@
 
 package org.bithon.server.commons.autocomplete;
 
+import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.Parser;
 import org.bithon.component.commons.utils.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 
@@ -28,6 +27,7 @@ import java.util.Collection;
  * @author frank.chen021@outlook.com
  * @date 15/4/24 9:48 pm
  */
+@Slf4j
 public class AutoSuggesterVerificationBuilder {
 
     private LexerAndParserFactory lexerAndParserFactory;
@@ -49,7 +49,7 @@ public class AutoSuggesterVerificationBuilder {
         return this;
     }
 
-    /*
+    /**
      * Used for testing with generated grammars, e.g., for checking out reported issues, before coming up with a more
      * focused test
      */
@@ -60,10 +60,6 @@ public class AutoSuggesterVerificationBuilder {
     }
 
     private void printGrammarAtnIfNeeded() {
-        Logger logger = LoggerFactory.getLogger(this.getClass());
-//        if (!logger.isDebugEnabled()) {
-//            return;
-//        }
         Lexer lexer = this.lexerAndParserFactory.createLexer(null);
         Parser parser = this.lexerAndParserFactory.createParser(null);
         String header = "\n===========  PARSER ATN  ====================\n";
@@ -71,7 +67,7 @@ public class AutoSuggesterVerificationBuilder {
         String footer = "===========  END OF ATN  ====================";
         String parserAtn = AdaptiveTransitionNetworkFormatter.format(parser);
         String lexerAtn = AdaptiveTransitionNetworkFormatter.format(lexer);
-        System.out.println(header + parserAtn + middle + lexerAtn + footer);
+        log.debug(header + parserAtn + middle + lexerAtn + footer);
     }
 
     public AutoSuggesterVerificationBuilder whenInput(String input) {
@@ -97,4 +93,3 @@ public class AutoSuggesterVerificationBuilder {
         return new TextBasedLexerAndParserFactory(grammarText);
     }
 }
-

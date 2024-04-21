@@ -79,7 +79,7 @@ class InputParser {
         if (t instanceof AtomTransition) {
             nameOrLabel += ' ' + this.lexerVocabulary.getDisplayName(((AtomTransition) t).label);
         } else if (t instanceof RuleTransition) {
-            nameOrLabel += StringUtils.format( "(Follow state %d)", ((RuleTransition) t).followState.stateNumber);
+            nameOrLabel += StringUtils.format("(Follow state %d)", ((RuleTransition) t).followState.stateNumber);
         }
         return nameOrLabel + " -> " + toParseStateString(t.target);
     }
