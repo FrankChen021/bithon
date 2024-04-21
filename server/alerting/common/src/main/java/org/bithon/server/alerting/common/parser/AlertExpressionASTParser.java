@@ -117,13 +117,8 @@ public class AlertExpressionASTParser {
         @Override
         public IExpression visitAlertExpression(AlertExpressionParser.AlertExpressionContext ctx) {
             AlertExpressionParser.SelectExpressionContext selectExpression = ctx.selectExpression();
-
-            String nameExpressionText = selectExpression.nameExpression().getText();
-            String[] names = nameExpressionText.split("\\.");
-            if (names.length != 2) {
-                throw new InvalidExpressionException(StringUtils.format("The metric name [%s] is invalid. It must follow the SCHEMA.METRIC format.", nameExpressionText));
-            }
-            String dataSource = names[0];
+            String[] names = selectExpression.metricExpression().getText().split("\\.");
+            String from = names[0];
             String metric = names[1];
 
             String aggregatorText = selectExpression.aggregatorExpression().getText().toLowerCase(Locale.ENGLISH);
@@ -269,7 +264,7 @@ public class AlertExpressionASTParser {
 
             AlertExpression expression = new AlertExpression();
             expression.setId(String.valueOf(index++));
-            expression.setFrom(dataSource);
+            expression.setFrom(from);
             expression.setWhereExpression(whereExpression);
 
             // For 'count' aggregator, use the 'count' as output column instead of using the column name as output name
@@ -337,7 +332,7 @@ public class AlertExpressionASTParser {
         @Override
         public IExpression visitSimpleFilterExpression(AlertExpressionParser.SimpleFilterExpressionContext ctx) {
             IdentifierExpression identifier = new IdentifierExpression(ctx.IDENTIFIER().getSymbol().getText());
-            IExpression expected = ctx.valueExpression().accept(this);
+            IExpression expected = ctx.literalExpression().accept(this);
 
             TerminalNode predicate = ctx.predicateExpression().getChild(TerminalNode.class, 0);
             switch (predicate.getSymbol().getType()) {

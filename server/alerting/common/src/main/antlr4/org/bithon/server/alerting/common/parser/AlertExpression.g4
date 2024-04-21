@@ -8,12 +8,12 @@ expression
   : selectExpression alertPredicateExpression alertExpectedExpression #alertExpression
   | expression AND expression   #logicalAlertExpression
   | expression OR expression    #logicalAlertExpression
-  | '(' expression ')'          #braceAlertExpression
+  | LEFT_PARENTHESIS expression RIGHT_PARENTHESIS            #braceAlertExpression
   ;
 
 // sum by (a,b,c) (metric {})
 selectExpression
-  : aggregatorExpression groupByExpression? '(' nameExpression whereExpression? ')' durationExpression?
+  : aggregatorExpression LEFT_PARENTHESIS metricExpression whereExpression? RIGHT_PARENTHESIS durationExpression? groupByExpression?
   ;
 
 aggregatorExpression
@@ -21,27 +21,36 @@ aggregatorExpression
   ;
 
 groupByExpression
-  : BY '(' IDENTIFIER (',' IDENTIFIER)* ')'
-  | BY IDENTIFIER (',' IDENTIFIER)*
+  : BY LEFT_PARENTHESIS IDENTIFIER (COMMA IDENTIFIER)* RIGHT_PARENTHESIS
   ;
 
-// At the syntax level, the qualifier is optional, but in actual, it's mandatory.
-// We check if the name is valid at the parser phase so that we provide more readable error message for users
-nameExpression
-  : IDENTIFIER ('.' IDENTIFIER)?
+metricExpression
+  : dataSourceExpression DOT metricNameExpression
   ;
+
+dataSourceExpression
+  : IDENTIFIER
+  ;
+
+metricNameExpression
+  : IDENTIFIER
+  ;
+
 
 whereExpression
-  : '{' '}'
-  | '{' filterExpression (',' filterExpression)* '}'
+  : LEFT_CURLY_BRACE RIGHT_CURLY_BRACE
+  | LEFT_CURLY_BRACE filterExpression (COMMA filterExpression)* RIGHT_CURLY_BRACE
   ;
 
 durationExpression
-  : '[' DURATION_LITERAL ']'
+  : LEFT_SQUARE_BRACKET DURATION_LITERAL RIGHT_SQUARE_BRACKET
   ;
 
 filterExpression
-  : IDENTIFIER predicateExpression valueExpression #simpleFilterExpression
+  : IDENTIFIER predicateExpression literalExpression #simpleFilterExpression
+  | IDENTIFIER IN literalListExpression #inFilterExpression
+  | IDENTIFIER NOT IN literalListExpression #notInFilterExpression
+  | IDENTIFIER NOT LIKE literalExpression #notLikeFilterExpression
   ;
 
 predicateExpression
@@ -52,17 +61,12 @@ alertPredicateExpression
   : LT|LTE|GT|GTE|NE|EQ|IS
  ;
 
-valueExpression
-  : literalExpression
-  | literalListExpression
-  ;
-
 literalExpression
   : STRING_LITERAL | INTEGER_LITERAL | DECIMAL_LITERAL | PERCENTAGE_LITERAL | NULL_LITERAL | SIZE_LITERAL
   ;
 
 literalListExpression
-  : '(' literalExpression (',' literalExpression)? ')'
+  : LEFT_PARENTHESIS literalExpression (COMMA literalExpression)? RIGHT_PARENTHESIS
   ;
 
 alertExpectedExpression
@@ -77,6 +81,15 @@ AND : A N D;
 OR: O R;
 ID: [A-Z];
 
+LEFT_PARENTHESIS: '(';
+RIGHT_PARENTHESIS: ')';
+LEFT_CURLY_BRACE: '{';
+RIGHT_CURLY_BRACE: '}';
+LEFT_SQUARE_BRACKET: '[';
+RIGHT_SQUARE_BRACKET: ']';
+COMMA: ',';
+DOT: '.';
+
 // Predicate
 LT: '<';
 LTE: '<=';
@@ -88,8 +101,6 @@ IS: I S;
 IN: I N;
 NOT: N O T;
 LIKE: L I K E;
-INCR: I N C R;
-DECR: D E C R;
 
 DURATION_LITERAL: INTEGER_LITERAL [smhd];
 

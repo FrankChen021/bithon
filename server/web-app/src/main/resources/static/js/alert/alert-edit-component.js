@@ -24,7 +24,10 @@ class AlertEditComponent {
             '            <div class="input-group-prepend">\n' +
             '                <span class="input-group-text" style="width: 160px"><b>expression</b></span>\n' +
             '            </div>\n' +
-            '            <input class="form-control" id="expression"/>\n' +
+            '            <div class="custom-file"\n' +
+            '                 style="display: inline-block"> <!--Override .input-group>.custom-file -->\n' +
+            '                <input class="form-control" id="expression"/>\n' +
+            '            </div>' +
             '            <div class="input-group-append">\n' +
             '                <button class="btn btn-outline-secondary" id="parse" type="button">Parse</button>\n' +
             '            </div>\n' +
@@ -94,6 +97,7 @@ class AlertEditComponent {
 
         this.#loadApplicationList();
         this.#loadNotificationChannels();
+        this.#initializeAutocomplete();
     }
 
     getAlertObject() {
@@ -245,6 +249,112 @@ class AlertEditComponent {
                     message: data.responseText
                 });
             }
+        });
+    }
+
+    #initializeAutocomplete() {
+        const autoCompleteJS = new autoComplete({
+            selector: "#expression",
+            debounce: 100,
+            trigger: (query) => {
+                return true;
+            },
+            data: {
+                src: async (query) => {
+                    try {
+                        // Fetch External Data Source
+                        const source = await fetch('/api/alerting/alert/suggest', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({expression: query})
+                        });
+                        const data = await source.json();
+                        return data.suggestions.sort((a, b) => {
+                            return a.text.localeCompare(b.text);
+                        });
+                    } catch (error) {
+                        return error;
+                    }
+                },
+                cache: false
+            },
+            placeHolder: "Use SPACE or ARROW DOWN to suggest",
+            resultsList: {
+                element: (list, data) => {
+                },
+                maxResults: 100,
+                noResults: true,
+                tabSelect: true
+            },
+            resultItem: {
+                element: (item, data) => {
+                    // Modify Results Item Style
+                    item.style = "display: flex; justify-content: space-between;";
+                    // Modify Results Item Content
+                    item.innerHTML = `
+      <span style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+        ${data.match}
+      </span>
+      <span style="display: flex; align-items: center; font-size: 13px; font-weight: 100; text-transform: uppercase; color: rgba(0,0,0,.2);">
+        ${data.value.tag === null ? '' : data.value.tag.tagText}
+      </span>`;
+                },
+                highlight: true
+            },
+            searchEngine: (query, record) => {
+                // Override the default search engine
+                // directly return the text so that all record will be displayed
+                return record.text;
+            },
+            events: {
+                input: {
+                    input: (evt) => {
+                        // Override the input event to disable the suggestion on key in
+                        console.log(evt);
+                    },
+                    keydown: (evt) => {
+                        if (evt.ctrlKey || evt.altKey || evt.metaKey) {
+                            return;
+                        }
+
+                        if (evt.key === 'ArrowDown') {
+                            const input = autoCompleteJS.input;
+                            const current = input.value.substring(0, input.selectionStart)
+                            autoCompleteJS.start(current);
+                            return;
+                        }
+
+                        // Check if the input is part of the identifier
+                        const ascii = evt.key.charCodeAt(0);
+                        if (ascii >= 0x30 && ascii <= 0x39
+                            // A-Z
+                            || (ascii >= 65 && ascii < 65 + 26)
+                            // a-z
+                            || (ascii >= 97 && ascii < 97 + 26)
+                            || (ascii === '_'.charCodeAt(0))
+                            || (ascii === '-'.charCodeAt(0))
+                            || (ascii === '$'.charCodeAt(0))) {
+                            // For letter and digits input, disable the suggestion
+                            return;
+                        }
+
+                        if (evt.key.length === 1) {
+                            // Other printable characters, start the suggestion
+                            autoCompleteJS.start(autoCompleteJS.input.value + evt.key);
+                            return;
+                        }
+                    }
+                }
+            }
+        });
+        autoCompleteJS.input.addEventListener("selection", (event) => {
+            const feedback = event.detail;
+
+            // match is the value returned from 'searchEngine' above
+            autoCompleteJS.input.value += feedback.selection.match;
+            autoCompleteJS.input.focus();
         });
     }
 }

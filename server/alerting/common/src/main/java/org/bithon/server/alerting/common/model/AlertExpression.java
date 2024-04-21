@@ -59,6 +59,8 @@ import java.util.function.Function;
  * avg by (a) (data-source.metric{dim1 = 'a', dim2=''}[1m|h]) > 5%[-1d]
  * avg by (a) (data-source.metric{dim1 = 'b', dim2=''}[1m|h]) > 5%['2023-01-01']
  *
+ * NOTE that this class is serialized by {@link org.bithon.server.alerting.common.serializer.AlertExpressionSerializer}
+ *
  * @author frankchen
  * @date 2020-08-21 14:56:50
  */
@@ -109,10 +111,6 @@ public class AlertExpression implements IExpression {
     public String serializeToText(boolean includePredication) {
         StringBuilder sb = new StringBuilder();
         sb.append(select.getAggregator());
-        if (CollectionUtils.isNotEmpty(this.groupBy)) {
-            sb.append(StringUtils.format(" BY (%s) ", String.join(",", this.groupBy)));
-        }
-
         sb.append(StringUtils.format("(%s.%s%s)[%s]",
                                      from,
                                      // Use field for serialization because it holds the raw input.
@@ -121,6 +119,11 @@ public class AlertExpression implements IExpression {
                                      select.getField(),
                                      this.rawWhere,
                                      window));
+
+        if (CollectionUtils.isNotEmpty(this.groupBy)) {
+            sb.append(StringUtils.format(" BY (%s) ", String.join(",", this.groupBy)));
+        }
+
         if (includePredication) {
             sb.append(' ');
             sb.append(alertPredicate);
