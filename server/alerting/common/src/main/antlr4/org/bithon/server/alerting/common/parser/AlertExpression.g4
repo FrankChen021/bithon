@@ -13,7 +13,7 @@ expression
 
 // sum by (a,b,c) (metric {})
 selectExpression
-  : aggregatorExpression groupByExpression? LEFT_PARENTHESIS metricExpression whereExpression? RIGHT_PARENTHESIS durationExpression?
+  : aggregatorExpression LEFT_PARENTHESIS metricExpression whereExpression? RIGHT_PARENTHESIS durationExpression? groupByExpression?
   ;
 
 aggregatorExpression
@@ -21,7 +21,7 @@ aggregatorExpression
   ;
 
 groupByExpression
-  : BY LEFT_PARENTHESIS IDENTIFIER (COMMA IDENTIFIER)? RIGHT_PARENTHESIS
+  : BY LEFT_PARENTHESIS IDENTIFIER (COMMA IDENTIFIER)* RIGHT_PARENTHESIS
   ;
 
 metricExpression
