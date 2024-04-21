@@ -12,6 +12,9 @@
     <script th:src="@{/js/utils.js}" type="text/javascript"></script>
     <script th:src="@{/js/alert/metrics-component.js}" type="text/javascript"></script>
     <script th:src="@{/js/alert/expression-dashboard-component.js}" type="text/javascript"></script>
+
+    <script th:src="@{/lib/autocomplete/autoComplete.js}" type="text/javascript"></script>
+    <link rel="stylesheet" th:href="@{/lib/autocomplete/autoComplete.min.css}" type="text/css"/>
 </head>
 <body>
 <div layout:fragment="content">
@@ -34,7 +37,10 @@
             <div class="input-group-prepend">
                 <span class="input-group-text" style="width: 160px"><b>expression</b></span>
             </div>
-            <input class="form-control" id="expression"/>
+            <div class="custom-file"
+                 style="display: inline-block"> <!--Override .input-group>.custom-file -->
+                <input class="form-control" id="expression"/>
+            </div>
             <div class="input-group-append">
                 <button class="btn btn-outline-secondary" id="parse" type="button">Parse</button>
             </div>
@@ -121,7 +127,7 @@
                 });
                 return;
             }
-            if (notification === undefined || notification.length == 0) {
+            if (notification === undefined || notification.length === 0) {
                 bootbox.alert({
                     backdrop: true,
                     title: "Error",
@@ -139,7 +145,7 @@
                     appName: appName,
                     expr: expression,
                     every: every + $('#everyUnit').val(),
-                    for: forValue+ $('#forUnit').val(),
+                    for: forValue + $('#forUnit').val(),
                     notifications: notification.map((n) => n.text)
                 }),
                 dataType: "json",
@@ -203,8 +209,111 @@
         }
 
         $(document).ready(() => {
+            const autoCompleteJS = new autoComplete({
+                selector: "#expression",
+                debounce: 100,
+                trigger: (query) => {
+                    return true;
+                },
+                data: {
+                    src: async (query) => {
+                        try {
+                            // Fetch External Data Source
+                            const source = await fetch('/api/alerting/alert/suggest', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({expression: query})
+                            });
+                            const data = await source.json();
+                            return data.suggestions.sort((a, b) => {
+                                return a.text.localeCompare(b.text);
+                            });
+                        } catch (error) {
+                            return error;
+                        }
+                    },
+                    cache: false
+                },
+                placeHolder: "Use SPACE or ARROW DOWN to suggest",
+                resultsList: {
+                    element: (list, data) => {
+                    },
+                    maxResults: 100,
+                    noResults: true,
+                    tabSelect: true
+                },
+                resultItem: {
+                    element: (item, data) => {
+                        // Modify Results Item Style
+                        item.style = "display: flex; justify-content: space-between;";
+                        // Modify Results Item Content
+                        item.innerHTML = `
+      <span style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+        ${data.match}
+      </span>
+      <span style="display: flex; align-items: center; font-size: 13px; font-weight: 100; text-transform: uppercase; color: rgba(0,0,0,.2);">
+        ${data.value.tag === null ? '' : data.value.tag.tagText}
+      </span>`;
+                    },
+                    highlight: true
+                },
+                searchEngine: (query, record) => {
+                    // Override the default search engine
+                    // directly return the text so that all record will be displayed
+                    return record.text;
+                },
+                events: {
+                    input: {
+                        input: (evt) => {
+                            // Override the input event to disable the suggestion on key in
+                            console.log(evt);
+                        },
+                        keydown: (evt) => {
+                            if (evt.ctrlKey || evt.altKey || evt.metaKey) {
+                                return;
+                            }
 
-            $('#expression').keydown((e)=>{
+                            if (evt.key === 'ArrowDown') {
+                                const input = autoCompleteJS.input;
+                                const current = input.value.substring(0, input.selectionStart)
+                                autoCompleteJS.start(current);
+                                return;
+                            }
+
+                            // Check if the input is part of the identifier
+                            const ascii = evt.key.charCodeAt(0);
+                            if (ascii >= 0x30 && ascii <= 0x39
+                                // A-Z
+                                || (ascii >= 65 && ascii < 65 + 26)
+                                // a-z
+                                || (ascii >= 97 && ascii < 97 + 26)
+                                || (ascii === '_'.charCodeAt(0))
+                                || (ascii === '-'.charCodeAt(0))
+                                || (ascii === '$'.charCodeAt(0))) {
+                                // For letter and digits input, disable the suggestion
+                                return;
+                            }
+
+                            if (evt.key.length === 1) {
+                                // Other printable characters, start the suggestion
+                                autoCompleteJS.start(autoCompleteJS.input.value + evt.key);
+                                return;
+                            }
+                        }
+                    }
+                }
+            });
+            autoCompleteJS.input.addEventListener("selection", (event) => {
+                const feedback = event.detail;
+
+                // match is the value returned from 'searchEngine' above
+                autoCompleteJS.input.value += feedback.selection.match;
+                autoCompleteJS.input.focus();
+            });
+
+            $('#expression').keydown((e) => {
                 if (e.keyCode === 13) {
                     renderExpression(true);
                 }

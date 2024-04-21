@@ -5,25 +5,45 @@ parse
    ;
 
 expression
-  : expression '[' INTEGER_LITERAL ']'                                  #arrayAccessExpression
-  | expression '[' STRING_LITERAL ']'                                   #mapAccessExpression
+  : expression LEFT_SQUARE_BRACKET INTEGER_LITERAL RIGHT_SQUARE_BRACKET #arrayAccessExpression
+  | expression LEFT_SQUARE_BRACKET STRING_LITERAL RIGHT_SQUARE_BRACKET  #mapAccessExpression
   | expression (MUL|DIV) expression                                     #arithmeticExpression
   | expression (ADD|SUB) expression                                     #arithmeticExpression
   | expression (LT|LTE|GT|GTE|NE|EQ|LIKE|NOT LIKE) expression           #comparisonExpression
-  | expression (IN|NOT IN) expressionList                               #comparisonExpression
-  | IDENTIFIER expressionList                                           #functionExpression
-  | NOT expression                                                      #notExpression
+  | expression (IN|NOT IN) expressionListDecl                           #comparisonExpression
+  | functionExpressionDecl                                              #functionExpression
+  | notExpressionDecl                                                   #notExpression
   | expression AND expression                                           #logicalExpression
   | expression OR expression                                            #logicalExpression
-  | (INTEGER_LITERAL | DECIMAL_LITERAL | STRING_LITERAL | BOOL_LITERAL)        #literalExpression
-  | expressionList                                                      #expressionListImpl
-  | IDENTIFIER ('.' IDENTIFIER)*                                        #identifierExpression
-  | '{' IDENTIFIER '}'                                                  #macroExpression
+  | expressionListDecl                                                  #expressionList
+  | literalExpressionDecl                                               #literalExpression
+  | identifierExpressionDecl                                            #identifierExpression
+  | macroExpressionDecl                                                 #macroExpression
   ;
 
-expressionList
-  : '(' expression (COMMA expression)* ')'
-  | '(' ')'
+functionExpressionDecl
+   : IDENTIFIER expressionListDecl
+   ;
+
+notExpressionDecl
+  : NOT expression
+  ;
+
+expressionListDecl
+  : LEFT_PARENTHESIS expression (COMMA expression)* RIGHT_PARENTHESIS
+  | LEFT_PARENTHESIS RIGHT_PARENTHESIS
+  ;
+
+literalExpressionDecl
+  : (INTEGER_LITERAL | DECIMAL_LITERAL | STRING_LITERAL | BOOL_LITERAL)
+  ;
+
+identifierExpressionDecl
+  : IDENTIFIER (DOT IDENTIFIER)*
+  ;
+
+macroExpressionDecl
+  : LEFT_CURLY_BRACE IDENTIFIER RIGHT_CURLY_BRACE
   ;
 
 INTEGER_LITERAL: '-'?[0-9]+;
@@ -34,6 +54,14 @@ BOOL_LITERAL: TRUE | FALSE;
 
 fragment SQUOTA_STRING
   : '\'' ('\\'. | '\'\'' | ~('\'' | '\\'))* '\'';
+
+LEFT_PARENTHESIS: '(';
+RIGHT_PARENTHESIS: ')';
+LEFT_CURLY_BRACE: '{';
+RIGHT_CURLY_BRACE: '}';
+LEFT_SQUARE_BRACKET: '[';
+RIGHT_SQUARE_BRACKET: ']';
+DOT: '.';
 
 COMMA: ',';
 ADD: '+';
@@ -46,8 +74,6 @@ GT: '>';
 GTE: '>=';
 NE: '<>' | '!=';
 EQ: '=';
-LEFT_PARENTHESES: '(';
-RIGHT_PARENTHESES: ')';
 AND: A N D;
 OR: O R;
 IN: I N;

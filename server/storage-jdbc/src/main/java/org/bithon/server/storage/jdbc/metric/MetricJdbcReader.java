@@ -155,7 +155,7 @@ public class MetricJdbcReader implements IDataSourceReader {
     @Override
     public List<Map<String, Object>> list(Query query) {
         String sqlTableName = query.getSchema().getDataStoreSpec().getStore();
-        String timestampCol = query.getSchema().getTimestampSpec().getTimestampColumn();
+        String timestampCol = query.getSchema().getTimestampSpec().getColumnName();
         String filter = Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter());
         String sql = StringUtils.format(
             "SELECT %s FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s %s LIMIT %d OFFSET %d",
@@ -192,7 +192,7 @@ public class MetricJdbcReader implements IDataSourceReader {
     @Override
     public int listSize(Query query) {
         String sqlTableName = query.getSchema().getDataStoreSpec().getStore();
-        String timestampCol = query.getSchema().getTimestampSpec().getTimestampColumn();
+        String timestampCol = query.getSchema().getTimestampSpec().getColumnName();
 
         String filter = Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter());
         String sql = StringUtils.format(

@@ -117,7 +117,7 @@ public class AlertExpressionASTParser {
         @Override
         public IExpression visitAlertExpression(AlertExpressionParser.AlertExpressionContext ctx) {
             AlertExpressionParser.SelectExpressionContext selectExpression = ctx.selectExpression();
-            String[] names = selectExpression.nameExpression().getText().split("\\.");
+            String[] names = selectExpression.metricExpression().getText().split("\\.");
             String from = names[0];
             String metric = names[1];
 
@@ -332,7 +332,7 @@ public class AlertExpressionASTParser {
         @Override
         public IExpression visitSimpleFilterExpression(AlertExpressionParser.SimpleFilterExpressionContext ctx) {
             IdentifierExpression identifier = new IdentifierExpression(ctx.IDENTIFIER().getSymbol().getText());
-            IExpression expected = ctx.valueExpression().accept(this);
+            IExpression expected = ctx.literalExpression().accept(this);
 
             TerminalNode predicate = ctx.predicateExpression().getChild(TerminalNode.class, 0);
             switch (predicate.getSymbol().getType()) {
