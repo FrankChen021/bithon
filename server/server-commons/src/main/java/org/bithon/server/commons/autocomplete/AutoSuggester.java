@@ -85,6 +85,109 @@ public class AutoSuggester {
         return this.collectedSuggestions;
     }
 
+    public Collection<Suggestion> suggest(ATNGraphGenerator graph, String input, int startingRule) {
+        this.input = input;
+        ATNState initialState = this.parser.getATNByRuleNumber(startingRule);
+        ATNGraphGenerator.IATNNode node = graph.stateToNode.get((long) initialState.stateNumber);
+        if (node == null) {
+            return new ArrayList<>();
+        }
+        tokenizeInput(input);
+
+        suggest(graph, initialState, node, new Stack<>(), 0, "");
+
+        return this.collectedSuggestions;
+    }
+
+    private void find(ATNGraphGenerator graph,
+                      ATNState state,
+                      ATNGraphGenerator.IATNNode source) {
+        Set<ExpectedToken> tokens = new HashSet<>();
+
+        Stack<ATNGraphGenerator.IATNNode> stack = new Stack<>();
+        stack.push(source);
+
+        while (!stack.isEmpty()) {
+            ATNGraphGenerator.IATNNode n = stack.pop();
+            if (n.isRule()) {
+                long id = n.id & 0xFFFFFFFFL;
+                ATNGraphGenerator.IATNNode jumpTo = graph.stateToNode.get(id);
+                stack.push(jumpTo);
+            } else {
+                for (ATNGraphGenerator.IATNLink link : n.links) {
+                    if (link.transition instanceof AtomTransition) {
+                        int label = ((AtomTransition) link.transition).label;
+                        if (label >= 1) { // EOF would be -1
+                            tokens.add(new ExpectedToken(parser.getRuleName(link.ruleIndex), link.ruleIndex, label));
+                        }
+                    } else if (link.transition instanceof SetTransition) {
+                        for (Interval interval : link.transition.label().getIntervals()) {
+                            for (int label = interval.a; label <= interval.b; ++label) {
+                                tokens.add(new ExpectedToken(parser.getRuleName(link.ruleIndex), link.ruleIndex, label));
+                            }
+                        }
+                    } else {
+                        stack.push(link.target);
+                    }
+                }
+            }
+        }
+
+        findSuggestion(state, tokens);
+    }
+
+    private void suggest(ATNGraphGenerator graph,
+                         ATNState state,
+                         ATNGraphGenerator.IATNNode sourceNode,
+                         Stack<ATNGraphGenerator.IATNNode> backNodes,
+                         int tokenListIndex,
+                         String indent) {
+        if (tokenListIndex >= inputTokens.size()) {
+            find(graph, state, sourceNode);
+            return;
+        }
+
+        if (sourceNode.isRule()) {
+            long id = sourceNode.id & 0xFFFFFFFFL;
+            ATNGraphGenerator.IATNNode jumpTo = graph.stateToNode.get(id);
+            backNodes.push(sourceNode.links.get(0).target);
+            suggest(graph, sourceNode.links.get(0).state, jumpTo, backNodes, tokenListIndex, indent);
+            return;
+        }
+
+        if (sourceNode.links.isEmpty() && !backNodes.isEmpty()) {
+            // Reaches the end of traverse, try to jump to the back node
+            suggest(graph, state, backNodes.pop(), backNodes, tokenListIndex, indent);
+            return;
+        }
+
+        for (ATNGraphGenerator.IATNLink link : sourceNode.links) {
+            Transition transition = link.transition;
+            if (transition instanceof AtomTransition) {
+                Token nextToken = inputTokens.get(tokenListIndex);
+                boolean nextTokenMatchesTransition = (((AtomTransition) transition).label == nextToken.getType());
+
+                logger.debug("{}Token [{}]{} following atomic transition: [{}]",
+                             indent,
+                             nextToken.getText(),
+                             nextTokenMatchesTransition ? "" : " NOT",
+                             parser.toTransitionString(transition));
+                if (nextTokenMatchesTransition) {
+                    suggest(graph, transition.target, link.target, backNodes, tokenListIndex + 1, indent + " ");
+                }
+            } else if (transition instanceof SetTransition) {
+                Token nextToken = inputTokens.get(tokenListIndex);
+                int tokenType = nextToken.getType();
+                if (transition.label().contains(tokenType)) {
+                    logger.debug("{}Token [{}] following transition: {} to {}", indent, nextToken.getText(), parser.toTransitionString(transition), tokenType);
+                    suggest(graph, transition.target, link.target, backNodes, tokenListIndex + 1, indent + " ");
+                }
+            } else {
+                suggest(graph, transition.target, link.target, backNodes, tokenListIndex, indent);
+            }
+        }
+    }
+
     private void tokenizeInput(String input) {
         InputLexer.TokenizationResult tokenizationResult = lexer.tokenizeNonDefaultChannel(input);
         this.inputTokens = tokenizationResult.tokens;
@@ -205,6 +308,10 @@ public class AutoSuggester {
                                                            parseState.indent,
                                                            parseState.followingStates);
 
+        findSuggestion(parseState.atnState, tokens);
+    }
+
+    private void findSuggestion(ATNState atnState, Set<ExpectedToken> tokens) {
         DefaultSuggester defaultSuggester = new DefaultSuggester(this.untokenizedText, lexer, this.casePreference);
 
         Set<Suggestion> suggestions = new HashSet<>();
@@ -222,7 +329,7 @@ public class AutoSuggester {
             defaultSuggester.suggest(this.inputTokens, token, suggestions);
         }
 
-        validateSuggestions(parseState.atnState, suggestions);
+        validateSuggestions(atnState, suggestions);
     }
 
     static class FindState {

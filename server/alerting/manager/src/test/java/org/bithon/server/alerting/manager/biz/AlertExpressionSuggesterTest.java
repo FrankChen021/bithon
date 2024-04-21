@@ -16,8 +16,15 @@
 
 package org.bithon.server.alerting.manager.biz;
 
+import org.bithon.server.alerting.common.parser.AlertExpressionLexer;
 import org.bithon.server.alerting.common.parser.AlertExpressionParser;
+import org.bithon.server.commons.autocomplete.ATNGraphGenerator;
 import org.bithon.server.commons.autocomplete.AdaptiveTransitionNetworkFormatter;
+import org.bithon.server.commons.autocomplete.AutoSuggester;
+import org.bithon.server.commons.autocomplete.AutoSuggesterBuilder;
+import org.bithon.server.commons.autocomplete.CasePreference;
+import org.bithon.server.commons.autocomplete.DefaultLexerAndParserFactory;
+import org.bithon.server.commons.autocomplete.LexerAndParserFactory;
 import org.bithon.server.commons.autocomplete.Suggestion;
 import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.column.LongColumn;
@@ -232,5 +239,23 @@ public class AlertExpressionSuggesterTest {
         Collection<String> suggestions = suggest(suggester, "sum(event.count{appName='a'}) > 5 ");
         Assert.assertEquals(Arrays.asList("AND", "OR"),
                             suggestions);
+    }
+
+    @Test
+    public void testSuggestionAfterAND() {
+        ATNGraphGenerator generator = new ATNGraphGenerator();
+
+        LexerAndParserFactory factory = new DefaultLexerAndParserFactory(
+            AlertExpressionLexer.class,
+            AlertExpressionParser.class
+        );
+        generator.generate(factory);
+
+        AutoSuggester suggester = AutoSuggesterBuilder.builder()
+                                                      .factory(factory)
+                                                      .casePreference(CasePreference.UPPER)
+                                                      .build();
+        suggester.suggest(generator, "sum(event.count)[1m] by (a) >  ", 0);
+
     }
 }
