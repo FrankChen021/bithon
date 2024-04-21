@@ -118,7 +118,6 @@ public class AlertQueryApi {
 
     @Data
     public static class SuggestAlertExpressionRequest {
-        @NotBlank
         private String expression;
     }
 
@@ -133,7 +132,7 @@ public class AlertQueryApi {
 
     @PostMapping("/api/alerting/alert/suggest")
     public SuggestAlertExpressionResponse suggestAlertExpression(@Valid @RequestBody SuggestAlertExpressionRequest request) {
-        Collection<Suggestion> suggestions = this.expressionSuggester.suggest(request.getExpression());
+        Collection<Suggestion> suggestions = this.expressionSuggester.suggest(StringUtils.getOrEmpty(request.getExpression()));
         return new SuggestAlertExpressionResponse(suggestions);
     }
 

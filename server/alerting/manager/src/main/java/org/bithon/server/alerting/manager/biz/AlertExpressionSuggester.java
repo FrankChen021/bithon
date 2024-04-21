@@ -61,17 +61,44 @@ public class AlertExpressionSuggester {
             return false;
         });
 
+        // Suggest column names for GROUP BY expression
         this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_groupByExpression, (inputs, tokenHint, suggestions) -> {
-            // At this stage, the data source is not known, it's not able to suggest for IDENTIFIER
-            return tokenHint.expectedTokenType != AlertExpressionParser.IDENTIFIER;
+            if (tokenHint.expectedTokenType != AlertExpressionParser.IDENTIFIER) {
+                return false;
+            }
+
+            int index = inputs.size() - 1;
+
+            // Find the DOT separator token which is after the data source name
+            while (index > 0 && inputs.get(index).getType() != AlertExpressionParser.DOT) {
+                --index;
+            }
+
+            // The data source is before the dot token
+            index--;
+
+            if (index > 0) {
+                String dataSource = inputs.get(index).getText();
+                ISchema schema = dataSourceApi.getSchemaByName(dataSource);
+                if (schema != null) {
+                    schema.getColumns()
+                          .stream()
+                          .filter((col) -> (col instanceof StringColumn))
+                          .forEach(col -> suggestions.add(new Suggestion(tokenHint.expectedTokenType, col.getName())));
+                }
+            }
+            
+            return false;
         });
 
+        // Suggest data source names
         this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_dataSourceExpression, (inputs, tokenHint, suggestions) -> {
             dataSourceApi.getSchemaNames()
                          .forEach((value) -> suggestions.add(new Suggestion(tokenHint.expectedTokenType, value.getValue())));
             return false;
         });
 
+        // Suggest metric names for the metric name expression
         this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_metricNameExpression, (inputs, tokenHint, suggestions) -> {
             if (tokenHint.expectedTokenType != AlertExpressionParser.IDENTIFIER) {
                 return false;
@@ -124,12 +151,12 @@ public class AlertExpressionSuggester {
 
         this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_literalExpression, (inputs, tokenHint, suggestions) -> {
             // No suggestion for literal expressions except the NULL
-            if (tokenHint.expectedTokenType == AlertExpressionParser.NULL_LITERAL
-                && !inputs.isEmpty()
-                //&& inputs.get(inputs.size() - 1).getText().equalsIgnoreCase("IS")
-            ) {
-                suggestions.add(new Suggestion(tokenHint.expectedTokenType, "NULL"));
-            }
+            //if (tokenHint.expectedTokenType == AlertExpressionParser.NULL_LITERAL
+            //    && !inputs.isEmpty()
+            //    && inputs.get(inputs.size() - 1).getText().equalsIgnoreCase("IS")
+            //) {
+            //    suggestions.add(new Suggestion(tokenHint.expectedTokenType, "NULL"));
+            //}
             return false;
         });
 
