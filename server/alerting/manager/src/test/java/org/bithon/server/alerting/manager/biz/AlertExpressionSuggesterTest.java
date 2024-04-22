@@ -243,19 +243,23 @@ public class AlertExpressionSuggesterTest {
 
     @Test
     public void testSuggestionAfterAND() {
+
         ATNGraphGenerator generator = new ATNGraphGenerator();
 
         LexerAndParserFactory factory = new DefaultLexerAndParserFactory(
             AlertExpressionLexer.class,
             AlertExpressionParser.class
         );
-        generator.generate(factory);
+        //System.out.println(AdaptiveTransitionNetworkFormatter.format(factory.createParser(null)));
+        //generator.generate(factory);
 
         AutoSuggester suggester = AutoSuggesterBuilder.builder()
                                                       .factory(factory)
                                                       .casePreference(CasePreference.UPPER)
                                                       .build();
-        suggester.suggest(generator, "sum(event.count)[1m] by (a) >  ", 0);
+        suggester.parse(factory.createParser(null).getATN().states.get(0),
+                        "sum(event.count)[1m] by (a)  ");
+        //suggester.suggest(generator, "sum(event.count)[1m] by (a)  ", 0);
 
     }
 }

@@ -136,29 +136,30 @@ public class AutoSuggester {
         findSuggestion(state, tokens);
     }
 
-    private void suggest(ATNGraphGenerator graph,
-                         ATNState state,
-                         ATNGraphGenerator.IATNNode sourceNode,
-                         Stack<ATNGraphGenerator.IATNNode> backNodes,
-                         int tokenListIndex,
-                         String indent) {
+    private int suggest(ATNGraphGenerator graph,
+                        ATNState state,
+                        ATNGraphGenerator.IATNNode sourceNode,
+                        Stack<ATNGraphGenerator.IATNNode> backNodes,
+                        int tokenListIndex,
+                        String indent) {
         if (tokenListIndex >= inputTokens.size()) {
             find(graph, state, sourceNode);
-            return;
+            return tokenListIndex;
         }
 
-        if (sourceNode.isRule()) {
-            long id = sourceNode.id & 0xFFFFFFFFL;
+        if (!sourceNode.links.isEmpty() && sourceNode.links.get(0).isTransitsToRule) {
+            ATNGraphGenerator.IATNLink link = sourceNode.links.get(0);
+
+            // Jump to rule
+            long id = link.target.id & 0xFFFFFFFFL;
             ATNGraphGenerator.IATNNode jumpTo = graph.stateToNode.get(id);
-            backNodes.push(sourceNode.links.get(0).target);
-            suggest(graph, sourceNode.links.get(0).state, jumpTo, backNodes, tokenListIndex, indent);
-            return;
-        }
 
-        if (sourceNode.links.isEmpty() && !backNodes.isEmpty()) {
-            // Reaches the end of traverse, try to jump to the back node
-            suggest(graph, state, backNodes.pop(), backNodes, tokenListIndex, indent);
-            return;
+            logger.debug("{}Enter rule: {} -> {}({}), tokenIndex {}", indent, sourceNode.name, jumpTo.name, link.target.id, tokenListIndex);
+            tokenListIndex = suggest(graph, link.state, jumpTo, backNodes, tokenListIndex, indent + " ");
+            logger.debug("{}Exit rule: {} -> {}({}), tokenIndex {}", indent, sourceNode.name, jumpTo.name, link.target.id, tokenListIndex);
+
+            tokenListIndex = suggest(graph, link.transition.target, link.target, backNodes, tokenListIndex, indent);
+            return tokenListIndex;
         }
 
         for (ATNGraphGenerator.IATNLink link : sourceNode.links) {
@@ -173,19 +174,21 @@ public class AutoSuggester {
                              nextTokenMatchesTransition ? "" : " NOT",
                              parser.toTransitionString(transition));
                 if (nextTokenMatchesTransition) {
-                    suggest(graph, transition.target, link.target, backNodes, tokenListIndex + 1, indent + " ");
+                    tokenListIndex = suggest(graph, transition.target, link.target, backNodes, tokenListIndex + 1, indent + " ");
                 }
             } else if (transition instanceof SetTransition) {
                 Token nextToken = inputTokens.get(tokenListIndex);
                 int tokenType = nextToken.getType();
                 if (transition.label().contains(tokenType)) {
                     logger.debug("{}Token [{}] following transition: {} to {}", indent, nextToken.getText(), parser.toTransitionString(transition), tokenType);
-                    suggest(graph, transition.target, link.target, backNodes, tokenListIndex + 1, indent + " ");
+                    tokenListIndex = suggest(graph, transition.target, link.target, backNodes, tokenListIndex + 1, indent + " ");
                 }
             } else {
-                suggest(graph, transition.target, link.target, backNodes, tokenListIndex, indent);
+                tokenListIndex = suggest(graph, transition.target, link.target, backNodes, tokenListIndex, indent);
             }
         }
+
+        return tokenListIndex;
     }
 
     private void tokenizeInput(String input) {
@@ -226,6 +229,69 @@ public class AutoSuggester {
                 this.followingStates.add(followingState);
             }
         }
+    }
+
+    public void parse(ATNState state, String input) {
+        tokenizeInput(input);
+        parse(state, 0, "");
+    }
+
+    public int parse(ATNState state, int tokenListIndex, String indent) {
+        if (state instanceof RuleStopState) {
+            logger.debug("{}End {}", indent.substring(0, indent.length() - 1), parser.toParseStateString(state));
+            return tokenListIndex;
+        }
+
+        for (Transition transition : state.getTransitions()) {
+            if (transition.isEpsilon()) {
+                ATNState followState = null;
+                if (transition instanceof RuleTransition) {
+                    tokenListIndex = parse(transition.target, tokenListIndex, " " + indent);
+
+                    followState = ((RuleTransition) transition).followState;
+                }
+
+                // parse sub expression
+                logger.debug("{}Enter {} --> {}, index: {}", indent, parser.toParseStateString(state), parser.toParseStateString(transition.target), tokenListIndex);
+                tokenListIndex = parse(transition.target, tokenListIndex, " " + indent);
+                logger.debug("{}Exit {} --> {}, index{}", indent, parser.toParseStateString(state), parser.toParseStateString(transition.target), tokenListIndex);
+
+                if (followState != null) {
+                    tokenListIndex = parse(followState, tokenListIndex, " " + indent);
+                }
+            } else if (transition instanceof AtomTransition) {
+                Token nextToken = inputTokens.get(tokenListIndex);
+                boolean nextTokenMatchesTransition = (((AtomTransition) transition).label == nextToken.getType());
+
+                logger.debug("{}Token [{}]{} following atomic transition: [{}]",
+                             indent,
+                             nextToken.getText(),
+                             nextTokenMatchesTransition ? "" : " NOT",
+                             parser.toTransitionString(transition));
+                if (nextTokenMatchesTransition) {
+                    if (tokenListIndex + 1 == inputTokens.size()) {
+                        logger.debug("{}FOUND", indent);
+                    } else {
+                        tokenListIndex = parse(transition.target, tokenListIndex + 1, " " + indent);
+                    }
+                }
+            } else if (transition instanceof SetTransition) {
+                Token nextToken = inputTokens.get(tokenListIndex);
+                int tokenType = nextToken.getType();
+                if (!transition.label().contains(tokenType)) {
+                    continue;
+                }
+
+                logger.debug("{} Token [{}] following transition: {} to {}", indent, nextToken.getText(), parser.toTransitionString(transition), tokenType);
+                if (tokenListIndex + 1 == inputTokens.size()) {
+                    logger.debug("{}FOUND", indent);
+                } else {
+                    tokenListIndex = parse(transition.target, tokenListIndex + 1, " " + indent);
+                }
+            }
+        }
+
+        return tokenListIndex;
     }
 
     private void parseAndCollectTokenSuggestions(ATNState parserState, int tokenListIndex) {

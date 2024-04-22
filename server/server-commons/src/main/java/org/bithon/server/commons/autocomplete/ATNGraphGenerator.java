@@ -52,10 +52,12 @@ public class ATNGraphGenerator {
 
         // We use the INVALID_TYPE in this field to denote a rule node.
         final int type;
+        private final long ruleIndex;
         List<IATNLink> links = new ArrayList<>();
 
-        IATNNode(long id, String name, int type) {
+        IATNNode(long id, long ruleIndex, String name, int type) {
             this.id = id;
+            this.ruleIndex = ruleIndex;
             this.name = name;
             this.type = type;
         }
@@ -75,6 +77,7 @@ public class ATNGraphGenerator {
     }
 
     static class IATNLink {
+        final boolean isTransitsToRule;
         IATNNode source;
         IATNNode target;
         ATNState state;
@@ -87,14 +90,15 @@ public class ATNGraphGenerator {
                  ATNState state,
                  int ruleIndex,
                  Transition transition,
-                 String label) {
+                 String label,
+                 boolean isTransitsToRule) {
             this.source = source;
             this.target = target;
             this.state = state;
             this.ruleIndex = ruleIndex;
             this.transition = transition;
             this.label = label;
-
+            this.isTransitsToRule = isTransitsToRule;
             source.links.add(this);
         }
     }
@@ -154,7 +158,8 @@ public class ATNGraphGenerator {
                     state,
                     state.ruleIndex,
                     transition,
-                    getLinkTag(transition)
+                    getLinkTag(transition),
+                    transitsToRule
                 );
 
                 links.add(link);
@@ -166,7 +171,7 @@ public class ATNGraphGenerator {
                     nextState = ((RuleTransition) transition).followState;
                     IATNNode returnIndex = ensureATNNode(nextState.stateNumber, nextState);
 
-                    IATNLink nodeLink = new IATNLink(dstNode, returnIndex, nextState, nextState.ruleIndex, transition, "ε");
+                    IATNLink nodeLink = new IATNLink(dstNode, returnIndex, nextState, nextState.ruleIndex, transition, "ε", transitsToRule);
                     links.add(nodeLink);
                 } else {
                     nextState = transition.target;
@@ -216,7 +221,7 @@ public class ATNGraphGenerator {
         //int index = nodes.size();
         //stateToNode.put(stateNumber, index);
         //nodes.add(new IATNNode(stateNumber, String.valueOf(stateNumber), state.getStateType()));
-        node = new IATNNode(stateNumber, String.valueOf(stateNumber), state.getStateType());
+        node = new IATNNode(stateNumber, state.ruleIndex, this.ruleNames[state.ruleIndex], state.getStateType());
         stateToNode.put((long) stateNumber, node);
 
         // If this state transits to a new rule, create also a fake node for that rule.
@@ -229,6 +234,7 @@ public class ATNGraphGenerator {
             IATNNode n = new IATNNode(//currentRuleIndex--,
                                       //transitions[0].target.stateNumber,
                                       marker,
+                                      transitions[0].target.ruleIndex,
                                       ruleNames[transitions[0].target.ruleIndex],
                                       ATNState.INVALID_TYPE
             );
