@@ -273,16 +273,13 @@ public class AlertExpressionASTParserTest {
 
     @Test
     public void testByExpression() {
-        AlertExpression expr = (AlertExpression) AlertExpressionASTParser.parse("avg by (instance) (http-metrics.responseTime{appName='a'})[5m] > 1");
+        AlertExpression expr = (AlertExpression) AlertExpressionASTParser.parse("avg (http-metrics.responseTime{appName='a'})[5m] by (instance) > 1");
         Assert.assertEquals(Collections.singletonList("instance"), expr.getGroupBy());
 
-        expr = (AlertExpression) AlertExpressionASTParser.parse("avg by (instance, url)(http-metrics.responseTime{appName='a'})[5m] > 1");
+        expr = (AlertExpression) AlertExpressionASTParser.parse("avg (http-metrics.responseTime{appName='a'})[5m] by (instance, url) > 1");
         Assert.assertEquals(Arrays.asList("instance", "url"), expr.getGroupBy());
 
-        expr = (AlertExpression) AlertExpressionASTParser.parse("avg by (instance, url, method) (http-metrics.responseTime{appName='a'})[5m] > 1");
-        Assert.assertEquals(Arrays.asList("instance", "url", "method"), expr.getGroupBy());
-
-        expr = (AlertExpression) AlertExpressionASTParser.parse("avg by instance, url, method (http-metrics.responseTime{appName='a'})[5m] > 1");
+        expr = (AlertExpression) AlertExpressionASTParser.parse("avg (http-metrics.responseTime{appName='a'})[5m] by (instance, url, method) > 1");
         Assert.assertEquals(Arrays.asList("instance", "url", "method"), expr.getGroupBy());
     }
 }
