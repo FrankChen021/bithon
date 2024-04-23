@@ -54,7 +54,7 @@ filterExpression
   ;
 
 predicateExpression
-  : LT|LTE|GT|GTE|NE|EQ|IN|NOT IN|LIKE|NOT LIKE
+  : LT|LTE|GT|GTE|NE|EQ|LIKE|HAS|CONTAINS|STARTWITH|ENDWITH
   ;
 
 alertPredicateExpression
@@ -101,6 +101,10 @@ IS: I S;
 IN: I N;
 NOT: N O T;
 LIKE: L I K E;
+HAS: H A S;
+CONTAINS: C O N T A I N S;
+STARTWITH: S T A R T W I T H;
+ENDWITH: E N D W I T H;
 
 DURATION_LITERAL: INTEGER_LITERAL [smhd];
 
