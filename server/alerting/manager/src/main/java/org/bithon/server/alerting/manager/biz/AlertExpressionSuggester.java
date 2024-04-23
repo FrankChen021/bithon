@@ -27,7 +27,6 @@ import org.bithon.server.commons.autocomplete.Suggestion;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
-import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
@@ -35,7 +34,6 @@ import java.util.Collection;
  * @author frank.chen021@outlook.com
  * @date 2024/4/14 12:33
  */
-@Component
 public class AlertExpressionSuggester {
 
     @Data

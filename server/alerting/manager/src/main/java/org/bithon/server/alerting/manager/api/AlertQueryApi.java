@@ -90,14 +90,13 @@ public class AlertQueryApi {
                          IAlertObjectStorage alertStorage,
                          EvaluationLogService evaluationLogService,
                          IDataSourceApi dataSourceApi,
-                         ObjectMapper objectMapper,
-                         AlertExpressionSuggester expressionSuggester) {
+                         ObjectMapper objectMapper) {
         this.alertRecordStorage = alertRecordStorage;
         this.alertStorage = alertStorage;
         this.evaluationLogService = evaluationLogService;
         this.dataSourceApi = dataSourceApi;
         this.objectMapper = objectMapper;
-        this.expressionSuggester = expressionSuggester;
+        this.expressionSuggester = new AlertExpressionSuggester(dataSourceApi);
     }
 
     @Data
