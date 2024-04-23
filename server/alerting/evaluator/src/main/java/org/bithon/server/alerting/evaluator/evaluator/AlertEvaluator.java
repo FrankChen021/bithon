@@ -53,6 +53,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Duration;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -156,7 +157,8 @@ public class AlertEvaluator implements SmartLifecycle {
         context.log(AlertEvaluator.class, "Evaluating alert [%s] %s ", alertRule.getName(), alertRule.getExpr());
 
         try {
-            if ((boolean) (alertRule.getEvaluationExpression().evaluate(context))) {
+            AlertExpressionEvaluator expressionEvaluator = new AlertExpressionEvaluator((AlertExpression) alertRule.getEvaluationExpression());
+            if (expressionEvaluator.evaluate(context)) {
                 context.log(AlertEvaluator.class, "alert [%s] tested successfully.", alertRule.getName());
 
                 long expectedMatchCount = alertRule.getExpectedMatchCount();
@@ -264,7 +266,16 @@ public class AlertEvaluator implements SmartLifecycle {
         alertRecord.setNamespace("");
         alertRecord.setDataSource("{}");
         alertRecord.setCreatedAt(lastAlertAt);
+
+        long start = context.getEvaluatedExpressions()
+                            .values()
+                            .stream()
+                            .map((output) -> output.getStart().getMilliseconds())
+                            .min(Comparator.comparingLong((v) -> v))
+                            .get();
         alertRecord.setPayload(objectMapper.writeValueAsString(AlertRecordPayload.builder()
+                                                                                 .start(start)
+                                                                                 .end(context.getIntervalEnd().getMilliseconds())
                                                                                  .expressions(context.getAlertExpressions().values())
                                                                                  .conditionEvaluation(notification.getConditionEvaluation())
                                                                                  .build()));

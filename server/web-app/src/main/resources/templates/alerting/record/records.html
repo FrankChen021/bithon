@@ -43,9 +43,9 @@
         $(document).ready(() => {
             $("#list").attr('src', '/web/alerting/record/list?alertId=' + window.queryParams['alertId']);
 
-            const recordId = window.queryParams['recordId'];
-            if (recordId != null) {
-                $("#detail").attr('src', '/web/alerting/record/detail?id=' + recordId);
+            const id = window.queryParams['id'];
+            if (id != null) {
+                $("#detail").attr('src', '/web/alerting/record/detail?id=' + id);
             }
         });
     </script>

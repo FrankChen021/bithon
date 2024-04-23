@@ -28,10 +28,8 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,13 +39,12 @@ import java.util.Map;
 @Getter
 public class EvaluationContext implements IEvaluationContext {
     private final TimeSpan intervalEnd;
-    private final EvaluationLogger evaluatorLogger;
+    private final EvaluationLogger evaluationLogger;
     private final AlertRule alertRule;
     private final Map<String, IEvaluationOutput> evaluatedExpressions = new HashMap<>();
 
     // Use LinkedHashMap to keep the order of expressions
     private final Map<String, AlertExpression> alertExpressions = new LinkedHashMap<>();
-    private final List<IEvaluationOutput> evaluatedOutputs = new ArrayList<>();
     private final Map<String, EvaluationResult> evaluationResults = new HashMap<>();
     private final IDataSourceApi dataSourceApi;
 
@@ -67,17 +64,13 @@ public class EvaluationContext implements IEvaluationContext {
                              IDataSourceApi dataSourceApi) {
         this.intervalEnd = intervalEnd;
         this.dataSourceApi = dataSourceApi;
-        this.evaluatorLogger = new EvaluationLogger(logger);
+        this.evaluationLogger = new EvaluationLogger(logger);
         this.alertRule = alertRule;
 
         this.alertRule.getFlattenExpressions().forEach((id, alertExpression) -> {
             evaluationResults.put(id, EvaluationResult.UNEVALUATED);
         });
         this.alertExpressions.putAll(alertRule.getFlattenExpressions());
-    }
-
-    public EvaluationResult getConditionEvaluationResult(String expressionId) {
-        return evaluationResults.get(expressionId);
     }
 
     public IEvaluationOutput getRuleEvaluationOutput(String ruleId) {
@@ -95,18 +88,18 @@ public class EvaluationContext implements IEvaluationContext {
     }
 
     public void log(Class<?> loggerClass, String message) {
-        this.evaluatorLogger.log(this.alertRule.getId(), this.alertRule.getName(), loggerClass, message);
+        this.evaluationLogger.log(this.alertRule.getId(), this.alertRule.getName(), loggerClass, message);
     }
 
     public void log(Class<?> loggerClass, String messageFormat, Object... args) {
-        this.evaluatorLogger.log(this.alertRule.getId(), this.alertRule.getName(), loggerClass, messageFormat, args);
+        this.evaluationLogger.log(this.alertRule.getId(), this.alertRule.getName(), loggerClass, messageFormat, args);
     }
 
     public void logException(Class<?> loggerClass,
                              Throwable e,
                              String format,
                              Object... args) {
-        this.evaluatorLogger.error(this.alertRule.getId(), alertRule.getName(), loggerClass, e, format, args);
+        this.evaluationLogger.error(this.alertRule.getId(), alertRule.getName(), loggerClass, e, format, args);
     }
 
     @Override

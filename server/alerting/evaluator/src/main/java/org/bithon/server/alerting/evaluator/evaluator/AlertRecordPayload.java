@@ -31,6 +31,12 @@ import java.util.Map;
 @Data
 @Builder
 public class AlertRecordPayload {
+    // Evaluation start
+    private long start;
+
+    // Evaluation end
+    private long end;
+
     private Collection<AlertExpression> expressions;
     private Map<String, ExpressionEvaluationResult> conditionEvaluation;
 }

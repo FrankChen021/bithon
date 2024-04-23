@@ -29,8 +29,6 @@ import org.bithon.component.commons.expression.serialization.ExpressionSerialize
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.evaluator.AlertExpressionEvaluator;
-import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.parser.InvalidExpressionException;
 import org.bithon.server.storage.datasource.ISchema;
@@ -58,7 +56,7 @@ import java.util.function.Function;
  * Relative comparison with a percentage
  * avg by (a) (data-source.metric{dim1 = 'a', dim2=''}[1m|h]) > 5%[-1d]
  * avg by (a) (data-source.metric{dim1 = 'b', dim2=''}[1m|h]) > 5%['2023-01-01']
- *
+ * <p>
  * NOTE that this class is serialized by {@link org.bithon.server.alerting.common.serializer.AlertExpressionSerializer}
  *
  * @author frankchen
@@ -183,7 +181,7 @@ public class AlertExpression implements IExpression {
 
     @Override
     public Object evaluate(IEvaluationContext context) {
-        return new AlertExpressionEvaluator(this).evaluate((EvaluationContext) context);
+        throw new RuntimeException("Evaluate an alert expression is not supported.");
     }
 
     @Override
